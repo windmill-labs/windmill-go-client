@@ -144,6 +144,11 @@ const (
 	RawScriptLanguagePython3 RawScriptLanguage = "python3"
 )
 
+// Defines values for RawScriptType.
+const (
+	Rawscript RawScriptType = "rawscript"
+)
+
 // Defines values for ScriptKind.
 const (
 	ScriptKindCommand ScriptKind = "command"
@@ -611,11 +616,14 @@ type RawScript struct {
 	Content  string            `json:"content"`
 	Language RawScriptLanguage `json:"language"`
 	Path     *string           `json:"path,omitempty"`
-	Type     string            `json:"type"`
+	Type     RawScriptType     `json:"type"`
 }
 
 // RawScriptLanguage defines model for RawScript.Language.
 type RawScriptLanguage string
+
+// RawScriptType defines model for RawScript.Type.
+type RawScriptType string
 
 // Resource defines model for Resource.
 type Resource struct {
