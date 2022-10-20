@@ -197,8 +197,9 @@ type AuditLogOperation string
 // BranchAll defines model for BranchAll.
 type BranchAll struct {
 	Branches []struct {
-		Modules []FlowModule `json:"modules"`
-		Summary *string      `json:"summary,omitempty"`
+		Modules     []FlowModule `json:"modules"`
+		SkipFailure *bool        `json:"skip_failure,omitempty"`
+		Summary     *string      `json:"summary,omitempty"`
 	} `json:"branches"`
 	Type BranchAllType `json:"type"`
 }
@@ -355,9 +356,10 @@ type FlowMetadata struct {
 
 // FlowModule defines model for FlowModule.
 type FlowModule struct {
-	InputTransforms FlowModule_InputTransforms `json:"input_transforms"`
-	Retry           *Retry                     `json:"retry,omitempty"`
-	Sleep           *InputTransform            `json:"sleep,omitempty"`
+	Id              string                      `json:"id"`
+	InputTransforms *FlowModule_InputTransforms `json:"input_transforms,omitempty"`
+	Retry           *Retry                      `json:"retry,omitempty"`
+	Sleep           *InputTransform             `json:"sleep,omitempty"`
 	StopAfterIf     *struct {
 		Expr          string `json:"expr"`
 		SkipIfStopped *bool  `json:"skip_if_stopped,omitempty"`
@@ -399,12 +401,17 @@ type FlowStatus struct {
 // FlowStatusModule defines model for FlowStatusModule.
 type FlowStatusModule struct {
 	BranchChosen *struct {
-		Branch *int                              `json:"branch,omitempty"`
-		Type   *FlowStatusModuleBranchChosenType `json:"type,omitempty"`
+		Branch *int                             `json:"branch,omitempty"`
+		Type   FlowStatusModuleBranchChosenType `json:"type"`
 	} `json:"branch_chosen,omitempty"`
-	Count       *int      `json:"count,omitempty"`
-	ForloopJobs *[]string `json:"forloop_jobs,omitempty"`
-	Iterator    *struct {
+	Branchall *struct {
+		Branch int `json:"branch"`
+		Len    int `json:"len"`
+	} `json:"branchall,omitempty"`
+	Count    *int      `json:"count,omitempty"`
+	FlowJobs *[]string `json:"flow_jobs,omitempty"`
+	Id       *string   `json:"id,omitempty"`
+	Iterator *struct {
 		Args   *interface{}   `json:"args,omitempty"`
 		Index  *int           `json:"index,omitempty"`
 		Itered *[]interface{} `json:"itered,omitempty"`
@@ -556,8 +563,14 @@ type OpenFlowWPath struct {
 
 // PathScript defines model for PathScript.
 type PathScript struct {
-	Path string         `json:"path"`
-	Type PathScriptType `json:"type"`
+	InputTransforms *PathScript_InputTransforms `json:"input_transforms,omitempty"`
+	Path            string                      `json:"path"`
+	Type            PathScriptType              `json:"type"`
+}
+
+// PathScript_InputTransforms defines model for PathScript.InputTransforms.
+type PathScript_InputTransforms struct {
+	AdditionalProperties map[string]InputTransform `json:"-"`
 }
 
 // PathScriptType defines model for PathScript.Type.
@@ -613,10 +626,16 @@ type QueuedJobLanguage string
 
 // RawScript defines model for RawScript.
 type RawScript struct {
-	Content  string            `json:"content"`
-	Language RawScriptLanguage `json:"language"`
-	Path     *string           `json:"path,omitempty"`
-	Type     RawScriptType     `json:"type"`
+	Content         string                     `json:"content"`
+	InputTransforms *RawScript_InputTransforms `json:"input_transforms,omitempty"`
+	Language        RawScriptLanguage          `json:"language"`
+	Path            *string                    `json:"path,omitempty"`
+	Type            RawScriptType              `json:"type"`
+}
+
+// RawScript_InputTransforms defines model for RawScript.InputTransforms.
+type RawScript_InputTransforms struct {
+	AdditionalProperties map[string]InputTransform `json:"-"`
 }
 
 // RawScriptLanguage defines model for RawScript.Language.
@@ -1785,6 +1804,112 @@ func (a *ListableVariable_ExtraPerms) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for ListableVariable_ExtraPerms to handle AdditionalProperties
 func (a ListableVariable_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for PathScript_InputTransforms. Returns the specified
+// element and whether it was found
+func (a PathScript_InputTransforms) Get(fieldName string) (value InputTransform, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for PathScript_InputTransforms
+func (a *PathScript_InputTransforms) Set(fieldName string, value InputTransform) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]InputTransform)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for PathScript_InputTransforms to handle AdditionalProperties
+func (a *PathScript_InputTransforms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]InputTransform)
+		for fieldName, fieldBuf := range object {
+			var fieldVal InputTransform
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for PathScript_InputTransforms to handle AdditionalProperties
+func (a PathScript_InputTransforms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for RawScript_InputTransforms. Returns the specified
+// element and whether it was found
+func (a RawScript_InputTransforms) Get(fieldName string) (value InputTransform, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for RawScript_InputTransforms
+func (a *RawScript_InputTransforms) Set(fieldName string, value InputTransform) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]InputTransform)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for RawScript_InputTransforms to handle AdditionalProperties
+func (a *RawScript_InputTransforms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]InputTransform)
+		for fieldName, fieldBuf := range object {
+			var fieldVal InputTransform
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for RawScript_InputTransforms to handle AdditionalProperties
+func (a RawScript_InputTransforms) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
