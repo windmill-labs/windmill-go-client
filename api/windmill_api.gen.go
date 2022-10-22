@@ -151,10 +151,11 @@ const (
 
 // Defines values for ScriptKind.
 const (
-	ScriptKindCommand ScriptKind = "command"
-	ScriptKindFailure ScriptKind = "failure"
-	ScriptKindScript  ScriptKind = "script"
-	ScriptKindTrigger ScriptKind = "trigger"
+	ScriptKindApproval ScriptKind = "approval"
+	ScriptKindCommand  ScriptKind = "command"
+	ScriptKindFailure  ScriptKind = "failure"
+	ScriptKindScript   ScriptKind = "script"
+	ScriptKindTrigger  ScriptKind = "trigger"
 )
 
 // Defines values for ScriptLanguage.
@@ -2260,6 +2261,9 @@ type ClientInterface interface {
 	// GetHubScriptContentByPath request
 	GetHubScriptContentByPath(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetHubScriptByPath request
+	GetHubScriptByPath(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListHubScripts request
 	ListHubScripts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2414,6 +2418,9 @@ type ClientInterface interface {
 
 	// GetJob request
 	GetJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSuspendedJobFlow request
+	GetSuspendedJobFlow(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetJobUpdates request
 	GetJobUpdates(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2935,6 +2942,18 @@ func (c *Client) GoToJsonschema(ctx context.Context, body GoToJsonschemaJSONRequ
 
 func (c *Client) GetHubScriptContentByPath(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetHubScriptContentByPathRequest(c.Server, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetHubScriptByPath(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetHubScriptByPathRequest(c.Server, path)
 	if err != nil {
 		return nil, err
 	}
@@ -3619,6 +3638,18 @@ func (c *Client) ListCompletedJobs(ctx context.Context, workspace WorkspaceId, p
 
 func (c *Client) GetJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetJobRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSuspendedJobFlow(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSuspendedJobFlowRequest(c.Server, workspace, id, resumeId, signature)
 	if err != nil {
 		return nil, err
 	}
@@ -5354,6 +5385,40 @@ func NewGetHubScriptContentByPathRequest(server string, path ScriptPath) (*http.
 	}
 
 	operationPath := fmt.Sprintf("/scripts/hub/get/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetHubScriptByPathRequest generates requests for GetHubScriptByPath
+func NewGetHubScriptByPathRequest(server string, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/scripts/hub/get_full/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -7569,6 +7634,61 @@ func NewGetJobRequest(server string, workspace WorkspaceId, id JobId) (*http.Req
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/jobs/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetSuspendedJobFlowRequest generates requests for GetSuspendedJobFlow
+func NewGetSuspendedJobFlowRequest(server string, workspace WorkspaceId, id JobId, resumeId int, signature string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resume_id", runtime.ParamLocationPath, resumeId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam3 string
+
+	pathParam3, err = runtime.StyleParamWithLocation("simple", false, "signature", runtime.ParamLocationPath, signature)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/get_flow/%s/%s/%s", pathParam0, pathParam1, pathParam2, pathParam3)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -11927,6 +12047,9 @@ type ClientWithResponsesInterface interface {
 	// GetHubScriptContentByPath request
 	GetHubScriptContentByPathWithResponse(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*GetHubScriptContentByPathResponse, error)
 
+	// GetHubScriptByPath request
+	GetHubScriptByPathWithResponse(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*GetHubScriptByPathResponse, error)
+
 	// ListHubScripts request
 	ListHubScriptsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubScriptsResponse, error)
 
@@ -12081,6 +12204,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetJob request
 	GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobResponse, error)
+
+	// GetSuspendedJobFlow request
+	GetSuspendedJobFlowWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, reqEditors ...RequestEditorFn) (*GetSuspendedJobFlowResponse, error)
 
 	// GetJobUpdates request
 	GetJobUpdatesWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*GetJobUpdatesResponse, error)
@@ -12670,19 +12796,46 @@ func (r GetHubScriptContentByPathResponse) StatusCode() int {
 	return 0
 }
 
+type GetHubScriptByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Content  string       `json:"content"`
+		Language N200Language `json:"language"`
+		Lockfile *string      `json:"lockfile,omitempty"`
+		Schema   *interface{} `json:"schema,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetHubScriptByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetHubScriptByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListHubScriptsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Asks *[]struct {
-			App      string  `json:"app"`
-			Approved bool    `json:"approved"`
-			AskId    float32 `json:"ask_id"`
-			Id       float32 `json:"id"`
-			Kind     string  `json:"kind"`
-			Summary  string  `json:"summary"`
-			Views    float32 `json:"views"`
-			Votes    float32 `json:"votes"`
+			App      string       `json:"app"`
+			Approved bool         `json:"approved"`
+			AskId    float32      `json:"ask_id"`
+			Id       float32      `json:"id"`
+			Kind     N200AsksKind `json:"kind"`
+			Summary  string       `json:"summary"`
+			Views    float32      `json:"views"`
+			Votes    float32      `json:"votes"`
 		} `json:"asks,omitempty"`
 	}
 }
@@ -13557,6 +13710,28 @@ func (r GetJobResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetSuspendedJobFlowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Job
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSuspendedJobFlowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSuspendedJobFlowResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -15400,6 +15575,15 @@ func (c *ClientWithResponses) GetHubScriptContentByPathWithResponse(ctx context.
 	return ParseGetHubScriptContentByPathResponse(rsp)
 }
 
+// GetHubScriptByPathWithResponse request returning *GetHubScriptByPathResponse
+func (c *ClientWithResponses) GetHubScriptByPathWithResponse(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*GetHubScriptByPathResponse, error) {
+	rsp, err := c.GetHubScriptByPath(ctx, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetHubScriptByPathResponse(rsp)
+}
+
 // ListHubScriptsWithResponse request returning *ListHubScriptsResponse
 func (c *ClientWithResponses) ListHubScriptsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubScriptsResponse, error) {
 	rsp, err := c.ListHubScripts(ctx, reqEditors...)
@@ -15895,6 +16079,15 @@ func (c *ClientWithResponses) GetJobWithResponse(ctx context.Context, workspace 
 		return nil, err
 	}
 	return ParseGetJobResponse(rsp)
+}
+
+// GetSuspendedJobFlowWithResponse request returning *GetSuspendedJobFlowResponse
+func (c *ClientWithResponses) GetSuspendedJobFlowWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, reqEditors ...RequestEditorFn) (*GetSuspendedJobFlowResponse, error) {
+	rsp, err := c.GetSuspendedJobFlow(ctx, workspace, id, resumeId, signature, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSuspendedJobFlowResponse(rsp)
 }
 
 // GetJobUpdatesWithResponse request returning *GetJobUpdatesResponse
@@ -17136,6 +17329,37 @@ func ParseGetHubScriptContentByPathResponse(rsp *http.Response) (*GetHubScriptCo
 	return response, nil
 }
 
+// ParseGetHubScriptByPathResponse parses an HTTP response from a GetHubScriptByPathWithResponse call
+func ParseGetHubScriptByPathResponse(rsp *http.Response) (*GetHubScriptByPathResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetHubScriptByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Content  string       `json:"content"`
+			Language N200Language `json:"language"`
+			Lockfile *string      `json:"lockfile,omitempty"`
+			Schema   *interface{} `json:"schema,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListHubScriptsResponse parses an HTTP response from a ListHubScriptsWithResponse call
 func ParseListHubScriptsResponse(rsp *http.Response) (*ListHubScriptsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -17153,14 +17377,14 @@ func ParseListHubScriptsResponse(rsp *http.Response) (*ListHubScriptsResponse, e
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Asks *[]struct {
-				App      string  `json:"app"`
-				Approved bool    `json:"approved"`
-				AskId    float32 `json:"ask_id"`
-				Id       float32 `json:"id"`
-				Kind     string  `json:"kind"`
-				Summary  string  `json:"summary"`
-				Views    float32 `json:"views"`
-				Votes    float32 `json:"votes"`
+				App      string       `json:"app"`
+				Approved bool         `json:"approved"`
+				AskId    float32      `json:"ask_id"`
+				Id       float32      `json:"id"`
+				Kind     N200AsksKind `json:"kind"`
+				Summary  string       `json:"summary"`
+				Views    float32      `json:"views"`
+				Votes    float32      `json:"votes"`
 			} `json:"asks,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -17978,6 +18202,32 @@ func ParseGetJobResponse(rsp *http.Response) (*GetJobResponse, error) {
 	}
 
 	response := &GetJobResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Job
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSuspendedJobFlowResponse parses an HTTP response from a GetSuspendedJobFlowWithResponse call
+func ParseGetSuspendedJobFlowResponse(rsp *http.Response) (*GetSuspendedJobFlowResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSuspendedJobFlowResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
