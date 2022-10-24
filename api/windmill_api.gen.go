@@ -401,6 +401,7 @@ type FlowStatus struct {
 
 // FlowStatusModule defines model for FlowStatusModule.
 type FlowStatusModule struct {
+	Approvers    *[]string `json:"approvers,omitempty"`
 	BranchChosen *struct {
 		Branch *int                             `json:"branch,omitempty"`
 		Type   FlowStatusModuleBranchChosenType `json:"type"`
@@ -1103,11 +1104,17 @@ type UpdateGroupJSONBody struct {
 
 // CancelSuspendedJobGetParams defines parameters for CancelSuspendedJobGet.
 type CancelSuspendedJobGetParams struct {
-	Payload *map[string]interface{} `form:"payload,omitempty" json:"payload,omitempty"`
+	Payload  *map[string]interface{} `form:"payload,omitempty" json:"payload,omitempty"`
+	Approver *string                 `form:"approver,omitempty" json:"approver,omitempty"`
 }
 
 // CancelSuspendedJobPostJSONBody defines parameters for CancelSuspendedJobPost.
 type CancelSuspendedJobPostJSONBody = map[string]interface{}
+
+// CancelSuspendedJobPostParams defines parameters for CancelSuspendedJobPost.
+type CancelSuspendedJobPostParams struct {
+	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
+}
 
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
 type ListCompletedJobsParams struct {
@@ -1148,10 +1155,20 @@ type ListCompletedJobsParams struct {
 	IsFlowStep *bool `form:"is_flow_step,omitempty" json:"is_flow_step,omitempty"`
 }
 
+// GetSuspendedJobFlowParams defines parameters for GetSuspendedJobFlow.
+type GetSuspendedJobFlowParams struct {
+	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
+}
+
 // GetJobUpdatesParams defines parameters for GetJobUpdates.
 type GetJobUpdatesParams struct {
 	Running   *bool `form:"running,omitempty" json:"running,omitempty"`
 	LogOffset *int  `form:"log_offset,omitempty" json:"log_offset,omitempty"`
+}
+
+// CreateJobSignatureParams defines parameters for CreateJobSignature.
+type CreateJobSignatureParams struct {
+	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
 }
 
 // ListJobsParams defines parameters for ListJobs.
@@ -1230,11 +1247,17 @@ type ListQueueParams struct {
 
 // ResumeSuspendedJobGetParams defines parameters for ResumeSuspendedJobGet.
 type ResumeSuspendedJobGetParams struct {
-	Payload *map[string]interface{} `form:"payload,omitempty" json:"payload,omitempty"`
+	Payload  *map[string]interface{} `form:"payload,omitempty" json:"payload,omitempty"`
+	Approver *string                 `form:"approver,omitempty" json:"approver,omitempty"`
 }
 
 // ResumeSuspendedJobPostJSONBody defines parameters for ResumeSuspendedJobPost.
 type ResumeSuspendedJobPostJSONBody = map[string]interface{}
+
+// ResumeSuspendedJobPostParams defines parameters for ResumeSuspendedJobPost.
+type ResumeSuspendedJobPostParams struct {
+	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
+}
 
 // RunFlowByPathJSONBody defines parameters for RunFlowByPath.
 type RunFlowByPathJSONBody = ScriptArgs
@@ -2403,9 +2426,9 @@ type ClientInterface interface {
 	CancelSuspendedJobGet(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CancelSuspendedJobPost request with any body
-	CancelSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CancelSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	CancelSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, body CancelSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CancelSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, body CancelSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteCompletedJob request
 	DeleteCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2420,13 +2443,13 @@ type ClientInterface interface {
 	GetJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSuspendedJobFlow request
-	GetSuspendedJobFlow(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetSuspendedJobFlow(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *GetSuspendedJobFlowParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetJobUpdates request
 	GetJobUpdates(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateJobSignature request
-	CreateJobSignature(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateJobSignature(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListJobs request
 	ListJobs(ctx context.Context, workspace WorkspaceId, params *ListJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2443,9 +2466,9 @@ type ClientInterface interface {
 	ResumeSuspendedJobGet(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResumeSuspendedJobPost request with any body
-	ResumeSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ResumeSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	ResumeSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ResumeSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunFlowByPath request with any body
 	RunFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3576,8 +3599,8 @@ func (c *Client) CancelSuspendedJobGet(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) CancelSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCancelSuspendedJobPostRequestWithBody(c.Server, workspace, id, resumeId, signature, contentType, body)
+func (c *Client) CancelSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelSuspendedJobPostRequestWithBody(c.Server, workspace, id, resumeId, signature, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3588,8 +3611,8 @@ func (c *Client) CancelSuspendedJobPostWithBody(ctx context.Context, workspace W
 	return c.Client.Do(req)
 }
 
-func (c *Client) CancelSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, body CancelSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCancelSuspendedJobPostRequest(c.Server, workspace, id, resumeId, signature, body)
+func (c *Client) CancelSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, body CancelSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelSuspendedJobPostRequest(c.Server, workspace, id, resumeId, signature, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3648,8 +3671,8 @@ func (c *Client) GetJob(ctx context.Context, workspace WorkspaceId, id JobId, re
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetSuspendedJobFlow(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetSuspendedJobFlowRequest(c.Server, workspace, id, resumeId, signature)
+func (c *Client) GetSuspendedJobFlow(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *GetSuspendedJobFlowParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSuspendedJobFlowRequest(c.Server, workspace, id, resumeId, signature, params)
 	if err != nil {
 		return nil, err
 	}
@@ -3672,8 +3695,8 @@ func (c *Client) GetJobUpdates(ctx context.Context, workspace WorkspaceId, id Jo
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateJobSignature(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateJobSignatureRequest(c.Server, workspace, id, resumeId)
+func (c *Client) CreateJobSignature(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateJobSignatureRequest(c.Server, workspace, id, resumeId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -3744,8 +3767,8 @@ func (c *Client) ResumeSuspendedJobGet(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) ResumeSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewResumeSuspendedJobPostRequestWithBody(c.Server, workspace, id, resumeId, signature, contentType, body)
+func (c *Client) ResumeSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResumeSuspendedJobPostRequestWithBody(c.Server, workspace, id, resumeId, signature, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3756,8 +3779,8 @@ func (c *Client) ResumeSuspendedJobPostWithBody(ctx context.Context, workspace W
 	return c.Client.Do(req)
 }
 
-func (c *Client) ResumeSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewResumeSuspendedJobPostRequest(c.Server, workspace, id, resumeId, signature, body)
+func (c *Client) ResumeSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResumeSuspendedJobPostRequest(c.Server, workspace, id, resumeId, signature, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -7220,6 +7243,22 @@ func NewCancelSuspendedJobGetRequest(server string, workspace WorkspaceId, id Jo
 
 	}
 
+	if params.Approver != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approver", runtime.ParamLocationQuery, *params.Approver); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -7231,18 +7270,18 @@ func NewCancelSuspendedJobGetRequest(server string, workspace WorkspaceId, id Jo
 }
 
 // NewCancelSuspendedJobPostRequest calls the generic CancelSuspendedJobPost builder with application/json body
-func NewCancelSuspendedJobPostRequest(server string, workspace WorkspaceId, id JobId, resumeId int, signature string, body CancelSuspendedJobPostJSONRequestBody) (*http.Request, error) {
+func NewCancelSuspendedJobPostRequest(server string, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, body CancelSuspendedJobPostJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewCancelSuspendedJobPostRequestWithBody(server, workspace, id, resumeId, signature, "application/json", bodyReader)
+	return NewCancelSuspendedJobPostRequestWithBody(server, workspace, id, resumeId, signature, params, "application/json", bodyReader)
 }
 
 // NewCancelSuspendedJobPostRequestWithBody generates requests for CancelSuspendedJobPost with any type of body
-func NewCancelSuspendedJobPostRequestWithBody(server string, workspace WorkspaceId, id JobId, resumeId int, signature string, contentType string, body io.Reader) (*http.Request, error) {
+func NewCancelSuspendedJobPostRequestWithBody(server string, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -7287,6 +7326,26 @@ func NewCancelSuspendedJobPostRequestWithBody(server string, workspace Workspace
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.Approver != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approver", runtime.ParamLocationQuery, *params.Approver); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
@@ -7652,7 +7711,7 @@ func NewGetJobRequest(server string, workspace WorkspaceId, id JobId) (*http.Req
 }
 
 // NewGetSuspendedJobFlowRequest generates requests for GetSuspendedJobFlow
-func NewGetSuspendedJobFlowRequest(server string, workspace WorkspaceId, id JobId, resumeId int, signature string) (*http.Request, error) {
+func NewGetSuspendedJobFlowRequest(server string, workspace WorkspaceId, id JobId, resumeId int, signature string, params *GetSuspendedJobFlowParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -7697,6 +7756,26 @@ func NewGetSuspendedJobFlowRequest(server string, workspace WorkspaceId, id JobI
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.Approver != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approver", runtime.ParamLocationQuery, *params.Approver); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -7784,7 +7863,7 @@ func NewGetJobUpdatesRequest(server string, workspace WorkspaceId, id JobId, par
 }
 
 // NewCreateJobSignatureRequest generates requests for CreateJobSignature
-func NewCreateJobSignatureRequest(server string, workspace WorkspaceId, id JobId, resumeId int) (*http.Request, error) {
+func NewCreateJobSignatureRequest(server string, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -7822,6 +7901,26 @@ func NewCreateJobSignatureRequest(server string, workspace WorkspaceId, id JobId
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.Approver != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approver", runtime.ParamLocationQuery, *params.Approver); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -8362,6 +8461,22 @@ func NewResumeSuspendedJobGetRequest(server string, workspace WorkspaceId, id Jo
 
 	}
 
+	if params.Approver != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approver", runtime.ParamLocationQuery, *params.Approver); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -8373,18 +8488,18 @@ func NewResumeSuspendedJobGetRequest(server string, workspace WorkspaceId, id Jo
 }
 
 // NewResumeSuspendedJobPostRequest calls the generic ResumeSuspendedJobPost builder with application/json body
-func NewResumeSuspendedJobPostRequest(server string, workspace WorkspaceId, id JobId, resumeId int, signature string, body ResumeSuspendedJobPostJSONRequestBody) (*http.Request, error) {
+func NewResumeSuspendedJobPostRequest(server string, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewResumeSuspendedJobPostRequestWithBody(server, workspace, id, resumeId, signature, "application/json", bodyReader)
+	return NewResumeSuspendedJobPostRequestWithBody(server, workspace, id, resumeId, signature, params, "application/json", bodyReader)
 }
 
 // NewResumeSuspendedJobPostRequestWithBody generates requests for ResumeSuspendedJobPost with any type of body
-func NewResumeSuspendedJobPostRequestWithBody(server string, workspace WorkspaceId, id JobId, resumeId int, signature string, contentType string, body io.Reader) (*http.Request, error) {
+func NewResumeSuspendedJobPostRequestWithBody(server string, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -8429,6 +8544,26 @@ func NewResumeSuspendedJobPostRequestWithBody(server string, workspace Workspace
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.Approver != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approver", runtime.ParamLocationQuery, *params.Approver); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
@@ -12189,9 +12324,9 @@ type ClientWithResponsesInterface interface {
 	CancelSuspendedJobGetWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobGetParams, reqEditors ...RequestEditorFn) (*CancelSuspendedJobGetResponse, error)
 
 	// CancelSuspendedJobPost request with any body
-	CancelSuspendedJobPostWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSuspendedJobPostResponse, error)
+	CancelSuspendedJobPostWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSuspendedJobPostResponse, error)
 
-	CancelSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, body CancelSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSuspendedJobPostResponse, error)
+	CancelSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, body CancelSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSuspendedJobPostResponse, error)
 
 	// DeleteCompletedJob request
 	DeleteCompletedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*DeleteCompletedJobResponse, error)
@@ -12206,13 +12341,13 @@ type ClientWithResponsesInterface interface {
 	GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobResponse, error)
 
 	// GetSuspendedJobFlow request
-	GetSuspendedJobFlowWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, reqEditors ...RequestEditorFn) (*GetSuspendedJobFlowResponse, error)
+	GetSuspendedJobFlowWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *GetSuspendedJobFlowParams, reqEditors ...RequestEditorFn) (*GetSuspendedJobFlowResponse, error)
 
 	// GetJobUpdates request
 	GetJobUpdatesWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*GetJobUpdatesResponse, error)
 
 	// CreateJobSignature request
-	CreateJobSignatureWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, reqEditors ...RequestEditorFn) (*CreateJobSignatureResponse, error)
+	CreateJobSignatureWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*CreateJobSignatureResponse, error)
 
 	// ListJobs request
 	ListJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListJobsParams, reqEditors ...RequestEditorFn) (*ListJobsResponse, error)
@@ -12229,9 +12364,9 @@ type ClientWithResponsesInterface interface {
 	ResumeSuspendedJobGetWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobGetParams, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobGetResponse, error)
 
 	// ResumeSuspendedJobPost request with any body
-	ResumeSuspendedJobPostWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error)
+	ResumeSuspendedJobPostWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error)
 
-	ResumeSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error)
+	ResumeSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error)
 
 	// RunFlowByPath request with any body
 	RunFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowByPathResponse, error)
@@ -13719,7 +13854,10 @@ func (r GetJobResponse) StatusCode() int {
 type GetSuspendedJobFlowResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Job
+	JSON200      *struct {
+		Approvers []string `json:"approvers"`
+		Job       Job      `json:"job"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -16029,16 +16167,16 @@ func (c *ClientWithResponses) CancelSuspendedJobGetWithResponse(ctx context.Cont
 }
 
 // CancelSuspendedJobPostWithBodyWithResponse request with arbitrary body returning *CancelSuspendedJobPostResponse
-func (c *ClientWithResponses) CancelSuspendedJobPostWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSuspendedJobPostResponse, error) {
-	rsp, err := c.CancelSuspendedJobPostWithBody(ctx, workspace, id, resumeId, signature, contentType, body, reqEditors...)
+func (c *ClientWithResponses) CancelSuspendedJobPostWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSuspendedJobPostResponse, error) {
+	rsp, err := c.CancelSuspendedJobPostWithBody(ctx, workspace, id, resumeId, signature, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseCancelSuspendedJobPostResponse(rsp)
 }
 
-func (c *ClientWithResponses) CancelSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, body CancelSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSuspendedJobPostResponse, error) {
-	rsp, err := c.CancelSuspendedJobPost(ctx, workspace, id, resumeId, signature, body, reqEditors...)
+func (c *ClientWithResponses) CancelSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, body CancelSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSuspendedJobPostResponse, error) {
+	rsp, err := c.CancelSuspendedJobPost(ctx, workspace, id, resumeId, signature, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -16082,8 +16220,8 @@ func (c *ClientWithResponses) GetJobWithResponse(ctx context.Context, workspace 
 }
 
 // GetSuspendedJobFlowWithResponse request returning *GetSuspendedJobFlowResponse
-func (c *ClientWithResponses) GetSuspendedJobFlowWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, reqEditors ...RequestEditorFn) (*GetSuspendedJobFlowResponse, error) {
-	rsp, err := c.GetSuspendedJobFlow(ctx, workspace, id, resumeId, signature, reqEditors...)
+func (c *ClientWithResponses) GetSuspendedJobFlowWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *GetSuspendedJobFlowParams, reqEditors ...RequestEditorFn) (*GetSuspendedJobFlowResponse, error) {
+	rsp, err := c.GetSuspendedJobFlow(ctx, workspace, id, resumeId, signature, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -16100,8 +16238,8 @@ func (c *ClientWithResponses) GetJobUpdatesWithResponse(ctx context.Context, wor
 }
 
 // CreateJobSignatureWithResponse request returning *CreateJobSignatureResponse
-func (c *ClientWithResponses) CreateJobSignatureWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, reqEditors ...RequestEditorFn) (*CreateJobSignatureResponse, error) {
-	rsp, err := c.CreateJobSignature(ctx, workspace, id, resumeId, reqEditors...)
+func (c *ClientWithResponses) CreateJobSignatureWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*CreateJobSignatureResponse, error) {
+	rsp, err := c.CreateJobSignature(ctx, workspace, id, resumeId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -16153,16 +16291,16 @@ func (c *ClientWithResponses) ResumeSuspendedJobGetWithResponse(ctx context.Cont
 }
 
 // ResumeSuspendedJobPostWithBodyWithResponse request with arbitrary body returning *ResumeSuspendedJobPostResponse
-func (c *ClientWithResponses) ResumeSuspendedJobPostWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error) {
-	rsp, err := c.ResumeSuspendedJobPostWithBody(ctx, workspace, id, resumeId, signature, contentType, body, reqEditors...)
+func (c *ClientWithResponses) ResumeSuspendedJobPostWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error) {
+	rsp, err := c.ResumeSuspendedJobPostWithBody(ctx, workspace, id, resumeId, signature, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseResumeSuspendedJobPostResponse(rsp)
 }
 
-func (c *ClientWithResponses) ResumeSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error) {
-	rsp, err := c.ResumeSuspendedJobPost(ctx, workspace, id, resumeId, signature, body, reqEditors...)
+func (c *ClientWithResponses) ResumeSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error) {
+	rsp, err := c.ResumeSuspendedJobPost(ctx, workspace, id, resumeId, signature, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -18234,7 +18372,10 @@ func ParseGetSuspendedJobFlowResponse(rsp *http.Response) (*GetSuspendedJobFlowR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Job
+		var dest struct {
+			Approvers []string `json:"approvers"`
+			Job       Job      `json:"job"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
