@@ -834,16 +834,6 @@ type ScriptLanguage string
 // ScriptArgs defines model for ScriptArgs.
 type ScriptArgs map[string]interface{}
 
-// SlackToken defines model for SlackToken.
-type SlackToken struct {
-	AccessToken string `json:"access_token"`
-	Bot         struct {
-		BotAccessToken *string `json:"bot_access_token,omitempty"`
-	} `json:"bot"`
-	TeamId   string `json:"team_id"`
-	TeamName string `json:"team_name"`
-}
-
 // StaticTransform defines model for StaticTransform.
 type StaticTransform struct {
 	Type  StaticTransformType `json:"type"`
@@ -1008,12 +998,6 @@ type WorkspaceId = string
 
 // ConnectCallbackJSONBody defines parameters for ConnectCallback.
 type ConnectCallbackJSONBody struct {
-	Code  string `json:"code"`
-	State string `json:"state"`
-}
-
-// ConnectSlackCallbackJSONBody defines parameters for ConnectSlackCallback.
-type ConnectSlackCallbackJSONBody struct {
 	Code  string `json:"code"`
 	State string `json:"state"`
 }
@@ -1397,6 +1381,12 @@ type RunWaitResultScriptByPathParams struct {
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 }
 
+// ConnectSlackCallbackJSONBody defines parameters for ConnectSlackCallback.
+type ConnectSlackCallbackJSONBody struct {
+	Code  string `json:"code"`
+	State string `json:"state"`
+}
+
 // CreateAccountJSONBody defines parameters for CreateAccount.
 type CreateAccountJSONBody struct {
 	Client       string `json:"client"`
@@ -1567,9 +1557,6 @@ type LoginJSONRequestBody = Login
 // ConnectCallbackJSONRequestBody defines body for ConnectCallback for application/json ContentType.
 type ConnectCallbackJSONRequestBody ConnectCallbackJSONBody
 
-// ConnectSlackCallbackJSONRequestBody defines body for ConnectSlackCallback for application/json ContentType.
-type ConnectSlackCallbackJSONRequestBody ConnectSlackCallbackJSONBody
-
 // LoginWithOauthJSONRequestBody defines body for LoginWithOauth for application/json ContentType.
 type LoginWithOauthJSONRequestBody LoginWithOauthJSONBody
 
@@ -1654,14 +1641,14 @@ type RunFlowPreviewJSONRequestBody = FlowPreview
 // RunWaitResultScriptByPathJSONRequestBody defines body for RunWaitResultScriptByPath for application/json ContentType.
 type RunWaitResultScriptByPathJSONRequestBody = ScriptArgs
 
+// ConnectSlackCallbackJSONRequestBody defines body for ConnectSlackCallback for application/json ContentType.
+type ConnectSlackCallbackJSONRequestBody ConnectSlackCallbackJSONBody
+
 // CreateAccountJSONRequestBody defines body for CreateAccount for application/json ContentType.
 type CreateAccountJSONRequestBody CreateAccountJSONBody
 
 // RefreshTokenJSONRequestBody defines body for RefreshToken for application/json ContentType.
 type RefreshTokenJSONRequestBody RefreshTokenJSONBody
-
-// SetWorkspaceSlackJSONRequestBody defines body for SetWorkspaceSlack for application/json ContentType.
-type SetWorkspaceSlackJSONRequestBody = SlackToken
 
 // CreateResourceJSONRequestBody defines body for CreateResource for application/json ContentType.
 type CreateResourceJSONRequestBody = CreateResource
@@ -2340,11 +2327,6 @@ type ClientInterface interface {
 
 	ConnectCallback(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ConnectSlackCallback request with any body
-	ConnectSlackCallbackWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	ConnectSlackCallback(ctx context.Context, body ConnectSlackCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ListOAuthConnects request
 	ListOAuthConnects(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2605,6 +2587,11 @@ type ClientInterface interface {
 
 	RunWaitResultScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ConnectSlackCallback request with any body
+	ConnectSlackCallbackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ConnectSlackCallback(ctx context.Context, workspace WorkspaceId, body ConnectSlackCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateAccount request with any body
 	CreateAccountWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2620,11 +2607,6 @@ type ClientInterface interface {
 	RefreshTokenWithBody(ctx context.Context, workspace WorkspaceId, id AccountId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RefreshToken(ctx context.Context, workspace WorkspaceId, id AccountId, body RefreshTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// SetWorkspaceSlack request with any body
-	SetWorkspaceSlackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	SetWorkspaceSlack(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateResource request with any body
 	CreateResourceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2905,30 +2887,6 @@ func (c *Client) ConnectCallbackWithBody(ctx context.Context, clientName ClientN
 
 func (c *Client) ConnectCallback(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConnectCallbackRequest(c.Server, clientName, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ConnectSlackCallbackWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewConnectSlackCallbackRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ConnectSlackCallback(ctx context.Context, body ConnectSlackCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewConnectSlackCallbackRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -4091,6 +4049,30 @@ func (c *Client) RunWaitResultScriptByPath(ctx context.Context, workspace Worksp
 	return c.Client.Do(req)
 }
 
+func (c *Client) ConnectSlackCallbackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectSlackCallbackRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectSlackCallback(ctx context.Context, workspace WorkspaceId, body ConnectSlackCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectSlackCallbackRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateAccountWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateAccountRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -4153,30 +4135,6 @@ func (c *Client) RefreshTokenWithBody(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) RefreshToken(ctx context.Context, workspace WorkspaceId, id AccountId, body RefreshTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRefreshTokenRequest(c.Server, workspace, id, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SetWorkspaceSlackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetWorkspaceSlackRequestWithBody(c.Server, workspace, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SetWorkspaceSlack(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetWorkspaceSlackRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -5252,46 +5210,6 @@ func NewConnectCallbackRequestWithBody(server string, clientName ClientName, con
 	}
 
 	operationPath := fmt.Sprintf("/oauth/connect_callback/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewConnectSlackCallbackRequest calls the generic ConnectSlackCallback builder with application/json body
-func NewConnectSlackCallbackRequest(server string, body ConnectSlackCallbackJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewConnectSlackCallbackRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewConnectSlackCallbackRequestWithBody generates requests for ConnectSlackCallback with any type of body
-func NewConnectSlackCallbackRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/oauth/connect_slack_callback")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -9420,6 +9338,53 @@ func NewRunWaitResultScriptByPathRequestWithBody(server string, workspace Worksp
 	return req, nil
 }
 
+// NewConnectSlackCallbackRequest calls the generic ConnectSlackCallback builder with application/json body
+func NewConnectSlackCallbackRequest(server string, workspace WorkspaceId, body ConnectSlackCallbackJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewConnectSlackCallbackRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewConnectSlackCallbackRequestWithBody generates requests for ConnectSlackCallback with any type of body
+func NewConnectSlackCallbackRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/oauth/connect_slack_callback", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateAccountRequest calls the generic CreateAccount builder with application/json body
 func NewCreateAccountRequest(server string, workspace WorkspaceId, body CreateAccountJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -9577,53 +9542,6 @@ func NewRefreshTokenRequestWithBody(server string, workspace WorkspaceId, id Acc
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/oauth/refresh_token/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewSetWorkspaceSlackRequest calls the generic SetWorkspaceSlack builder with application/json body
-func NewSetWorkspaceSlackRequest(server string, workspace WorkspaceId, body SetWorkspaceSlackJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewSetWorkspaceSlackRequestWithBody(server, workspace, "application/json", bodyReader)
-}
-
-// NewSetWorkspaceSlackRequestWithBody generates requests for SetWorkspaceSlack with any type of body
-func NewSetWorkspaceSlackRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/oauth/set_workspace_slack", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -12513,11 +12431,6 @@ type ClientWithResponsesInterface interface {
 
 	ConnectCallbackWithResponse(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error)
 
-	// ConnectSlackCallback request with any body
-	ConnectSlackCallbackWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error)
-
-	ConnectSlackCallbackWithResponse(ctx context.Context, body ConnectSlackCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error)
-
 	// ListOAuthConnects request
 	ListOAuthConnectsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListOAuthConnectsResponse, error)
 
@@ -12778,6 +12691,11 @@ type ClientWithResponsesInterface interface {
 
 	RunWaitResultScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunWaitResultScriptByPathResponse, error)
 
+	// ConnectSlackCallback request with any body
+	ConnectSlackCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error)
+
+	ConnectSlackCallbackWithResponse(ctx context.Context, workspace WorkspaceId, body ConnectSlackCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error)
+
 	// CreateAccount request with any body
 	CreateAccountWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAccountResponse, error)
 
@@ -12793,11 +12711,6 @@ type ClientWithResponsesInterface interface {
 	RefreshTokenWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id AccountId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RefreshTokenResponse, error)
 
 	RefreshTokenWithResponse(ctx context.Context, workspace WorkspaceId, id AccountId, body RefreshTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*RefreshTokenResponse, error)
-
-	// SetWorkspaceSlack request with any body
-	SetWorkspaceSlackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackResponse, error)
-
-	SetWorkspaceSlackWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackResponse, error)
 
 	// CreateResource request with any body
 	CreateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResourceResponse, error)
@@ -13114,28 +13027,6 @@ func (r ConnectCallbackResponse) StatusCode() int {
 	return 0
 }
 
-type ConnectSlackCallbackResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *SlackToken
-}
-
-// Status returns HTTPResponse.Status
-func (r ConnectSlackCallbackResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ConnectSlackCallbackResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type ListOAuthConnectsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -13317,7 +13208,7 @@ type GetHubScriptByPathResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Content  string       `json:"content"`
-		Language N200Language `json:"language"`
+		Language string       `json:"language"`
 		Lockfile *string      `json:"lockfile,omitempty"`
 		Schema   *interface{} `json:"schema,omitempty"`
 		Summary  *string      `json:"summary,omitempty"`
@@ -13345,14 +13236,14 @@ type ListHubScriptsResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Asks *[]struct {
-			App      string       `json:"app"`
-			Approved bool         `json:"approved"`
-			AskId    float32      `json:"ask_id"`
-			Id       float32      `json:"id"`
-			Kind     N200AsksKind `json:"kind"`
-			Summary  string       `json:"summary"`
-			Views    float32      `json:"views"`
-			Votes    float32      `json:"votes"`
+			App      string  `json:"app"`
+			Approved bool    `json:"approved"`
+			AskId    float32 `json:"ask_id"`
+			Id       float32 `json:"id"`
+			Kind     string  `json:"kind"`
+			Summary  string  `json:"summary"`
+			Views    float32 `json:"views"`
+			Votes    float32 `json:"votes"`
 		} `json:"asks,omitempty"`
 	}
 }
@@ -14626,6 +14517,27 @@ func (r RunWaitResultScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
+type ConnectSlackCallbackResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ConnectSlackCallbackResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ConnectSlackCallbackResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateAccountResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -14704,27 +14616,6 @@ func (r RefreshTokenResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RefreshTokenResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type SetWorkspaceSlackResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r SetWorkspaceSlackResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r SetWorkspaceSlackResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -16083,23 +15974,6 @@ func (c *ClientWithResponses) ConnectCallbackWithResponse(ctx context.Context, c
 	return ParseConnectCallbackResponse(rsp)
 }
 
-// ConnectSlackCallbackWithBodyWithResponse request with arbitrary body returning *ConnectSlackCallbackResponse
-func (c *ClientWithResponses) ConnectSlackCallbackWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error) {
-	rsp, err := c.ConnectSlackCallbackWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseConnectSlackCallbackResponse(rsp)
-}
-
-func (c *ClientWithResponses) ConnectSlackCallbackWithResponse(ctx context.Context, body ConnectSlackCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error) {
-	rsp, err := c.ConnectSlackCallback(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseConnectSlackCallbackResponse(rsp)
-}
-
 // ListOAuthConnectsWithResponse request returning *ListOAuthConnectsResponse
 func (c *ClientWithResponses) ListOAuthConnectsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListOAuthConnectsResponse, error) {
 	rsp, err := c.ListOAuthConnects(ctx, reqEditors...)
@@ -16936,6 +16810,23 @@ func (c *ClientWithResponses) RunWaitResultScriptByPathWithResponse(ctx context.
 	return ParseRunWaitResultScriptByPathResponse(rsp)
 }
 
+// ConnectSlackCallbackWithBodyWithResponse request with arbitrary body returning *ConnectSlackCallbackResponse
+func (c *ClientWithResponses) ConnectSlackCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error) {
+	rsp, err := c.ConnectSlackCallbackWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectSlackCallbackResponse(rsp)
+}
+
+func (c *ClientWithResponses) ConnectSlackCallbackWithResponse(ctx context.Context, workspace WorkspaceId, body ConnectSlackCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error) {
+	rsp, err := c.ConnectSlackCallback(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectSlackCallbackResponse(rsp)
+}
+
 // CreateAccountWithBodyWithResponse request with arbitrary body returning *CreateAccountResponse
 func (c *ClientWithResponses) CreateAccountWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAccountResponse, error) {
 	rsp, err := c.CreateAccountWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -16986,23 +16877,6 @@ func (c *ClientWithResponses) RefreshTokenWithResponse(ctx context.Context, work
 		return nil, err
 	}
 	return ParseRefreshTokenResponse(rsp)
-}
-
-// SetWorkspaceSlackWithBodyWithResponse request with arbitrary body returning *SetWorkspaceSlackResponse
-func (c *ClientWithResponses) SetWorkspaceSlackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackResponse, error) {
-	rsp, err := c.SetWorkspaceSlackWithBody(ctx, workspace, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSetWorkspaceSlackResponse(rsp)
-}
-
-func (c *ClientWithResponses) SetWorkspaceSlackWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackResponse, error) {
-	rsp, err := c.SetWorkspaceSlack(ctx, workspace, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSetWorkspaceSlackResponse(rsp)
 }
 
 // CreateResourceWithBodyWithResponse request with arbitrary body returning *CreateResourceResponse
@@ -17794,32 +17668,6 @@ func ParseConnectCallbackResponse(rsp *http.Response) (*ConnectCallbackResponse,
 	return response, nil
 }
 
-// ParseConnectSlackCallbackResponse parses an HTTP response from a ConnectSlackCallbackWithResponse call
-func ParseConnectSlackCallbackResponse(rsp *http.Response) (*ConnectSlackCallbackResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ConnectSlackCallbackResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest SlackToken
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseListOAuthConnectsResponse parses an HTTP response from a ListOAuthConnectsWithResponse call
 func ParseListOAuthConnectsResponse(rsp *http.Response) (*ListOAuthConnectsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -18018,7 +17866,7 @@ func ParseGetHubScriptByPathResponse(rsp *http.Response) (*GetHubScriptByPathRes
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Content  string       `json:"content"`
-			Language N200Language `json:"language"`
+			Language string       `json:"language"`
 			Lockfile *string      `json:"lockfile,omitempty"`
 			Schema   *interface{} `json:"schema,omitempty"`
 			Summary  *string      `json:"summary,omitempty"`
@@ -18050,14 +17898,14 @@ func ParseListHubScriptsResponse(rsp *http.Response) (*ListHubScriptsResponse, e
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Asks *[]struct {
-				App      string       `json:"app"`
-				Approved bool         `json:"approved"`
-				AskId    float32      `json:"ask_id"`
-				Id       float32      `json:"id"`
-				Kind     N200AsksKind `json:"kind"`
-				Summary  string       `json:"summary"`
-				Views    float32      `json:"views"`
-				Votes    float32      `json:"votes"`
+				App      string  `json:"app"`
+				Approved bool    `json:"approved"`
+				AskId    float32 `json:"ask_id"`
+				Id       float32 `json:"id"`
+				Kind     string  `json:"kind"`
+				Summary  string  `json:"summary"`
+				Views    float32 `json:"views"`
+				Votes    float32 `json:"votes"`
 			} `json:"asks,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -19258,6 +19106,22 @@ func ParseRunWaitResultScriptByPathResponse(rsp *http.Response) (*RunWaitResultS
 	return response, nil
 }
 
+// ParseConnectSlackCallbackResponse parses an HTTP response from a ConnectSlackCallbackWithResponse call
+func ParseConnectSlackCallbackResponse(rsp *http.Response) (*ConnectSlackCallbackResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ConnectSlackCallbackResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCreateAccountResponse parses an HTTP response from a CreateAccountWithResponse call
 func ParseCreateAccountResponse(rsp *http.Response) (*CreateAccountResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -19315,22 +19179,6 @@ func ParseRefreshTokenResponse(rsp *http.Response) (*RefreshTokenResponse, error
 	}
 
 	response := &RefreshTokenResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseSetWorkspaceSlackResponse parses an HTTP response from a SetWorkspaceSlackWithResponse call
-func ParseSetWorkspaceSlackResponse(rsp *http.Response) (*SetWorkspaceSlackResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &SetWorkspaceSlackResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
