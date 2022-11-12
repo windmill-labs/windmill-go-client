@@ -24,6 +24,13 @@ const (
 	CookieAuthScopes = "cookieAuth.Scopes"
 )
 
+// Defines values for AppWithLastVersionExecutionMode.
+const (
+	AppWithLastVersionExecutionModeAnonymous AppWithLastVersionExecutionMode = "anonymous"
+	AppWithLastVersionExecutionModePublisher AppWithLastVersionExecutionMode = "publisher"
+	AppWithLastVersionExecutionModeViewer    AppWithLastVersionExecutionMode = "viewer"
+)
+
 // Defines values for AuditLogActionKind.
 const (
 	AuditLogActionKindCreated AuditLogActionKind = "Created"
@@ -115,9 +122,23 @@ const (
 	JavascriptTransformTypeJavascript JavascriptTransformType = "javascript"
 )
 
+// Defines values for ListableAppExecutionMode.
+const (
+	ListableAppExecutionModeAnonymous ListableAppExecutionMode = "anonymous"
+	ListableAppExecutionModePublisher ListableAppExecutionMode = "publisher"
+	ListableAppExecutionModeViewer    ListableAppExecutionMode = "viewer"
+)
+
 // Defines values for PathScriptType.
 const (
 	PathScriptTypeScript PathScriptType = "script"
+)
+
+// Defines values for PolicyExecutionMode.
+const (
+	Anonymous PolicyExecutionMode = "anonymous"
+	Publisher PolicyExecutionMode = "publisher"
+	Viewer    PolicyExecutionMode = "viewer"
 )
 
 // Defines values for PreviewLanguage.
@@ -189,6 +210,29 @@ const (
 	ActionKindExecute ActionKind = "Execute"
 	ActionKindUpdate  ActionKind = "Update"
 )
+
+// AppWithLastVersion defines model for AppWithLastVersion.
+type AppWithLastVersion struct {
+	CreatedAt     *time.Time                       `json:"created_at,omitempty"`
+	CreatedBy     *string                          `json:"created_by,omitempty"`
+	ExecutionMode *AppWithLastVersionExecutionMode `json:"execution_mode,omitempty"`
+	ExtraPerms    *AppWithLastVersion_ExtraPerms   `json:"extra_perms,omitempty"`
+	Id            *int                             `json:"id,omitempty"`
+	Path          *string                          `json:"path,omitempty"`
+	Policy        *Policy                          `json:"policy,omitempty"`
+	Summary       *string                          `json:"summary,omitempty"`
+	Value         *interface{}                     `json:"value,omitempty"`
+	Versions      *[]int                           `json:"versions,omitempty"`
+	WorkspaceId   *string                          `json:"workspace_id,omitempty"`
+}
+
+// AppWithLastVersionExecutionMode defines model for AppWithLastVersion.ExecutionMode.
+type AppWithLastVersionExecutionMode string
+
+// AppWithLastVersion_ExtraPerms defines model for AppWithLastVersion.ExtraPerms.
+type AppWithLastVersion_ExtraPerms struct {
+	AdditionalProperties map[string]bool `json:"-"`
+}
 
 // AuditLog defines model for AuditLog.
 type AuditLog struct {
@@ -512,6 +556,25 @@ type JavascriptTransformType string
 // Job defines model for Job.
 type Job interface{}
 
+// ListableApp defines model for ListableApp.
+type ListableApp struct {
+	ExecutionMode *ListableAppExecutionMode `json:"execution_mode,omitempty"`
+	ExtraPerms    *ListableApp_ExtraPerms   `json:"extra_perms,omitempty"`
+	Id            *int                      `json:"id,omitempty"`
+	Path          *string                   `json:"path,omitempty"`
+	Summary       *string                   `json:"summary,omitempty"`
+	Version       *int                      `json:"version,omitempty"`
+	WorkspaceId   *string                   `json:"workspace_id,omitempty"`
+}
+
+// ListableAppExecutionMode defines model for ListableApp.ExecutionMode.
+type ListableAppExecutionMode string
+
+// ListableApp_ExtraPerms defines model for ListableApp.ExtraPerms.
+type ListableApp_ExtraPerms struct {
+	AdditionalProperties map[string]bool `json:"-"`
+}
+
 // ListableVariable defines model for ListableVariable.
 type ListableVariable struct {
 	Account     *int                        `json:"account,omitempty"`
@@ -602,6 +665,21 @@ type PathScript_InputTransforms struct {
 
 // PathScriptType defines model for PathScript.Type.
 type PathScriptType string
+
+// Policy defines model for Policy.
+type Policy struct {
+	ExecutionMode *PolicyExecutionMode `json:"execution_mode,omitempty"`
+	OnBehalfOf    *string              `json:"on_behalf_of,omitempty"`
+	Triggerables  *Policy_Triggerables `json:"triggerables,omitempty"`
+}
+
+// PolicyExecutionMode defines model for Policy.ExecutionMode.
+type PolicyExecutionMode string
+
+// Policy_Triggerables defines model for Policy.Triggerables.
+type Policy_Triggerables struct {
+	AdditionalProperties map[string]map[string]interface{} `json:"-"`
+}
 
 // Preview defines model for Preview.
 type Preview struct {
@@ -1023,6 +1101,54 @@ type RemoveGranularAclsJSONBody struct {
 
 // RemoveGranularAclsParamsKind defines parameters for RemoveGranularAcls.
 type RemoveGranularAclsParamsKind string
+
+// CreateAppJSONBody defines parameters for CreateApp.
+type CreateAppJSONBody struct {
+	Path    string      `json:"path"`
+	Policy  Policy      `json:"policy"`
+	Summary string      `json:"summary"`
+	Value   interface{} `json:"value"`
+}
+
+// ExecuteComponentJSONBody defines parameters for ExecuteComponent.
+type ExecuteComponentJSONBody struct {
+	Args    interface{} `json:"args"`
+	Path    *string     `json:"path,omitempty"`
+	RawCode *struct {
+		Content  string  `json:"content"`
+		Language string  `json:"language"`
+		Path     *string `json:"path,omitempty"`
+	} `json:"raw_code,omitempty"`
+}
+
+// ListAppsParams defines parameters for ListApps.
+type ListAppsParams struct {
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// order by desc order (default true)
+	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
+
+	// mask to filter exact matching user creator
+	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
+
+	// mask to filter matching starting path
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// mask to filter exact matching path
+	PathExact *string `form:"path_exact,omitempty" json:"path_exact,omitempty"`
+}
+
+// UpdateAppJSONBody defines parameters for UpdateApp.
+type UpdateAppJSONBody struct {
+	Path    *string      `json:"path,omitempty"`
+	Policy  *Policy      `json:"policy,omitempty"`
+	Summary *string      `json:"summary,omitempty"`
+	Value   *interface{} `json:"value,omitempty"`
+}
 
 // ListAuditLogsParams defines parameters for ListAuditLogs.
 type ListAuditLogsParams struct {
@@ -1595,6 +1721,15 @@ type AddGranularAclsJSONRequestBody AddGranularAclsJSONBody
 // RemoveGranularAclsJSONRequestBody defines body for RemoveGranularAcls for application/json ContentType.
 type RemoveGranularAclsJSONRequestBody RemoveGranularAclsJSONBody
 
+// CreateAppJSONRequestBody defines body for CreateApp for application/json ContentType.
+type CreateAppJSONRequestBody CreateAppJSONBody
+
+// ExecuteComponentJSONRequestBody defines body for ExecuteComponent for application/json ContentType.
+type ExecuteComponentJSONRequestBody ExecuteComponentJSONBody
+
+// UpdateAppJSONRequestBody defines body for UpdateApp for application/json ContentType.
+type UpdateAppJSONRequestBody UpdateAppJSONBody
+
 // CreateFlowJSONRequestBody defines body for CreateFlow for application/json ContentType.
 type CreateFlowJSONRequestBody = CreateFlowJSONBody
 
@@ -1703,6 +1838,59 @@ type ExistsWorkspaceJSONRequestBody ExistsWorkspaceJSONBody
 // ExistsUsernameJSONRequestBody defines body for ExistsUsername for application/json ContentType.
 type ExistsUsernameJSONRequestBody ExistsUsernameJSONBody
 
+// Getter for additional properties for AppWithLastVersion_ExtraPerms. Returns the specified
+// element and whether it was found
+func (a AppWithLastVersion_ExtraPerms) Get(fieldName string) (value bool, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for AppWithLastVersion_ExtraPerms
+func (a *AppWithLastVersion_ExtraPerms) Set(fieldName string, value bool) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]bool)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for AppWithLastVersion_ExtraPerms to handle AdditionalProperties
+func (a *AppWithLastVersion_ExtraPerms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]bool)
+		for fieldName, fieldBuf := range object {
+			var fieldVal bool
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for AppWithLastVersion_ExtraPerms to handle AdditionalProperties
+func (a AppWithLastVersion_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // Getter for additional properties for FlowModule_InputTransforms. Returns the specified
 // element and whether it was found
 func (a FlowModule_InputTransforms) Get(fieldName string) (value InputTransform, found bool) {
@@ -1809,6 +1997,59 @@ func (a Group_ExtraPerms) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for ListableApp_ExtraPerms. Returns the specified
+// element and whether it was found
+func (a ListableApp_ExtraPerms) Get(fieldName string) (value bool, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ListableApp_ExtraPerms
+func (a *ListableApp_ExtraPerms) Set(fieldName string, value bool) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]bool)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ListableApp_ExtraPerms to handle AdditionalProperties
+func (a *ListableApp_ExtraPerms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]bool)
+		for fieldName, fieldBuf := range object {
+			var fieldVal bool
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ListableApp_ExtraPerms to handle AdditionalProperties
+func (a ListableApp_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // Getter for additional properties for ListableVariable_ExtraPerms. Returns the specified
 // element and whether it was found
 func (a ListableVariable_ExtraPerms) Get(fieldName string) (value bool, found bool) {
@@ -1903,6 +2144,59 @@ func (a *PathScript_InputTransforms) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for PathScript_InputTransforms to handle AdditionalProperties
 func (a PathScript_InputTransforms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for Policy_Triggerables. Returns the specified
+// element and whether it was found
+func (a Policy_Triggerables) Get(fieldName string) (value map[string]interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Policy_Triggerables
+func (a *Policy_Triggerables) Set(fieldName string, value map[string]interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Policy_Triggerables to handle AdditionalProperties
+func (a *Policy_Triggerables) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal map[string]interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Policy_Triggerables to handle AdditionalProperties
+func (a Policy_Triggerables) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -2386,6 +2680,33 @@ type ClientInterface interface {
 	RemoveGranularAclsWithBody(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RemoveGranularAcls(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateApp request with any body
+	CreateAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateApp(ctx context.Context, workspace WorkspaceId, body CreateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteApp request
+	DeleteApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExecuteComponent request with any body
+	ExecuteComponentWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ExecuteComponent(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAppByPath request
+	GetAppByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAppByVersion request
+	GetAppByVersion(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListApps request
+	ListApps(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateApp request with any body
+	UpdateAppWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateApp(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAuditLog request
 	GetAuditLog(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3365,6 +3686,126 @@ func (c *Client) RemoveGranularAclsWithBody(ctx context.Context, workspace Works
 
 func (c *Client) RemoveGranularAcls(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRemoveGranularAclsRequest(c.Server, workspace, kind, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateAppRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateApp(ctx context.Context, workspace WorkspaceId, body CreateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateAppRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteAppRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExecuteComponentWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExecuteComponentRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExecuteComponent(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExecuteComponentRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAppByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppByPathRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAppByVersion(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppByVersionRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListApps(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAppsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateAppWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateAppRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateApp(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateAppRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -6329,6 +6770,418 @@ func NewRemoveGranularAclsRequestWithBody(server string, workspace WorkspaceId, 
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/acls/remove/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateAppRequest calls the generic CreateApp builder with application/json body
+func NewCreateAppRequest(server string, workspace WorkspaceId, body CreateAppJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateAppRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateAppRequestWithBody generates requests for CreateApp with any type of body
+func NewCreateAppRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteAppRequest generates requests for DeleteApp
+func NewDeleteAppRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExecuteComponentRequest calls the generic ExecuteComponent builder with application/json body
+func NewExecuteComponentRequest(server string, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewExecuteComponentRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewExecuteComponentRequestWithBody generates requests for ExecuteComponent with any type of body
+func NewExecuteComponentRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/execute_component/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetAppByPathRequest generates requests for GetAppByPath
+func NewGetAppByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/get/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetAppByVersionRequest generates requests for GetAppByVersion
+func NewGetAppByVersionRequest(server string, workspace WorkspaceId, id PathId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/get/v/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAppsRequest generates requests for ListApps
+func NewListAppsRequest(server string, workspace WorkspaceId, params *ListAppsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.OrderDesc != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order_desc", runtime.ParamLocationQuery, *params.OrderDesc); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CreatedBy != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_by", runtime.ParamLocationQuery, *params.CreatedBy); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PathStart != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PathExact != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_exact", runtime.ParamLocationQuery, *params.PathExact); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateAppRequest calls the generic UpdateApp builder with application/json body
+func NewUpdateAppRequest(server string, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateAppRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateAppRequestWithBody generates requests for UpdateApp with any type of body
+func NewUpdateAppRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/update/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -12609,6 +13462,33 @@ type ClientWithResponsesInterface interface {
 
 	RemoveGranularAclsWithResponse(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveGranularAclsResponse, error)
 
+	// CreateApp request with any body
+	CreateAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAppResponse, error)
+
+	CreateAppWithResponse(ctx context.Context, workspace WorkspaceId, body CreateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAppResponse, error)
+
+	// DeleteApp request
+	DeleteAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteAppResponse, error)
+
+	// ExecuteComponent request with any body
+	ExecuteComponentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error)
+
+	ExecuteComponentWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error)
+
+	// GetAppByPath request
+	GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error)
+
+	// GetAppByVersion request
+	GetAppByVersionWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAppByVersionResponse, error)
+
+	// ListApps request
+	ListAppsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*ListAppsResponse, error)
+
+	// UpdateApp request with any body
+	UpdateAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppResponse, error)
+
+	UpdateAppWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAppResponse, error)
+
 	// GetAuditLog request
 	GetAuditLogWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAuditLogResponse, error)
 
@@ -13757,6 +14637,156 @@ func (r RemoveGranularAclsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RemoveGranularAclsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateAppResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateAppResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateAppResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteAppResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteAppResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteAppResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExecuteComponentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ExecuteComponentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExecuteComponentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAppByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AppWithLastVersion
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAppByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAppByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAppByVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AppWithLastVersion
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAppByVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAppByVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAppsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]ListableApp
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAppsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAppsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateAppResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateAppResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateAppResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -16471,6 +17501,93 @@ func (c *ClientWithResponses) RemoveGranularAclsWithResponse(ctx context.Context
 	return ParseRemoveGranularAclsResponse(rsp)
 }
 
+// CreateAppWithBodyWithResponse request with arbitrary body returning *CreateAppResponse
+func (c *ClientWithResponses) CreateAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAppResponse, error) {
+	rsp, err := c.CreateAppWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAppResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateAppWithResponse(ctx context.Context, workspace WorkspaceId, body CreateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAppResponse, error) {
+	rsp, err := c.CreateApp(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAppResponse(rsp)
+}
+
+// DeleteAppWithResponse request returning *DeleteAppResponse
+func (c *ClientWithResponses) DeleteAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteAppResponse, error) {
+	rsp, err := c.DeleteApp(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteAppResponse(rsp)
+}
+
+// ExecuteComponentWithBodyWithResponse request with arbitrary body returning *ExecuteComponentResponse
+func (c *ClientWithResponses) ExecuteComponentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error) {
+	rsp, err := c.ExecuteComponentWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExecuteComponentResponse(rsp)
+}
+
+func (c *ClientWithResponses) ExecuteComponentWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error) {
+	rsp, err := c.ExecuteComponent(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExecuteComponentResponse(rsp)
+}
+
+// GetAppByPathWithResponse request returning *GetAppByPathResponse
+func (c *ClientWithResponses) GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error) {
+	rsp, err := c.GetAppByPath(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAppByPathResponse(rsp)
+}
+
+// GetAppByVersionWithResponse request returning *GetAppByVersionResponse
+func (c *ClientWithResponses) GetAppByVersionWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAppByVersionResponse, error) {
+	rsp, err := c.GetAppByVersion(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAppByVersionResponse(rsp)
+}
+
+// ListAppsWithResponse request returning *ListAppsResponse
+func (c *ClientWithResponses) ListAppsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*ListAppsResponse, error) {
+	rsp, err := c.ListApps(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAppsResponse(rsp)
+}
+
+// UpdateAppWithBodyWithResponse request with arbitrary body returning *UpdateAppResponse
+func (c *ClientWithResponses) UpdateAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppResponse, error) {
+	rsp, err := c.UpdateAppWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAppResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateAppWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAppResponse, error) {
+	rsp, err := c.UpdateApp(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAppResponse(rsp)
+}
+
 // GetAuditLogWithResponse request returning *GetAuditLogResponse
 func (c *ClientWithResponses) GetAuditLogWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAuditLogResponse, error) {
 	rsp, err := c.GetAuditLog(ctx, workspace, id, reqEditors...)
@@ -18446,6 +19563,148 @@ func ParseRemoveGranularAclsResponse(rsp *http.Response) (*RemoveGranularAclsRes
 	}
 
 	response := &RemoveGranularAclsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateAppResponse parses an HTTP response from a CreateAppWithResponse call
+func ParseCreateAppResponse(rsp *http.Response) (*CreateAppResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateAppResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteAppResponse parses an HTTP response from a DeleteAppWithResponse call
+func ParseDeleteAppResponse(rsp *http.Response) (*DeleteAppResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteAppResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExecuteComponentResponse parses an HTTP response from a ExecuteComponentWithResponse call
+func ParseExecuteComponentResponse(rsp *http.Response) (*ExecuteComponentResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExecuteComponentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetAppByPathResponse parses an HTTP response from a GetAppByPathWithResponse call
+func ParseGetAppByPathResponse(rsp *http.Response) (*GetAppByPathResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAppByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AppWithLastVersion
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetAppByVersionResponse parses an HTTP response from a GetAppByVersionWithResponse call
+func ParseGetAppByVersionResponse(rsp *http.Response) (*GetAppByVersionResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAppByVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AppWithLastVersion
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAppsResponse parses an HTTP response from a ListAppsWithResponse call
+func ParseListAppsResponse(rsp *http.Response) (*ListAppsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAppsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ListableApp
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateAppResponse parses an HTTP response from a UpdateAppWithResponse call
+func ParseUpdateAppResponse(rsp *http.Response) (*UpdateAppResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateAppResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
