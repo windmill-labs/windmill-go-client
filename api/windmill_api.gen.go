@@ -72,6 +72,7 @@ const (
 
 // Defines values for CompletedJobLanguage.
 const (
+	CompletedJobLanguageBash    CompletedJobLanguage = "bash"
 	CompletedJobLanguageDeno    CompletedJobLanguage = "deno"
 	CompletedJobLanguageGo      CompletedJobLanguage = "go"
 	CompletedJobLanguagePython3 CompletedJobLanguage = "python3"
@@ -121,6 +122,7 @@ const (
 
 // Defines values for PreviewLanguage.
 const (
+	PreviewLanguageBash    PreviewLanguage = "bash"
 	PreviewLanguageDeno    PreviewLanguage = "deno"
 	PreviewLanguageGo      PreviewLanguage = "go"
 	PreviewLanguagePython3 PreviewLanguage = "python3"
@@ -139,6 +141,7 @@ const (
 
 // Defines values for QueuedJobLanguage.
 const (
+	QueuedJobLanguageBash    QueuedJobLanguage = "bash"
 	QueuedJobLanguageDeno    QueuedJobLanguage = "deno"
 	QueuedJobLanguageGo      QueuedJobLanguage = "go"
 	QueuedJobLanguagePython3 QueuedJobLanguage = "python3"
@@ -146,6 +149,7 @@ const (
 
 // Defines values for RawScriptLanguage.
 const (
+	RawScriptLanguageBash    RawScriptLanguage = "bash"
 	RawScriptLanguageDeno    RawScriptLanguage = "deno"
 	RawScriptLanguageGo      RawScriptLanguage = "go"
 	RawScriptLanguagePython3 RawScriptLanguage = "python3"
@@ -167,6 +171,7 @@ const (
 
 // Defines values for ScriptLanguage.
 const (
+	Bash    ScriptLanguage = "bash"
 	Deno    ScriptLanguage = "deno"
 	Go      ScriptLanguage = "go"
 	Python3 ScriptLanguage = "python3"
@@ -251,16 +256,16 @@ type CompletedJob struct {
 
 	// The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
-	PermissionedAs string                  `json:"permissioned_as"`
-	RawCode        *string                 `json:"raw_code,omitempty"`
-	RawFlow        *FlowValue              `json:"raw_flow,omitempty"`
-	Result         *map[string]interface{} `json:"result,omitempty"`
-	SchedulePath   *string                 `json:"schedule_path,omitempty"`
-	ScriptHash     *string                 `json:"script_hash,omitempty"`
-	ScriptPath     *string                 `json:"script_path,omitempty"`
-	StartedAt      time.Time               `json:"started_at"`
-	Success        bool                    `json:"success"`
-	WorkspaceId    *string                 `json:"workspace_id,omitempty"`
+	PermissionedAs string       `json:"permissioned_as"`
+	RawCode        *string      `json:"raw_code,omitempty"`
+	RawFlow        *FlowValue   `json:"raw_flow,omitempty"`
+	Result         *interface{} `json:"result,omitempty"`
+	SchedulePath   *string      `json:"schedule_path,omitempty"`
+	ScriptHash     *string      `json:"script_hash,omitempty"`
+	ScriptPath     *string      `json:"script_path,omitempty"`
+	StartedAt      time.Time    `json:"started_at"`
+	Success        bool         `json:"success"`
+	WorkspaceId    *string      `json:"workspace_id,omitempty"`
 }
 
 // CompletedJobJobKind defines model for CompletedJob.JobKind.
@@ -945,6 +950,9 @@ type PreviewScheduleJSONBody struct {
 	Schedule string `json:"schedule"`
 }
 
+// BashToJsonschemaJSONBody defines parameters for BashToJsonschema.
+type BashToJsonschemaJSONBody = string
+
 // DenoToJsonschemaJSONBody defines parameters for DenoToJsonschema.
 type DenoToJsonschemaJSONBody = string
 
@@ -1550,6 +1558,9 @@ type LoginWithOauthJSONRequestBody LoginWithOauthJSONBody
 
 // PreviewScheduleJSONRequestBody defines body for PreviewSchedule for application/json ContentType.
 type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
+
+// BashToJsonschemaJSONRequestBody defines body for BashToJsonschema for application/json ContentType.
+type BashToJsonschemaJSONRequestBody = BashToJsonschemaJSONBody
 
 // DenoToJsonschemaJSONRequestBody defines body for DenoToJsonschema for application/json ContentType.
 type DenoToJsonschemaJSONRequestBody = DenoToJsonschemaJSONBody
@@ -2247,6 +2258,9 @@ type ClientInterface interface {
 
 	Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// Logout request
+	Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetHubFlowById request
 	GetHubFlowById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2276,6 +2290,11 @@ type ClientInterface interface {
 	PreviewScheduleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PreviewSchedule(ctx context.Context, body PreviewScheduleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// BashToJsonschema request with any body
+	BashToJsonschemaWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	BashToJsonschema(ctx context.Context, body BashToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DenoToJsonschema request with any body
 	DenoToJsonschemaWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2316,6 +2335,9 @@ type ClientInterface interface {
 
 	DeclineInvite(ctx context.Context, body DeclineInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GlobalUserDelete request
+	GlobalUserDelete(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetCurrentEmail request
 	GetCurrentEmail(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2324,9 +2346,6 @@ type ClientInterface interface {
 
 	// ListWorkspaceInvites request
 	ListWorkspaceInvites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// Logout request
-	Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SetPassword request with any body
 	SetPasswordWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2780,6 +2799,18 @@ func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditor
 	return c.Client.Do(req)
 }
 
+func (c *Client) Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLogoutRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetHubFlowById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetHubFlowByIdRequest(c.Server, id)
 	if err != nil {
@@ -2902,6 +2933,30 @@ func (c *Client) PreviewScheduleWithBody(ctx context.Context, contentType string
 
 func (c *Client) PreviewSchedule(ctx context.Context, body PreviewScheduleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPreviewScheduleRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) BashToJsonschemaWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBashToJsonschemaRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) BashToJsonschema(ctx context.Context, body BashToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBashToJsonschemaRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3092,6 +3147,18 @@ func (c *Client) DeclineInvite(ctx context.Context, body DeclineInviteJSONReques
 	return c.Client.Do(req)
 }
 
+func (c *Client) GlobalUserDelete(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGlobalUserDeleteRequest(c.Server, email)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetCurrentEmail(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCurrentEmailRequest(c.Server)
 	if err != nil {
@@ -3118,18 +3185,6 @@ func (c *Client) ListUsersAsSuperAdmin(ctx context.Context, params *ListUsersAsS
 
 func (c *Client) ListWorkspaceInvites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListWorkspaceInvitesRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewLogoutRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -5052,6 +5107,33 @@ func NewLoginRequestWithBody(server string, contentType string, body io.Reader) 
 	return req, nil
 }
 
+// NewLogoutRequest generates requests for Logout
+func NewLogoutRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/auth/logout")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetHubFlowByIdRequest generates requests for GetHubFlowById
 func NewGetHubFlowByIdRequest(server string, id PathId) (*http.Request, error) {
 	var err error
@@ -5309,6 +5391,46 @@ func NewPreviewScheduleRequestWithBody(server string, contentType string, body i
 	}
 
 	operationPath := fmt.Sprintf("/schedules/preview")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewBashToJsonschemaRequest calls the generic BashToJsonschema builder with application/json body
+func NewBashToJsonschemaRequest(server string, body BashToJsonschemaJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewBashToJsonschemaRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewBashToJsonschemaRequestWithBody generates requests for BashToJsonschema with any type of body
+func NewBashToJsonschemaRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/scripts/bash/tojsonschema")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -5663,6 +5785,40 @@ func NewDeclineInviteRequestWithBody(server string, contentType string, body io.
 	return req, nil
 }
 
+// NewGlobalUserDeleteRequest generates requests for GlobalUserDelete
+func NewGlobalUserDeleteRequest(server string, email string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "email", runtime.ParamLocationPath, email)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/delete/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetCurrentEmailRequest generates requests for GetCurrentEmail
 func NewGetCurrentEmailRequest(server string) (*http.Request, error) {
 	var err error
@@ -5773,33 +5929,6 @@ func NewListWorkspaceInvitesRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewLogoutRequest generates requests for Logout
-func NewLogoutRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/users/logout")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -12351,6 +12480,9 @@ type ClientWithResponsesInterface interface {
 
 	LoginWithResponse(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*LoginResponse, error)
 
+	// Logout request
+	LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error)
+
 	// GetHubFlowById request
 	GetHubFlowByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubFlowByIdResponse, error)
 
@@ -12380,6 +12512,11 @@ type ClientWithResponsesInterface interface {
 	PreviewScheduleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PreviewScheduleResponse, error)
 
 	PreviewScheduleWithResponse(ctx context.Context, body PreviewScheduleJSONRequestBody, reqEditors ...RequestEditorFn) (*PreviewScheduleResponse, error)
+
+	// BashToJsonschema request with any body
+	BashToJsonschemaWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BashToJsonschemaResponse, error)
+
+	BashToJsonschemaWithResponse(ctx context.Context, body BashToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*BashToJsonschemaResponse, error)
 
 	// DenoToJsonschema request with any body
 	DenoToJsonschemaWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DenoToJsonschemaResponse, error)
@@ -12420,6 +12557,9 @@ type ClientWithResponsesInterface interface {
 
 	DeclineInviteWithResponse(ctx context.Context, body DeclineInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*DeclineInviteResponse, error)
 
+	// GlobalUserDelete request
+	GlobalUserDeleteWithResponse(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*GlobalUserDeleteResponse, error)
+
 	// GetCurrentEmail request
 	GetCurrentEmailWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCurrentEmailResponse, error)
 
@@ -12428,9 +12568,6 @@ type ClientWithResponsesInterface interface {
 
 	// ListWorkspaceInvites request
 	ListWorkspaceInvitesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkspaceInvitesResponse, error)
-
-	// Logout request
-	LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error)
 
 	// SetPassword request with any body
 	SetPasswordWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPasswordResponse, error)
@@ -12881,6 +13018,27 @@ func (r LoginResponse) StatusCode() int {
 	return 0
 }
 
+type LogoutResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r LogoutResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LogoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetHubFlowByIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -13065,6 +13223,28 @@ func (r PreviewScheduleResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PreviewScheduleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type BashToJsonschemaResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *MainArgSignature
+}
+
+// Status returns HTTPResponse.Status
+func (r BashToJsonschemaResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r BashToJsonschemaResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -13282,6 +13462,27 @@ func (r DeclineInviteResponse) StatusCode() int {
 	return 0
 }
 
+type GlobalUserDeleteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GlobalUserDeleteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GlobalUserDeleteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetCurrentEmailResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -13341,27 +13542,6 @@ func (r ListWorkspaceInvitesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListWorkspaceInvitesResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type LogoutResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r LogoutResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r LogoutResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -15874,6 +16054,15 @@ func (c *ClientWithResponses) LoginWithResponse(ctx context.Context, body LoginJ
 	return ParseLoginResponse(rsp)
 }
 
+// LogoutWithResponse request returning *LogoutResponse
+func (c *ClientWithResponses) LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error) {
+	rsp, err := c.Logout(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLogoutResponse(rsp)
+}
+
 // GetHubFlowByIdWithResponse request returning *GetHubFlowByIdResponse
 func (c *ClientWithResponses) GetHubFlowByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubFlowByIdResponse, error) {
 	rsp, err := c.GetHubFlowById(ctx, id, reqEditors...)
@@ -15968,6 +16157,23 @@ func (c *ClientWithResponses) PreviewScheduleWithResponse(ctx context.Context, b
 		return nil, err
 	}
 	return ParsePreviewScheduleResponse(rsp)
+}
+
+// BashToJsonschemaWithBodyWithResponse request with arbitrary body returning *BashToJsonschemaResponse
+func (c *ClientWithResponses) BashToJsonschemaWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BashToJsonschemaResponse, error) {
+	rsp, err := c.BashToJsonschemaWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBashToJsonschemaResponse(rsp)
+}
+
+func (c *ClientWithResponses) BashToJsonschemaWithResponse(ctx context.Context, body BashToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*BashToJsonschemaResponse, error) {
+	rsp, err := c.BashToJsonschema(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBashToJsonschemaResponse(rsp)
 }
 
 // DenoToJsonschemaWithBodyWithResponse request with arbitrary body returning *DenoToJsonschemaResponse
@@ -16099,6 +16305,15 @@ func (c *ClientWithResponses) DeclineInviteWithResponse(ctx context.Context, bod
 	return ParseDeclineInviteResponse(rsp)
 }
 
+// GlobalUserDeleteWithResponse request returning *GlobalUserDeleteResponse
+func (c *ClientWithResponses) GlobalUserDeleteWithResponse(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*GlobalUserDeleteResponse, error) {
+	rsp, err := c.GlobalUserDelete(ctx, email, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGlobalUserDeleteResponse(rsp)
+}
+
 // GetCurrentEmailWithResponse request returning *GetCurrentEmailResponse
 func (c *ClientWithResponses) GetCurrentEmailWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCurrentEmailResponse, error) {
 	rsp, err := c.GetCurrentEmail(ctx, reqEditors...)
@@ -16124,15 +16339,6 @@ func (c *ClientWithResponses) ListWorkspaceInvitesWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseListWorkspaceInvitesResponse(rsp)
-}
-
-// LogoutWithResponse request returning *LogoutResponse
-func (c *ClientWithResponses) LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error) {
-	rsp, err := c.Logout(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseLogoutResponse(rsp)
 }
 
 // SetPasswordWithBodyWithResponse request with arbitrary body returning *SetPasswordResponse
@@ -17514,6 +17720,22 @@ func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
 	return response, nil
 }
 
+// ParseLogoutResponse parses an HTTP response from a LogoutWithResponse call
+func ParseLogoutResponse(rsp *http.Response) (*LogoutResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LogoutResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetHubFlowByIdResponse parses an HTTP response from a GetHubFlowByIdWithResponse call
 func ParseGetHubFlowByIdResponse(rsp *http.Response) (*GetHubFlowByIdResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -17708,6 +17930,32 @@ func ParsePreviewScheduleResponse(rsp *http.Response) (*PreviewScheduleResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []time.Time
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseBashToJsonschemaResponse parses an HTTP response from a BashToJsonschemaWithResponse call
+func ParseBashToJsonschemaResponse(rsp *http.Response) (*BashToJsonschemaResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &BashToJsonschemaResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest MainArgSignature
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -17929,6 +18177,22 @@ func ParseDeclineInviteResponse(rsp *http.Response) (*DeclineInviteResponse, err
 	return response, nil
 }
 
+// ParseGlobalUserDeleteResponse parses an HTTP response from a GlobalUserDeleteWithResponse call
+func ParseGlobalUserDeleteResponse(rsp *http.Response) (*GlobalUserDeleteResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GlobalUserDeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetCurrentEmailResponse parses an HTTP response from a GetCurrentEmailWithResponse call
 func ParseGetCurrentEmailResponse(rsp *http.Response) (*GetCurrentEmailResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -17992,22 +18256,6 @@ func ParseListWorkspaceInvitesResponse(rsp *http.Response) (*ListWorkspaceInvite
 		}
 		response.JSON200 = &dest
 
-	}
-
-	return response, nil
-}
-
-// ParseLogoutResponse parses an HTTP response from a LogoutWithResponse call
-func ParseLogoutResponse(rsp *http.Response) (*LogoutResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &LogoutResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
 	}
 
 	return response, nil
