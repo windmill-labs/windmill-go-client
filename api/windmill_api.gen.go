@@ -213,17 +213,17 @@ const (
 
 // AppWithLastVersion defines model for AppWithLastVersion.
 type AppWithLastVersion struct {
-	CreatedAt     *time.Time                       `json:"created_at,omitempty"`
-	CreatedBy     *string                          `json:"created_by,omitempty"`
-	ExecutionMode *AppWithLastVersionExecutionMode `json:"execution_mode,omitempty"`
-	ExtraPerms    *AppWithLastVersion_ExtraPerms   `json:"extra_perms,omitempty"`
-	Id            *int                             `json:"id,omitempty"`
-	Path          *string                          `json:"path,omitempty"`
-	Policy        *Policy                          `json:"policy,omitempty"`
-	Summary       *string                          `json:"summary,omitempty"`
-	Value         *interface{}                     `json:"value,omitempty"`
-	Versions      *[]int                           `json:"versions,omitempty"`
-	WorkspaceId   *string                          `json:"workspace_id,omitempty"`
+	CreatedAt     time.Time                       `json:"created_at"`
+	CreatedBy     string                          `json:"created_by"`
+	ExecutionMode AppWithLastVersionExecutionMode `json:"execution_mode"`
+	ExtraPerms    AppWithLastVersion_ExtraPerms   `json:"extra_perms"`
+	Id            int                             `json:"id"`
+	Path          string                          `json:"path"`
+	Policy        Policy                          `json:"policy"`
+	Summary       string                          `json:"summary"`
+	Value         interface{}                     `json:"value"`
+	Versions      []int                           `json:"versions"`
+	WorkspaceId   string                          `json:"workspace_id"`
 }
 
 // AppWithLastVersionExecutionMode defines model for AppWithLastVersion.ExecutionMode.
@@ -327,11 +327,11 @@ type ContextualVariable struct {
 
 // CreateResource defines model for CreateResource.
 type CreateResource struct {
-	Description  *string                `json:"description,omitempty"`
-	IsOauth      *bool                  `json:"is_oauth,omitempty"`
-	Path         string                 `json:"path"`
-	ResourceType string                 `json:"resource_type"`
-	Value        map[string]interface{} `json:"value"`
+	Description  *string     `json:"description,omitempty"`
+	IsOauth      *bool       `json:"is_oauth,omitempty"`
+	Path         string      `json:"path"`
+	ResourceType string      `json:"resource_type"`
+	Value        interface{} `json:"value"`
 }
 
 // CreateVariable defines model for CreateVariable.
@@ -354,9 +354,9 @@ type CreateWorkspace struct {
 
 // EditResource defines model for EditResource.
 type EditResource struct {
-	Description *string                 `json:"description,omitempty"`
-	Path        *string                 `json:"path,omitempty"`
-	Value       *map[string]interface{} `json:"value,omitempty"`
+	Description *string      `json:"description,omitempty"`
+	Path        *string      `json:"path,omitempty"`
+	Value       *interface{} `json:"value,omitempty"`
 }
 
 // EditResourceType defines model for EditResourceType.
@@ -734,6 +734,7 @@ type RawScript struct {
 	Content         string                    `json:"content"`
 	InputTransforms RawScript_InputTransforms `json:"input_transforms"`
 	Language        RawScriptLanguage         `json:"language"`
+	Lock            *string                   `json:"lock,omitempty"`
 	Path            *string                   `json:"path,omitempty"`
 	Type            RawScriptType             `json:"type"`
 }
@@ -1112,9 +1113,10 @@ type CreateAppJSONBody struct {
 
 // ExecuteComponentJSONBody defines parameters for ExecuteComponent.
 type ExecuteComponentJSONBody struct {
-	Args    interface{} `json:"args"`
-	Path    *string     `json:"path,omitempty"`
-	RawCode *struct {
+	Args                    interface{}             `json:"args"`
+	ForceViewerStaticFields *map[string]interface{} `json:"force_viewer_static_fields,omitempty"`
+	Path                    *string                 `json:"path,omitempty"`
+	RawCode                 *struct {
 		Content  string  `json:"content"`
 		Language string  `json:"language"`
 		Path     *string `json:"path,omitempty"`
