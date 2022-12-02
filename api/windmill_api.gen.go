@@ -328,7 +328,6 @@ type ContextualVariable struct {
 // CreateResource defines model for CreateResource.
 type CreateResource struct {
 	Description  *string     `json:"description,omitempty"`
-	IsOauth      *bool       `json:"is_oauth,omitempty"`
 	Path         string      `json:"path"`
 	ResourceType string      `json:"resource_type"`
 	Value        interface{} `json:"value"`
@@ -396,6 +395,7 @@ type Flow struct {
 	ExtraPerms           map[string]interface{}  `json:"extra_perms"`
 	Path                 string                  `json:"path"`
 	Schema               *map[string]interface{} `json:"schema,omitempty"`
+	Starred              *bool                   `json:"starred,omitempty"`
 	Summary              string                  `json:"summary"`
 	Value                FlowValue               `json:"value"`
 	WorkspaceId          *string                 `json:"workspace_id,omitempty"`
@@ -409,6 +409,7 @@ type FlowMetadata struct {
 	EditedBy             string                 `json:"edited_by"`
 	ExtraPerms           map[string]interface{} `json:"extra_perms"`
 	Path                 string                 `json:"path"`
+	Starred              *bool                  `json:"starred,omitempty"`
 	WorkspaceId          *string                `json:"workspace_id,omitempty"`
 }
 
@@ -558,13 +559,15 @@ type Job interface{}
 
 // ListableApp defines model for ListableApp.
 type ListableApp struct {
-	ExecutionMode *ListableAppExecutionMode `json:"execution_mode,omitempty"`
-	ExtraPerms    *ListableApp_ExtraPerms   `json:"extra_perms,omitempty"`
-	Id            *int                      `json:"id,omitempty"`
-	Path          *string                   `json:"path,omitempty"`
-	Summary       *string                   `json:"summary,omitempty"`
-	Version       *int                      `json:"version,omitempty"`
-	WorkspaceId   *string                   `json:"workspace_id,omitempty"`
+	EditedAt      time.Time                `json:"edited_at"`
+	ExecutionMode ListableAppExecutionMode `json:"execution_mode"`
+	ExtraPerms    ListableApp_ExtraPerms   `json:"extra_perms"`
+	Id            int                      `json:"id"`
+	Path          string                   `json:"path"`
+	Starred       *bool                    `json:"starred,omitempty"`
+	Summary       string                   `json:"summary"`
+	Version       int                      `json:"version"`
+	WorkspaceId   string                   `json:"workspace_id"`
 }
 
 // ListableAppExecutionMode defines model for ListableApp.ExecutionMode.
@@ -575,16 +578,39 @@ type ListableApp_ExtraPerms struct {
 	AdditionalProperties map[string]bool `json:"-"`
 }
 
+// ListableResource defines model for ListableResource.
+type ListableResource struct {
+	Account      *float32                     `json:"account,omitempty"`
+	Description  *string                      `json:"description,omitempty"`
+	ExtraPerms   *ListableResource_ExtraPerms `json:"extra_perms,omitempty"`
+	IsExpired    *bool                        `json:"is_expired,omitempty"`
+	IsLinked     bool                         `json:"is_linked"`
+	IsOauth      bool                         `json:"is_oauth"`
+	Path         string                       `json:"path"`
+	RefreshError *string                      `json:"refresh_error,omitempty"`
+	ResourceType string                       `json:"resource_type"`
+	Value        *interface{}                 `json:"value,omitempty"`
+	WorkspaceId  *string                      `json:"workspace_id,omitempty"`
+}
+
+// ListableResource_ExtraPerms defines model for ListableResource.ExtraPerms.
+type ListableResource_ExtraPerms struct {
+	AdditionalProperties map[string]bool `json:"-"`
+}
+
 // ListableVariable defines model for ListableVariable.
 type ListableVariable struct {
-	Account     *int                        `json:"account,omitempty"`
-	Description *string                     `json:"description,omitempty"`
-	ExtraPerms  ListableVariable_ExtraPerms `json:"extra_perms"`
-	IsOauth     *bool                       `json:"is_oauth,omitempty"`
-	IsSecret    bool                        `json:"is_secret"`
-	Path        string                      `json:"path"`
-	Value       *string                     `json:"value,omitempty"`
-	WorkspaceId string                      `json:"workspace_id"`
+	Account      *int                        `json:"account,omitempty"`
+	Description  *string                     `json:"description,omitempty"`
+	ExtraPerms   ListableVariable_ExtraPerms `json:"extra_perms"`
+	IsExpired    *bool                       `json:"is_expired,omitempty"`
+	IsLinked     *bool                       `json:"is_linked,omitempty"`
+	IsOauth      *bool                       `json:"is_oauth,omitempty"`
+	IsSecret     bool                        `json:"is_secret"`
+	Path         string                      `json:"path"`
+	RefreshError *string                     `json:"refresh_error,omitempty"`
+	Value        *string                     `json:"value,omitempty"`
+	WorkspaceId  string                      `json:"workspace_id"`
 }
 
 // ListableVariable_ExtraPerms defines model for ListableVariable.ExtraPerms.
@@ -826,6 +852,7 @@ type Script struct {
 	ParentHashes *[]string               `json:"parent_hashes,omitempty"`
 	Path         string                  `json:"path"`
 	Schema       *map[string]interface{} `json:"schema,omitempty"`
+	Starred      bool                    `json:"starred"`
 	Summary      string                  `json:"summary"`
 	WorkspaceId  *string                 `json:"workspace_id,omitempty"`
 }
@@ -1182,6 +1209,24 @@ type ListAuditLogsParams struct {
 // ListAuditLogsParamsActionKind defines parameters for ListAuditLogs.
 type ListAuditLogsParamsActionKind string
 
+// StarJSONBody defines parameters for Star.
+type StarJSONBody struct {
+	FavoriteKind *StarJSONBodyFavoriteKind `json:"favorite_kind,omitempty"`
+	Path         *string                   `json:"path,omitempty"`
+}
+
+// StarJSONBodyFavoriteKind defines parameters for Star.
+type StarJSONBodyFavoriteKind string
+
+// UnstarJSONBody defines parameters for Unstar.
+type UnstarJSONBody struct {
+	FavoriteKind *UnstarJSONBodyFavoriteKind `json:"favorite_kind,omitempty"`
+	Path         *string                     `json:"path,omitempty"`
+}
+
+// UnstarJSONBodyFavoriteKind defines parameters for Unstar.
+type UnstarJSONBodyFavoriteKind string
+
 // CreateFlowJSONBody defines parameters for CreateFlow.
 type CreateFlowJSONBody = OpenFlowWPath
 
@@ -1210,6 +1255,10 @@ type ListFlowsParams struct {
 	// when multiple archived hash share the same path, only the ones with the latest create_at
 	// are displayed.
 	ShowArchived *bool `form:"show_archived,omitempty" json:"show_archived,omitempty"`
+
+	// (default false)
+	// show only the starred items
+	StarredOnly *bool `form:"starred_only,omitempty" json:"starred_only,omitempty"`
 }
 
 // UpdateFlowJSONBody defines parameters for UpdateFlow.
@@ -1403,6 +1452,11 @@ type ResumeSuspendedJobPostJSONBody = map[string]interface{}
 
 // ResumeSuspendedJobPostParams defines parameters for ResumeSuspendedJobPost.
 type ResumeSuspendedJobPostParams struct {
+	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
+}
+
+// GetResumeUrlsParams defines parameters for GetResumeUrls.
+type GetResumeUrlsParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
 }
 
@@ -1605,6 +1659,10 @@ type ListScriptsParams struct {
 	// (default regardless)
 	// script kind
 	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
+
+	// (default false)
+	// show only the starred items
+	StarredOnly *bool `form:"starred_only,omitempty" json:"starred_only,omitempty"`
 }
 
 // CreateUserJSONBody defines parameters for CreateUser.
@@ -1731,6 +1789,12 @@ type ExecuteComponentJSONRequestBody ExecuteComponentJSONBody
 
 // UpdateAppJSONRequestBody defines body for UpdateApp for application/json ContentType.
 type UpdateAppJSONRequestBody UpdateAppJSONBody
+
+// StarJSONRequestBody defines body for Star for application/json ContentType.
+type StarJSONRequestBody StarJSONBody
+
+// UnstarJSONRequestBody defines body for Unstar for application/json ContentType.
+type UnstarJSONRequestBody UnstarJSONBody
 
 // CreateFlowJSONRequestBody defines body for CreateFlow for application/json ContentType.
 type CreateFlowJSONRequestBody = CreateFlowJSONBody
@@ -2040,6 +2104,59 @@ func (a *ListableApp_ExtraPerms) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for ListableApp_ExtraPerms to handle AdditionalProperties
 func (a ListableApp_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for ListableResource_ExtraPerms. Returns the specified
+// element and whether it was found
+func (a ListableResource_ExtraPerms) Get(fieldName string) (value bool, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ListableResource_ExtraPerms
+func (a *ListableResource_ExtraPerms) Set(fieldName string, value bool) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]bool)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ListableResource_ExtraPerms to handle AdditionalProperties
+func (a *ListableResource_ExtraPerms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]bool)
+		for fieldName, fieldBuf := range object {
+			var fieldVal bool
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ListableResource_ExtraPerms to handle AdditionalProperties
+func (a ListableResource_ExtraPerms) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -2725,6 +2842,16 @@ type ClientInterface interface {
 	// CreateCapture request
 	CreateCapture(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// Star request with any body
+	StarWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	Star(ctx context.Context, workspace WorkspaceId, body StarJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// Unstar request with any body
+	UnstarWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	Unstar(ctx context.Context, workspace WorkspaceId, body UnstarJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ArchiveFlowByPath request
 	ArchiveFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2829,6 +2956,9 @@ type ClientInterface interface {
 	ResumeSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ResumeSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetResumeUrls request
+	GetResumeUrls(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunFlowByPath request with any body
 	RunFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3878,6 +4008,54 @@ func (c *Client) CreateCapture(ctx context.Context, workspace WorkspaceId, path 
 	return c.Client.Do(req)
 }
 
+func (c *Client) StarWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewStarRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) Star(ctx context.Context, workspace WorkspaceId, body StarJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewStarRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UnstarWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnstarRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) Unstar(ctx context.Context, workspace WorkspaceId, body UnstarJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnstarRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ArchiveFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewArchiveFlowByPathRequest(c.Server, workspace, path)
 	if err != nil {
@@ -4324,6 +4502,18 @@ func (c *Client) ResumeSuspendedJobPostWithBody(ctx context.Context, workspace W
 
 func (c *Client) ResumeSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResumeSuspendedJobPostRequest(c.Server, workspace, id, resumeId, signature, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetResumeUrls(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetResumeUrlsRequest(c.Server, workspace, id, resumeId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -7533,6 +7723,100 @@ func NewCreateCaptureRequest(server string, workspace WorkspaceId, path Path) (*
 	return req, nil
 }
 
+// NewStarRequest calls the generic Star builder with application/json body
+func NewStarRequest(server string, workspace WorkspaceId, body StarJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewStarRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewStarRequestWithBody generates requests for Star with any type of body
+func NewStarRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/favorites/star", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUnstarRequest calls the generic Unstar builder with application/json body
+func NewUnstarRequest(server string, workspace WorkspaceId, body UnstarJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUnstarRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewUnstarRequestWithBody generates requests for Unstar with any type of body
+func NewUnstarRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/favorites/unstar", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewArchiveFlowByPathRequest generates requests for ArchiveFlowByPath
 func NewArchiveFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
 	var err error
@@ -7830,6 +8114,22 @@ func NewListFlowsRequest(server string, workspace WorkspaceId, params *ListFlows
 	if params.ShowArchived != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "show_archived", runtime.ParamLocationQuery, *params.ShowArchived); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.StarredOnly != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "starred_only", runtime.ParamLocationQuery, *params.StarredOnly); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -9731,6 +10031,74 @@ func NewResumeSuspendedJobPostRequestWithBody(server string, workspace Workspace
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetResumeUrlsRequest generates requests for GetResumeUrls
+func NewGetResumeUrlsRequest(server string, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "resume_id", runtime.ParamLocationPath, resumeId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/resume_urls/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Approver != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approver", runtime.ParamLocationQuery, *params.Approver); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -12021,6 +12389,22 @@ func NewListScriptsRequest(server string, workspace WorkspaceId, params *ListScr
 
 	}
 
+	if params.StarredOnly != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "starred_only", runtime.ParamLocationQuery, *params.StarredOnly); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -13506,6 +13890,16 @@ type ClientWithResponsesInterface interface {
 	// CreateCapture request
 	CreateCaptureWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*CreateCaptureResponse, error)
 
+	// Star request with any body
+	StarWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StarResponse, error)
+
+	StarWithResponse(ctx context.Context, workspace WorkspaceId, body StarJSONRequestBody, reqEditors ...RequestEditorFn) (*StarResponse, error)
+
+	// Unstar request with any body
+	UnstarWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UnstarResponse, error)
+
+	UnstarWithResponse(ctx context.Context, workspace WorkspaceId, body UnstarJSONRequestBody, reqEditors ...RequestEditorFn) (*UnstarResponse, error)
+
 	// ArchiveFlowByPath request
 	ArchiveFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ArchiveFlowByPathResponse, error)
 
@@ -13610,6 +14004,9 @@ type ClientWithResponsesInterface interface {
 	ResumeSuspendedJobPostWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error)
 
 	ResumeSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error)
+
+	// GetResumeUrls request
+	GetResumeUrlsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*GetResumeUrlsResponse, error)
 
 	// RunFlowByPath request with any body
 	RunFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowByPathResponse, error)
@@ -14903,6 +15300,48 @@ func (r CreateCaptureResponse) StatusCode() int {
 	return 0
 }
 
+type StarResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r StarResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r StarResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UnstarResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UnstarResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UnstarResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ArchiveFlowByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -15537,6 +15976,32 @@ func (r ResumeSuspendedJobPostResponse) StatusCode() int {
 	return 0
 }
 
+type GetResumeUrlsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		ApprovalPage string `json:"approvalPage"`
+		Cancel       string `json:"cancel"`
+		Resume       string `json:"resume"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetResumeUrlsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetResumeUrlsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RunFlowByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -15880,7 +16345,7 @@ func (r GetResourceValueResponse) StatusCode() int {
 type ListResourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]Resource
+	JSON200      *[]ListableResource
 }
 
 // Status returns HTTPResponse.Status
@@ -17635,6 +18100,40 @@ func (c *ClientWithResponses) CreateCaptureWithResponse(ctx context.Context, wor
 	return ParseCreateCaptureResponse(rsp)
 }
 
+// StarWithBodyWithResponse request with arbitrary body returning *StarResponse
+func (c *ClientWithResponses) StarWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StarResponse, error) {
+	rsp, err := c.StarWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseStarResponse(rsp)
+}
+
+func (c *ClientWithResponses) StarWithResponse(ctx context.Context, workspace WorkspaceId, body StarJSONRequestBody, reqEditors ...RequestEditorFn) (*StarResponse, error) {
+	rsp, err := c.Star(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseStarResponse(rsp)
+}
+
+// UnstarWithBodyWithResponse request with arbitrary body returning *UnstarResponse
+func (c *ClientWithResponses) UnstarWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UnstarResponse, error) {
+	rsp, err := c.UnstarWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnstarResponse(rsp)
+}
+
+func (c *ClientWithResponses) UnstarWithResponse(ctx context.Context, workspace WorkspaceId, body UnstarJSONRequestBody, reqEditors ...RequestEditorFn) (*UnstarResponse, error) {
+	rsp, err := c.Unstar(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnstarResponse(rsp)
+}
+
 // ArchiveFlowByPathWithResponse request returning *ArchiveFlowByPathResponse
 func (c *ClientWithResponses) ArchiveFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ArchiveFlowByPathResponse, error) {
 	rsp, err := c.ArchiveFlowByPath(ctx, workspace, path, reqEditors...)
@@ -17966,6 +18465,15 @@ func (c *ClientWithResponses) ResumeSuspendedJobPostWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseResumeSuspendedJobPostResponse(rsp)
+}
+
+// GetResumeUrlsWithResponse request returning *GetResumeUrlsResponse
+func (c *ClientWithResponses) GetResumeUrlsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*GetResumeUrlsResponse, error) {
+	rsp, err := c.GetResumeUrls(ctx, workspace, id, resumeId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetResumeUrlsResponse(rsp)
 }
 
 // RunFlowByPathWithBodyWithResponse request with arbitrary body returning *RunFlowByPathResponse
@@ -19824,6 +20332,38 @@ func ParseCreateCaptureResponse(rsp *http.Response) (*CreateCaptureResponse, err
 	return response, nil
 }
 
+// ParseStarResponse parses an HTTP response from a StarWithResponse call
+func ParseStarResponse(rsp *http.Response) (*StarResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &StarResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUnstarResponse parses an HTTP response from a UnstarWithResponse call
+func ParseUnstarResponse(rsp *http.Response) (*UnstarResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UnstarResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseArchiveFlowByPathResponse parses an HTTP response from a ArchiveFlowByPathWithResponse call
 func ParseArchiveFlowByPathResponse(rsp *http.Response) (*ArchiveFlowByPathResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -20448,6 +20988,36 @@ func ParseResumeSuspendedJobPostResponse(rsp *http.Response) (*ResumeSuspendedJo
 	return response, nil
 }
 
+// ParseGetResumeUrlsResponse parses an HTTP response from a GetResumeUrlsWithResponse call
+func ParseGetResumeUrlsResponse(rsp *http.Response) (*GetResumeUrlsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetResumeUrlsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			ApprovalPage string `json:"approvalPage"`
+			Cancel       string `json:"cancel"`
+			Resume       string `json:"resume"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseRunFlowByPathResponse parses an HTTP response from a RunFlowByPathWithResponse call
 func ParseRunFlowByPathResponse(rsp *http.Response) (*RunFlowByPathResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -20759,7 +21329,7 @@ func ParseListResourceResponse(rsp *http.Response) (*ListResourceResponse, error
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []Resource
+		var dest []ListableResource
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
