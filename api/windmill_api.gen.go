@@ -96,7 +96,7 @@ const (
 	FlowStatusModuleTypeFailure              FlowStatusModuleType = "Failure"
 	FlowStatusModuleTypeInProgress           FlowStatusModuleType = "InProgress"
 	FlowStatusModuleTypeSuccess              FlowStatusModuleType = "Success"
-	FlowStatusModuleTypeWaitingForEvent      FlowStatusModuleType = "WaitingForEvent"
+	FlowStatusModuleTypeWaitingForEvents     FlowStatusModuleType = "WaitingForEvents"
 	FlowStatusModuleTypeWaitingForExecutor   FlowStatusModuleType = "WaitingForExecutor"
 	FlowStatusModuleTypeWaitingForPriorSteps FlowStatusModuleType = "WaitingForPriorSteps"
 )
@@ -1169,6 +1169,10 @@ type ListAppsParams struct {
 
 	// mask to filter exact matching path
 	PathExact *string `form:"path_exact,omitempty" json:"path_exact,omitempty"`
+
+	// (default false)
+	// show only the starred items
+	StarredOnly *bool `form:"starred_only,omitempty" json:"starred_only,omitempty"`
 }
 
 // UpdateAppJSONBody defines parameters for UpdateApp.
@@ -2813,6 +2817,9 @@ type ClientInterface interface {
 
 	ExecuteComponent(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ExistsApp request
+	ExistsApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAppByPath request
 	GetAppByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3878,6 +3885,18 @@ func (c *Client) ExecuteComponentWithBody(ctx context.Context, workspace Workspa
 
 func (c *Client) ExecuteComponent(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExecuteComponentRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsAppRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -7123,6 +7142,47 @@ func NewExecuteComponentRequestWithBody(server string, workspace WorkspaceId, pa
 	return req, nil
 }
 
+// NewExistsAppRequest generates requests for ExistsApp
+func NewExistsAppRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetAppByPathRequest generates requests for GetAppByPath
 func NewGetAppByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
 	var err error
@@ -7316,6 +7376,22 @@ func NewListAppsRequest(server string, workspace WorkspaceId, params *ListAppsPa
 	if params.PathExact != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_exact", runtime.ParamLocationQuery, *params.PathExact); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.StarredOnly != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "starred_only", runtime.ParamLocationQuery, *params.StarredOnly); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -13861,6 +13937,9 @@ type ClientWithResponsesInterface interface {
 
 	ExecuteComponentWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error)
 
+	// ExistsApp request
+	ExistsAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsAppResponse, error)
+
 	// GetAppByPath request
 	GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error)
 
@@ -15099,6 +15178,28 @@ func (r ExecuteComponentResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ExecuteComponentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsAppResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsAppResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsAppResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -18011,6 +18112,15 @@ func (c *ClientWithResponses) ExecuteComponentWithResponse(ctx context.Context, 
 	return ParseExecuteComponentResponse(rsp)
 }
 
+// ExistsAppWithResponse request returning *ExistsAppResponse
+func (c *ClientWithResponses) ExistsAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsAppResponse, error) {
+	rsp, err := c.ExistsApp(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsAppResponse(rsp)
+}
+
 // GetAppByPathWithResponse request returning *GetAppByPathResponse
 func (c *ClientWithResponses) GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error) {
 	rsp, err := c.GetAppByPath(ctx, workspace, path, reqEditors...)
@@ -20123,6 +20233,32 @@ func ParseExecuteComponentResponse(rsp *http.Response) (*ExecuteComponentRespons
 	response := &ExecuteComponentResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsAppResponse parses an HTTP response from a ExistsAppWithResponse call
+func ParseExistsAppResponse(rsp *http.Response) (*ExistsAppResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsAppResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
