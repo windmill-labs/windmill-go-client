@@ -85,10 +85,26 @@ const (
 	CompletedJobLanguagePython3 CompletedJobLanguage = "python3"
 )
 
+// Defines values for FlowStatusFailureModuleBranchChosenType.
+const (
+	FlowStatusFailureModuleBranchChosenTypeBranch  FlowStatusFailureModuleBranchChosenType = "branch"
+	FlowStatusFailureModuleBranchChosenTypeDefault FlowStatusFailureModuleBranchChosenType = "default"
+)
+
+// Defines values for FlowStatusFailureModuleType.
+const (
+	FlowStatusFailureModuleTypeFailure              FlowStatusFailureModuleType = "Failure"
+	FlowStatusFailureModuleTypeInProgress           FlowStatusFailureModuleType = "InProgress"
+	FlowStatusFailureModuleTypeSuccess              FlowStatusFailureModuleType = "Success"
+	FlowStatusFailureModuleTypeWaitingForEvents     FlowStatusFailureModuleType = "WaitingForEvents"
+	FlowStatusFailureModuleTypeWaitingForExecutor   FlowStatusFailureModuleType = "WaitingForExecutor"
+	FlowStatusFailureModuleTypeWaitingForPriorSteps FlowStatusFailureModuleType = "WaitingForPriorSteps"
+)
+
 // Defines values for FlowStatusModuleBranchChosenType.
 const (
-	Branch  FlowStatusModuleBranchChosenType = "branch"
-	Default FlowStatusModuleBranchChosenType = "default"
+	FlowStatusModuleBranchChosenTypeBranch  FlowStatusModuleBranchChosenType = "branch"
+	FlowStatusModuleBranchChosenTypeDefault FlowStatusModuleBranchChosenType = "default"
 )
 
 // Defines values for FlowStatusModuleType.
@@ -127,6 +143,11 @@ const (
 	ListableAppExecutionModeAnonymous ListableAppExecutionMode = "anonymous"
 	ListableAppExecutionModePublisher ListableAppExecutionMode = "publisher"
 	ListableAppExecutionModeViewer    ListableAppExecutionMode = "viewer"
+)
+
+// Defines values for PathFlowType.
+const (
+	PathFlowTypeFlow PathFlowType = "flow"
 )
 
 // Defines values for PathScriptType.
@@ -448,14 +469,44 @@ type FlowPreview struct {
 
 // FlowStatus defines model for FlowStatus.
 type FlowStatus struct {
-	FailureModule FlowStatusModule   `json:"failure_module"`
-	Modules       []FlowStatusModule `json:"modules"`
-	Retry         *struct {
+	FailureModule struct {
+		Approvers *[]struct {
+			Approver string `json:"approver"`
+			ResumeId int    `json:"resume_id"`
+		} `json:"approvers,omitempty"`
+		BranchChosen *struct {
+			Branch *int                                    `json:"branch,omitempty"`
+			Type   FlowStatusFailureModuleBranchChosenType `json:"type"`
+		} `json:"branch_chosen,omitempty"`
+		Branchall *struct {
+			Branch int `json:"branch"`
+			Len    int `json:"len"`
+		} `json:"branchall,omitempty"`
+		Count    *int      `json:"count,omitempty"`
+		FlowJobs *[]string `json:"flow_jobs,omitempty"`
+		Id       *string   `json:"id,omitempty"`
+		Iterator *struct {
+			Args   *interface{}   `json:"args,omitempty"`
+			Index  *int           `json:"index,omitempty"`
+			Itered *[]interface{} `json:"itered,omitempty"`
+		} `json:"iterator,omitempty"`
+		Job          *openapi_types.UUID         `json:"job,omitempty"`
+		ParentModule *string                     `json:"parent_module,omitempty"`
+		Type         FlowStatusFailureModuleType `json:"type"`
+	} `json:"failure_module"`
+	Modules []FlowStatusModule `json:"modules"`
+	Retry   *struct {
 		FailCount  *int                  `json:"fail_count,omitempty"`
 		FailedJobs *[]openapi_types.UUID `json:"failed_jobs,omitempty"`
 	} `json:"retry,omitempty"`
 	Step int `json:"step"`
 }
+
+// FlowStatusFailureModuleBranchChosenType defines model for FlowStatus.FailureModule.BranchChosen.Type.
+type FlowStatusFailureModuleBranchChosenType string
+
+// FlowStatusFailureModuleType defines model for FlowStatus.FailureModule.Type.
+type FlowStatusFailureModuleType string
 
 // FlowStatusModule defines model for FlowStatusModule.
 type FlowStatusModule struct {
@@ -536,6 +587,7 @@ type Group_ExtraPerms struct {
 
 // Identity defines model for Identity.
 type Identity struct {
+	Flow *bool        `json:"flow,omitempty"`
 	Type IdentityType `json:"type"`
 }
 
@@ -677,8 +729,24 @@ type OpenFlowWPath struct {
 	Value       FlowValue               `json:"value"`
 }
 
+// PathFlow defines model for PathFlow.
+type PathFlow struct {
+	InputTransforms PathFlow_InputTransforms `json:"input_transforms"`
+	Path            string                   `json:"path"`
+	Type            PathFlowType             `json:"type"`
+}
+
+// PathFlow_InputTransforms defines model for PathFlow.InputTransforms.
+type PathFlow_InputTransforms struct {
+	AdditionalProperties map[string]InputTransform `json:"-"`
+}
+
+// PathFlowType defines model for PathFlow.Type.
+type PathFlowType string
+
 // PathScript defines model for PathScript.
 type PathScript struct {
+	Hash            *string                    `json:"hash,omitempty"`
 	InputTransforms PathScript_InputTransforms `json:"input_transforms"`
 	Path            string                     `json:"path"`
 	Type            PathScriptType             `json:"type"`
@@ -977,6 +1045,9 @@ type CreatedBefore = time.Time
 
 // CreatedBy defines model for CreatedBy.
 type CreatedBy = string
+
+// IncludeHeader defines model for IncludeHeader.
+type IncludeHeader = string
 
 // JobId defines model for JobId.
 type JobId = openapi_types.UUID
@@ -1477,6 +1548,10 @@ type RunFlowByPathParams struct {
 
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
 }
 
 // RunScriptByHashJSONBody defines parameters for RunScriptByHash.
@@ -1492,6 +1567,10 @@ type RunScriptByHashParams struct {
 
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
 }
 
 // RunScriptByPathJSONBody defines parameters for RunScriptByPath.
@@ -1512,8 +1591,22 @@ type RunScriptByPathParams struct {
 // RunScriptPreviewJSONBody defines parameters for RunScriptPreview.
 type RunScriptPreviewJSONBody = Preview
 
+// RunScriptPreviewParams defines parameters for RunScriptPreview.
+type RunScriptPreviewParams struct {
+	// List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+}
+
 // RunFlowPreviewJSONBody defines parameters for RunFlowPreview.
 type RunFlowPreviewJSONBody = FlowPreview
+
+// RunFlowPreviewParams defines parameters for RunFlowPreview.
+type RunFlowPreviewParams struct {
+	// List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+}
 
 // RunWaitResultScriptByPathJSONBody defines parameters for RunWaitResultScriptByPath.
 type RunWaitResultScriptByPathJSONBody = ScriptArgs
@@ -1528,6 +1621,10 @@ type RunWaitResultScriptByPathParams struct {
 
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
 }
 
 // ConnectSlackCallbackJSONBody defines parameters for ConnectSlackCallback.
@@ -2214,6 +2311,59 @@ func (a *ListableVariable_ExtraPerms) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for ListableVariable_ExtraPerms to handle AdditionalProperties
 func (a ListableVariable_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for PathFlow_InputTransforms. Returns the specified
+// element and whether it was found
+func (a PathFlow_InputTransforms) Get(fieldName string) (value InputTransform, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for PathFlow_InputTransforms
+func (a *PathFlow_InputTransforms) Set(fieldName string, value InputTransform) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]InputTransform)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for PathFlow_InputTransforms to handle AdditionalProperties
+func (a *PathFlow_InputTransforms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]InputTransform)
+		for fieldName, fieldBuf := range object {
+			var fieldVal InputTransform
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for PathFlow_InputTransforms to handle AdditionalProperties
+func (a PathFlow_InputTransforms) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -2983,14 +3133,14 @@ type ClientInterface interface {
 	RunScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunScriptByPathParams, body RunScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunScriptPreview request with any body
-	RunScriptPreviewWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RunScriptPreviewWithBody(ctx context.Context, workspace WorkspaceId, params *RunScriptPreviewParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	RunScriptPreview(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RunScriptPreview(ctx context.Context, workspace WorkspaceId, params *RunScriptPreviewParams, body RunScriptPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunFlowPreview request with any body
-	RunFlowPreviewWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RunFlowPreviewWithBody(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	RunFlowPreview(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RunFlowPreview(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunWaitResultScriptByPath request with any body
 	RunWaitResultScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4615,8 +4765,8 @@ func (c *Client) RunScriptByPath(ctx context.Context, workspace WorkspaceId, pat
 	return c.Client.Do(req)
 }
 
-func (c *Client) RunScriptPreviewWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRunScriptPreviewRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) RunScriptPreviewWithBody(ctx context.Context, workspace WorkspaceId, params *RunScriptPreviewParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunScriptPreviewRequestWithBody(c.Server, workspace, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -4627,8 +4777,8 @@ func (c *Client) RunScriptPreviewWithBody(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
-func (c *Client) RunScriptPreview(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRunScriptPreviewRequest(c.Server, workspace, body)
+func (c *Client) RunScriptPreview(ctx context.Context, workspace WorkspaceId, params *RunScriptPreviewParams, body RunScriptPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunScriptPreviewRequest(c.Server, workspace, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -4639,8 +4789,8 @@ func (c *Client) RunScriptPreview(ctx context.Context, workspace WorkspaceId, bo
 	return c.Client.Do(req)
 }
 
-func (c *Client) RunFlowPreviewWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRunFlowPreviewRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) RunFlowPreviewWithBody(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowPreviewRequestWithBody(c.Server, workspace, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -4651,8 +4801,8 @@ func (c *Client) RunFlowPreviewWithBody(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) RunFlowPreview(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRunFlowPreviewRequest(c.Server, workspace, body)
+func (c *Client) RunFlowPreview(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowPreviewRequest(c.Server, workspace, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -10273,6 +10423,22 @@ func NewRunFlowByPathRequestWithBody(server string, workspace WorkspaceId, path 
 
 	}
 
+	if params.IncludeHeader != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -10366,6 +10532,22 @@ func NewRunScriptByHashRequestWithBody(server string, workspace WorkspaceId, has
 	if params.ParentJob != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IncludeHeader != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -10498,18 +10680,18 @@ func NewRunScriptByPathRequestWithBody(server string, workspace WorkspaceId, pat
 }
 
 // NewRunScriptPreviewRequest calls the generic RunScriptPreview builder with application/json body
-func NewRunScriptPreviewRequest(server string, workspace WorkspaceId, body RunScriptPreviewJSONRequestBody) (*http.Request, error) {
+func NewRunScriptPreviewRequest(server string, workspace WorkspaceId, params *RunScriptPreviewParams, body RunScriptPreviewJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewRunScriptPreviewRequestWithBody(server, workspace, "application/json", bodyReader)
+	return NewRunScriptPreviewRequestWithBody(server, workspace, params, "application/json", bodyReader)
 }
 
 // NewRunScriptPreviewRequestWithBody generates requests for RunScriptPreview with any type of body
-func NewRunScriptPreviewRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+func NewRunScriptPreviewRequestWithBody(server string, workspace WorkspaceId, params *RunScriptPreviewParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -10534,6 +10716,26 @@ func NewRunScriptPreviewRequestWithBody(server string, workspace WorkspaceId, co
 		return nil, err
 	}
 
+	queryValues := queryURL.Query()
+
+	if params.IncludeHeader != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
 	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
@@ -10545,18 +10747,18 @@ func NewRunScriptPreviewRequestWithBody(server string, workspace WorkspaceId, co
 }
 
 // NewRunFlowPreviewRequest calls the generic RunFlowPreview builder with application/json body
-func NewRunFlowPreviewRequest(server string, workspace WorkspaceId, body RunFlowPreviewJSONRequestBody) (*http.Request, error) {
+func NewRunFlowPreviewRequest(server string, workspace WorkspaceId, params *RunFlowPreviewParams, body RunFlowPreviewJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewRunFlowPreviewRequestWithBody(server, workspace, "application/json", bodyReader)
+	return NewRunFlowPreviewRequestWithBody(server, workspace, params, "application/json", bodyReader)
 }
 
 // NewRunFlowPreviewRequestWithBody generates requests for RunFlowPreview with any type of body
-func NewRunFlowPreviewRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+func NewRunFlowPreviewRequestWithBody(server string, workspace WorkspaceId, params *RunFlowPreviewParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -10580,6 +10782,26 @@ func NewRunFlowPreviewRequestWithBody(server string, workspace WorkspaceId, cont
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.IncludeHeader != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
@@ -10672,6 +10894,22 @@ func NewRunWaitResultScriptByPathRequestWithBody(server string, workspace Worksp
 	if params.ParentJob != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IncludeHeader != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -14103,14 +14341,14 @@ type ClientWithResponsesInterface interface {
 	RunScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunScriptByPathParams, body RunScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptByPathResponse, error)
 
 	// RunScriptPreview request with any body
-	RunScriptPreviewWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptPreviewResponse, error)
+	RunScriptPreviewWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *RunScriptPreviewParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptPreviewResponse, error)
 
-	RunScriptPreviewWithResponse(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptPreviewResponse, error)
+	RunScriptPreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *RunScriptPreviewParams, body RunScriptPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptPreviewResponse, error)
 
 	// RunFlowPreview request with any body
-	RunFlowPreviewWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowPreviewResponse, error)
+	RunFlowPreviewWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowPreviewResponse, error)
 
-	RunFlowPreviewWithResponse(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewResponse, error)
+	RunFlowPreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewResponse, error)
 
 	// RunWaitResultScriptByPath request with any body
 	RunWaitResultScriptByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultScriptByPathResponse, error)
@@ -18638,16 +18876,16 @@ func (c *ClientWithResponses) RunScriptByPathWithResponse(ctx context.Context, w
 }
 
 // RunScriptPreviewWithBodyWithResponse request with arbitrary body returning *RunScriptPreviewResponse
-func (c *ClientWithResponses) RunScriptPreviewWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptPreviewResponse, error) {
-	rsp, err := c.RunScriptPreviewWithBody(ctx, workspace, contentType, body, reqEditors...)
+func (c *ClientWithResponses) RunScriptPreviewWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *RunScriptPreviewParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptPreviewResponse, error) {
+	rsp, err := c.RunScriptPreviewWithBody(ctx, workspace, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseRunScriptPreviewResponse(rsp)
 }
 
-func (c *ClientWithResponses) RunScriptPreviewWithResponse(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptPreviewResponse, error) {
-	rsp, err := c.RunScriptPreview(ctx, workspace, body, reqEditors...)
+func (c *ClientWithResponses) RunScriptPreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *RunScriptPreviewParams, body RunScriptPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptPreviewResponse, error) {
+	rsp, err := c.RunScriptPreview(ctx, workspace, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -18655,16 +18893,16 @@ func (c *ClientWithResponses) RunScriptPreviewWithResponse(ctx context.Context, 
 }
 
 // RunFlowPreviewWithBodyWithResponse request with arbitrary body returning *RunFlowPreviewResponse
-func (c *ClientWithResponses) RunFlowPreviewWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowPreviewResponse, error) {
-	rsp, err := c.RunFlowPreviewWithBody(ctx, workspace, contentType, body, reqEditors...)
+func (c *ClientWithResponses) RunFlowPreviewWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowPreviewResponse, error) {
+	rsp, err := c.RunFlowPreviewWithBody(ctx, workspace, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseRunFlowPreviewResponse(rsp)
 }
 
-func (c *ClientWithResponses) RunFlowPreviewWithResponse(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewResponse, error) {
-	rsp, err := c.RunFlowPreview(ctx, workspace, body, reqEditors...)
+func (c *ClientWithResponses) RunFlowPreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewResponse, error) {
+	rsp, err := c.RunFlowPreview(ctx, workspace, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
