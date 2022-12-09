@@ -638,6 +638,7 @@ type ListableResource struct {
 	IsExpired    *bool                        `json:"is_expired,omitempty"`
 	IsLinked     bool                         `json:"is_linked"`
 	IsOauth      bool                         `json:"is_oauth"`
+	IsRefreshed  bool                         `json:"is_refreshed"`
 	Path         string                       `json:"path"`
 	RefreshError *string                      `json:"refresh_error,omitempty"`
 	ResourceType string                       `json:"resource_type"`
@@ -658,6 +659,7 @@ type ListableVariable struct {
 	IsExpired    *bool                       `json:"is_expired,omitempty"`
 	IsLinked     *bool                       `json:"is_linked,omitempty"`
 	IsOauth      *bool                       `json:"is_oauth,omitempty"`
+	IsRefreshed  *bool                       `json:"is_refreshed,omitempty"`
 	IsSecret     bool                        `json:"is_secret"`
 	Path         string                      `json:"path"`
 	RefreshError *string                     `json:"refresh_error,omitempty"`
@@ -1635,10 +1637,10 @@ type ConnectSlackCallbackJSONBody struct {
 
 // CreateAccountJSONBody defines parameters for CreateAccount.
 type CreateAccountJSONBody struct {
-	Client       string `json:"client"`
-	ExpiresIn    int    `json:"expires_in"`
-	Owner        string `json:"owner"`
-	RefreshToken string `json:"refresh_token"`
+	Client       string  `json:"client"`
+	ExpiresIn    int     `json:"expires_in"`
+	Owner        string  `json:"owner"`
+	RefreshToken *string `json:"refresh_token,omitempty"`
 }
 
 // RefreshTokenJSONBody defines parameters for RefreshToken.
