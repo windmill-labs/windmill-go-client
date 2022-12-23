@@ -310,6 +310,7 @@ type CompletedJob struct {
 	CreatedBy      string                `json:"created_by"`
 	Deleted        *bool                 `json:"deleted,omitempty"`
 	DurationMs     int                   `json:"duration_ms"`
+	Email          string                `json:"email"`
 	FlowStatus     *FlowStatus           `json:"flow_status,omitempty"`
 	Id             openapi_types.UUID    `json:"id"`
 	IsFlowStep     bool                  `json:"is_flow_step"`
@@ -330,6 +331,7 @@ type CompletedJob struct {
 	ScriptPath     *string      `json:"script_path,omitempty"`
 	StartedAt      time.Time    `json:"started_at"`
 	Success        bool         `json:"success"`
+	VisibleToOwner bool         `json:"visible_to_owner"`
 	WorkspaceId    *string      `json:"workspace_id,omitempty"`
 }
 
@@ -366,7 +368,6 @@ type CreateVariable struct {
 
 // CreateWorkspace defines model for CreateWorkspace.
 type CreateWorkspace struct {
-	Domain   string `json:"domain"`
 	Id       string `json:"id"`
 	Name     string `json:"name"`
 	Username string `json:"username"`
@@ -387,10 +388,8 @@ type EditResourceType struct {
 
 // EditSchedule defines model for EditSchedule.
 type EditSchedule struct {
-	Args       ScriptArgs `json:"args"`
-	IsFlow     bool       `json:"is_flow"`
-	Schedule   string     `json:"schedule"`
-	ScriptPath string     `json:"script_path"`
+	Args     ScriptArgs `json:"args"`
+	Schedule string     `json:"schedule"`
 }
 
 // EditVariable defines model for EditVariable.
@@ -403,7 +402,9 @@ type EditVariable struct {
 
 // EditWorkspaceUser defines model for EditWorkspaceUser.
 type EditWorkspaceUser struct {
-	IsAdmin *bool `json:"is_admin,omitempty"`
+	Disabled *bool `json:"disabled,omitempty"`
+	IsAdmin  *bool `json:"is_admin,omitempty"`
+	Operator *bool `json:"operator,omitempty"`
 }
 
 // Flow defines model for Flow.
@@ -545,6 +546,18 @@ type FlowValue struct {
 	FailureModule *FlowModule  `json:"failure_module,omitempty"`
 	Modules       []FlowModule `json:"modules"`
 	SameWorker    *bool        `json:"same_worker,omitempty"`
+}
+
+// Folder defines model for Folder.
+type Folder struct {
+	ExtraPerms Folder_ExtraPerms `json:"extra_perms"`
+	Name       string            `json:"name"`
+	Owners     []string          `json:"owners"`
+}
+
+// Folder_ExtraPerms defines model for Folder.ExtraPerms.
+type Folder_ExtraPerms struct {
+	AdditionalProperties map[string]bool `json:"-"`
 }
 
 // ForloopFlow defines model for ForloopFlow.
@@ -796,6 +809,7 @@ type QueuedJob struct {
 	CanceledReason *string             `json:"canceled_reason,omitempty"`
 	CreatedAt      *time.Time          `json:"created_at,omitempty"`
 	CreatedBy      *string             `json:"created_by,omitempty"`
+	Email          string              `json:"email"`
 	FlowStatus     *FlowStatus         `json:"flow_status,omitempty"`
 	Id             openapi_types.UUID  `json:"id"`
 	IsFlowStep     bool                `json:"is_flow_step"`
@@ -816,6 +830,7 @@ type QueuedJob struct {
 	ScriptHash     *string    `json:"script_hash,omitempty"`
 	ScriptPath     *string    `json:"script_path,omitempty"`
 	StartedAt      *time.Time `json:"started_at,omitempty"`
+	VisibleToOwner bool       `json:"visible_to_owner"`
 	WorkspaceId    *string    `json:"workspace_id,omitempty"`
 }
 
@@ -888,7 +903,9 @@ type Schedule struct {
 	Args       *ScriptArgs         `json:"args,omitempty"`
 	EditedAt   time.Time           `json:"edited_at"`
 	EditedBy   string              `json:"edited_by"`
+	Email      string              `json:"email"`
 	Enabled    bool                `json:"enabled"`
+	Error      *string             `json:"error,omitempty"`
 	ExtraPerms Schedule_ExtraPerms `json:"extra_perms"`
 	IsFlow     bool                `json:"is_flow"`
 	Offset     int                 `json:"offset_"`
@@ -909,7 +926,7 @@ type Script struct {
 	CreatedAt     time.Time         `json:"created_at"`
 	CreatedBy     string            `json:"created_by"`
 	Deleted       bool              `json:"deleted"`
-	Description   *string           `json:"description,omitempty"`
+	Description   string            `json:"description"`
 	ExtraPerms    Script_ExtraPerms `json:"extra_perms"`
 	Hash          string            `json:"hash"`
 	IsTemplate    bool              `json:"is_template"`
@@ -971,9 +988,7 @@ type TruncatedToken struct {
 
 // Usage defines model for Usage.
 type Usage struct {
-	DurationMs *int `json:"duration_ms,omitempty"`
-	Flows      *int `json:"flows,omitempty"`
-	Jobs       *int `json:"jobs,omitempty"`
+	Executions *float32 `json:"executions,omitempty"`
 }
 
 // User defines model for User.
@@ -981,6 +996,7 @@ type User struct {
 	CreatedAt    time.Time `json:"created_at"`
 	Disabled     bool      `json:"disabled"`
 	Email        string    `json:"email"`
+	Folders      []string  `json:"folders"`
 	Groups       *[]string `json:"groups,omitempty"`
 	IsAdmin      bool      `json:"is_admin"`
 	IsSuperAdmin bool      `json:"is_super_admin"`
@@ -1021,6 +1037,7 @@ type Workspace struct {
 type WorkspaceInvite struct {
 	Email       string `json:"email"`
 	IsAdmin     bool   `json:"is_admin"`
+	Operator    bool   `json:"operator"`
 	WorkspaceId string `json:"workspace_id"`
 }
 
@@ -1341,6 +1358,54 @@ type ListFlowsParams struct {
 // UpdateFlowJSONBody defines parameters for UpdateFlow.
 type UpdateFlowJSONBody = OpenFlowWPath
 
+// AddOwnerToFolderJSONBody defines parameters for AddOwnerToFolder.
+type AddOwnerToFolderJSONBody struct {
+	Owner *string `json:"owner,omitempty"`
+}
+
+// CreateFolderJSONBody defines parameters for CreateFolder.
+type CreateFolderJSONBody struct {
+	ExtraPerms *CreateFolderJSONBody_ExtraPerms `json:"extra_perms,omitempty"`
+	Name       string                           `json:"name"`
+	Owners     *[]string                        `json:"owners,omitempty"`
+}
+
+// CreateFolderJSONBody_ExtraPerms defines parameters for CreateFolder.
+type CreateFolderJSONBody_ExtraPerms struct {
+	AdditionalProperties map[string]bool `json:"-"`
+}
+
+// ListFoldersParams defines parameters for ListFolders.
+type ListFoldersParams struct {
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// ListFolderNamesParams defines parameters for ListFolderNames.
+type ListFolderNamesParams struct {
+	// only list the folders the user is member of (default false)
+	OnlyMemberOf *bool `form:"only_member_of,omitempty" json:"only_member_of,omitempty"`
+}
+
+// RemoveOwnerToFolderJSONBody defines parameters for RemoveOwnerToFolder.
+type RemoveOwnerToFolderJSONBody struct {
+	Owner *string `json:"owner,omitempty"`
+}
+
+// UpdateFolderJSONBody defines parameters for UpdateFolder.
+type UpdateFolderJSONBody struct {
+	ExtraPerms *UpdateFolderJSONBody_ExtraPerms `json:"extra_perms,omitempty"`
+	Owners     *[]string                        `json:"owners,omitempty"`
+}
+
+// UpdateFolderJSONBody_ExtraPerms defines parameters for UpdateFolder.
+type UpdateFolderJSONBody_ExtraPerms struct {
+	AdditionalProperties map[string]bool `json:"-"`
+}
+
 // AddUserToGroupJSONBody defines parameters for AddUserToGroup.
 type AddUserToGroupJSONBody struct {
 	Username *string `json:"username,omitempty"`
@@ -1359,6 +1424,12 @@ type ListGroupsParams struct {
 
 	// number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// ListGroupNamesParams defines parameters for ListGroupNames.
+type ListGroupNamesParams struct {
+	// only list the groups the user is member of (default false)
+	OnlyMemberOf *bool `form:"only_member_of,omitempty" json:"only_member_of,omitempty"`
 }
 
 // RemoveUserToGroupJSONBody defines parameters for RemoveUserToGroup.
@@ -1554,6 +1625,9 @@ type RunFlowByPathParams struct {
 	// List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
 	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// make the run invisible to the the flow owner (default false)
+	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
 }
 
 // RunScriptByHashJSONBody defines parameters for RunScriptByHash.
@@ -1573,6 +1647,9 @@ type RunScriptByHashParams struct {
 	// List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
 	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// make the run invisible to the the script owner (default false)
+	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
 }
 
 // RunScriptByPathJSONBody defines parameters for RunScriptByPath.
@@ -1588,6 +1665,9 @@ type RunScriptByPathParams struct {
 
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// make the run invisible to the the script owner (default false)
+	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
 }
 
 // RunScriptPreviewJSONBody defines parameters for RunScriptPreview.
@@ -1598,6 +1678,9 @@ type RunScriptPreviewParams struct {
 	// List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
 	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// make the run invisible to the the script owner (default false)
+	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
 }
 
 // RunFlowPreviewJSONBody defines parameters for RunFlowPreview.
@@ -1608,6 +1691,9 @@ type RunFlowPreviewParams struct {
 	// List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
 	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// make the run invisible to the the script owner (default false)
+	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
 }
 
 // RunWaitResultScriptByPathJSONBody defines parameters for RunWaitResultScriptByPath.
@@ -1659,8 +1745,11 @@ type ListResourceParams struct {
 	// number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
-	// resource_type to list from
+	// resource_types to list from, separated by ',',
 	ResourceType *string `form:"resource_type,omitempty" json:"resource_type,omitempty"`
+
+	// resource_types to not list from, separated by ',',
+	ResourceTypeExclude *string `form:"resource_type_exclude,omitempty" json:"resource_type_exclude,omitempty"`
 }
 
 // CreateResourceTypeJSONBody defines parameters for CreateResourceType.
@@ -1750,7 +1839,8 @@ type ListScriptsParams struct {
 	// (default false)
 	// show also the archived files.
 	// when multiple archived hash share the same path, only the ones with the latest create_at
-	// are displayed.
+	// are
+	// ed.
 	ShowArchived *bool `form:"show_archived,omitempty" json:"show_archived,omitempty"`
 
 	// (default regardless)
@@ -1789,8 +1879,14 @@ type UpdateVariableJSONBody = EditVariable
 
 // DeleteInviteJSONBody defines parameters for DeleteInvite.
 type DeleteInviteJSONBody struct {
-	Email   string `json:"email"`
-	IsAdmin bool   `json:"is_admin"`
+	Email    string `json:"email"`
+	IsAdmin  bool   `json:"is_admin"`
+	Operator bool   `json:"operator"`
+}
+
+// EditAutoInviteJSONBody defines parameters for EditAutoInvite.
+type EditAutoInviteJSONBody struct {
+	Operator *bool `json:"operator,omitempty"`
 }
 
 // EditSlackCommandJSONBody defines parameters for EditSlackCommand.
@@ -1800,8 +1896,9 @@ type EditSlackCommandJSONBody struct {
 
 // InviteUserJSONBody defines parameters for InviteUser.
 type InviteUserJSONBody struct {
-	Email   string `json:"email"`
-	IsAdmin bool   `json:"is_admin"`
+	Email    string `json:"email"`
+	IsAdmin  bool   `json:"is_admin"`
+	Operator bool   `json:"operator"`
 }
 
 // ListWorkersParams defines parameters for ListWorkers.
@@ -1905,6 +2002,18 @@ type CreateFlowJSONRequestBody = CreateFlowJSONBody
 // UpdateFlowJSONRequestBody defines body for UpdateFlow for application/json ContentType.
 type UpdateFlowJSONRequestBody = UpdateFlowJSONBody
 
+// AddOwnerToFolderJSONRequestBody defines body for AddOwnerToFolder for application/json ContentType.
+type AddOwnerToFolderJSONRequestBody AddOwnerToFolderJSONBody
+
+// CreateFolderJSONRequestBody defines body for CreateFolder for application/json ContentType.
+type CreateFolderJSONRequestBody CreateFolderJSONBody
+
+// RemoveOwnerToFolderJSONRequestBody defines body for RemoveOwnerToFolder for application/json ContentType.
+type RemoveOwnerToFolderJSONRequestBody RemoveOwnerToFolderJSONBody
+
+// UpdateFolderJSONRequestBody defines body for UpdateFolder for application/json ContentType.
+type UpdateFolderJSONRequestBody UpdateFolderJSONBody
+
 // AddUserToGroupJSONRequestBody defines body for AddUserToGroup for application/json ContentType.
 type AddUserToGroupJSONRequestBody AddUserToGroupJSONBody
 
@@ -1992,6 +2101,9 @@ type UpdateVariableJSONRequestBody = UpdateVariableJSONBody
 // DeleteInviteJSONRequestBody defines body for DeleteInvite for application/json ContentType.
 type DeleteInviteJSONRequestBody DeleteInviteJSONBody
 
+// EditAutoInviteJSONRequestBody defines body for EditAutoInvite for application/json ContentType.
+type EditAutoInviteJSONRequestBody EditAutoInviteJSONBody
+
 // EditSlackCommandJSONRequestBody defines body for EditSlackCommand for application/json ContentType.
 type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
 
@@ -2006,6 +2118,112 @@ type ExistsWorkspaceJSONRequestBody ExistsWorkspaceJSONBody
 
 // ExistsUsernameJSONRequestBody defines body for ExistsUsername for application/json ContentType.
 type ExistsUsernameJSONRequestBody ExistsUsernameJSONBody
+
+// Getter for additional properties for CreateFolderJSONBody_ExtraPerms. Returns the specified
+// element and whether it was found
+func (a CreateFolderJSONBody_ExtraPerms) Get(fieldName string) (value bool, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for CreateFolderJSONBody_ExtraPerms
+func (a *CreateFolderJSONBody_ExtraPerms) Set(fieldName string, value bool) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]bool)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for CreateFolderJSONBody_ExtraPerms to handle AdditionalProperties
+func (a *CreateFolderJSONBody_ExtraPerms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]bool)
+		for fieldName, fieldBuf := range object {
+			var fieldVal bool
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for CreateFolderJSONBody_ExtraPerms to handle AdditionalProperties
+func (a CreateFolderJSONBody_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for UpdateFolderJSONBody_ExtraPerms. Returns the specified
+// element and whether it was found
+func (a UpdateFolderJSONBody_ExtraPerms) Get(fieldName string) (value bool, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for UpdateFolderJSONBody_ExtraPerms
+func (a *UpdateFolderJSONBody_ExtraPerms) Set(fieldName string, value bool) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]bool)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for UpdateFolderJSONBody_ExtraPerms to handle AdditionalProperties
+func (a *UpdateFolderJSONBody_ExtraPerms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]bool)
+		for fieldName, fieldBuf := range object {
+			var fieldVal bool
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for UpdateFolderJSONBody_ExtraPerms to handle AdditionalProperties
+func (a UpdateFolderJSONBody_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
 
 // Getter for additional properties for AppWithLastVersion_ExtraPerms. Returns the specified
 // element and whether it was found
@@ -2101,6 +2319,59 @@ func (a *FlowModule_InputTransforms) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for FlowModule_InputTransforms to handle AdditionalProperties
 func (a FlowModule_InputTransforms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for Folder_ExtraPerms. Returns the specified
+// element and whether it was found
+func (a Folder_ExtraPerms) Get(fieldName string) (value bool, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Folder_ExtraPerms
+func (a *Folder_ExtraPerms) Set(fieldName string, value bool) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]bool)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Folder_ExtraPerms to handle AdditionalProperties
+func (a *Folder_ExtraPerms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]bool)
+		for fieldName, fieldBuf := range object {
+			var fieldVal bool
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Folder_ExtraPerms to handle AdditionalProperties
+func (a Folder_ExtraPerms) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -2937,6 +3208,9 @@ type ClientInterface interface {
 
 	GlobalUserUpdate(ctx context.Context, email string, body GlobalUserUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetUsage request
+	GetUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GlobalWhoami request
 	GlobalWhoami(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3033,6 +3307,41 @@ type ClientInterface interface {
 
 	UpdateFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AddOwnerToFolder request with any body
+	AddOwnerToFolderWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AddOwnerToFolder(ctx context.Context, workspace WorkspaceId, name Name, body AddOwnerToFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateFolder request with any body
+	CreateFolderWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateFolder(ctx context.Context, workspace WorkspaceId, body CreateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteFolder request
+	DeleteFolder(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetFolder request
+	GetFolder(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetFolderUsage request
+	GetFolderUsage(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListFolders request
+	ListFolders(ctx context.Context, workspace WorkspaceId, params *ListFoldersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListFolderNames request
+	ListFolderNames(ctx context.Context, workspace WorkspaceId, params *ListFolderNamesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RemoveOwnerToFolder request with any body
+	RemoveOwnerToFolderWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RemoveOwnerToFolder(ctx context.Context, workspace WorkspaceId, name Name, body RemoveOwnerToFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateFolder request with any body
+	UpdateFolderWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateFolder(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AddUserToGroup request with any body
 	AddUserToGroupWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3053,7 +3362,7 @@ type ClientInterface interface {
 	ListGroups(ctx context.Context, workspace WorkspaceId, params *ListGroupsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListGroupNames request
-	ListGroupNames(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListGroupNames(ctx context.Context, workspace WorkspaceId, params *ListGroupNamesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RemoveUserToGroup request with any body
 	RemoveUserToGroupWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3290,6 +3599,9 @@ type ClientInterface interface {
 	// DeleteUser request
 	DeleteUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// IsOwnerOfPath request
+	IsOwnerOfPath(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// LeaveWorkspace request
 	LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3343,6 +3655,11 @@ type ClientInterface interface {
 
 	DeleteInvite(ctx context.Context, workspace WorkspaceId, body DeleteInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditAutoInvite request with any body
+	EditAutoInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditAutoInvite(ctx context.Context, workspace WorkspaceId, body EditAutoInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3359,8 +3676,14 @@ type ClientInterface interface {
 	// ListPendingInvites request
 	ListPendingInvites(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetPremiumInfo request
+	GetPremiumInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListWorkers request
 	ListWorkers(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// IsDomainAllowed request
+	IsDomainAllowed(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateWorkspace request with any body
 	CreateWorkspaceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3903,6 +4226,18 @@ func (c *Client) GlobalUserUpdate(ctx context.Context, email string, body Global
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUsageRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GlobalWhoami(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGlobalWhoamiRequest(c.Server)
 	if err != nil {
@@ -4323,6 +4658,162 @@ func (c *Client) UpdateFlow(ctx context.Context, workspace WorkspaceId, path Scr
 	return c.Client.Do(req)
 }
 
+func (c *Client) AddOwnerToFolderWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAddOwnerToFolderRequestWithBody(c.Server, workspace, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AddOwnerToFolder(ctx context.Context, workspace WorkspaceId, name Name, body AddOwnerToFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAddOwnerToFolderRequest(c.Server, workspace, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateFolderWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateFolderRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateFolder(ctx context.Context, workspace WorkspaceId, body CreateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateFolderRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteFolder(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteFolderRequest(c.Server, workspace, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetFolder(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFolderRequest(c.Server, workspace, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetFolderUsage(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFolderUsageRequest(c.Server, workspace, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListFolders(ctx context.Context, workspace WorkspaceId, params *ListFoldersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListFoldersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListFolderNames(ctx context.Context, workspace WorkspaceId, params *ListFolderNamesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListFolderNamesRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RemoveOwnerToFolderWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRemoveOwnerToFolderRequestWithBody(c.Server, workspace, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RemoveOwnerToFolder(ctx context.Context, workspace WorkspaceId, name Name, body RemoveOwnerToFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRemoveOwnerToFolderRequest(c.Server, workspace, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateFolderWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateFolderRequestWithBody(c.Server, workspace, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateFolder(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateFolderRequest(c.Server, workspace, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) AddUserToGroupWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAddUserToGroupRequestWithBody(c.Server, workspace, name, contentType, body)
 	if err != nil {
@@ -4407,8 +4898,8 @@ func (c *Client) ListGroups(ctx context.Context, workspace WorkspaceId, params *
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListGroupNames(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListGroupNamesRequest(c.Server, workspace)
+func (c *Client) ListGroupNames(ctx context.Context, workspace WorkspaceId, params *ListGroupNamesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGroupNamesRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -5451,6 +5942,18 @@ func (c *Client) DeleteUser(ctx context.Context, workspace WorkspaceId, username
 	return c.Client.Do(req)
 }
 
+func (c *Client) IsOwnerOfPath(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewIsOwnerOfPathRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLeaveWorkspaceRequest(c.Server, workspace)
 	if err != nil {
@@ -5679,6 +6182,30 @@ func (c *Client) DeleteInvite(ctx context.Context, workspace WorkspaceId, body D
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditAutoInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditAutoInviteRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditAutoInvite(ctx context.Context, workspace WorkspaceId, body EditAutoInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditAutoInviteRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditSlackCommandRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -5751,8 +6278,32 @@ func (c *Client) ListPendingInvites(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetPremiumInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPremiumInfoRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListWorkers(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListWorkersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) IsDomainAllowed(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewIsDomainAllowedRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -6924,6 +7475,33 @@ func NewGlobalUserUpdateRequestWithBody(server string, email string, contentType
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetUsageRequest generates requests for GetUsage
+func NewGetUsageRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/usage")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -8435,6 +9013,462 @@ func NewUpdateFlowRequestWithBody(server string, workspace WorkspaceId, path Scr
 	return req, nil
 }
 
+// NewAddOwnerToFolderRequest calls the generic AddOwnerToFolder builder with application/json body
+func NewAddOwnerToFolderRequest(server string, workspace WorkspaceId, name Name, body AddOwnerToFolderJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAddOwnerToFolderRequestWithBody(server, workspace, name, "application/json", bodyReader)
+}
+
+// NewAddOwnerToFolderRequestWithBody generates requests for AddOwnerToFolder with any type of body
+func NewAddOwnerToFolderRequestWithBody(server string, workspace WorkspaceId, name Name, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/folders/addowner/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateFolderRequest calls the generic CreateFolder builder with application/json body
+func NewCreateFolderRequest(server string, workspace WorkspaceId, body CreateFolderJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateFolderRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateFolderRequestWithBody generates requests for CreateFolder with any type of body
+func NewCreateFolderRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/folders/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteFolderRequest generates requests for DeleteFolder
+func NewDeleteFolderRequest(server string, workspace WorkspaceId, name Name) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/folders/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetFolderRequest generates requests for GetFolder
+func NewGetFolderRequest(server string, workspace WorkspaceId, name Name) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/folders/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetFolderUsageRequest generates requests for GetFolderUsage
+func NewGetFolderUsageRequest(server string, workspace WorkspaceId, name Name) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/folders/getusage/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListFoldersRequest generates requests for ListFolders
+func NewListFoldersRequest(server string, workspace WorkspaceId, params *ListFoldersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/folders/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListFolderNamesRequest generates requests for ListFolderNames
+func NewListFolderNamesRequest(server string, workspace WorkspaceId, params *ListFolderNamesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/folders/listnames", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.OnlyMemberOf != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "only_member_of", runtime.ParamLocationQuery, *params.OnlyMemberOf); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRemoveOwnerToFolderRequest calls the generic RemoveOwnerToFolder builder with application/json body
+func NewRemoveOwnerToFolderRequest(server string, workspace WorkspaceId, name Name, body RemoveOwnerToFolderJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRemoveOwnerToFolderRequestWithBody(server, workspace, name, "application/json", bodyReader)
+}
+
+// NewRemoveOwnerToFolderRequestWithBody generates requests for RemoveOwnerToFolder with any type of body
+func NewRemoveOwnerToFolderRequestWithBody(server string, workspace WorkspaceId, name Name, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/folders/removeowner/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateFolderRequest calls the generic UpdateFolder builder with application/json body
+func NewUpdateFolderRequest(server string, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateFolderRequestWithBody(server, workspace, name, "application/json", bodyReader)
+}
+
+// NewUpdateFolderRequestWithBody generates requests for UpdateFolder with any type of body
+func NewUpdateFolderRequestWithBody(server string, workspace WorkspaceId, name Name, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/folders/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewAddUserToGroupRequest calls the generic AddUserToGroup builder with application/json body
 func NewAddUserToGroupRequest(server string, workspace WorkspaceId, name Name, body AddUserToGroupJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -8689,7 +9723,7 @@ func NewListGroupsRequest(server string, workspace WorkspaceId, params *ListGrou
 }
 
 // NewListGroupNamesRequest generates requests for ListGroupNames
-func NewListGroupNamesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewListGroupNamesRequest(server string, workspace WorkspaceId, params *ListGroupNamesParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -8713,6 +9747,26 @@ func NewListGroupNamesRequest(server string, workspace WorkspaceId) (*http.Reque
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.OnlyMemberOf != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "only_member_of", runtime.ParamLocationQuery, *params.OnlyMemberOf); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -10441,6 +11495,22 @@ func NewRunFlowByPathRequestWithBody(server string, workspace WorkspaceId, path 
 
 	}
 
+	if params.InvisibleToOwner != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "invisible_to_owner", runtime.ParamLocationQuery, *params.InvisibleToOwner); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -10563,6 +11633,22 @@ func NewRunScriptByHashRequestWithBody(server string, workspace WorkspaceId, has
 
 	}
 
+	if params.InvisibleToOwner != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "invisible_to_owner", runtime.ParamLocationQuery, *params.InvisibleToOwner); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -10669,6 +11755,22 @@ func NewRunScriptByPathRequestWithBody(server string, workspace WorkspaceId, pat
 
 	}
 
+	if params.InvisibleToOwner != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "invisible_to_owner", runtime.ParamLocationQuery, *params.InvisibleToOwner); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -10736,6 +11838,22 @@ func NewRunScriptPreviewRequestWithBody(server string, workspace WorkspaceId, pa
 
 	}
 
+	if params.InvisibleToOwner != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "invisible_to_owner", runtime.ParamLocationQuery, *params.InvisibleToOwner); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -10790,6 +11908,22 @@ func NewRunFlowPreviewRequestWithBody(server string, workspace WorkspaceId, para
 	if params.IncludeHeader != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.InvisibleToOwner != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "invisible_to_owner", runtime.ParamLocationQuery, *params.InvisibleToOwner); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -11434,6 +12568,22 @@ func NewListResourceRequest(server string, workspace WorkspaceId, params *ListRe
 	if params.ResourceType != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resource_type", runtime.ParamLocationQuery, *params.ResourceType); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ResourceTypeExclude != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resource_type_exclude", runtime.ParamLocationQuery, *params.ResourceTypeExclude); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -12901,6 +14051,47 @@ func NewDeleteUserRequest(server string, workspace WorkspaceId, username string)
 	return req, nil
 }
 
+// NewIsOwnerOfPathRequest generates requests for IsOwnerOfPath
+func NewIsOwnerOfPathRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/users/is_owner/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewLeaveWorkspaceRequest generates requests for LeaveWorkspace
 func NewLeaveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -13525,6 +14716,53 @@ func NewDeleteInviteRequestWithBody(server string, workspace WorkspaceId, conten
 	return req, nil
 }
 
+// NewEditAutoInviteRequest calls the generic EditAutoInvite builder with application/json body
+func NewEditAutoInviteRequest(server string, workspace WorkspaceId, body EditAutoInviteJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditAutoInviteRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditAutoInviteRequestWithBody generates requests for EditAutoInvite with any type of body
+func NewEditAutoInviteRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_auto_invite", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditSlackCommandRequest calls the generic EditSlackCommand builder with application/json body
 func NewEditSlackCommandRequest(server string, workspace WorkspaceId, body EditSlackCommandJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -13687,6 +14925,40 @@ func NewListPendingInvitesRequest(server string, workspace WorkspaceId) (*http.R
 	return req, nil
 }
 
+// NewGetPremiumInfoRequest generates requests for GetPremiumInfo
+func NewGetPremiumInfoRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/premium_info", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListWorkersRequest generates requests for ListWorkers
 func NewListWorkersRequest(server string, params *ListWorkersParams) (*http.Request, error) {
 	var err error
@@ -13741,6 +15013,33 @@ func NewListWorkersRequest(server string, params *ListWorkersParams) (*http.Requ
 	}
 
 	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewIsDomainAllowedRequest generates requests for IsDomainAllowed
+func NewIsDomainAllowedRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workspaces/allowed_domain_auto_invite")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -14145,6 +15444,9 @@ type ClientWithResponsesInterface interface {
 
 	GlobalUserUpdateWithResponse(ctx context.Context, email string, body GlobalUserUpdateJSONRequestBody, reqEditors ...RequestEditorFn) (*GlobalUserUpdateResponse, error)
 
+	// GetUsage request
+	GetUsageWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetUsageResponse, error)
+
 	// GlobalWhoami request
 	GlobalWhoamiWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GlobalWhoamiResponse, error)
 
@@ -14241,6 +15543,41 @@ type ClientWithResponsesInterface interface {
 
 	UpdateFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowResponse, error)
 
+	// AddOwnerToFolder request with any body
+	AddOwnerToFolderWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddOwnerToFolderResponse, error)
+
+	AddOwnerToFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body AddOwnerToFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*AddOwnerToFolderResponse, error)
+
+	// CreateFolder request with any body
+	CreateFolderWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateFolderResponse, error)
+
+	CreateFolderWithResponse(ctx context.Context, workspace WorkspaceId, body CreateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateFolderResponse, error)
+
+	// DeleteFolder request
+	DeleteFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*DeleteFolderResponse, error)
+
+	// GetFolder request
+	GetFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*GetFolderResponse, error)
+
+	// GetFolderUsage request
+	GetFolderUsageWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*GetFolderUsageResponse, error)
+
+	// ListFolders request
+	ListFoldersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFoldersParams, reqEditors ...RequestEditorFn) (*ListFoldersResponse, error)
+
+	// ListFolderNames request
+	ListFolderNamesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFolderNamesParams, reqEditors ...RequestEditorFn) (*ListFolderNamesResponse, error)
+
+	// RemoveOwnerToFolder request with any body
+	RemoveOwnerToFolderWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RemoveOwnerToFolderResponse, error)
+
+	RemoveOwnerToFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body RemoveOwnerToFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveOwnerToFolderResponse, error)
+
+	// UpdateFolder request with any body
+	UpdateFolderWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFolderResponse, error)
+
+	UpdateFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFolderResponse, error)
+
 	// AddUserToGroup request with any body
 	AddUserToGroupWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserToGroupResponse, error)
 
@@ -14261,7 +15598,7 @@ type ClientWithResponsesInterface interface {
 	ListGroupsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListGroupsParams, reqEditors ...RequestEditorFn) (*ListGroupsResponse, error)
 
 	// ListGroupNames request
-	ListGroupNamesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListGroupNamesResponse, error)
+	ListGroupNamesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListGroupNamesParams, reqEditors ...RequestEditorFn) (*ListGroupNamesResponse, error)
 
 	// RemoveUserToGroup request with any body
 	RemoveUserToGroupWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RemoveUserToGroupResponse, error)
@@ -14498,6 +15835,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteUser request
 	DeleteUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*DeleteUserResponse, error)
 
+	// IsOwnerOfPath request
+	IsOwnerOfPathWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*IsOwnerOfPathResponse, error)
+
 	// LeaveWorkspace request
 	LeaveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*LeaveWorkspaceResponse, error)
 
@@ -14551,6 +15891,11 @@ type ClientWithResponsesInterface interface {
 
 	DeleteInviteWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error)
 
+	// EditAutoInvite request with any body
+	EditAutoInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditAutoInviteResponse, error)
+
+	EditAutoInviteWithResponse(ctx context.Context, workspace WorkspaceId, body EditAutoInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*EditAutoInviteResponse, error)
+
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
 
@@ -14567,8 +15912,14 @@ type ClientWithResponsesInterface interface {
 	// ListPendingInvites request
 	ListPendingInvitesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPendingInvitesResponse, error)
 
+	// GetPremiumInfo request
+	GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error)
+
 	// ListWorkers request
 	ListWorkersWithResponse(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*ListWorkersResponse, error)
+
+	// IsDomainAllowed request
+	IsDomainAllowedWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsDomainAllowedResponse, error)
 
 	// CreateWorkspace request with any body
 	CreateWorkspaceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceResponse, error)
@@ -15252,6 +16603,27 @@ func (r GlobalUserUpdateResponse) StatusCode() int {
 	return 0
 }
 
+type GetUsageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUsageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUsageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GlobalWhoamiResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -15806,6 +17178,206 @@ func (r UpdateFlowResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateFlowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AddOwnerToFolderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AddOwnerToFolderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AddOwnerToFolderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateFolderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateFolderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateFolderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteFolderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteFolderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteFolderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetFolderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Folder
+}
+
+// Status returns HTTPResponse.Status
+func (r GetFolderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFolderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetFolderUsageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Apps      float32 `json:"apps"`
+		Flows     float32 `json:"flows"`
+		Resources float32 `json:"resources"`
+		Schedules float32 `json:"schedules"`
+		Scripts   float32 `json:"scripts"`
+		Variables float32 `json:"variables"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetFolderUsageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFolderUsageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListFoldersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]Folder
+}
+
+// Status returns HTTPResponse.Status
+func (r ListFoldersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListFoldersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListFolderNamesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListFolderNamesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListFolderNamesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RemoveOwnerToFolderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RemoveOwnerToFolderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RemoveOwnerToFolderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateFolderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateFolderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateFolderResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -17310,6 +18882,28 @@ func (r DeleteUserResponse) StatusCode() int {
 	return 0
 }
 
+type IsOwnerOfPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r IsOwnerOfPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r IsOwnerOfPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type LeaveWorkspaceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -17633,6 +19227,27 @@ func (r DeleteInviteResponse) StatusCode() int {
 	return 0
 }
 
+type EditAutoInviteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditAutoInviteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditAutoInviteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditSlackCommandResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -17658,6 +19273,8 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
+		AutoInviteDomain   *string `json:"auto_invite_domain,omitempty"`
+		AutoInviteOperator *bool   `json:"auto_invite_operator,omitempty"`
 		SlackCommandScript *string `json:"slack_command_script,omitempty"`
 		SlackName          *string `json:"slack_name,omitempty"`
 		SlackTeamId        *string `json:"slack_team_id,omitempty"`
@@ -17724,6 +19341,31 @@ func (r ListPendingInvitesResponse) StatusCode() int {
 	return 0
 }
 
+type GetPremiumInfoResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Premium bool     `json:"premium"`
+		Usage   *float32 `json:"usage,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPremiumInfoResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPremiumInfoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListWorkersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -17740,6 +19382,28 @@ func (r ListWorkersResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListWorkersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type IsDomainAllowedResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r IsDomainAllowedResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r IsDomainAllowedResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -18248,6 +19912,15 @@ func (c *ClientWithResponses) GlobalUserUpdateWithResponse(ctx context.Context, 
 	return ParseGlobalUserUpdateResponse(rsp)
 }
 
+// GetUsageWithResponse request returning *GetUsageResponse
+func (c *ClientWithResponses) GetUsageWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetUsageResponse, error) {
+	rsp, err := c.GetUsage(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUsageResponse(rsp)
+}
+
 // GlobalWhoamiWithResponse request returning *GlobalWhoamiResponse
 func (c *ClientWithResponses) GlobalWhoamiWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GlobalWhoamiResponse, error) {
 	rsp, err := c.GlobalWhoami(ctx, reqEditors...)
@@ -18554,6 +20227,119 @@ func (c *ClientWithResponses) UpdateFlowWithResponse(ctx context.Context, worksp
 	return ParseUpdateFlowResponse(rsp)
 }
 
+// AddOwnerToFolderWithBodyWithResponse request with arbitrary body returning *AddOwnerToFolderResponse
+func (c *ClientWithResponses) AddOwnerToFolderWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddOwnerToFolderResponse, error) {
+	rsp, err := c.AddOwnerToFolderWithBody(ctx, workspace, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAddOwnerToFolderResponse(rsp)
+}
+
+func (c *ClientWithResponses) AddOwnerToFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body AddOwnerToFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*AddOwnerToFolderResponse, error) {
+	rsp, err := c.AddOwnerToFolder(ctx, workspace, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAddOwnerToFolderResponse(rsp)
+}
+
+// CreateFolderWithBodyWithResponse request with arbitrary body returning *CreateFolderResponse
+func (c *ClientWithResponses) CreateFolderWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateFolderResponse, error) {
+	rsp, err := c.CreateFolderWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateFolderResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateFolderWithResponse(ctx context.Context, workspace WorkspaceId, body CreateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateFolderResponse, error) {
+	rsp, err := c.CreateFolder(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateFolderResponse(rsp)
+}
+
+// DeleteFolderWithResponse request returning *DeleteFolderResponse
+func (c *ClientWithResponses) DeleteFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*DeleteFolderResponse, error) {
+	rsp, err := c.DeleteFolder(ctx, workspace, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteFolderResponse(rsp)
+}
+
+// GetFolderWithResponse request returning *GetFolderResponse
+func (c *ClientWithResponses) GetFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*GetFolderResponse, error) {
+	rsp, err := c.GetFolder(ctx, workspace, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFolderResponse(rsp)
+}
+
+// GetFolderUsageWithResponse request returning *GetFolderUsageResponse
+func (c *ClientWithResponses) GetFolderUsageWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*GetFolderUsageResponse, error) {
+	rsp, err := c.GetFolderUsage(ctx, workspace, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFolderUsageResponse(rsp)
+}
+
+// ListFoldersWithResponse request returning *ListFoldersResponse
+func (c *ClientWithResponses) ListFoldersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFoldersParams, reqEditors ...RequestEditorFn) (*ListFoldersResponse, error) {
+	rsp, err := c.ListFolders(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListFoldersResponse(rsp)
+}
+
+// ListFolderNamesWithResponse request returning *ListFolderNamesResponse
+func (c *ClientWithResponses) ListFolderNamesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFolderNamesParams, reqEditors ...RequestEditorFn) (*ListFolderNamesResponse, error) {
+	rsp, err := c.ListFolderNames(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListFolderNamesResponse(rsp)
+}
+
+// RemoveOwnerToFolderWithBodyWithResponse request with arbitrary body returning *RemoveOwnerToFolderResponse
+func (c *ClientWithResponses) RemoveOwnerToFolderWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RemoveOwnerToFolderResponse, error) {
+	rsp, err := c.RemoveOwnerToFolderWithBody(ctx, workspace, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRemoveOwnerToFolderResponse(rsp)
+}
+
+func (c *ClientWithResponses) RemoveOwnerToFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body RemoveOwnerToFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveOwnerToFolderResponse, error) {
+	rsp, err := c.RemoveOwnerToFolder(ctx, workspace, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRemoveOwnerToFolderResponse(rsp)
+}
+
+// UpdateFolderWithBodyWithResponse request with arbitrary body returning *UpdateFolderResponse
+func (c *ClientWithResponses) UpdateFolderWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFolderResponse, error) {
+	rsp, err := c.UpdateFolderWithBody(ctx, workspace, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateFolderResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFolderResponse, error) {
+	rsp, err := c.UpdateFolder(ctx, workspace, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateFolderResponse(rsp)
+}
+
 // AddUserToGroupWithBodyWithResponse request with arbitrary body returning *AddUserToGroupResponse
 func (c *ClientWithResponses) AddUserToGroupWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserToGroupResponse, error) {
 	rsp, err := c.AddUserToGroupWithBody(ctx, workspace, name, contentType, body, reqEditors...)
@@ -18616,8 +20402,8 @@ func (c *ClientWithResponses) ListGroupsWithResponse(ctx context.Context, worksp
 }
 
 // ListGroupNamesWithResponse request returning *ListGroupNamesResponse
-func (c *ClientWithResponses) ListGroupNamesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListGroupNamesResponse, error) {
-	rsp, err := c.ListGroupNames(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListGroupNamesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListGroupNamesParams, reqEditors ...RequestEditorFn) (*ListGroupNamesResponse, error) {
+	rsp, err := c.ListGroupNames(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -19375,6 +21161,15 @@ func (c *ClientWithResponses) DeleteUserWithResponse(ctx context.Context, worksp
 	return ParseDeleteUserResponse(rsp)
 }
 
+// IsOwnerOfPathWithResponse request returning *IsOwnerOfPathResponse
+func (c *ClientWithResponses) IsOwnerOfPathWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*IsOwnerOfPathResponse, error) {
+	rsp, err := c.IsOwnerOfPath(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseIsOwnerOfPathResponse(rsp)
+}
+
 // LeaveWorkspaceWithResponse request returning *LeaveWorkspaceResponse
 func (c *ClientWithResponses) LeaveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*LeaveWorkspaceResponse, error) {
 	rsp, err := c.LeaveWorkspace(ctx, workspace, reqEditors...)
@@ -19542,6 +21337,23 @@ func (c *ClientWithResponses) DeleteInviteWithResponse(ctx context.Context, work
 	return ParseDeleteInviteResponse(rsp)
 }
 
+// EditAutoInviteWithBodyWithResponse request with arbitrary body returning *EditAutoInviteResponse
+func (c *ClientWithResponses) EditAutoInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditAutoInviteResponse, error) {
+	rsp, err := c.EditAutoInviteWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditAutoInviteResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditAutoInviteWithResponse(ctx context.Context, workspace WorkspaceId, body EditAutoInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*EditAutoInviteResponse, error) {
+	rsp, err := c.EditAutoInvite(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditAutoInviteResponse(rsp)
+}
+
 // EditSlackCommandWithBodyWithResponse request with arbitrary body returning *EditSlackCommandResponse
 func (c *ClientWithResponses) EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error) {
 	rsp, err := c.EditSlackCommandWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -19594,6 +21406,15 @@ func (c *ClientWithResponses) ListPendingInvitesWithResponse(ctx context.Context
 	return ParseListPendingInvitesResponse(rsp)
 }
 
+// GetPremiumInfoWithResponse request returning *GetPremiumInfoResponse
+func (c *ClientWithResponses) GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error) {
+	rsp, err := c.GetPremiumInfo(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPremiumInfoResponse(rsp)
+}
+
 // ListWorkersWithResponse request returning *ListWorkersResponse
 func (c *ClientWithResponses) ListWorkersWithResponse(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*ListWorkersResponse, error) {
 	rsp, err := c.ListWorkers(ctx, params, reqEditors...)
@@ -19601,6 +21422,15 @@ func (c *ClientWithResponses) ListWorkersWithResponse(ctx context.Context, param
 		return nil, err
 	}
 	return ParseListWorkersResponse(rsp)
+}
+
+// IsDomainAllowedWithResponse request returning *IsDomainAllowedResponse
+func (c *ClientWithResponses) IsDomainAllowedWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsDomainAllowedResponse, error) {
+	rsp, err := c.IsDomainAllowed(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseIsDomainAllowedResponse(rsp)
 }
 
 // CreateWorkspaceWithBodyWithResponse request with arbitrary body returning *CreateWorkspaceResponse
@@ -20328,6 +22158,22 @@ func ParseGlobalUserUpdateResponse(rsp *http.Response) (*GlobalUserUpdateRespons
 	return response, nil
 }
 
+// ParseGetUsageResponse parses an HTTP response from a GetUsageWithResponse call
+func ParseGetUsageResponse(rsp *http.Response) (*GetUsageResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUsageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGlobalWhoamiResponse parses an HTTP response from a GlobalWhoamiWithResponse call
 func ParseGlobalWhoamiResponse(rsp *http.Response) (*GlobalWhoamiResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -20859,6 +22705,197 @@ func ParseUpdateFlowResponse(rsp *http.Response) (*UpdateFlowResponse, error) {
 	}
 
 	response := &UpdateFlowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseAddOwnerToFolderResponse parses an HTTP response from a AddOwnerToFolderWithResponse call
+func ParseAddOwnerToFolderResponse(rsp *http.Response) (*AddOwnerToFolderResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AddOwnerToFolderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateFolderResponse parses an HTTP response from a CreateFolderWithResponse call
+func ParseCreateFolderResponse(rsp *http.Response) (*CreateFolderResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateFolderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteFolderResponse parses an HTTP response from a DeleteFolderWithResponse call
+func ParseDeleteFolderResponse(rsp *http.Response) (*DeleteFolderResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteFolderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetFolderResponse parses an HTTP response from a GetFolderWithResponse call
+func ParseGetFolderResponse(rsp *http.Response) (*GetFolderResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFolderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Folder
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetFolderUsageResponse parses an HTTP response from a GetFolderUsageWithResponse call
+func ParseGetFolderUsageResponse(rsp *http.Response) (*GetFolderUsageResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFolderUsageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Apps      float32 `json:"apps"`
+			Flows     float32 `json:"flows"`
+			Resources float32 `json:"resources"`
+			Schedules float32 `json:"schedules"`
+			Scripts   float32 `json:"scripts"`
+			Variables float32 `json:"variables"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListFoldersResponse parses an HTTP response from a ListFoldersWithResponse call
+func ParseListFoldersResponse(rsp *http.Response) (*ListFoldersResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListFoldersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []Folder
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListFolderNamesResponse parses an HTTP response from a ListFolderNamesWithResponse call
+func ParseListFolderNamesResponse(rsp *http.Response) (*ListFolderNamesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListFolderNamesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRemoveOwnerToFolderResponse parses an HTTP response from a RemoveOwnerToFolderWithResponse call
+func ParseRemoveOwnerToFolderResponse(rsp *http.Response) (*RemoveOwnerToFolderResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RemoveOwnerToFolderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateFolderResponse parses an HTTP response from a UpdateFolderWithResponse call
+func ParseUpdateFolderResponse(rsp *http.Response) (*UpdateFolderResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateFolderResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -22307,6 +24344,32 @@ func ParseDeleteUserResponse(rsp *http.Response) (*DeleteUserResponse, error) {
 	return response, nil
 }
 
+// ParseIsOwnerOfPathResponse parses an HTTP response from a IsOwnerOfPathWithResponse call
+func ParseIsOwnerOfPathResponse(rsp *http.Response) (*IsOwnerOfPathResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &IsOwnerOfPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseLeaveWorkspaceResponse parses an HTTP response from a LeaveWorkspaceWithResponse call
 func ParseLeaveWorkspaceResponse(rsp *http.Response) (*LeaveWorkspaceResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -22627,6 +24690,22 @@ func ParseDeleteInviteResponse(rsp *http.Response) (*DeleteInviteResponse, error
 	return response, nil
 }
 
+// ParseEditAutoInviteResponse parses an HTTP response from a EditAutoInviteWithResponse call
+func ParseEditAutoInviteResponse(rsp *http.Response) (*EditAutoInviteResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditAutoInviteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseEditSlackCommandResponse parses an HTTP response from a EditSlackCommandWithResponse call
 func ParseEditSlackCommandResponse(rsp *http.Response) (*EditSlackCommandResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -22659,6 +24738,8 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
+			AutoInviteDomain   *string `json:"auto_invite_domain,omitempty"`
+			AutoInviteOperator *bool   `json:"auto_invite_operator,omitempty"`
 			SlackCommandScript *string `json:"slack_command_script,omitempty"`
 			SlackName          *string `json:"slack_name,omitempty"`
 			SlackTeamId        *string `json:"slack_team_id,omitempty"`
@@ -22716,6 +24797,35 @@ func ParseListPendingInvitesResponse(rsp *http.Response) (*ListPendingInvitesRes
 	return response, nil
 }
 
+// ParseGetPremiumInfoResponse parses an HTTP response from a GetPremiumInfoWithResponse call
+func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPremiumInfoResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Premium bool     `json:"premium"`
+			Usage   *float32 `json:"usage,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListWorkersResponse parses an HTTP response from a ListWorkersWithResponse call
 func ParseListWorkersResponse(rsp *http.Response) (*ListWorkersResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -22732,6 +24842,32 @@ func ParseListWorkersResponse(rsp *http.Response) (*ListWorkersResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []WorkerPing
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseIsDomainAllowedResponse parses an HTTP response from a IsDomainAllowedWithResponse call
+func ParseIsDomainAllowedResponse(rsp *http.Response) (*IsDomainAllowedResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &IsDomainAllowedResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
