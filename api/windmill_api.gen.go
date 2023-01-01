@@ -1494,6 +1494,9 @@ type ListCompletedJobsParams struct {
 	IsFlowStep *bool `form:"is_flow_step,omitempty" json:"is_flow_step,omitempty"`
 }
 
+// ResumeSuspendedFlowAsOwnerJSONBody defines parameters for ResumeSuspendedFlowAsOwner.
+type ResumeSuspendedFlowAsOwnerJSONBody = map[string]interface{}
+
 // GetSuspendedJobFlowParams defines parameters for GetSuspendedJobFlow.
 type GetSuspendedJobFlowParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
@@ -1760,6 +1763,9 @@ type UpdateResourceTypeJSONBody = EditResourceType
 
 // UpdateResourceJSONBody defines parameters for UpdateResource.
 type UpdateResourceJSONBody = EditResource
+
+// UpdateResourceValueJSONBody defines parameters for UpdateResourceValue.
+type UpdateResourceValueJSONBody = interface{}
 
 // CreateScheduleJSONBody defines parameters for CreateSchedule.
 type CreateScheduleJSONBody = NewSchedule
@@ -2029,6 +2035,9 @@ type UpdateGroupJSONRequestBody UpdateGroupJSONBody
 // CancelSuspendedJobPostJSONRequestBody defines body for CancelSuspendedJobPost for application/json ContentType.
 type CancelSuspendedJobPostJSONRequestBody = CancelSuspendedJobPostJSONBody
 
+// ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
+type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
+
 // CancelQueuedJobJSONRequestBody defines body for CancelQueuedJob for application/json ContentType.
 type CancelQueuedJobJSONRequestBody CancelQueuedJobJSONBody
 
@@ -2073,6 +2082,9 @@ type UpdateResourceTypeJSONRequestBody = UpdateResourceTypeJSONBody
 
 // UpdateResourceJSONRequestBody defines body for UpdateResource for application/json ContentType.
 type UpdateResourceJSONRequestBody = UpdateResourceJSONBody
+
+// UpdateResourceValueJSONRequestBody defines body for UpdateResourceValue for application/json ContentType.
+type UpdateResourceValueJSONRequestBody = UpdateResourceValueJSONBody
 
 // CreateScheduleJSONRequestBody defines body for CreateSchedule for application/json ContentType.
 type CreateScheduleJSONRequestBody = CreateScheduleJSONBody
@@ -3255,6 +3267,12 @@ type ClientInterface interface {
 	// ListApps request
 	ListApps(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetPublicAppBySecret request
+	GetPublicAppBySecret(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetPublicSecretOfApp request
+	GetPublicSecretOfApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UpdateApp request with any body
 	UpdateAppWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3390,6 +3408,11 @@ type ClientInterface interface {
 
 	// ListCompletedJobs request
 	ListCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResumeSuspendedFlowAsOwner request with any body
+	ResumeSuspendedFlowAsOwnerWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ResumeSuspendedFlowAsOwner(ctx context.Context, workspace WorkspaceId, id JobId, body ResumeSuspendedFlowAsOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetJob request
 	GetJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3528,6 +3551,11 @@ type ClientInterface interface {
 	UpdateResourceWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateResource(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateResourceValue request with any body
+	UpdateResourceValueWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateResourceValue(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceValueJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateSchedule request with any body
 	CreateScheduleWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4430,6 +4458,30 @@ func (c *Client) ListApps(ctx context.Context, workspace WorkspaceId, params *Li
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetPublicAppBySecret(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPublicAppBySecretRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPublicSecretOfApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPublicSecretOfAppRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) UpdateAppWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateAppRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
@@ -5020,6 +5072,30 @@ func (c *Client) GetCompletedJob(ctx context.Context, workspace WorkspaceId, id 
 
 func (c *Client) ListCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListCompletedJobsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResumeSuspendedFlowAsOwnerWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResumeSuspendedFlowAsOwnerRequestWithBody(c.Server, workspace, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResumeSuspendedFlowAsOwner(ctx context.Context, workspace WorkspaceId, id JobId, body ResumeSuspendedFlowAsOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResumeSuspendedFlowAsOwnerRequest(c.Server, workspace, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -5632,6 +5708,30 @@ func (c *Client) UpdateResourceWithBody(ctx context.Context, workspace Workspace
 
 func (c *Client) UpdateResource(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateResourceRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateResourceValueWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateResourceValueRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateResourceValue(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceValueJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateResourceValueRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -8145,6 +8245,88 @@ func NewListAppsRequest(server string, workspace WorkspaceId, params *ListAppsPa
 	return req, nil
 }
 
+// NewGetPublicAppBySecretRequest generates requests for GetPublicAppBySecret
+func NewGetPublicAppBySecretRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/public_app/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetPublicSecretOfAppRequest generates requests for GetPublicSecretOfApp
+func NewGetPublicSecretOfAppRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/secret_of/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewUpdateAppRequest calls the generic UpdateApp builder with application/json body
 func NewUpdateAppRequest(server string, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -10355,6 +10537,60 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewResumeSuspendedFlowAsOwnerRequest calls the generic ResumeSuspendedFlowAsOwner builder with application/json body
+func NewResumeSuspendedFlowAsOwnerRequest(server string, workspace WorkspaceId, id JobId, body ResumeSuspendedFlowAsOwnerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewResumeSuspendedFlowAsOwnerRequestWithBody(server, workspace, id, "application/json", bodyReader)
+}
+
+// NewResumeSuspendedFlowAsOwnerRequestWithBody generates requests for ResumeSuspendedFlowAsOwner with any type of body
+func NewResumeSuspendedFlowAsOwnerRequestWithBody(server string, workspace WorkspaceId, id JobId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/flow/resume/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -12953,6 +13189,60 @@ func NewUpdateResourceRequestWithBody(server string, workspace WorkspaceId, path
 	return req, nil
 }
 
+// NewUpdateResourceValueRequest calls the generic UpdateResourceValue builder with application/json body
+func NewUpdateResourceValueRequest(server string, workspace WorkspaceId, path Path, body UpdateResourceValueJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateResourceValueRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateResourceValueRequestWithBody generates requests for UpdateResourceValue with any type of body
+func NewUpdateResourceValueRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/update_value/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateScheduleRequest calls the generic CreateSchedule builder with application/json body
 func NewCreateScheduleRequest(server string, workspace WorkspaceId, body CreateScheduleJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -15491,6 +15781,12 @@ type ClientWithResponsesInterface interface {
 	// ListApps request
 	ListAppsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*ListAppsResponse, error)
 
+	// GetPublicAppBySecret request
+	GetPublicAppBySecretWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicAppBySecretResponse, error)
+
+	// GetPublicSecretOfApp request
+	GetPublicSecretOfAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicSecretOfAppResponse, error)
+
 	// UpdateApp request with any body
 	UpdateAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppResponse, error)
 
@@ -15626,6 +15922,11 @@ type ClientWithResponsesInterface interface {
 
 	// ListCompletedJobs request
 	ListCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*ListCompletedJobsResponse, error)
+
+	// ResumeSuspendedFlowAsOwner request with any body
+	ResumeSuspendedFlowAsOwnerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedFlowAsOwnerResponse, error)
+
+	ResumeSuspendedFlowAsOwnerWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body ResumeSuspendedFlowAsOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedFlowAsOwnerResponse, error)
 
 	// GetJob request
 	GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobResponse, error)
@@ -15764,6 +16065,11 @@ type ClientWithResponsesInterface interface {
 	UpdateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResourceResponse, error)
 
 	UpdateResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateResourceResponse, error)
+
+	// UpdateResourceValue request with any body
+	UpdateResourceValueWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResourceValueResponse, error)
+
+	UpdateResourceValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceValueJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateResourceValueResponse, error)
 
 	// CreateSchedule request with any body
 	CreateScheduleWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateScheduleResponse, error)
@@ -16884,6 +17190,49 @@ func (r ListAppsResponse) StatusCode() int {
 	return 0
 }
 
+type GetPublicAppBySecretResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AppWithLastVersion
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPublicAppBySecretResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPublicAppBySecretResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetPublicSecretOfAppResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPublicSecretOfAppResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPublicSecretOfAppResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UpdateAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -17657,6 +18006,27 @@ func (r ListCompletedJobsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListCompletedJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ResumeSuspendedFlowAsOwnerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ResumeSuspendedFlowAsOwnerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResumeSuspendedFlowAsOwnerResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -18443,6 +18813,27 @@ func (r UpdateResourceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateResourceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateResourceValueResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateResourceValueResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateResourceValueResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -20061,6 +20452,24 @@ func (c *ClientWithResponses) ListAppsWithResponse(ctx context.Context, workspac
 	return ParseListAppsResponse(rsp)
 }
 
+// GetPublicAppBySecretWithResponse request returning *GetPublicAppBySecretResponse
+func (c *ClientWithResponses) GetPublicAppBySecretWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicAppBySecretResponse, error) {
+	rsp, err := c.GetPublicAppBySecret(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPublicAppBySecretResponse(rsp)
+}
+
+// GetPublicSecretOfAppWithResponse request returning *GetPublicSecretOfAppResponse
+func (c *ClientWithResponses) GetPublicSecretOfAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicSecretOfAppResponse, error) {
+	rsp, err := c.GetPublicSecretOfApp(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPublicSecretOfAppResponse(rsp)
+}
+
 // UpdateAppWithBodyWithResponse request with arbitrary body returning *UpdateAppResponse
 func (c *ClientWithResponses) UpdateAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppResponse, error) {
 	rsp, err := c.UpdateAppWithBody(ctx, workspace, path, contentType, body, reqEditors...)
@@ -20495,6 +20904,23 @@ func (c *ClientWithResponses) ListCompletedJobsWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseListCompletedJobsResponse(rsp)
+}
+
+// ResumeSuspendedFlowAsOwnerWithBodyWithResponse request with arbitrary body returning *ResumeSuspendedFlowAsOwnerResponse
+func (c *ClientWithResponses) ResumeSuspendedFlowAsOwnerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedFlowAsOwnerResponse, error) {
+	rsp, err := c.ResumeSuspendedFlowAsOwnerWithBody(ctx, workspace, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResumeSuspendedFlowAsOwnerResponse(rsp)
+}
+
+func (c *ClientWithResponses) ResumeSuspendedFlowAsOwnerWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body ResumeSuspendedFlowAsOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedFlowAsOwnerResponse, error) {
+	rsp, err := c.ResumeSuspendedFlowAsOwner(ctx, workspace, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResumeSuspendedFlowAsOwnerResponse(rsp)
 }
 
 // GetJobWithResponse request returning *GetJobResponse
@@ -20939,6 +21365,23 @@ func (c *ClientWithResponses) UpdateResourceWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseUpdateResourceResponse(rsp)
+}
+
+// UpdateResourceValueWithBodyWithResponse request with arbitrary body returning *UpdateResourceValueResponse
+func (c *ClientWithResponses) UpdateResourceValueWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResourceValueResponse, error) {
+	rsp, err := c.UpdateResourceValueWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateResourceValueResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateResourceValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceValueJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateResourceValueResponse, error) {
+	rsp, err := c.UpdateResourceValue(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateResourceValueResponse(rsp)
 }
 
 // CreateScheduleWithBodyWithResponse request with arbitrary body returning *CreateScheduleResponse
@@ -22428,6 +22871,48 @@ func ParseListAppsResponse(rsp *http.Response) (*ListAppsResponse, error) {
 	return response, nil
 }
 
+// ParseGetPublicAppBySecretResponse parses an HTTP response from a GetPublicAppBySecretWithResponse call
+func ParseGetPublicAppBySecretResponse(rsp *http.Response) (*GetPublicAppBySecretResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPublicAppBySecretResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AppWithLastVersion
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetPublicSecretOfAppResponse parses an HTTP response from a GetPublicSecretOfAppWithResponse call
+func ParseGetPublicSecretOfAppResponse(rsp *http.Response) (*GetPublicSecretOfAppResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPublicSecretOfAppResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseUpdateAppResponse parses an HTTP response from a UpdateAppWithResponse call
 func ParseUpdateAppResponse(rsp *http.Response) (*UpdateAppResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -23166,6 +23651,22 @@ func ParseListCompletedJobsResponse(rsp *http.Response) (*ListCompletedJobsRespo
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseResumeSuspendedFlowAsOwnerResponse parses an HTTP response from a ResumeSuspendedFlowAsOwnerWithResponse call
+func ParseResumeSuspendedFlowAsOwnerResponse(rsp *http.Response) (*ResumeSuspendedFlowAsOwnerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResumeSuspendedFlowAsOwnerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -23914,6 +24415,22 @@ func ParseUpdateResourceResponse(rsp *http.Response) (*UpdateResourceResponse, e
 	}
 
 	response := &UpdateResourceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateResourceValueResponse parses an HTTP response from a UpdateResourceValueWithResponse call
+func ParseUpdateResourceValueResponse(rsp *http.Response) (*UpdateResourceValueResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateResourceValueResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
