@@ -1765,7 +1765,9 @@ type UpdateResourceTypeJSONBody = EditResourceType
 type UpdateResourceJSONBody = EditResource
 
 // UpdateResourceValueJSONBody defines parameters for UpdateResourceValue.
-type UpdateResourceValueJSONBody = interface{}
+type UpdateResourceValueJSONBody struct {
+	Value *interface{} `json:"value,omitempty"`
+}
 
 // CreateScheduleJSONBody defines parameters for CreateSchedule.
 type CreateScheduleJSONBody = NewSchedule
@@ -2084,7 +2086,7 @@ type UpdateResourceTypeJSONRequestBody = UpdateResourceTypeJSONBody
 type UpdateResourceJSONRequestBody = UpdateResourceJSONBody
 
 // UpdateResourceValueJSONRequestBody defines body for UpdateResourceValue for application/json ContentType.
-type UpdateResourceValueJSONRequestBody = UpdateResourceValueJSONBody
+type UpdateResourceValueJSONRequestBody UpdateResourceValueJSONBody
 
 // CreateScheduleJSONRequestBody defines body for CreateSchedule for application/json ContentType.
 type CreateScheduleJSONRequestBody = CreateScheduleJSONBody
