@@ -777,9 +777,10 @@ type PathScriptType string
 
 // Policy defines model for Policy.
 type Policy struct {
-	ExecutionMode *PolicyExecutionMode `json:"execution_mode,omitempty"`
-	OnBehalfOf    *string              `json:"on_behalf_of,omitempty"`
-	Triggerables  *Policy_Triggerables `json:"triggerables,omitempty"`
+	ExecutionMode   *PolicyExecutionMode `json:"execution_mode,omitempty"`
+	OnBehalfOf      *string              `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail *string              `json:"on_behalf_of_email,omitempty"`
+	Triggerables    *Policy_Triggerables `json:"triggerables,omitempty"`
 }
 
 // PolicyExecutionMode defines model for Policy.ExecutionMode.
@@ -3107,6 +3108,12 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetHubAppById request
+	GetHubAppById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListHubApps request
+	ListHubApps(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// Login request with any body
 	LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3677,8 +3684,8 @@ type ClientInterface interface {
 
 	UpdateVariable(ctx context.Context, workspace WorkspaceId, path Path, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteWorkspace request
-	DeleteWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ArchiveWorkspace request
+	ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteInvite request with any body
 	DeleteInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3720,6 +3727,9 @@ type ClientInterface interface {
 
 	CreateWorkspace(ctx context.Context, body CreateWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteWorkspace request
+	DeleteWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ExistsWorkspace request with any body
 	ExistsWorkspaceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3736,8 +3746,35 @@ type ClientInterface interface {
 	// ListWorkspacesAsSuperAdmin request
 	ListWorkspacesAsSuperAdmin(ctx context.Context, params *ListWorkspacesAsSuperAdminParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UnarchiveWorkspace request
+	UnarchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListUserWorkspaces request
 	ListUserWorkspaces(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) GetHubAppById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetHubAppByIdRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListHubApps(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListHubAppsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -6248,8 +6285,8 @@ func (c *Client) UpdateVariable(ctx context.Context, workspace WorkspaceId, path
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteWorkspaceRequest(c.Server, workspace)
+func (c *Client) ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewArchiveWorkspaceRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -6440,6 +6477,18 @@ func (c *Client) CreateWorkspace(ctx context.Context, body CreateWorkspaceJSONRe
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeleteWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteWorkspaceRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ExistsWorkspaceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsWorkspaceRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -6512,6 +6561,18 @@ func (c *Client) ListWorkspacesAsSuperAdmin(ctx context.Context, params *ListWor
 	return c.Client.Do(req)
 }
 
+func (c *Client) UnarchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnarchiveWorkspaceRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListUserWorkspaces(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListUserWorkspacesRequest(c.Server)
 	if err != nil {
@@ -6522,6 +6583,67 @@ func (c *Client) ListUserWorkspaces(ctx context.Context, reqEditors ...RequestEd
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewGetHubAppByIdRequest generates requests for GetHubAppById
+func NewGetHubAppByIdRequest(server string, id PathId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/apps/hub/get/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListHubAppsRequest generates requests for ListHubApps
+func NewListHubAppsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/apps/hub/list")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewLoginRequest calls the generic Login builder with application/json body
@@ -14927,8 +15049,8 @@ func NewUpdateVariableRequestWithBody(server string, workspace WorkspaceId, path
 	return req, nil
 }
 
-// NewDeleteWorkspaceRequest generates requests for DeleteWorkspace
-func NewDeleteWorkspaceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+// NewArchiveWorkspaceRequest generates requests for ArchiveWorkspace
+func NewArchiveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -14943,7 +15065,7 @@ func NewDeleteWorkspaceRequest(server string, workspace WorkspaceId) (*http.Requ
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/workspaces/delete", pathParam0)
+	operationPath := fmt.Sprintf("/w/%s/workspaces/archive", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -14953,7 +15075,7 @@ func NewDeleteWorkspaceRequest(server string, workspace WorkspaceId) (*http.Requ
 		return nil, err
 	}
 
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -15381,6 +15503,40 @@ func NewCreateWorkspaceRequestWithBody(server string, contentType string, body i
 	return req, nil
 }
 
+// NewDeleteWorkspaceRequest generates requests for DeleteWorkspace
+func NewDeleteWorkspaceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workspaces/delete/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewExistsWorkspaceRequest calls the generic ExistsWorkspace builder with application/json body
 func NewExistsWorkspaceRequest(server string, body ExistsWorkspaceJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -15551,6 +15707,40 @@ func NewListWorkspacesAsSuperAdminRequest(server string, params *ListWorkspacesA
 	return req, nil
 }
 
+// NewUnarchiveWorkspaceRequest generates requests for UnarchiveWorkspace
+func NewUnarchiveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workspaces/unarchive/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListUserWorkspacesRequest generates requests for ListUserWorkspaces
 func NewListUserWorkspacesRequest(server string) (*http.Request, error) {
 	var err error
@@ -15621,6 +15811,12 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetHubAppById request
+	GetHubAppByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubAppByIdResponse, error)
+
+	// ListHubApps request
+	ListHubAppsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubAppsResponse, error)
+
 	// Login request with any body
 	LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginResponse, error)
 
@@ -16191,8 +16387,8 @@ type ClientWithResponsesInterface interface {
 
 	UpdateVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error)
 
-	// DeleteWorkspace request
-	DeleteWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DeleteWorkspaceResponse, error)
+	// ArchiveWorkspace request
+	ArchiveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ArchiveWorkspaceResponse, error)
 
 	// DeleteInvite request with any body
 	DeleteInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error)
@@ -16234,6 +16430,9 @@ type ClientWithResponsesInterface interface {
 
 	CreateWorkspaceWithResponse(ctx context.Context, body CreateWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceResponse, error)
 
+	// DeleteWorkspace request
+	DeleteWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DeleteWorkspaceResponse, error)
+
 	// ExistsWorkspace request with any body
 	ExistsWorkspaceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExistsWorkspaceResponse, error)
 
@@ -16250,8 +16449,69 @@ type ClientWithResponsesInterface interface {
 	// ListWorkspacesAsSuperAdmin request
 	ListWorkspacesAsSuperAdminWithResponse(ctx context.Context, params *ListWorkspacesAsSuperAdminParams, reqEditors ...RequestEditorFn) (*ListWorkspacesAsSuperAdminResponse, error)
 
+	// UnarchiveWorkspace request
+	UnarchiveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*UnarchiveWorkspaceResponse, error)
+
 	// ListUserWorkspaces request
 	ListUserWorkspacesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListUserWorkspacesResponse, error)
+}
+
+type GetHubAppByIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		App struct {
+			Summary string      `json:"summary"`
+			Value   interface{} `json:"value"`
+		} `json:"app"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetHubAppByIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetHubAppByIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListHubAppsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Apps *[]struct {
+			AppId    float32  `json:"app_id"`
+			Approved bool     `json:"approved"`
+			Apps     []string `json:"apps"`
+			Id       float32  `json:"id"`
+			Summary  string   `json:"summary"`
+			Votes    float32  `json:"votes"`
+		} `json:"apps,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListHubAppsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListHubAppsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type LoginResponse struct {
@@ -19578,13 +19838,13 @@ func (r UpdateVariableResponse) StatusCode() int {
 	return 0
 }
 
-type DeleteWorkspaceResponse struct {
+type ArchiveWorkspaceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteWorkspaceResponse) Status() string {
+func (r ArchiveWorkspaceResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -19592,7 +19852,7 @@ func (r DeleteWorkspaceResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteWorkspaceResponse) StatusCode() int {
+func (r ArchiveWorkspaceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -19824,6 +20084,27 @@ func (r CreateWorkspaceResponse) StatusCode() int {
 	return 0
 }
 
+type DeleteWorkspaceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteWorkspaceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteWorkspaceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ExistsWorkspaceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -19910,6 +20191,27 @@ func (r ListWorkspacesAsSuperAdminResponse) StatusCode() int {
 	return 0
 }
 
+type UnarchiveWorkspaceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UnarchiveWorkspaceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UnarchiveWorkspaceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListUserWorkspacesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -19930,6 +20232,24 @@ func (r ListUserWorkspacesResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// GetHubAppByIdWithResponse request returning *GetHubAppByIdResponse
+func (c *ClientWithResponses) GetHubAppByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubAppByIdResponse, error) {
+	rsp, err := c.GetHubAppById(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetHubAppByIdResponse(rsp)
+}
+
+// ListHubAppsWithResponse request returning *ListHubAppsResponse
+func (c *ClientWithResponses) ListHubAppsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubAppsResponse, error) {
+	rsp, err := c.ListHubApps(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListHubAppsResponse(rsp)
 }
 
 // LoginWithBodyWithResponse request with arbitrary body returning *LoginResponse
@@ -21756,13 +22076,13 @@ func (c *ClientWithResponses) UpdateVariableWithResponse(ctx context.Context, wo
 	return ParseUpdateVariableResponse(rsp)
 }
 
-// DeleteWorkspaceWithResponse request returning *DeleteWorkspaceResponse
-func (c *ClientWithResponses) DeleteWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DeleteWorkspaceResponse, error) {
-	rsp, err := c.DeleteWorkspace(ctx, workspace, reqEditors...)
+// ArchiveWorkspaceWithResponse request returning *ArchiveWorkspaceResponse
+func (c *ClientWithResponses) ArchiveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ArchiveWorkspaceResponse, error) {
+	rsp, err := c.ArchiveWorkspace(ctx, workspace, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteWorkspaceResponse(rsp)
+	return ParseArchiveWorkspaceResponse(rsp)
 }
 
 // DeleteInviteWithBodyWithResponse request with arbitrary body returning *DeleteInviteResponse
@@ -21895,6 +22215,15 @@ func (c *ClientWithResponses) CreateWorkspaceWithResponse(ctx context.Context, b
 	return ParseCreateWorkspaceResponse(rsp)
 }
 
+// DeleteWorkspaceWithResponse request returning *DeleteWorkspaceResponse
+func (c *ClientWithResponses) DeleteWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DeleteWorkspaceResponse, error) {
+	rsp, err := c.DeleteWorkspace(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteWorkspaceResponse(rsp)
+}
+
 // ExistsWorkspaceWithBodyWithResponse request with arbitrary body returning *ExistsWorkspaceResponse
 func (c *ClientWithResponses) ExistsWorkspaceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExistsWorkspaceResponse, error) {
 	rsp, err := c.ExistsWorkspaceWithBody(ctx, contentType, body, reqEditors...)
@@ -21947,6 +22276,15 @@ func (c *ClientWithResponses) ListWorkspacesAsSuperAdminWithResponse(ctx context
 	return ParseListWorkspacesAsSuperAdminResponse(rsp)
 }
 
+// UnarchiveWorkspaceWithResponse request returning *UnarchiveWorkspaceResponse
+func (c *ClientWithResponses) UnarchiveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*UnarchiveWorkspaceResponse, error) {
+	rsp, err := c.UnarchiveWorkspace(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnarchiveWorkspaceResponse(rsp)
+}
+
 // ListUserWorkspacesWithResponse request returning *ListUserWorkspacesResponse
 func (c *ClientWithResponses) ListUserWorkspacesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListUserWorkspacesResponse, error) {
 	rsp, err := c.ListUserWorkspaces(ctx, reqEditors...)
@@ -21954,6 +22292,72 @@ func (c *ClientWithResponses) ListUserWorkspacesWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListUserWorkspacesResponse(rsp)
+}
+
+// ParseGetHubAppByIdResponse parses an HTTP response from a GetHubAppByIdWithResponse call
+func ParseGetHubAppByIdResponse(rsp *http.Response) (*GetHubAppByIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetHubAppByIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			App struct {
+				Summary string      `json:"summary"`
+				Value   interface{} `json:"value"`
+			} `json:"app"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListHubAppsResponse parses an HTTP response from a ListHubAppsWithResponse call
+func ParseListHubAppsResponse(rsp *http.Response) (*ListHubAppsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListHubAppsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Apps *[]struct {
+				AppId    float32  `json:"app_id"`
+				Approved bool     `json:"approved"`
+				Apps     []string `json:"apps"`
+				Id       float32  `json:"id"`
+				Summary  string   `json:"summary"`
+				Votes    float32  `json:"votes"`
+			} `json:"apps,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseLoginResponse parses an HTTP response from a LoginWithResponse call
@@ -25177,15 +25581,15 @@ func ParseUpdateVariableResponse(rsp *http.Response) (*UpdateVariableResponse, e
 	return response, nil
 }
 
-// ParseDeleteWorkspaceResponse parses an HTTP response from a DeleteWorkspaceWithResponse call
-func ParseDeleteWorkspaceResponse(rsp *http.Response) (*DeleteWorkspaceResponse, error) {
+// ParseArchiveWorkspaceResponse parses an HTTP response from a ArchiveWorkspaceWithResponse call
+func ParseArchiveWorkspaceResponse(rsp *http.Response) (*ArchiveWorkspaceResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteWorkspaceResponse{
+	response := &ArchiveWorkspaceResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -25413,6 +25817,22 @@ func ParseCreateWorkspaceResponse(rsp *http.Response) (*CreateWorkspaceResponse,
 	return response, nil
 }
 
+// ParseDeleteWorkspaceResponse parses an HTTP response from a DeleteWorkspaceWithResponse call
+func ParseDeleteWorkspaceResponse(rsp *http.Response) (*DeleteWorkspaceResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteWorkspaceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseExistsWorkspaceResponse parses an HTTP response from a ExistsWorkspaceWithResponse call
 func ParseExistsWorkspaceResponse(rsp *http.Response) (*ExistsWorkspaceResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -25492,6 +25912,22 @@ func ParseListWorkspacesAsSuperAdminResponse(rsp *http.Response) (*ListWorkspace
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseUnarchiveWorkspaceResponse parses an HTTP response from a UnarchiveWorkspaceWithResponse call
+func ParseUnarchiveWorkspaceResponse(rsp *http.Response) (*UnarchiveWorkspaceResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UnarchiveWorkspaceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
