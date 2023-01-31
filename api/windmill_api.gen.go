@@ -1099,6 +1099,9 @@ type PathId = int
 // PerPage defines model for PerPage.
 type PerPage = int
 
+// QueueLimit defines model for QueueLimit.
+type QueueLimit = string
+
 // ResourceName defines model for ResourceName.
 type ResourceName = string
 
@@ -1675,6 +1678,25 @@ type RunFlowPreviewParams struct {
 	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
 }
 
+// RunWaitResultFlowByPathJSONBody defines parameters for RunWaitResultFlowByPath.
+type RunWaitResultFlowByPathJSONBody = ScriptArgs
+
+// RunWaitResultFlowByPathParams defines parameters for RunWaitResultFlowByPath.
+type RunWaitResultFlowByPathParams struct {
+	// when to schedule this job (leave empty for immediate run)
+	ScheduledFor *time.Time `form:"scheduled_for,omitempty" json:"scheduled_for,omitempty"`
+
+	// schedule the script to execute in the number of seconds starting now
+	ScheduledInSecs *int `form:"scheduled_in_secs,omitempty" json:"scheduled_in_secs,omitempty"`
+
+	// List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+}
+
 // RunWaitResultScriptByPathJSONBody defines parameters for RunWaitResultScriptByPath.
 type RunWaitResultScriptByPathJSONBody = ScriptArgs
 
@@ -1692,6 +1714,9 @@ type RunWaitResultScriptByPathParams struct {
 	// List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
 	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
 }
 
 // CancelSuspendedJobGetParams defines parameters for CancelSuspendedJobGet.
@@ -2075,6 +2100,9 @@ type RunScriptPreviewJSONRequestBody = RunScriptPreviewJSONBody
 
 // RunFlowPreviewJSONRequestBody defines body for RunFlowPreview for application/json ContentType.
 type RunFlowPreviewJSONRequestBody = RunFlowPreviewJSONBody
+
+// RunWaitResultFlowByPathJSONRequestBody defines body for RunWaitResultFlowByPath for application/json ContentType.
+type RunWaitResultFlowByPathJSONRequestBody = RunWaitResultFlowByPathJSONBody
 
 // RunWaitResultScriptByPathJSONRequestBody defines body for RunWaitResultScriptByPath for application/json ContentType.
 type RunWaitResultScriptByPathJSONRequestBody = RunWaitResultScriptByPathJSONBody
@@ -3485,6 +3513,11 @@ type ClientInterface interface {
 	RunFlowPreviewWithBody(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunFlowPreview(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunWaitResultFlowByPath request with any body
+	RunWaitResultFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunWaitResultFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunWaitResultScriptByPath request with any body
 	RunWaitResultScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5349,6 +5382,30 @@ func (c *Client) RunFlowPreviewWithBody(ctx context.Context, workspace Workspace
 
 func (c *Client) RunFlowPreview(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunFlowPreviewRequest(c.Server, workspace, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunWaitResultFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunWaitResultFlowByPathRequestWithBody(c.Server, workspace, path, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunWaitResultFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunWaitResultFlowByPathRequest(c.Server, workspace, path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -11938,6 +11995,128 @@ func NewRunFlowPreviewRequestWithBody(server string, workspace WorkspaceId, para
 	return req, nil
 }
 
+// NewRunWaitResultFlowByPathRequest calls the generic RunWaitResultFlowByPath builder with application/json body
+func NewRunWaitResultFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunWaitResultFlowByPathRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
+}
+
+// NewRunWaitResultFlowByPathRequestWithBody generates requests for RunWaitResultFlowByPath with any type of body
+func NewRunWaitResultFlowByPathRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_wait_result/f/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.ScheduledFor != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for", runtime.ParamLocationQuery, *params.ScheduledFor); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ScheduledInSecs != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_in_secs", runtime.ParamLocationQuery, *params.ScheduledInSecs); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IncludeHeader != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.QueueLimit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRunWaitResultScriptByPathRequest calls the generic RunWaitResultScriptByPath builder with application/json body
 func NewRunWaitResultScriptByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -12035,6 +12214,22 @@ func NewRunWaitResultScriptByPathRequestWithBody(server string, workspace Worksp
 	if params.IncludeHeader != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.QueueLimit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -16395,6 +16590,11 @@ type ClientWithResponsesInterface interface {
 
 	RunFlowPreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewResponse, error)
 
+	// RunWaitResultFlowByPath request with any body
+	RunWaitResultFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error)
+
+	RunWaitResultFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error)
+
 	// RunWaitResultScriptByPath request with any body
 	RunWaitResultScriptByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultScriptByPathResponse, error)
 
@@ -18753,6 +18953,28 @@ func (r RunFlowPreviewResponse) StatusCode() int {
 	return 0
 }
 
+type RunWaitResultFlowByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r RunWaitResultFlowByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunWaitResultFlowByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RunWaitResultScriptByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -20231,6 +20453,8 @@ type GetSettingsResponse struct {
 	JSON200      *struct {
 		AutoInviteDomain   *string `json:"auto_invite_domain,omitempty"`
 		AutoInviteOperator *bool   `json:"auto_invite_operator,omitempty"`
+		CustomerId         *string `json:"customer_id,omitempty"`
+		Plan               *string `json:"plan,omitempty"`
 		SlackCommandScript *string `json:"slack_command_script,omitempty"`
 		SlackName          *string `json:"slack_name,omitempty"`
 		SlackTeamId        *string `json:"slack_team_id,omitempty"`
@@ -21676,6 +21900,23 @@ func (c *ClientWithResponses) RunFlowPreviewWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseRunFlowPreviewResponse(rsp)
+}
+
+// RunWaitResultFlowByPathWithBodyWithResponse request with arbitrary body returning *RunWaitResultFlowByPathResponse
+func (c *ClientWithResponses) RunWaitResultFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error) {
+	rsp, err := c.RunWaitResultFlowByPathWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunWaitResultFlowByPathResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunWaitResultFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error) {
+	rsp, err := c.RunWaitResultFlowByPath(ctx, workspace, path, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunWaitResultFlowByPathResponse(rsp)
 }
 
 // RunWaitResultScriptByPathWithBodyWithResponse request with arbitrary body returning *RunWaitResultScriptByPathResponse
@@ -24620,6 +24861,32 @@ func ParseRunFlowPreviewResponse(rsp *http.Response) (*RunFlowPreviewResponse, e
 	return response, nil
 }
 
+// ParseRunWaitResultFlowByPathResponse parses an HTTP response from a RunWaitResultFlowByPathWithResponse call
+func ParseRunWaitResultFlowByPathResponse(rsp *http.Response) (*RunWaitResultFlowByPathResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunWaitResultFlowByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseRunWaitResultScriptByPathResponse parses an HTTP response from a RunWaitResultScriptByPathWithResponse call
 func ParseRunWaitResultScriptByPathResponse(rsp *http.Response) (*RunWaitResultScriptByPathResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -26049,6 +26316,8 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 		var dest struct {
 			AutoInviteDomain   *string `json:"auto_invite_domain,omitempty"`
 			AutoInviteOperator *bool   `json:"auto_invite_operator,omitempty"`
+			CustomerId         *string `json:"customer_id,omitempty"`
+			Plan               *string `json:"plan,omitempty"`
 			SlackCommandScript *string `json:"slack_command_script,omitempty"`
 			SlackName          *string `json:"slack_name,omitempty"`
 			SlackTeamId        *string `json:"slack_team_id,omitempty"`
