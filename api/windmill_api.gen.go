@@ -1948,6 +1948,11 @@ type EditSlackCommandJSONBody struct {
 	SlackCommandScript *string `json:"slack_command_script,omitempty"`
 }
 
+// EditWebhookJSONBody defines parameters for EditWebhook.
+type EditWebhookJSONBody struct {
+	Webhook *string `json:"webhook,omitempty"`
+}
+
 // InviteUserJSONBody defines parameters for InviteUser.
 type InviteUserJSONBody struct {
 	Email    string `json:"email"`
@@ -2172,6 +2177,9 @@ type EditAutoInviteJSONRequestBody EditAutoInviteJSONBody
 
 // EditSlackCommandJSONRequestBody defines body for EditSlackCommand for application/json ContentType.
 type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
+
+// EditWebhookJSONRequestBody defines body for EditWebhook for application/json ContentType.
+type EditWebhookJSONRequestBody EditWebhookJSONBody
 
 // InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
 type InviteUserJSONRequestBody InviteUserJSONBody
@@ -3768,6 +3776,11 @@ type ClientInterface interface {
 	EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditSlackCommand(ctx context.Context, workspace WorkspaceId, body EditSlackCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EditWebhook request with any body
+	EditWebhookWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditWebhook(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSettings request
 	GetSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6498,6 +6511,30 @@ func (c *Client) EditSlackCommandWithBody(ctx context.Context, workspace Workspa
 
 func (c *Client) EditSlackCommand(ctx context.Context, workspace WorkspaceId, body EditSlackCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditSlackCommandRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditWebhookWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditWebhookRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditWebhook(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditWebhookRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15648,6 +15685,53 @@ func NewEditSlackCommandRequestWithBody(server string, workspace WorkspaceId, co
 	return req, nil
 }
 
+// NewEditWebhookRequest calls the generic EditWebhook builder with application/json body
+func NewEditWebhookRequest(server string, workspace WorkspaceId, body EditWebhookJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditWebhookRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditWebhookRequestWithBody generates requests for EditWebhook with any type of body
+func NewEditWebhookRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_webhook", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetSettingsRequest generates requests for GetSettings
 func NewGetSettingsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -16844,6 +16928,11 @@ type ClientWithResponsesInterface interface {
 	EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
 
 	EditSlackCommandWithResponse(ctx context.Context, workspace WorkspaceId, body EditSlackCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
+
+	// EditWebhook request with any body
+	EditWebhookWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
+
+	EditWebhookWithResponse(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
 
 	// GetSettings request
 	GetSettingsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSettingsResponse, error)
@@ -20447,6 +20536,27 @@ func (r EditSlackCommandResponse) StatusCode() int {
 	return 0
 }
 
+type EditWebhookResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditWebhookResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditWebhookResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -20458,6 +20568,7 @@ type GetSettingsResponse struct {
 		SlackCommandScript *string `json:"slack_command_script,omitempty"`
 		SlackName          *string `json:"slack_name,omitempty"`
 		SlackTeamId        *string `json:"slack_team_id,omitempty"`
+		Webhook            *string `json:"webhook,omitempty"`
 		WorkspaceId        *string `json:"workspace_id,omitempty"`
 	}
 }
@@ -22713,6 +22824,23 @@ func (c *ClientWithResponses) EditSlackCommandWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseEditSlackCommandResponse(rsp)
+}
+
+// EditWebhookWithBodyWithResponse request with arbitrary body returning *EditWebhookResponse
+func (c *ClientWithResponses) EditWebhookWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error) {
+	rsp, err := c.EditWebhookWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditWebhookResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditWebhookWithResponse(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error) {
+	rsp, err := c.EditWebhook(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditWebhookResponse(rsp)
 }
 
 // GetSettingsWithResponse request returning *GetSettingsResponse
@@ -26298,6 +26426,22 @@ func ParseEditSlackCommandResponse(rsp *http.Response) (*EditSlackCommandRespons
 	return response, nil
 }
 
+// ParseEditWebhookResponse parses an HTTP response from a EditWebhookWithResponse call
+func ParseEditWebhookResponse(rsp *http.Response) (*EditWebhookResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditWebhookResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetSettingsResponse parses an HTTP response from a GetSettingsWithResponse call
 func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -26321,6 +26465,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			SlackCommandScript *string `json:"slack_command_script,omitempty"`
 			SlackName          *string `json:"slack_name,omitempty"`
 			SlackTeamId        *string `json:"slack_team_id,omitempty"`
+			Webhook            *string `json:"webhook,omitempty"`
 			WorkspaceId        *string `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
