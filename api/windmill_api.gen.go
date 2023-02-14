@@ -318,6 +318,7 @@ type CompletedJob struct {
 	JobKind        CompletedJobJobKind   `json:"job_kind"`
 	Language       *CompletedJobLanguage `json:"language,omitempty"`
 	Logs           *string               `json:"logs,omitempty"`
+	MemPeak        *int                  `json:"mem_peak,omitempty"`
 	ParentJob      *openapi_types.UUID   `json:"parent_job,omitempty"`
 
 	// The user (u/userfoo) or group (g/groupfoo) whom
@@ -818,6 +819,7 @@ type QueuedJob struct {
 	Language       *QueuedJobLanguage  `json:"language,omitempty"`
 	LastPing       *time.Time          `json:"last_ping,omitempty"`
 	Logs           *string             `json:"logs,omitempty"`
+	MemPeak        *int                `json:"mem_peak,omitempty"`
 	ParentJob      *openapi_types.UUID `json:"parent_job,omitempty"`
 
 	// The user (u/userfoo) or group (g/groupfoo) whom
@@ -19183,6 +19185,7 @@ type GetJobUpdatesResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Completed *bool   `json:"completed,omitempty"`
+		MemPeak   *int    `json:"mem_peak,omitempty"`
 		NewLogs   *string `json:"new_logs,omitempty"`
 		Running   *bool   `json:"running,omitempty"`
 	}
@@ -25148,6 +25151,7 @@ func ParseGetJobUpdatesResponse(rsp *http.Response) (*GetJobUpdatesResponse, err
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Completed *bool   `json:"completed,omitempty"`
+			MemPeak   *int    `json:"mem_peak,omitempty"`
 			NewLogs   *string `json:"new_logs,omitempty"`
 			Running   *bool   `json:"running,omitempty"`
 		}
