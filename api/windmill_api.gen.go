@@ -1915,6 +1915,11 @@ type UpdateUserJSONBody = EditWorkspaceUser
 // CreateVariableJSONBody defines parameters for CreateVariable.
 type CreateVariableJSONBody = CreateVariable
 
+// CreateVariableParams defines parameters for CreateVariable.
+type CreateVariableParams struct {
+	AlreadyEncrypted *bool `form:"already_encrypted,omitempty" json:"already_encrypted,omitempty"`
+}
+
 // GetVariableParams defines parameters for GetVariable.
 type GetVariableParams struct {
 	// ask to decrypt secret if this variable is secret
@@ -1924,6 +1929,11 @@ type GetVariableParams struct {
 
 // UpdateVariableJSONBody defines parameters for UpdateVariable.
 type UpdateVariableJSONBody = EditVariable
+
+// UpdateVariableParams defines parameters for UpdateVariable.
+type UpdateVariableParams struct {
+	AlreadyEncrypted *bool `form:"already_encrypted,omitempty" json:"already_encrypted,omitempty"`
+}
 
 // AddUserJSONBody defines parameters for AddUser.
 type AddUserJSONBody struct {
@@ -3381,6 +3391,9 @@ type ClientInterface interface {
 
 	CreateFlow(ctx context.Context, workspace WorkspaceId, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteFlowByPath request
+	DeleteFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ExistsFlowByPath request
 	ExistsFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3732,9 +3745,9 @@ type ClientInterface interface {
 	Whois(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateVariable request with any body
-	CreateVariableWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateVariableWithBody(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	CreateVariable(ctx context.Context, workspace WorkspaceId, body CreateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateVariable(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, body CreateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteVariable request
 	DeleteVariable(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3752,9 +3765,9 @@ type ClientInterface interface {
 	ListContextualVariables(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateVariable request with any body
-	UpdateVariableWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateVariableWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	UpdateVariable(ctx context.Context, workspace WorkspaceId, path Path, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateVariable(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AddUser request with any body
 	AddUserWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4761,6 +4774,18 @@ func (c *Client) CreateFlowWithBody(ctx context.Context, workspace WorkspaceId, 
 
 func (c *Client) CreateFlow(ctx context.Context, workspace WorkspaceId, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateFlowRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteFlowByPathRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -6307,8 +6332,8 @@ func (c *Client) Whois(ctx context.Context, workspace WorkspaceId, username stri
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateVariableWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateVariableRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) CreateVariableWithBody(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateVariableRequestWithBody(c.Server, workspace, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -6319,8 +6344,8 @@ func (c *Client) CreateVariableWithBody(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateVariable(ctx context.Context, workspace WorkspaceId, body CreateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateVariableRequest(c.Server, workspace, body)
+func (c *Client) CreateVariable(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, body CreateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateVariableRequest(c.Server, workspace, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -6391,8 +6416,8 @@ func (c *Client) ListContextualVariables(ctx context.Context, workspace Workspac
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateVariableWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateVariableRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) UpdateVariableWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateVariableRequestWithBody(c.Server, workspace, path, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -6403,8 +6428,8 @@ func (c *Client) UpdateVariableWithBody(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateVariable(ctx context.Context, workspace WorkspaceId, path Path, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateVariableRequest(c.Server, workspace, path, body)
+func (c *Client) UpdateVariable(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateVariableRequest(c.Server, workspace, path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -9191,6 +9216,47 @@ func NewCreateFlowRequestWithBody(server string, workspace WorkspaceId, contentT
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteFlowByPathRequest generates requests for DeleteFlowByPath
+func NewDeleteFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -15154,18 +15220,18 @@ func NewWhoisRequest(server string, workspace WorkspaceId, username string) (*ht
 }
 
 // NewCreateVariableRequest calls the generic CreateVariable builder with application/json body
-func NewCreateVariableRequest(server string, workspace WorkspaceId, body CreateVariableJSONRequestBody) (*http.Request, error) {
+func NewCreateVariableRequest(server string, workspace WorkspaceId, params *CreateVariableParams, body CreateVariableJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewCreateVariableRequestWithBody(server, workspace, "application/json", bodyReader)
+	return NewCreateVariableRequestWithBody(server, workspace, params, "application/json", bodyReader)
 }
 
 // NewCreateVariableRequestWithBody generates requests for CreateVariable with any type of body
-func NewCreateVariableRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+func NewCreateVariableRequestWithBody(server string, workspace WorkspaceId, params *CreateVariableParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -15189,6 +15255,26 @@ func NewCreateVariableRequestWithBody(server string, workspace WorkspaceId, cont
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.AlreadyEncrypted != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "already_encrypted", runtime.ParamLocationQuery, *params.AlreadyEncrypted); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
@@ -15412,18 +15498,18 @@ func NewListContextualVariablesRequest(server string, workspace WorkspaceId) (*h
 }
 
 // NewUpdateVariableRequest calls the generic UpdateVariable builder with application/json body
-func NewUpdateVariableRequest(server string, workspace WorkspaceId, path Path, body UpdateVariableJSONRequestBody) (*http.Request, error) {
+func NewUpdateVariableRequest(server string, workspace WorkspaceId, path Path, params *UpdateVariableParams, body UpdateVariableJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewUpdateVariableRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewUpdateVariableRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
 }
 
 // NewUpdateVariableRequestWithBody generates requests for UpdateVariable with any type of body
-func NewUpdateVariableRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+func NewUpdateVariableRequestWithBody(server string, workspace WorkspaceId, path Path, params *UpdateVariableParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -15454,6 +15540,26 @@ func NewUpdateVariableRequestWithBody(server string, workspace WorkspaceId, path
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.AlreadyEncrypted != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "already_encrypted", runtime.ParamLocationQuery, *params.AlreadyEncrypted); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
@@ -16533,6 +16639,9 @@ type ClientWithResponsesInterface interface {
 
 	CreateFlowWithResponse(ctx context.Context, workspace WorkspaceId, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateFlowResponse, error)
 
+	// DeleteFlowByPath request
+	DeleteFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteFlowByPathResponse, error)
+
 	// ExistsFlowByPath request
 	ExistsFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ExistsFlowByPathResponse, error)
 
@@ -16884,9 +16993,9 @@ type ClientWithResponsesInterface interface {
 	WhoisWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*WhoisResponse, error)
 
 	// CreateVariable request with any body
-	CreateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateVariableResponse, error)
+	CreateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateVariableResponse, error)
 
-	CreateVariableWithResponse(ctx context.Context, workspace WorkspaceId, body CreateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateVariableResponse, error)
+	CreateVariableWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, body CreateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateVariableResponse, error)
 
 	// DeleteVariable request
 	DeleteVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteVariableResponse, error)
@@ -16904,9 +17013,9 @@ type ClientWithResponsesInterface interface {
 	ListContextualVariablesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListContextualVariablesResponse, error)
 
 	// UpdateVariable request with any body
-	UpdateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error)
+	UpdateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error)
 
-	UpdateVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error)
+	UpdateVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error)
 
 	// AddUser request with any body
 	AddUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserResponse, error)
@@ -18233,6 +18342,27 @@ func (r CreateFlowResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateFlowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteFlowByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteFlowByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteFlowByPathResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -21555,6 +21685,15 @@ func (c *ClientWithResponses) CreateFlowWithResponse(ctx context.Context, worksp
 	return ParseCreateFlowResponse(rsp)
 }
 
+// DeleteFlowByPathWithResponse request returning *DeleteFlowByPathResponse
+func (c *ClientWithResponses) DeleteFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteFlowByPathResponse, error) {
+	rsp, err := c.DeleteFlowByPath(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteFlowByPathResponse(rsp)
+}
+
 // ExistsFlowByPathWithResponse request returning *ExistsFlowByPathResponse
 func (c *ClientWithResponses) ExistsFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ExistsFlowByPathResponse, error) {
 	rsp, err := c.ExistsFlowByPath(ctx, workspace, path, reqEditors...)
@@ -22674,16 +22813,16 @@ func (c *ClientWithResponses) WhoisWithResponse(ctx context.Context, workspace W
 }
 
 // CreateVariableWithBodyWithResponse request with arbitrary body returning *CreateVariableResponse
-func (c *ClientWithResponses) CreateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateVariableResponse, error) {
-	rsp, err := c.CreateVariableWithBody(ctx, workspace, contentType, body, reqEditors...)
+func (c *ClientWithResponses) CreateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateVariableResponse, error) {
+	rsp, err := c.CreateVariableWithBody(ctx, workspace, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseCreateVariableResponse(rsp)
 }
 
-func (c *ClientWithResponses) CreateVariableWithResponse(ctx context.Context, workspace WorkspaceId, body CreateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateVariableResponse, error) {
-	rsp, err := c.CreateVariable(ctx, workspace, body, reqEditors...)
+func (c *ClientWithResponses) CreateVariableWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, body CreateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateVariableResponse, error) {
+	rsp, err := c.CreateVariable(ctx, workspace, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -22736,16 +22875,16 @@ func (c *ClientWithResponses) ListContextualVariablesWithResponse(ctx context.Co
 }
 
 // UpdateVariableWithBodyWithResponse request with arbitrary body returning *UpdateVariableResponse
-func (c *ClientWithResponses) UpdateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error) {
-	rsp, err := c.UpdateVariableWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+func (c *ClientWithResponses) UpdateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error) {
+	rsp, err := c.UpdateVariableWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseUpdateVariableResponse(rsp)
 }
 
-func (c *ClientWithResponses) UpdateVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error) {
-	rsp, err := c.UpdateVariable(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) UpdateVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error) {
+	rsp, err := c.UpdateVariable(ctx, workspace, path, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -24212,6 +24351,22 @@ func ParseCreateFlowResponse(rsp *http.Response) (*CreateFlowResponse, error) {
 	}
 
 	response := &CreateFlowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteFlowByPathResponse parses an HTTP response from a DeleteFlowByPathWithResponse call
+func ParseDeleteFlowByPathResponse(rsp *http.Response) (*DeleteFlowByPathResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteFlowByPathResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
