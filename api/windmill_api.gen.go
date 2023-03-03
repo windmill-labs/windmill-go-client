@@ -3484,6 +3484,9 @@ type ClientInterface interface {
 	// GetCompletedJob request
 	GetCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetCompletedJobResult request
+	GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListCompletedJobs request
 	ListCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5182,6 +5185,18 @@ func (c *Client) DeleteCompletedJob(ctx context.Context, workspace WorkspaceId, 
 
 func (c *Client) GetCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCompletedJobRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCompletedJobResultRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -10533,6 +10548,47 @@ func NewGetCompletedJobRequest(server string, workspace WorkspaceId, id JobId) (
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/jobs/completed/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetCompletedJobResultRequest generates requests for GetCompletedJobResult
+func NewGetCompletedJobResultRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/completed/get_result/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -16732,6 +16788,9 @@ type ClientWithResponsesInterface interface {
 	// GetCompletedJob request
 	GetCompletedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResponse, error)
 
+	// GetCompletedJobResult request
+	GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error)
+
 	// ListCompletedJobs request
 	ListCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*ListCompletedJobsResponse, error)
 
@@ -18886,6 +18945,28 @@ func (r GetCompletedJobResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetCompletedJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCompletedJobResultResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCompletedJobResultResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCompletedJobResultResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -21982,6 +22063,15 @@ func (c *ClientWithResponses) GetCompletedJobWithResponse(ctx context.Context, w
 	return ParseGetCompletedJobResponse(rsp)
 }
 
+// GetCompletedJobResultWithResponse request returning *GetCompletedJobResultResponse
+func (c *ClientWithResponses) GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error) {
+	rsp, err := c.GetCompletedJobResult(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCompletedJobResultResponse(rsp)
+}
+
 // ListCompletedJobsWithResponse request returning *ListCompletedJobsResponse
 func (c *ClientWithResponses) ListCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*ListCompletedJobsResponse, error) {
 	rsp, err := c.ListCompletedJobs(ctx, workspace, params, reqEditors...)
@@ -24875,6 +24965,32 @@ func ParseGetCompletedJobResponse(rsp *http.Response) (*GetCompletedJobResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest CompletedJob
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCompletedJobResultResponse parses an HTTP response from a GetCompletedJobResultWithResponse call
+func ParseGetCompletedJobResultResponse(rsp *http.Response) (*GetCompletedJobResultResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCompletedJobResultResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
