@@ -1581,12 +1581,6 @@ type ListQueueParams struct {
 	Running *Running `form:"running,omitempty" json:"running,omitempty"`
 }
 
-// ResultByIdParams defines parameters for ResultById.
-type ResultByIdParams struct {
-	// Skip checking that the node is part of the given flow.
-	SkipDirect *bool `form:"skip_direct,omitempty" json:"skip_direct,omitempty"`
-}
-
 // GetResumeUrlsParams defines parameters for GetResumeUrls.
 type GetResumeUrlsParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
@@ -3510,7 +3504,7 @@ type ClientInterface interface {
 	ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResultById request
-	ResultById(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, params *ResultByIdParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ResultById(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetResumeUrls request
 	GetResumeUrls(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5303,8 +5297,8 @@ func (c *Client) ListQueue(ctx context.Context, workspace WorkspaceId, params *L
 	return c.Client.Do(req)
 }
 
-func (c *Client) ResultById(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, params *ResultByIdParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewResultByIdRequest(c.Server, workspace, flowJobId, nodeId, params)
+func (c *Client) ResultById(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResultByIdRequest(c.Server, workspace, flowJobId, nodeId)
 	if err != nil {
 		return nil, err
 	}
@@ -11457,7 +11451,7 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 }
 
 // NewResultByIdRequest generates requests for ResultById
-func NewResultByIdRequest(server string, workspace WorkspaceId, flowJobId string, nodeId string, params *ResultByIdParams) (*http.Request, error) {
+func NewResultByIdRequest(server string, workspace WorkspaceId, flowJobId string, nodeId string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -11495,26 +11489,6 @@ func NewResultByIdRequest(server string, workspace WorkspaceId, flowJobId string
 	if err != nil {
 		return nil, err
 	}
-
-	queryValues := queryURL.Query()
-
-	if params.SkipDirect != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_direct", runtime.ParamLocationQuery, *params.SkipDirect); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
-	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -16814,7 +16788,7 @@ type ClientWithResponsesInterface interface {
 	ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error)
 
 	// ResultById request
-	ResultByIdWithResponse(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, params *ResultByIdParams, reqEditors ...RequestEditorFn) (*ResultByIdResponse, error)
+	ResultByIdWithResponse(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, reqEditors ...RequestEditorFn) (*ResultByIdResponse, error)
 
 	// GetResumeUrls request
 	GetResumeUrlsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*GetResumeUrlsResponse, error)
@@ -22143,8 +22117,8 @@ func (c *ClientWithResponses) ListQueueWithResponse(ctx context.Context, workspa
 }
 
 // ResultByIdWithResponse request returning *ResultByIdResponse
-func (c *ClientWithResponses) ResultByIdWithResponse(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, params *ResultByIdParams, reqEditors ...RequestEditorFn) (*ResultByIdResponse, error) {
-	rsp, err := c.ResultById(ctx, workspace, flowJobId, nodeId, params, reqEditors...)
+func (c *ClientWithResponses) ResultByIdWithResponse(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, reqEditors ...RequestEditorFn) (*ResultByIdResponse, error) {
+	rsp, err := c.ResultById(ctx, workspace, flowJobId, nodeId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
