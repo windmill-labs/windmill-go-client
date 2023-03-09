@@ -3686,6 +3686,9 @@ type ClientInterface interface {
 	// DeleteScriptByHash request
 	DeleteScriptByHash(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteScriptByPath request
+	DeleteScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetScriptDeploymentStatus request
 	GetScriptDeploymentStatus(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6103,6 +6106,18 @@ func (c *Client) CreateScript(ctx context.Context, workspace WorkspaceId, body C
 
 func (c *Client) DeleteScriptByHash(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteScriptByHashRequest(c.Server, workspace, hash)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteScriptByPathRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -14363,6 +14378,47 @@ func NewDeleteScriptByHashRequest(server string, workspace WorkspaceId, hash Scr
 	return req, nil
 }
 
+// NewDeleteScriptByPathRequest generates requests for DeleteScriptByPath
+func NewDeleteScriptByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/delete/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetScriptDeploymentStatusRequest generates requests for GetScriptDeploymentStatus
 func NewGetScriptDeploymentStatusRequest(server string, workspace WorkspaceId, hash ScriptHash) (*http.Request, error) {
 	var err error
@@ -16969,6 +17025,9 @@ type ClientWithResponsesInterface interface {
 
 	// DeleteScriptByHash request
 	DeleteScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*DeleteScriptByHashResponse, error)
+
+	// DeleteScriptByPath request
+	DeleteScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteScriptByPathResponse, error)
 
 	// GetScriptDeploymentStatus request
 	GetScriptDeploymentStatusWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*GetScriptDeploymentStatusResponse, error)
@@ -20098,6 +20157,28 @@ func (r DeleteScriptByHashResponse) StatusCode() int {
 	return 0
 }
 
+type DeleteScriptByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteScriptByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteScriptByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetScriptDeploymentStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -22705,6 +22786,15 @@ func (c *ClientWithResponses) DeleteScriptByHashWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseDeleteScriptByHashResponse(rsp)
+}
+
+// DeleteScriptByPathWithResponse request returning *DeleteScriptByPathResponse
+func (c *ClientWithResponses) DeleteScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteScriptByPathResponse, error) {
+	rsp, err := c.DeleteScriptByPath(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteScriptByPathResponse(rsp)
 }
 
 // GetScriptDeploymentStatusWithResponse request returning *GetScriptDeploymentStatusResponse
@@ -26058,6 +26148,32 @@ func ParseDeleteScriptByHashResponse(rsp *http.Response) (*DeleteScriptByHashRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Script
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteScriptByPathResponse parses an HTTP response from a DeleteScriptByPathWithResponse call
+func ParseDeleteScriptByPathResponse(rsp *http.Response) (*DeleteScriptByPathResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteScriptByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
