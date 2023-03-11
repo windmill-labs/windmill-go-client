@@ -1053,17 +1053,14 @@ type ActionKind string
 // After defines model for After.
 type After = time.Time
 
+// ArgsFilter defines model for ArgsFilter.
+type ArgsFilter = string
+
 // Before defines model for Before.
 type Before = time.Time
 
 // ClientName defines model for ClientName.
 type ClientName = string
-
-// CreatedAfter defines model for CreatedAfter.
-type CreatedAfter = time.Time
-
-// CreatedBefore defines model for CreatedBefore.
-type CreatedBefore = time.Time
 
 // CreatedBy defines model for CreatedBy.
 type CreatedBy = string
@@ -1107,6 +1104,9 @@ type QueueLimit = string
 // ResourceName defines model for ResourceName.
 type ResourceName = string
 
+// ResultFilter defines model for ResultFilter.
+type ResultFilter = string
+
 // Running defines model for Running.
 type Running = bool
 
@@ -1124,6 +1124,12 @@ type ScriptPath = string
 
 // ScriptStartPath defines model for ScriptStartPath.
 type ScriptStartPath = string
+
+// StartedAfter defines model for StartedAfter.
+type StartedAfter = time.Time
+
+// StartedBefore defines model for StartedBefore.
+type StartedBefore = time.Time
 
 // Success defines model for Success.
 type Success = bool
@@ -1475,16 +1481,22 @@ type ListCompletedJobsParams struct {
 	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
 
 	// filter on created before (inclusive) timestamp
-	CreatedBefore *CreatedBefore `form:"created_before,omitempty" json:"created_before,omitempty"`
+	StartedBefore *StartedBefore `form:"started_before,omitempty" json:"started_before,omitempty"`
 
 	// filter on created after (exclusive) timestamp
-	CreatedAfter *CreatedAfter `form:"created_after,omitempty" json:"created_after,omitempty"`
+	StartedAfter *StartedAfter `form:"started_after,omitempty" json:"started_after,omitempty"`
 
 	// filter on successful jobs
 	Success *Success `form:"success,omitempty" json:"success,omitempty"`
 
 	// filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
+
+	// filter on jobs containing those args as a json subset (@> in postgres)
+	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
+
+	// filter on jobs containing those result as a json subset (@> in postgres)
+	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
 
 	// is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
@@ -1519,13 +1531,19 @@ type ListJobsParams struct {
 	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
 
 	// filter on created before (inclusive) timestamp
-	CreatedBefore *CreatedBefore `form:"created_before,omitempty" json:"created_before,omitempty"`
+	StartedBefore *StartedBefore `form:"started_before,omitempty" json:"started_before,omitempty"`
 
 	// filter on created after (exclusive) timestamp
-	CreatedAfter *CreatedAfter `form:"created_after,omitempty" json:"created_after,omitempty"`
+	StartedAfter *StartedAfter `form:"started_after,omitempty" json:"started_after,omitempty"`
 
 	// filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
+
+	// filter on jobs containing those args as a json subset (@> in postgres)
+	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
+
+	// filter on jobs containing those result as a json subset (@> in postgres)
+	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
 
 	// is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
@@ -1563,10 +1581,10 @@ type ListQueueParams struct {
 	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
 
 	// filter on created before (inclusive) timestamp
-	CreatedBefore *CreatedBefore `form:"created_before,omitempty" json:"created_before,omitempty"`
+	StartedBefore *StartedBefore `form:"started_before,omitempty" json:"started_before,omitempty"`
 
 	// filter on created after (exclusive) timestamp
-	CreatedAfter *CreatedAfter `form:"created_after,omitempty" json:"created_after,omitempty"`
+	StartedAfter *StartedAfter `form:"started_after,omitempty" json:"started_after,omitempty"`
 
 	// filter on successful jobs
 	Success *Success `form:"success,omitempty" json:"success,omitempty"`
@@ -1579,6 +1597,12 @@ type ListQueueParams struct {
 
 	// filter on running jobs
 	Running *Running `form:"running,omitempty" json:"running,omitempty"`
+
+	// filter on jobs containing those args as a json subset (@> in postgres)
+	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
+
+	// filter on jobs containing those result as a json subset (@> in postgres)
+	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
 }
 
 // GetResumeUrlsParams defines parameters for GetResumeUrls.
@@ -10739,9 +10763,9 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 
 	}
 
-	if params.CreatedBefore != nil {
+	if params.StartedBefore != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_before", runtime.ParamLocationQuery, *params.CreatedBefore); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_before", runtime.ParamLocationQuery, *params.StartedBefore); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -10755,9 +10779,9 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 
 	}
 
-	if params.CreatedAfter != nil {
+	if params.StartedAfter != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_after", runtime.ParamLocationQuery, *params.CreatedAfter); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_after", runtime.ParamLocationQuery, *params.StartedAfter); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -10790,6 +10814,38 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 	if params.JobKinds != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_kinds", runtime.ParamLocationQuery, *params.JobKinds); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Args != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "args", runtime.ParamLocationQuery, *params.Args); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Result != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "result", runtime.ParamLocationQuery, *params.Result); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -11075,9 +11131,9 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 	}
 
-	if params.CreatedBefore != nil {
+	if params.StartedBefore != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_before", runtime.ParamLocationQuery, *params.CreatedBefore); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_before", runtime.ParamLocationQuery, *params.StartedBefore); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -11091,9 +11147,9 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 	}
 
-	if params.CreatedAfter != nil {
+	if params.StartedAfter != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_after", runtime.ParamLocationQuery, *params.CreatedAfter); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_after", runtime.ParamLocationQuery, *params.StartedAfter); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -11110,6 +11166,38 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	if params.JobKinds != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_kinds", runtime.ParamLocationQuery, *params.JobKinds); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Args != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "args", runtime.ParamLocationQuery, *params.Args); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Result != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "result", runtime.ParamLocationQuery, *params.Result); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -11359,9 +11447,9 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 
 	}
 
-	if params.CreatedBefore != nil {
+	if params.StartedBefore != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_before", runtime.ParamLocationQuery, *params.CreatedBefore); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_before", runtime.ParamLocationQuery, *params.StartedBefore); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -11375,9 +11463,9 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 
 	}
 
-	if params.CreatedAfter != nil {
+	if params.StartedAfter != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_after", runtime.ParamLocationQuery, *params.CreatedAfter); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_after", runtime.ParamLocationQuery, *params.StartedAfter); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -11442,6 +11530,38 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 	if params.Running != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "running", runtime.ParamLocationQuery, *params.Running); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Args != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "args", runtime.ParamLocationQuery, *params.Args); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Result != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "result", runtime.ParamLocationQuery, *params.Result); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
