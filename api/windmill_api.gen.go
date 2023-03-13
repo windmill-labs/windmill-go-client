@@ -1022,7 +1022,7 @@ type UserWorkspaceList struct {
 type WorkerPing struct {
 	Ip             string    `json:"ip"`
 	JobsExecuted   int       `json:"jobs_executed"`
-	PingAt         time.Time `json:"ping_at"`
+	LastPing       *float32  `json:"last_ping,omitempty"`
 	StartedAt      time.Time `json:"started_at"`
 	Worker         string    `json:"worker"`
 	WorkerInstance string    `json:"worker_instance"`
