@@ -438,11 +438,10 @@ type FlowMetadata struct {
 
 // FlowModule defines model for FlowModule.
 type FlowModule struct {
-	Id              string                      `json:"id"`
-	InputTransforms *FlowModule_InputTransforms `json:"input_transforms,omitempty"`
-	Retry           *Retry                      `json:"retry,omitempty"`
-	Sleep           *InputTransform             `json:"sleep,omitempty"`
-	StopAfterIf     *struct {
+	Id          string          `json:"id"`
+	Retry       *Retry          `json:"retry,omitempty"`
+	Sleep       *InputTransform `json:"sleep,omitempty"`
+	StopAfterIf *struct {
 		Expr          string `json:"expr"`
 		SkipIfStopped *bool  `json:"skip_if_stopped,omitempty"`
 	} `json:"stop_after_if,omitempty"`
@@ -452,11 +451,6 @@ type FlowModule struct {
 		Timeout        *int `json:"timeout,omitempty"`
 	} `json:"suspend,omitempty"`
 	Value FlowModuleValue `json:"value"`
-}
-
-// FlowModule_InputTransforms defines model for FlowModule.InputTransforms.
-type FlowModule_InputTransforms struct {
-	AdditionalProperties map[string]InputTransform `json:"-"`
 }
 
 // FlowModuleValue defines model for FlowModuleValue.
@@ -1555,11 +1549,6 @@ type ListJobsParams struct {
 	Success *bool `form:"success,omitempty" json:"success,omitempty"`
 }
 
-// CancelQueuedJobJSONBody defines parameters for CancelQueuedJob.
-type CancelQueuedJobJSONBody struct {
-	Reason *string `json:"reason,omitempty"`
-}
-
 // ListQueueParams defines parameters for ListQueue.
 type ListQueueParams struct {
 	// order by desc order (default true)
@@ -1761,6 +1750,16 @@ type GetSuspendedJobFlowParams struct {
 type GetJobUpdatesParams struct {
 	Running   *bool `form:"running,omitempty" json:"running,omitempty"`
 	LogOffset *int  `form:"log_offset,omitempty" json:"log_offset,omitempty"`
+}
+
+// CancelQueuedJobJSONBody defines parameters for CancelQueuedJob.
+type CancelQueuedJobJSONBody struct {
+	Reason *string `json:"reason,omitempty"`
+}
+
+// ForceCancelQueuedJobJSONBody defines parameters for ForceCancelQueuedJob.
+type ForceCancelQueuedJobJSONBody struct {
+	Reason *string `json:"reason,omitempty"`
 }
 
 // ResumeSuspendedJobGetParams defines parameters for ResumeSuspendedJobGet.
@@ -2118,9 +2117,6 @@ type UpdateGroupJSONRequestBody UpdateGroupJSONBody
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
 
-// CancelQueuedJobJSONRequestBody defines body for CancelQueuedJob for application/json ContentType.
-type CancelQueuedJobJSONRequestBody CancelQueuedJobJSONBody
-
 // RunFlowByPathJSONRequestBody defines body for RunFlowByPath for application/json ContentType.
 type RunFlowByPathJSONRequestBody = RunFlowByPathJSONBody
 
@@ -2144,6 +2140,12 @@ type RunWaitResultScriptByPathJSONRequestBody = RunWaitResultScriptByPathJSONBod
 
 // CancelSuspendedJobPostJSONRequestBody defines body for CancelSuspendedJobPost for application/json ContentType.
 type CancelSuspendedJobPostJSONRequestBody = CancelSuspendedJobPostJSONBody
+
+// CancelQueuedJobJSONRequestBody defines body for CancelQueuedJob for application/json ContentType.
+type CancelQueuedJobJSONRequestBody CancelQueuedJobJSONBody
+
+// ForceCancelQueuedJobJSONRequestBody defines body for ForceCancelQueuedJob for application/json ContentType.
+type ForceCancelQueuedJobJSONRequestBody ForceCancelQueuedJobJSONBody
 
 // ResumeSuspendedJobPostJSONRequestBody defines body for ResumeSuspendedJobPost for application/json ContentType.
 type ResumeSuspendedJobPostJSONRequestBody = ResumeSuspendedJobPostJSONBody
@@ -2370,59 +2372,6 @@ func (a *AppWithLastVersion_ExtraPerms) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for AppWithLastVersion_ExtraPerms to handle AdditionalProperties
 func (a AppWithLastVersion_ExtraPerms) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for FlowModule_InputTransforms. Returns the specified
-// element and whether it was found
-func (a FlowModule_InputTransforms) Get(fieldName string) (value InputTransform, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for FlowModule_InputTransforms
-func (a *FlowModule_InputTransforms) Set(fieldName string, value InputTransform) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]InputTransform)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for FlowModule_InputTransforms to handle AdditionalProperties
-func (a *FlowModule_InputTransforms) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]InputTransform)
-		for fieldName, fieldBuf := range object {
-			var fieldVal InputTransform
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for FlowModule_InputTransforms to handle AdditionalProperties
-func (a FlowModule_InputTransforms) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -3519,11 +3468,6 @@ type ClientInterface interface {
 	// ListJobs request
 	ListJobs(ctx context.Context, workspace WorkspaceId, params *ListJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// CancelQueuedJob request with any body
-	CancelQueuedJobWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	CancelQueuedJob(ctx context.Context, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ListQueue request
 	ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3584,6 +3528,16 @@ type ClientInterface interface {
 
 	// GetJobUpdates request
 	GetJobUpdates(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CancelQueuedJob request with any body
+	CancelQueuedJobWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CancelQueuedJob(ctx context.Context, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ForceCancelQueuedJob request with any body
+	ForceCancelQueuedJobWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ForceCancelQueuedJob(ctx context.Context, workspace WorkspaceId, id JobId, body ForceCancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResumeSuspendedJobGet request
 	ResumeSuspendedJobGet(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5288,30 +5242,6 @@ func (c *Client) ListJobs(ctx context.Context, workspace WorkspaceId, params *Li
 	return c.Client.Do(req)
 }
 
-func (c *Client) CancelQueuedJobWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCancelQueuedJobRequestWithBody(c.Server, workspace, id, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CancelQueuedJob(ctx context.Context, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCancelQueuedJobRequest(c.Server, workspace, id, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListQueueRequest(c.Server, workspace, params)
 	if err != nil {
@@ -5578,6 +5508,54 @@ func (c *Client) GetSuspendedJobFlow(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) GetJobUpdates(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetJobUpdatesRequest(c.Server, workspace, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelQueuedJobWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelQueuedJobRequestWithBody(c.Server, workspace, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelQueuedJob(ctx context.Context, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelQueuedJobRequest(c.Server, workspace, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ForceCancelQueuedJobWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewForceCancelQueuedJobRequestWithBody(c.Server, workspace, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ForceCancelQueuedJob(ctx context.Context, workspace WorkspaceId, id JobId, body ForceCancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewForceCancelQueuedJobRequest(c.Server, workspace, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -11269,60 +11247,6 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	return req, nil
 }
 
-// NewCancelQueuedJobRequest calls the generic CancelQueuedJob builder with application/json body
-func NewCancelQueuedJobRequest(server string, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewCancelQueuedJobRequestWithBody(server, workspace, id, "application/json", bodyReader)
-}
-
-// NewCancelQueuedJobRequestWithBody generates requests for CancelQueuedJob with any type of body
-func NewCancelQueuedJobRequestWithBody(server string, workspace WorkspaceId, id JobId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/jobs/queue/cancel/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewListQueueRequest generates requests for ListQueue
 func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueueParams) (*http.Request, error) {
 	var err error
@@ -12877,6 +12801,114 @@ func NewGetJobUpdatesRequest(server string, workspace WorkspaceId, id JobId, par
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewCancelQueuedJobRequest calls the generic CancelQueuedJob builder with application/json body
+func NewCancelQueuedJobRequest(server string, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCancelQueuedJobRequestWithBody(server, workspace, id, "application/json", bodyReader)
+}
+
+// NewCancelQueuedJobRequestWithBody generates requests for CancelQueuedJob with any type of body
+func NewCancelQueuedJobRequestWithBody(server string, workspace WorkspaceId, id JobId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/queue/cancel/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewForceCancelQueuedJobRequest calls the generic ForceCancelQueuedJob builder with application/json body
+func NewForceCancelQueuedJobRequest(server string, workspace WorkspaceId, id JobId, body ForceCancelQueuedJobJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewForceCancelQueuedJobRequestWithBody(server, workspace, id, "application/json", bodyReader)
+}
+
+// NewForceCancelQueuedJobRequestWithBody generates requests for ForceCancelQueuedJob with any type of body
+func NewForceCancelQueuedJobRequestWithBody(server string, workspace WorkspaceId, id JobId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/queue/force_cancel/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -16955,11 +16987,6 @@ type ClientWithResponsesInterface interface {
 	// ListJobs request
 	ListJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListJobsParams, reqEditors ...RequestEditorFn) (*ListJobsResponse, error)
 
-	// CancelQueuedJob request with any body
-	CancelQueuedJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelQueuedJobResponse, error)
-
-	CancelQueuedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelQueuedJobResponse, error)
-
 	// ListQueue request
 	ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error)
 
@@ -17020,6 +17047,16 @@ type ClientWithResponsesInterface interface {
 
 	// GetJobUpdates request
 	GetJobUpdatesWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*GetJobUpdatesResponse, error)
+
+	// CancelQueuedJob request with any body
+	CancelQueuedJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelQueuedJobResponse, error)
+
+	CancelQueuedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelQueuedJobResponse, error)
+
+	// ForceCancelQueuedJob request with any body
+	ForceCancelQueuedJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ForceCancelQueuedJobResponse, error)
+
+	ForceCancelQueuedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body ForceCancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*ForceCancelQueuedJobResponse, error)
 
 	// ResumeSuspendedJobGet request
 	ResumeSuspendedJobGetWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobGetParams, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobGetResponse, error)
@@ -19212,27 +19249,6 @@ func (r ListJobsResponse) StatusCode() int {
 	return 0
 }
 
-type CancelQueuedJobResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r CancelQueuedJobResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CancelQueuedJobResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type ListQueueResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -19565,6 +19581,48 @@ func (r GetJobUpdatesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetJobUpdatesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CancelQueuedJobResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CancelQueuedJobResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CancelQueuedJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ForceCancelQueuedJobResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ForceCancelQueuedJobResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ForceCancelQueuedJobResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -22291,23 +22349,6 @@ func (c *ClientWithResponses) ListJobsWithResponse(ctx context.Context, workspac
 	return ParseListJobsResponse(rsp)
 }
 
-// CancelQueuedJobWithBodyWithResponse request with arbitrary body returning *CancelQueuedJobResponse
-func (c *ClientWithResponses) CancelQueuedJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelQueuedJobResponse, error) {
-	rsp, err := c.CancelQueuedJobWithBody(ctx, workspace, id, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCancelQueuedJobResponse(rsp)
-}
-
-func (c *ClientWithResponses) CancelQueuedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelQueuedJobResponse, error) {
-	rsp, err := c.CancelQueuedJob(ctx, workspace, id, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCancelQueuedJobResponse(rsp)
-}
-
 // ListQueueWithResponse request returning *ListQueueResponse
 func (c *ClientWithResponses) ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error) {
 	rsp, err := c.ListQueue(ctx, workspace, params, reqEditors...)
@@ -22505,6 +22546,40 @@ func (c *ClientWithResponses) GetJobUpdatesWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseGetJobUpdatesResponse(rsp)
+}
+
+// CancelQueuedJobWithBodyWithResponse request with arbitrary body returning *CancelQueuedJobResponse
+func (c *ClientWithResponses) CancelQueuedJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelQueuedJobResponse, error) {
+	rsp, err := c.CancelQueuedJobWithBody(ctx, workspace, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelQueuedJobResponse(rsp)
+}
+
+func (c *ClientWithResponses) CancelQueuedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelQueuedJobResponse, error) {
+	rsp, err := c.CancelQueuedJob(ctx, workspace, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelQueuedJobResponse(rsp)
+}
+
+// ForceCancelQueuedJobWithBodyWithResponse request with arbitrary body returning *ForceCancelQueuedJobResponse
+func (c *ClientWithResponses) ForceCancelQueuedJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ForceCancelQueuedJobResponse, error) {
+	rsp, err := c.ForceCancelQueuedJobWithBody(ctx, workspace, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseForceCancelQueuedJobResponse(rsp)
+}
+
+func (c *ClientWithResponses) ForceCancelQueuedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body ForceCancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*ForceCancelQueuedJobResponse, error) {
+	rsp, err := c.ForceCancelQueuedJob(ctx, workspace, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseForceCancelQueuedJobResponse(rsp)
 }
 
 // ResumeSuspendedJobGetWithResponse request returning *ResumeSuspendedJobGetResponse
@@ -25269,22 +25344,6 @@ func ParseListJobsResponse(rsp *http.Response) (*ListJobsResponse, error) {
 	return response, nil
 }
 
-// ParseCancelQueuedJobResponse parses an HTTP response from a CancelQueuedJobWithResponse call
-func ParseCancelQueuedJobResponse(rsp *http.Response) (*CancelQueuedJobResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CancelQueuedJobResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
 // ParseListQueueResponse parses an HTTP response from a ListQueueWithResponse call
 func ParseListQueueResponse(rsp *http.Response) (*ListQueueResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -25615,6 +25674,38 @@ func ParseGetJobUpdatesResponse(rsp *http.Response) (*GetJobUpdatesResponse, err
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseCancelQueuedJobResponse parses an HTTP response from a CancelQueuedJobWithResponse call
+func ParseCancelQueuedJobResponse(rsp *http.Response) (*CancelQueuedJobResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CancelQueuedJobResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseForceCancelQueuedJobResponse parses an HTTP response from a ForceCancelQueuedJobWithResponse call
+func ParseForceCancelQueuedJobResponse(rsp *http.Response) (*ForceCancelQueuedJobResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ForceCancelQueuedJobResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
