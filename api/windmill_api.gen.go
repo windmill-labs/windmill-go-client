@@ -145,6 +145,12 @@ const (
 	ListableAppExecutionModeViewer    ListableAppExecutionMode = "viewer"
 )
 
+// Defines values for MainArgSignatureType.
+const (
+	Invalid MainArgSignatureType = "Invalid"
+	Valid   MainArgSignatureType = "Valid"
+)
+
 // Defines values for PathFlowType.
 const (
 	PathFlowTypeFlow PathFlowType = "flow"
@@ -694,9 +700,14 @@ type MainArgSignature struct {
 		Name       string       `json:"name"`
 		Typ        interface{}  `json:"typ"`
 	} `json:"args"`
-	StarArgs   bool  `json:"star_args"`
-	StarKwargs *bool `json:"star_kwargs,omitempty"`
+	Error      string               `json:"error"`
+	StarArgs   bool                 `json:"star_args"`
+	StarKwargs *bool                `json:"star_kwargs,omitempty"`
+	Type       MainArgSignatureType `json:"type"`
 }
+
+// MainArgSignatureType defines model for MainArgSignature.Type.
+type MainArgSignatureType string
 
 // NewSchedule defines model for NewSchedule.
 type NewSchedule struct {
