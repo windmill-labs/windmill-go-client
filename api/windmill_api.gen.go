@@ -397,6 +397,7 @@ type EditResourceType struct {
 type EditSchedule struct {
 	Args     ScriptArgs `json:"args"`
 	Schedule string     `json:"schedule"`
+	Timezone string     `json:"timezone"`
 }
 
 // EditVariable defines model for EditVariable.
@@ -714,16 +715,23 @@ type NewSchedule struct {
 	Args       ScriptArgs `json:"args"`
 	Enabled    *bool      `json:"enabled,omitempty"`
 	IsFlow     bool       `json:"is_flow"`
-	Offset     *int       `json:"offset,omitempty"`
 	Path       string     `json:"path"`
 	Schedule   string     `json:"schedule"`
 	ScriptPath string     `json:"script_path"`
+	Timezone   string     `json:"timezone"`
 }
 
 // NewToken defines model for NewToken.
 type NewToken struct {
 	Expiration *time.Time `json:"expiration,omitempty"`
 	Label      *string    `json:"label,omitempty"`
+}
+
+// NewTokenImpersonate defines model for NewTokenImpersonate.
+type NewTokenImpersonate struct {
+	Expiration       *time.Time `json:"expiration,omitempty"`
+	ImpersonateEmail string     `json:"impersonate_email"`
+	Label            *string    `json:"label,omitempty"`
 }
 
 // NewUser defines model for NewUser.
@@ -916,10 +924,10 @@ type Schedule struct {
 	Error      *string             `json:"error,omitempty"`
 	ExtraPerms Schedule_ExtraPerms `json:"extra_perms"`
 	IsFlow     bool                `json:"is_flow"`
-	Offset     int                 `json:"offset_"`
 	Path       string              `json:"path"`
 	Schedule   string              `json:"schedule"`
 	ScriptPath string              `json:"script_path"`
+	Timezone   string              `json:"timezone"`
 }
 
 // Schedule_ExtraPerms defines model for Schedule.ExtraPerms.
@@ -1100,6 +1108,9 @@ type Path = string
 // PathId defines model for PathId.
 type PathId = int
 
+// Payload defines model for Payload.
+type Payload = string
+
 // PerPage defines model for PerPage.
 type PerPage = int
 
@@ -1142,6 +1153,9 @@ type Success = bool
 // Suspended defines model for Suspended.
 type Suspended = bool
 
+// Token defines model for Token.
+type Token = string
+
 // Username defines model for Username.
 type Username = string
 
@@ -1165,8 +1179,8 @@ type LoginWithOauthJSONBody struct {
 
 // PreviewScheduleJSONBody defines parameters for PreviewSchedule.
 type PreviewScheduleJSONBody struct {
-	Offset   *int   `json:"offset,omitempty"`
 	Schedule string `json:"schedule"`
+	Timezone string `json:"timezone"`
 }
 
 // BashToJsonschemaJSONBody defines parameters for BashToJsonschema.
@@ -1217,6 +1231,9 @@ type SetPasswordJSONBody struct {
 
 // CreateTokenJSONBody defines parameters for CreateToken.
 type CreateTokenJSONBody = NewToken
+
+// CreateTokenImpersonateJSONBody defines parameters for CreateTokenImpersonate.
+type CreateTokenImpersonateJSONBody = NewTokenImpersonate
 
 // GlobalUserUpdateJSONBody defines parameters for GlobalUserUpdate.
 type GlobalUserUpdateJSONBody struct {
@@ -1703,12 +1720,6 @@ type RunWaitResultFlowByPathJSONBody = ScriptArgs
 
 // RunWaitResultFlowByPathParams defines parameters for RunWaitResultFlowByPath.
 type RunWaitResultFlowByPathParams struct {
-	// when to schedule this job (leave empty for immediate run)
-	ScheduledFor *time.Time `form:"scheduled_for,omitempty" json:"scheduled_for,omitempty"`
-
-	// schedule the script to execute in the number of seconds starting now
-	ScheduledInSecs *int `form:"scheduled_in_secs,omitempty" json:"scheduled_in_secs,omitempty"`
-
 	// List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
 	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
@@ -1717,17 +1728,28 @@ type RunWaitResultFlowByPathParams struct {
 	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
 }
 
+// RunWaitResultScriptByPathGetParams defines parameters for RunWaitResultScriptByPathGet.
+type RunWaitResultScriptByPathGetParams struct {
+	// The parent job that is at the origin and responsible for the execution of this script if any
+	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// The base64 encoded payload that has been encoded as a JSON. e.g how to encode such payload encodeURIComponent
+	// `encodeURIComponent(btoa(JSON.stringify({a: 2})))`
+	Payload *Payload `form:"payload,omitempty" json:"payload,omitempty"`
+}
+
 // RunWaitResultScriptByPathJSONBody defines parameters for RunWaitResultScriptByPath.
 type RunWaitResultScriptByPathJSONBody = ScriptArgs
 
 // RunWaitResultScriptByPathParams defines parameters for RunWaitResultScriptByPath.
 type RunWaitResultScriptByPathParams struct {
-	// when to schedule this job (leave empty for immediate run)
-	ScheduledFor *time.Time `form:"scheduled_for,omitempty" json:"scheduled_for,omitempty"`
-
-	// schedule the script to execute in the number of seconds starting now
-	ScheduledInSecs *int `form:"scheduled_in_secs,omitempty" json:"scheduled_in_secs,omitempty"`
-
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
@@ -1775,7 +1797,10 @@ type ForceCancelQueuedJobJSONBody struct {
 
 // ResumeSuspendedJobGetParams defines parameters for ResumeSuspendedJobGet.
 type ResumeSuspendedJobGetParams struct {
-	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
+	// The base64 encoded payload that has been encoded as a JSON. e.g how to encode such payload encodeURIComponent
+	// `encodeURIComponent(btoa(JSON.stringify({a: 2})))`
+	Payload  *Payload `form:"payload,omitempty" json:"payload,omitempty"`
+	Approver *string  `form:"approver,omitempty" json:"approver,omitempty"`
 }
 
 // ResumeSuspendedJobPostJSONBody defines parameters for ResumeSuspendedJobPost.
@@ -2070,6 +2095,9 @@ type SetPasswordJSONRequestBody SetPasswordJSONBody
 
 // CreateTokenJSONRequestBody defines body for CreateToken for application/json ContentType.
 type CreateTokenJSONRequestBody = CreateTokenJSONBody
+
+// CreateTokenImpersonateJSONRequestBody defines body for CreateTokenImpersonate for application/json ContentType.
+type CreateTokenImpersonateJSONRequestBody = CreateTokenImpersonateJSONBody
 
 // GlobalUserUpdateJSONRequestBody defines body for GlobalUserUpdate for application/json ContentType.
 type GlobalUserUpdateJSONRequestBody GlobalUserUpdateJSONBody
@@ -3230,6 +3258,9 @@ type ClientInterface interface {
 
 	PythonToJsonschema(ctx context.Context, body PythonToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RawScriptByPathTokened request
+	RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AcceptInvite request with any body
 	AcceptInviteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3269,6 +3300,11 @@ type ClientInterface interface {
 
 	// DeleteToken request
 	DeleteToken(ctx context.Context, tokenPrefix string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateTokenImpersonate request with any body
+	CreateTokenImpersonateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateTokenImpersonate(ctx context.Context, body CreateTokenImpersonateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListTokens request
 	ListTokens(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3517,6 +3553,9 @@ type ClientInterface interface {
 	RunWaitResultFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunWaitResultFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunWaitResultScriptByPathGet request
+	RunWaitResultScriptByPathGet(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunWaitResultScriptByPath request with any body
 	RunWaitResultScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4161,6 +4200,18 @@ func (c *Client) PythonToJsonschema(ctx context.Context, body PythonToJsonschema
 	return c.Client.Do(req)
 }
 
+func (c *Client) RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRawScriptByPathTokenedRequest(c.Server, workspace, token, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) AcceptInviteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAcceptInviteRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -4331,6 +4382,30 @@ func (c *Client) CreateToken(ctx context.Context, body CreateTokenJSONRequestBod
 
 func (c *Client) DeleteToken(ctx context.Context, tokenPrefix string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteTokenRequest(c.Server, tokenPrefix)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateTokenImpersonateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateTokenImpersonateRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateTokenImpersonate(ctx context.Context, body CreateTokenImpersonateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateTokenImpersonateRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -5423,6 +5498,18 @@ func (c *Client) RunWaitResultFlowByPathWithBody(ctx context.Context, workspace 
 
 func (c *Client) RunWaitResultFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunWaitResultFlowByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunWaitResultScriptByPathGet(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathGetParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunWaitResultScriptByPathGetRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -7484,6 +7571,54 @@ func NewPythonToJsonschemaRequestWithBody(server string, contentType string, bod
 	return req, nil
 }
 
+// NewRawScriptByPathTokenedRequest generates requests for RawScriptByPathTokened
+func NewRawScriptByPathTokenedRequest(server string, workspace WorkspaceId, token Token, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "token", runtime.ParamLocationPath, token)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/scripts_u/tokened_raw/%s/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewAcceptInviteRequest calls the generic AcceptInvite builder with application/json body
 func NewAcceptInviteRequest(server string, body AcceptInviteJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -7865,6 +8000,46 @@ func NewDeleteTokenRequest(server string, tokenPrefix string) (*http.Request, er
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewCreateTokenImpersonateRequest calls the generic CreateTokenImpersonate builder with application/json body
+func NewCreateTokenImpersonateRequest(server string, body CreateTokenImpersonateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateTokenImpersonateRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateTokenImpersonateRequestWithBody generates requests for CreateTokenImpersonate with any type of body
+func NewCreateTokenImpersonateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/tokens/impersonate")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -12246,9 +12421,9 @@ func NewRunWaitResultFlowByPathRequestWithBody(server string, workspace Workspac
 
 	queryValues := queryURL.Query()
 
-	if params.ScheduledFor != nil {
+	if params.IncludeHeader != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for", runtime.ParamLocationQuery, *params.ScheduledFor); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -12262,9 +12437,72 @@ func NewRunWaitResultFlowByPathRequestWithBody(server string, workspace Workspac
 
 	}
 
-	if params.ScheduledInSecs != nil {
+	if params.QueueLimit != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_in_secs", runtime.ParamLocationQuery, *params.ScheduledInSecs); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRunWaitResultScriptByPathGetRequest generates requests for RunWaitResultScriptByPathGet
+func NewRunWaitResultScriptByPathGetRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathGetParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_wait_result/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.ParentJob != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -12310,14 +12548,28 @@ func NewRunWaitResultFlowByPathRequestWithBody(server string, workspace Workspac
 
 	}
 
+	if params.Payload != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "payload", runtime.ParamLocationQuery, *params.Payload); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -12367,38 +12619,6 @@ func NewRunWaitResultScriptByPathRequestWithBody(server string, workspace Worksp
 	}
 
 	queryValues := queryURL.Query()
-
-	if params.ScheduledFor != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for", runtime.ParamLocationQuery, *params.ScheduledFor); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
-	if params.ScheduledInSecs != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_in_secs", runtime.ParamLocationQuery, *params.ScheduledInSecs); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
 
 	if params.ParentJob != nil {
 
@@ -12972,6 +13192,22 @@ func NewResumeSuspendedJobGetRequest(server string, workspace WorkspaceId, id Jo
 	}
 
 	queryValues := queryURL.Query()
+
+	if params.Payload != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "payload", runtime.ParamLocationQuery, *params.Payload); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
 
 	if params.Approver != nil {
 
@@ -16749,6 +16985,9 @@ type ClientWithResponsesInterface interface {
 
 	PythonToJsonschemaWithResponse(ctx context.Context, body PythonToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*PythonToJsonschemaResponse, error)
 
+	// RawScriptByPathTokened request
+	RawScriptByPathTokenedWithResponse(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathTokenedResponse, error)
+
 	// AcceptInvite request with any body
 	AcceptInviteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AcceptInviteResponse, error)
 
@@ -16788,6 +17027,11 @@ type ClientWithResponsesInterface interface {
 
 	// DeleteToken request
 	DeleteTokenWithResponse(ctx context.Context, tokenPrefix string, reqEditors ...RequestEditorFn) (*DeleteTokenResponse, error)
+
+	// CreateTokenImpersonate request with any body
+	CreateTokenImpersonateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateTokenImpersonateResponse, error)
+
+	CreateTokenImpersonateWithResponse(ctx context.Context, body CreateTokenImpersonateJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateTokenImpersonateResponse, error)
 
 	// ListTokens request
 	ListTokensWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListTokensResponse, error)
@@ -17036,6 +17280,9 @@ type ClientWithResponsesInterface interface {
 	RunWaitResultFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error)
 
 	RunWaitResultFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error)
+
+	// RunWaitResultScriptByPathGet request
+	RunWaitResultScriptByPathGetWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathGetParams, reqEditors ...RequestEditorFn) (*RunWaitResultScriptByPathGetResponse, error)
 
 	// RunWaitResultScriptByPath request with any body
 	RunWaitResultScriptByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultScriptByPathResponse, error)
@@ -17816,6 +18063,27 @@ func (r PythonToJsonschemaResponse) StatusCode() int {
 	return 0
 }
 
+type RawScriptByPathTokenedResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RawScriptByPathTokenedResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RawScriptByPathTokenedResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AcceptInviteResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -18022,6 +18290,27 @@ func (r DeleteTokenResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteTokenResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateTokenImpersonateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateTokenImpersonateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateTokenImpersonateResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -19451,6 +19740,28 @@ func (r RunWaitResultFlowByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunWaitResultFlowByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunWaitResultScriptByPathGetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r RunWaitResultScriptByPathGetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunWaitResultScriptByPathGetResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -21565,6 +21876,15 @@ func (c *ClientWithResponses) PythonToJsonschemaWithResponse(ctx context.Context
 	return ParsePythonToJsonschemaResponse(rsp)
 }
 
+// RawScriptByPathTokenedWithResponse request returning *RawScriptByPathTokenedResponse
+func (c *ClientWithResponses) RawScriptByPathTokenedWithResponse(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathTokenedResponse, error) {
+	rsp, err := c.RawScriptByPathTokened(ctx, workspace, token, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRawScriptByPathTokenedResponse(rsp)
+}
+
 // AcceptInviteWithBodyWithResponse request with arbitrary body returning *AcceptInviteResponse
 func (c *ClientWithResponses) AcceptInviteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AcceptInviteResponse, error) {
 	rsp, err := c.AcceptInviteWithBody(ctx, contentType, body, reqEditors...)
@@ -21693,6 +22013,23 @@ func (c *ClientWithResponses) DeleteTokenWithResponse(ctx context.Context, token
 		return nil, err
 	}
 	return ParseDeleteTokenResponse(rsp)
+}
+
+// CreateTokenImpersonateWithBodyWithResponse request with arbitrary body returning *CreateTokenImpersonateResponse
+func (c *ClientWithResponses) CreateTokenImpersonateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateTokenImpersonateResponse, error) {
+	rsp, err := c.CreateTokenImpersonateWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateTokenImpersonateResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateTokenImpersonateWithResponse(ctx context.Context, body CreateTokenImpersonateJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateTokenImpersonateResponse, error) {
+	rsp, err := c.CreateTokenImpersonate(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateTokenImpersonateResponse(rsp)
 }
 
 // ListTokensWithResponse request returning *ListTokensResponse
@@ -22487,6 +22824,15 @@ func (c *ClientWithResponses) RunWaitResultFlowByPathWithResponse(ctx context.Co
 		return nil, err
 	}
 	return ParseRunWaitResultFlowByPathResponse(rsp)
+}
+
+// RunWaitResultScriptByPathGetWithResponse request returning *RunWaitResultScriptByPathGetResponse
+func (c *ClientWithResponses) RunWaitResultScriptByPathGetWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathGetParams, reqEditors ...RequestEditorFn) (*RunWaitResultScriptByPathGetResponse, error) {
+	rsp, err := c.RunWaitResultScriptByPathGet(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunWaitResultScriptByPathGetResponse(rsp)
 }
 
 // RunWaitResultScriptByPathWithBodyWithResponse request with arbitrary body returning *RunWaitResultScriptByPathResponse
@@ -23994,6 +24340,22 @@ func ParsePythonToJsonschemaResponse(rsp *http.Response) (*PythonToJsonschemaRes
 	return response, nil
 }
 
+// ParseRawScriptByPathTokenedResponse parses an HTTP response from a RawScriptByPathTokenedWithResponse call
+func ParseRawScriptByPathTokenedResponse(rsp *http.Response) (*RawScriptByPathTokenedResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RawScriptByPathTokenedResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseAcceptInviteResponse parses an HTTP response from a AcceptInviteWithResponse call
 func ParseAcceptInviteResponse(rsp *http.Response) (*AcceptInviteResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -24167,6 +24529,22 @@ func ParseDeleteTokenResponse(rsp *http.Response) (*DeleteTokenResponse, error) 
 	}
 
 	response := &DeleteTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateTokenImpersonateResponse parses an HTTP response from a CreateTokenImpersonateWithResponse call
+func ParseCreateTokenImpersonateResponse(rsp *http.Response) (*CreateTokenImpersonateResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateTokenImpersonateResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -25526,6 +25904,32 @@ func ParseRunWaitResultFlowByPathResponse(rsp *http.Response) (*RunWaitResultFlo
 	}
 
 	response := &RunWaitResultFlowByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRunWaitResultScriptByPathGetResponse parses an HTTP response from a RunWaitResultScriptByPathGetWithResponse call
+func ParseRunWaitResultScriptByPathGetResponse(rsp *http.Response) (*RunWaitResultScriptByPathGetResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunWaitResultScriptByPathGetResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
