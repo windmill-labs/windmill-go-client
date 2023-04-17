@@ -208,6 +208,13 @@ const (
 	Rawscript RawScriptType = "rawscript"
 )
 
+// Defines values for RunnableType.
+const (
+	RunnableTypeFlowPath   RunnableType = "FlowPath"
+	RunnableTypeScriptHash RunnableType = "ScriptHash"
+	RunnableTypeScriptPath RunnableType = "ScriptPath"
+)
+
 // Defines values for ScriptKind.
 const (
 	ScriptKindApproval ScriptKind = "approval"
@@ -353,6 +360,12 @@ type ContextualVariable struct {
 	Description string `json:"description"`
 	Name        string `json:"name"`
 	Value       string `json:"value"`
+}
+
+// CreateInput defines model for CreateInput.
+type CreateInput struct {
+	Args map[string]interface{} `json:"args"`
+	Name string                 `json:"name"`
 }
 
 // CreateResource defines model for CreateResource.
@@ -608,6 +621,16 @@ type Identity struct {
 
 // IdentityType defines model for Identity.Type.
 type IdentityType string
+
+// Input defines model for Input.
+type Input struct {
+	Args      map[string]interface{} `json:"args"`
+	CreatedAt time.Time              `json:"created_at"`
+	CreatedBy string                 `json:"created_by"`
+	Id        string                 `json:"id"`
+	IsPublic  bool                   `json:"is_public"`
+	Name      string                 `json:"name"`
+}
 
 // InputTransform defines model for InputTransform.
 type InputTransform interface{}
@@ -914,6 +937,9 @@ type Retry struct {
 	} `json:"exponential,omitempty"`
 }
 
+// RunnableType defines model for RunnableType.
+type RunnableType string
+
 // Schedule defines model for Schedule.
 type Schedule struct {
 	Args       *ScriptArgs         `json:"args,omitempty"`
@@ -1002,6 +1028,13 @@ type TruncatedToken struct {
 	TokenPrefix string     `json:"token_prefix"`
 }
 
+// UpdateInput defines model for UpdateInput.
+type UpdateInput struct {
+	Id       string `json:"id"`
+	IsPublic bool   `json:"is_public"`
+	Name     string `json:"name"`
+}
+
 // Usage defines model for Usage.
 type Usage struct {
 	Executions *float32 `json:"executions,omitempty"`
@@ -1009,16 +1042,17 @@ type Usage struct {
 
 // User defines model for User.
 type User struct {
-	CreatedAt    time.Time `json:"created_at"`
-	Disabled     bool      `json:"disabled"`
-	Email        string    `json:"email"`
-	Folders      []string  `json:"folders"`
-	Groups       *[]string `json:"groups,omitempty"`
-	IsAdmin      bool      `json:"is_admin"`
-	IsSuperAdmin bool      `json:"is_super_admin"`
-	Operator     bool      `json:"operator"`
-	Usage        *Usage    `json:"usage,omitempty"`
-	Username     string    `json:"username"`
+	CreatedAt     time.Time `json:"created_at"`
+	Disabled      bool      `json:"disabled"`
+	Email         string    `json:"email"`
+	Folders       []string  `json:"folders"`
+	FoldersOwners []string  `json:"folders_owners"`
+	Groups        *[]string `json:"groups,omitempty"`
+	IsAdmin       bool      `json:"is_admin"`
+	IsSuperAdmin  bool      `json:"is_super_admin"`
+	Operator      bool      `json:"operator"`
+	Usage         *Usage    `json:"usage,omitempty"`
+	Username      string    `json:"username"`
 }
 
 // UserWorkspaceList defines model for UserWorkspaceList.
@@ -1081,6 +1115,9 @@ type CreatedBy = string
 // IncludeHeader defines model for IncludeHeader.
 type IncludeHeader = string
 
+// InputId defines model for InputId.
+type InputId = string
+
 // JobId defines model for JobId.
 type JobId = openapi_types.UUID
 
@@ -1122,6 +1159,9 @@ type ResourceName = string
 
 // ResultFilter defines model for ResultFilter.
 type ResultFilter = string
+
+// RunnableId defines model for RunnableId.
+type RunnableId = string
 
 // Running defines model for Running.
 type Running = bool
@@ -1361,8 +1401,22 @@ type UnstarJSONBody struct {
 // UnstarJSONBodyFavoriteKind defines parameters for Unstar.
 type UnstarJSONBodyFavoriteKind string
 
+// ArchiveFlowByPathJSONBody defines parameters for ArchiveFlowByPath.
+type ArchiveFlowByPathJSONBody struct {
+	Archived *bool `json:"archived,omitempty"`
+}
+
 // CreateFlowJSONBody defines parameters for CreateFlow.
 type CreateFlowJSONBody = OpenFlowWPath
+
+// GetFlowInputHistoryByPathParams defines parameters for GetFlowInputHistoryByPath.
+type GetFlowInputHistoryByPathParams struct {
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
 
 // ListFlowsParams defines parameters for ListFlows.
 type ListFlowsParams struct {
@@ -1481,6 +1535,42 @@ type RemoveUserToGroupJSONBody struct {
 type UpdateGroupJSONBody struct {
 	Summary *string `json:"summary,omitempty"`
 }
+
+// CreateInputJSONBody defines parameters for CreateInput.
+type CreateInputJSONBody = CreateInput
+
+// CreateInputParams defines parameters for CreateInput.
+type CreateInputParams struct {
+	RunnableId   *RunnableId   `form:"runnable_id,omitempty" json:"runnable_id,omitempty"`
+	RunnableType *RunnableType `form:"runnable_type,omitempty" json:"runnable_type,omitempty"`
+}
+
+// GetInputHistoryParams defines parameters for GetInputHistory.
+type GetInputHistoryParams struct {
+	RunnableId   *RunnableId   `form:"runnable_id,omitempty" json:"runnable_id,omitempty"`
+	RunnableType *RunnableType `form:"runnable_type,omitempty" json:"runnable_type,omitempty"`
+
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// ListInputsParams defines parameters for ListInputs.
+type ListInputsParams struct {
+	RunnableId   *RunnableId   `form:"runnable_id,omitempty" json:"runnable_id,omitempty"`
+	RunnableType *RunnableType `form:"runnable_type,omitempty" json:"runnable_type,omitempty"`
+
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// UpdateInputJSONBody defines parameters for UpdateInput.
+type UpdateInputJSONBody = UpdateInput
 
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
 type ListCompletedJobsParams struct {
@@ -2123,6 +2213,9 @@ type StarJSONRequestBody StarJSONBody
 // UnstarJSONRequestBody defines body for Unstar for application/json ContentType.
 type UnstarJSONRequestBody UnstarJSONBody
 
+// ArchiveFlowByPathJSONRequestBody defines body for ArchiveFlowByPath for application/json ContentType.
+type ArchiveFlowByPathJSONRequestBody ArchiveFlowByPathJSONBody
+
 // CreateFlowJSONRequestBody defines body for CreateFlow for application/json ContentType.
 type CreateFlowJSONRequestBody = CreateFlowJSONBody
 
@@ -2152,6 +2245,12 @@ type RemoveUserToGroupJSONRequestBody RemoveUserToGroupJSONBody
 
 // UpdateGroupJSONRequestBody defines body for UpdateGroup for application/json ContentType.
 type UpdateGroupJSONRequestBody UpdateGroupJSONBody
+
+// CreateInputJSONRequestBody defines body for CreateInput for application/json ContentType.
+type CreateInputJSONRequestBody = CreateInputJSONBody
+
+// UpdateInputJSONRequestBody defines body for UpdateInput for application/json ContentType.
+type UpdateInputJSONRequestBody = UpdateInputJSONBody
 
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
@@ -3397,8 +3496,10 @@ type ClientInterface interface {
 
 	Unstar(ctx context.Context, workspace WorkspaceId, body UnstarJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ArchiveFlowByPath request
-	ArchiveFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ArchiveFlowByPath request with any body
+	ArchiveFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ArchiveFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ArchiveFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateFlow request with any body
 	CreateFlowWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3413,6 +3514,9 @@ type ClientInterface interface {
 
 	// GetFlowByPath request
 	GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetFlowInputHistoryByPath request
+	GetFlowInputHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListFlows request
 	ListFlows(ctx context.Context, workspace WorkspaceId, params *ListFlowsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3491,6 +3595,25 @@ type ClientInterface interface {
 	UpdateGroupWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateGroup(ctx context.Context, workspace WorkspaceId, name Name, body UpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateInput request with any body
+	CreateInputWithBody(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateInput(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, body CreateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteInput request
+	DeleteInput(ctx context.Context, workspace WorkspaceId, input InputId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetInputHistory request
+	GetInputHistory(ctx context.Context, workspace WorkspaceId, params *GetInputHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListInputs request
+	ListInputs(ctx context.Context, workspace WorkspaceId, params *ListInputsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateInput request with any body
+	UpdateInputWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateInput(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteCompletedJob request
 	DeleteCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4812,8 +4935,20 @@ func (c *Client) Unstar(ctx context.Context, workspace WorkspaceId, body UnstarJ
 	return c.Client.Do(req)
 }
 
-func (c *Client) ArchiveFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewArchiveFlowByPathRequest(c.Server, workspace, path)
+func (c *Client) ArchiveFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewArchiveFlowByPathRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ArchiveFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ArchiveFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewArchiveFlowByPathRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -4874,6 +5009,18 @@ func (c *Client) ExistsFlowByPath(ctx context.Context, workspace WorkspaceId, pa
 
 func (c *Client) GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetFlowByPathRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetFlowInputHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowInputHistoryByPathRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -5222,6 +5369,90 @@ func (c *Client) UpdateGroupWithBody(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) UpdateGroup(ctx context.Context, workspace WorkspaceId, name Name, body UpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateGroupRequest(c.Server, workspace, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateInputWithBody(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateInputRequestWithBody(c.Server, workspace, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateInput(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, body CreateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateInputRequest(c.Server, workspace, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteInput(ctx context.Context, workspace WorkspaceId, input InputId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteInputRequest(c.Server, workspace, input)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetInputHistory(ctx context.Context, workspace WorkspaceId, params *GetInputHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetInputHistoryRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListInputs(ctx context.Context, workspace WorkspaceId, params *ListInputsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListInputsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateInputWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateInputRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateInput(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateInputRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -9344,8 +9575,19 @@ func NewUnstarRequestWithBody(server string, workspace WorkspaceId, contentType 
 	return req, nil
 }
 
-// NewArchiveFlowByPathRequest generates requests for ArchiveFlowByPath
-func NewArchiveFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+// NewArchiveFlowByPathRequest calls the generic ArchiveFlowByPath builder with application/json body
+func NewArchiveFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath, body ArchiveFlowByPathJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewArchiveFlowByPathRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewArchiveFlowByPathRequestWithBody generates requests for ArchiveFlowByPath with any type of body
+func NewArchiveFlowByPathRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -9377,10 +9619,12 @@ func NewArchiveFlowByPathRequest(server string, workspace WorkspaceId, path Scri
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -9546,6 +9790,83 @@ func NewGetFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPa
 	if err != nil {
 		return nil, err
 	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetFlowInputHistoryByPathRequest generates requests for GetFlowInputHistoryByPath
+func NewGetFlowInputHistoryByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/input_history/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -10661,6 +10982,381 @@ func NewUpdateGroupRequestWithBody(server string, workspace WorkspaceId, name Na
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/groups/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateInputRequest calls the generic CreateInput builder with application/json body
+func NewCreateInputRequest(server string, workspace WorkspaceId, params *CreateInputParams, body CreateInputJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateInputRequestWithBody(server, workspace, params, "application/json", bodyReader)
+}
+
+// NewCreateInputRequestWithBody generates requests for CreateInput with any type of body
+func NewCreateInputRequestWithBody(server string, workspace WorkspaceId, params *CreateInputParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/inputs/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.RunnableId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "runnable_id", runtime.ParamLocationQuery, *params.RunnableId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.RunnableType != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "runnable_type", runtime.ParamLocationQuery, *params.RunnableType); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteInputRequest generates requests for DeleteInput
+func NewDeleteInputRequest(server string, workspace WorkspaceId, input InputId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "input", runtime.ParamLocationPath, input)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/inputs/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetInputHistoryRequest generates requests for GetInputHistory
+func NewGetInputHistoryRequest(server string, workspace WorkspaceId, params *GetInputHistoryParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/inputs/history", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.RunnableId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "runnable_id", runtime.ParamLocationQuery, *params.RunnableId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.RunnableType != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "runnable_type", runtime.ParamLocationQuery, *params.RunnableType); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListInputsRequest generates requests for ListInputs
+func NewListInputsRequest(server string, workspace WorkspaceId, params *ListInputsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/inputs/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.RunnableId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "runnable_id", runtime.ParamLocationQuery, *params.RunnableId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.RunnableType != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "runnable_type", runtime.ParamLocationQuery, *params.RunnableType); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateInputRequest calls the generic UpdateInput builder with application/json body
+func NewUpdateInputRequest(server string, workspace WorkspaceId, body UpdateInputJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateInputRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewUpdateInputRequestWithBody generates requests for UpdateInput with any type of body
+func NewUpdateInputRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/inputs/update", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -17124,8 +17820,10 @@ type ClientWithResponsesInterface interface {
 
 	UnstarWithResponse(ctx context.Context, workspace WorkspaceId, body UnstarJSONRequestBody, reqEditors ...RequestEditorFn) (*UnstarResponse, error)
 
-	// ArchiveFlowByPath request
-	ArchiveFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ArchiveFlowByPathResponse, error)
+	// ArchiveFlowByPath request with any body
+	ArchiveFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ArchiveFlowByPathResponse, error)
+
+	ArchiveFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ArchiveFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*ArchiveFlowByPathResponse, error)
 
 	// CreateFlow request with any body
 	CreateFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateFlowResponse, error)
@@ -17140,6 +17838,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetFlowByPath request
 	GetFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathResponse, error)
+
+	// GetFlowInputHistoryByPath request
+	GetFlowInputHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams, reqEditors ...RequestEditorFn) (*GetFlowInputHistoryByPathResponse, error)
 
 	// ListFlows request
 	ListFlowsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFlowsParams, reqEditors ...RequestEditorFn) (*ListFlowsResponse, error)
@@ -17218,6 +17919,25 @@ type ClientWithResponsesInterface interface {
 	UpdateGroupWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateGroupResponse, error)
 
 	UpdateGroupWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body UpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateGroupResponse, error)
+
+	// CreateInput request with any body
+	CreateInputWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateInputResponse, error)
+
+	CreateInputWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, body CreateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateInputResponse, error)
+
+	// DeleteInput request
+	DeleteInputWithResponse(ctx context.Context, workspace WorkspaceId, input InputId, reqEditors ...RequestEditorFn) (*DeleteInputResponse, error)
+
+	// GetInputHistory request
+	GetInputHistoryWithResponse(ctx context.Context, workspace WorkspaceId, params *GetInputHistoryParams, reqEditors ...RequestEditorFn) (*GetInputHistoryResponse, error)
+
+	// ListInputs request
+	ListInputsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListInputsParams, reqEditors ...RequestEditorFn) (*ListInputsResponse, error)
+
+	// UpdateInput request with any body
+	UpdateInputWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateInputResponse, error)
+
+	UpdateInputWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInputResponse, error)
 
 	// DeleteCompletedJob request
 	DeleteCompletedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*DeleteCompletedJobResponse, error)
@@ -18962,6 +19682,28 @@ func (r GetFlowByPathResponse) StatusCode() int {
 	return 0
 }
 
+type GetFlowInputHistoryByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]Input
+}
+
+// Status returns HTTPResponse.Status
+func (r GetFlowInputHistoryByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFlowInputHistoryByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListFlowsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -19391,6 +20133,113 @@ func (r UpdateGroupResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateInputResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateInputResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateInputResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteInputResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteInputResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteInputResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetInputHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]Input
+}
+
+// Status returns HTTPResponse.Status
+func (r GetInputHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetInputHistoryResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListInputsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]Input
+}
+
+// Status returns HTTPResponse.Status
+func (r ListInputsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListInputsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateInputResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateInputResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateInputResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -22321,9 +23170,17 @@ func (c *ClientWithResponses) UnstarWithResponse(ctx context.Context, workspace 
 	return ParseUnstarResponse(rsp)
 }
 
-// ArchiveFlowByPathWithResponse request returning *ArchiveFlowByPathResponse
-func (c *ClientWithResponses) ArchiveFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ArchiveFlowByPathResponse, error) {
-	rsp, err := c.ArchiveFlowByPath(ctx, workspace, path, reqEditors...)
+// ArchiveFlowByPathWithBodyWithResponse request with arbitrary body returning *ArchiveFlowByPathResponse
+func (c *ClientWithResponses) ArchiveFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ArchiveFlowByPathResponse, error) {
+	rsp, err := c.ArchiveFlowByPathWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseArchiveFlowByPathResponse(rsp)
+}
+
+func (c *ClientWithResponses) ArchiveFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ArchiveFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*ArchiveFlowByPathResponse, error) {
+	rsp, err := c.ArchiveFlowByPath(ctx, workspace, path, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -22372,6 +23229,15 @@ func (c *ClientWithResponses) GetFlowByPathWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseGetFlowByPathResponse(rsp)
+}
+
+// GetFlowInputHistoryByPathWithResponse request returning *GetFlowInputHistoryByPathResponse
+func (c *ClientWithResponses) GetFlowInputHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams, reqEditors ...RequestEditorFn) (*GetFlowInputHistoryByPathResponse, error) {
+	rsp, err := c.GetFlowInputHistoryByPath(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFlowInputHistoryByPathResponse(rsp)
 }
 
 // ListFlowsWithResponse request returning *ListFlowsResponse
@@ -22624,6 +23490,67 @@ func (c *ClientWithResponses) UpdateGroupWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseUpdateGroupResponse(rsp)
+}
+
+// CreateInputWithBodyWithResponse request with arbitrary body returning *CreateInputResponse
+func (c *ClientWithResponses) CreateInputWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateInputResponse, error) {
+	rsp, err := c.CreateInputWithBody(ctx, workspace, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateInputResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateInputWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, body CreateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateInputResponse, error) {
+	rsp, err := c.CreateInput(ctx, workspace, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateInputResponse(rsp)
+}
+
+// DeleteInputWithResponse request returning *DeleteInputResponse
+func (c *ClientWithResponses) DeleteInputWithResponse(ctx context.Context, workspace WorkspaceId, input InputId, reqEditors ...RequestEditorFn) (*DeleteInputResponse, error) {
+	rsp, err := c.DeleteInput(ctx, workspace, input, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteInputResponse(rsp)
+}
+
+// GetInputHistoryWithResponse request returning *GetInputHistoryResponse
+func (c *ClientWithResponses) GetInputHistoryWithResponse(ctx context.Context, workspace WorkspaceId, params *GetInputHistoryParams, reqEditors ...RequestEditorFn) (*GetInputHistoryResponse, error) {
+	rsp, err := c.GetInputHistory(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetInputHistoryResponse(rsp)
+}
+
+// ListInputsWithResponse request returning *ListInputsResponse
+func (c *ClientWithResponses) ListInputsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListInputsParams, reqEditors ...RequestEditorFn) (*ListInputsResponse, error) {
+	rsp, err := c.ListInputs(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListInputsResponse(rsp)
+}
+
+// UpdateInputWithBodyWithResponse request with arbitrary body returning *UpdateInputResponse
+func (c *ClientWithResponses) UpdateInputWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateInputResponse, error) {
+	rsp, err := c.UpdateInputWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateInputResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateInputWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInputResponse, error) {
+	rsp, err := c.UpdateInput(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateInputResponse(rsp)
 }
 
 // DeleteCompletedJobWithResponse request returning *DeleteCompletedJobResponse
@@ -25164,6 +26091,32 @@ func ParseGetFlowByPathResponse(rsp *http.Response) (*GetFlowByPathResponse, err
 	return response, nil
 }
 
+// ParseGetFlowInputHistoryByPathResponse parses an HTTP response from a GetFlowInputHistoryByPathWithResponse call
+func ParseGetFlowInputHistoryByPathResponse(rsp *http.Response) (*GetFlowInputHistoryByPathResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFlowInputHistoryByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []Input
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListFlowsResponse parses an HTTP response from a ListFlowsWithResponse call
 func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -25564,6 +26517,106 @@ func ParseUpdateGroupResponse(rsp *http.Response) (*UpdateGroupResponse, error) 
 	}
 
 	response := &UpdateGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateInputResponse parses an HTTP response from a CreateInputWithResponse call
+func ParseCreateInputResponse(rsp *http.Response) (*CreateInputResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateInputResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteInputResponse parses an HTTP response from a DeleteInputWithResponse call
+func ParseDeleteInputResponse(rsp *http.Response) (*DeleteInputResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteInputResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetInputHistoryResponse parses an HTTP response from a GetInputHistoryWithResponse call
+func ParseGetInputHistoryResponse(rsp *http.Response) (*GetInputHistoryResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetInputHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []Input
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListInputsResponse parses an HTTP response from a ListInputsWithResponse call
+func ParseListInputsResponse(rsp *http.Response) (*ListInputsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListInputsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []Input
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateInputResponse parses an HTTP response from a UpdateInputWithResponse call
+func ParseUpdateInputResponse(rsp *http.Response) (*UpdateInputResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateInputResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
