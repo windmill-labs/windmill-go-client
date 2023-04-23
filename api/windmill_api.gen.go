@@ -345,6 +345,7 @@ type CompletedJob struct {
 	ScriptPath     *string      `json:"script_path,omitempty"`
 	StartedAt      time.Time    `json:"started_at"`
 	Success        bool         `json:"success"`
+	Tag            string       `json:"tag"`
 	VisibleToOwner bool         `json:"visible_to_owner"`
 	WorkspaceId    *string      `json:"workspace_id,omitempty"`
 }
@@ -834,6 +835,7 @@ type Preview struct {
 	Content  string          `json:"content"`
 	Language PreviewLanguage `json:"language"`
 	Path     *string         `json:"path,omitempty"`
+	Tag      *string         `json:"tag,omitempty"`
 }
 
 // PreviewLanguage defines model for Preview.Language.
@@ -869,6 +871,7 @@ type QueuedJob struct {
 	ScriptHash     *string    `json:"script_hash,omitempty"`
 	ScriptPath     *string    `json:"script_path,omitempty"`
 	StartedAt      *time.Time `json:"started_at,omitempty"`
+	Tag            string     `json:"tag"`
 	VisibleToOwner bool       `json:"visible_to_owner"`
 	WorkspaceId    *string    `json:"workspace_id,omitempty"`
 }
@@ -886,6 +889,7 @@ type RawScript struct {
 	Language        RawScriptLanguage         `json:"language"`
 	Lock            *string                   `json:"lock,omitempty"`
 	Path            *string                   `json:"path,omitempty"`
+	Tag             *string                   `json:"tag,omitempty"`
 	Type            RawScriptType             `json:"type"`
 }
 
@@ -983,6 +987,7 @@ type Script struct {
 	Schema       *map[string]interface{} `json:"schema,omitempty"`
 	Starred      bool                    `json:"starred"`
 	Summary      string                  `json:"summary"`
+	Tag          *string                 `json:"tag,omitempty"`
 	WorkspaceId  *string                 `json:"workspace_id,omitempty"`
 }
 
@@ -1984,6 +1989,7 @@ type CreateScriptJSONBody struct {
 	Path        string                       `json:"path"`
 	Schema      *map[string]interface{}      `json:"schema,omitempty"`
 	Summary     string                       `json:"summary"`
+	Tag         *string                      `json:"tag,omitempty"`
 }
 
 // CreateScriptJSONBodyKind defines parameters for CreateScript.
@@ -3961,6 +3967,9 @@ type ClientInterface interface {
 
 	// GetPremiumInfo request
 	GetPremiumInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCustomTags request
+	GetCustomTags(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListWorkers request
 	ListWorkers(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6977,6 +6986,18 @@ func (c *Client) ListPendingInvites(ctx context.Context, workspace WorkspaceId, 
 
 func (c *Client) GetPremiumInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPremiumInfoRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCustomTags(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCustomTagsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -17170,6 +17191,33 @@ func NewGetPremiumInfoRequest(server string, workspace WorkspaceId) (*http.Reque
 	return req, nil
 }
 
+// NewGetCustomTagsRequest generates requests for GetCustomTags
+func NewGetCustomTagsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workers/custom_tags")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListWorkersRequest generates requests for ListWorkers
 func NewListWorkersRequest(server string, params *ListWorkersParams) (*http.Request, error) {
 	var err error
@@ -18285,6 +18333,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetPremiumInfo request
 	GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error)
+
+	// GetCustomTags request
+	GetCustomTagsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error)
 
 	// ListWorkers request
 	ListWorkersWithResponse(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*ListWorkersResponse, error)
@@ -22275,6 +22326,28 @@ func (r GetPremiumInfoResponse) StatusCode() int {
 	return 0
 }
 
+type GetCustomTagsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCustomTagsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCustomTagsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListWorkersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -24660,6 +24733,15 @@ func (c *ClientWithResponses) GetPremiumInfoWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseGetPremiumInfoResponse(rsp)
+}
+
+// GetCustomTagsWithResponse request returning *GetCustomTagsResponse
+func (c *ClientWithResponses) GetCustomTagsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error) {
+	rsp, err := c.GetCustomTags(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCustomTagsResponse(rsp)
 }
 
 // ListWorkersWithResponse request returning *ListWorkersResponse
@@ -28583,6 +28665,32 @@ func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, e
 			Premium bool     `json:"premium"`
 			Usage   *float32 `json:"usage,omitempty"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCustomTagsResponse parses an HTTP response from a GetCustomTagsWithResponse call
+func ParseGetCustomTagsResponse(rsp *http.Response) (*GetCustomTagsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCustomTagsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
