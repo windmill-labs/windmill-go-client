@@ -1198,6 +1198,9 @@ type Success = bool
 // Suspended defines model for Suspended.
 type Suspended = bool
 
+// Tag defines model for Tag.
+type Tag = string
+
 // Token defines model for Token.
 type Token = string
 
@@ -1615,6 +1618,9 @@ type ListCompletedJobsParams struct {
 	// filter on jobs containing those result as a json subset (@> in postgres)
 	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
 
+	// filter on jobs with a given tag/worker group
+	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
+
 	// is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
 
@@ -1658,6 +1664,9 @@ type ListJobsParams struct {
 
 	// filter on jobs containing those args as a json subset (@> in postgres)
 	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
+
+	// filter on jobs with a given tag/worker group
+	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// filter on jobs containing those result as a json subset (@> in postgres)
 	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
@@ -1715,6 +1724,9 @@ type ListQueueParams struct {
 
 	// filter on jobs containing those result as a json subset (@> in postgres)
 	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
+
+	// filter on jobs with a given tag/worker group
+	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 }
 
 // GetResumeUrlsParams defines parameters for GetResumeUrls.
@@ -11740,6 +11752,22 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 
 	}
 
+	if params.Tag != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.IsSkipped != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_skipped", runtime.ParamLocationQuery, *params.IsSkipped); err != nil {
@@ -12076,6 +12104,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 	}
 
+	if params.Tag != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.Result != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "result", runtime.ParamLocationQuery, *params.Result); err != nil {
@@ -12389,6 +12433,22 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 	if params.Result != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "result", runtime.ParamLocationQuery, *params.Result); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Tag != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
