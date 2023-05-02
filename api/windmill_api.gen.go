@@ -31,6 +31,13 @@ const (
 	AppWithLastVersionExecutionModeViewer    AppWithLastVersionExecutionMode = "viewer"
 )
 
+// Defines values for AppWithLastVersionWDraftExecutionMode.
+const (
+	AppWithLastVersionWDraftExecutionModeAnonymous AppWithLastVersionWDraftExecutionMode = "anonymous"
+	AppWithLastVersionWDraftExecutionModePublisher AppWithLastVersionWDraftExecutionMode = "publisher"
+	AppWithLastVersionWDraftExecutionModeViewer    AppWithLastVersionWDraftExecutionMode = "viewer"
+)
+
 // Defines values for AuditLogActionKind.
 const (
 	AuditLogActionKindCreated AuditLogActionKind = "Created"
@@ -151,6 +158,40 @@ const (
 	Valid   MainArgSignatureType = "Valid"
 )
 
+// Defines values for NewScriptKind.
+const (
+	NewScriptKindApproval NewScriptKind = "approval"
+	NewScriptKindCommand  NewScriptKind = "command"
+	NewScriptKindFailure  NewScriptKind = "failure"
+	NewScriptKindScript   NewScriptKind = "script"
+	NewScriptKindTrigger  NewScriptKind = "trigger"
+)
+
+// Defines values for NewScriptLanguage.
+const (
+	NewScriptLanguageBash    NewScriptLanguage = "bash"
+	NewScriptLanguageDeno    NewScriptLanguage = "deno"
+	NewScriptLanguageGo      NewScriptLanguage = "go"
+	NewScriptLanguagePython3 NewScriptLanguage = "python3"
+)
+
+// Defines values for NewScriptWithDraftKind.
+const (
+	NewScriptWithDraftKindApproval NewScriptWithDraftKind = "approval"
+	NewScriptWithDraftKindCommand  NewScriptWithDraftKind = "command"
+	NewScriptWithDraftKindFailure  NewScriptWithDraftKind = "failure"
+	NewScriptWithDraftKindScript   NewScriptWithDraftKind = "script"
+	NewScriptWithDraftKindTrigger  NewScriptWithDraftKind = "trigger"
+)
+
+// Defines values for NewScriptWithDraftLanguage.
+const (
+	NewScriptWithDraftLanguageBash    NewScriptWithDraftLanguage = "bash"
+	NewScriptWithDraftLanguageDeno    NewScriptWithDraftLanguage = "deno"
+	NewScriptWithDraftLanguageGo      NewScriptWithDraftLanguage = "go"
+	NewScriptWithDraftLanguagePython3 NewScriptWithDraftLanguage = "python3"
+)
+
 // Defines values for PathFlowType.
 const (
 	PathFlowTypeFlow PathFlowType = "flow"
@@ -163,9 +204,9 @@ const (
 
 // Defines values for PolicyExecutionMode.
 const (
-	Anonymous PolicyExecutionMode = "anonymous"
-	Publisher PolicyExecutionMode = "publisher"
-	Viewer    PolicyExecutionMode = "viewer"
+	PolicyExecutionModeAnonymous PolicyExecutionMode = "anonymous"
+	PolicyExecutionModePublisher PolicyExecutionMode = "publisher"
+	PolicyExecutionModeViewer    PolicyExecutionMode = "viewer"
 )
 
 // Defines values for PreviewLanguage.
@@ -265,6 +306,31 @@ type AppWithLastVersionExecutionMode string
 
 // AppWithLastVersion_ExtraPerms defines model for AppWithLastVersion.ExtraPerms.
 type AppWithLastVersion_ExtraPerms struct {
+	AdditionalProperties map[string]bool `json:"-"`
+}
+
+// AppWithLastVersionWDraft defines model for AppWithLastVersionWDraft.
+type AppWithLastVersionWDraft struct {
+	CreatedAt     time.Time                             `json:"created_at"`
+	CreatedBy     string                                `json:"created_by"`
+	Draft         *interface{}                          `json:"draft,omitempty"`
+	DraftOnly     *bool                                 `json:"draft_only,omitempty"`
+	ExecutionMode AppWithLastVersionWDraftExecutionMode `json:"execution_mode"`
+	ExtraPerms    AppWithLastVersionWDraft_ExtraPerms   `json:"extra_perms"`
+	Id            int                                   `json:"id"`
+	Path          string                                `json:"path"`
+	Policy        Policy                                `json:"policy"`
+	Summary       string                                `json:"summary"`
+	Value         interface{}                           `json:"value"`
+	Versions      []int                                 `json:"versions"`
+	WorkspaceId   string                                `json:"workspace_id"`
+}
+
+// AppWithLastVersionWDraftExecutionMode defines model for AppWithLastVersionWDraft.ExecutionMode.
+type AppWithLastVersionWDraftExecutionMode string
+
+// AppWithLastVersionWDraft_ExtraPerms defines model for AppWithLastVersionWDraft.ExtraPerms.
+type AppWithLastVersionWDraft_ExtraPerms struct {
 	AdditionalProperties map[string]bool `json:"-"`
 }
 
@@ -434,6 +500,7 @@ type Flow struct {
 	AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
 	Archived             bool                    `json:"archived"`
 	Description          *string                 `json:"description,omitempty"`
+	DraftOnly            *bool                   `json:"draft_only,omitempty"`
 	EditedAt             time.Time               `json:"edited_at"`
 	EditedBy             string                  `json:"edited_by"`
 	ExtraPerms           map[string]interface{}  `json:"extra_perms"`
@@ -449,6 +516,7 @@ type Flow struct {
 type FlowMetadata struct {
 	AdditionalProperties *bool                  `json:"additionalProperties,omitempty"`
 	Archived             bool                   `json:"archived"`
+	DraftOnly            *bool                  `json:"draft_only,omitempty"`
 	EditedAt             time.Time              `json:"edited_at"`
 	EditedBy             string                 `json:"edited_by"`
 	ExtraPerms           map[string]interface{} `json:"extra_perms"`
@@ -745,6 +813,52 @@ type NewSchedule struct {
 	Timezone   string     `json:"timezone"`
 }
 
+// NewScript defines model for NewScript.
+type NewScript struct {
+	Content     string                  `json:"content"`
+	Description string                  `json:"description"`
+	DraftOnly   *bool                   `json:"draft_only,omitempty"`
+	IsTemplate  *bool                   `json:"is_template,omitempty"`
+	Kind        *NewScriptKind          `json:"kind,omitempty"`
+	Language    NewScriptLanguage       `json:"language"`
+	Lock        *[]string               `json:"lock,omitempty"`
+	ParentHash  *string                 `json:"parent_hash,omitempty"`
+	Path        string                  `json:"path"`
+	Schema      *map[string]interface{} `json:"schema,omitempty"`
+	Summary     string                  `json:"summary"`
+	Tag         *string                 `json:"tag,omitempty"`
+}
+
+// NewScriptKind defines model for NewScript.Kind.
+type NewScriptKind string
+
+// NewScriptLanguage defines model for NewScript.Language.
+type NewScriptLanguage string
+
+// NewScriptWithDraft defines model for NewScriptWithDraft.
+type NewScriptWithDraft struct {
+	Content     string                     `json:"content"`
+	Description string                     `json:"description"`
+	Draft       *NewScript                 `json:"draft,omitempty"`
+	DraftOnly   *bool                      `json:"draft_only,omitempty"`
+	Hash        string                     `json:"hash"`
+	IsTemplate  *bool                      `json:"is_template,omitempty"`
+	Kind        *NewScriptWithDraftKind    `json:"kind,omitempty"`
+	Language    NewScriptWithDraftLanguage `json:"language"`
+	Lock        *[]string                  `json:"lock,omitempty"`
+	ParentHash  *string                    `json:"parent_hash,omitempty"`
+	Path        string                     `json:"path"`
+	Schema      *map[string]interface{}    `json:"schema,omitempty"`
+	Summary     string                     `json:"summary"`
+	Tag         *string                    `json:"tag,omitempty"`
+}
+
+// NewScriptWithDraftKind defines model for NewScriptWithDraft.Kind.
+type NewScriptWithDraftKind string
+
+// NewScriptWithDraftLanguage defines model for NewScriptWithDraft.Language.
+type NewScriptWithDraftLanguage string
+
 // NewToken defines model for NewToken.
 type NewToken struct {
 	Expiration *time.Time `json:"expiration,omitempty"`
@@ -973,7 +1087,9 @@ type Script struct {
 	CreatedBy     string            `json:"created_by"`
 	Deleted       bool              `json:"deleted"`
 	Description   string            `json:"description"`
+	DraftOnly     *bool             `json:"draft_only,omitempty"`
 	ExtraPerms    Script_ExtraPerms `json:"extra_perms"`
+	HasDraft      *bool             `json:"has_draft,omitempty"`
 	Hash          string            `json:"hash"`
 	IsTemplate    bool              `json:"is_template"`
 	Kind          ScriptKind        `json:"kind"`
@@ -1310,10 +1426,11 @@ type RemoveGranularAclsParamsKind string
 
 // CreateAppJSONBody defines parameters for CreateApp.
 type CreateAppJSONBody struct {
-	Path    string      `json:"path"`
-	Policy  Policy      `json:"policy"`
-	Summary string      `json:"summary"`
-	Value   interface{} `json:"value"`
+	DraftOnly *bool       `json:"draft_only,omitempty"`
+	Path      string      `json:"path"`
+	Policy    Policy      `json:"policy"`
+	Summary   string      `json:"summary"`
+	Value     interface{} `json:"value"`
 }
 
 // ListAppsParams defines parameters for ListApps.
@@ -1391,6 +1508,16 @@ type ListAuditLogsParams struct {
 // ListAuditLogsParamsActionKind defines parameters for ListAuditLogs.
 type ListAuditLogsParamsActionKind string
 
+// CreateDraftJSONBody defines parameters for CreateDraft.
+type CreateDraftJSONBody struct {
+	Path  string                 `json:"path"`
+	Typ   CreateDraftJSONBodyTyp `json:"typ"`
+	Value *interface{}           `json:"value,omitempty"`
+}
+
+// CreateDraftJSONBodyTyp defines parameters for CreateDraft.
+type CreateDraftJSONBodyTyp string
+
 // StarJSONBody defines parameters for Star.
 type StarJSONBody struct {
 	FavoriteKind *StarJSONBodyFavoriteKind `json:"favorite_kind,omitempty"`
@@ -1415,7 +1542,14 @@ type ArchiveFlowByPathJSONBody struct {
 }
 
 // CreateFlowJSONBody defines parameters for CreateFlow.
-type CreateFlowJSONBody = OpenFlowWPath
+type CreateFlowJSONBody struct {
+	Description *string                 `json:"description,omitempty"`
+	DraftOnly   *bool                   `json:"draft_only,omitempty"`
+	Path        string                  `json:"path"`
+	Schema      *map[string]interface{} `json:"schema,omitempty"`
+	Summary     string                  `json:"summary"`
+	Value       FlowValue               `json:"value"`
+}
 
 // GetFlowInputHistoryByPathParams defines parameters for GetFlowInputHistoryByPath.
 type GetFlowInputHistoryByPathParams struct {
@@ -1990,25 +2124,7 @@ type SetScheduleEnabledJSONBody struct {
 type UpdateScheduleJSONBody = EditSchedule
 
 // CreateScriptJSONBody defines parameters for CreateScript.
-type CreateScriptJSONBody struct {
-	Content     string                       `json:"content"`
-	Description string                       `json:"description"`
-	IsTemplate  *bool                        `json:"is_template,omitempty"`
-	Kind        *CreateScriptJSONBodyKind    `json:"kind,omitempty"`
-	Language    CreateScriptJSONBodyLanguage `json:"language"`
-	Lock        *[]string                    `json:"lock,omitempty"`
-	ParentHash  *string                      `json:"parent_hash,omitempty"`
-	Path        string                       `json:"path"`
-	Schema      *map[string]interface{}      `json:"schema,omitempty"`
-	Summary     string                       `json:"summary"`
-	Tag         *string                      `json:"tag,omitempty"`
-}
-
-// CreateScriptJSONBodyKind defines parameters for CreateScript.
-type CreateScriptJSONBodyKind string
-
-// CreateScriptJSONBodyLanguage defines parameters for CreateScript.
-type CreateScriptJSONBodyLanguage string
+type CreateScriptJSONBody = NewScript
 
 // ListScriptsParams defines parameters for ListScripts.
 type ListScriptsParams struct {
@@ -2225,6 +2341,9 @@ type UpdateAppJSONRequestBody UpdateAppJSONBody
 // ExecuteComponentJSONRequestBody defines body for ExecuteComponent for application/json ContentType.
 type ExecuteComponentJSONRequestBody ExecuteComponentJSONBody
 
+// CreateDraftJSONRequestBody defines body for CreateDraft for application/json ContentType.
+type CreateDraftJSONRequestBody CreateDraftJSONBody
+
 // StarJSONRequestBody defines body for Star for application/json ContentType.
 type StarJSONRequestBody StarJSONBody
 
@@ -2235,7 +2354,7 @@ type UnstarJSONRequestBody UnstarJSONBody
 type ArchiveFlowByPathJSONRequestBody ArchiveFlowByPathJSONBody
 
 // CreateFlowJSONRequestBody defines body for CreateFlow for application/json ContentType.
-type CreateFlowJSONRequestBody = CreateFlowJSONBody
+type CreateFlowJSONRequestBody CreateFlowJSONBody
 
 // UpdateFlowJSONRequestBody defines body for UpdateFlow for application/json ContentType.
 type UpdateFlowJSONRequestBody = UpdateFlowJSONBody
@@ -2340,7 +2459,7 @@ type SetScheduleEnabledJSONRequestBody SetScheduleEnabledJSONBody
 type UpdateScheduleJSONRequestBody = UpdateScheduleJSONBody
 
 // CreateScriptJSONRequestBody defines body for CreateScript for application/json ContentType.
-type CreateScriptJSONRequestBody CreateScriptJSONBody
+type CreateScriptJSONRequestBody = CreateScriptJSONBody
 
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
 type CreateUserJSONRequestBody = CreateUserJSONBody
@@ -2528,6 +2647,59 @@ func (a *AppWithLastVersion_ExtraPerms) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for AppWithLastVersion_ExtraPerms to handle AdditionalProperties
 func (a AppWithLastVersion_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for AppWithLastVersionWDraft_ExtraPerms. Returns the specified
+// element and whether it was found
+func (a AppWithLastVersionWDraft_ExtraPerms) Get(fieldName string) (value bool, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for AppWithLastVersionWDraft_ExtraPerms
+func (a *AppWithLastVersionWDraft_ExtraPerms) Set(fieldName string, value bool) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]bool)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for AppWithLastVersionWDraft_ExtraPerms to handle AdditionalProperties
+func (a *AppWithLastVersionWDraft_ExtraPerms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]bool)
+		for fieldName, fieldBuf := range object {
+			var fieldVal bool
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for AppWithLastVersionWDraft_ExtraPerms to handle AdditionalProperties
+func (a AppWithLastVersionWDraft_ExtraPerms) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -3464,6 +3636,9 @@ type ClientInterface interface {
 	// ExistsApp request
 	ExistsApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetAppByPathWithDraft request
+	GetAppByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAppByPath request
 	GetAppByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3504,6 +3679,11 @@ type ClientInterface interface {
 	// UpdateCapture request
 	UpdateCapture(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateDraft request with any body
+	CreateDraftWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateDraft(ctx context.Context, workspace WorkspaceId, body CreateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// Star request with any body
 	StarWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3529,6 +3709,9 @@ type ClientInterface interface {
 
 	// ExistsFlowByPath request
 	ExistsFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetFlowByPathWithDraft request
+	GetFlowByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFlowByPath request
 	GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3863,6 +4046,9 @@ type ClientInterface interface {
 
 	// ExistsScriptByPath request
 	ExistsScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetScriptByPathWithDraft request
+	GetScriptByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetScriptByHash request
 	GetScriptByHash(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4740,6 +4926,18 @@ func (c *Client) ExistsApp(ctx context.Context, workspace WorkspaceId, path Path
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetAppByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppByPathWithDraftRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetAppByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAppByPathRequest(c.Server, workspace, path)
 	if err != nil {
@@ -4908,6 +5106,30 @@ func (c *Client) UpdateCapture(ctx context.Context, workspace WorkspaceId, path 
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreateDraftWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDraftRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDraft(ctx context.Context, workspace WorkspaceId, body CreateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDraftRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) StarWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewStarRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -5018,6 +5240,18 @@ func (c *Client) DeleteFlowByPath(ctx context.Context, workspace WorkspaceId, pa
 
 func (c *Client) ExistsFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsFlowByPathRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetFlowByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowByPathWithDraftRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -6494,6 +6728,18 @@ func (c *Client) GetScriptDeploymentStatus(ctx context.Context, workspace Worksp
 
 func (c *Client) ExistsScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsScriptByPathRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetScriptByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetScriptByPathWithDraftRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -8762,6 +9008,47 @@ func NewExistsAppRequest(server string, workspace WorkspaceId, path Path) (*http
 	return req, nil
 }
 
+// NewGetAppByPathWithDraftRequest generates requests for GetAppByPathWithDraft
+func NewGetAppByPathWithDraftRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/get/draft/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetAppByPathRequest generates requests for GetAppByPath
 func NewGetAppByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
 	var err error
@@ -9514,6 +9801,53 @@ func NewUpdateCaptureRequest(server string, workspace WorkspaceId, path Path) (*
 	return req, nil
 }
 
+// NewCreateDraftRequest calls the generic CreateDraft builder with application/json body
+func NewCreateDraftRequest(server string, workspace WorkspaceId, body CreateDraftJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateDraftRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateDraftRequestWithBody generates requests for CreateDraft with any type of body
+func NewCreateDraftRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/drafts/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewStarRequest calls the generic Star builder with application/json body
 func NewStarRequest(server string, workspace WorkspaceId, body StarJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -9774,6 +10108,47 @@ func NewExistsFlowByPathRequest(server string, workspace WorkspaceId, path Scrip
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/flows/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetFlowByPathWithDraftRequest generates requests for GetFlowByPathWithDraft
+func NewGetFlowByPathWithDraftRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/get/draft/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -15677,6 +16052,47 @@ func NewExistsScriptByPathRequest(server string, workspace WorkspaceId, path Scr
 	return req, nil
 }
 
+// NewGetScriptByPathWithDraftRequest generates requests for GetScriptByPathWithDraft
+func NewGetScriptByPathWithDraftRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/get/draft/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetScriptByHashRequest generates requests for GetScriptByHash
 func NewGetScriptByHashRequest(server string, workspace WorkspaceId, hash ScriptHash) (*http.Request, error) {
 	var err error
@@ -17878,6 +18294,9 @@ type ClientWithResponsesInterface interface {
 	// ExistsApp request
 	ExistsAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsAppResponse, error)
 
+	// GetAppByPathWithDraft request
+	GetAppByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathWithDraftResponse, error)
+
 	// GetAppByPath request
 	GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error)
 
@@ -17918,6 +18337,11 @@ type ClientWithResponsesInterface interface {
 	// UpdateCapture request
 	UpdateCaptureWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*UpdateCaptureResponse, error)
 
+	// CreateDraft request with any body
+	CreateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error)
+
+	CreateDraftWithResponse(ctx context.Context, workspace WorkspaceId, body CreateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error)
+
 	// Star request with any body
 	StarWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StarResponse, error)
 
@@ -17943,6 +18367,9 @@ type ClientWithResponsesInterface interface {
 
 	// ExistsFlowByPath request
 	ExistsFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ExistsFlowByPathResponse, error)
+
+	// GetFlowByPathWithDraft request
+	GetFlowByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathWithDraftResponse, error)
 
 	// GetFlowByPath request
 	GetFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathResponse, error)
@@ -18277,6 +18704,9 @@ type ClientWithResponsesInterface interface {
 
 	// ExistsScriptByPath request
 	ExistsScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ExistsScriptByPathResponse, error)
+
+	// GetScriptByPathWithDraft request
+	GetScriptByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptByPathWithDraftResponse, error)
 
 	// GetScriptByHash request
 	GetScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*GetScriptByHashResponse, error)
@@ -19385,6 +19815,28 @@ func (r ExistsAppResponse) StatusCode() int {
 	return 0
 }
 
+type GetAppByPathWithDraftResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AppWithLastVersionWDraft
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAppByPathWithDraftResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAppByPathWithDraftResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetAppByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -19644,6 +20096,27 @@ func (r UpdateCaptureResponse) StatusCode() int {
 	return 0
 }
 
+type CreateDraftResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateDraftResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateDraftResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type StarResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -19771,6 +20244,43 @@ func (r ExistsFlowByPathResponse) StatusCode() int {
 	return 0
 }
 
+type GetFlowByPathWithDraftResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
+		Archived             bool                    `json:"archived"`
+		Description          *string                 `json:"description,omitempty"`
+		Draft                *Flow                   `json:"draft,omitempty"`
+		DraftOnly            *bool                   `json:"draft_only,omitempty"`
+		EditedAt             time.Time               `json:"edited_at"`
+		EditedBy             string                  `json:"edited_by"`
+		ExtraPerms           map[string]interface{}  `json:"extra_perms"`
+		Path                 string                  `json:"path"`
+		Schema               *map[string]interface{} `json:"schema,omitempty"`
+		Starred              *bool                   `json:"starred,omitempty"`
+		Summary              string                  `json:"summary"`
+		Value                FlowValue               `json:"value"`
+		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetFlowByPathWithDraftResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFlowByPathWithDraftResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetFlowByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -19818,7 +20328,22 @@ func (r GetFlowInputHistoryByPathResponse) StatusCode() int {
 type ListFlowsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]Flow
+	JSON200      *[]struct {
+		AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
+		Archived             bool                    `json:"archived"`
+		Description          *string                 `json:"description,omitempty"`
+		DraftOnly            *bool                   `json:"draft_only,omitempty"`
+		EditedAt             time.Time               `json:"edited_at"`
+		EditedBy             string                  `json:"edited_by"`
+		ExtraPerms           map[string]interface{}  `json:"extra_perms"`
+		HasDraft             *bool                   `json:"has_draft,omitempty"`
+		Path                 string                  `json:"path"`
+		Schema               *map[string]interface{} `json:"schema,omitempty"`
+		Starred              *bool                   `json:"starred,omitempty"`
+		Summary              string                  `json:"summary"`
+		Value                FlowValue               `json:"value"`
+		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -21686,6 +22211,28 @@ func (r ExistsScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
+type GetScriptByPathWithDraftResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *NewScriptWithDraft
+}
+
+// Status returns HTTPResponse.Status
+func (r GetScriptByPathWithDraftResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetScriptByPathWithDraftResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetScriptByHashResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -23145,6 +23692,15 @@ func (c *ClientWithResponses) ExistsAppWithResponse(ctx context.Context, workspa
 	return ParseExistsAppResponse(rsp)
 }
 
+// GetAppByPathWithDraftWithResponse request returning *GetAppByPathWithDraftResponse
+func (c *ClientWithResponses) GetAppByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathWithDraftResponse, error) {
+	rsp, err := c.GetAppByPathWithDraft(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAppByPathWithDraftResponse(rsp)
+}
+
 // GetAppByPathWithResponse request returning *GetAppByPathResponse
 func (c *ClientWithResponses) GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error) {
 	rsp, err := c.GetAppByPath(ctx, workspace, path, reqEditors...)
@@ -23269,6 +23825,23 @@ func (c *ClientWithResponses) UpdateCaptureWithResponse(ctx context.Context, wor
 	return ParseUpdateCaptureResponse(rsp)
 }
 
+// CreateDraftWithBodyWithResponse request with arbitrary body returning *CreateDraftResponse
+func (c *ClientWithResponses) CreateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error) {
+	rsp, err := c.CreateDraftWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDraftResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateDraftWithResponse(ctx context.Context, workspace WorkspaceId, body CreateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error) {
+	rsp, err := c.CreateDraft(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDraftResponse(rsp)
+}
+
 // StarWithBodyWithResponse request with arbitrary body returning *StarResponse
 func (c *ClientWithResponses) StarWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StarResponse, error) {
 	rsp, err := c.StarWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -23353,6 +23926,15 @@ func (c *ClientWithResponses) ExistsFlowByPathWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseExistsFlowByPathResponse(rsp)
+}
+
+// GetFlowByPathWithDraftWithResponse request returning *GetFlowByPathWithDraftResponse
+func (c *ClientWithResponses) GetFlowByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathWithDraftResponse, error) {
+	rsp, err := c.GetFlowByPathWithDraft(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFlowByPathWithDraftResponse(rsp)
 }
 
 // GetFlowByPathWithResponse request returning *GetFlowByPathResponse
@@ -24425,6 +25007,15 @@ func (c *ClientWithResponses) ExistsScriptByPathWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseExistsScriptByPathResponse(rsp)
+}
+
+// GetScriptByPathWithDraftWithResponse request returning *GetScriptByPathWithDraftResponse
+func (c *ClientWithResponses) GetScriptByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptByPathWithDraftResponse, error) {
+	rsp, err := c.GetScriptByPathWithDraft(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetScriptByPathWithDraftResponse(rsp)
 }
 
 // GetScriptByHashWithResponse request returning *GetScriptByHashResponse
@@ -25839,6 +26430,32 @@ func ParseExistsAppResponse(rsp *http.Response) (*ExistsAppResponse, error) {
 	return response, nil
 }
 
+// ParseGetAppByPathWithDraftResponse parses an HTTP response from a GetAppByPathWithDraftWithResponse call
+func ParseGetAppByPathWithDraftResponse(rsp *http.Response) (*GetAppByPathWithDraftResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAppByPathWithDraftResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AppWithLastVersionWDraft
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetAppByPathResponse parses an HTTP response from a GetAppByPathWithResponse call
 func ParseGetAppByPathResponse(rsp *http.Response) (*GetAppByPathResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -26101,6 +26718,22 @@ func ParseUpdateCaptureResponse(rsp *http.Response) (*UpdateCaptureResponse, err
 	return response, nil
 }
 
+// ParseCreateDraftResponse parses an HTTP response from a CreateDraftWithResponse call
+func ParseCreateDraftResponse(rsp *http.Response) (*CreateDraftResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateDraftResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseStarResponse parses an HTTP response from a StarWithResponse call
 func ParseStarResponse(rsp *http.Response) (*StarResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -26207,6 +26840,47 @@ func ParseExistsFlowByPathResponse(rsp *http.Response) (*ExistsFlowByPathRespons
 	return response, nil
 }
 
+// ParseGetFlowByPathWithDraftResponse parses an HTTP response from a GetFlowByPathWithDraftWithResponse call
+func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWithDraftResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFlowByPathWithDraftResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
+			Archived             bool                    `json:"archived"`
+			Description          *string                 `json:"description,omitempty"`
+			Draft                *Flow                   `json:"draft,omitempty"`
+			DraftOnly            *bool                   `json:"draft_only,omitempty"`
+			EditedAt             time.Time               `json:"edited_at"`
+			EditedBy             string                  `json:"edited_by"`
+			ExtraPerms           map[string]interface{}  `json:"extra_perms"`
+			Path                 string                  `json:"path"`
+			Schema               *map[string]interface{} `json:"schema,omitempty"`
+			Starred              *bool                   `json:"starred,omitempty"`
+			Summary              string                  `json:"summary"`
+			Value                FlowValue               `json:"value"`
+			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetFlowByPathResponse parses an HTTP response from a GetFlowByPathWithResponse call
 func ParseGetFlowByPathResponse(rsp *http.Response) (*GetFlowByPathResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -26274,7 +26948,22 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []Flow
+		var dest []struct {
+			AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
+			Archived             bool                    `json:"archived"`
+			Description          *string                 `json:"description,omitempty"`
+			DraftOnly            *bool                   `json:"draft_only,omitempty"`
+			EditedAt             time.Time               `json:"edited_at"`
+			EditedBy             string                  `json:"edited_by"`
+			ExtraPerms           map[string]interface{}  `json:"extra_perms"`
+			HasDraft             *bool                   `json:"has_draft,omitempty"`
+			Path                 string                  `json:"path"`
+			Schema               *map[string]interface{} `json:"schema,omitempty"`
+			Starred              *bool                   `json:"starred,omitempty"`
+			Summary              string                  `json:"summary"`
+			Value                FlowValue               `json:"value"`
+			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -28050,6 +28739,32 @@ func ParseExistsScriptByPathResponse(rsp *http.Response) (*ExistsScriptByPathRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetScriptByPathWithDraftResponse parses an HTTP response from a GetScriptByPathWithDraftWithResponse call
+func ParseGetScriptByPathWithDraftResponse(rsp *http.Response) (*GetScriptByPathWithDraftResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetScriptByPathWithDraftResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest NewScriptWithDraft
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
