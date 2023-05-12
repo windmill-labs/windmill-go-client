@@ -3945,6 +3945,9 @@ type ClientInterface interface {
 	// GetCompletedJobResult request
 	GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetCompletedJobResultMaybe request
+	GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListCompletedJobs request
 	ListCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5895,6 +5898,18 @@ func (c *Client) GetCompletedJob(ctx context.Context, workspace WorkspaceId, id 
 
 func (c *Client) GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCompletedJobResultRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCompletedJobResultMaybeRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -12173,6 +12188,47 @@ func NewGetCompletedJobResultRequest(server string, workspace WorkspaceId, id Jo
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/jobs/completed/get_result/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetCompletedJobResultMaybeRequest generates requests for GetCompletedJobResultMaybe
+func NewGetCompletedJobResultMaybeRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/completed/get_result_maybe/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -19102,6 +19158,9 @@ type ClientWithResponsesInterface interface {
 	// GetCompletedJobResult request
 	GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error)
 
+	// GetCompletedJobResultMaybe request
+	GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error)
+
 	// ListCompletedJobs request
 	ListCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*ListCompletedJobsResponse, error)
 
@@ -21601,6 +21660,31 @@ func (r GetCompletedJobResultResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetCompletedJobResultResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCompletedJobResultMaybeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Completed bool        `json:"completed"`
+		Result    interface{} `json:"result"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCompletedJobResultMaybeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCompletedJobResultMaybeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -25070,6 +25154,15 @@ func (c *ClientWithResponses) GetCompletedJobResultWithResponse(ctx context.Cont
 	return ParseGetCompletedJobResultResponse(rsp)
 }
 
+// GetCompletedJobResultMaybeWithResponse request returning *GetCompletedJobResultMaybeResponse
+func (c *ClientWithResponses) GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error) {
+	rsp, err := c.GetCompletedJobResultMaybe(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCompletedJobResultMaybeResponse(rsp)
+}
+
 // ListCompletedJobsWithResponse request returning *ListCompletedJobsResponse
 func (c *ClientWithResponses) ListCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*ListCompletedJobsResponse, error) {
 	rsp, err := c.ListCompletedJobs(ctx, workspace, params, reqEditors...)
@@ -28375,6 +28468,35 @@ func ParseGetCompletedJobResultResponse(rsp *http.Response) (*GetCompletedJobRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCompletedJobResultMaybeResponse parses an HTTP response from a GetCompletedJobResultMaybeWithResponse call
+func ParseGetCompletedJobResultMaybeResponse(rsp *http.Response) (*GetCompletedJobResultMaybeResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCompletedJobResultMaybeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Completed bool        `json:"completed"`
+			Result    interface{} `json:"result"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
