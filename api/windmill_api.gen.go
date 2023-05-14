@@ -1488,6 +1488,7 @@ type UpdateAppJSONBody struct {
 // ExecuteComponentJSONBody defines parameters for ExecuteComponent.
 type ExecuteComponentJSONBody struct {
 	Args                    interface{}             `json:"args"`
+	Component               string                  `json:"component"`
 	ForceViewerStaticFields *map[string]interface{} `json:"force_viewer_static_fields,omitempty"`
 	Path                    *string                 `json:"path,omitempty"`
 	RawCode                 *struct {
