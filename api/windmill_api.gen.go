@@ -1264,6 +1264,9 @@ type JobKinds = string
 // Name defines model for Name.
 type Name = string
 
+// NewJobId defines model for NewJobId.
+type NewJobId = openapi_types.UUID
+
 // Operation defines model for Operation.
 type Operation = string
 
@@ -1902,6 +1905,9 @@ type RunFlowByPathParams struct {
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
+	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
 	// List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
 	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
@@ -1923,6 +1929,9 @@ type RunScriptByHashParams struct {
 
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 
 	// List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
@@ -1946,6 +1955,9 @@ type RunScriptByPathParams struct {
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
+	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
 	// make the run invisible to the the script owner (default false)
 	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
 }
@@ -1961,6 +1973,9 @@ type RunScriptPreviewParams struct {
 
 	// make the run invisible to the the script owner (default false)
 	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
+
+	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 }
 
 // RunFlowPreviewJSONBody defines parameters for RunFlowPreview.
@@ -1974,6 +1989,9 @@ type RunFlowPreviewParams struct {
 
 	// make the run invisible to the the script owner (default false)
 	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
+
+	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 }
 
 // RunWaitResultFlowByPathJSONBody defines parameters for RunWaitResultFlowByPath.
@@ -1987,12 +2005,18 @@ type RunWaitResultFlowByPathParams struct {
 
 	// The maximum size of the queue for which the request would get rejected if that job would push it above that limit
 	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 }
 
 // RunWaitResultScriptByPathGetParams defines parameters for RunWaitResultScriptByPathGet.
 type RunWaitResultScriptByPathGetParams struct {
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 
 	// List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
@@ -2013,6 +2037,9 @@ type RunWaitResultScriptByPathJSONBody = ScriptArgs
 type RunWaitResultScriptByPathParams struct {
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 
 	// List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
@@ -13397,6 +13424,22 @@ func NewRunFlowByPathRequestWithBody(server string, workspace WorkspaceId, path 
 
 	}
 
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.IncludeHeader != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
@@ -13522,6 +13565,22 @@ func NewRunScriptByHashRequestWithBody(server string, workspace WorkspaceId, has
 	if params.ParentJob != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -13673,6 +13732,22 @@ func NewRunScriptByPathRequestWithBody(server string, workspace WorkspaceId, pat
 
 	}
 
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.InvisibleToOwner != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "invisible_to_owner", runtime.ParamLocationQuery, *params.InvisibleToOwner); err != nil {
@@ -13772,6 +13847,22 @@ func NewRunScriptPreviewRequestWithBody(server string, workspace WorkspaceId, pa
 
 	}
 
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -13842,6 +13933,22 @@ func NewRunFlowPreviewRequestWithBody(server string, workspace WorkspaceId, para
 	if params.InvisibleToOwner != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "invisible_to_owner", runtime.ParamLocationQuery, *params.InvisibleToOwner); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -13945,6 +14052,22 @@ func NewRunWaitResultFlowByPathRequestWithBody(server string, workspace Workspac
 
 	}
 
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -13995,6 +14118,22 @@ func NewRunWaitResultScriptByPathGetRequest(server string, workspace WorkspaceId
 	if params.ParentJob != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -14115,6 +14254,22 @@ func NewRunWaitResultScriptByPathRequestWithBody(server string, workspace Worksp
 	if params.ParentJob != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
