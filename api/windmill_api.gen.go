@@ -3967,15 +3967,6 @@ type ClientInterface interface {
 	// DeleteCompletedJob request
 	DeleteCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetCompletedJob request
-	GetCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetCompletedJobResult request
-	GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetCompletedJobResultMaybe request
-	GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ListCompletedJobs request
 	ListCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4044,6 +4035,15 @@ type ClientInterface interface {
 	CancelSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CancelSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, body CancelSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCompletedJob request
+	GetCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCompletedJobResult request
+	GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCompletedJobResultMaybe request
+	GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetJob request
 	GetJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5912,42 +5912,6 @@ func (c *Client) DeleteCompletedJob(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCompletedJobRequest(c.Server, workspace, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCompletedJobResultRequest(c.Server, workspace, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCompletedJobResultMaybeRequest(c.Server, workspace, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) ListCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListCompletedJobsRequest(c.Server, workspace, params)
 	if err != nil {
@@ -6250,6 +6214,42 @@ func (c *Client) CancelSuspendedJobPostWithBody(ctx context.Context, workspace W
 
 func (c *Client) CancelSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, body CancelSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCancelSuspendedJobPostRequest(c.Server, workspace, id, resumeId, signature, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCompletedJobRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCompletedJobResultRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCompletedJobResultMaybeRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -12151,129 +12151,6 @@ func NewDeleteCompletedJobRequest(server string, workspace WorkspaceId, id JobId
 	return req, nil
 }
 
-// NewGetCompletedJobRequest generates requests for GetCompletedJob
-func NewGetCompletedJobRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/jobs/completed/get/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetCompletedJobResultRequest generates requests for GetCompletedJobResult
-func NewGetCompletedJobResultRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/jobs/completed/get_result/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetCompletedJobResultMaybeRequest generates requests for GetCompletedJobResultMaybe
-func NewGetCompletedJobResultMaybeRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/jobs/completed/get_result_maybe/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewListCompletedJobsRequest generates requests for ListCompletedJobs
 func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *ListCompletedJobsParams) (*http.Request, error) {
 	var err error
@@ -14486,6 +14363,129 @@ func NewCancelSuspendedJobPostRequestWithBody(server string, workspace Workspace
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetCompletedJobRequest generates requests for GetCompletedJob
+func NewGetCompletedJobRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/completed/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetCompletedJobResultRequest generates requests for GetCompletedJobResult
+func NewGetCompletedJobResultRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/completed/get_result/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetCompletedJobResultMaybeRequest generates requests for GetCompletedJobResultMaybe
+func NewGetCompletedJobResultMaybeRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/completed/get_result_maybe/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -19308,15 +19308,6 @@ type ClientWithResponsesInterface interface {
 	// DeleteCompletedJob request
 	DeleteCompletedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*DeleteCompletedJobResponse, error)
 
-	// GetCompletedJob request
-	GetCompletedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResponse, error)
-
-	// GetCompletedJobResult request
-	GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error)
-
-	// GetCompletedJobResultMaybe request
-	GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error)
-
 	// ListCompletedJobs request
 	ListCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*ListCompletedJobsResponse, error)
 
@@ -19385,6 +19376,15 @@ type ClientWithResponsesInterface interface {
 	CancelSuspendedJobPostWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSuspendedJobPostResponse, error)
 
 	CancelSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobPostParams, body CancelSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSuspendedJobPostResponse, error)
+
+	// GetCompletedJob request
+	GetCompletedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResponse, error)
+
+	// GetCompletedJobResult request
+	GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error)
+
+	// GetCompletedJobResultMaybe request
+	GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error)
 
 	// GetJob request
 	GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobResponse, error)
@@ -21778,75 +21778,6 @@ func (r DeleteCompletedJobResponse) StatusCode() int {
 	return 0
 }
 
-type GetCompletedJobResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *CompletedJob
-}
-
-// Status returns HTTPResponse.Status
-func (r GetCompletedJobResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetCompletedJobResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetCompletedJobResultResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *interface{}
-}
-
-// Status returns HTTPResponse.Status
-func (r GetCompletedJobResultResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetCompletedJobResultResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetCompletedJobResultMaybeResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Completed bool        `json:"completed"`
-		Result    interface{} `json:"result"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r GetCompletedJobResultMaybeResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetCompletedJobResultMaybeResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type ListCompletedJobsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -22210,6 +22141,75 @@ func (r CancelSuspendedJobPostResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CancelSuspendedJobPostResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCompletedJobResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CompletedJob
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCompletedJobResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCompletedJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCompletedJobResultResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCompletedJobResultResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCompletedJobResultResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCompletedJobResultMaybeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Completed bool        `json:"completed"`
+		Result    interface{} `json:"result"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCompletedJobResultMaybeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCompletedJobResultMaybeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -25292,33 +25292,6 @@ func (c *ClientWithResponses) DeleteCompletedJobWithResponse(ctx context.Context
 	return ParseDeleteCompletedJobResponse(rsp)
 }
 
-// GetCompletedJobWithResponse request returning *GetCompletedJobResponse
-func (c *ClientWithResponses) GetCompletedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResponse, error) {
-	rsp, err := c.GetCompletedJob(ctx, workspace, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetCompletedJobResponse(rsp)
-}
-
-// GetCompletedJobResultWithResponse request returning *GetCompletedJobResultResponse
-func (c *ClientWithResponses) GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error) {
-	rsp, err := c.GetCompletedJobResult(ctx, workspace, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetCompletedJobResultResponse(rsp)
-}
-
-// GetCompletedJobResultMaybeWithResponse request returning *GetCompletedJobResultMaybeResponse
-func (c *ClientWithResponses) GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error) {
-	rsp, err := c.GetCompletedJobResultMaybe(ctx, workspace, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetCompletedJobResultMaybeResponse(rsp)
-}
-
 // ListCompletedJobsWithResponse request returning *ListCompletedJobsResponse
 func (c *ClientWithResponses) ListCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*ListCompletedJobsResponse, error) {
 	rsp, err := c.ListCompletedJobs(ctx, workspace, params, reqEditors...)
@@ -25542,6 +25515,33 @@ func (c *ClientWithResponses) CancelSuspendedJobPostWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseCancelSuspendedJobPostResponse(rsp)
+}
+
+// GetCompletedJobWithResponse request returning *GetCompletedJobResponse
+func (c *ClientWithResponses) GetCompletedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResponse, error) {
+	rsp, err := c.GetCompletedJob(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCompletedJobResponse(rsp)
+}
+
+// GetCompletedJobResultWithResponse request returning *GetCompletedJobResultResponse
+func (c *ClientWithResponses) GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error) {
+	rsp, err := c.GetCompletedJobResult(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCompletedJobResultResponse(rsp)
+}
+
+// GetCompletedJobResultMaybeWithResponse request returning *GetCompletedJobResultMaybeResponse
+func (c *ClientWithResponses) GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error) {
+	rsp, err := c.GetCompletedJobResultMaybe(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCompletedJobResultMaybeResponse(rsp)
 }
 
 // GetJobWithResponse request returning *GetJobResponse
@@ -28582,87 +28582,6 @@ func ParseDeleteCompletedJobResponse(rsp *http.Response) (*DeleteCompletedJobRes
 	return response, nil
 }
 
-// ParseGetCompletedJobResponse parses an HTTP response from a GetCompletedJobWithResponse call
-func ParseGetCompletedJobResponse(rsp *http.Response) (*GetCompletedJobResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetCompletedJobResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest CompletedJob
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetCompletedJobResultResponse parses an HTTP response from a GetCompletedJobResultWithResponse call
-func ParseGetCompletedJobResultResponse(rsp *http.Response) (*GetCompletedJobResultResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetCompletedJobResultResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetCompletedJobResultMaybeResponse parses an HTTP response from a GetCompletedJobResultMaybeWithResponse call
-func ParseGetCompletedJobResultMaybeResponse(rsp *http.Response) (*GetCompletedJobResultMaybeResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetCompletedJobResultMaybeResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Completed bool        `json:"completed"`
-			Result    interface{} `json:"result"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseListCompletedJobsResponse parses an HTTP response from a ListCompletedJobsWithResponse call
 func ParseListCompletedJobsResponse(rsp *http.Response) (*ListCompletedJobsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -29014,6 +28933,87 @@ func ParseCancelSuspendedJobPostResponse(rsp *http.Response) (*CancelSuspendedJo
 	response := &CancelSuspendedJobPostResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetCompletedJobResponse parses an HTTP response from a GetCompletedJobWithResponse call
+func ParseGetCompletedJobResponse(rsp *http.Response) (*GetCompletedJobResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCompletedJobResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CompletedJob
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCompletedJobResultResponse parses an HTTP response from a GetCompletedJobResultWithResponse call
+func ParseGetCompletedJobResultResponse(rsp *http.Response) (*GetCompletedJobResultResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCompletedJobResultResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCompletedJobResultMaybeResponse parses an HTTP response from a GetCompletedJobResultMaybeWithResponse call
+func ParseGetCompletedJobResultMaybeResponse(rsp *http.Response) (*GetCompletedJobResultMaybeResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCompletedJobResultMaybeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Completed bool        `json:"completed"`
+			Result    interface{} `json:"result"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
