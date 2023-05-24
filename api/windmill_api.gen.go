@@ -475,9 +475,10 @@ type EditResourceType struct {
 
 // EditSchedule defines model for EditSchedule.
 type EditSchedule struct {
-	Args     ScriptArgs `json:"args"`
-	Schedule string     `json:"schedule"`
-	Timezone string     `json:"timezone"`
+	Args      ScriptArgs `json:"args"`
+	OnFailure *string    `json:"on_failure,omitempty"`
+	Schedule  string     `json:"schedule"`
+	Timezone  string     `json:"timezone"`
 }
 
 // EditVariable defines model for EditVariable.
@@ -823,6 +824,7 @@ type NewSchedule struct {
 	Args       ScriptArgs `json:"args"`
 	Enabled    *bool      `json:"enabled,omitempty"`
 	IsFlow     bool       `json:"is_flow"`
+	OnFailure  *string    `json:"on_failure,omitempty"`
 	Path       string     `json:"path"`
 	Schedule   string     `json:"schedule"`
 	ScriptPath string     `json:"script_path"`
@@ -1084,6 +1086,7 @@ type Schedule struct {
 	Error      *string             `json:"error,omitempty"`
 	ExtraPerms Schedule_ExtraPerms `json:"extra_perms"`
 	IsFlow     bool                `json:"is_flow"`
+	OnFailure  *string             `json:"on_failure,omitempty"`
 	Path       string              `json:"path"`
 	Schedule   string              `json:"schedule"`
 	ScriptPath string              `json:"script_path"`
@@ -3633,6 +3636,9 @@ type ClientInterface interface {
 	// Logout request
 	Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetLicenseId request
+	GetLicenseId(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetHubFlowById request
 	GetHubFlowById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4426,6 +4432,18 @@ func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditor
 
 func (c *Client) Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLogoutRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetLicenseId(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLicenseIdRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -7821,6 +7839,33 @@ func NewLogoutRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetLicenseIdRequest generates requests for GetLicenseId
+func NewGetLicenseIdRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/ee_license")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -18974,6 +19019,9 @@ type ClientWithResponsesInterface interface {
 	// Logout request
 	LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error)
 
+	// GetLicenseId request
+	GetLicenseIdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLicenseIdResponse, error)
+
 	// GetHubFlowById request
 	GetHubFlowByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubFlowByIdResponse, error)
 
@@ -19811,6 +19859,27 @@ func (r LogoutResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LogoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetLicenseIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetLicenseIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetLicenseIdResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -24220,6 +24289,15 @@ func (c *ClientWithResponses) LogoutWithResponse(ctx context.Context, reqEditors
 	return ParseLogoutResponse(rsp)
 }
 
+// GetLicenseIdWithResponse request returning *GetLicenseIdResponse
+func (c *ClientWithResponses) GetLicenseIdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLicenseIdResponse, error) {
+	rsp, err := c.GetLicenseId(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetLicenseIdResponse(rsp)
+}
+
 // GetHubFlowByIdWithResponse request returning *GetHubFlowByIdResponse
 func (c *ClientWithResponses) GetHubFlowByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubFlowByIdResponse, error) {
 	rsp, err := c.GetHubFlowById(ctx, id, reqEditors...)
@@ -26685,6 +26763,22 @@ func ParseLogoutResponse(rsp *http.Response) (*LogoutResponse, error) {
 	}
 
 	response := &LogoutResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetLicenseIdResponse parses an HTTP response from a GetLicenseIdWithResponse call
+func ParseGetLicenseIdResponse(rsp *http.Response) (*GetLicenseIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetLicenseIdResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
