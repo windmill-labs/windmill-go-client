@@ -2286,6 +2286,9 @@ type CreateVariableParams struct {
 	AlreadyEncrypted *bool `form:"already_encrypted,omitempty" json:"already_encrypted,omitempty"`
 }
 
+// EncryptValueJSONBody defines parameters for EncryptValue.
+type EncryptValueJSONBody = string
+
 // GetVariableParams defines parameters for GetVariable.
 type GetVariableParams struct {
 	// ask to decrypt secret if this variable is secret
@@ -2564,6 +2567,9 @@ type UpdateUserJSONRequestBody = UpdateUserJSONBody
 
 // CreateVariableJSONRequestBody defines body for CreateVariable for application/json ContentType.
 type CreateVariableJSONRequestBody = CreateVariableJSONBody
+
+// EncryptValueJSONRequestBody defines body for EncryptValue for application/json ContentType.
+type EncryptValueJSONRequestBody = EncryptValueJSONBody
 
 // UpdateVariableJSONRequestBody defines body for UpdateVariable for application/json ContentType.
 type UpdateVariableJSONRequestBody = UpdateVariableJSONBody
@@ -3706,6 +3712,9 @@ type ClientInterface interface {
 
 	AcceptInvite(ctx context.Context, body AcceptInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetRunnable request
+	GetRunnable(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateUserGlobally request with any body
 	CreateUserGloballyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4283,6 +4292,11 @@ type ClientInterface interface {
 	// DeleteVariable request
 	DeleteVariable(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EncryptValue request with any body
+	EncryptValueWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EncryptValue(ctx context.Context, workspace WorkspaceId, body EncryptValueJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ExistsVariable request
 	ExistsVariable(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4744,6 +4758,18 @@ func (c *Client) AcceptInviteWithBody(ctx context.Context, contentType string, b
 
 func (c *Client) AcceptInvite(ctx context.Context, body AcceptInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAcceptInviteRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetRunnable(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRunnableRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -7286,6 +7312,30 @@ func (c *Client) DeleteVariable(ctx context.Context, workspace WorkspaceId, path
 	return c.Client.Do(req)
 }
 
+func (c *Client) EncryptValueWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEncryptValueRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EncryptValue(ctx context.Context, workspace WorkspaceId, body EncryptValueJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEncryptValueRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ExistsVariable(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsVariableRequest(c.Server, workspace, path)
 	if err != nil {
@@ -8488,6 +8538,33 @@ func NewAcceptInviteRequestWithBody(server string, contentType string, body io.R
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetRunnableRequest generates requests for GetRunnable
+func NewGetRunnableRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/all_runnables")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -17878,6 +17955,53 @@ func NewDeleteVariableRequest(server string, workspace WorkspaceId, path Path) (
 	return req, nil
 }
 
+// NewEncryptValueRequest calls the generic EncryptValue builder with application/json body
+func NewEncryptValueRequest(server string, workspace WorkspaceId, body EncryptValueJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEncryptValueRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEncryptValueRequestWithBody generates requests for EncryptValue with any type of body
+func NewEncryptValueRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/variables/encrypt", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewExistsVariableRequest generates requests for ExistsVariable
 func NewExistsVariableRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
 	var err error
@@ -19089,6 +19213,9 @@ type ClientWithResponsesInterface interface {
 
 	AcceptInviteWithResponse(ctx context.Context, body AcceptInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*AcceptInviteResponse, error)
 
+	// GetRunnable request
+	GetRunnableWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetRunnableResponse, error)
+
 	// CreateUserGlobally request with any body
 	CreateUserGloballyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateUserGloballyResponse, error)
 
@@ -19665,6 +19792,11 @@ type ClientWithResponsesInterface interface {
 
 	// DeleteVariable request
 	DeleteVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteVariableResponse, error)
+
+	// EncryptValue request with any body
+	EncryptValueWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EncryptValueResponse, error)
+
+	EncryptValueWithResponse(ctx context.Context, workspace WorkspaceId, body EncryptValueJSONRequestBody, reqEditors ...RequestEditorFn) (*EncryptValueResponse, error)
 
 	// ExistsVariable request
 	ExistsVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsVariableResponse, error)
@@ -20282,6 +20414,35 @@ func (r AcceptInviteResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AcceptInviteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetRunnableResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Description   *string `json:"description,omitempty"`
+		EndpointAsync string  `json:"endpoint_async"`
+		EndpointSync  string  `json:"endpoint_sync"`
+		Kind          string  `json:"kind"`
+		Summary       string  `json:"summary"`
+		Workspace     string  `json:"workspace"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetRunnableResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetRunnableResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -23673,6 +23834,27 @@ func (r DeleteVariableResponse) StatusCode() int {
 	return 0
 }
 
+type EncryptValueResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EncryptValueResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EncryptValueResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ExistsVariableResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -24513,6 +24695,15 @@ func (c *ClientWithResponses) AcceptInviteWithResponse(ctx context.Context, body
 		return nil, err
 	}
 	return ParseAcceptInviteResponse(rsp)
+}
+
+// GetRunnableWithResponse request returning *GetRunnableResponse
+func (c *ClientWithResponses) GetRunnableWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetRunnableResponse, error) {
+	rsp, err := c.GetRunnable(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetRunnableResponse(rsp)
 }
 
 // CreateUserGloballyWithBodyWithResponse request with arbitrary body returning *CreateUserGloballyResponse
@@ -26358,6 +26549,23 @@ func (c *ClientWithResponses) DeleteVariableWithResponse(ctx context.Context, wo
 	return ParseDeleteVariableResponse(rsp)
 }
 
+// EncryptValueWithBodyWithResponse request with arbitrary body returning *EncryptValueResponse
+func (c *ClientWithResponses) EncryptValueWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EncryptValueResponse, error) {
+	rsp, err := c.EncryptValueWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEncryptValueResponse(rsp)
+}
+
+func (c *ClientWithResponses) EncryptValueWithResponse(ctx context.Context, workspace WorkspaceId, body EncryptValueJSONRequestBody, reqEditors ...RequestEditorFn) (*EncryptValueResponse, error) {
+	rsp, err := c.EncryptValue(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEncryptValueResponse(rsp)
+}
+
 // ExistsVariableWithResponse request returning *ExistsVariableResponse
 func (c *ClientWithResponses) ExistsVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsVariableResponse, error) {
 	rsp, err := c.ExistsVariable(ctx, workspace, path, reqEditors...)
@@ -27206,6 +27414,39 @@ func ParseAcceptInviteResponse(rsp *http.Response) (*AcceptInviteResponse, error
 	response := &AcceptInviteResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetRunnableResponse parses an HTTP response from a GetRunnableWithResponse call
+func ParseGetRunnableResponse(rsp *http.Response) (*GetRunnableResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetRunnableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Description   *string `json:"description,omitempty"`
+			EndpointAsync string  `json:"endpoint_async"`
+			EndpointSync  string  `json:"endpoint_sync"`
+			Kind          string  `json:"kind"`
+			Summary       string  `json:"summary"`
+			Workspace     string  `json:"workspace"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -30444,6 +30685,22 @@ func ParseDeleteVariableResponse(rsp *http.Response) (*DeleteVariableResponse, e
 	}
 
 	response := &DeleteVariableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseEncryptValueResponse parses an HTTP response from a EncryptValueWithResponse call
+func ParseEncryptValueResponse(rsp *http.Response) (*EncryptValueResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EncryptValueResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
