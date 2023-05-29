@@ -881,6 +881,7 @@ type NewScriptWithDraftLanguage string
 type NewToken struct {
 	Expiration *time.Time `json:"expiration,omitempty"`
 	Label      *string    `json:"label,omitempty"`
+	Scopes     *[]string  `json:"scopes,omitempty"`
 }
 
 // NewTokenImpersonate defines model for NewTokenImpersonate.
@@ -1165,6 +1166,7 @@ type TruncatedToken struct {
 	Expiration  *time.Time `json:"expiration,omitempty"`
 	Label       *string    `json:"label,omitempty"`
 	LastUsedAt  time.Time  `json:"last_used_at"`
+	Scopes      *[]string  `json:"scopes,omitempty"`
 	TokenPrefix string     `json:"token_prefix"`
 }
 
