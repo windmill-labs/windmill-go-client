@@ -528,6 +528,7 @@ type FlowMetadata struct {
 
 // FlowModule defines model for FlowModule.
 type FlowModule struct {
+	CacheTtl    *float32        `json:"cache_ttl,omitempty"`
 	Id          string          `json:"id"`
 	Retry       *Retry          `json:"retry,omitempty"`
 	Sleep       *InputTransform `json:"sleep,omitempty"`
@@ -1843,6 +1844,41 @@ type ListJobsParams struct {
 	Success *bool `form:"success,omitempty" json:"success,omitempty"`
 }
 
+// OpenaiSyncFlowByPathJSONBody defines parameters for OpenaiSyncFlowByPath.
+type OpenaiSyncFlowByPathJSONBody = ScriptArgs
+
+// OpenaiSyncFlowByPathParams defines parameters for OpenaiSyncFlowByPath.
+type OpenaiSyncFlowByPathParams struct {
+	// List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+}
+
+// OpenaiSyncScriptByPathJSONBody defines parameters for OpenaiSyncScriptByPath.
+type OpenaiSyncScriptByPathJSONBody = ScriptArgs
+
+// OpenaiSyncScriptByPathParams defines parameters for OpenaiSyncScriptByPath.
+type OpenaiSyncScriptByPathParams struct {
+	// The parent job that is at the origin and responsible for the execution of this script if any
+	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+}
+
 // ListQueueParams defines parameters for ListQueue.
 type ListQueueParams struct {
 	// order by desc order (default true)
@@ -2165,6 +2201,11 @@ type UpdateRawAppJSONBody struct {
 // CreateResourceJSONBody defines parameters for CreateResource.
 type CreateResourceJSONBody = CreateResource
 
+// CreateResourceParams defines parameters for CreateResource.
+type CreateResourceParams struct {
+	UpdateIfExists *bool `form:"update_if_exists,omitempty" json:"update_if_exists,omitempty"`
+}
+
 // ListResourceParams defines parameters for ListResource.
 type ListResourceParams struct {
 	// which page to return (start at 1, default 1)
@@ -2485,6 +2526,12 @@ type UpdateInputJSONRequestBody = UpdateInputJSONBody
 
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
+
+// OpenaiSyncFlowByPathJSONRequestBody defines body for OpenaiSyncFlowByPath for application/json ContentType.
+type OpenaiSyncFlowByPathJSONRequestBody = OpenaiSyncFlowByPathJSONBody
+
+// OpenaiSyncScriptByPathJSONRequestBody defines body for OpenaiSyncScriptByPath for application/json ContentType.
+type OpenaiSyncScriptByPathJSONRequestBody = OpenaiSyncScriptByPathJSONBody
 
 // RunFlowByPathJSONRequestBody defines body for RunFlowByPath for application/json ContentType.
 type RunFlowByPathJSONRequestBody = RunFlowByPathJSONBody
@@ -3998,6 +4045,16 @@ type ClientInterface interface {
 	// ListJobs request
 	ListJobs(ctx context.Context, workspace WorkspaceId, params *ListJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// OpenaiSyncFlowByPath request with any body
+	OpenaiSyncFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	OpenaiSyncFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, body OpenaiSyncFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// OpenaiSyncScriptByPath request with any body
+	OpenaiSyncScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	OpenaiSyncScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListQueue request
 	ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4130,9 +4187,9 @@ type ClientInterface interface {
 	UpdateRawApp(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateResource request with any body
-	CreateResourceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateResourceWithBody(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	CreateResource(ctx context.Context, workspace WorkspaceId, body CreateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateResource(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, body CreateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteResource request
 	DeleteResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6018,6 +6075,54 @@ func (c *Client) ListJobs(ctx context.Context, workspace WorkspaceId, params *Li
 	return c.Client.Do(req)
 }
 
+func (c *Client) OpenaiSyncFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOpenaiSyncFlowByPathRequestWithBody(c.Server, workspace, path, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OpenaiSyncFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, body OpenaiSyncFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOpenaiSyncFlowByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OpenaiSyncScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOpenaiSyncScriptByPathRequestWithBody(c.Server, workspace, path, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OpenaiSyncScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOpenaiSyncScriptByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListQueueRequest(c.Server, workspace, params)
 	if err != nil {
@@ -6606,8 +6711,8 @@ func (c *Client) UpdateRawApp(ctx context.Context, workspace WorkspaceId, path S
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateResourceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateResourceRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) CreateResourceWithBody(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateResourceRequestWithBody(c.Server, workspace, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -6618,8 +6723,8 @@ func (c *Client) CreateResourceWithBody(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateResource(ctx context.Context, workspace WorkspaceId, body CreateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateResourceRequest(c.Server, workspace, body)
+func (c *Client) CreateResource(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, body CreateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateResourceRequest(c.Server, workspace, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -12937,6 +13042,234 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	return req, nil
 }
 
+// NewOpenaiSyncFlowByPathRequest calls the generic OpenaiSyncFlowByPath builder with application/json body
+func NewOpenaiSyncFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, body OpenaiSyncFlowByPathJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewOpenaiSyncFlowByPathRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
+}
+
+// NewOpenaiSyncFlowByPathRequestWithBody generates requests for OpenaiSyncFlowByPath with any type of body
+func NewOpenaiSyncFlowByPathRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/openai_sync/f/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.IncludeHeader != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.QueueLimit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewOpenaiSyncScriptByPathRequest calls the generic OpenaiSyncScriptByPath builder with application/json body
+func NewOpenaiSyncScriptByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewOpenaiSyncScriptByPathRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
+}
+
+// NewOpenaiSyncScriptByPathRequestWithBody generates requests for OpenaiSyncScriptByPath with any type of body
+func NewOpenaiSyncScriptByPathRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/openai_sync/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.ParentJob != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IncludeHeader != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.QueueLimit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewListQueueRequest generates requests for ListQueue
 func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueueParams) (*http.Request, error) {
 	var err error
@@ -15651,18 +15984,18 @@ func NewUpdateRawAppRequestWithBody(server string, workspace WorkspaceId, path S
 }
 
 // NewCreateResourceRequest calls the generic CreateResource builder with application/json body
-func NewCreateResourceRequest(server string, workspace WorkspaceId, body CreateResourceJSONRequestBody) (*http.Request, error) {
+func NewCreateResourceRequest(server string, workspace WorkspaceId, params *CreateResourceParams, body CreateResourceJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewCreateResourceRequestWithBody(server, workspace, "application/json", bodyReader)
+	return NewCreateResourceRequestWithBody(server, workspace, params, "application/json", bodyReader)
 }
 
 // NewCreateResourceRequestWithBody generates requests for CreateResource with any type of body
-func NewCreateResourceRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+func NewCreateResourceRequestWithBody(server string, workspace WorkspaceId, params *CreateResourceParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -15686,6 +16019,26 @@ func NewCreateResourceRequestWithBody(server string, workspace WorkspaceId, cont
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.UpdateIfExists != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "update_if_exists", runtime.ParamLocationQuery, *params.UpdateIfExists); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
@@ -19499,6 +19852,16 @@ type ClientWithResponsesInterface interface {
 	// ListJobs request
 	ListJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListJobsParams, reqEditors ...RequestEditorFn) (*ListJobsResponse, error)
 
+	// OpenaiSyncFlowByPath request with any body
+	OpenaiSyncFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenaiSyncFlowByPathResponse, error)
+
+	OpenaiSyncFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, body OpenaiSyncFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenaiSyncFlowByPathResponse, error)
+
+	// OpenaiSyncScriptByPath request with any body
+	OpenaiSyncScriptByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenaiSyncScriptByPathResponse, error)
+
+	OpenaiSyncScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenaiSyncScriptByPathResponse, error)
+
 	// ListQueue request
 	ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error)
 
@@ -19631,9 +19994,9 @@ type ClientWithResponsesInterface interface {
 	UpdateRawAppWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateRawAppResponse, error)
 
 	// CreateResource request with any body
-	CreateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResourceResponse, error)
+	CreateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResourceResponse, error)
 
-	CreateResourceWithResponse(ctx context.Context, workspace WorkspaceId, body CreateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateResourceResponse, error)
+	CreateResourceWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, body CreateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateResourceResponse, error)
 
 	// DeleteResource request
 	DeleteResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteResourceResponse, error)
@@ -20426,12 +20789,13 @@ type GetRunnableResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Description   *string `json:"description,omitempty"`
-		EndpointAsync string  `json:"endpoint_async"`
-		EndpointSync  string  `json:"endpoint_sync"`
-		Kind          string  `json:"kind"`
-		Summary       string  `json:"summary"`
-		Workspace     string  `json:"workspace"`
+		Description        *string `json:"description,omitempty"`
+		EndpointAsync      string  `json:"endpoint_async"`
+		EndpointOpenaiSync string  `json:"endpoint_openai_sync"`
+		EndpointSync       string  `json:"endpoint_sync"`
+		Kind               string  `json:"kind"`
+		Summary            string  `json:"summary"`
+		Workspace          string  `json:"workspace"`
 	}
 }
 
@@ -22090,6 +22454,50 @@ func (r ListJobsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type OpenaiSyncFlowByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r OpenaiSyncFlowByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r OpenaiSyncFlowByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type OpenaiSyncScriptByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r OpenaiSyncScriptByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r OpenaiSyncScriptByPathResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -25607,6 +26015,40 @@ func (c *ClientWithResponses) ListJobsWithResponse(ctx context.Context, workspac
 	return ParseListJobsResponse(rsp)
 }
 
+// OpenaiSyncFlowByPathWithBodyWithResponse request with arbitrary body returning *OpenaiSyncFlowByPathResponse
+func (c *ClientWithResponses) OpenaiSyncFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenaiSyncFlowByPathResponse, error) {
+	rsp, err := c.OpenaiSyncFlowByPathWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOpenaiSyncFlowByPathResponse(rsp)
+}
+
+func (c *ClientWithResponses) OpenaiSyncFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, body OpenaiSyncFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenaiSyncFlowByPathResponse, error) {
+	rsp, err := c.OpenaiSyncFlowByPath(ctx, workspace, path, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOpenaiSyncFlowByPathResponse(rsp)
+}
+
+// OpenaiSyncScriptByPathWithBodyWithResponse request with arbitrary body returning *OpenaiSyncScriptByPathResponse
+func (c *ClientWithResponses) OpenaiSyncScriptByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenaiSyncScriptByPathResponse, error) {
+	rsp, err := c.OpenaiSyncScriptByPathWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOpenaiSyncScriptByPathResponse(rsp)
+}
+
+func (c *ClientWithResponses) OpenaiSyncScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenaiSyncScriptByPathResponse, error) {
+	rsp, err := c.OpenaiSyncScriptByPath(ctx, workspace, path, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOpenaiSyncScriptByPathResponse(rsp)
+}
+
 // ListQueueWithResponse request returning *ListQueueResponse
 func (c *ClientWithResponses) ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error) {
 	rsp, err := c.ListQueue(ctx, workspace, params, reqEditors...)
@@ -26033,16 +26475,16 @@ func (c *ClientWithResponses) UpdateRawAppWithResponse(ctx context.Context, work
 }
 
 // CreateResourceWithBodyWithResponse request with arbitrary body returning *CreateResourceResponse
-func (c *ClientWithResponses) CreateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResourceResponse, error) {
-	rsp, err := c.CreateResourceWithBody(ctx, workspace, contentType, body, reqEditors...)
+func (c *ClientWithResponses) CreateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResourceResponse, error) {
+	rsp, err := c.CreateResourceWithBody(ctx, workspace, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseCreateResourceResponse(rsp)
 }
 
-func (c *ClientWithResponses) CreateResourceWithResponse(ctx context.Context, workspace WorkspaceId, body CreateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateResourceResponse, error) {
-	rsp, err := c.CreateResource(ctx, workspace, body, reqEditors...)
+func (c *ClientWithResponses) CreateResourceWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, body CreateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateResourceResponse, error) {
+	rsp, err := c.CreateResource(ctx, workspace, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -27437,12 +27879,13 @@ func ParseGetRunnableResponse(rsp *http.Response) (*GetRunnableResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Description   *string `json:"description,omitempty"`
-			EndpointAsync string  `json:"endpoint_async"`
-			EndpointSync  string  `json:"endpoint_sync"`
-			Kind          string  `json:"kind"`
-			Summary       string  `json:"summary"`
-			Workspace     string  `json:"workspace"`
+			Description        *string `json:"description,omitempty"`
+			EndpointAsync      string  `json:"endpoint_async"`
+			EndpointOpenaiSync string  `json:"endpoint_openai_sync"`
+			EndpointSync       string  `json:"endpoint_sync"`
+			Kind               string  `json:"kind"`
+			Summary            string  `json:"summary"`
+			Workspace          string  `json:"workspace"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -28993,6 +29436,58 @@ func ParseListJobsResponse(rsp *http.Response) (*ListJobsResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []Job
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseOpenaiSyncFlowByPathResponse parses an HTTP response from a OpenaiSyncFlowByPathWithResponse call
+func ParseOpenaiSyncFlowByPathResponse(rsp *http.Response) (*OpenaiSyncFlowByPathResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &OpenaiSyncFlowByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseOpenaiSyncScriptByPathResponse parses an HTTP response from a OpenaiSyncScriptByPathWithResponse call
+func ParseOpenaiSyncScriptByPathResponse(rsp *http.Response) (*OpenaiSyncScriptByPathResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &OpenaiSyncScriptByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
