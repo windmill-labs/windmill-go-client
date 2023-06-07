@@ -152,12 +152,6 @@ const (
 	ListableAppExecutionModeViewer    ListableAppExecutionMode = "viewer"
 )
 
-// Defines values for MainArgSignatureType.
-const (
-	Invalid MainArgSignatureType = "Invalid"
-	Valid   MainArgSignatureType = "Valid"
-)
-
 // Defines values for NewScriptKind.
 const (
 	NewScriptKindApproval NewScriptKind = "approval"
@@ -803,23 +797,6 @@ type Login struct {
 	Password string `json:"password"`
 }
 
-// MainArgSignature defines model for MainArgSignature.
-type MainArgSignature struct {
-	Args []struct {
-		Default    *interface{} `json:"default,omitempty"`
-		HasDefault *bool        `json:"has_default,omitempty"`
-		Name       string       `json:"name"`
-		Typ        interface{}  `json:"typ"`
-	} `json:"args"`
-	Error      string               `json:"error"`
-	StarArgs   bool                 `json:"star_args"`
-	StarKwargs *bool                `json:"star_kwargs,omitempty"`
-	Type       MainArgSignatureType `json:"type"`
-}
-
-// MainArgSignatureType defines model for MainArgSignature.Type.
-type MainArgSignatureType string
-
 // NewSchedule defines model for NewSchedule.
 type NewSchedule struct {
 	Args       ScriptArgs `json:"args"`
@@ -837,6 +814,7 @@ type NewScript struct {
 	Content     string                  `json:"content"`
 	Description string                  `json:"description"`
 	DraftOnly   *bool                   `json:"draft_only,omitempty"`
+	Envs        *[]string               `json:"envs,omitempty"`
 	IsTemplate  *bool                   `json:"is_template,omitempty"`
 	Kind        *NewScriptKind          `json:"kind,omitempty"`
 	Language    NewScriptLanguage       `json:"language"`
@@ -860,6 +838,7 @@ type NewScriptWithDraft struct {
 	Description string                     `json:"description"`
 	Draft       *NewScript                 `json:"draft,omitempty"`
 	DraftOnly   *bool                      `json:"draft_only,omitempty"`
+	Envs        *[]string                  `json:"envs,omitempty"`
 	Hash        string                     `json:"hash"`
 	IsTemplate  *bool                      `json:"is_template,omitempty"`
 	Kind        *NewScriptWithDraftKind    `json:"kind,omitempty"`
@@ -1109,6 +1088,7 @@ type Script struct {
 	Deleted       bool              `json:"deleted"`
 	Description   string            `json:"description"`
 	DraftOnly     *bool             `json:"draft_only,omitempty"`
+	Envs          *[]string         `json:"envs,omitempty"`
 	ExtraPerms    Script_ExtraPerms `json:"extra_perms"`
 	HasDraft      *bool             `json:"has_draft,omitempty"`
 	Hash          string            `json:"hash"`
@@ -1374,18 +1354,6 @@ type PreviewScheduleJSONBody struct {
 	Schedule string `json:"schedule"`
 	Timezone string `json:"timezone"`
 }
-
-// BashToJsonschemaJSONBody defines parameters for BashToJsonschema.
-type BashToJsonschemaJSONBody = string
-
-// DenoToJsonschemaJSONBody defines parameters for DenoToJsonschema.
-type DenoToJsonschemaJSONBody = string
-
-// GoToJsonschemaJSONBody defines parameters for GoToJsonschema.
-type GoToJsonschemaJSONBody = string
-
-// PythonToJsonschemaJSONBody defines parameters for PythonToJsonschema.
-type PythonToJsonschemaJSONBody = string
 
 // AcceptInviteJSONBody defines parameters for AcceptInvite.
 type AcceptInviteJSONBody struct {
@@ -2427,18 +2395,6 @@ type LoginWithOauthJSONRequestBody LoginWithOauthJSONBody
 
 // PreviewScheduleJSONRequestBody defines body for PreviewSchedule for application/json ContentType.
 type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
-
-// BashToJsonschemaJSONRequestBody defines body for BashToJsonschema for application/json ContentType.
-type BashToJsonschemaJSONRequestBody = BashToJsonschemaJSONBody
-
-// DenoToJsonschemaJSONRequestBody defines body for DenoToJsonschema for application/json ContentType.
-type DenoToJsonschemaJSONRequestBody = DenoToJsonschemaJSONBody
-
-// GoToJsonschemaJSONRequestBody defines body for GoToJsonschema for application/json ContentType.
-type GoToJsonschemaJSONRequestBody = GoToJsonschemaJSONBody
-
-// PythonToJsonschemaJSONRequestBody defines body for PythonToJsonschema for application/json ContentType.
-type PythonToJsonschemaJSONRequestBody = PythonToJsonschemaJSONBody
 
 // AcceptInviteJSONRequestBody defines body for AcceptInvite for application/json ContentType.
 type AcceptInviteJSONRequestBody AcceptInviteJSONBody
@@ -3724,21 +3680,6 @@ type ClientInterface interface {
 
 	PreviewSchedule(ctx context.Context, body PreviewScheduleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// BashToJsonschema request with any body
-	BashToJsonschemaWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	BashToJsonschema(ctx context.Context, body BashToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DenoToJsonschema request with any body
-	DenoToJsonschemaWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	DenoToJsonschema(ctx context.Context, body DenoToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GoToJsonschema request with any body
-	GoToJsonschemaWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	GoToJsonschema(ctx context.Context, body GoToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetHubScriptContentByPath request
 	GetHubScriptContentByPath(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3747,11 +3688,6 @@ type ClientInterface interface {
 
 	// ListHubScripts request
 	ListHubScripts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PythonToJsonschema request with any body
-	PythonToJsonschemaWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PythonToJsonschema(ctx context.Context, body PythonToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RawScriptByPathTokened request
 	RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4659,78 +4595,6 @@ func (c *Client) PreviewSchedule(ctx context.Context, body PreviewScheduleJSONRe
 	return c.Client.Do(req)
 }
 
-func (c *Client) BashToJsonschemaWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewBashToJsonschemaRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) BashToJsonschema(ctx context.Context, body BashToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewBashToJsonschemaRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DenoToJsonschemaWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDenoToJsonschemaRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DenoToJsonschema(ctx context.Context, body DenoToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDenoToJsonschemaRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GoToJsonschemaWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGoToJsonschemaRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GoToJsonschema(ctx context.Context, body GoToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGoToJsonschemaRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) GetHubScriptContentByPath(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetHubScriptContentByPathRequest(c.Server, path)
 	if err != nil {
@@ -4757,30 +4621,6 @@ func (c *Client) GetHubScriptByPath(ctx context.Context, path ScriptPath, reqEdi
 
 func (c *Client) ListHubScripts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListHubScriptsRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PythonToJsonschemaWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPythonToJsonschemaRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PythonToJsonschema(ctx context.Context, body PythonToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPythonToJsonschemaRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -8306,126 +8146,6 @@ func NewPreviewScheduleRequestWithBody(server string, contentType string, body i
 	return req, nil
 }
 
-// NewBashToJsonschemaRequest calls the generic BashToJsonschema builder with application/json body
-func NewBashToJsonschemaRequest(server string, body BashToJsonschemaJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewBashToJsonschemaRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewBashToJsonschemaRequestWithBody generates requests for BashToJsonschema with any type of body
-func NewBashToJsonschemaRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/scripts/bash/tojsonschema")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDenoToJsonschemaRequest calls the generic DenoToJsonschema builder with application/json body
-func NewDenoToJsonschemaRequest(server string, body DenoToJsonschemaJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewDenoToJsonschemaRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewDenoToJsonschemaRequestWithBody generates requests for DenoToJsonschema with any type of body
-func NewDenoToJsonschemaRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/scripts/deno/tojsonschema")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGoToJsonschemaRequest calls the generic GoToJsonschema builder with application/json body
-func NewGoToJsonschemaRequest(server string, body GoToJsonschemaJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewGoToJsonschemaRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewGoToJsonschemaRequestWithBody generates requests for GoToJsonschema with any type of body
-func NewGoToJsonschemaRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/scripts/go/tojsonschema")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewGetHubScriptContentByPathRequest generates requests for GetHubScriptContentByPath
 func NewGetHubScriptContentByPathRequest(server string, path ScriptPath) (*http.Request, error) {
 	var err error
@@ -8517,46 +8237,6 @@ func NewListHubScriptsRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return req, nil
-}
-
-// NewPythonToJsonschemaRequest calls the generic PythonToJsonschema builder with application/json body
-func NewPythonToJsonschemaRequest(server string, body PythonToJsonschemaJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPythonToJsonschemaRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewPythonToJsonschemaRequestWithBody generates requests for PythonToJsonschema with any type of body
-func NewPythonToJsonschemaRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/scripts/python/tojsonschema")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -19531,21 +19211,6 @@ type ClientWithResponsesInterface interface {
 
 	PreviewScheduleWithResponse(ctx context.Context, body PreviewScheduleJSONRequestBody, reqEditors ...RequestEditorFn) (*PreviewScheduleResponse, error)
 
-	// BashToJsonschema request with any body
-	BashToJsonschemaWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BashToJsonschemaResponse, error)
-
-	BashToJsonschemaWithResponse(ctx context.Context, body BashToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*BashToJsonschemaResponse, error)
-
-	// DenoToJsonschema request with any body
-	DenoToJsonschemaWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DenoToJsonschemaResponse, error)
-
-	DenoToJsonschemaWithResponse(ctx context.Context, body DenoToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*DenoToJsonschemaResponse, error)
-
-	// GoToJsonschema request with any body
-	GoToJsonschemaWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GoToJsonschemaResponse, error)
-
-	GoToJsonschemaWithResponse(ctx context.Context, body GoToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*GoToJsonschemaResponse, error)
-
 	// GetHubScriptContentByPath request
 	GetHubScriptContentByPathWithResponse(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*GetHubScriptContentByPathResponse, error)
 
@@ -19554,11 +19219,6 @@ type ClientWithResponsesInterface interface {
 
 	// ListHubScripts request
 	ListHubScriptsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubScriptsResponse, error)
-
-	// PythonToJsonschema request with any body
-	PythonToJsonschemaWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PythonToJsonschemaResponse, error)
-
-	PythonToJsonschemaWithResponse(ctx context.Context, body PythonToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*PythonToJsonschemaResponse, error)
 
 	// RawScriptByPathTokened request
 	RawScriptByPathTokenedWithResponse(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathTokenedResponse, error)
@@ -20573,72 +20233,6 @@ func (r PreviewScheduleResponse) StatusCode() int {
 	return 0
 }
 
-type BashToJsonschemaResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *MainArgSignature
-}
-
-// Status returns HTTPResponse.Status
-func (r BashToJsonschemaResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r BashToJsonschemaResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DenoToJsonschemaResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *MainArgSignature
-}
-
-// Status returns HTTPResponse.Status
-func (r DenoToJsonschemaResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DenoToJsonschemaResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GoToJsonschemaResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *MainArgSignature
-}
-
-// Status returns HTTPResponse.Status
-func (r GoToJsonschemaResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GoToJsonschemaResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetHubScriptContentByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -20715,28 +20309,6 @@ func (r ListHubScriptsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListHubScriptsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PythonToJsonschemaResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *MainArgSignature
-}
-
-// Status returns HTTPResponse.Status
-func (r PythonToJsonschemaResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PythonToJsonschemaResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -24986,57 +24558,6 @@ func (c *ClientWithResponses) PreviewScheduleWithResponse(ctx context.Context, b
 	return ParsePreviewScheduleResponse(rsp)
 }
 
-// BashToJsonschemaWithBodyWithResponse request with arbitrary body returning *BashToJsonschemaResponse
-func (c *ClientWithResponses) BashToJsonschemaWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BashToJsonschemaResponse, error) {
-	rsp, err := c.BashToJsonschemaWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseBashToJsonschemaResponse(rsp)
-}
-
-func (c *ClientWithResponses) BashToJsonschemaWithResponse(ctx context.Context, body BashToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*BashToJsonschemaResponse, error) {
-	rsp, err := c.BashToJsonschema(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseBashToJsonschemaResponse(rsp)
-}
-
-// DenoToJsonschemaWithBodyWithResponse request with arbitrary body returning *DenoToJsonschemaResponse
-func (c *ClientWithResponses) DenoToJsonschemaWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DenoToJsonschemaResponse, error) {
-	rsp, err := c.DenoToJsonschemaWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDenoToJsonschemaResponse(rsp)
-}
-
-func (c *ClientWithResponses) DenoToJsonschemaWithResponse(ctx context.Context, body DenoToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*DenoToJsonschemaResponse, error) {
-	rsp, err := c.DenoToJsonschema(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDenoToJsonschemaResponse(rsp)
-}
-
-// GoToJsonschemaWithBodyWithResponse request with arbitrary body returning *GoToJsonschemaResponse
-func (c *ClientWithResponses) GoToJsonschemaWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GoToJsonschemaResponse, error) {
-	rsp, err := c.GoToJsonschemaWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGoToJsonschemaResponse(rsp)
-}
-
-func (c *ClientWithResponses) GoToJsonschemaWithResponse(ctx context.Context, body GoToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*GoToJsonschemaResponse, error) {
-	rsp, err := c.GoToJsonschema(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGoToJsonschemaResponse(rsp)
-}
-
 // GetHubScriptContentByPathWithResponse request returning *GetHubScriptContentByPathResponse
 func (c *ClientWithResponses) GetHubScriptContentByPathWithResponse(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*GetHubScriptContentByPathResponse, error) {
 	rsp, err := c.GetHubScriptContentByPath(ctx, path, reqEditors...)
@@ -25062,23 +24583,6 @@ func (c *ClientWithResponses) ListHubScriptsWithResponse(ctx context.Context, re
 		return nil, err
 	}
 	return ParseListHubScriptsResponse(rsp)
-}
-
-// PythonToJsonschemaWithBodyWithResponse request with arbitrary body returning *PythonToJsonschemaResponse
-func (c *ClientWithResponses) PythonToJsonschemaWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PythonToJsonschemaResponse, error) {
-	rsp, err := c.PythonToJsonschemaWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePythonToJsonschemaResponse(rsp)
-}
-
-func (c *ClientWithResponses) PythonToJsonschemaWithResponse(ctx context.Context, body PythonToJsonschemaJSONRequestBody, reqEditors ...RequestEditorFn) (*PythonToJsonschemaResponse, error) {
-	rsp, err := c.PythonToJsonschema(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePythonToJsonschemaResponse(rsp)
 }
 
 // RawScriptByPathTokenedWithResponse request returning *RawScriptByPathTokenedResponse
@@ -27642,84 +27146,6 @@ func ParsePreviewScheduleResponse(rsp *http.Response) (*PreviewScheduleResponse,
 	return response, nil
 }
 
-// ParseBashToJsonschemaResponse parses an HTTP response from a BashToJsonschemaWithResponse call
-func ParseBashToJsonschemaResponse(rsp *http.Response) (*BashToJsonschemaResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &BashToJsonschemaResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest MainArgSignature
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDenoToJsonschemaResponse parses an HTTP response from a DenoToJsonschemaWithResponse call
-func ParseDenoToJsonschemaResponse(rsp *http.Response) (*DenoToJsonschemaResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DenoToJsonschemaResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest MainArgSignature
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGoToJsonschemaResponse parses an HTTP response from a GoToJsonschemaWithResponse call
-func ParseGoToJsonschemaResponse(rsp *http.Response) (*GoToJsonschemaResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GoToJsonschemaResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest MainArgSignature
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseGetHubScriptContentByPathResponse parses an HTTP response from a GetHubScriptContentByPathWithResponse call
 func ParseGetHubScriptContentByPathResponse(rsp *http.Response) (*GetHubScriptContentByPathResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -27795,32 +27221,6 @@ func ParseListHubScriptsResponse(rsp *http.Response) (*ListHubScriptsResponse, e
 				Votes    float32 `json:"votes"`
 			} `json:"asks,omitempty"`
 		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePythonToJsonschemaResponse parses an HTTP response from a PythonToJsonschemaWithResponse call
-func ParsePythonToJsonschemaResponse(rsp *http.Response) (*PythonToJsonschemaResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PythonToJsonschemaResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest MainArgSignature
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
