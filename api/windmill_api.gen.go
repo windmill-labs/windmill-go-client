@@ -1079,6 +1079,33 @@ type Schedule_ExtraPerms struct {
 	AdditionalProperties map[string]bool `json:"-"`
 }
 
+// ScheduleWJobs defines model for ScheduleWJobs.
+type ScheduleWJobs struct {
+	Args       *ScriptArgs              `json:"args,omitempty"`
+	EditedAt   time.Time                `json:"edited_at"`
+	EditedBy   string                   `json:"edited_by"`
+	Email      string                   `json:"email"`
+	Enabled    bool                     `json:"enabled"`
+	Error      *string                  `json:"error,omitempty"`
+	ExtraPerms ScheduleWJobs_ExtraPerms `json:"extra_perms"`
+	IsFlow     bool                     `json:"is_flow"`
+	Jobs       *[]struct {
+		DurationMs float32 `json:"duration_ms"`
+		Id         string  `json:"id"`
+		Success    bool    `json:"success"`
+	} `json:"jobs,omitempty"`
+	OnFailure  *string `json:"on_failure,omitempty"`
+	Path       string  `json:"path"`
+	Schedule   string  `json:"schedule"`
+	ScriptPath string  `json:"script_path"`
+	Timezone   string  `json:"timezone"`
+}
+
+// ScheduleWJobs_ExtraPerms defines model for ScheduleWJobs.ExtraPerms.
+type ScheduleWJobs_ExtraPerms struct {
+	AdditionalProperties map[string]bool `json:"-"`
+}
+
 // Script defines model for Script.
 type Script struct {
 	Archived      bool              `json:"archived"`
@@ -1291,6 +1318,9 @@ type RunnableId = string
 
 // Running defines model for Running.
 type Running = bool
+
+// SchedulePath defines model for SchedulePath.
+type SchedulePath = string
 
 // ScriptExactHash defines model for ScriptExactHash.
 type ScriptExactHash = string
@@ -1728,6 +1758,9 @@ type ListCompletedJobsParams struct {
 	// mask to filter matching starting path
 	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
 
+	// mask to filter by schedule path
+	SchedulePath *SchedulePath `form:"schedule_path,omitempty" json:"schedule_path,omitempty"`
+
 	// mask to filter exact matching path
 	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
 
@@ -1780,6 +1813,9 @@ type ListJobsParams struct {
 
 	// mask to filter matching starting path
 	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
+
+	// mask to filter by schedule path
+	SchedulePath *SchedulePath `form:"schedule_path,omitempty" json:"schedule_path,omitempty"`
 
 	// mask to filter exact matching path
 	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
@@ -1863,6 +1899,9 @@ type ListQueueParams struct {
 
 	// mask to filter matching starting path
 	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
+
+	// mask to filter by schedule path
+	SchedulePath *SchedulePath `form:"schedule_path,omitempty" json:"schedule_path,omitempty"`
 
 	// mask to filter exact matching path
 	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
@@ -2208,6 +2247,15 @@ type CreateScheduleJSONBody = NewSchedule
 
 // ListSchedulesParams defines parameters for ListSchedules.
 type ListSchedulesParams struct {
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// ListSchedulesWithJobsParams defines parameters for ListSchedulesWithJobs.
+type ListSchedulesWithJobsParams struct {
 	// which page to return (start at 1, default 1)
 	Page *Page `form:"page,omitempty" json:"page,omitempty"`
 
@@ -3454,6 +3502,59 @@ func (a Schedule_ExtraPerms) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for ScheduleWJobs_ExtraPerms. Returns the specified
+// element and whether it was found
+func (a ScheduleWJobs_ExtraPerms) Get(fieldName string) (value bool, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ScheduleWJobs_ExtraPerms
+func (a *ScheduleWJobs_ExtraPerms) Set(fieldName string, value bool) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]bool)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ScheduleWJobs_ExtraPerms to handle AdditionalProperties
+func (a *ScheduleWJobs_ExtraPerms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]bool)
+		for fieldName, fieldBuf := range object {
+			var fieldVal bool
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ScheduleWJobs_ExtraPerms to handle AdditionalProperties
+func (a ScheduleWJobs_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // Getter for additional properties for Script_ExtraPerms. Returns the specified
 // element and whether it was found
 func (a Script_ExtraPerms) Get(fieldName string) (value bool, found bool) {
@@ -4193,6 +4294,9 @@ type ClientInterface interface {
 
 	// ListSchedules request
 	ListSchedules(ctx context.Context, workspace WorkspaceId, params *ListSchedulesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListSchedulesWithJobs request
+	ListSchedulesWithJobs(ctx context.Context, workspace WorkspaceId, params *ListSchedulesWithJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SetScheduleEnabled request with any body
 	SetScheduleEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6853,6 +6957,18 @@ func (c *Client) GetSchedule(ctx context.Context, workspace WorkspaceId, path Pa
 
 func (c *Client) ListSchedules(ctx context.Context, workspace WorkspaceId, params *ListSchedulesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListSchedulesRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListSchedulesWithJobs(ctx context.Context, workspace WorkspaceId, params *ListSchedulesWithJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSchedulesWithJobsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -12168,6 +12284,22 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 
 	}
 
+	if params.SchedulePath != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "schedule_path", runtime.ParamLocationQuery, *params.SchedulePath); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.ScriptHash != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_hash", runtime.ParamLocationQuery, *params.ScriptHash); err != nil {
@@ -12539,6 +12671,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	if params.ScriptPathStart != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_path_start", runtime.ParamLocationQuery, *params.ScriptPathStart); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SchedulePath != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "schedule_path", runtime.ParamLocationQuery, *params.SchedulePath); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -13045,6 +13193,22 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 	if params.ScriptPathStart != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_path_start", runtime.ParamLocationQuery, *params.ScriptPathStart); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SchedulePath != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "schedule_path", runtime.ParamLocationQuery, *params.SchedulePath); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -16636,6 +16800,76 @@ func NewListSchedulesRequest(server string, workspace WorkspaceId, params *ListS
 	return req, nil
 }
 
+// NewListSchedulesWithJobsRequest generates requests for ListSchedulesWithJobs
+func NewListSchedulesWithJobsRequest(server string, workspace WorkspaceId, params *ListSchedulesWithJobsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/schedules/list_with_jobs", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewSetScheduleEnabledRequest calls the generic SetScheduleEnabled builder with application/json body
 func NewSetScheduleEnabledRequest(server string, workspace WorkspaceId, path Path, body SetScheduleEnabledJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -19724,6 +19958,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListSchedules request
 	ListSchedulesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListSchedulesParams, reqEditors ...RequestEditorFn) (*ListSchedulesResponse, error)
+
+	// ListSchedulesWithJobs request
+	ListSchedulesWithJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListSchedulesWithJobsParams, reqEditors ...RequestEditorFn) (*ListSchedulesWithJobsResponse, error)
 
 	// SetScheduleEnabled request with any body
 	SetScheduleEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetScheduleEnabledResponse, error)
@@ -23232,6 +23469,28 @@ func (r ListSchedulesResponse) StatusCode() int {
 	return 0
 }
 
+type ListSchedulesWithJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]ScheduleWJobs
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSchedulesWithJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSchedulesWithJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type SetScheduleEnabledResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -26204,6 +26463,15 @@ func (c *ClientWithResponses) ListSchedulesWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseListSchedulesResponse(rsp)
+}
+
+// ListSchedulesWithJobsWithResponse request returning *ListSchedulesWithJobsResponse
+func (c *ClientWithResponses) ListSchedulesWithJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListSchedulesWithJobsParams, reqEditors ...RequestEditorFn) (*ListSchedulesWithJobsResponse, error) {
+	rsp, err := c.ListSchedulesWithJobs(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSchedulesWithJobsResponse(rsp)
 }
 
 // SetScheduleEnabledWithBodyWithResponse request with arbitrary body returning *SetScheduleEnabledResponse
@@ -30004,6 +30272,32 @@ func ParseListSchedulesResponse(rsp *http.Response) (*ListSchedulesResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []Schedule
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListSchedulesWithJobsResponse parses an HTTP response from a ListSchedulesWithJobsWithResponse call
+func ParseListSchedulesWithJobsResponse(rsp *http.Response) (*ListSchedulesWithJobsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSchedulesWithJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ScheduleWJobs
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
