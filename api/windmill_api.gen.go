@@ -2383,6 +2383,11 @@ type EditAutoInviteJSONBody struct {
 	Operator *bool `json:"operator,omitempty"`
 }
 
+// EditDeployToJSONBody defines parameters for EditDeployTo.
+type EditDeployToJSONBody struct {
+	DeployTo *string `json:"deploy_to,omitempty"`
+}
+
 // EditSlackCommandJSONBody defines parameters for EditSlackCommand.
 type EditSlackCommandJSONBody struct {
 	SlackCommandScript *string `json:"slack_command_script,omitempty"`
@@ -2635,6 +2640,9 @@ type DeleteInviteJSONRequestBody DeleteInviteJSONBody
 
 // EditAutoInviteJSONRequestBody defines body for EditAutoInvite for application/json ContentType.
 type EditAutoInviteJSONRequestBody EditAutoInviteJSONBody
+
+// EditDeployToJSONRequestBody defines body for EditDeployTo for application/json ContentType.
+type EditDeployToJSONRequestBody EditDeployToJSONBody
 
 // EditSlackCommandJSONRequestBody defines body for EditSlackCommand for application/json ContentType.
 type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
@@ -4431,6 +4439,11 @@ type ClientInterface interface {
 
 	EditAutoInvite(ctx context.Context, workspace WorkspaceId, body EditAutoInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditDeployTo request with any body
+	EditDeployToWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditDeployTo(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4440,6 +4453,9 @@ type ClientInterface interface {
 	EditWebhookWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditWebhook(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDeployTo request
+	GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSettings request
 	GetSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7555,6 +7571,30 @@ func (c *Client) EditAutoInvite(ctx context.Context, workspace WorkspaceId, body
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditDeployToWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditDeployToRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditDeployTo(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditDeployToRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditSlackCommandRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -7593,6 +7633,18 @@ func (c *Client) EditWebhookWithBody(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) EditWebhook(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditWebhookRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDeployToRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -18690,6 +18742,53 @@ func NewEditAutoInviteRequestWithBody(server string, workspace WorkspaceId, cont
 	return req, nil
 }
 
+// NewEditDeployToRequest calls the generic EditDeployTo builder with application/json body
+func NewEditDeployToRequest(server string, workspace WorkspaceId, body EditDeployToJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditDeployToRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditDeployToRequestWithBody generates requests for EditDeployTo with any type of body
+func NewEditDeployToRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_deploy_to", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditSlackCommandRequest calls the generic EditSlackCommand builder with application/json body
 func NewEditSlackCommandRequest(server string, workspace WorkspaceId, body EditSlackCommandJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -18780,6 +18879,40 @@ func NewEditWebhookRequestWithBody(server string, workspace WorkspaceId, content
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetDeployToRequest generates requests for GetDeployTo
+func NewGetDeployToRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_deploy_to", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -20095,6 +20228,11 @@ type ClientWithResponsesInterface interface {
 
 	EditAutoInviteWithResponse(ctx context.Context, workspace WorkspaceId, body EditAutoInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*EditAutoInviteResponse, error)
 
+	// EditDeployTo request with any body
+	EditDeployToWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error)
+
+	EditDeployToWithResponse(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error)
+
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
 
@@ -20104,6 +20242,9 @@ type ClientWithResponsesInterface interface {
 	EditWebhookWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
 
 	EditWebhookWithResponse(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
+
+	// GetDeployTo request
+	GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error)
 
 	// GetSettings request
 	GetSettingsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSettingsResponse, error)
@@ -24289,6 +24430,27 @@ func (r EditAutoInviteResponse) StatusCode() int {
 	return 0
 }
 
+type EditDeployToResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditDeployToResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditDeployToResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditSlackCommandResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -24331,6 +24493,30 @@ func (r EditWebhookResponse) StatusCode() int {
 	return 0
 }
 
+type GetDeployToResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		DeployTo *string `json:"deploy_to,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDeployToResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDeployToResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -24338,6 +24524,7 @@ type GetSettingsResponse struct {
 		AutoInviteDomain   *string `json:"auto_invite_domain,omitempty"`
 		AutoInviteOperator *bool   `json:"auto_invite_operator,omitempty"`
 		CustomerId         *string `json:"customer_id,omitempty"`
+		DeployTo           *string `json:"deploy_to,omitempty"`
 		Plan               *string `json:"plan,omitempty"`
 		SlackCommandScript *string `json:"slack_command_script,omitempty"`
 		SlackName          *string `json:"slack_name,omitempty"`
@@ -26895,6 +27082,23 @@ func (c *ClientWithResponses) EditAutoInviteWithResponse(ctx context.Context, wo
 	return ParseEditAutoInviteResponse(rsp)
 }
 
+// EditDeployToWithBodyWithResponse request with arbitrary body returning *EditDeployToResponse
+func (c *ClientWithResponses) EditDeployToWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error) {
+	rsp, err := c.EditDeployToWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditDeployToResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditDeployToWithResponse(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error) {
+	rsp, err := c.EditDeployTo(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditDeployToResponse(rsp)
+}
+
 // EditSlackCommandWithBodyWithResponse request with arbitrary body returning *EditSlackCommandResponse
 func (c *ClientWithResponses) EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error) {
 	rsp, err := c.EditSlackCommandWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -26927,6 +27131,15 @@ func (c *ClientWithResponses) EditWebhookWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseEditWebhookResponse(rsp)
+}
+
+// GetDeployToWithResponse request returning *GetDeployToResponse
+func (c *ClientWithResponses) GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error) {
+	rsp, err := c.GetDeployTo(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDeployToResponse(rsp)
 }
 
 // GetSettingsWithResponse request returning *GetSettingsResponse
@@ -31083,6 +31296,22 @@ func ParseEditAutoInviteResponse(rsp *http.Response) (*EditAutoInviteResponse, e
 	return response, nil
 }
 
+// ParseEditDeployToResponse parses an HTTP response from a EditDeployToWithResponse call
+func ParseEditDeployToResponse(rsp *http.Response) (*EditDeployToResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditDeployToResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseEditSlackCommandResponse parses an HTTP response from a EditSlackCommandWithResponse call
 func ParseEditSlackCommandResponse(rsp *http.Response) (*EditSlackCommandResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -31115,6 +31344,34 @@ func ParseEditWebhookResponse(rsp *http.Response) (*EditWebhookResponse, error) 
 	return response, nil
 }
 
+// ParseGetDeployToResponse parses an HTTP response from a GetDeployToWithResponse call
+func ParseGetDeployToResponse(rsp *http.Response) (*GetDeployToResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDeployToResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			DeployTo *string `json:"deploy_to,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetSettingsResponse parses an HTTP response from a GetSettingsWithResponse call
 func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -31134,6 +31391,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			AutoInviteDomain   *string `json:"auto_invite_domain,omitempty"`
 			AutoInviteOperator *bool   `json:"auto_invite_operator,omitempty"`
 			CustomerId         *string `json:"customer_id,omitempty"`
+			DeployTo           *string `json:"deploy_to,omitempty"`
 			Plan               *string `json:"plan,omitempty"`
 			SlackCommandScript *string `json:"slack_command_script,omitempty"`
 			SlackName          *string `json:"slack_name,omitempty"`
