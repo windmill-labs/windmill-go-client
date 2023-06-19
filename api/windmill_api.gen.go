@@ -1545,6 +1545,9 @@ type CreateDraftJSONBody struct {
 // CreateDraftJSONBodyTyp defines parameters for CreateDraft.
 type CreateDraftJSONBodyTyp string
 
+// DeleteDraftParamsKind defines parameters for DeleteDraft.
+type DeleteDraftParamsKind string
+
 // StarJSONBody defines parameters for Star.
 type StarJSONBody struct {
 	FavoriteKind *StarJSONBodyFavoriteKind `json:"favorite_kind,omitempty"`
@@ -3941,6 +3944,9 @@ type ClientInterface interface {
 
 	CreateDraft(ctx context.Context, workspace WorkspaceId, body CreateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteDraft request
+	DeleteDraft(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// Star request with any body
 	StarWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5365,6 +5371,18 @@ func (c *Client) CreateDraftWithBody(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) CreateDraft(ctx context.Context, workspace WorkspaceId, body CreateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateDraftRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteDraft(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteDraftRequest(c.Server, workspace, kind, path)
 	if err != nil {
 		return nil, err
 	}
@@ -10247,6 +10265,54 @@ func NewCreateDraftRequestWithBody(server string, workspace WorkspaceId, content
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteDraftRequest generates requests for DeleteDraft
+func NewDeleteDraftRequest(server string, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "kind", runtime.ParamLocationPath, kind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/drafts/delete/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -19730,6 +19796,9 @@ type ClientWithResponsesInterface interface {
 
 	CreateDraftWithResponse(ctx context.Context, workspace WorkspaceId, body CreateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error)
 
+	// DeleteDraft request
+	DeleteDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteDraftResponse, error)
+
 	// Star request with any body
 	StarWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StarResponse, error)
 
@@ -21531,6 +21600,27 @@ func (r CreateDraftResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateDraftResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteDraftResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteDraftResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteDraftResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -25486,6 +25576,15 @@ func (c *ClientWithResponses) CreateDraftWithResponse(ctx context.Context, works
 	return ParseCreateDraftResponse(rsp)
 }
 
+// DeleteDraftWithResponse request returning *DeleteDraftResponse
+func (c *ClientWithResponses) DeleteDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteDraftResponse, error) {
+	rsp, err := c.DeleteDraft(ctx, workspace, kind, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteDraftResponse(rsp)
+}
+
 // StarWithBodyWithResponse request with arbitrary body returning *StarResponse
 func (c *ClientWithResponses) StarWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StarResponse, error) {
 	rsp, err := c.StarWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -28489,6 +28588,22 @@ func ParseCreateDraftResponse(rsp *http.Response) (*CreateDraftResponse, error) 
 	}
 
 	response := &CreateDraftResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteDraftResponse parses an HTTP response from a DeleteDraftWithResponse call
+func ParseDeleteDraftResponse(rsp *http.Response) (*DeleteDraftResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteDraftResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
