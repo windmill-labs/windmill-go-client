@@ -533,7 +533,10 @@ type FlowModule struct {
 	Summary *string `json:"summary,omitempty"`
 	Suspend *struct {
 		RequiredEvents *int `json:"required_events,omitempty"`
-		Timeout        *int `json:"timeout,omitempty"`
+		ResumeForm     *struct {
+			Schema *map[string]interface{} `json:"schema,omitempty"`
+		} `json:"resume_form,omitempty"`
+		Timeout *int `json:"timeout,omitempty"`
 	} `json:"suspend,omitempty"`
 	Value FlowModuleValue `json:"value"`
 }
