@@ -463,8 +463,8 @@ type EditResource struct {
 
 // EditResourceType defines model for EditResourceType.
 type EditResourceType struct {
-	Description *string `json:"description,omitempty"`
-	Schema      *string `json:"schema,omitempty"`
+	Description *string      `json:"description,omitempty"`
+	Schema      *interface{} `json:"schema,omitempty"`
 }
 
 // EditSchedule defines model for EditSchedule.
@@ -522,8 +522,12 @@ type FlowMetadata struct {
 
 // FlowModule defines model for FlowModule.
 type FlowModule struct {
-	CacheTtl    *float32        `json:"cache_ttl,omitempty"`
-	Id          string          `json:"id"`
+	CacheTtl *float32 `json:"cache_ttl,omitempty"`
+	Id       string   `json:"id"`
+	Mock     *struct {
+		Enabled     *bool        `json:"enabled,omitempty"`
+		ReturnValue *interface{} `json:"return_value,omitempty"`
+	} `json:"mock,omitempty"`
 	Retry       *Retry          `json:"retry,omitempty"`
 	Sleep       *InputTransform `json:"sleep,omitempty"`
 	StopAfterIf *struct {
