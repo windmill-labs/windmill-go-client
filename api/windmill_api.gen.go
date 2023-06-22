@@ -3811,6 +3811,9 @@ type ClientInterface interface {
 	// RawScriptByPathTokened request
 	RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// BackendUptodate request
+	BackendUptodate(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AcceptInvite request with any body
 	AcceptInviteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4766,6 +4769,18 @@ func (c *Client) ListHubScripts(ctx context.Context, reqEditors ...RequestEditor
 
 func (c *Client) RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRawScriptByPathTokenedRequest(c.Server, workspace, token, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) BackendUptodate(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBackendUptodateRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -8465,6 +8480,33 @@ func NewRawScriptByPathTokenedRequest(server string, workspace WorkspaceId, toke
 	}
 
 	operationPath := fmt.Sprintf("/scripts_u/tokened_raw/%s/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewBackendUptodateRequest generates requests for BackendUptodate
+func NewBackendUptodateRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/uptodate")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -19663,6 +19705,9 @@ type ClientWithResponsesInterface interface {
 	// RawScriptByPathTokened request
 	RawScriptByPathTokenedWithResponse(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathTokenedResponse, error)
 
+	// BackendUptodate request
+	BackendUptodateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*BackendUptodateResponse, error)
+
 	// AcceptInvite request with any body
 	AcceptInviteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AcceptInviteResponse, error)
 
@@ -20784,6 +20829,27 @@ func (r RawScriptByPathTokenedResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RawScriptByPathTokenedResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type BackendUptodateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r BackendUptodateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r BackendUptodateResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -25137,6 +25203,15 @@ func (c *ClientWithResponses) RawScriptByPathTokenedWithResponse(ctx context.Con
 	return ParseRawScriptByPathTokenedResponse(rsp)
 }
 
+// BackendUptodateWithResponse request returning *BackendUptodateResponse
+func (c *ClientWithResponses) BackendUptodateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*BackendUptodateResponse, error) {
+	rsp, err := c.BackendUptodate(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBackendUptodateResponse(rsp)
+}
+
 // AcceptInviteWithBodyWithResponse request with arbitrary body returning *AcceptInviteResponse
 func (c *ClientWithResponses) AcceptInviteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AcceptInviteResponse, error) {
 	rsp, err := c.AcceptInviteWithBody(ctx, contentType, body, reqEditors...)
@@ -27827,6 +27902,22 @@ func ParseRawScriptByPathTokenedResponse(rsp *http.Response) (*RawScriptByPathTo
 	}
 
 	response := &RawScriptByPathTokenedResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseBackendUptodateResponse parses an HTTP response from a BackendUptodateWithResponse call
+func ParseBackendUptodateResponse(rsp *http.Response) (*BackendUptodateResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &BackendUptodateResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
