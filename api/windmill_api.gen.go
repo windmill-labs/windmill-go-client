@@ -135,6 +135,16 @@ const (
 	Password GlobalUserInfoLoginType = "password"
 )
 
+// Defines values for GraphqlType.
+const (
+	GraphqlTypeGraphql GraphqlType = "graphql"
+)
+
+// Defines values for HttpType.
+const (
+	HttpTypeHttp HttpType = "http"
+)
+
 // Defines values for IdentityType.
 const (
 	IdentityTypeIdentity IdentityType = "identity"
@@ -203,6 +213,11 @@ const (
 	PolicyExecutionModeViewer    PolicyExecutionMode = "viewer"
 )
 
+// Defines values for PostgresqlType.
+const (
+	PostgresqlTypePostgresql PostgresqlType = "postgresql"
+)
+
 // Defines values for PreviewLanguage.
 const (
 	PreviewLanguageBash    PreviewLanguage = "bash"
@@ -216,7 +231,10 @@ const (
 	QueuedJobJobKindDependencies QueuedJobJobKind = "dependencies"
 	QueuedJobJobKindFlow         QueuedJobJobKind = "flow"
 	QueuedJobJobKindFlowpreview  QueuedJobJobKind = "flowpreview"
+	QueuedJobJobKindGraphql      QueuedJobJobKind = "graphql"
+	QueuedJobJobKindHttp         QueuedJobJobKind = "http"
 	QueuedJobJobKindIdentity     QueuedJobJobKind = "identity"
+	QueuedJobJobKindPostgresql   QueuedJobJobKind = "postgresql"
 	QueuedJobJobKindPreview      QueuedJobJobKind = "preview"
 	QueuedJobJobKindScript       QueuedJobJobKind = "script"
 	QueuedJobJobKindScriptHub    QueuedJobJobKind = "script_hub"
@@ -672,6 +690,14 @@ type GlobalUserInfo struct {
 // GlobalUserInfoLoginType defines model for GlobalUserInfo.LoginType.
 type GlobalUserInfoLoginType string
 
+// Graphql defines model for Graphql.
+type Graphql struct {
+	Type GraphqlType `json:"type"`
+}
+
+// GraphqlType defines model for Graphql.Type.
+type GraphqlType string
+
 // Group defines model for Group.
 type Group struct {
 	ExtraPerms *Group_ExtraPerms `json:"extra_perms,omitempty"`
@@ -684,6 +710,14 @@ type Group struct {
 type Group_ExtraPerms struct {
 	AdditionalProperties map[string]bool `json:"-"`
 }
+
+// Http defines model for Http.
+type Http struct {
+	Type HttpType `json:"type"`
+}
+
+// HttpType defines model for Http.Type.
+type HttpType string
 
 // Identity defines model for Identity.
 type Identity struct {
@@ -948,6 +982,14 @@ type PolicyExecutionMode string
 type Policy_Triggerables struct {
 	AdditionalProperties map[string]map[string]interface{} `json:"-"`
 }
+
+// Postgresql defines model for Postgresql.
+type Postgresql struct {
+	Type PostgresqlType `json:"type"`
+}
+
+// PostgresqlType defines model for Postgresql.Type.
+type PostgresqlType string
 
 // Preview defines model for Preview.
 type Preview struct {
