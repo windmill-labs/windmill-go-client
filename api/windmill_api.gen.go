@@ -78,7 +78,10 @@ const (
 	CompletedJobJobKindDependencies CompletedJobJobKind = "dependencies"
 	CompletedJobJobKindFlow         CompletedJobJobKind = "flow"
 	CompletedJobJobKindFlowpreview  CompletedJobJobKind = "flowpreview"
+	CompletedJobJobKindGraphql      CompletedJobJobKind = "graphql"
+	CompletedJobJobKindHttp         CompletedJobJobKind = "http"
 	CompletedJobJobKindIdentity     CompletedJobJobKind = "identity"
+	CompletedJobJobKindPostgresql   CompletedJobJobKind = "postgresql"
 	CompletedJobJobKindPreview      CompletedJobJobKind = "preview"
 	CompletedJobJobKindScript       CompletedJobJobKind = "script"
 	CompletedJobJobKindScriptHub    CompletedJobJobKind = "script_hub"
@@ -86,10 +89,11 @@ const (
 
 // Defines values for CompletedJobLanguage.
 const (
-	CompletedJobLanguageBash    CompletedJobLanguage = "bash"
-	CompletedJobLanguageDeno    CompletedJobLanguage = "deno"
-	CompletedJobLanguageGo      CompletedJobLanguage = "go"
-	CompletedJobLanguagePython3 CompletedJobLanguage = "python3"
+	CompletedJobLanguageBash       CompletedJobLanguage = "bash"
+	CompletedJobLanguageDeno       CompletedJobLanguage = "deno"
+	CompletedJobLanguageGo         CompletedJobLanguage = "go"
+	CompletedJobLanguagePostgresql CompletedJobLanguage = "postgresql"
+	CompletedJobLanguagePython3    CompletedJobLanguage = "python3"
 )
 
 // Defines values for FlowStatusFailureModuleBranchChosenType.
@@ -173,10 +177,11 @@ const (
 
 // Defines values for NewScriptLanguage.
 const (
-	NewScriptLanguageBash    NewScriptLanguage = "bash"
-	NewScriptLanguageDeno    NewScriptLanguage = "deno"
-	NewScriptLanguageGo      NewScriptLanguage = "go"
-	NewScriptLanguagePython3 NewScriptLanguage = "python3"
+	NewScriptLanguageBash       NewScriptLanguage = "bash"
+	NewScriptLanguageDeno       NewScriptLanguage = "deno"
+	NewScriptLanguageGo         NewScriptLanguage = "go"
+	NewScriptLanguagePostgresql NewScriptLanguage = "postgresql"
+	NewScriptLanguagePython3    NewScriptLanguage = "python3"
 )
 
 // Defines values for NewScriptWithDraftKind.
@@ -190,10 +195,11 @@ const (
 
 // Defines values for NewScriptWithDraftLanguage.
 const (
-	NewScriptWithDraftLanguageBash    NewScriptWithDraftLanguage = "bash"
-	NewScriptWithDraftLanguageDeno    NewScriptWithDraftLanguage = "deno"
-	NewScriptWithDraftLanguageGo      NewScriptWithDraftLanguage = "go"
-	NewScriptWithDraftLanguagePython3 NewScriptWithDraftLanguage = "python3"
+	NewScriptWithDraftLanguageBash       NewScriptWithDraftLanguage = "bash"
+	NewScriptWithDraftLanguageDeno       NewScriptWithDraftLanguage = "deno"
+	NewScriptWithDraftLanguageGo         NewScriptWithDraftLanguage = "go"
+	NewScriptWithDraftLanguagePostgresql NewScriptWithDraftLanguage = "postgresql"
+	NewScriptWithDraftLanguagePython3    NewScriptWithDraftLanguage = "python3"
 )
 
 // Defines values for PathFlowType.
@@ -213,17 +219,21 @@ const (
 	PolicyExecutionModeViewer    PolicyExecutionMode = "viewer"
 )
 
-// Defines values for PostgresqlType.
+// Defines values for PreviewKind.
 const (
-	PostgresqlTypePostgresql PostgresqlType = "postgresql"
+	PreviewKindCode     PreviewKind = "code"
+	PreviewKindGraphql  PreviewKind = "graphql"
+	PreviewKindHttp     PreviewKind = "http"
+	PreviewKindIdentity PreviewKind = "identity"
 )
 
 // Defines values for PreviewLanguage.
 const (
-	PreviewLanguageBash    PreviewLanguage = "bash"
-	PreviewLanguageDeno    PreviewLanguage = "deno"
-	PreviewLanguageGo      PreviewLanguage = "go"
-	PreviewLanguagePython3 PreviewLanguage = "python3"
+	PreviewLanguageBash       PreviewLanguage = "bash"
+	PreviewLanguageDeno       PreviewLanguage = "deno"
+	PreviewLanguageGo         PreviewLanguage = "go"
+	PreviewLanguagePostgresql PreviewLanguage = "postgresql"
+	PreviewLanguagePython3    PreviewLanguage = "python3"
 )
 
 // Defines values for QueuedJobJobKind.
@@ -234,7 +244,6 @@ const (
 	QueuedJobJobKindGraphql      QueuedJobJobKind = "graphql"
 	QueuedJobJobKindHttp         QueuedJobJobKind = "http"
 	QueuedJobJobKindIdentity     QueuedJobJobKind = "identity"
-	QueuedJobJobKindPostgresql   QueuedJobJobKind = "postgresql"
 	QueuedJobJobKindPreview      QueuedJobJobKind = "preview"
 	QueuedJobJobKindScript       QueuedJobJobKind = "script"
 	QueuedJobJobKindScriptHub    QueuedJobJobKind = "script_hub"
@@ -242,10 +251,11 @@ const (
 
 // Defines values for QueuedJobLanguage.
 const (
-	QueuedJobLanguageBash    QueuedJobLanguage = "bash"
-	QueuedJobLanguageDeno    QueuedJobLanguage = "deno"
-	QueuedJobLanguageGo      QueuedJobLanguage = "go"
-	QueuedJobLanguagePython3 QueuedJobLanguage = "python3"
+	QueuedJobLanguageBash       QueuedJobLanguage = "bash"
+	QueuedJobLanguageDeno       QueuedJobLanguage = "deno"
+	QueuedJobLanguageGo         QueuedJobLanguage = "go"
+	QueuedJobLanguagePostgresql QueuedJobLanguage = "postgresql"
+	QueuedJobLanguagePython3    QueuedJobLanguage = "python3"
 )
 
 // Defines values for RawScriptLanguage.
@@ -279,10 +289,11 @@ const (
 
 // Defines values for ScriptLanguage.
 const (
-	Bash    ScriptLanguage = "bash"
-	Deno    ScriptLanguage = "deno"
-	Go      ScriptLanguage = "go"
-	Python3 ScriptLanguage = "python3"
+	ScriptLanguageBash       ScriptLanguage = "bash"
+	ScriptLanguageDeno       ScriptLanguage = "deno"
+	ScriptLanguageGo         ScriptLanguage = "go"
+	ScriptLanguagePostgresql ScriptLanguage = "postgresql"
+	ScriptLanguagePython3    ScriptLanguage = "python3"
 )
 
 // Defines values for StaticTransformType.
@@ -983,22 +994,18 @@ type Policy_Triggerables struct {
 	AdditionalProperties map[string]map[string]interface{} `json:"-"`
 }
 
-// Postgresql defines model for Postgresql.
-type Postgresql struct {
-	Type PostgresqlType `json:"type"`
-}
-
-// PostgresqlType defines model for Postgresql.Type.
-type PostgresqlType string
-
 // Preview defines model for Preview.
 type Preview struct {
-	Args     ScriptArgs      `json:"args"`
-	Content  string          `json:"content"`
-	Language PreviewLanguage `json:"language"`
-	Path     *string         `json:"path,omitempty"`
-	Tag      *string         `json:"tag,omitempty"`
+	Args     ScriptArgs       `json:"args"`
+	Content  *string          `json:"content,omitempty"`
+	Kind     *PreviewKind     `json:"kind,omitempty"`
+	Language *PreviewLanguage `json:"language,omitempty"`
+	Path     *string          `json:"path,omitempty"`
+	Tag      *string          `json:"tag,omitempty"`
 }
+
+// PreviewKind defines model for Preview.Kind.
+type PreviewKind string
 
 // PreviewLanguage defines model for Preview.Language.
 type PreviewLanguage string
@@ -3880,6 +3887,9 @@ type ClientInterface interface {
 	// GetCurrentEmail request
 	GetCurrentEmail(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ExistsEmail request
+	ExistsEmail(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListUsersAsSuperAdmin request
 	ListUsersAsSuperAdmin(ctx context.Context, params *ListUsersAsSuperAdminParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4934,6 +4944,18 @@ func (c *Client) GlobalUserDelete(ctx context.Context, email string, reqEditors 
 
 func (c *Client) GetCurrentEmail(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCurrentEmailRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsEmail(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsEmailRequest(c.Server, email)
 	if err != nil {
 		return nil, err
 	}
@@ -8772,6 +8794,40 @@ func NewGetCurrentEmailRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/users/email")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsEmailRequest generates requests for ExistsEmail
+func NewExistsEmailRequest(server string, email string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "email", runtime.ParamLocationPath, email)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/exists/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -19830,6 +19886,9 @@ type ClientWithResponsesInterface interface {
 	// GetCurrentEmail request
 	GetCurrentEmailWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCurrentEmailResponse, error)
 
+	// ExistsEmail request
+	ExistsEmailWithResponse(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*ExistsEmailResponse, error)
+
 	// ListUsersAsSuperAdmin request
 	ListUsersAsSuperAdminWithResponse(ctx context.Context, params *ListUsersAsSuperAdminParams, reqEditors ...RequestEditorFn) (*ListUsersAsSuperAdminResponse, error)
 
@@ -21086,6 +21145,28 @@ func (r GetCurrentEmailResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetCurrentEmailResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsEmailResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsEmailResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsEmailResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -25412,6 +25493,15 @@ func (c *ClientWithResponses) GetCurrentEmailWithResponse(ctx context.Context, r
 	return ParseGetCurrentEmailResponse(rsp)
 }
 
+// ExistsEmailWithResponse request returning *ExistsEmailResponse
+func (c *ClientWithResponses) ExistsEmailWithResponse(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*ExistsEmailResponse, error) {
+	rsp, err := c.ExistsEmail(ctx, email, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsEmailResponse(rsp)
+}
+
 // ListUsersAsSuperAdminWithResponse request returning *ListUsersAsSuperAdminResponse
 func (c *ClientWithResponses) ListUsersAsSuperAdminWithResponse(ctx context.Context, params *ListUsersAsSuperAdminParams, reqEditors ...RequestEditorFn) (*ListUsersAsSuperAdminResponse, error) {
 	rsp, err := c.ListUsersAsSuperAdmin(ctx, params, reqEditors...)
@@ -28165,6 +28255,32 @@ func ParseGetCurrentEmailResponse(rsp *http.Response) (*GetCurrentEmailResponse,
 	response := &GetCurrentEmailResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsEmailResponse parses an HTTP response from a ExistsEmailWithResponse call
+func ParseExistsEmailResponse(rsp *http.Response) (*ExistsEmailResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsEmailResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
