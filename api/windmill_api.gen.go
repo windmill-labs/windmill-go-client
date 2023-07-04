@@ -78,10 +78,8 @@ const (
 	CompletedJobJobKindDependencies CompletedJobJobKind = "dependencies"
 	CompletedJobJobKindFlow         CompletedJobJobKind = "flow"
 	CompletedJobJobKindFlowpreview  CompletedJobJobKind = "flowpreview"
-	CompletedJobJobKindGraphql      CompletedJobJobKind = "graphql"
 	CompletedJobJobKindHttp         CompletedJobJobKind = "http"
 	CompletedJobJobKindIdentity     CompletedJobJobKind = "identity"
-	CompletedJobJobKindPostgresql   CompletedJobJobKind = "postgresql"
 	CompletedJobJobKindPreview      CompletedJobJobKind = "preview"
 	CompletedJobJobKindScript       CompletedJobJobKind = "script"
 	CompletedJobJobKindScriptHub    CompletedJobJobKind = "script_hub"
@@ -92,6 +90,7 @@ const (
 	CompletedJobLanguageBash       CompletedJobLanguage = "bash"
 	CompletedJobLanguageDeno       CompletedJobLanguage = "deno"
 	CompletedJobLanguageGo         CompletedJobLanguage = "go"
+	CompletedJobLanguageNativets   CompletedJobLanguage = "nativets"
 	CompletedJobLanguagePostgresql CompletedJobLanguage = "postgresql"
 	CompletedJobLanguagePython3    CompletedJobLanguage = "python3"
 )
@@ -180,6 +179,7 @@ const (
 	NewScriptLanguageBash       NewScriptLanguage = "bash"
 	NewScriptLanguageDeno       NewScriptLanguage = "deno"
 	NewScriptLanguageGo         NewScriptLanguage = "go"
+	NewScriptLanguageNativets   NewScriptLanguage = "nativets"
 	NewScriptLanguagePostgresql NewScriptLanguage = "postgresql"
 	NewScriptLanguagePython3    NewScriptLanguage = "python3"
 )
@@ -198,6 +198,7 @@ const (
 	NewScriptWithDraftLanguageBash       NewScriptWithDraftLanguage = "bash"
 	NewScriptWithDraftLanguageDeno       NewScriptWithDraftLanguage = "deno"
 	NewScriptWithDraftLanguageGo         NewScriptWithDraftLanguage = "go"
+	NewScriptWithDraftLanguageNativets   NewScriptWithDraftLanguage = "nativets"
 	NewScriptWithDraftLanguagePostgresql NewScriptWithDraftLanguage = "postgresql"
 	NewScriptWithDraftLanguagePython3    NewScriptWithDraftLanguage = "python3"
 )
@@ -222,7 +223,6 @@ const (
 // Defines values for PreviewKind.
 const (
 	PreviewKindCode     PreviewKind = "code"
-	PreviewKindGraphql  PreviewKind = "graphql"
 	PreviewKindHttp     PreviewKind = "http"
 	PreviewKindIdentity PreviewKind = "identity"
 )
@@ -232,6 +232,7 @@ const (
 	PreviewLanguageBash       PreviewLanguage = "bash"
 	PreviewLanguageDeno       PreviewLanguage = "deno"
 	PreviewLanguageGo         PreviewLanguage = "go"
+	PreviewLanguageNativets   PreviewLanguage = "nativets"
 	PreviewLanguagePostgresql PreviewLanguage = "postgresql"
 	PreviewLanguagePython3    PreviewLanguage = "python3"
 )
@@ -241,7 +242,6 @@ const (
 	QueuedJobJobKindDependencies QueuedJobJobKind = "dependencies"
 	QueuedJobJobKindFlow         QueuedJobJobKind = "flow"
 	QueuedJobJobKindFlowpreview  QueuedJobJobKind = "flowpreview"
-	QueuedJobJobKindGraphql      QueuedJobJobKind = "graphql"
 	QueuedJobJobKindHttp         QueuedJobJobKind = "http"
 	QueuedJobJobKindIdentity     QueuedJobJobKind = "identity"
 	QueuedJobJobKindPreview      QueuedJobJobKind = "preview"
@@ -254,16 +254,19 @@ const (
 	QueuedJobLanguageBash       QueuedJobLanguage = "bash"
 	QueuedJobLanguageDeno       QueuedJobLanguage = "deno"
 	QueuedJobLanguageGo         QueuedJobLanguage = "go"
+	QueuedJobLanguageNativets   QueuedJobLanguage = "nativets"
 	QueuedJobLanguagePostgresql QueuedJobLanguage = "postgresql"
 	QueuedJobLanguagePython3    QueuedJobLanguage = "python3"
 )
 
 // Defines values for RawScriptLanguage.
 const (
-	RawScriptLanguageBash    RawScriptLanguage = "bash"
-	RawScriptLanguageDeno    RawScriptLanguage = "deno"
-	RawScriptLanguageGo      RawScriptLanguage = "go"
-	RawScriptLanguagePython3 RawScriptLanguage = "python3"
+	RawScriptLanguageBash       RawScriptLanguage = "bash"
+	RawScriptLanguageDeno       RawScriptLanguage = "deno"
+	RawScriptLanguageGo         RawScriptLanguage = "go"
+	RawScriptLanguageNativets   RawScriptLanguage = "nativets"
+	RawScriptLanguagePostgresql RawScriptLanguage = "postgresql"
+	RawScriptLanguagePython3    RawScriptLanguage = "python3"
 )
 
 // Defines values for RawScriptType.
@@ -289,11 +292,12 @@ const (
 
 // Defines values for ScriptLanguage.
 const (
-	ScriptLanguageBash       ScriptLanguage = "bash"
-	ScriptLanguageDeno       ScriptLanguage = "deno"
-	ScriptLanguageGo         ScriptLanguage = "go"
-	ScriptLanguagePostgresql ScriptLanguage = "postgresql"
-	ScriptLanguagePython3    ScriptLanguage = "python3"
+	Bash       ScriptLanguage = "bash"
+	Deno       ScriptLanguage = "deno"
+	Go         ScriptLanguage = "go"
+	Nativets   ScriptLanguage = "nativets"
+	Postgresql ScriptLanguage = "postgresql"
+	Python3    ScriptLanguage = "python3"
 )
 
 // Defines values for StaticTransformType.
