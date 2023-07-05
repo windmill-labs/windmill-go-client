@@ -88,6 +88,7 @@ const (
 // Defines values for CompletedJobLanguage.
 const (
 	CompletedJobLanguageBash       CompletedJobLanguage = "bash"
+	CompletedJobLanguageBun        CompletedJobLanguage = "bun"
 	CompletedJobLanguageDeno       CompletedJobLanguage = "deno"
 	CompletedJobLanguageGo         CompletedJobLanguage = "go"
 	CompletedJobLanguageNativets   CompletedJobLanguage = "nativets"
@@ -177,6 +178,7 @@ const (
 // Defines values for NewScriptLanguage.
 const (
 	NewScriptLanguageBash       NewScriptLanguage = "bash"
+	NewScriptLanguageBun        NewScriptLanguage = "bun"
 	NewScriptLanguageDeno       NewScriptLanguage = "deno"
 	NewScriptLanguageGo         NewScriptLanguage = "go"
 	NewScriptLanguageNativets   NewScriptLanguage = "nativets"
@@ -196,6 +198,7 @@ const (
 // Defines values for NewScriptWithDraftLanguage.
 const (
 	NewScriptWithDraftLanguageBash       NewScriptWithDraftLanguage = "bash"
+	NewScriptWithDraftLanguageBun        NewScriptWithDraftLanguage = "bun"
 	NewScriptWithDraftLanguageDeno       NewScriptWithDraftLanguage = "deno"
 	NewScriptWithDraftLanguageGo         NewScriptWithDraftLanguage = "go"
 	NewScriptWithDraftLanguageNativets   NewScriptWithDraftLanguage = "nativets"
@@ -230,6 +233,7 @@ const (
 // Defines values for PreviewLanguage.
 const (
 	PreviewLanguageBash       PreviewLanguage = "bash"
+	PreviewLanguageBun        PreviewLanguage = "bun"
 	PreviewLanguageDeno       PreviewLanguage = "deno"
 	PreviewLanguageGo         PreviewLanguage = "go"
 	PreviewLanguageNativets   PreviewLanguage = "nativets"
@@ -252,6 +256,7 @@ const (
 // Defines values for QueuedJobLanguage.
 const (
 	QueuedJobLanguageBash       QueuedJobLanguage = "bash"
+	QueuedJobLanguageBun        QueuedJobLanguage = "bun"
 	QueuedJobLanguageDeno       QueuedJobLanguage = "deno"
 	QueuedJobLanguageGo         QueuedJobLanguage = "go"
 	QueuedJobLanguageNativets   QueuedJobLanguage = "nativets"
@@ -293,6 +298,7 @@ const (
 // Defines values for ScriptLanguage.
 const (
 	Bash       ScriptLanguage = "bash"
+	Bun        ScriptLanguage = "bun"
 	Deno       ScriptLanguage = "deno"
 	Go         ScriptLanguage = "go"
 	Nativets   ScriptLanguage = "nativets"
