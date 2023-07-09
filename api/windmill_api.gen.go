@@ -757,6 +757,7 @@ type Input struct {
 	Id        string                 `json:"id"`
 	IsPublic  bool                   `json:"is_public"`
 	Name      string                 `json:"name"`
+	Success   *bool                  `json:"success,omitempty"`
 }
 
 // InputTransform defines model for InputTransform.
@@ -1382,6 +1383,9 @@ type ResultFilter = string
 // RunnableId defines model for RunnableId.
 type RunnableId = string
 
+// RunnableTypeQuery defines model for RunnableTypeQuery.
+type RunnableTypeQuery = RunnableType
+
 // Running defines model for Running.
 type Running = bool
 
@@ -1779,14 +1783,14 @@ type CreateInputJSONBody = CreateInput
 
 // CreateInputParams defines parameters for CreateInput.
 type CreateInputParams struct {
-	RunnableId   *RunnableId   `form:"runnable_id,omitempty" json:"runnable_id,omitempty"`
-	RunnableType *RunnableType `form:"runnable_type,omitempty" json:"runnable_type,omitempty"`
+	RunnableId   *RunnableId        `form:"runnable_id,omitempty" json:"runnable_id,omitempty"`
+	RunnableType *RunnableTypeQuery `form:"runnable_type,omitempty" json:"runnable_type,omitempty"`
 }
 
 // GetInputHistoryParams defines parameters for GetInputHistory.
 type GetInputHistoryParams struct {
-	RunnableId   *RunnableId   `form:"runnable_id,omitempty" json:"runnable_id,omitempty"`
-	RunnableType *RunnableType `form:"runnable_type,omitempty" json:"runnable_type,omitempty"`
+	RunnableId   *RunnableId        `form:"runnable_id,omitempty" json:"runnable_id,omitempty"`
+	RunnableType *RunnableTypeQuery `form:"runnable_type,omitempty" json:"runnable_type,omitempty"`
 
 	// which page to return (start at 1, default 1)
 	Page *Page `form:"page,omitempty" json:"page,omitempty"`
@@ -1797,8 +1801,8 @@ type GetInputHistoryParams struct {
 
 // ListInputsParams defines parameters for ListInputs.
 type ListInputsParams struct {
-	RunnableId   *RunnableId   `form:"runnable_id,omitempty" json:"runnable_id,omitempty"`
-	RunnableType *RunnableType `form:"runnable_type,omitempty" json:"runnable_type,omitempty"`
+	RunnableId   *RunnableId        `form:"runnable_id,omitempty" json:"runnable_id,omitempty"`
+	RunnableType *RunnableTypeQuery `form:"runnable_type,omitempty" json:"runnable_type,omitempty"`
 
 	// which page to return (start at 1, default 1)
 	Page *Page `form:"page,omitempty" json:"page,omitempty"`
@@ -2321,6 +2325,10 @@ type ListSchedulesParams struct {
 
 	// number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// filter by path
+	Path   *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
 }
 
 // ListSchedulesWithJobsParams defines parameters for ListSchedulesWithJobs.
@@ -2455,6 +2463,11 @@ type EditAutoInviteJSONBody struct {
 // EditDeployToJSONBody defines parameters for EditDeployTo.
 type EditDeployToJSONBody struct {
 	DeployTo *string `json:"deploy_to,omitempty"`
+}
+
+// EditErrorHandlerJSONBody defines parameters for EditErrorHandler.
+type EditErrorHandlerJSONBody struct {
+	ErrorHandler *string `json:"error_handler,omitempty"`
 }
 
 // EditSlackCommandJSONBody defines parameters for EditSlackCommand.
@@ -2712,6 +2725,9 @@ type EditAutoInviteJSONRequestBody EditAutoInviteJSONBody
 
 // EditDeployToJSONRequestBody defines body for EditDeployTo for application/json ContentType.
 type EditDeployToJSONRequestBody EditDeployToJSONBody
+
+// EditErrorHandlerJSONRequestBody defines body for EditErrorHandler for application/json ContentType.
+type EditErrorHandlerJSONRequestBody EditErrorHandlerJSONBody
 
 // EditSlackCommandJSONRequestBody defines body for EditSlackCommand for application/json ContentType.
 type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
@@ -4524,6 +4540,11 @@ type ClientInterface interface {
 	EditDeployToWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditDeployTo(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EditErrorHandler request with any body
+	EditErrorHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditErrorHandler(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7714,6 +7735,30 @@ func (c *Client) EditDeployToWithBody(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) EditDeployTo(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditDeployToRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditErrorHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditErrorHandlerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditErrorHandler(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditErrorHandlerRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -17121,6 +17166,38 @@ func NewListSchedulesRequest(server string, workspace WorkspaceId, params *ListS
 
 	}
 
+	if params.Path != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IsFlow != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -19068,6 +19145,53 @@ func NewEditDeployToRequestWithBody(server string, workspace WorkspaceId, conten
 	return req, nil
 }
 
+// NewEditErrorHandlerRequest calls the generic EditErrorHandler builder with application/json body
+func NewEditErrorHandlerRequest(server string, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditErrorHandlerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditErrorHandlerRequestWithBody generates requests for EditErrorHandler with any type of body
+func NewEditErrorHandlerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_error_handler", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditSlackCommandRequest calls the generic EditSlackCommand builder with application/json body
 func NewEditSlackCommandRequest(server string, workspace WorkspaceId, body EditSlackCommandJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -20523,6 +20647,11 @@ type ClientWithResponsesInterface interface {
 	EditDeployToWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error)
 
 	EditDeployToWithResponse(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error)
+
+	// EditErrorHandler request with any body
+	EditErrorHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error)
+
+	EditErrorHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error)
 
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
@@ -24827,6 +24956,27 @@ func (r EditDeployToResponse) StatusCode() int {
 	return 0
 }
 
+type EditErrorHandlerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditErrorHandlerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditErrorHandlerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditSlackCommandResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -24901,6 +25051,7 @@ type GetSettingsResponse struct {
 		AutoInviteOperator *bool   `json:"auto_invite_operator,omitempty"`
 		CustomerId         *string `json:"customer_id,omitempty"`
 		DeployTo           *string `json:"deploy_to,omitempty"`
+		ErrorHandler       *string `json:"error_handler,omitempty"`
 		Plan               *string `json:"plan,omitempty"`
 		SlackCommandScript *string `json:"slack_command_script,omitempty"`
 		SlackName          *string `json:"slack_name,omitempty"`
@@ -27509,6 +27660,23 @@ func (c *ClientWithResponses) EditDeployToWithResponse(ctx context.Context, work
 		return nil, err
 	}
 	return ParseEditDeployToResponse(rsp)
+}
+
+// EditErrorHandlerWithBodyWithResponse request with arbitrary body returning *EditErrorHandlerResponse
+func (c *ClientWithResponses) EditErrorHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error) {
+	rsp, err := c.EditErrorHandlerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditErrorHandlerResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditErrorHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error) {
+	rsp, err := c.EditErrorHandler(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditErrorHandlerResponse(rsp)
 }
 
 // EditSlackCommandWithBodyWithResponse request with arbitrary body returning *EditSlackCommandResponse
@@ -31798,6 +31966,22 @@ func ParseEditDeployToResponse(rsp *http.Response) (*EditDeployToResponse, error
 	return response, nil
 }
 
+// ParseEditErrorHandlerResponse parses an HTTP response from a EditErrorHandlerWithResponse call
+func ParseEditErrorHandlerResponse(rsp *http.Response) (*EditErrorHandlerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditErrorHandlerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseEditSlackCommandResponse parses an HTTP response from a EditSlackCommandWithResponse call
 func ParseEditSlackCommandResponse(rsp *http.Response) (*EditSlackCommandResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -31878,6 +32062,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			AutoInviteOperator *bool   `json:"auto_invite_operator,omitempty"`
 			CustomerId         *string `json:"customer_id,omitempty"`
 			DeployTo           *string `json:"deploy_to,omitempty"`
+			ErrorHandler       *string `json:"error_handler,omitempty"`
 			Plan               *string `json:"plan,omitempty"`
 			SlackCommandScript *string `json:"slack_command_script,omitempty"`
 			SlackName          *string `json:"slack_name,omitempty"`
