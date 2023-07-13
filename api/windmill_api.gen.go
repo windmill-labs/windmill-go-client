@@ -888,19 +888,21 @@ type NewSchedule struct {
 
 // NewScript defines model for NewScript.
 type NewScript struct {
-	Content     string                  `json:"content"`
-	Description string                  `json:"description"`
-	DraftOnly   *bool                   `json:"draft_only,omitempty"`
-	Envs        *[]string               `json:"envs,omitempty"`
-	IsTemplate  *bool                   `json:"is_template,omitempty"`
-	Kind        *NewScriptKind          `json:"kind,omitempty"`
-	Language    NewScriptLanguage       `json:"language"`
-	Lock        *[]string               `json:"lock,omitempty"`
-	ParentHash  *string                 `json:"parent_hash,omitempty"`
-	Path        string                  `json:"path"`
-	Schema      *map[string]interface{} `json:"schema,omitempty"`
-	Summary     string                  `json:"summary"`
-	Tag         *string                 `json:"tag,omitempty"`
+	ConcurrencyTimeWindowS *[]int                  `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *[]int                  `json:"concurrent_limit,omitempty"`
+	Content                string                  `json:"content"`
+	Description            string                  `json:"description"`
+	DraftOnly              *bool                   `json:"draft_only,omitempty"`
+	Envs                   *[]string               `json:"envs,omitempty"`
+	IsTemplate             *bool                   `json:"is_template,omitempty"`
+	Kind                   *NewScriptKind          `json:"kind,omitempty"`
+	Language               NewScriptLanguage       `json:"language"`
+	Lock                   *[]string               `json:"lock,omitempty"`
+	ParentHash             *string                 `json:"parent_hash,omitempty"`
+	Path                   string                  `json:"path"`
+	Schema                 *map[string]interface{} `json:"schema,omitempty"`
+	Summary                string                  `json:"summary"`
+	Tag                    *string                 `json:"tag,omitempty"`
 }
 
 // NewScriptKind defines model for NewScript.Kind.
@@ -911,21 +913,23 @@ type NewScriptLanguage string
 
 // NewScriptWithDraft defines model for NewScriptWithDraft.
 type NewScriptWithDraft struct {
-	Content     string                     `json:"content"`
-	Description string                     `json:"description"`
-	Draft       *NewScript                 `json:"draft,omitempty"`
-	DraftOnly   *bool                      `json:"draft_only,omitempty"`
-	Envs        *[]string                  `json:"envs,omitempty"`
-	Hash        string                     `json:"hash"`
-	IsTemplate  *bool                      `json:"is_template,omitempty"`
-	Kind        *NewScriptWithDraftKind    `json:"kind,omitempty"`
-	Language    NewScriptWithDraftLanguage `json:"language"`
-	Lock        *[]string                  `json:"lock,omitempty"`
-	ParentHash  *string                    `json:"parent_hash,omitempty"`
-	Path        string                     `json:"path"`
-	Schema      *map[string]interface{}    `json:"schema,omitempty"`
-	Summary     string                     `json:"summary"`
-	Tag         *string                    `json:"tag,omitempty"`
+	ConcurrencyTimeWindowS *[]int                     `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *[]int                     `json:"concurrent_limit,omitempty"`
+	Content                string                     `json:"content"`
+	Description            string                     `json:"description"`
+	Draft                  *NewScript                 `json:"draft,omitempty"`
+	DraftOnly              *bool                      `json:"draft_only,omitempty"`
+	Envs                   *[]string                  `json:"envs,omitempty"`
+	Hash                   string                     `json:"hash"`
+	IsTemplate             *bool                      `json:"is_template,omitempty"`
+	Kind                   *NewScriptWithDraftKind    `json:"kind,omitempty"`
+	Language               NewScriptWithDraftLanguage `json:"language"`
+	Lock                   *[]string                  `json:"lock,omitempty"`
+	ParentHash             *string                    `json:"parent_hash,omitempty"`
+	Path                   string                     `json:"path"`
+	Schema                 *map[string]interface{}    `json:"schema,omitempty"`
+	Summary                string                     `json:"summary"`
+	Tag                    *string                    `json:"tag,omitempty"`
 }
 
 // NewScriptWithDraftKind defines model for NewScriptWithDraft.Kind.
@@ -1078,13 +1082,15 @@ type QueuedJobLanguage string
 
 // RawScript defines model for RawScript.
 type RawScript struct {
-	Content         string                    `json:"content"`
-	InputTransforms RawScript_InputTransforms `json:"input_transforms"`
-	Language        RawScriptLanguage         `json:"language"`
-	Lock            *string                   `json:"lock,omitempty"`
-	Path            *string                   `json:"path,omitempty"`
-	Tag             *string                   `json:"tag,omitempty"`
-	Type            RawScriptType             `json:"type"`
+	ConcurrencyTimeWindowS *float32                  `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *float32                  `json:"concurrent_limit,omitempty"`
+	Content                string                    `json:"content"`
+	InputTransforms        RawScript_InputTransforms `json:"input_transforms"`
+	Language               RawScriptLanguage         `json:"language"`
+	Lock                   *string                   `json:"lock,omitempty"`
+	Path                   *string                   `json:"path,omitempty"`
+	Tag                    *string                   `json:"tag,omitempty"`
+	Type                   RawScriptType             `json:"type"`
 }
 
 // RawScript_InputTransforms defines model for RawScript.InputTransforms.
@@ -1189,22 +1195,24 @@ type ScheduleWJobs_ExtraPerms struct {
 
 // Script defines model for Script.
 type Script struct {
-	Archived      bool              `json:"archived"`
-	Content       string            `json:"content"`
-	CreatedAt     time.Time         `json:"created_at"`
-	CreatedBy     string            `json:"created_by"`
-	Deleted       bool              `json:"deleted"`
-	Description   string            `json:"description"`
-	DraftOnly     *bool             `json:"draft_only,omitempty"`
-	Envs          *[]string         `json:"envs,omitempty"`
-	ExtraPerms    Script_ExtraPerms `json:"extra_perms"`
-	HasDraft      *bool             `json:"has_draft,omitempty"`
-	Hash          string            `json:"hash"`
-	IsTemplate    bool              `json:"is_template"`
-	Kind          ScriptKind        `json:"kind"`
-	Language      ScriptLanguage    `json:"language"`
-	Lock          *string           `json:"lock,omitempty"`
-	LockErrorLogs *string           `json:"lock_error_logs,omitempty"`
+	Archived               bool              `json:"archived"`
+	ConcurrencyTimeWindowS *[]int            `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *[]int            `json:"concurrent_limit,omitempty"`
+	Content                string            `json:"content"`
+	CreatedAt              time.Time         `json:"created_at"`
+	CreatedBy              string            `json:"created_by"`
+	Deleted                bool              `json:"deleted"`
+	Description            string            `json:"description"`
+	DraftOnly              *bool             `json:"draft_only,omitempty"`
+	Envs                   *[]string         `json:"envs,omitempty"`
+	ExtraPerms             Script_ExtraPerms `json:"extra_perms"`
+	HasDraft               *bool             `json:"has_draft,omitempty"`
+	Hash                   string            `json:"hash"`
+	IsTemplate             bool              `json:"is_template"`
+	Kind                   ScriptKind        `json:"kind"`
+	Language               ScriptLanguage    `json:"language"`
+	Lock                   *string           `json:"lock,omitempty"`
+	LockErrorLogs          *string           `json:"lock_error_logs,omitempty"`
 
 	// The first element is the direct parent of the script, the second is the parent of the first, etc
 	ParentHashes *[]string               `json:"parent_hashes,omitempty"`
@@ -2484,6 +2492,11 @@ type EditErrorHandlerJSONBody struct {
 	ErrorHandler *string `json:"error_handler,omitempty"`
 }
 
+// EditOpenaiKeyJSONBody defines parameters for EditOpenaiKey.
+type EditOpenaiKeyJSONBody struct {
+	OpenaiKey *string `json:"openai_key,omitempty"`
+}
+
 // EditSlackCommandJSONBody defines parameters for EditSlackCommand.
 type EditSlackCommandJSONBody struct {
 	SlackCommandScript *string `json:"slack_command_script,omitempty"`
@@ -2742,6 +2755,9 @@ type EditDeployToJSONRequestBody EditDeployToJSONBody
 
 // EditErrorHandlerJSONRequestBody defines body for EditErrorHandler for application/json ContentType.
 type EditErrorHandlerJSONRequestBody EditErrorHandlerJSONBody
+
+// EditOpenaiKeyJSONRequestBody defines body for EditOpenaiKey for application/json ContentType.
+type EditOpenaiKeyJSONRequestBody EditOpenaiKeyJSONBody
 
 // EditSlackCommandJSONRequestBody defines body for EditSlackCommand for application/json ContentType.
 type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
@@ -4560,6 +4576,11 @@ type ClientInterface interface {
 
 	EditErrorHandler(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditOpenaiKey request with any body
+	EditOpenaiKeyWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditOpenaiKey(ctx context.Context, workspace WorkspaceId, body EditOpenaiKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4569,6 +4590,9 @@ type ClientInterface interface {
 	EditWebhookWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditWebhook(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsOpenaiKey request
+	ExistsOpenaiKey(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetDeployTo request
 	GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7783,6 +7807,30 @@ func (c *Client) EditErrorHandler(ctx context.Context, workspace WorkspaceId, bo
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditOpenaiKeyWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditOpenaiKeyRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditOpenaiKey(ctx context.Context, workspace WorkspaceId, body EditOpenaiKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditOpenaiKeyRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditSlackCommandRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -7821,6 +7869,18 @@ func (c *Client) EditWebhookWithBody(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) EditWebhook(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditWebhookRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsOpenaiKey(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsOpenaiKeyRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -19206,6 +19266,53 @@ func NewEditErrorHandlerRequestWithBody(server string, workspace WorkspaceId, co
 	return req, nil
 }
 
+// NewEditOpenaiKeyRequest calls the generic EditOpenaiKey builder with application/json body
+func NewEditOpenaiKeyRequest(server string, workspace WorkspaceId, body EditOpenaiKeyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditOpenaiKeyRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditOpenaiKeyRequestWithBody generates requests for EditOpenaiKey with any type of body
+func NewEditOpenaiKeyRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_openai_key", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditSlackCommandRequest calls the generic EditSlackCommand builder with application/json body
 func NewEditSlackCommandRequest(server string, workspace WorkspaceId, body EditSlackCommandJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -19296,6 +19403,40 @@ func NewEditWebhookRequestWithBody(server string, workspace WorkspaceId, content
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewExistsOpenaiKeyRequest generates requests for ExistsOpenaiKey
+func NewExistsOpenaiKeyRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/exists_openai_key", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -20667,6 +20808,11 @@ type ClientWithResponsesInterface interface {
 
 	EditErrorHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error)
 
+	// EditOpenaiKey request with any body
+	EditOpenaiKeyWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditOpenaiKeyResponse, error)
+
+	EditOpenaiKeyWithResponse(ctx context.Context, workspace WorkspaceId, body EditOpenaiKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*EditOpenaiKeyResponse, error)
+
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
 
@@ -20676,6 +20822,9 @@ type ClientWithResponsesInterface interface {
 	EditWebhookWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
 
 	EditWebhookWithResponse(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
+
+	// ExistsOpenaiKey request
+	ExistsOpenaiKeyWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ExistsOpenaiKeyResponse, error)
 
 	// GetDeployTo request
 	GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error)
@@ -24991,6 +25140,27 @@ func (r EditErrorHandlerResponse) StatusCode() int {
 	return 0
 }
 
+type EditOpenaiKeyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditOpenaiKeyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditOpenaiKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditSlackCommandResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -25033,6 +25203,27 @@ func (r EditWebhookResponse) StatusCode() int {
 	return 0
 }
 
+type ExistsOpenaiKeyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsOpenaiKeyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsOpenaiKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetDeployToResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -25066,6 +25257,7 @@ type GetSettingsResponse struct {
 		CustomerId         *string `json:"customer_id,omitempty"`
 		DeployTo           *string `json:"deploy_to,omitempty"`
 		ErrorHandler       *string `json:"error_handler,omitempty"`
+		OpenaiKey          *string `json:"openai_key,omitempty"`
 		Plan               *string `json:"plan,omitempty"`
 		SlackCommandScript *string `json:"slack_command_script,omitempty"`
 		SlackName          *string `json:"slack_name,omitempty"`
@@ -27693,6 +27885,23 @@ func (c *ClientWithResponses) EditErrorHandlerWithResponse(ctx context.Context, 
 	return ParseEditErrorHandlerResponse(rsp)
 }
 
+// EditOpenaiKeyWithBodyWithResponse request with arbitrary body returning *EditOpenaiKeyResponse
+func (c *ClientWithResponses) EditOpenaiKeyWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditOpenaiKeyResponse, error) {
+	rsp, err := c.EditOpenaiKeyWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditOpenaiKeyResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditOpenaiKeyWithResponse(ctx context.Context, workspace WorkspaceId, body EditOpenaiKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*EditOpenaiKeyResponse, error) {
+	rsp, err := c.EditOpenaiKey(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditOpenaiKeyResponse(rsp)
+}
+
 // EditSlackCommandWithBodyWithResponse request with arbitrary body returning *EditSlackCommandResponse
 func (c *ClientWithResponses) EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error) {
 	rsp, err := c.EditSlackCommandWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -27725,6 +27934,15 @@ func (c *ClientWithResponses) EditWebhookWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseEditWebhookResponse(rsp)
+}
+
+// ExistsOpenaiKeyWithResponse request returning *ExistsOpenaiKeyResponse
+func (c *ClientWithResponses) ExistsOpenaiKeyWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ExistsOpenaiKeyResponse, error) {
+	rsp, err := c.ExistsOpenaiKey(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsOpenaiKeyResponse(rsp)
 }
 
 // GetDeployToWithResponse request returning *GetDeployToResponse
@@ -31996,6 +32214,22 @@ func ParseEditErrorHandlerResponse(rsp *http.Response) (*EditErrorHandlerRespons
 	return response, nil
 }
 
+// ParseEditOpenaiKeyResponse parses an HTTP response from a EditOpenaiKeyWithResponse call
+func ParseEditOpenaiKeyResponse(rsp *http.Response) (*EditOpenaiKeyResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditOpenaiKeyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseEditSlackCommandResponse parses an HTTP response from a EditSlackCommandWithResponse call
 func ParseEditSlackCommandResponse(rsp *http.Response) (*EditSlackCommandResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -32021,6 +32255,22 @@ func ParseEditWebhookResponse(rsp *http.Response) (*EditWebhookResponse, error) 
 	}
 
 	response := &EditWebhookResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsOpenaiKeyResponse parses an HTTP response from a ExistsOpenaiKeyWithResponse call
+func ParseExistsOpenaiKeyResponse(rsp *http.Response) (*ExistsOpenaiKeyResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsOpenaiKeyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -32077,6 +32327,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			CustomerId         *string `json:"customer_id,omitempty"`
 			DeployTo           *string `json:"deploy_to,omitempty"`
 			ErrorHandler       *string `json:"error_handler,omitempty"`
+			OpenaiKey          *string `json:"openai_key,omitempty"`
 			Plan               *string `json:"plan,omitempty"`
 			SlackCommandScript *string `json:"slack_command_script,omitempty"`
 			SlackName          *string `json:"slack_name,omitempty"`
