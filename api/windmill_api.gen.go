@@ -21111,7 +21111,10 @@ func (r ListOAuthConnectsResponse) StatusCode() int {
 type ListOAuthLoginsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]string
+	JSON200      *struct {
+		Oauth []string `json:"oauth"`
+		Saml  *string  `json:"saml,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -28370,7 +28373,10 @@ func ParseListOAuthLoginsResponse(rsp *http.Response) (*ListOAuthLoginsResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []string
+		var dest struct {
+			Oauth []string `json:"oauth"`
+			Saml  *string  `json:"saml,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
