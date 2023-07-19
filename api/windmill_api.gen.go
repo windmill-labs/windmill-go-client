@@ -2492,9 +2492,9 @@ type EditErrorHandlerJSONBody struct {
 	ErrorHandler *string `json:"error_handler,omitempty"`
 }
 
-// EditOpenaiKeyJSONBody defines parameters for EditOpenaiKey.
-type EditOpenaiKeyJSONBody struct {
-	OpenaiKey *string `json:"openai_key,omitempty"`
+// EditOpenaiResourcePathJSONBody defines parameters for EditOpenaiResourcePath.
+type EditOpenaiResourcePathJSONBody struct {
+	OpenaiResourcePath *string `json:"openai_resource_path,omitempty"`
 }
 
 // EditSlackCommandJSONBody defines parameters for EditSlackCommand.
@@ -2756,8 +2756,8 @@ type EditDeployToJSONRequestBody EditDeployToJSONBody
 // EditErrorHandlerJSONRequestBody defines body for EditErrorHandler for application/json ContentType.
 type EditErrorHandlerJSONRequestBody EditErrorHandlerJSONBody
 
-// EditOpenaiKeyJSONRequestBody defines body for EditOpenaiKey for application/json ContentType.
-type EditOpenaiKeyJSONRequestBody EditOpenaiKeyJSONBody
+// EditOpenaiResourcePathJSONRequestBody defines body for EditOpenaiResourcePath for application/json ContentType.
+type EditOpenaiResourcePathJSONRequestBody EditOpenaiResourcePathJSONBody
 
 // EditSlackCommandJSONRequestBody defines body for EditSlackCommand for application/json ContentType.
 type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
@@ -4576,10 +4576,10 @@ type ClientInterface interface {
 
 	EditErrorHandler(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// EditOpenaiKey request with any body
-	EditOpenaiKeyWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// EditOpenaiResourcePath request with any body
+	EditOpenaiResourcePathWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	EditOpenaiKey(ctx context.Context, workspace WorkspaceId, body EditOpenaiKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	EditOpenaiResourcePath(ctx context.Context, workspace WorkspaceId, body EditOpenaiResourcePathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4591,8 +4591,8 @@ type ClientInterface interface {
 
 	EditWebhook(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ExistsOpenaiKey request
-	ExistsOpenaiKey(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ExistsOpenaiResourcePath request
+	ExistsOpenaiResourcePath(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetDeployTo request
 	GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7807,8 +7807,8 @@ func (c *Client) EditErrorHandler(ctx context.Context, workspace WorkspaceId, bo
 	return c.Client.Do(req)
 }
 
-func (c *Client) EditOpenaiKeyWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewEditOpenaiKeyRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) EditOpenaiResourcePathWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditOpenaiResourcePathRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -7819,8 +7819,8 @@ func (c *Client) EditOpenaiKeyWithBody(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) EditOpenaiKey(ctx context.Context, workspace WorkspaceId, body EditOpenaiKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewEditOpenaiKeyRequest(c.Server, workspace, body)
+func (c *Client) EditOpenaiResourcePath(ctx context.Context, workspace WorkspaceId, body EditOpenaiResourcePathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditOpenaiResourcePathRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -7879,8 +7879,8 @@ func (c *Client) EditWebhook(ctx context.Context, workspace WorkspaceId, body Ed
 	return c.Client.Do(req)
 }
 
-func (c *Client) ExistsOpenaiKey(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewExistsOpenaiKeyRequest(c.Server, workspace)
+func (c *Client) ExistsOpenaiResourcePath(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsOpenaiResourcePathRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -19266,19 +19266,19 @@ func NewEditErrorHandlerRequestWithBody(server string, workspace WorkspaceId, co
 	return req, nil
 }
 
-// NewEditOpenaiKeyRequest calls the generic EditOpenaiKey builder with application/json body
-func NewEditOpenaiKeyRequest(server string, workspace WorkspaceId, body EditOpenaiKeyJSONRequestBody) (*http.Request, error) {
+// NewEditOpenaiResourcePathRequest calls the generic EditOpenaiResourcePath builder with application/json body
+func NewEditOpenaiResourcePathRequest(server string, workspace WorkspaceId, body EditOpenaiResourcePathJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewEditOpenaiKeyRequestWithBody(server, workspace, "application/json", bodyReader)
+	return NewEditOpenaiResourcePathRequestWithBody(server, workspace, "application/json", bodyReader)
 }
 
-// NewEditOpenaiKeyRequestWithBody generates requests for EditOpenaiKey with any type of body
-func NewEditOpenaiKeyRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+// NewEditOpenaiResourcePathRequestWithBody generates requests for EditOpenaiResourcePath with any type of body
+func NewEditOpenaiResourcePathRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -19293,7 +19293,7 @@ func NewEditOpenaiKeyRequestWithBody(server string, workspace WorkspaceId, conte
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_openai_key", pathParam0)
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_openai_resource_path", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -19407,8 +19407,8 @@ func NewEditWebhookRequestWithBody(server string, workspace WorkspaceId, content
 	return req, nil
 }
 
-// NewExistsOpenaiKeyRequest generates requests for ExistsOpenaiKey
-func NewExistsOpenaiKeyRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+// NewExistsOpenaiResourcePathRequest generates requests for ExistsOpenaiResourcePath
+func NewExistsOpenaiResourcePathRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -19423,7 +19423,7 @@ func NewExistsOpenaiKeyRequest(server string, workspace WorkspaceId) (*http.Requ
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/workspaces/exists_openai_key", pathParam0)
+	operationPath := fmt.Sprintf("/w/%s/workspaces/exists_openai_resource_path", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -20808,10 +20808,10 @@ type ClientWithResponsesInterface interface {
 
 	EditErrorHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error)
 
-	// EditOpenaiKey request with any body
-	EditOpenaiKeyWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditOpenaiKeyResponse, error)
+	// EditOpenaiResourcePath request with any body
+	EditOpenaiResourcePathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditOpenaiResourcePathResponse, error)
 
-	EditOpenaiKeyWithResponse(ctx context.Context, workspace WorkspaceId, body EditOpenaiKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*EditOpenaiKeyResponse, error)
+	EditOpenaiResourcePathWithResponse(ctx context.Context, workspace WorkspaceId, body EditOpenaiResourcePathJSONRequestBody, reqEditors ...RequestEditorFn) (*EditOpenaiResourcePathResponse, error)
 
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
@@ -20823,8 +20823,8 @@ type ClientWithResponsesInterface interface {
 
 	EditWebhookWithResponse(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
 
-	// ExistsOpenaiKey request
-	ExistsOpenaiKeyWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ExistsOpenaiKeyResponse, error)
+	// ExistsOpenaiResourcePath request
+	ExistsOpenaiResourcePathWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ExistsOpenaiResourcePathResponse, error)
 
 	// GetDeployTo request
 	GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error)
@@ -25143,13 +25143,13 @@ func (r EditErrorHandlerResponse) StatusCode() int {
 	return 0
 }
 
-type EditOpenaiKeyResponse struct {
+type EditOpenaiResourcePathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r EditOpenaiKeyResponse) Status() string {
+func (r EditOpenaiResourcePathResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -25157,7 +25157,7 @@ func (r EditOpenaiKeyResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r EditOpenaiKeyResponse) StatusCode() int {
+func (r EditOpenaiResourcePathResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -25206,13 +25206,13 @@ func (r EditWebhookResponse) StatusCode() int {
 	return 0
 }
 
-type ExistsOpenaiKeyResponse struct {
+type ExistsOpenaiResourcePathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r ExistsOpenaiKeyResponse) Status() string {
+func (r ExistsOpenaiResourcePathResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -25220,7 +25220,7 @@ func (r ExistsOpenaiKeyResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ExistsOpenaiKeyResponse) StatusCode() int {
+func (r ExistsOpenaiResourcePathResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -25260,7 +25260,7 @@ type GetSettingsResponse struct {
 		CustomerId         *string `json:"customer_id,omitempty"`
 		DeployTo           *string `json:"deploy_to,omitempty"`
 		ErrorHandler       *string `json:"error_handler,omitempty"`
-		OpenaiKey          *string `json:"openai_key,omitempty"`
+		OpenaiResourcePath *string `json:"openai_resource_path,omitempty"`
 		Plan               *string `json:"plan,omitempty"`
 		SlackCommandScript *string `json:"slack_command_script,omitempty"`
 		SlackName          *string `json:"slack_name,omitempty"`
@@ -27888,21 +27888,21 @@ func (c *ClientWithResponses) EditErrorHandlerWithResponse(ctx context.Context, 
 	return ParseEditErrorHandlerResponse(rsp)
 }
 
-// EditOpenaiKeyWithBodyWithResponse request with arbitrary body returning *EditOpenaiKeyResponse
-func (c *ClientWithResponses) EditOpenaiKeyWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditOpenaiKeyResponse, error) {
-	rsp, err := c.EditOpenaiKeyWithBody(ctx, workspace, contentType, body, reqEditors...)
+// EditOpenaiResourcePathWithBodyWithResponse request with arbitrary body returning *EditOpenaiResourcePathResponse
+func (c *ClientWithResponses) EditOpenaiResourcePathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditOpenaiResourcePathResponse, error) {
+	rsp, err := c.EditOpenaiResourcePathWithBody(ctx, workspace, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseEditOpenaiKeyResponse(rsp)
+	return ParseEditOpenaiResourcePathResponse(rsp)
 }
 
-func (c *ClientWithResponses) EditOpenaiKeyWithResponse(ctx context.Context, workspace WorkspaceId, body EditOpenaiKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*EditOpenaiKeyResponse, error) {
-	rsp, err := c.EditOpenaiKey(ctx, workspace, body, reqEditors...)
+func (c *ClientWithResponses) EditOpenaiResourcePathWithResponse(ctx context.Context, workspace WorkspaceId, body EditOpenaiResourcePathJSONRequestBody, reqEditors ...RequestEditorFn) (*EditOpenaiResourcePathResponse, error) {
+	rsp, err := c.EditOpenaiResourcePath(ctx, workspace, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseEditOpenaiKeyResponse(rsp)
+	return ParseEditOpenaiResourcePathResponse(rsp)
 }
 
 // EditSlackCommandWithBodyWithResponse request with arbitrary body returning *EditSlackCommandResponse
@@ -27939,13 +27939,13 @@ func (c *ClientWithResponses) EditWebhookWithResponse(ctx context.Context, works
 	return ParseEditWebhookResponse(rsp)
 }
 
-// ExistsOpenaiKeyWithResponse request returning *ExistsOpenaiKeyResponse
-func (c *ClientWithResponses) ExistsOpenaiKeyWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ExistsOpenaiKeyResponse, error) {
-	rsp, err := c.ExistsOpenaiKey(ctx, workspace, reqEditors...)
+// ExistsOpenaiResourcePathWithResponse request returning *ExistsOpenaiResourcePathResponse
+func (c *ClientWithResponses) ExistsOpenaiResourcePathWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ExistsOpenaiResourcePathResponse, error) {
+	rsp, err := c.ExistsOpenaiResourcePath(ctx, workspace, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseExistsOpenaiKeyResponse(rsp)
+	return ParseExistsOpenaiResourcePathResponse(rsp)
 }
 
 // GetDeployToWithResponse request returning *GetDeployToResponse
@@ -32220,15 +32220,15 @@ func ParseEditErrorHandlerResponse(rsp *http.Response) (*EditErrorHandlerRespons
 	return response, nil
 }
 
-// ParseEditOpenaiKeyResponse parses an HTTP response from a EditOpenaiKeyWithResponse call
-func ParseEditOpenaiKeyResponse(rsp *http.Response) (*EditOpenaiKeyResponse, error) {
+// ParseEditOpenaiResourcePathResponse parses an HTTP response from a EditOpenaiResourcePathWithResponse call
+func ParseEditOpenaiResourcePathResponse(rsp *http.Response) (*EditOpenaiResourcePathResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &EditOpenaiKeyResponse{
+	response := &EditOpenaiResourcePathResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -32268,15 +32268,15 @@ func ParseEditWebhookResponse(rsp *http.Response) (*EditWebhookResponse, error) 
 	return response, nil
 }
 
-// ParseExistsOpenaiKeyResponse parses an HTTP response from a ExistsOpenaiKeyWithResponse call
-func ParseExistsOpenaiKeyResponse(rsp *http.Response) (*ExistsOpenaiKeyResponse, error) {
+// ParseExistsOpenaiResourcePathResponse parses an HTTP response from a ExistsOpenaiResourcePathWithResponse call
+func ParseExistsOpenaiResourcePathResponse(rsp *http.Response) (*ExistsOpenaiResourcePathResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ExistsOpenaiKeyResponse{
+	response := &ExistsOpenaiResourcePathResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -32333,7 +32333,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			CustomerId         *string `json:"customer_id,omitempty"`
 			DeployTo           *string `json:"deploy_to,omitempty"`
 			ErrorHandler       *string `json:"error_handler,omitempty"`
-			OpenaiKey          *string `json:"openai_key,omitempty"`
+			OpenaiResourcePath *string `json:"openai_resource_path,omitempty"`
 			Plan               *string `json:"plan,omitempty"`
 			SlackCommandScript *string `json:"slack_command_script,omitempty"`
 			SlackName          *string `json:"slack_name,omitempty"`
