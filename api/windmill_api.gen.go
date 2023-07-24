@@ -777,6 +777,12 @@ type Input struct {
 // InputTransform defines model for InputTransform.
 type InputTransform interface{}
 
+// InstanceGroup defines model for InstanceGroup.
+type InstanceGroup struct {
+	Emails *[]string `json:"emails,omitempty"`
+	Name   string    `json:"name"`
+}
+
 // JavascriptTransform defines model for JavascriptTransform.
 type JavascriptTransform struct {
 	Expr string                  `json:"expr"`
@@ -3880,6 +3886,12 @@ type ClientInterface interface {
 	// ListHubFlows request
 	ListHubFlows(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetInstanceGroup request
+	GetInstanceGroup(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListInstanceGroups request
+	ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ConnectCallback request with any body
 	ConnectCallbackWithBody(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4737,6 +4749,30 @@ func (c *Client) GetHubFlowById(ctx context.Context, id PathId, reqEditors ...Re
 
 func (c *Client) ListHubFlows(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListHubFlowsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetInstanceGroup(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetInstanceGroupRequest(c.Server, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListInstanceGroupsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -8330,6 +8366,67 @@ func NewListHubFlowsRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/flows/hub/list")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetInstanceGroupRequest generates requests for GetInstanceGroup
+func NewGetInstanceGroupRequest(server string, name Name) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/get/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListInstanceGroupsRequest generates requests for ListInstanceGroups
+func NewListInstanceGroupsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/list")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -20112,6 +20209,12 @@ type ClientWithResponsesInterface interface {
 	// ListHubFlows request
 	ListHubFlowsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubFlowsResponse, error)
 
+	// GetInstanceGroup request
+	GetInstanceGroupWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetInstanceGroupResponse, error)
+
+	// ListInstanceGroups request
+	ListInstanceGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceGroupsResponse, error)
+
 	// ConnectCallback request with any body
 	ConnectCallbackWithBodyWithResponse(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error)
 
@@ -21053,6 +21156,50 @@ func (r ListHubFlowsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListHubFlowsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetInstanceGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *InstanceGroup
+}
+
+// Status returns HTTPResponse.Status
+func (r GetInstanceGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetInstanceGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListInstanceGroupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]InstanceGroup
+}
+
+// Status returns HTTPResponse.Status
+func (r ListInstanceGroupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListInstanceGroupsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -25662,6 +25809,24 @@ func (c *ClientWithResponses) ListHubFlowsWithResponse(ctx context.Context, reqE
 	return ParseListHubFlowsResponse(rsp)
 }
 
+// GetInstanceGroupWithResponse request returning *GetInstanceGroupResponse
+func (c *ClientWithResponses) GetInstanceGroupWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetInstanceGroupResponse, error) {
+	rsp, err := c.GetInstanceGroup(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetInstanceGroupResponse(rsp)
+}
+
+// ListInstanceGroupsWithResponse request returning *ListInstanceGroupsResponse
+func (c *ClientWithResponses) ListInstanceGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceGroupsResponse, error) {
+	rsp, err := c.ListInstanceGroups(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListInstanceGroupsResponse(rsp)
+}
+
 // ConnectCallbackWithBodyWithResponse request with arbitrary body returning *ConnectCallbackResponse
 func (c *ClientWithResponses) ConnectCallbackWithBodyWithResponse(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error) {
 	rsp, err := c.ConnectCallbackWithBody(ctx, clientName, contentType, body, reqEditors...)
@@ -28291,6 +28456,58 @@ func ParseListHubFlowsResponse(rsp *http.Response) (*ListHubFlowsResponse, error
 				Votes    float32  `json:"votes"`
 			} `json:"flows,omitempty"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetInstanceGroupResponse parses an HTTP response from a GetInstanceGroupWithResponse call
+func ParseGetInstanceGroupResponse(rsp *http.Response) (*GetInstanceGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetInstanceGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest InstanceGroup
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListInstanceGroupsResponse parses an HTTP response from a ListInstanceGroupsWithResponse call
+func ParseListInstanceGroupsResponse(rsp *http.Response) (*ListInstanceGroupsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListInstanceGroupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []InstanceGroup
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
