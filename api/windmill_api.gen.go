@@ -556,6 +556,7 @@ type Flow struct {
 	Schema               *map[string]interface{} `json:"schema,omitempty"`
 	Starred              *bool                   `json:"starred,omitempty"`
 	Summary              string                  `json:"summary"`
+	Tag                  *string                 `json:"tag,omitempty"`
 	Value                FlowValue               `json:"value"`
 	WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 }
@@ -570,6 +571,7 @@ type FlowMetadata struct {
 	ExtraPerms           map[string]interface{} `json:"extra_perms"`
 	Path                 string                 `json:"path"`
 	Starred              *bool                  `json:"starred,omitempty"`
+	Tag                  *string                `json:"tag,omitempty"`
 	WorkspaceId          *string                `json:"workspace_id,omitempty"`
 }
 
@@ -605,6 +607,7 @@ type FlowModuleValue interface{}
 type FlowPreview struct {
 	Args  ScriptArgs `json:"args"`
 	Path  *string    `json:"path,omitempty"`
+	Tag   *string    `json:"tag,omitempty"`
 	Value FlowValue  `json:"value"`
 }
 
@@ -979,6 +982,7 @@ type OpenFlowWPath struct {
 	Path        string                  `json:"path"`
 	Schema      *map[string]interface{} `json:"schema,omitempty"`
 	Summary     string                  `json:"summary"`
+	Tag         *string                 `json:"tag,omitempty"`
 	Value       FlowValue               `json:"value"`
 }
 
@@ -1312,6 +1316,7 @@ type UserWorkspaceList struct {
 
 // WorkerPing defines model for WorkerPing.
 type WorkerPing struct {
+	CustomTags     *[]string `json:"custom_tags,omitempty"`
 	Ip             string    `json:"ip"`
 	JobsExecuted   int       `json:"jobs_executed"`
 	LastPing       *float32  `json:"last_ping,omitempty"`
@@ -1676,6 +1681,7 @@ type CreateFlowJSONBody struct {
 	Path        string                  `json:"path"`
 	Schema      *map[string]interface{} `json:"schema,omitempty"`
 	Summary     string                  `json:"summary"`
+	Tag         *string                 `json:"tag,omitempty"`
 	Value       FlowValue               `json:"value"`
 }
 
@@ -22477,6 +22483,7 @@ type GetFlowByPathWithDraftResponse struct {
 		Schema               *map[string]interface{} `json:"schema,omitempty"`
 		Starred              *bool                   `json:"starred,omitempty"`
 		Summary              string                  `json:"summary"`
+		Tag                  *string                 `json:"tag,omitempty"`
 		Value                FlowValue               `json:"value"`
 		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 	}
@@ -22558,6 +22565,7 @@ type ListFlowsResponse struct {
 		Schema               *map[string]interface{} `json:"schema,omitempty"`
 		Starred              *bool                   `json:"starred,omitempty"`
 		Summary              string                  `json:"summary"`
+		Tag                  *string                 `json:"tag,omitempty"`
 		Value                FlowValue               `json:"value"`
 		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 	}
@@ -29723,6 +29731,7 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			Schema               *map[string]interface{} `json:"schema,omitempty"`
 			Starred              *bool                   `json:"starred,omitempty"`
 			Summary              string                  `json:"summary"`
+			Tag                  *string                 `json:"tag,omitempty"`
 			Value                FlowValue               `json:"value"`
 			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 		}
@@ -29816,6 +29825,7 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			Schema               *map[string]interface{} `json:"schema,omitempty"`
 			Starred              *bool                   `json:"starred,omitempty"`
 			Summary              string                  `json:"summary"`
+			Tag                  *string                 `json:"tag,omitempty"`
 			Value                FlowValue               `json:"value"`
 			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 		}
