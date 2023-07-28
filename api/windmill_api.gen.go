@@ -88,6 +88,7 @@ const (
 // Defines values for CompletedJobLanguage.
 const (
 	CompletedJobLanguageBash       CompletedJobLanguage = "bash"
+	CompletedJobLanguageBigquery   CompletedJobLanguage = "bigquery"
 	CompletedJobLanguageBun        CompletedJobLanguage = "bun"
 	CompletedJobLanguageDeno       CompletedJobLanguage = "deno"
 	CompletedJobLanguageGo         CompletedJobLanguage = "go"
@@ -180,6 +181,7 @@ const (
 // Defines values for NewScriptLanguage.
 const (
 	NewScriptLanguageBash       NewScriptLanguage = "bash"
+	NewScriptLanguageBigquery   NewScriptLanguage = "bigquery"
 	NewScriptLanguageBun        NewScriptLanguage = "bun"
 	NewScriptLanguageDeno       NewScriptLanguage = "deno"
 	NewScriptLanguageGo         NewScriptLanguage = "go"
@@ -202,6 +204,7 @@ const (
 // Defines values for NewScriptWithDraftLanguage.
 const (
 	NewScriptWithDraftLanguageBash       NewScriptWithDraftLanguage = "bash"
+	NewScriptWithDraftLanguageBigquery   NewScriptWithDraftLanguage = "bigquery"
 	NewScriptWithDraftLanguageBun        NewScriptWithDraftLanguage = "bun"
 	NewScriptWithDraftLanguageDeno       NewScriptWithDraftLanguage = "deno"
 	NewScriptWithDraftLanguageGo         NewScriptWithDraftLanguage = "go"
@@ -239,6 +242,7 @@ const (
 // Defines values for PreviewLanguage.
 const (
 	PreviewLanguageBash       PreviewLanguage = "bash"
+	PreviewLanguageBigquery   PreviewLanguage = "bigquery"
 	PreviewLanguageBun        PreviewLanguage = "bun"
 	PreviewLanguageDeno       PreviewLanguage = "deno"
 	PreviewLanguageGo         PreviewLanguage = "go"
@@ -264,6 +268,7 @@ const (
 // Defines values for QueuedJobLanguage.
 const (
 	QueuedJobLanguageBash       QueuedJobLanguage = "bash"
+	QueuedJobLanguageBigquery   QueuedJobLanguage = "bigquery"
 	QueuedJobLanguageBun        QueuedJobLanguage = "bun"
 	QueuedJobLanguageDeno       QueuedJobLanguage = "deno"
 	QueuedJobLanguageGo         QueuedJobLanguage = "go"
@@ -277,6 +282,7 @@ const (
 // Defines values for RawScriptLanguage.
 const (
 	RawScriptLanguageBash       RawScriptLanguage = "bash"
+	RawScriptLanguageBigquery   RawScriptLanguage = "bigquery"
 	RawScriptLanguageDeno       RawScriptLanguage = "deno"
 	RawScriptLanguageGo         RawScriptLanguage = "go"
 	RawScriptLanguageGraphql    RawScriptLanguage = "graphql"
@@ -310,6 +316,7 @@ const (
 // Defines values for ScriptLanguage.
 const (
 	ScriptLanguageBash       ScriptLanguage = "bash"
+	ScriptLanguageBigquery   ScriptLanguage = "bigquery"
 	ScriptLanguageBun        ScriptLanguage = "bun"
 	ScriptLanguageDeno       ScriptLanguage = "deno"
 	ScriptLanguageGo         ScriptLanguage = "go"
