@@ -604,7 +604,8 @@ type FlowModule struct {
 		} `json:"resume_form,omitempty"`
 		Timeout *int `json:"timeout,omitempty"`
 	} `json:"suspend,omitempty"`
-	Value FlowModuleValue `json:"value"`
+	Timeout *float32        `json:"timeout,omitempty"`
+	Value   FlowModuleValue `json:"value"`
 }
 
 // FlowModuleValue defines model for FlowModuleValue.
