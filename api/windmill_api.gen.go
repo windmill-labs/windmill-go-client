@@ -78,7 +78,6 @@ const (
 	CompletedJobJobKindDependencies CompletedJobJobKind = "dependencies"
 	CompletedJobJobKindFlow         CompletedJobJobKind = "flow"
 	CompletedJobJobKindFlowpreview  CompletedJobJobKind = "flowpreview"
-	CompletedJobJobKindHttp         CompletedJobJobKind = "http"
 	CompletedJobJobKindIdentity     CompletedJobJobKind = "identity"
 	CompletedJobJobKindPreview      CompletedJobJobKind = "preview"
 	CompletedJobJobKindScript       CompletedJobJobKind = "script"
@@ -97,6 +96,7 @@ const (
 	CompletedJobLanguageNativets   CompletedJobLanguage = "nativets"
 	CompletedJobLanguagePostgresql CompletedJobLanguage = "postgresql"
 	CompletedJobLanguagePython3    CompletedJobLanguage = "python3"
+	CompletedJobLanguageSnowflake  CompletedJobLanguage = "snowflake"
 )
 
 // Defines values for FlowStatusFailureModuleBranchChosenType.
@@ -147,11 +147,6 @@ const (
 	GraphqlTypeGraphql GraphqlType = "graphql"
 )
 
-// Defines values for HttpType.
-const (
-	HttpTypeHttp HttpType = "http"
-)
-
 // Defines values for IdentityType.
 const (
 	IdentityTypeIdentity IdentityType = "identity"
@@ -190,6 +185,7 @@ const (
 	NewScriptLanguageNativets   NewScriptLanguage = "nativets"
 	NewScriptLanguagePostgresql NewScriptLanguage = "postgresql"
 	NewScriptLanguagePython3    NewScriptLanguage = "python3"
+	NewScriptLanguageSnowflake  NewScriptLanguage = "snowflake"
 )
 
 // Defines values for NewScriptWithDraftKind.
@@ -213,6 +209,7 @@ const (
 	NewScriptWithDraftLanguageNativets   NewScriptWithDraftLanguage = "nativets"
 	NewScriptWithDraftLanguagePostgresql NewScriptWithDraftLanguage = "postgresql"
 	NewScriptWithDraftLanguagePython3    NewScriptWithDraftLanguage = "python3"
+	NewScriptWithDraftLanguageSnowflake  NewScriptWithDraftLanguage = "snowflake"
 )
 
 // Defines values for PathFlowType.
@@ -251,6 +248,7 @@ const (
 	PreviewLanguageNativets   PreviewLanguage = "nativets"
 	PreviewLanguagePostgresql PreviewLanguage = "postgresql"
 	PreviewLanguagePython3    PreviewLanguage = "python3"
+	PreviewLanguageSnowflake  PreviewLanguage = "snowflake"
 )
 
 // Defines values for QueuedJobJobKind.
@@ -258,7 +256,6 @@ const (
 	QueuedJobJobKindDependencies QueuedJobJobKind = "dependencies"
 	QueuedJobJobKindFlow         QueuedJobJobKind = "flow"
 	QueuedJobJobKindFlowpreview  QueuedJobJobKind = "flowpreview"
-	QueuedJobJobKindHttp         QueuedJobJobKind = "http"
 	QueuedJobJobKindIdentity     QueuedJobJobKind = "identity"
 	QueuedJobJobKindPreview      QueuedJobJobKind = "preview"
 	QueuedJobJobKindScript       QueuedJobJobKind = "script"
@@ -277,6 +274,7 @@ const (
 	QueuedJobLanguageNativets   QueuedJobLanguage = "nativets"
 	QueuedJobLanguagePostgresql QueuedJobLanguage = "postgresql"
 	QueuedJobLanguagePython3    QueuedJobLanguage = "python3"
+	QueuedJobLanguageSnowflake  QueuedJobLanguage = "snowflake"
 )
 
 // Defines values for RawScriptLanguage.
@@ -290,6 +288,7 @@ const (
 	RawScriptLanguageNativets   RawScriptLanguage = "nativets"
 	RawScriptLanguagePostgresql RawScriptLanguage = "postgresql"
 	RawScriptLanguagePython3    RawScriptLanguage = "python3"
+	RawScriptLanguageSnowflake  RawScriptLanguage = "snowflake"
 )
 
 // Defines values for RawScriptType.
@@ -325,6 +324,7 @@ const (
 	ScriptLanguageNativets   ScriptLanguage = "nativets"
 	ScriptLanguagePostgresql ScriptLanguage = "postgresql"
 	ScriptLanguagePython3    ScriptLanguage = "python3"
+	ScriptLanguageSnowflake  ScriptLanguage = "snowflake"
 )
 
 // Defines values for StaticTransformType.
@@ -756,14 +756,6 @@ type Group struct {
 type Group_ExtraPerms struct {
 	AdditionalProperties map[string]bool `json:"-"`
 }
-
-// Http defines model for Http.
-type Http struct {
-	Type HttpType `json:"type"`
-}
-
-// HttpType defines model for Http.Type.
-type HttpType string
 
 // Identity defines model for Identity.
 type Identity struct {
