@@ -48,19 +48,89 @@ const (
 
 // Defines values for AuditLogOperation.
 const (
-	JobsRun          AuditLogOperation = "jobs.run"
-	ScriptsCreate    AuditLogOperation = "scripts.create"
-	ScriptsUpdate    AuditLogOperation = "scripts.update"
-	UsersCreate      AuditLogOperation = "users.create"
-	UsersDelete      AuditLogOperation = "users.delete"
-	UsersLogin       AuditLogOperation = "users.login"
-	UsersSetpassword AuditLogOperation = "users.setpassword"
-	UsersTokenCreate AuditLogOperation = "users.token.create"
-	UsersTokenDelete AuditLogOperation = "users.token.delete"
-	UsersUpdate      AuditLogOperation = "users.update"
-	VariablesCreate  AuditLogOperation = "variables.create"
-	VariablesDelete  AuditLogOperation = "variables.delete"
-	VariablesUpdate  AuditLogOperation = "variables.update"
+	AccountDelete                    AuditLogOperation = "account.delete"
+	AppsCreate                       AuditLogOperation = "apps.create"
+	AppsDelete                       AuditLogOperation = "apps.delete"
+	AppsUpdate                       AuditLogOperation = "apps.update"
+	FlowsArchive                     AuditLogOperation = "flows.archive"
+	FlowsCreate                      AuditLogOperation = "flows.create"
+	FlowsDelete                      AuditLogOperation = "flows.delete"
+	FlowsUpdate                      AuditLogOperation = "flows.update"
+	FolderAddOwner                   AuditLogOperation = "folder.add_owner"
+	FolderCreate                     AuditLogOperation = "folder.create"
+	FolderDelete                     AuditLogOperation = "folder.delete"
+	FolderRemoveOwner                AuditLogOperation = "folder.remove_owner"
+	FolderUpdate                     AuditLogOperation = "folder.update"
+	GroupAdduser                     AuditLogOperation = "group.adduser"
+	GroupCreate                      AuditLogOperation = "group.create"
+	GroupDelete                      AuditLogOperation = "group.delete"
+	GroupEdit                        AuditLogOperation = "group.edit"
+	GroupRemoveuser                  AuditLogOperation = "group.removeuser"
+	IgroupAdduser                    AuditLogOperation = "igroup.adduser"
+	IgroupCreate                     AuditLogOperation = "igroup.create"
+	IgroupDelete                     AuditLogOperation = "igroup.delete"
+	IgroupRemoveuser                 AuditLogOperation = "igroup.removeuser"
+	Jobs                             AuditLogOperation = "jobs"
+	JobsCancel                       AuditLogOperation = "jobs.cancel"
+	JobsDelete                       AuditLogOperation = "jobs.delete"
+	JobsDisapproval                  AuditLogOperation = "jobs.disapproval"
+	JobsFlowDependencies             AuditLogOperation = "jobs.flow_dependencies"
+	JobsForceCancel                  AuditLogOperation = "jobs.force_cancel"
+	JobsRun                          AuditLogOperation = "jobs.run"
+	JobsRunDependencies              AuditLogOperation = "jobs.run.dependencies"
+	JobsRunFlow                      AuditLogOperation = "jobs.run.flow"
+	JobsRunFlowPreview               AuditLogOperation = "jobs.run.flow_preview"
+	JobsRunIdentity                  AuditLogOperation = "jobs.run.identity"
+	JobsRunNoop                      AuditLogOperation = "jobs.run.noop"
+	JobsRunPreview                   AuditLogOperation = "jobs.run.preview"
+	JobsRunScript                    AuditLogOperation = "jobs.run.script"
+	JobsRunScriptHub                 AuditLogOperation = "jobs.run.script_hub"
+	OauthLogin                       AuditLogOperation = "oauth.login"
+	OauthSignup                      AuditLogOperation = "oauth.signup"
+	OpenaiRequest                    AuditLogOperation = "openai.request"
+	ResourceTypesCreate              AuditLogOperation = "resource_types.create"
+	ResourceTypesDelete              AuditLogOperation = "resource_types.delete"
+	ResourceTypesUpdate              AuditLogOperation = "resource_types.update"
+	ResourcesCreate                  AuditLogOperation = "resources.create"
+	ResourcesDelete                  AuditLogOperation = "resources.delete"
+	ResourcesUpdate                  AuditLogOperation = "resources.update"
+	ScheduleCreate                   AuditLogOperation = "schedule.create"
+	ScheduleDelete                   AuditLogOperation = "schedule.delete"
+	ScheduleEdit                     AuditLogOperation = "schedule.edit"
+	ScheduleSetenabled               AuditLogOperation = "schedule.setenabled"
+	ScriptsArchive                   AuditLogOperation = "scripts.archive"
+	ScriptsCreate                    AuditLogOperation = "scripts.create"
+	ScriptsDelete                    AuditLogOperation = "scripts.delete"
+	ScriptsUpdate                    AuditLogOperation = "scripts.update"
+	UsersAcceptInvite                AuditLogOperation = "users.accept_invite"
+	UsersAddGlobal                   AuditLogOperation = "users.add_global"
+	UsersAddToWorkspace              AuditLogOperation = "users.add_to_workspace"
+	UsersCreate                      AuditLogOperation = "users.create"
+	UsersDeclineInvite               AuditLogOperation = "users.decline_invite"
+	UsersDelete                      AuditLogOperation = "users.delete"
+	UsersImpersonate                 AuditLogOperation = "users.impersonate"
+	UsersLeaveWorkspace              AuditLogOperation = "users.leave_workspace"
+	UsersLogin                       AuditLogOperation = "users.login"
+	UsersLogout                      AuditLogOperation = "users.logout"
+	UsersSetpassword                 AuditLogOperation = "users.setpassword"
+	UsersTokenCreate                 AuditLogOperation = "users.token.create"
+	UsersTokenDelete                 AuditLogOperation = "users.token.delete"
+	UsersUpdate                      AuditLogOperation = "users.update"
+	VariablesCreate                  AuditLogOperation = "variables.create"
+	VariablesDecryptSecret           AuditLogOperation = "variables.decrypt_secret"
+	VariablesDelete                  AuditLogOperation = "variables.delete"
+	VariablesUpdate                  AuditLogOperation = "variables.update"
+	WorkspacesArchive                AuditLogOperation = "workspaces.archive"
+	WorkspacesCreate                 AuditLogOperation = "workspaces.create"
+	WorkspacesDelete                 AuditLogOperation = "workspaces.delete"
+	WorkspacesEditAutoInviteDomain   AuditLogOperation = "workspaces.edit_auto_invite_domain"
+	WorkspacesEditCommandScript      AuditLogOperation = "workspaces.edit_command_script"
+	WorkspacesEditDeployTo           AuditLogOperation = "workspaces.edit_deploy_to"
+	WorkspacesEditErrorHandler       AuditLogOperation = "workspaces.edit_error_handler"
+	WorkspacesEditOpenaiResourcePath AuditLogOperation = "workspaces.edit_openai_resource_path"
+	WorkspacesEditWebhook            AuditLogOperation = "workspaces.edit_webhook"
+	WorkspacesUnarchive              AuditLogOperation = "workspaces.unarchive"
+	WorkspacesUpdate                 AuditLogOperation = "workspaces.update"
 )
 
 // Defines values for BranchAllType.
@@ -3970,6 +4040,9 @@ type ClientInterface interface {
 	// ListWorkspaceInvites request
 	ListWorkspaceInvites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RefreshUserToken request
+	RefreshUserToken(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SetPassword request with any body
 	SetPasswordWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5091,6 +5164,18 @@ func (c *Client) ListUsersAsSuperAdmin(ctx context.Context, params *ListUsersAsS
 
 func (c *Client) ListWorkspaceInvites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListWorkspaceInvitesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RefreshUserToken(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRefreshUserTokenRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -9150,6 +9235,33 @@ func NewListWorkspaceInvitesRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/users/list_invites")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRefreshUserTokenRequest generates requests for RefreshUserToken
+func NewRefreshUserTokenRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/refresh_token")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -20293,6 +20405,9 @@ type ClientWithResponsesInterface interface {
 	// ListWorkspaceInvites request
 	ListWorkspaceInvitesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkspaceInvitesResponse, error)
 
+	// RefreshUserToken request
+	RefreshUserTokenWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshUserTokenResponse, error)
+
 	// SetPassword request with any body
 	SetPasswordWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPasswordResponse, error)
 
@@ -21669,6 +21784,27 @@ func (r ListWorkspaceInvitesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListWorkspaceInvitesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RefreshUserTokenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RefreshUserTokenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RefreshUserTokenResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -26063,6 +26199,15 @@ func (c *ClientWithResponses) ListWorkspaceInvitesWithResponse(ctx context.Conte
 	return ParseListWorkspaceInvitesResponse(rsp)
 }
 
+// RefreshUserTokenWithResponse request returning *RefreshUserTokenResponse
+func (c *ClientWithResponses) RefreshUserTokenWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshUserTokenResponse, error) {
+	rsp, err := c.RefreshUserToken(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRefreshUserTokenResponse(rsp)
+}
+
 // SetPasswordWithBodyWithResponse request with arbitrary body returning *SetPasswordResponse
 func (c *ClientWithResponses) SetPasswordWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPasswordResponse, error) {
 	rsp, err := c.SetPasswordWithBody(ctx, contentType, body, reqEditors...)
@@ -28974,6 +29119,22 @@ func ParseListWorkspaceInvitesResponse(rsp *http.Response) (*ListWorkspaceInvite
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseRefreshUserTokenResponse parses an HTTP response from a RefreshUserTokenWithResponse call
+func ParseRefreshUserTokenResponse(rsp *http.Response) (*RefreshUserTokenResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RefreshUserTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
