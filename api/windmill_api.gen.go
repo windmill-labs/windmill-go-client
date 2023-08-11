@@ -165,6 +165,7 @@ const (
 	CompletedJobLanguageMysql      CompletedJobLanguage = "mysql"
 	CompletedJobLanguageNativets   CompletedJobLanguage = "nativets"
 	CompletedJobLanguagePostgresql CompletedJobLanguage = "postgresql"
+	CompletedJobLanguagePowershell CompletedJobLanguage = "powershell"
 	CompletedJobLanguagePython3    CompletedJobLanguage = "python3"
 	CompletedJobLanguageSnowflake  CompletedJobLanguage = "snowflake"
 )
@@ -254,6 +255,7 @@ const (
 	NewScriptLanguageMysql      NewScriptLanguage = "mysql"
 	NewScriptLanguageNativets   NewScriptLanguage = "nativets"
 	NewScriptLanguagePostgresql NewScriptLanguage = "postgresql"
+	NewScriptLanguagePowershell NewScriptLanguage = "powershell"
 	NewScriptLanguagePython3    NewScriptLanguage = "python3"
 	NewScriptLanguageSnowflake  NewScriptLanguage = "snowflake"
 )
@@ -278,6 +280,7 @@ const (
 	NewScriptWithDraftLanguageMysql      NewScriptWithDraftLanguage = "mysql"
 	NewScriptWithDraftLanguageNativets   NewScriptWithDraftLanguage = "nativets"
 	NewScriptWithDraftLanguagePostgresql NewScriptWithDraftLanguage = "postgresql"
+	NewScriptWithDraftLanguagePowershell NewScriptWithDraftLanguage = "powershell"
 	NewScriptWithDraftLanguagePython3    NewScriptWithDraftLanguage = "python3"
 	NewScriptWithDraftLanguageSnowflake  NewScriptWithDraftLanguage = "snowflake"
 )
@@ -317,6 +320,7 @@ const (
 	PreviewLanguageMysql      PreviewLanguage = "mysql"
 	PreviewLanguageNativets   PreviewLanguage = "nativets"
 	PreviewLanguagePostgresql PreviewLanguage = "postgresql"
+	PreviewLanguagePowershell PreviewLanguage = "powershell"
 	PreviewLanguagePython3    PreviewLanguage = "python3"
 	PreviewLanguageSnowflake  PreviewLanguage = "snowflake"
 )
@@ -343,6 +347,7 @@ const (
 	QueuedJobLanguageMysql      QueuedJobLanguage = "mysql"
 	QueuedJobLanguageNativets   QueuedJobLanguage = "nativets"
 	QueuedJobLanguagePostgresql QueuedJobLanguage = "postgresql"
+	QueuedJobLanguagePowershell QueuedJobLanguage = "powershell"
 	QueuedJobLanguagePython3    QueuedJobLanguage = "python3"
 	QueuedJobLanguageSnowflake  QueuedJobLanguage = "snowflake"
 )
@@ -357,6 +362,7 @@ const (
 	RawScriptLanguageMysql      RawScriptLanguage = "mysql"
 	RawScriptLanguageNativets   RawScriptLanguage = "nativets"
 	RawScriptLanguagePostgresql RawScriptLanguage = "postgresql"
+	RawScriptLanguagePowershell RawScriptLanguage = "powershell"
 	RawScriptLanguagePython3    RawScriptLanguage = "python3"
 	RawScriptLanguageSnowflake  RawScriptLanguage = "snowflake"
 )
@@ -393,6 +399,7 @@ const (
 	ScriptLanguageMysql      ScriptLanguage = "mysql"
 	ScriptLanguageNativets   ScriptLanguage = "nativets"
 	ScriptLanguagePostgresql ScriptLanguage = "postgresql"
+	ScriptLanguagePowershell ScriptLanguage = "powershell"
 	ScriptLanguagePython3    ScriptLanguage = "python3"
 	ScriptLanguageSnowflake  ScriptLanguage = "snowflake"
 )
