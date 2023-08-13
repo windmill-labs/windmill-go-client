@@ -356,6 +356,7 @@ const (
 const (
 	RawScriptLanguageBash       RawScriptLanguage = "bash"
 	RawScriptLanguageBigquery   RawScriptLanguage = "bigquery"
+	RawScriptLanguageBun        RawScriptLanguage = "bun"
 	RawScriptLanguageDeno       RawScriptLanguage = "deno"
 	RawScriptLanguageGo         RawScriptLanguage = "go"
 	RawScriptLanguageGraphql    RawScriptLanguage = "graphql"
