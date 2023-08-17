@@ -4474,6 +4474,9 @@ type ClientInterface interface {
 	// GetResourceValue request
 	GetResourceValue(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetResourceValueInterpolated request
+	GetResourceValueInterpolated(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListResource request
 	ListResource(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4635,6 +4638,9 @@ type ClientInterface interface {
 
 	// GetVariable request
 	GetVariable(ctx context.Context, workspace WorkspaceId, path Path, params *GetVariableParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetVariableValue request
+	GetVariableValue(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListVariable request
 	ListVariable(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7066,6 +7072,18 @@ func (c *Client) GetResourceValue(ctx context.Context, workspace WorkspaceId, pa
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetResourceValueInterpolated(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetResourceValueInterpolatedRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListResource(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListResourceRequest(c.Server, workspace, params)
 	if err != nil {
@@ -7752,6 +7770,18 @@ func (c *Client) ExistsVariable(ctx context.Context, workspace WorkspaceId, path
 
 func (c *Client) GetVariable(ctx context.Context, workspace WorkspaceId, path Path, params *GetVariableParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetVariableRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetVariableValue(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetVariableValueRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -16731,6 +16761,47 @@ func NewGetResourceValueRequest(server string, workspace WorkspaceId, path Path)
 	return req, nil
 }
 
+// NewGetResourceValueInterpolatedRequest generates requests for GetResourceValueInterpolated
+func NewGetResourceValueInterpolatedRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/get_value_interpolated/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListResourceRequest generates requests for ListResource
 func NewListResourceRequest(server string, workspace WorkspaceId, params *ListResourceParams) (*http.Request, error) {
 	var err error
@@ -19078,6 +19149,47 @@ func NewGetVariableRequest(server string, workspace WorkspaceId, path Path, para
 	return req, nil
 }
 
+// NewGetVariableValueRequest generates requests for GetVariableValue
+func NewGetVariableValueRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/variables/get_value/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListVariableRequest generates requests for ListVariable
 func NewListVariableRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -20839,6 +20951,9 @@ type ClientWithResponsesInterface interface {
 	// GetResourceValue request
 	GetResourceValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceValueResponse, error)
 
+	// GetResourceValueInterpolated request
+	GetResourceValueInterpolatedWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceValueInterpolatedResponse, error)
+
 	// ListResource request
 	ListResourceWithResponse(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*ListResourceResponse, error)
 
@@ -21000,6 +21115,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetVariable request
 	GetVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetVariableParams, reqEditors ...RequestEditorFn) (*GetVariableResponse, error)
+
+	// GetVariableValue request
+	GetVariableValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetVariableValueResponse, error)
 
 	// ListVariable request
 	ListVariableWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListVariableResponse, error)
@@ -24257,6 +24375,28 @@ func (r GetResourceValueResponse) StatusCode() int {
 	return 0
 }
 
+type GetResourceValueInterpolatedResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetResourceValueInterpolatedResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetResourceValueInterpolatedResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListResourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -25245,6 +25385,28 @@ func (r GetVariableResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetVariableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetVariableValueResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetVariableValueResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetVariableValueResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -27575,6 +27737,15 @@ func (c *ClientWithResponses) GetResourceValueWithResponse(ctx context.Context, 
 	return ParseGetResourceValueResponse(rsp)
 }
 
+// GetResourceValueInterpolatedWithResponse request returning *GetResourceValueInterpolatedResponse
+func (c *ClientWithResponses) GetResourceValueInterpolatedWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceValueInterpolatedResponse, error) {
+	rsp, err := c.GetResourceValueInterpolated(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetResourceValueInterpolatedResponse(rsp)
+}
+
 // ListResourceWithResponse request returning *ListResourceResponse
 func (c *ClientWithResponses) ListResourceWithResponse(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*ListResourceResponse, error) {
 	rsp, err := c.ListResource(ctx, workspace, params, reqEditors...)
@@ -28083,6 +28254,15 @@ func (c *ClientWithResponses) GetVariableWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseGetVariableResponse(rsp)
+}
+
+// GetVariableValueWithResponse request returning *GetVariableValueResponse
+func (c *ClientWithResponses) GetVariableValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetVariableValueResponse, error) {
+	rsp, err := c.GetVariableValue(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetVariableValueResponse(rsp)
 }
 
 // ListVariableWithResponse request returning *ListVariableResponse
@@ -31463,6 +31643,32 @@ func ParseGetResourceValueResponse(rsp *http.Response) (*GetResourceValueRespons
 	return response, nil
 }
 
+// ParseGetResourceValueInterpolatedResponse parses an HTTP response from a GetResourceValueInterpolatedWithResponse call
+func ParseGetResourceValueInterpolatedResponse(rsp *http.Response) (*GetResourceValueInterpolatedResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetResourceValueInterpolatedResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListResourceResponse parses an HTTP response from a ListResourceWithResponse call
 func ParseListResourceResponse(rsp *http.Response) (*ListResourceResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -32442,6 +32648,32 @@ func ParseGetVariableResponse(rsp *http.Response) (*GetVariableResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest ListableVariable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetVariableValueResponse parses an HTTP response from a GetVariableValueWithResponse call
+func ParseGetVariableValueResponse(rsp *http.Response) (*GetVariableValueResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetVariableValueResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
