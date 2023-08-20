@@ -145,13 +145,14 @@ const (
 
 // Defines values for CompletedJobJobKind.
 const (
-	CompletedJobJobKindDependencies CompletedJobJobKind = "dependencies"
-	CompletedJobJobKindFlow         CompletedJobJobKind = "flow"
-	CompletedJobJobKindFlowpreview  CompletedJobJobKind = "flowpreview"
-	CompletedJobJobKindIdentity     CompletedJobJobKind = "identity"
-	CompletedJobJobKindPreview      CompletedJobJobKind = "preview"
-	CompletedJobJobKindScript       CompletedJobJobKind = "script"
-	CompletedJobJobKindScriptHub    CompletedJobJobKind = "script_hub"
+	CompletedJobJobKindDependencies     CompletedJobJobKind = "dependencies"
+	CompletedJobJobKindFlow             CompletedJobJobKind = "flow"
+	CompletedJobJobKindFlowdependencies CompletedJobJobKind = "flowdependencies"
+	CompletedJobJobKindFlowpreview      CompletedJobJobKind = "flowpreview"
+	CompletedJobJobKindIdentity         CompletedJobJobKind = "identity"
+	CompletedJobJobKindPreview          CompletedJobJobKind = "preview"
+	CompletedJobJobKindScript           CompletedJobJobKind = "script"
+	CompletedJobJobKindScriptHub        CompletedJobJobKind = "script_hub"
 )
 
 // Defines values for CompletedJobLanguage.
@@ -327,13 +328,14 @@ const (
 
 // Defines values for QueuedJobJobKind.
 const (
-	QueuedJobJobKindDependencies QueuedJobJobKind = "dependencies"
-	QueuedJobJobKindFlow         QueuedJobJobKind = "flow"
-	QueuedJobJobKindFlowpreview  QueuedJobJobKind = "flowpreview"
-	QueuedJobJobKindIdentity     QueuedJobJobKind = "identity"
-	QueuedJobJobKindPreview      QueuedJobJobKind = "preview"
-	QueuedJobJobKindScript       QueuedJobJobKind = "script"
-	QueuedJobJobKindScriptHub    QueuedJobJobKind = "script_hub"
+	QueuedJobJobKindDependencies     QueuedJobJobKind = "dependencies"
+	QueuedJobJobKindFlow             QueuedJobJobKind = "flow"
+	QueuedJobJobKindFlowdependencies QueuedJobJobKind = "flowdependencies"
+	QueuedJobJobKindFlowpreview      QueuedJobJobKind = "flowpreview"
+	QueuedJobJobKindIdentity         QueuedJobJobKind = "identity"
+	QueuedJobJobKindPreview          QueuedJobJobKind = "preview"
+	QueuedJobJobKindScript           QueuedJobJobKind = "script"
+	QueuedJobJobKindScriptHub        QueuedJobJobKind = "script_hub"
 )
 
 // Defines values for QueuedJobLanguage.
@@ -1440,6 +1442,12 @@ type ClientName = string
 // CreatedBy defines model for CreatedBy.
 type CreatedBy = string
 
+// CreatedOrStartedAfter defines model for CreatedOrStartedAfter.
+type CreatedOrStartedAfter = time.Time
+
+// CreatedOrStartedBefore defines model for CreatedOrStartedBefore.
+type CreatedOrStartedBefore = time.Time
+
 // IncludeHeader defines model for IncludeHeader.
 type IncludeHeader = string
 
@@ -1949,10 +1957,10 @@ type ListCompletedJobsParams struct {
 	// mask to filter exact matching path
 	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
 
-	// filter on created before (inclusive) timestamp
+	// filter on started before (inclusive) timestamp
 	StartedBefore *StartedBefore `form:"started_before,omitempty" json:"started_before,omitempty"`
 
-	// filter on created after (exclusive) timestamp
+	// filter on started after (exclusive) timestamp
 	StartedAfter *StartedAfter `form:"started_after,omitempty" json:"started_after,omitempty"`
 
 	// filter on successful jobs
@@ -2005,11 +2013,17 @@ type ListJobsParams struct {
 	// mask to filter exact matching path
 	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
 
-	// filter on created before (inclusive) timestamp
+	// filter on started before (inclusive) timestamp
 	StartedBefore *StartedBefore `form:"started_before,omitempty" json:"started_before,omitempty"`
 
-	// filter on created after (exclusive) timestamp
+	// filter on started after (exclusive) timestamp
 	StartedAfter *StartedAfter `form:"started_after,omitempty" json:"started_after,omitempty"`
+
+	// filter on created_at for non non started job and started_at otherwise before (inclusive) timestamp
+	CreatedOrStartedBefore *CreatedOrStartedBefore `form:"created_or_started_before,omitempty" json:"created_or_started_before,omitempty"`
+
+	// filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp
+	CreatedOrStartedAfter *CreatedOrStartedAfter `form:"created_or_started_after,omitempty" json:"created_or_started_after,omitempty"`
 
 	// filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
@@ -2091,10 +2105,10 @@ type ListQueueParams struct {
 	// mask to filter exact matching path
 	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
 
-	// filter on created before (inclusive) timestamp
+	// filter on started before (inclusive) timestamp
 	StartedBefore *StartedBefore `form:"started_before,omitempty" json:"started_before,omitempty"`
 
-	// filter on created after (exclusive) timestamp
+	// filter on started after (exclusive) timestamp
 	StartedAfter *StartedAfter `form:"started_after,omitempty" json:"started_after,omitempty"`
 
 	// filter on successful jobs
@@ -3976,6 +3990,9 @@ type ClientInterface interface {
 	// ListInstanceGroups request
 	ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetDbClock request
+	GetDbClock(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ConnectCallback request with any body
 	ConnectCallbackWithBody(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4322,6 +4339,12 @@ type ClientInterface interface {
 	OpenaiSyncScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	OpenaiSyncScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CancelAll request
+	CancelAll(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetQueueCount request
+	GetQueueCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListQueue request
 	ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4866,6 +4889,18 @@ func (c *Client) GetInstanceGroup(ctx context.Context, name Name, reqEditors ...
 
 func (c *Client) ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListInstanceGroupsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDbClock(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDbClockRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -6390,6 +6425,30 @@ func (c *Client) OpenaiSyncScriptByPathWithBody(ctx context.Context, workspace W
 
 func (c *Client) OpenaiSyncScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewOpenaiSyncScriptByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelAll(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelAllRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetQueueCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetQueueCountRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -8556,6 +8615,33 @@ func NewListInstanceGroupsRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/groups/list")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetDbClockRequest generates requests for GetDbClock
+func NewGetDbClockRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/jobs/db_clock")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -13410,6 +13496,38 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 	}
 
+	if params.CreatedOrStartedBefore != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_before", runtime.ParamLocationQuery, *params.CreatedOrStartedBefore); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CreatedOrStartedAfter != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after", runtime.ParamLocationQuery, *params.CreatedOrStartedAfter); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.JobKinds != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_kinds", runtime.ParamLocationQuery, *params.JobKinds); err != nil {
@@ -13756,6 +13874,74 @@ func NewOpenaiSyncScriptByPathRequestWithBody(server string, workspace Workspace
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCancelAllRequest generates requests for CancelAll
+func NewCancelAllRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/queue/cancel_all", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetQueueCountRequest generates requests for GetQueueCount
+func NewGetQueueCountRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/queue/count", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -20453,6 +20639,9 @@ type ClientWithResponsesInterface interface {
 	// ListInstanceGroups request
 	ListInstanceGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceGroupsResponse, error)
 
+	// GetDbClock request
+	GetDbClockWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDbClockResponse, error)
+
 	// ConnectCallback request with any body
 	ConnectCallbackWithBodyWithResponse(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error)
 
@@ -20799,6 +20988,12 @@ type ClientWithResponsesInterface interface {
 	OpenaiSyncScriptByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenaiSyncScriptByPathResponse, error)
 
 	OpenaiSyncScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenaiSyncScriptByPathResponse, error)
+
+	// CancelAll request
+	CancelAllWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*CancelAllResponse, error)
+
+	// GetQueueCount request
+	GetQueueCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetQueueCountResponse, error)
 
 	// ListQueue request
 	ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error)
@@ -21447,6 +21642,28 @@ func (r ListInstanceGroupsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListInstanceGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDbClockResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *int
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDbClockResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDbClockResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -23515,6 +23732,52 @@ func (r OpenaiSyncScriptByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r OpenaiSyncScriptByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CancelAllResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r CancelAllResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CancelAllResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetQueueCountResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		DatabaseLength int `json:"database_length"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetQueueCountResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetQueueCountResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -26141,6 +26404,15 @@ func (c *ClientWithResponses) ListInstanceGroupsWithResponse(ctx context.Context
 	return ParseListInstanceGroupsResponse(rsp)
 }
 
+// GetDbClockWithResponse request returning *GetDbClockResponse
+func (c *ClientWithResponses) GetDbClockWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDbClockResponse, error) {
+	rsp, err := c.GetDbClock(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDbClockResponse(rsp)
+}
+
 // ConnectCallbackWithBodyWithResponse request with arbitrary body returning *ConnectCallbackResponse
 func (c *ClientWithResponses) ConnectCallbackWithBodyWithResponse(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error) {
 	rsp, err := c.ConnectCallbackWithBody(ctx, clientName, contentType, body, reqEditors...)
@@ -27248,6 +27520,24 @@ func (c *ClientWithResponses) OpenaiSyncScriptByPathWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseOpenaiSyncScriptByPathResponse(rsp)
+}
+
+// CancelAllWithResponse request returning *CancelAllResponse
+func (c *ClientWithResponses) CancelAllWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*CancelAllResponse, error) {
+	rsp, err := c.CancelAll(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelAllResponse(rsp)
+}
+
+// GetQueueCountWithResponse request returning *GetQueueCountResponse
+func (c *ClientWithResponses) GetQueueCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetQueueCountResponse, error) {
+	rsp, err := c.GetQueueCount(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetQueueCountResponse(rsp)
 }
 
 // ListQueueWithResponse request returning *ListQueueResponse
@@ -28849,6 +29139,32 @@ func ParseListInstanceGroupsResponse(rsp *http.Response) (*ListInstanceGroupsRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []InstanceGroup
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDbClockResponse parses an HTTP response from a GetDbClockWithResponse call
+func ParseGetDbClockResponse(rsp *http.Response) (*GetDbClockResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDbClockResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest int
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -30821,6 +31137,60 @@ func ParseOpenaiSyncScriptByPathResponse(rsp *http.Response) (*OpenaiSyncScriptB
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCancelAllResponse parses an HTTP response from a CancelAllWithResponse call
+func ParseCancelAllResponse(rsp *http.Response) (*CancelAllResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CancelAllResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetQueueCountResponse parses an HTTP response from a GetQueueCountWithResponse call
+func ParseGetQueueCountResponse(rsp *http.Response) (*GetQueueCountResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetQueueCountResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			DatabaseLength int `json:"database_length"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
