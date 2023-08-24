@@ -609,10 +609,16 @@ type EditResourceType struct {
 
 // EditSchedule defines model for EditSchedule.
 type EditSchedule struct {
-	Args      ScriptArgs `json:"args"`
-	OnFailure *string    `json:"on_failure,omitempty"`
-	Schedule  string     `json:"schedule"`
-	Timezone  string     `json:"timezone"`
+	Args                ScriptArgs  `json:"args"`
+	OnFailure           *string     `json:"on_failure,omitempty"`
+	OnFailureExact      *bool       `json:"on_failure_exact,omitempty"`
+	OnFailureExtraArgs  *ScriptArgs `json:"on_failure_extra_args,omitempty"`
+	OnFailureTimes      *float32    `json:"on_failure_times,omitempty"`
+	OnRecovery          *string     `json:"on_recovery,omitempty"`
+	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
+	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
+	Schedule            string      `json:"schedule"`
+	Timezone            string      `json:"timezone"`
 }
 
 // EditVariable defines model for EditVariable.
@@ -965,14 +971,20 @@ type Login struct {
 
 // NewSchedule defines model for NewSchedule.
 type NewSchedule struct {
-	Args       ScriptArgs `json:"args"`
-	Enabled    *bool      `json:"enabled,omitempty"`
-	IsFlow     bool       `json:"is_flow"`
-	OnFailure  *string    `json:"on_failure,omitempty"`
-	Path       string     `json:"path"`
-	Schedule   string     `json:"schedule"`
-	ScriptPath string     `json:"script_path"`
-	Timezone   string     `json:"timezone"`
+	Args                ScriptArgs  `json:"args"`
+	Enabled             *bool       `json:"enabled,omitempty"`
+	IsFlow              bool        `json:"is_flow"`
+	OnFailure           *string     `json:"on_failure,omitempty"`
+	OnFailureExact      *bool       `json:"on_failure_exact,omitempty"`
+	OnFailureExtraArgs  *ScriptArgs `json:"on_failure_extra_args,omitempty"`
+	OnFailureTimes      *float32    `json:"on_failure_times,omitempty"`
+	OnRecovery          *string     `json:"on_recovery,omitempty"`
+	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
+	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
+	Path                string      `json:"path"`
+	Schedule            string      `json:"schedule"`
+	ScriptPath          string      `json:"script_path"`
+	Timezone            string      `json:"timezone"`
 }
 
 // NewScript defines model for NewScript.
@@ -1236,19 +1248,25 @@ type RunnableType string
 
 // Schedule defines model for Schedule.
 type Schedule struct {
-	Args       *ScriptArgs         `json:"args,omitempty"`
-	EditedAt   time.Time           `json:"edited_at"`
-	EditedBy   string              `json:"edited_by"`
-	Email      string              `json:"email"`
-	Enabled    bool                `json:"enabled"`
-	Error      *string             `json:"error,omitempty"`
-	ExtraPerms Schedule_ExtraPerms `json:"extra_perms"`
-	IsFlow     bool                `json:"is_flow"`
-	OnFailure  *string             `json:"on_failure,omitempty"`
-	Path       string              `json:"path"`
-	Schedule   string              `json:"schedule"`
-	ScriptPath string              `json:"script_path"`
-	Timezone   string              `json:"timezone"`
+	Args                *ScriptArgs         `json:"args,omitempty"`
+	EditedAt            time.Time           `json:"edited_at"`
+	EditedBy            string              `json:"edited_by"`
+	Email               string              `json:"email"`
+	Enabled             bool                `json:"enabled"`
+	Error               *string             `json:"error,omitempty"`
+	ExtraPerms          Schedule_ExtraPerms `json:"extra_perms"`
+	IsFlow              bool                `json:"is_flow"`
+	OnFailure           *string             `json:"on_failure,omitempty"`
+	OnFailureExact      *bool               `json:"on_failure_exact,omitempty"`
+	OnFailureExtraArgs  *ScriptArgs         `json:"on_failure_extra_args,omitempty"`
+	OnFailureTimes      *float32            `json:"on_failure_times,omitempty"`
+	OnRecovery          *string             `json:"on_recovery,omitempty"`
+	OnRecoveryExtraArgs *ScriptArgs         `json:"on_recovery_extra_args,omitempty"`
+	OnRecoveryTimes     *float32            `json:"on_recovery_times,omitempty"`
+	Path                string              `json:"path"`
+	Schedule            string              `json:"schedule"`
+	ScriptPath          string              `json:"script_path"`
+	Timezone            string              `json:"timezone"`
 }
 
 // Schedule_ExtraPerms defines model for Schedule.ExtraPerms.
@@ -1271,11 +1289,17 @@ type ScheduleWJobs struct {
 		Id         string  `json:"id"`
 		Success    bool    `json:"success"`
 	} `json:"jobs,omitempty"`
-	OnFailure  *string `json:"on_failure,omitempty"`
-	Path       string  `json:"path"`
-	Schedule   string  `json:"schedule"`
-	ScriptPath string  `json:"script_path"`
-	Timezone   string  `json:"timezone"`
+	OnFailure           *string     `json:"on_failure,omitempty"`
+	OnFailureExact      *bool       `json:"on_failure_exact,omitempty"`
+	OnFailureExtraArgs  *ScriptArgs `json:"on_failure_extra_args,omitempty"`
+	OnFailureTimes      *float32    `json:"on_failure_times,omitempty"`
+	OnRecovery          *string     `json:"on_recovery,omitempty"`
+	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
+	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
+	Path                string      `json:"path"`
+	Schedule            string      `json:"schedule"`
+	ScriptPath          string      `json:"script_path"`
+	Timezone            string      `json:"timezone"`
 }
 
 // ScheduleWJobs_ExtraPerms defines model for ScheduleWJobs.ExtraPerms.
