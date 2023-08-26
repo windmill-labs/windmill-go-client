@@ -145,6 +145,7 @@ const (
 
 // Defines values for CompletedJobJobKind.
 const (
+	CompletedJobJobKindAppdependencies  CompletedJobJobKind = "appdependencies"
 	CompletedJobJobKindDependencies     CompletedJobJobKind = "dependencies"
 	CompletedJobJobKindFlow             CompletedJobJobKind = "flow"
 	CompletedJobJobKindFlowdependencies CompletedJobJobKind = "flowdependencies"
@@ -328,6 +329,7 @@ const (
 
 // Defines values for QueuedJobJobKind.
 const (
+	QueuedJobJobKindAppdependencies  QueuedJobJobKind = "appdependencies"
 	QueuedJobJobKindDependencies     QueuedJobJobKind = "dependencies"
 	QueuedJobJobKindFlow             QueuedJobJobKind = "flow"
 	QueuedJobJobKindFlowdependencies QueuedJobJobKind = "flowdependencies"
