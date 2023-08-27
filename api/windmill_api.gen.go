@@ -804,6 +804,7 @@ type ForloopFlow struct {
 	Iterator     InputTransform  `json:"iterator"`
 	Modules      []FlowModule    `json:"modules"`
 	Parallel     *bool           `json:"parallel,omitempty"`
+	Parallelism  *int            `json:"parallelism,omitempty"`
 	SkipFailures bool            `json:"skip_failures"`
 	Type         ForloopFlowType `json:"type"`
 }
