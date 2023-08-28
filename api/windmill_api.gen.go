@@ -782,9 +782,12 @@ type FlowStatusModuleType string
 
 // FlowValue defines model for FlowValue.
 type FlowValue struct {
-	FailureModule *FlowModule  `json:"failure_module,omitempty"`
-	Modules       []FlowModule `json:"modules"`
-	SameWorker    *bool        `json:"same_worker,omitempty"`
+	ConcurrencyTimeWindowS *float32     `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *float32     `json:"concurrent_limit,omitempty"`
+	FailureModule          *FlowModule  `json:"failure_module,omitempty"`
+	Modules                []FlowModule `json:"modules"`
+	SameWorker             *bool        `json:"same_worker,omitempty"`
+	SkipExpr               *string      `json:"skip_expr,omitempty"`
 }
 
 // Folder defines model for Folder.
