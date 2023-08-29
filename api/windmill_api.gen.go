@@ -782,6 +782,7 @@ type FlowStatusModuleType string
 
 // FlowValue defines model for FlowValue.
 type FlowValue struct {
+	CacheTtl               *float32     `json:"cache_ttl,omitempty"`
 	ConcurrencyTimeWindowS *float32     `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *float32     `json:"concurrent_limit,omitempty"`
 	FailureModule          *FlowModule  `json:"failure_module,omitempty"`
@@ -995,6 +996,7 @@ type NewSchedule struct {
 
 // NewScript defines model for NewScript.
 type NewScript struct {
+	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
 	ConcurrencyTimeWindowS *[]int                  `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *[]int                  `json:"concurrent_limit,omitempty"`
 	Content                string                  `json:"content"`
@@ -1020,6 +1022,7 @@ type NewScriptLanguage string
 
 // NewScriptWithDraft defines model for NewScriptWithDraft.
 type NewScriptWithDraft struct {
+	CacheTtl               *float32                   `json:"cache_ttl,omitempty"`
 	ConcurrencyTimeWindowS *[]int                     `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *[]int                     `json:"concurrent_limit,omitempty"`
 	Content                string                     `json:"content"`
@@ -1316,6 +1319,7 @@ type ScheduleWJobs_ExtraPerms struct {
 // Script defines model for Script.
 type Script struct {
 	Archived               bool              `json:"archived"`
+	CacheTtl               *float32          `json:"cache_ttl,omitempty"`
 	ConcurrencyTimeWindowS *[]int            `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *[]int            `json:"concurrent_limit,omitempty"`
 	Content                string            `json:"content"`
@@ -1718,6 +1722,7 @@ type ExecuteComponentJSONBody struct {
 	ForceViewerStaticFields *map[string]interface{} `json:"force_viewer_static_fields,omitempty"`
 	Path                    *string                 `json:"path,omitempty"`
 	RawCode                 *struct {
+		CacheTtl *int    `json:"cache_ttl,omitempty"`
 		Content  string  `json:"content"`
 		Language string  `json:"language"`
 		Path     *string `json:"path,omitempty"`
