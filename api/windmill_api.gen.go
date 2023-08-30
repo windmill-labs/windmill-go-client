@@ -1494,6 +1494,9 @@ type JobId = openapi_types.UUID
 // JobKinds defines model for JobKinds.
 type JobKinds = string
 
+// Key defines model for Key.
+type Key = string
+
 // Name defines model for Name.
 type Name = string
 
@@ -1606,6 +1609,11 @@ type LoginWithOauthJSONBody struct {
 type PreviewScheduleJSONBody struct {
 	Schedule string `json:"schedule"`
 	Timezone string `json:"timezone"`
+}
+
+// SetGlobalJSONBody defines parameters for SetGlobal.
+type SetGlobalJSONBody struct {
+	Value *interface{} `json:"value,omitempty"`
 }
 
 // AcceptInviteJSONBody defines parameters for AcceptInvite.
@@ -2696,6 +2704,9 @@ type LoginWithOauthJSONRequestBody LoginWithOauthJSONBody
 
 // PreviewScheduleJSONRequestBody defines body for PreviewSchedule for application/json ContentType.
 type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
+
+// SetGlobalJSONRequestBody defines body for SetGlobal for application/json ContentType.
+type SetGlobalJSONRequestBody SetGlobalJSONBody
 
 // AcceptInviteJSONRequestBody defines body for AcceptInvite for application/json ContentType.
 type AcceptInviteJSONRequestBody AcceptInviteJSONBody
@@ -4064,6 +4075,17 @@ type ClientInterface interface {
 	// RawScriptByPathTokened request
 	RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetGlobal request
+	GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetGlobal request with any body
+	SetGlobalWithBody(ctx context.Context, key Key, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetGlobal(ctx context.Context, key Key, body SetGlobalJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetLocal request
+	GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// BackendUptodate request
 	BackendUptodate(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5092,6 +5114,54 @@ func (c *Client) ListHubScripts(ctx context.Context, reqEditors ...RequestEditor
 
 func (c *Client) RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRawScriptByPathTokenedRequest(c.Server, workspace, token, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGlobalRequest(c.Server, key)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetGlobalWithBody(ctx context.Context, key Key, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetGlobalRequestWithBody(c.Server, key, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetGlobal(ctx context.Context, key Key, body SetGlobalJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetGlobalRequest(c.Server, key, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLocalRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -9035,6 +9105,114 @@ func NewRawScriptByPathTokenedRequest(server string, workspace WorkspaceId, toke
 	}
 
 	operationPath := fmt.Sprintf("/scripts_u/tokened_raw/%s/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetGlobalRequest generates requests for GetGlobal
+func NewGetGlobalRequest(server string, key Key) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "key", runtime.ParamLocationPath, key)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/global/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetGlobalRequest calls the generic SetGlobal builder with application/json body
+func NewSetGlobalRequest(server string, key Key, body SetGlobalJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetGlobalRequestWithBody(server, key, "application/json", bodyReader)
+}
+
+// NewSetGlobalRequestWithBody generates requests for SetGlobal with any type of body
+func NewSetGlobalRequestWithBody(server string, key Key, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "key", runtime.ParamLocationPath, key)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/global/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetLocalRequest generates requests for GetLocal
+func NewGetLocalRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/local")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -20713,6 +20891,17 @@ type ClientWithResponsesInterface interface {
 	// RawScriptByPathTokened request
 	RawScriptByPathTokenedWithResponse(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathTokenedResponse, error)
 
+	// GetGlobal request
+	GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error)
+
+	// SetGlobal request with any body
+	SetGlobalWithBodyWithResponse(ctx context.Context, key Key, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetGlobalResponse, error)
+
+	SetGlobalWithResponse(ctx context.Context, key Key, body SetGlobalJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGlobalResponse, error)
+
+	// GetLocal request
+	GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error)
+
 	// BackendUptodate request
 	BackendUptodateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*BackendUptodateResponse, error)
 
@@ -21940,6 +22129,71 @@ func (r RawScriptByPathTokenedResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RawScriptByPathTokenedResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGlobalResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGlobalResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGlobalResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetGlobalResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetGlobalResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetGlobalResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetLocalResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetLocalResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetLocalResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -26562,6 +26816,41 @@ func (c *ClientWithResponses) RawScriptByPathTokenedWithResponse(ctx context.Con
 	return ParseRawScriptByPathTokenedResponse(rsp)
 }
 
+// GetGlobalWithResponse request returning *GetGlobalResponse
+func (c *ClientWithResponses) GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error) {
+	rsp, err := c.GetGlobal(ctx, key, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGlobalResponse(rsp)
+}
+
+// SetGlobalWithBodyWithResponse request with arbitrary body returning *SetGlobalResponse
+func (c *ClientWithResponses) SetGlobalWithBodyWithResponse(ctx context.Context, key Key, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetGlobalResponse, error) {
+	rsp, err := c.SetGlobalWithBody(ctx, key, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetGlobalResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetGlobalWithResponse(ctx context.Context, key Key, body SetGlobalJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGlobalResponse, error) {
+	rsp, err := c.SetGlobal(ctx, key, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetGlobalResponse(rsp)
+}
+
+// GetLocalWithResponse request returning *GetLocalResponse
+func (c *ClientWithResponses) GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error) {
+	rsp, err := c.GetLocal(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetLocalResponse(rsp)
+}
+
 // BackendUptodateWithResponse request returning *BackendUptodateResponse
 func (c *ClientWithResponses) BackendUptodateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*BackendUptodateResponse, error) {
 	rsp, err := c.BackendUptodate(ctx, reqEditors...)
@@ -29450,6 +29739,74 @@ func ParseRawScriptByPathTokenedResponse(rsp *http.Response) (*RawScriptByPathTo
 	response := &RawScriptByPathTokenedResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetGlobalResponse parses an HTTP response from a GetGlobalWithResponse call
+func ParseGetGlobalResponse(rsp *http.Response) (*GetGlobalResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGlobalResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetGlobalResponse parses an HTTP response from a SetGlobalWithResponse call
+func ParseSetGlobalResponse(rsp *http.Response) (*SetGlobalResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetGlobalResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetLocalResponse parses an HTTP response from a GetLocalWithResponse call
+func ParseGetLocalResponse(rsp *http.Response) (*GetLocalResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetLocalResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
