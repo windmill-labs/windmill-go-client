@@ -1000,6 +1000,7 @@ type NewScript struct {
 	ConcurrencyTimeWindowS *[]int                  `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *[]int                  `json:"concurrent_limit,omitempty"`
 	Content                string                  `json:"content"`
+	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
 	Description            string                  `json:"description"`
 	DraftOnly              *bool                   `json:"draft_only,omitempty"`
 	Envs                   *[]string               `json:"envs,omitempty"`
@@ -1026,6 +1027,7 @@ type NewScriptWithDraft struct {
 	ConcurrencyTimeWindowS *[]int                     `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *[]int                     `json:"concurrent_limit,omitempty"`
 	Content                string                     `json:"content"`
+	DedicatedWorker        *bool                      `json:"dedicated_worker,omitempty"`
 	Description            string                     `json:"description"`
 	Draft                  *NewScript                 `json:"draft,omitempty"`
 	DraftOnly              *bool                      `json:"draft_only,omitempty"`
@@ -1325,6 +1327,7 @@ type Script struct {
 	Content                string            `json:"content"`
 	CreatedAt              time.Time         `json:"created_at"`
 	CreatedBy              string            `json:"created_by"`
+	DedicatedWorker        *bool             `json:"dedicated_worker,omitempty"`
 	Deleted                bool              `json:"deleted"`
 	Description            string            `json:"description"`
 	DraftOnly              *bool             `json:"draft_only,omitempty"`
