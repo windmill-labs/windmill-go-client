@@ -4563,6 +4563,9 @@ type ClientInterface interface {
 	// ListResource request
 	ListResource(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListResourceNames request
+	ListResourceNames(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateResourceType request with any body
 	CreateResourceTypeWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7253,6 +7256,18 @@ func (c *Client) GetResourceValueInterpolated(ctx context.Context, workspace Wor
 
 func (c *Client) ListResource(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListResourceRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListResourceNames(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListResourceNamesRequest(c.Server, workspace, name)
 	if err != nil {
 		return nil, err
 	}
@@ -17306,6 +17321,47 @@ func NewListResourceRequest(server string, workspace WorkspaceId, params *ListRe
 	return req, nil
 }
 
+// NewListResourceNamesRequest generates requests for ListResourceNames
+func NewListResourceNamesRequest(server string, workspace WorkspaceId, name Name) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/list_names/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateResourceTypeRequest calls the generic CreateResourceType builder with application/json body
 func NewCreateResourceTypeRequest(server string, workspace WorkspaceId, body CreateResourceTypeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -21379,6 +21435,9 @@ type ClientWithResponsesInterface interface {
 	// ListResource request
 	ListResourceWithResponse(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*ListResourceResponse, error)
 
+	// ListResourceNames request
+	ListResourceNamesWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*ListResourceNamesResponse, error)
+
 	// CreateResourceType request with any body
 	CreateResourceTypeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResourceTypeResponse, error)
 
@@ -24974,6 +25033,31 @@ func (r ListResourceResponse) StatusCode() int {
 	return 0
 }
 
+type ListResourceNamesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Name string `json:"name"`
+		Path string `json:"path"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListResourceNamesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListResourceNamesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateResourceTypeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -28370,6 +28454,15 @@ func (c *ClientWithResponses) ListResourceWithResponse(ctx context.Context, work
 		return nil, err
 	}
 	return ParseListResourceResponse(rsp)
+}
+
+// ListResourceNamesWithResponse request returning *ListResourceNamesResponse
+func (c *ClientWithResponses) ListResourceNamesWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*ListResourceNamesResponse, error) {
+	rsp, err := c.ListResourceNames(ctx, workspace, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListResourceNamesResponse(rsp)
 }
 
 // CreateResourceTypeWithBodyWithResponse request with arbitrary body returning *CreateResourceTypeResponse
@@ -32450,6 +32543,35 @@ func ParseListResourceResponse(rsp *http.Response) (*ListResourceResponse, error
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []ListableResource
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListResourceNamesResponse parses an HTTP response from a ListResourceNamesWithResponse call
+func ParseListResourceNamesResponse(rsp *http.Response) (*ListResourceNamesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListResourceNamesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Name string `json:"name"`
+			Path string `json:"path"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
