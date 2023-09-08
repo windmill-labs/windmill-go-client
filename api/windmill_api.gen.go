@@ -1614,6 +1614,18 @@ type PreviewScheduleJSONBody struct {
 	Timezone string `json:"timezone"`
 }
 
+// QueryHubScriptsParams defines parameters for QueryHubScripts.
+type QueryHubScriptsParams struct {
+	// query text
+	Text string `form:"text" json:"text"`
+
+	// query scripts kind
+	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
+
+	// query limit
+	Limit *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // SetGlobalJSONBody defines parameters for SetGlobal.
 type SetGlobalJSONBody struct {
 	Value *interface{} `json:"value,omitempty"`
@@ -4075,6 +4087,9 @@ type ClientInterface interface {
 	// ListHubScripts request
 	ListHubScripts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// QueryHubScripts request
+	QueryHubScripts(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RawScriptByPathTokened request
 	RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5108,6 +5123,18 @@ func (c *Client) GetHubScriptByPath(ctx context.Context, path ScriptPath, reqEdi
 
 func (c *Client) ListHubScripts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListHubScriptsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) QueryHubScripts(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewQueryHubScriptsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -9083,6 +9110,81 @@ func NewListHubScriptsRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewQueryHubScriptsRequest generates requests for QueryHubScripts
+func NewQueryHubScriptsRequest(server string, params *QueryHubScriptsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/scripts/hub/query")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "text", runtime.ParamLocationQuery, params.Text); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.Kind != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Limit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -20947,6 +21049,9 @@ type ClientWithResponsesInterface interface {
 	// ListHubScripts request
 	ListHubScriptsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubScriptsResponse, error)
 
+	// QueryHubScripts request
+	QueryHubScriptsWithResponse(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*QueryHubScriptsResponse, error)
+
 	// RawScriptByPathTokened request
 	RawScriptByPathTokenedWithResponse(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathTokenedResponse, error)
 
@@ -22170,6 +22275,30 @@ func (r ListHubScriptsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListHubScriptsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type QueryHubScriptsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Id string `json:"id"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r QueryHubScriptsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r QueryHubScriptsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -26894,6 +27023,15 @@ func (c *ClientWithResponses) ListHubScriptsWithResponse(ctx context.Context, re
 	return ParseListHubScriptsResponse(rsp)
 }
 
+// QueryHubScriptsWithResponse request returning *QueryHubScriptsResponse
+func (c *ClientWithResponses) QueryHubScriptsWithResponse(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*QueryHubScriptsResponse, error) {
+	rsp, err := c.QueryHubScripts(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseQueryHubScriptsResponse(rsp)
+}
+
 // RawScriptByPathTokenedWithResponse request returning *RawScriptByPathTokenedResponse
 func (c *ClientWithResponses) RawScriptByPathTokenedWithResponse(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathTokenedResponse, error) {
 	rsp, err := c.RawScriptByPathTokened(ctx, workspace, token, path, reqEditors...)
@@ -29813,6 +29951,34 @@ func ParseListHubScriptsResponse(rsp *http.Response) (*ListHubScriptsResponse, e
 				Views    float32 `json:"views"`
 				Votes    float32 `json:"votes"`
 			} `json:"asks,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseQueryHubScriptsResponse parses an HTTP response from a QueryHubScriptsWithResponse call
+func ParseQueryHubScriptsResponse(rsp *http.Response) (*QueryHubScriptsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &QueryHubScriptsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Id string `json:"id"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
