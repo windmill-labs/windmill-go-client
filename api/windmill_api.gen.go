@@ -4240,6 +4240,9 @@ type ClientInterface interface {
 	// GetPublicAppBySecret request
 	GetPublicAppBySecret(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetPublicResource request
+	GetPublicResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAuditLog request
 	GetAuditLog(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5780,6 +5783,18 @@ func (c *Client) ExecuteComponent(ctx context.Context, workspace WorkspaceId, pa
 
 func (c *Client) GetPublicAppBySecret(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPublicAppBySecretRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPublicResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPublicResourceRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -10919,6 +10934,47 @@ func NewGetPublicAppBySecretRequest(server string, workspace WorkspaceId, path P
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/apps_u/public_app/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetPublicResourceRequest generates requests for GetPublicResource
+func NewGetPublicResourceRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps_u/public_resource/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -21418,6 +21474,9 @@ type ClientWithResponsesInterface interface {
 	// GetPublicAppBySecret request
 	GetPublicAppBySecretWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicAppBySecretResponse, error)
 
+	// GetPublicResource request
+	GetPublicResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicResourceResponse, error)
+
 	// GetAuditLog request
 	GetAuditLogWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAuditLogResponse, error)
 
@@ -23380,6 +23439,28 @@ func (r GetPublicAppBySecretResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetPublicAppBySecretResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetPublicResourceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPublicResourceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPublicResourceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -27815,6 +27896,15 @@ func (c *ClientWithResponses) GetPublicAppBySecretWithResponse(ctx context.Conte
 	return ParseGetPublicAppBySecretResponse(rsp)
 }
 
+// GetPublicResourceWithResponse request returning *GetPublicResourceResponse
+func (c *ClientWithResponses) GetPublicResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicResourceResponse, error) {
+	rsp, err := c.GetPublicResource(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPublicResourceResponse(rsp)
+}
+
 // GetAuditLogWithResponse request returning *GetAuditLogResponse
 func (c *ClientWithResponses) GetAuditLogWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAuditLogResponse, error) {
 	rsp, err := c.GetAuditLog(ctx, workspace, id, reqEditors...)
@@ -31136,6 +31226,32 @@ func ParseGetPublicAppBySecretResponse(rsp *http.Response) (*GetPublicAppBySecre
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest AppWithLastVersion
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetPublicResourceResponse parses an HTTP response from a GetPublicResourceWithResponse call
+func ParseGetPublicResourceResponse(rsp *http.Response) (*GetPublicResourceResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPublicResourceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
