@@ -1597,6 +1597,9 @@ type WorkspaceId = string
 // LoginJSONBody defines parameters for Login.
 type LoginJSONBody = Login
 
+// UpdateConfigJSONBody defines parameters for UpdateConfig.
+type UpdateConfigJSONBody = interface{}
+
 // ConnectCallbackJSONBody defines parameters for ConnectCallback.
 type ConnectCallbackJSONBody struct {
 	Code  string `json:"code"`
@@ -1630,6 +1633,24 @@ type QueryHubScriptsParams struct {
 // SetGlobalJSONBody defines parameters for SetGlobal.
 type SetGlobalJSONBody struct {
 	Value *interface{} `json:"value,omitempty"`
+}
+
+// TestLicenseKeyJSONBody defines parameters for TestLicenseKey.
+type TestLicenseKeyJSONBody struct {
+	LicenseKey string `json:"license_key"`
+}
+
+// TestSmtpJSONBody defines parameters for TestSmtp.
+type TestSmtpJSONBody struct {
+	Smtp struct {
+		From        string `json:"from"`
+		Host        string `json:"host"`
+		Password    string `json:"password"`
+		Port        int    `json:"port"`
+		TlsImplicit bool   `json:"tls_implicit"`
+		Username    string `json:"username"`
+	} `json:"smtp"`
+	To string `json:"to"`
 }
 
 // AcceptInviteJSONBody defines parameters for AcceptInvite.
@@ -2080,6 +2101,9 @@ type ListJobsParams struct {
 
 	// filter on created_at for non non started job and started_at otherwise before (inclusive) timestamp
 	CreatedOrStartedBefore *CreatedOrStartedBefore `form:"created_or_started_before,omitempty" json:"created_or_started_before,omitempty"`
+
+	// filter on running jobs
+	Running *Running `form:"running,omitempty" json:"running,omitempty"`
 
 	// filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp
 	CreatedOrStartedAfter *CreatedOrStartedAfter `form:"created_or_started_after,omitempty" json:"created_or_started_after,omitempty"`
@@ -2686,9 +2710,6 @@ type ListWorkersParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
-// UpdateWorkerGroupJSONBody defines parameters for UpdateWorkerGroup.
-type UpdateWorkerGroupJSONBody = interface{}
-
 // CreateWorkspaceJSONBody defines parameters for CreateWorkspace.
 type CreateWorkspaceJSONBody = CreateWorkspace
 
@@ -2715,6 +2736,9 @@ type ListWorkspacesAsSuperAdminParams struct {
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginJSONBody
 
+// UpdateConfigJSONRequestBody defines body for UpdateConfig for application/json ContentType.
+type UpdateConfigJSONRequestBody = UpdateConfigJSONBody
+
 // ConnectCallbackJSONRequestBody defines body for ConnectCallback for application/json ContentType.
 type ConnectCallbackJSONRequestBody ConnectCallbackJSONBody
 
@@ -2726,6 +2750,12 @@ type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
 
 // SetGlobalJSONRequestBody defines body for SetGlobal for application/json ContentType.
 type SetGlobalJSONRequestBody SetGlobalJSONBody
+
+// TestLicenseKeyJSONRequestBody defines body for TestLicenseKey for application/json ContentType.
+type TestLicenseKeyJSONRequestBody TestLicenseKeyJSONBody
+
+// TestSmtpJSONRequestBody defines body for TestSmtp for application/json ContentType.
+type TestSmtpJSONRequestBody TestSmtpJSONBody
 
 // AcceptInviteJSONRequestBody defines body for AcceptInvite for application/json ContentType.
 type AcceptInviteJSONRequestBody AcceptInviteJSONBody
@@ -2936,9 +2966,6 @@ type EditWebhookJSONRequestBody EditWebhookJSONBody
 
 // InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
 type InviteUserJSONRequestBody InviteUserJSONBody
-
-// UpdateWorkerGroupJSONRequestBody defines body for UpdateWorkerGroup for application/json ContentType.
-type UpdateWorkerGroupJSONRequestBody = UpdateWorkerGroupJSONBody
 
 // CreateWorkspaceJSONRequestBody defines body for CreateWorkspace for application/json ContentType.
 type CreateWorkspaceJSONRequestBody = CreateWorkspaceJSONBody
@@ -4043,6 +4070,20 @@ type ClientInterface interface {
 	// Logout request
 	Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetConfig request
+	GetConfig(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListWorkerGroups request
+	ListWorkerGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteConfig request
+	DeleteConfig(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateConfig request with any body
+	UpdateConfigWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateConfig(ctx context.Context, name Name, body UpdateConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetLicenseId request
 	GetLicenseId(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4110,6 +4151,16 @@ type ClientInterface interface {
 
 	// GetLocal request
 	GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestLicenseKey request with any body
+	TestLicenseKeyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestLicenseKey(ctx context.Context, body TestLicenseKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestSmtp request with any body
+	TestSmtpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// BackendUptodate request
 	BackendUptodate(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4836,17 +4887,6 @@ type ClientInterface interface {
 	// ListWorkers request
 	ListWorkers(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ListWorkerGroups request
-	ListWorkerGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DeleteWorkerGroup request
-	DeleteWorkerGroup(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UpdateWorkerGroup request with any body
-	UpdateWorkerGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UpdateWorkerGroup(ctx context.Context, name Name, body UpdateWorkerGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// IsDomainAllowed request
 	IsDomainAllowed(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4931,6 +4971,66 @@ func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditor
 
 func (c *Client) Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLogoutRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetConfig(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetConfigRequest(c.Server, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListWorkerGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListWorkerGroupsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteConfig(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteConfigRequest(c.Server, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateConfigWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateConfigRequestWithBody(c.Server, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateConfig(ctx context.Context, name Name, body UpdateConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateConfigRequest(c.Server, name, body)
 	if err != nil {
 		return nil, err
 	}
@@ -5219,6 +5319,54 @@ func (c *Client) SetGlobal(ctx context.Context, key Key, body SetGlobalJSONReque
 
 func (c *Client) GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetLocalRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestLicenseKeyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestLicenseKeyRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestLicenseKey(ctx context.Context, body TestLicenseKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestLicenseKeyRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestSmtpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestSmtpRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestSmtpRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -8409,54 +8557,6 @@ func (c *Client) ListWorkers(ctx context.Context, params *ListWorkersParams, req
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListWorkerGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListWorkerGroupsRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DeleteWorkerGroup(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteWorkerGroupRequest(c.Server, name)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdateWorkerGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateWorkerGroupRequestWithBody(c.Server, name, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdateWorkerGroup(ctx context.Context, name Name, body UpdateWorkerGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateWorkerGroupRequest(c.Server, name, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) IsDomainAllowed(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewIsDomainAllowedRequest(c.Server)
 	if err != nil {
@@ -8725,6 +8825,148 @@ func NewLogoutRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGetConfigRequest generates requests for GetConfig
+func NewGetConfigRequest(server string, name Name) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/get/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListWorkerGroupsRequest generates requests for ListWorkerGroups
+func NewListWorkerGroupsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/list_worker_groups")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDeleteConfigRequest generates requests for DeleteConfig
+func NewDeleteConfigRequest(server string, name Name) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/update/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateConfigRequest calls the generic UpdateConfig builder with application/json body
+func NewUpdateConfigRequest(server string, name Name, body UpdateConfigJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateConfigRequestWithBody(server, name, "application/json", bodyReader)
+}
+
+// NewUpdateConfigRequestWithBody generates requests for UpdateConfig with any type of body
+func NewUpdateConfigRequestWithBody(server string, name Name, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/update/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -9442,6 +9684,86 @@ func NewGetLocalRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewTestLicenseKeyRequest calls the generic TestLicenseKey builder with application/json body
+func NewTestLicenseKeyRequest(server string, body TestLicenseKeyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestLicenseKeyRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewTestLicenseKeyRequestWithBody generates requests for TestLicenseKey with any type of body
+func NewTestLicenseKeyRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/test_license_key")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestSmtpRequest calls the generic TestSmtp builder with application/json body
+func NewTestSmtpRequest(server string, body TestSmtpJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestSmtpRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewTestSmtpRequestWithBody generates requests for TestSmtp with any type of body
+func NewTestSmtpRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/test_smtp")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -14003,6 +14325,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	if params.CreatedOrStartedBefore != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_before", runtime.ParamLocationQuery, *params.CreatedOrStartedBefore); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Running != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "running", runtime.ParamLocationQuery, *params.Running); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -20780,114 +21118,6 @@ func NewListWorkersRequest(server string, params *ListWorkersParams) (*http.Requ
 	return req, nil
 }
 
-// NewListWorkerGroupsRequest generates requests for ListWorkerGroups
-func NewListWorkerGroupsRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/workers/list_worker_groups")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewDeleteWorkerGroupRequest generates requests for DeleteWorkerGroup
-func NewDeleteWorkerGroupRequest(server string, name Name) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/workers/worker_group/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUpdateWorkerGroupRequest calls the generic UpdateWorkerGroup builder with application/json body
-func NewUpdateWorkerGroupRequest(server string, name Name, body UpdateWorkerGroupJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUpdateWorkerGroupRequestWithBody(server, name, "application/json", bodyReader)
-}
-
-// NewUpdateWorkerGroupRequestWithBody generates requests for UpdateWorkerGroup with any type of body
-func NewUpdateWorkerGroupRequestWithBody(server string, name Name, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/workers/worker_group/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewIsDomainAllowedRequest generates requests for IsDomainAllowed
 func NewIsDomainAllowedRequest(server string) (*http.Request, error) {
 	var err error
@@ -21277,6 +21507,20 @@ type ClientWithResponsesInterface interface {
 	// Logout request
 	LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error)
 
+	// GetConfig request
+	GetConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetConfigResponse, error)
+
+	// ListWorkerGroups request
+	ListWorkerGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkerGroupsResponse, error)
+
+	// DeleteConfig request
+	DeleteConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*DeleteConfigResponse, error)
+
+	// UpdateConfig request with any body
+	UpdateConfigWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateConfigResponse, error)
+
+	UpdateConfigWithResponse(ctx context.Context, name Name, body UpdateConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateConfigResponse, error)
+
 	// GetLicenseId request
 	GetLicenseIdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLicenseIdResponse, error)
 
@@ -21344,6 +21588,16 @@ type ClientWithResponsesInterface interface {
 
 	// GetLocal request
 	GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error)
+
+	// TestLicenseKey request with any body
+	TestLicenseKeyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestLicenseKeyResponse, error)
+
+	TestLicenseKeyWithResponse(ctx context.Context, body TestLicenseKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*TestLicenseKeyResponse, error)
+
+	// TestSmtp request with any body
+	TestSmtpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error)
+
+	TestSmtpWithResponse(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error)
 
 	// BackendUptodate request
 	BackendUptodateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*BackendUptodateResponse, error)
@@ -22070,17 +22324,6 @@ type ClientWithResponsesInterface interface {
 	// ListWorkers request
 	ListWorkersWithResponse(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*ListWorkersResponse, error)
 
-	// ListWorkerGroups request
-	ListWorkerGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkerGroupsResponse, error)
-
-	// DeleteWorkerGroup request
-	DeleteWorkerGroupWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*DeleteWorkerGroupResponse, error)
-
-	// UpdateWorkerGroup request with any body
-	UpdateWorkerGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateWorkerGroupResponse, error)
-
-	UpdateWorkerGroupWithResponse(ctx context.Context, name Name, body UpdateWorkerGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateWorkerGroupResponse, error)
-
 	// IsDomainAllowed request
 	IsDomainAllowedWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsDomainAllowedResponse, error)
 
@@ -22209,6 +22452,95 @@ func (r LogoutResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LogoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListWorkerGroupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Config interface{} `json:"config"`
+		Name   string      `json:"name"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListWorkerGroupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListWorkerGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateConfigResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -22681,6 +23013,48 @@ func (r GetLocalResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetLocalResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestLicenseKeyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestLicenseKeyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestLicenseKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestSmtpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestSmtpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestSmtpResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -26969,73 +27343,6 @@ func (r ListWorkersResponse) StatusCode() int {
 	return 0
 }
 
-type ListWorkerGroupsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *[]struct {
-		Config interface{} `json:"config"`
-		Name   string      `json:"name"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r ListWorkerGroupsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ListWorkerGroupsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DeleteWorkerGroupResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r DeleteWorkerGroupResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DeleteWorkerGroupResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UpdateWorkerGroupResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r UpdateWorkerGroupResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UpdateWorkerGroupResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type IsDomainAllowedResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -27273,6 +27580,50 @@ func (c *ClientWithResponses) LogoutWithResponse(ctx context.Context, reqEditors
 	return ParseLogoutResponse(rsp)
 }
 
+// GetConfigWithResponse request returning *GetConfigResponse
+func (c *ClientWithResponses) GetConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetConfigResponse, error) {
+	rsp, err := c.GetConfig(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetConfigResponse(rsp)
+}
+
+// ListWorkerGroupsWithResponse request returning *ListWorkerGroupsResponse
+func (c *ClientWithResponses) ListWorkerGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkerGroupsResponse, error) {
+	rsp, err := c.ListWorkerGroups(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListWorkerGroupsResponse(rsp)
+}
+
+// DeleteConfigWithResponse request returning *DeleteConfigResponse
+func (c *ClientWithResponses) DeleteConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*DeleteConfigResponse, error) {
+	rsp, err := c.DeleteConfig(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteConfigResponse(rsp)
+}
+
+// UpdateConfigWithBodyWithResponse request with arbitrary body returning *UpdateConfigResponse
+func (c *ClientWithResponses) UpdateConfigWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateConfigResponse, error) {
+	rsp, err := c.UpdateConfigWithBody(ctx, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateConfigResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateConfigWithResponse(ctx context.Context, name Name, body UpdateConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateConfigResponse, error) {
+	rsp, err := c.UpdateConfig(ctx, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateConfigResponse(rsp)
+}
+
 // GetLicenseIdWithResponse request returning *GetLicenseIdResponse
 func (c *ClientWithResponses) GetLicenseIdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLicenseIdResponse, error) {
 	rsp, err := c.GetLicenseId(ctx, reqEditors...)
@@ -27483,6 +27834,40 @@ func (c *ClientWithResponses) GetLocalWithResponse(ctx context.Context, reqEdito
 		return nil, err
 	}
 	return ParseGetLocalResponse(rsp)
+}
+
+// TestLicenseKeyWithBodyWithResponse request with arbitrary body returning *TestLicenseKeyResponse
+func (c *ClientWithResponses) TestLicenseKeyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestLicenseKeyResponse, error) {
+	rsp, err := c.TestLicenseKeyWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestLicenseKeyResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestLicenseKeyWithResponse(ctx context.Context, body TestLicenseKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*TestLicenseKeyResponse, error) {
+	rsp, err := c.TestLicenseKey(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestLicenseKeyResponse(rsp)
+}
+
+// TestSmtpWithBodyWithResponse request with arbitrary body returning *TestSmtpResponse
+func (c *ClientWithResponses) TestSmtpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error) {
+	rsp, err := c.TestSmtpWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestSmtpResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestSmtpWithResponse(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error) {
+	rsp, err := c.TestSmtp(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestSmtpResponse(rsp)
 }
 
 // BackendUptodateWithResponse request returning *BackendUptodateResponse
@@ -29800,41 +30185,6 @@ func (c *ClientWithResponses) ListWorkersWithResponse(ctx context.Context, param
 	return ParseListWorkersResponse(rsp)
 }
 
-// ListWorkerGroupsWithResponse request returning *ListWorkerGroupsResponse
-func (c *ClientWithResponses) ListWorkerGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkerGroupsResponse, error) {
-	rsp, err := c.ListWorkerGroups(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseListWorkerGroupsResponse(rsp)
-}
-
-// DeleteWorkerGroupWithResponse request returning *DeleteWorkerGroupResponse
-func (c *ClientWithResponses) DeleteWorkerGroupWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*DeleteWorkerGroupResponse, error) {
-	rsp, err := c.DeleteWorkerGroup(ctx, name, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteWorkerGroupResponse(rsp)
-}
-
-// UpdateWorkerGroupWithBodyWithResponse request with arbitrary body returning *UpdateWorkerGroupResponse
-func (c *ClientWithResponses) UpdateWorkerGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateWorkerGroupResponse, error) {
-	rsp, err := c.UpdateWorkerGroupWithBody(ctx, name, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdateWorkerGroupResponse(rsp)
-}
-
-func (c *ClientWithResponses) UpdateWorkerGroupWithResponse(ctx context.Context, name Name, body UpdateWorkerGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateWorkerGroupResponse, error) {
-	rsp, err := c.UpdateWorkerGroup(ctx, name, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdateWorkerGroupResponse(rsp)
-}
-
 // IsDomainAllowedWithResponse request returning *IsDomainAllowedResponse
 func (c *ClientWithResponses) IsDomainAllowedWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsDomainAllowedResponse, error) {
 	rsp, err := c.IsDomainAllowed(ctx, reqEditors...)
@@ -30031,6 +30381,93 @@ func ParseLogoutResponse(rsp *http.Response) (*LogoutResponse, error) {
 	}
 
 	response := &LogoutResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetConfigResponse parses an HTTP response from a GetConfigWithResponse call
+func ParseGetConfigResponse(rsp *http.Response) (*GetConfigResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListWorkerGroupsResponse parses an HTTP response from a ListWorkerGroupsWithResponse call
+func ParseListWorkerGroupsResponse(rsp *http.Response) (*ListWorkerGroupsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListWorkerGroupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Config interface{} `json:"config"`
+			Name   string      `json:"name"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteConfigResponse parses an HTTP response from a DeleteConfigWithResponse call
+func ParseDeleteConfigResponse(rsp *http.Response) (*DeleteConfigResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateConfigResponse parses an HTTP response from a UpdateConfigWithResponse call
+func ParseUpdateConfigResponse(rsp *http.Response) (*UpdateConfigResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateConfigResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -30531,6 +30968,38 @@ func ParseGetLocalResponse(rsp *http.Response) (*GetLocalResponse, error) {
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseTestLicenseKeyResponse parses an HTTP response from a TestLicenseKeyWithResponse call
+func ParseTestLicenseKeyResponse(rsp *http.Response) (*TestLicenseKeyResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestLicenseKeyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestSmtpResponse parses an HTTP response from a TestSmtpWithResponse call
+func ParseTestSmtpResponse(rsp *http.Response) (*TestSmtpResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestSmtpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -34666,67 +35135,6 @@ func ParseListWorkersResponse(rsp *http.Response) (*ListWorkersResponse, error) 
 		}
 		response.JSON200 = &dest
 
-	}
-
-	return response, nil
-}
-
-// ParseListWorkerGroupsResponse parses an HTTP response from a ListWorkerGroupsWithResponse call
-func ParseListWorkerGroupsResponse(rsp *http.Response) (*ListWorkerGroupsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ListWorkerGroupsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []struct {
-			Config interface{} `json:"config"`
-			Name   string      `json:"name"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDeleteWorkerGroupResponse parses an HTTP response from a DeleteWorkerGroupWithResponse call
-func ParseDeleteWorkerGroupResponse(rsp *http.Response) (*DeleteWorkerGroupResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeleteWorkerGroupResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseUpdateWorkerGroupResponse parses an HTTP response from a UpdateWorkerGroupWithResponse call
-func ParseUpdateWorkerGroupResponse(rsp *http.Response) (*UpdateWorkerGroupResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UpdateWorkerGroupResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
 	}
 
 	return response, nil
