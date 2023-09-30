@@ -48,89 +48,89 @@ const (
 
 // Defines values for AuditLogOperation.
 const (
-	AccountDelete                    AuditLogOperation = "account.delete"
-	AppsCreate                       AuditLogOperation = "apps.create"
-	AppsDelete                       AuditLogOperation = "apps.delete"
-	AppsUpdate                       AuditLogOperation = "apps.update"
-	FlowsArchive                     AuditLogOperation = "flows.archive"
-	FlowsCreate                      AuditLogOperation = "flows.create"
-	FlowsDelete                      AuditLogOperation = "flows.delete"
-	FlowsUpdate                      AuditLogOperation = "flows.update"
-	FolderAddOwner                   AuditLogOperation = "folder.add_owner"
-	FolderCreate                     AuditLogOperation = "folder.create"
-	FolderDelete                     AuditLogOperation = "folder.delete"
-	FolderRemoveOwner                AuditLogOperation = "folder.remove_owner"
-	FolderUpdate                     AuditLogOperation = "folder.update"
-	GroupAdduser                     AuditLogOperation = "group.adduser"
-	GroupCreate                      AuditLogOperation = "group.create"
-	GroupDelete                      AuditLogOperation = "group.delete"
-	GroupEdit                        AuditLogOperation = "group.edit"
-	GroupRemoveuser                  AuditLogOperation = "group.removeuser"
-	IgroupAdduser                    AuditLogOperation = "igroup.adduser"
-	IgroupCreate                     AuditLogOperation = "igroup.create"
-	IgroupDelete                     AuditLogOperation = "igroup.delete"
-	IgroupRemoveuser                 AuditLogOperation = "igroup.removeuser"
-	Jobs                             AuditLogOperation = "jobs"
-	JobsCancel                       AuditLogOperation = "jobs.cancel"
-	JobsDelete                       AuditLogOperation = "jobs.delete"
-	JobsDisapproval                  AuditLogOperation = "jobs.disapproval"
-	JobsFlowDependencies             AuditLogOperation = "jobs.flow_dependencies"
-	JobsForceCancel                  AuditLogOperation = "jobs.force_cancel"
-	JobsRun                          AuditLogOperation = "jobs.run"
-	JobsRunDependencies              AuditLogOperation = "jobs.run.dependencies"
-	JobsRunFlow                      AuditLogOperation = "jobs.run.flow"
-	JobsRunFlowPreview               AuditLogOperation = "jobs.run.flow_preview"
-	JobsRunIdentity                  AuditLogOperation = "jobs.run.identity"
-	JobsRunNoop                      AuditLogOperation = "jobs.run.noop"
-	JobsRunPreview                   AuditLogOperation = "jobs.run.preview"
-	JobsRunScript                    AuditLogOperation = "jobs.run.script"
-	JobsRunScriptHub                 AuditLogOperation = "jobs.run.script_hub"
-	OauthLogin                       AuditLogOperation = "oauth.login"
-	OauthSignup                      AuditLogOperation = "oauth.signup"
-	OpenaiRequest                    AuditLogOperation = "openai.request"
-	ResourceTypesCreate              AuditLogOperation = "resource_types.create"
-	ResourceTypesDelete              AuditLogOperation = "resource_types.delete"
-	ResourceTypesUpdate              AuditLogOperation = "resource_types.update"
-	ResourcesCreate                  AuditLogOperation = "resources.create"
-	ResourcesDelete                  AuditLogOperation = "resources.delete"
-	ResourcesUpdate                  AuditLogOperation = "resources.update"
-	ScheduleCreate                   AuditLogOperation = "schedule.create"
-	ScheduleDelete                   AuditLogOperation = "schedule.delete"
-	ScheduleEdit                     AuditLogOperation = "schedule.edit"
-	ScheduleSetenabled               AuditLogOperation = "schedule.setenabled"
-	ScriptsArchive                   AuditLogOperation = "scripts.archive"
-	ScriptsCreate                    AuditLogOperation = "scripts.create"
-	ScriptsDelete                    AuditLogOperation = "scripts.delete"
-	ScriptsUpdate                    AuditLogOperation = "scripts.update"
-	UsersAcceptInvite                AuditLogOperation = "users.accept_invite"
-	UsersAddGlobal                   AuditLogOperation = "users.add_global"
-	UsersAddToWorkspace              AuditLogOperation = "users.add_to_workspace"
-	UsersCreate                      AuditLogOperation = "users.create"
-	UsersDeclineInvite               AuditLogOperation = "users.decline_invite"
-	UsersDelete                      AuditLogOperation = "users.delete"
-	UsersImpersonate                 AuditLogOperation = "users.impersonate"
-	UsersLeaveWorkspace              AuditLogOperation = "users.leave_workspace"
-	UsersLogin                       AuditLogOperation = "users.login"
-	UsersLogout                      AuditLogOperation = "users.logout"
-	UsersSetpassword                 AuditLogOperation = "users.setpassword"
-	UsersTokenCreate                 AuditLogOperation = "users.token.create"
-	UsersTokenDelete                 AuditLogOperation = "users.token.delete"
-	UsersUpdate                      AuditLogOperation = "users.update"
-	VariablesCreate                  AuditLogOperation = "variables.create"
-	VariablesDecryptSecret           AuditLogOperation = "variables.decrypt_secret"
-	VariablesDelete                  AuditLogOperation = "variables.delete"
-	VariablesUpdate                  AuditLogOperation = "variables.update"
-	WorkspacesArchive                AuditLogOperation = "workspaces.archive"
-	WorkspacesCreate                 AuditLogOperation = "workspaces.create"
-	WorkspacesDelete                 AuditLogOperation = "workspaces.delete"
-	WorkspacesEditAutoInviteDomain   AuditLogOperation = "workspaces.edit_auto_invite_domain"
-	WorkspacesEditCommandScript      AuditLogOperation = "workspaces.edit_command_script"
-	WorkspacesEditDeployTo           AuditLogOperation = "workspaces.edit_deploy_to"
-	WorkspacesEditErrorHandler       AuditLogOperation = "workspaces.edit_error_handler"
-	WorkspacesEditOpenaiResourcePath AuditLogOperation = "workspaces.edit_openai_resource_path"
-	WorkspacesEditWebhook            AuditLogOperation = "workspaces.edit_webhook"
-	WorkspacesUnarchive              AuditLogOperation = "workspaces.unarchive"
-	WorkspacesUpdate                 AuditLogOperation = "workspaces.update"
+	AccountDelete                  AuditLogOperation = "account.delete"
+	AppsCreate                     AuditLogOperation = "apps.create"
+	AppsDelete                     AuditLogOperation = "apps.delete"
+	AppsUpdate                     AuditLogOperation = "apps.update"
+	FlowsArchive                   AuditLogOperation = "flows.archive"
+	FlowsCreate                    AuditLogOperation = "flows.create"
+	FlowsDelete                    AuditLogOperation = "flows.delete"
+	FlowsUpdate                    AuditLogOperation = "flows.update"
+	FolderAddOwner                 AuditLogOperation = "folder.add_owner"
+	FolderCreate                   AuditLogOperation = "folder.create"
+	FolderDelete                   AuditLogOperation = "folder.delete"
+	FolderRemoveOwner              AuditLogOperation = "folder.remove_owner"
+	FolderUpdate                   AuditLogOperation = "folder.update"
+	GroupAdduser                   AuditLogOperation = "group.adduser"
+	GroupCreate                    AuditLogOperation = "group.create"
+	GroupDelete                    AuditLogOperation = "group.delete"
+	GroupEdit                      AuditLogOperation = "group.edit"
+	GroupRemoveuser                AuditLogOperation = "group.removeuser"
+	IgroupAdduser                  AuditLogOperation = "igroup.adduser"
+	IgroupCreate                   AuditLogOperation = "igroup.create"
+	IgroupDelete                   AuditLogOperation = "igroup.delete"
+	IgroupRemoveuser               AuditLogOperation = "igroup.removeuser"
+	Jobs                           AuditLogOperation = "jobs"
+	JobsCancel                     AuditLogOperation = "jobs.cancel"
+	JobsDelete                     AuditLogOperation = "jobs.delete"
+	JobsDisapproval                AuditLogOperation = "jobs.disapproval"
+	JobsFlowDependencies           AuditLogOperation = "jobs.flow_dependencies"
+	JobsForceCancel                AuditLogOperation = "jobs.force_cancel"
+	JobsRun                        AuditLogOperation = "jobs.run"
+	JobsRunDependencies            AuditLogOperation = "jobs.run.dependencies"
+	JobsRunFlow                    AuditLogOperation = "jobs.run.flow"
+	JobsRunFlowPreview             AuditLogOperation = "jobs.run.flow_preview"
+	JobsRunIdentity                AuditLogOperation = "jobs.run.identity"
+	JobsRunNoop                    AuditLogOperation = "jobs.run.noop"
+	JobsRunPreview                 AuditLogOperation = "jobs.run.preview"
+	JobsRunScript                  AuditLogOperation = "jobs.run.script"
+	JobsRunScriptHub               AuditLogOperation = "jobs.run.script_hub"
+	OauthLogin                     AuditLogOperation = "oauth.login"
+	OauthSignup                    AuditLogOperation = "oauth.signup"
+	OpenaiRequest                  AuditLogOperation = "openai.request"
+	ResourceTypesCreate            AuditLogOperation = "resource_types.create"
+	ResourceTypesDelete            AuditLogOperation = "resource_types.delete"
+	ResourceTypesUpdate            AuditLogOperation = "resource_types.update"
+	ResourcesCreate                AuditLogOperation = "resources.create"
+	ResourcesDelete                AuditLogOperation = "resources.delete"
+	ResourcesUpdate                AuditLogOperation = "resources.update"
+	ScheduleCreate                 AuditLogOperation = "schedule.create"
+	ScheduleDelete                 AuditLogOperation = "schedule.delete"
+	ScheduleEdit                   AuditLogOperation = "schedule.edit"
+	ScheduleSetenabled             AuditLogOperation = "schedule.setenabled"
+	ScriptsArchive                 AuditLogOperation = "scripts.archive"
+	ScriptsCreate                  AuditLogOperation = "scripts.create"
+	ScriptsDelete                  AuditLogOperation = "scripts.delete"
+	ScriptsUpdate                  AuditLogOperation = "scripts.update"
+	UsersAcceptInvite              AuditLogOperation = "users.accept_invite"
+	UsersAddGlobal                 AuditLogOperation = "users.add_global"
+	UsersAddToWorkspace            AuditLogOperation = "users.add_to_workspace"
+	UsersCreate                    AuditLogOperation = "users.create"
+	UsersDeclineInvite             AuditLogOperation = "users.decline_invite"
+	UsersDelete                    AuditLogOperation = "users.delete"
+	UsersImpersonate               AuditLogOperation = "users.impersonate"
+	UsersLeaveWorkspace            AuditLogOperation = "users.leave_workspace"
+	UsersLogin                     AuditLogOperation = "users.login"
+	UsersLogout                    AuditLogOperation = "users.logout"
+	UsersSetpassword               AuditLogOperation = "users.setpassword"
+	UsersTokenCreate               AuditLogOperation = "users.token.create"
+	UsersTokenDelete               AuditLogOperation = "users.token.delete"
+	UsersUpdate                    AuditLogOperation = "users.update"
+	VariablesCreate                AuditLogOperation = "variables.create"
+	VariablesDecryptSecret         AuditLogOperation = "variables.decrypt_secret"
+	VariablesDelete                AuditLogOperation = "variables.delete"
+	VariablesUpdate                AuditLogOperation = "variables.update"
+	WorkspacesArchive              AuditLogOperation = "workspaces.archive"
+	WorkspacesCreate               AuditLogOperation = "workspaces.create"
+	WorkspacesDelete               AuditLogOperation = "workspaces.delete"
+	WorkspacesEditAutoInviteDomain AuditLogOperation = "workspaces.edit_auto_invite_domain"
+	WorkspacesEditCommandScript    AuditLogOperation = "workspaces.edit_command_script"
+	WorkspacesEditCopilotConfig    AuditLogOperation = "workspaces.edit_copilot_config"
+	WorkspacesEditDeployTo         AuditLogOperation = "workspaces.edit_deploy_to"
+	WorkspacesEditErrorHandler     AuditLogOperation = "workspaces.edit_error_handler"
+	WorkspacesEditWebhook          AuditLogOperation = "workspaces.edit_webhook"
+	WorkspacesUnarchive            AuditLogOperation = "workspaces.unarchive"
+	WorkspacesUpdate               AuditLogOperation = "workspaces.update"
 )
 
 // Defines values for BranchAllType.
@@ -1693,6 +1693,11 @@ type CreateTokenJSONBody = NewToken
 // CreateTokenImpersonateJSONBody defines parameters for CreateTokenImpersonate.
 type CreateTokenImpersonateJSONBody = NewTokenImpersonate
 
+// UpdateTutorialProgressJSONBody defines parameters for UpdateTutorialProgress.
+type UpdateTutorialProgressJSONBody struct {
+	Progress *int `json:"progress,omitempty"`
+}
+
 // GlobalUserUpdateJSONBody defines parameters for GlobalUserUpdate.
 type GlobalUserUpdateJSONBody struct {
 	IsSuperAdmin *bool `json:"is_super_admin,omitempty"`
@@ -2669,6 +2674,12 @@ type EditAutoInviteJSONBody struct {
 	Operator *bool `json:"operator,omitempty"`
 }
 
+// EditCopilotConfigJSONBody defines parameters for EditCopilotConfig.
+type EditCopilotConfigJSONBody struct {
+	CodeCompletionEnabled bool    `json:"code_completion_enabled"`
+	OpenaiResourcePath    *string `json:"openai_resource_path,omitempty"`
+}
+
 // EditDeployToJSONBody defines parameters for EditDeployTo.
 type EditDeployToJSONBody struct {
 	DeployTo *string `json:"deploy_to,omitempty"`
@@ -2677,11 +2688,6 @@ type EditDeployToJSONBody struct {
 // EditErrorHandlerJSONBody defines parameters for EditErrorHandler.
 type EditErrorHandlerJSONBody struct {
 	ErrorHandler *string `json:"error_handler,omitempty"`
-}
-
-// EditOpenaiResourcePathJSONBody defines parameters for EditOpenaiResourcePath.
-type EditOpenaiResourcePathJSONBody struct {
-	OpenaiResourcePath *string `json:"openai_resource_path,omitempty"`
 }
 
 // EditSlackCommandJSONBody defines parameters for EditSlackCommand.
@@ -2774,6 +2780,9 @@ type CreateTokenJSONRequestBody = CreateTokenJSONBody
 
 // CreateTokenImpersonateJSONRequestBody defines body for CreateTokenImpersonate for application/json ContentType.
 type CreateTokenImpersonateJSONRequestBody = CreateTokenImpersonateJSONBody
+
+// UpdateTutorialProgressJSONRequestBody defines body for UpdateTutorialProgress for application/json ContentType.
+type UpdateTutorialProgressJSONRequestBody UpdateTutorialProgressJSONBody
 
 // GlobalUserUpdateJSONRequestBody defines body for GlobalUserUpdate for application/json ContentType.
 type GlobalUserUpdateJSONRequestBody GlobalUserUpdateJSONBody
@@ -2949,14 +2958,14 @@ type DeleteInviteJSONRequestBody DeleteInviteJSONBody
 // EditAutoInviteJSONRequestBody defines body for EditAutoInvite for application/json ContentType.
 type EditAutoInviteJSONRequestBody EditAutoInviteJSONBody
 
+// EditCopilotConfigJSONRequestBody defines body for EditCopilotConfig for application/json ContentType.
+type EditCopilotConfigJSONRequestBody EditCopilotConfigJSONBody
+
 // EditDeployToJSONRequestBody defines body for EditDeployTo for application/json ContentType.
 type EditDeployToJSONRequestBody EditDeployToJSONBody
 
 // EditErrorHandlerJSONRequestBody defines body for EditErrorHandler for application/json ContentType.
 type EditErrorHandlerJSONRequestBody EditErrorHandlerJSONBody
-
-// EditOpenaiResourcePathJSONRequestBody defines body for EditOpenaiResourcePath for application/json ContentType.
-type EditOpenaiResourcePathJSONRequestBody EditOpenaiResourcePathJSONBody
 
 // EditSlackCommandJSONRequestBody defines body for EditSlackCommand for application/json ContentType.
 type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
@@ -4222,6 +4231,14 @@ type ClientInterface interface {
 	// ListTokens request
 	ListTokens(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetTutorialProgress request
+	GetTutorialProgress(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateTutorialProgress request with any body
+	UpdateTutorialProgressWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateTutorialProgress(ctx context.Context, body UpdateTutorialProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GlobalUserUpdate request with any body
 	GlobalUserUpdateWithBody(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4836,6 +4853,11 @@ type ClientInterface interface {
 
 	EditAutoInvite(ctx context.Context, workspace WorkspaceId, body EditAutoInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditCopilotConfig request with any body
+	EditCopilotConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditCopilotConfig(ctx context.Context, workspace WorkspaceId, body EditCopilotConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditDeployTo request with any body
 	EditDeployToWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4845,11 +4867,6 @@ type ClientInterface interface {
 	EditErrorHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditErrorHandler(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// EditOpenaiResourcePath request with any body
-	EditOpenaiResourcePathWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	EditOpenaiResourcePath(ctx context.Context, workspace WorkspaceId, body EditOpenaiResourcePathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4861,8 +4878,8 @@ type ClientInterface interface {
 
 	EditWebhook(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ExistsOpenaiResourcePath request
-	ExistsOpenaiResourcePath(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetCopilotInfo request
+	GetCopilotInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetDeployTo request
 	GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5631,6 +5648,42 @@ func (c *Client) CreateTokenImpersonate(ctx context.Context, body CreateTokenImp
 
 func (c *Client) ListTokens(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListTokensRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTutorialProgress(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTutorialProgressRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateTutorialProgressWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateTutorialProgressRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateTutorialProgress(ctx context.Context, body UpdateTutorialProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateTutorialProgressRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -8329,6 +8382,30 @@ func (c *Client) EditAutoInvite(ctx context.Context, workspace WorkspaceId, body
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditCopilotConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditCopilotConfigRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditCopilotConfig(ctx context.Context, workspace WorkspaceId, body EditCopilotConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditCopilotConfigRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditDeployToWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditDeployToRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -8367,30 +8444,6 @@ func (c *Client) EditErrorHandlerWithBody(ctx context.Context, workspace Workspa
 
 func (c *Client) EditErrorHandler(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditErrorHandlerRequest(c.Server, workspace, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) EditOpenaiResourcePathWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewEditOpenaiResourcePathRequestWithBody(c.Server, workspace, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) EditOpenaiResourcePath(ctx context.Context, workspace WorkspaceId, body EditOpenaiResourcePathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewEditOpenaiResourcePathRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -8449,8 +8502,8 @@ func (c *Client) EditWebhook(ctx context.Context, workspace WorkspaceId, body Ed
 	return c.Client.Do(req)
 }
 
-func (c *Client) ExistsOpenaiResourcePath(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewExistsOpenaiResourcePathRequest(c.Server, workspace)
+func (c *Client) GetCopilotInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCopilotInfoRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -10331,6 +10384,73 @@ func NewListTokensRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGetTutorialProgressRequest generates requests for GetTutorialProgress
+func NewGetTutorialProgressRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/tutorial_progress")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateTutorialProgressRequest calls the generic UpdateTutorialProgress builder with application/json body
+func NewUpdateTutorialProgressRequest(server string, body UpdateTutorialProgressJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateTutorialProgressRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUpdateTutorialProgressRequestWithBody generates requests for UpdateTutorialProgress with any type of body
+func NewUpdateTutorialProgressRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/tutorial_progress")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -20576,6 +20696,53 @@ func NewEditAutoInviteRequestWithBody(server string, workspace WorkspaceId, cont
 	return req, nil
 }
 
+// NewEditCopilotConfigRequest calls the generic EditCopilotConfig builder with application/json body
+func NewEditCopilotConfigRequest(server string, workspace WorkspaceId, body EditCopilotConfigJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditCopilotConfigRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditCopilotConfigRequestWithBody generates requests for EditCopilotConfig with any type of body
+func NewEditCopilotConfigRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_copilot_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditDeployToRequest calls the generic EditDeployTo builder with application/json body
 func NewEditDeployToRequest(server string, workspace WorkspaceId, body EditDeployToJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -20651,53 +20818,6 @@ func NewEditErrorHandlerRequestWithBody(server string, workspace WorkspaceId, co
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_error_handler", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewEditOpenaiResourcePathRequest calls the generic EditOpenaiResourcePath builder with application/json body
-func NewEditOpenaiResourcePathRequest(server string, workspace WorkspaceId, body EditOpenaiResourcePathJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewEditOpenaiResourcePathRequestWithBody(server, workspace, "application/json", bodyReader)
-}
-
-// NewEditOpenaiResourcePathRequestWithBody generates requests for EditOpenaiResourcePath with any type of body
-func NewEditOpenaiResourcePathRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_openai_resource_path", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -20811,8 +20931,8 @@ func NewEditWebhookRequestWithBody(server string, workspace WorkspaceId, content
 	return req, nil
 }
 
-// NewExistsOpenaiResourcePathRequest generates requests for ExistsOpenaiResourcePath
-func NewExistsOpenaiResourcePathRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+// NewGetCopilotInfoRequest generates requests for GetCopilotInfo
+func NewGetCopilotInfoRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -20827,7 +20947,7 @@ func NewExistsOpenaiResourcePathRequest(server string, workspace WorkspaceId) (*
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/workspaces/exists_openai_resource_path", pathParam0)
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_copilot_info", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -21659,6 +21779,14 @@ type ClientWithResponsesInterface interface {
 	// ListTokens request
 	ListTokensWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListTokensResponse, error)
 
+	// GetTutorialProgress request
+	GetTutorialProgressWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTutorialProgressResponse, error)
+
+	// UpdateTutorialProgress request with any body
+	UpdateTutorialProgressWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTutorialProgressResponse, error)
+
+	UpdateTutorialProgressWithResponse(ctx context.Context, body UpdateTutorialProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateTutorialProgressResponse, error)
+
 	// GlobalUserUpdate request with any body
 	GlobalUserUpdateWithBodyWithResponse(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GlobalUserUpdateResponse, error)
 
@@ -22273,6 +22401,11 @@ type ClientWithResponsesInterface interface {
 
 	EditAutoInviteWithResponse(ctx context.Context, workspace WorkspaceId, body EditAutoInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*EditAutoInviteResponse, error)
 
+	// EditCopilotConfig request with any body
+	EditCopilotConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditCopilotConfigResponse, error)
+
+	EditCopilotConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditCopilotConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditCopilotConfigResponse, error)
+
 	// EditDeployTo request with any body
 	EditDeployToWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error)
 
@@ -22282,11 +22415,6 @@ type ClientWithResponsesInterface interface {
 	EditErrorHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error)
 
 	EditErrorHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error)
-
-	// EditOpenaiResourcePath request with any body
-	EditOpenaiResourcePathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditOpenaiResourcePathResponse, error)
-
-	EditOpenaiResourcePathWithResponse(ctx context.Context, workspace WorkspaceId, body EditOpenaiResourcePathJSONRequestBody, reqEditors ...RequestEditorFn) (*EditOpenaiResourcePathResponse, error)
 
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
@@ -22298,8 +22426,8 @@ type ClientWithResponsesInterface interface {
 
 	EditWebhookWithResponse(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
 
-	// ExistsOpenaiResourcePath request
-	ExistsOpenaiResourcePathWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ExistsOpenaiResourcePathResponse, error)
+	// GetCopilotInfo request
+	GetCopilotInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCopilotInfoResponse, error)
 
 	// GetDeployTo request
 	GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error)
@@ -23404,6 +23532,51 @@ func (r ListTokensResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListTokensResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTutorialProgressResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Progress *int `json:"progress,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTutorialProgressResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTutorialProgressResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateTutorialProgressResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateTutorialProgressResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateTutorialProgressResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -27046,6 +27219,27 @@ func (r EditAutoInviteResponse) StatusCode() int {
 	return 0
 }
 
+type EditCopilotConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditCopilotConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditCopilotConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditDeployToResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -27082,27 +27276,6 @@ func (r EditErrorHandlerResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r EditErrorHandlerResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type EditOpenaiResourcePathResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r EditOpenaiResourcePathResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r EditOpenaiResourcePathResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -27151,13 +27324,13 @@ func (r EditWebhookResponse) StatusCode() int {
 	return 0
 }
 
-type ExistsOpenaiResourcePathResponse struct {
+type GetCopilotInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r ExistsOpenaiResourcePathResponse) Status() string {
+func (r GetCopilotInfoResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -27165,7 +27338,7 @@ func (r ExistsOpenaiResourcePathResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ExistsOpenaiResourcePathResponse) StatusCode() int {
+func (r GetCopilotInfoResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -27200,18 +27373,19 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AutoInviteDomain   *string `json:"auto_invite_domain,omitempty"`
-		AutoInviteOperator *bool   `json:"auto_invite_operator,omitempty"`
-		CustomerId         *string `json:"customer_id,omitempty"`
-		DeployTo           *string `json:"deploy_to,omitempty"`
-		ErrorHandler       *string `json:"error_handler,omitempty"`
-		OpenaiResourcePath *string `json:"openai_resource_path,omitempty"`
-		Plan               *string `json:"plan,omitempty"`
-		SlackCommandScript *string `json:"slack_command_script,omitempty"`
-		SlackName          *string `json:"slack_name,omitempty"`
-		SlackTeamId        *string `json:"slack_team_id,omitempty"`
-		Webhook            *string `json:"webhook,omitempty"`
-		WorkspaceId        *string `json:"workspace_id,omitempty"`
+		AutoInviteDomain      *string `json:"auto_invite_domain,omitempty"`
+		AutoInviteOperator    *bool   `json:"auto_invite_operator,omitempty"`
+		CodeCompletionEnabled bool    `json:"code_completion_enabled"`
+		CustomerId            *string `json:"customer_id,omitempty"`
+		DeployTo              *string `json:"deploy_to,omitempty"`
+		ErrorHandler          *string `json:"error_handler,omitempty"`
+		OpenaiResourcePath    *string `json:"openai_resource_path,omitempty"`
+		Plan                  *string `json:"plan,omitempty"`
+		SlackCommandScript    *string `json:"slack_command_script,omitempty"`
+		SlackName             *string `json:"slack_name,omitempty"`
+		SlackTeamId           *string `json:"slack_team_id,omitempty"`
+		Webhook               *string `json:"webhook,omitempty"`
+		WorkspaceId           *string `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -28060,6 +28234,32 @@ func (c *ClientWithResponses) ListTokensWithResponse(ctx context.Context, reqEdi
 		return nil, err
 	}
 	return ParseListTokensResponse(rsp)
+}
+
+// GetTutorialProgressWithResponse request returning *GetTutorialProgressResponse
+func (c *ClientWithResponses) GetTutorialProgressWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTutorialProgressResponse, error) {
+	rsp, err := c.GetTutorialProgress(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTutorialProgressResponse(rsp)
+}
+
+// UpdateTutorialProgressWithBodyWithResponse request with arbitrary body returning *UpdateTutorialProgressResponse
+func (c *ClientWithResponses) UpdateTutorialProgressWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTutorialProgressResponse, error) {
+	rsp, err := c.UpdateTutorialProgressWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateTutorialProgressResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateTutorialProgressWithResponse(ctx context.Context, body UpdateTutorialProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateTutorialProgressResponse, error) {
+	rsp, err := c.UpdateTutorialProgress(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateTutorialProgressResponse(rsp)
 }
 
 // GlobalUserUpdateWithBodyWithResponse request with arbitrary body returning *GlobalUserUpdateResponse
@@ -30020,6 +30220,23 @@ func (c *ClientWithResponses) EditAutoInviteWithResponse(ctx context.Context, wo
 	return ParseEditAutoInviteResponse(rsp)
 }
 
+// EditCopilotConfigWithBodyWithResponse request with arbitrary body returning *EditCopilotConfigResponse
+func (c *ClientWithResponses) EditCopilotConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditCopilotConfigResponse, error) {
+	rsp, err := c.EditCopilotConfigWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditCopilotConfigResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditCopilotConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditCopilotConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditCopilotConfigResponse, error) {
+	rsp, err := c.EditCopilotConfig(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditCopilotConfigResponse(rsp)
+}
+
 // EditDeployToWithBodyWithResponse request with arbitrary body returning *EditDeployToResponse
 func (c *ClientWithResponses) EditDeployToWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error) {
 	rsp, err := c.EditDeployToWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -30052,23 +30269,6 @@ func (c *ClientWithResponses) EditErrorHandlerWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseEditErrorHandlerResponse(rsp)
-}
-
-// EditOpenaiResourcePathWithBodyWithResponse request with arbitrary body returning *EditOpenaiResourcePathResponse
-func (c *ClientWithResponses) EditOpenaiResourcePathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditOpenaiResourcePathResponse, error) {
-	rsp, err := c.EditOpenaiResourcePathWithBody(ctx, workspace, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseEditOpenaiResourcePathResponse(rsp)
-}
-
-func (c *ClientWithResponses) EditOpenaiResourcePathWithResponse(ctx context.Context, workspace WorkspaceId, body EditOpenaiResourcePathJSONRequestBody, reqEditors ...RequestEditorFn) (*EditOpenaiResourcePathResponse, error) {
-	rsp, err := c.EditOpenaiResourcePath(ctx, workspace, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseEditOpenaiResourcePathResponse(rsp)
 }
 
 // EditSlackCommandWithBodyWithResponse request with arbitrary body returning *EditSlackCommandResponse
@@ -30105,13 +30305,13 @@ func (c *ClientWithResponses) EditWebhookWithResponse(ctx context.Context, works
 	return ParseEditWebhookResponse(rsp)
 }
 
-// ExistsOpenaiResourcePathWithResponse request returning *ExistsOpenaiResourcePathResponse
-func (c *ClientWithResponses) ExistsOpenaiResourcePathWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ExistsOpenaiResourcePathResponse, error) {
-	rsp, err := c.ExistsOpenaiResourcePath(ctx, workspace, reqEditors...)
+// GetCopilotInfoWithResponse request returning *GetCopilotInfoResponse
+func (c *ClientWithResponses) GetCopilotInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCopilotInfoResponse, error) {
+	rsp, err := c.GetCopilotInfo(ctx, workspace, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseExistsOpenaiResourcePathResponse(rsp)
+	return ParseGetCopilotInfoResponse(rsp)
 }
 
 // GetDeployToWithResponse request returning *GetDeployToResponse
@@ -31314,6 +31514,50 @@ func ParseListTokensResponse(rsp *http.Response) (*ListTokensResponse, error) {
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetTutorialProgressResponse parses an HTTP response from a GetTutorialProgressWithResponse call
+func ParseGetTutorialProgressResponse(rsp *http.Response) (*GetTutorialProgressResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTutorialProgressResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Progress *int `json:"progress,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateTutorialProgressResponse parses an HTTP response from a UpdateTutorialProgressWithResponse call
+func ParseUpdateTutorialProgressResponse(rsp *http.Response) (*UpdateTutorialProgressResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateTutorialProgressResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -34854,6 +35098,22 @@ func ParseEditAutoInviteResponse(rsp *http.Response) (*EditAutoInviteResponse, e
 	return response, nil
 }
 
+// ParseEditCopilotConfigResponse parses an HTTP response from a EditCopilotConfigWithResponse call
+func ParseEditCopilotConfigResponse(rsp *http.Response) (*EditCopilotConfigResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditCopilotConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseEditDeployToResponse parses an HTTP response from a EditDeployToWithResponse call
 func ParseEditDeployToResponse(rsp *http.Response) (*EditDeployToResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -34879,22 +35139,6 @@ func ParseEditErrorHandlerResponse(rsp *http.Response) (*EditErrorHandlerRespons
 	}
 
 	response := &EditErrorHandlerResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseEditOpenaiResourcePathResponse parses an HTTP response from a EditOpenaiResourcePathWithResponse call
-func ParseEditOpenaiResourcePathResponse(rsp *http.Response) (*EditOpenaiResourcePathResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &EditOpenaiResourcePathResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -34934,15 +35178,15 @@ func ParseEditWebhookResponse(rsp *http.Response) (*EditWebhookResponse, error) 
 	return response, nil
 }
 
-// ParseExistsOpenaiResourcePathResponse parses an HTTP response from a ExistsOpenaiResourcePathWithResponse call
-func ParseExistsOpenaiResourcePathResponse(rsp *http.Response) (*ExistsOpenaiResourcePathResponse, error) {
+// ParseGetCopilotInfoResponse parses an HTTP response from a GetCopilotInfoWithResponse call
+func ParseGetCopilotInfoResponse(rsp *http.Response) (*GetCopilotInfoResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ExistsOpenaiResourcePathResponse{
+	response := &GetCopilotInfoResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -34994,18 +35238,19 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AutoInviteDomain   *string `json:"auto_invite_domain,omitempty"`
-			AutoInviteOperator *bool   `json:"auto_invite_operator,omitempty"`
-			CustomerId         *string `json:"customer_id,omitempty"`
-			DeployTo           *string `json:"deploy_to,omitempty"`
-			ErrorHandler       *string `json:"error_handler,omitempty"`
-			OpenaiResourcePath *string `json:"openai_resource_path,omitempty"`
-			Plan               *string `json:"plan,omitempty"`
-			SlackCommandScript *string `json:"slack_command_script,omitempty"`
-			SlackName          *string `json:"slack_name,omitempty"`
-			SlackTeamId        *string `json:"slack_team_id,omitempty"`
-			Webhook            *string `json:"webhook,omitempty"`
-			WorkspaceId        *string `json:"workspace_id,omitempty"`
+			AutoInviteDomain      *string `json:"auto_invite_domain,omitempty"`
+			AutoInviteOperator    *bool   `json:"auto_invite_operator,omitempty"`
+			CodeCompletionEnabled bool    `json:"code_completion_enabled"`
+			CustomerId            *string `json:"customer_id,omitempty"`
+			DeployTo              *string `json:"deploy_to,omitempty"`
+			ErrorHandler          *string `json:"error_handler,omitempty"`
+			OpenaiResourcePath    *string `json:"openai_resource_path,omitempty"`
+			Plan                  *string `json:"plan,omitempty"`
+			SlackCommandScript    *string `json:"slack_command_script,omitempty"`
+			SlackName             *string `json:"slack_name,omitempty"`
+			SlackTeamId           *string `json:"slack_team_id,omitempty"`
+			Webhook               *string `json:"webhook,omitempty"`
+			WorkspaceId           *string `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
