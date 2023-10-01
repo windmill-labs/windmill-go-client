@@ -4292,6 +4292,9 @@ type ClientInterface interface {
 	// ListApps request
 	ListApps(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListSearchApp request
+	ListSearchApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetPublicSecretOfApp request
 	GetPublicSecretOfApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4374,6 +4377,9 @@ type ClientInterface interface {
 
 	// ListFlowPaths request
 	ListFlowPaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListSearchFlow request
+	ListSearchFlow(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateFlow request with any body
 	UpdateFlowWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4662,6 +4668,9 @@ type ClientInterface interface {
 	// ListResourceNames request
 	ListResourceNames(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListSearchResource request
+	ListSearchResource(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateResourceType request with any body
 	CreateResourceTypeWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4764,6 +4773,9 @@ type ClientInterface interface {
 
 	// ListScriptPaths request
 	ListScriptPaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListSearchScript request
+	ListSearchScript(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RawScriptByHash request
 	RawScriptByHash(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5922,6 +5934,18 @@ func (c *Client) ListApps(ctx context.Context, workspace WorkspaceId, params *Li
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListSearchApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSearchAppRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetPublicSecretOfApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPublicSecretOfAppRequest(c.Server, workspace, path)
 	if err != nil {
@@ -6272,6 +6296,18 @@ func (c *Client) ListFlows(ctx context.Context, workspace WorkspaceId, params *L
 
 func (c *Client) ListFlowPaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListFlowPathsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListSearchFlow(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSearchFlowRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -7554,6 +7590,18 @@ func (c *Client) ListResourceNames(ctx context.Context, workspace WorkspaceId, n
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListSearchResource(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSearchResourceRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateResourceTypeWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateResourceTypeRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -7988,6 +8036,18 @@ func (c *Client) ListScripts(ctx context.Context, workspace WorkspaceId, params 
 
 func (c *Client) ListScriptPaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListScriptPathsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListSearchScript(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSearchScriptRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -11203,6 +11263,40 @@ func NewListAppsRequest(server string, workspace WorkspaceId, params *ListAppsPa
 	return req, nil
 }
 
+// NewListSearchAppRequest generates requests for ListSearchApp
+func NewListSearchAppRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/list_search", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetPublicSecretOfAppRequest generates requests for GetPublicSecretOfApp
 func NewGetPublicSecretOfAppRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
 	var err error
@@ -12478,6 +12572,40 @@ func NewListFlowPathsRequest(server string, workspace WorkspaceId) (*http.Reques
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/flows/list_paths", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListSearchFlowRequest generates requests for ListSearchFlow
+func NewListSearchFlowRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/list_search", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -18093,6 +18221,40 @@ func NewListResourceNamesRequest(server string, workspace WorkspaceId, name Name
 	return req, nil
 }
 
+// NewListSearchResourceRequest generates requests for ListSearchResource
+func NewListSearchResourceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/list_search", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateResourceTypeRequest calls the generic CreateResourceType builder with application/json body
 func NewCreateResourceTypeRequest(server string, workspace WorkspaceId, body CreateResourceTypeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -19622,6 +19784,40 @@ func NewListScriptPathsRequest(server string, workspace WorkspaceId) (*http.Requ
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/scripts/list_paths", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListSearchScriptRequest generates requests for ListSearchScript
+func NewListSearchScriptRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/list_search", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -21840,6 +22036,9 @@ type ClientWithResponsesInterface interface {
 	// ListApps request
 	ListAppsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*ListAppsResponse, error)
 
+	// ListSearchApp request
+	ListSearchAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchAppResponse, error)
+
 	// GetPublicSecretOfApp request
 	GetPublicSecretOfAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicSecretOfAppResponse, error)
 
@@ -21922,6 +22121,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListFlowPaths request
 	ListFlowPathsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListFlowPathsResponse, error)
+
+	// ListSearchFlow request
+	ListSearchFlowWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchFlowResponse, error)
 
 	// UpdateFlow request with any body
 	UpdateFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowResponse, error)
@@ -22210,6 +22412,9 @@ type ClientWithResponsesInterface interface {
 	// ListResourceNames request
 	ListResourceNamesWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*ListResourceNamesResponse, error)
 
+	// ListSearchResource request
+	ListSearchResourceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchResourceResponse, error)
+
 	// CreateResourceType request with any body
 	CreateResourceTypeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResourceTypeResponse, error)
 
@@ -22312,6 +22517,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListScriptPaths request
 	ListScriptPathsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListScriptPathsResponse, error)
+
+	// ListSearchScript request
+	ListSearchScriptWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchScriptResponse, error)
 
 	// RawScriptByHash request
 	RawScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByHashResponse, error)
@@ -23907,6 +24115,31 @@ func (r ListAppsResponse) StatusCode() int {
 	return 0
 }
 
+type ListSearchAppResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Path  string      `json:"path"`
+		Value interface{} `json:"value"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSearchAppResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSearchAppResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetPublicSecretOfAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -24426,6 +24659,31 @@ func (r ListFlowPathsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListFlowPathsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListSearchFlowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Path  string      `json:"path"`
+		Value interface{} `json:"value"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSearchFlowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSearchFlowResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -26076,6 +26334,31 @@ func (r ListResourceNamesResponse) StatusCode() int {
 	return 0
 }
 
+type ListSearchResourceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Path  string      `json:"path"`
+		Value interface{} `json:"value"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSearchResourceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSearchResourceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateResourceTypeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -26699,6 +26982,31 @@ func (r ListScriptPathsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListScriptPathsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListSearchScriptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Content string `json:"content"`
+		Path    string `json:"path"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSearchScriptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSearchScriptResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -28429,6 +28737,15 @@ func (c *ClientWithResponses) ListAppsWithResponse(ctx context.Context, workspac
 	return ParseListAppsResponse(rsp)
 }
 
+// ListSearchAppWithResponse request returning *ListSearchAppResponse
+func (c *ClientWithResponses) ListSearchAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchAppResponse, error) {
+	rsp, err := c.ListSearchApp(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSearchAppResponse(rsp)
+}
+
 // GetPublicSecretOfAppWithResponse request returning *GetPublicSecretOfAppResponse
 func (c *ClientWithResponses) GetPublicSecretOfAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicSecretOfAppResponse, error) {
 	rsp, err := c.GetPublicSecretOfApp(ctx, workspace, path, reqEditors...)
@@ -28690,6 +29007,15 @@ func (c *ClientWithResponses) ListFlowPathsWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseListFlowPathsResponse(rsp)
+}
+
+// ListSearchFlowWithResponse request returning *ListSearchFlowResponse
+func (c *ClientWithResponses) ListSearchFlowWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchFlowResponse, error) {
+	rsp, err := c.ListSearchFlow(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSearchFlowResponse(rsp)
 }
 
 // UpdateFlowWithBodyWithResponse request with arbitrary body returning *UpdateFlowResponse
@@ -29615,6 +29941,15 @@ func (c *ClientWithResponses) ListResourceNamesWithResponse(ctx context.Context,
 	return ParseListResourceNamesResponse(rsp)
 }
 
+// ListSearchResourceWithResponse request returning *ListSearchResourceResponse
+func (c *ClientWithResponses) ListSearchResourceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchResourceResponse, error) {
+	rsp, err := c.ListSearchResource(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSearchResourceResponse(rsp)
+}
+
 // CreateResourceTypeWithBodyWithResponse request with arbitrary body returning *CreateResourceTypeResponse
 func (c *ClientWithResponses) CreateResourceTypeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResourceTypeResponse, error) {
 	rsp, err := c.CreateResourceTypeWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -29938,6 +30273,15 @@ func (c *ClientWithResponses) ListScriptPathsWithResponse(ctx context.Context, w
 		return nil, err
 	}
 	return ParseListScriptPathsResponse(rsp)
+}
+
+// ListSearchScriptWithResponse request returning *ListSearchScriptResponse
+func (c *ClientWithResponses) ListSearchScriptWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchScriptResponse, error) {
+	rsp, err := c.ListSearchScript(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSearchScriptResponse(rsp)
 }
 
 // RawScriptByHashWithResponse request returning *RawScriptByHashResponse
@@ -31875,6 +32219,35 @@ func ParseListAppsResponse(rsp *http.Response) (*ListAppsResponse, error) {
 	return response, nil
 }
 
+// ParseListSearchAppResponse parses an HTTP response from a ListSearchAppWithResponse call
+func ParseListSearchAppResponse(rsp *http.Response) (*ListSearchAppResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSearchAppResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Path  string      `json:"path"`
+			Value interface{} `json:"value"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetPublicSecretOfAppResponse parses an HTTP response from a GetPublicSecretOfAppWithResponse call
 func ParseGetPublicSecretOfAppResponse(rsp *http.Response) (*GetPublicSecretOfAppResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -32370,6 +32743,35 @@ func ParseListFlowPathsResponse(rsp *http.Response) (*ListFlowPathsResponse, err
 	response := &ListFlowPathsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListSearchFlowResponse parses an HTTP response from a ListSearchFlowWithResponse call
+func ParseListSearchFlowResponse(rsp *http.Response) (*ListSearchFlowResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSearchFlowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Path  string      `json:"path"`
+			Value interface{} `json:"value"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -33977,6 +34379,35 @@ func ParseListResourceNamesResponse(rsp *http.Response) (*ListResourceNamesRespo
 	return response, nil
 }
 
+// ParseListSearchResourceResponse parses an HTTP response from a ListSearchResourceWithResponse call
+func ParseListSearchResourceResponse(rsp *http.Response) (*ListSearchResourceResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSearchResourceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Path  string      `json:"path"`
+			Value interface{} `json:"value"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateResourceTypeResponse parses an HTTP response from a CreateResourceTypeWithResponse call
 func ParseCreateResourceTypeResponse(rsp *http.Response) (*CreateResourceTypeResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -34609,6 +35040,35 @@ func ParseListScriptPathsResponse(rsp *http.Response) (*ListScriptPathsResponse,
 	response := &ListScriptPathsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListSearchScriptResponse parses an HTTP response from a ListSearchScriptWithResponse call
+func ParseListSearchScriptResponse(rsp *http.Response) (*ListSearchScriptResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSearchScriptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Content string `json:"content"`
+			Path    string `json:"path"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
