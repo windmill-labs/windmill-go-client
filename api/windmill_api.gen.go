@@ -654,6 +654,7 @@ type Flow struct {
 	Tag                  *string                 `json:"tag,omitempty"`
 	Value                FlowValue               `json:"value"`
 	WorkspaceId          *string                 `json:"workspace_id,omitempty"`
+	WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // FlowMetadata defines model for FlowMetadata.
@@ -668,6 +669,7 @@ type FlowMetadata struct {
 	Starred              *bool                  `json:"starred,omitempty"`
 	Tag                  *string                `json:"tag,omitempty"`
 	WorkspaceId          *string                `json:"workspace_id,omitempty"`
+	WsErrorHandlerMuted  *bool                  `json:"ws_error_handler_muted,omitempty"`
 }
 
 // FlowModule defines model for FlowModule.
@@ -1013,6 +1015,7 @@ type NewScript struct {
 	Schema                 *map[string]interface{} `json:"schema,omitempty"`
 	Summary                string                  `json:"summary"`
 	Tag                    *string                 `json:"tag,omitempty"`
+	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // NewScriptKind defines model for NewScript.Kind.
@@ -1042,6 +1045,7 @@ type NewScriptWithDraft struct {
 	Schema                 *map[string]interface{}    `json:"schema,omitempty"`
 	Summary                string                     `json:"summary"`
 	Tag                    *string                    `json:"tag,omitempty"`
+	WsErrorHandlerMuted    *bool                      `json:"ws_error_handler_muted,omitempty"`
 }
 
 // NewScriptWithDraftKind defines model for NewScriptWithDraft.Kind.
@@ -1081,12 +1085,13 @@ type OpenFlow struct {
 
 // OpenFlowWPath defines model for OpenFlowWPath.
 type OpenFlowWPath struct {
-	Description *string                 `json:"description,omitempty"`
-	Path        string                  `json:"path"`
-	Schema      *map[string]interface{} `json:"schema,omitempty"`
-	Summary     string                  `json:"summary"`
-	Tag         *string                 `json:"tag,omitempty"`
-	Value       FlowValue               `json:"value"`
+	Description         *string                 `json:"description,omitempty"`
+	Path                string                  `json:"path"`
+	Schema              *map[string]interface{} `json:"schema,omitempty"`
+	Summary             string                  `json:"summary"`
+	Tag                 *string                 `json:"tag,omitempty"`
+	Value               FlowValue               `json:"value"`
+	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // PathFlow defines model for PathFlow.
@@ -1342,13 +1347,14 @@ type Script struct {
 	LockErrorLogs          *string           `json:"lock_error_logs,omitempty"`
 
 	// The first element is the direct parent of the script, the second is the parent of the first, etc
-	ParentHashes *[]string               `json:"parent_hashes,omitempty"`
-	Path         string                  `json:"path"`
-	Schema       *map[string]interface{} `json:"schema,omitempty"`
-	Starred      bool                    `json:"starred"`
-	Summary      string                  `json:"summary"`
-	Tag          *string                 `json:"tag,omitempty"`
-	WorkspaceId  *string                 `json:"workspace_id,omitempty"`
+	ParentHashes        *[]string               `json:"parent_hashes,omitempty"`
+	Path                string                  `json:"path"`
+	Schema              *map[string]interface{} `json:"schema,omitempty"`
+	Starred             bool                    `json:"starred"`
+	Summary             string                  `json:"summary"`
+	Tag                 *string                 `json:"tag,omitempty"`
+	WorkspaceId         *string                 `json:"workspace_id,omitempty"`
+	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // Script_ExtraPerms defines model for Script.ExtraPerms.
@@ -1612,6 +1618,15 @@ type LoginWithOauthJSONBody struct {
 	State *string `json:"state,omitempty"`
 }
 
+// QueryHubResourceTypesParams defines parameters for QueryHubResourceTypes.
+type QueryHubResourceTypesParams struct {
+	// query text
+	Text string `form:"text" json:"text"`
+
+	// query limit
+	Limit *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // PreviewScheduleJSONBody defines parameters for PreviewSchedule.
 type PreviewScheduleJSONBody struct {
 	Schedule string `json:"schedule"`
@@ -1847,13 +1862,14 @@ type ArchiveFlowByPathJSONBody struct {
 
 // CreateFlowJSONBody defines parameters for CreateFlow.
 type CreateFlowJSONBody struct {
-	Description *string                 `json:"description,omitempty"`
-	DraftOnly   *bool                   `json:"draft_only,omitempty"`
-	Path        string                  `json:"path"`
-	Schema      *map[string]interface{} `json:"schema,omitempty"`
-	Summary     string                  `json:"summary"`
-	Tag         *string                 `json:"tag,omitempty"`
-	Value       FlowValue               `json:"value"`
+	Description         *string                 `json:"description,omitempty"`
+	DraftOnly           *bool                   `json:"draft_only,omitempty"`
+	Path                string                  `json:"path"`
+	Schema              *map[string]interface{} `json:"schema,omitempty"`
+	Summary             string                  `json:"summary"`
+	Tag                 *string                 `json:"tag,omitempty"`
+	Value               FlowValue               `json:"value"`
+	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // GetFlowInputHistoryByPathParams defines parameters for GetFlowInputHistoryByPath.
@@ -1894,6 +1910,11 @@ type ListFlowsParams struct {
 	// (default false)
 	// show only the starred items
 	StarredOnly *bool `form:"starred_only,omitempty" json:"starred_only,omitempty"`
+}
+
+// ToggleWorkspaceErrorHandlerForFlowJSONBody defines parameters for ToggleWorkspaceErrorHandlerForFlow.
+type ToggleWorkspaceErrorHandlerForFlowJSONBody struct {
+	Muted *bool `json:"muted,omitempty"`
 }
 
 // UpdateFlowJSONBody defines parameters for UpdateFlow.
@@ -2500,6 +2521,12 @@ type CreateResourceParams struct {
 	UpdateIfExists *bool `form:"update_if_exists,omitempty" json:"update_if_exists,omitempty"`
 }
 
+// GetResourceValueInterpolatedParams defines parameters for GetResourceValueInterpolated.
+type GetResourceValueInterpolatedParams struct {
+	// job id
+	JobId *openapi_types.UUID `form:"job_id,omitempty" json:"job_id,omitempty"`
+}
+
 // ListResourceParams defines parameters for ListResource.
 type ListResourceParams struct {
 	// which page to return (start at 1, default 1)
@@ -2614,12 +2641,17 @@ type ListScriptsParams struct {
 	IsTemplate *bool `form:"is_template,omitempty" json:"is_template,omitempty"`
 
 	// (default regardless)
-	// script kind
-	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
+	// script kinds to filter, split by comma
+	Kinds *string `form:"kinds,omitempty" json:"kinds,omitempty"`
 
 	// (default false)
 	// show only the starred items
 	StarredOnly *bool `form:"starred_only,omitempty" json:"starred_only,omitempty"`
+}
+
+// ToggleWorkspaceErrorHandlerForScriptJSONBody defines parameters for ToggleWorkspaceErrorHandlerForScript.
+type ToggleWorkspaceErrorHandlerForScriptJSONBody struct {
+	Muted *bool `json:"muted,omitempty"`
 }
 
 // CreateUserJSONBody defines parameters for CreateUser.
@@ -2687,7 +2719,8 @@ type EditDeployToJSONBody struct {
 
 // EditErrorHandlerJSONBody defines parameters for EditErrorHandler.
 type EditErrorHandlerJSONBody struct {
-	ErrorHandler *string `json:"error_handler,omitempty"`
+	ErrorHandler          *string     `json:"error_handler,omitempty"`
+	ErrorHandlerExtraArgs *ScriptArgs `json:"error_handler_extra_args,omitempty"`
 }
 
 // EditSlackCommandJSONBody defines parameters for EditSlackCommand.
@@ -2705,6 +2738,13 @@ type InviteUserJSONBody struct {
 	Email    string `json:"email"`
 	IsAdmin  bool   `json:"is_admin"`
 	Operator bool   `json:"operator"`
+}
+
+// RunSlackMessageTestJobJSONBody defines parameters for RunSlackMessageTestJob.
+type RunSlackMessageTestJobJSONBody struct {
+	Channel       *string `json:"channel,omitempty"`
+	HubScriptPath *string `json:"hub_script_path,omitempty"`
+	TestMsg       *string `json:"test_msg,omitempty"`
 }
 
 // ListWorkersParams defines parameters for ListWorkers.
@@ -2816,6 +2856,9 @@ type ArchiveFlowByPathJSONRequestBody ArchiveFlowByPathJSONBody
 
 // CreateFlowJSONRequestBody defines body for CreateFlow for application/json ContentType.
 type CreateFlowJSONRequestBody CreateFlowJSONBody
+
+// ToggleWorkspaceErrorHandlerForFlowJSONRequestBody defines body for ToggleWorkspaceErrorHandlerForFlow for application/json ContentType.
+type ToggleWorkspaceErrorHandlerForFlowJSONRequestBody ToggleWorkspaceErrorHandlerForFlowJSONBody
 
 // UpdateFlowJSONRequestBody defines body for UpdateFlow for application/json ContentType.
 type UpdateFlowJSONRequestBody = UpdateFlowJSONBody
@@ -2934,6 +2977,9 @@ type UpdateScheduleJSONRequestBody = UpdateScheduleJSONBody
 // CreateScriptJSONRequestBody defines body for CreateScript for application/json ContentType.
 type CreateScriptJSONRequestBody = CreateScriptJSONBody
 
+// ToggleWorkspaceErrorHandlerForScriptJSONRequestBody defines body for ToggleWorkspaceErrorHandlerForScript for application/json ContentType.
+type ToggleWorkspaceErrorHandlerForScriptJSONRequestBody ToggleWorkspaceErrorHandlerForScriptJSONBody
+
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
 type CreateUserJSONRequestBody = CreateUserJSONBody
 
@@ -2975,6 +3021,9 @@ type EditWebhookJSONRequestBody EditWebhookJSONBody
 
 // InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
 type InviteUserJSONRequestBody InviteUserJSONBody
+
+// RunSlackMessageTestJobJSONRequestBody defines body for RunSlackMessageTestJob for application/json ContentType.
+type RunSlackMessageTestJobJSONRequestBody RunSlackMessageTestJobJSONBody
 
 // CreateWorkspaceJSONRequestBody defines body for CreateWorkspace for application/json ContentType.
 type CreateWorkspaceJSONRequestBody = CreateWorkspaceJSONBody
@@ -4116,9 +4165,6 @@ type ClientInterface interface {
 
 	ConnectCallback(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ListOAuthConnects request
-	ListOAuthConnects(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ListOAuthLogins request
 	ListOAuthLogins(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4129,6 +4175,12 @@ type ClientInterface interface {
 
 	// GetOpenApiYaml request
 	GetOpenApiYaml(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListHubResourceTypes request
+	ListHubResourceTypes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// QueryHubResourceTypes request
+	QueryHubResourceTypes(ctx context.Context, params *QueryHubResourceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PreviewSchedule request with any body
 	PreviewScheduleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4380,6 +4432,11 @@ type ClientInterface interface {
 
 	// ListSearchFlow request
 	ListSearchFlow(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ToggleWorkspaceErrorHandlerForFlow request with any body
+	ToggleWorkspaceErrorHandlerForFlowWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ToggleWorkspaceErrorHandlerForFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateFlow request with any body
 	UpdateFlowWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4660,7 +4717,7 @@ type ClientInterface interface {
 	GetResourceValue(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetResourceValueInterpolated request
-	GetResourceValueInterpolated(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetResourceValueInterpolated(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceValueInterpolatedParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListResource request
 	ListResource(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4782,6 +4839,11 @@ type ClientInterface interface {
 
 	// RawScriptByPath request
 	RawScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ToggleWorkspaceErrorHandlerForScript request with any body
+	ToggleWorkspaceErrorHandlerForScriptWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ToggleWorkspaceErrorHandlerForScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateUser request with any body
 	CreateUserWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4909,6 +4971,11 @@ type ClientInterface interface {
 
 	// GetPremiumInfo request
 	GetPremiumInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunSlackMessageTestJob request with any body
+	RunSlackMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunSlackMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCustomTags request
 	GetCustomTags(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5166,18 +5233,6 @@ func (c *Client) ConnectCallback(ctx context.Context, clientName ClientName, bod
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListOAuthConnects(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListOAuthConnectsRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) ListOAuthLogins(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListOAuthLoginsRequest(c.Server)
 	if err != nil {
@@ -5216,6 +5271,30 @@ func (c *Client) LoginWithOauth(ctx context.Context, clientName ClientName, body
 
 func (c *Client) GetOpenApiYaml(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetOpenApiYamlRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListHubResourceTypes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListHubResourceTypesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) QueryHubResourceTypes(ctx context.Context, params *QueryHubResourceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewQueryHubResourceTypesRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -6308,6 +6387,30 @@ func (c *Client) ListFlowPaths(ctx context.Context, workspace WorkspaceId, reqEd
 
 func (c *Client) ListSearchFlow(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListSearchFlowRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ToggleWorkspaceErrorHandlerForFlowWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewToggleWorkspaceErrorHandlerForFlowRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ToggleWorkspaceErrorHandlerForFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewToggleWorkspaceErrorHandlerForFlowRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -7554,8 +7657,8 @@ func (c *Client) GetResourceValue(ctx context.Context, workspace WorkspaceId, pa
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetResourceValueInterpolated(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetResourceValueInterpolatedRequest(c.Server, workspace, path)
+func (c *Client) GetResourceValueInterpolated(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceValueInterpolatedParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetResourceValueInterpolatedRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -8072,6 +8175,30 @@ func (c *Client) RawScriptByHash(ctx context.Context, workspace WorkspaceId, pat
 
 func (c *Client) RawScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRawScriptByPathRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ToggleWorkspaceErrorHandlerForScriptWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewToggleWorkspaceErrorHandlerForScriptRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ToggleWorkspaceErrorHandlerForScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewToggleWorkspaceErrorHandlerForScriptRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -8636,6 +8763,30 @@ func (c *Client) ListPendingInvites(ctx context.Context, workspace WorkspaceId, 
 
 func (c *Client) GetPremiumInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPremiumInfoRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunSlackMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunSlackMessageTestJobRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunSlackMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunSlackMessageTestJobRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -9307,33 +9458,6 @@ func NewConnectCallbackRequestWithBody(server string, clientName ClientName, con
 	return req, nil
 }
 
-// NewListOAuthConnectsRequest generates requests for ListOAuthConnects
-func NewListOAuthConnectsRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/oauth/list_connects")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewListOAuthLoginsRequest generates requests for ListOAuthLogins
 func NewListOAuthLoginsRequest(server string) (*http.Request, error) {
 	var err error
@@ -9426,6 +9550,92 @@ func NewGetOpenApiYamlRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListHubResourceTypesRequest generates requests for ListHubResourceTypes
+func NewListHubResourceTypesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/resources/type/hub/list")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewQueryHubResourceTypesRequest generates requests for QueryHubResourceTypes
+func NewQueryHubResourceTypesRequest(server string, params *QueryHubResourceTypesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/resources/type/hub/query")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "text", runtime.ParamLocationQuery, params.Text); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.Limit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -12619,6 +12829,60 @@ func NewListSearchFlowRequest(server string, workspace WorkspaceId) (*http.Reque
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewToggleWorkspaceErrorHandlerForFlowRequest calls the generic ToggleWorkspaceErrorHandlerForFlow builder with application/json body
+func NewToggleWorkspaceErrorHandlerForFlowRequest(server string, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForFlowJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewToggleWorkspaceErrorHandlerForFlowRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewToggleWorkspaceErrorHandlerForFlowRequestWithBody generates requests for ToggleWorkspaceErrorHandlerForFlow with any type of body
+func NewToggleWorkspaceErrorHandlerForFlowRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/toggle_workspace_error_handler/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -18038,7 +18302,7 @@ func NewGetResourceValueRequest(server string, workspace WorkspaceId, path Path)
 }
 
 // NewGetResourceValueInterpolatedRequest generates requests for GetResourceValueInterpolated
-func NewGetResourceValueInterpolatedRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetResourceValueInterpolatedRequest(server string, workspace WorkspaceId, path Path, params *GetResourceValueInterpolatedParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -18069,6 +18333,26 @@ func NewGetResourceValueInterpolatedRequest(server string, workspace WorkspaceId
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -19725,9 +20009,9 @@ func NewListScriptsRequest(server string, workspace WorkspaceId, params *ListScr
 
 	}
 
-	if params.Kind != nil {
+	if params.Kinds != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kinds", runtime.ParamLocationQuery, *params.Kinds); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -19913,6 +20197,60 @@ func NewRawScriptByPathRequest(server string, workspace WorkspaceId, path Script
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewToggleWorkspaceErrorHandlerForScriptRequest calls the generic ToggleWorkspaceErrorHandlerForScript builder with application/json body
+func NewToggleWorkspaceErrorHandlerForScriptRequest(server string, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewToggleWorkspaceErrorHandlerForScriptRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewToggleWorkspaceErrorHandlerForScriptRequestWithBody generates requests for ToggleWorkspaceErrorHandlerForScript with any type of body
+func NewToggleWorkspaceErrorHandlerForScriptRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/toggle_workspace_error_handler/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -21344,6 +21682,53 @@ func NewGetPremiumInfoRequest(server string, workspace WorkspaceId) (*http.Reque
 	return req, nil
 }
 
+// NewRunSlackMessageTestJobRequest calls the generic RunSlackMessageTestJob builder with application/json body
+func NewRunSlackMessageTestJobRequest(server string, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunSlackMessageTestJobRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRunSlackMessageTestJobRequestWithBody generates requests for RunSlackMessageTestJob with any type of body
+func NewRunSlackMessageTestJobRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/run_slack_message_test_job", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetCustomTagsRequest generates requests for GetCustomTags
 func NewGetCustomTagsRequest(server string) (*http.Request, error) {
 	var err error
@@ -21860,9 +22245,6 @@ type ClientWithResponsesInterface interface {
 
 	ConnectCallbackWithResponse(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error)
 
-	// ListOAuthConnects request
-	ListOAuthConnectsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListOAuthConnectsResponse, error)
-
 	// ListOAuthLogins request
 	ListOAuthLoginsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListOAuthLoginsResponse, error)
 
@@ -21873,6 +22255,12 @@ type ClientWithResponsesInterface interface {
 
 	// GetOpenApiYaml request
 	GetOpenApiYamlWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOpenApiYamlResponse, error)
+
+	// ListHubResourceTypes request
+	ListHubResourceTypesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubResourceTypesResponse, error)
+
+	// QueryHubResourceTypes request
+	QueryHubResourceTypesWithResponse(ctx context.Context, params *QueryHubResourceTypesParams, reqEditors ...RequestEditorFn) (*QueryHubResourceTypesResponse, error)
 
 	// PreviewSchedule request with any body
 	PreviewScheduleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PreviewScheduleResponse, error)
@@ -22124,6 +22512,11 @@ type ClientWithResponsesInterface interface {
 
 	// ListSearchFlow request
 	ListSearchFlowWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchFlowResponse, error)
+
+	// ToggleWorkspaceErrorHandlerForFlow request with any body
+	ToggleWorkspaceErrorHandlerForFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForFlowResponse, error)
+
+	ToggleWorkspaceErrorHandlerForFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForFlowResponse, error)
 
 	// UpdateFlow request with any body
 	UpdateFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowResponse, error)
@@ -22404,7 +22797,7 @@ type ClientWithResponsesInterface interface {
 	GetResourceValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceValueResponse, error)
 
 	// GetResourceValueInterpolated request
-	GetResourceValueInterpolatedWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceValueInterpolatedResponse, error)
+	GetResourceValueInterpolatedWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceValueInterpolatedParams, reqEditors ...RequestEditorFn) (*GetResourceValueInterpolatedResponse, error)
 
 	// ListResource request
 	ListResourceWithResponse(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*ListResourceResponse, error)
@@ -22526,6 +22919,11 @@ type ClientWithResponsesInterface interface {
 
 	// RawScriptByPath request
 	RawScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathResponse, error)
+
+	// ToggleWorkspaceErrorHandlerForScript request with any body
+	ToggleWorkspaceErrorHandlerForScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForScriptResponse, error)
+
+	ToggleWorkspaceErrorHandlerForScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForScriptResponse, error)
 
 	// CreateUser request with any body
 	CreateUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateUserResponse, error)
@@ -22653,6 +23051,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetPremiumInfo request
 	GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error)
+
+	// RunSlackMessageTestJob request with any body
+	RunSlackMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error)
+
+	RunSlackMessageTestJobWithResponse(ctx context.Context, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error)
 
 	// GetCustomTags request
 	GetCustomTagsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error)
@@ -23047,33 +23450,6 @@ func (r ConnectCallbackResponse) StatusCode() int {
 	return 0
 }
 
-type ListOAuthConnectsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		AdditionalProperties map[string]struct {
-			ExtraParams *interface{} `json:"extra_params,omitempty"`
-			Scopes      *[]string    `json:"scopes,omitempty"`
-		} `json:"-"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r ListOAuthConnectsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ListOAuthConnectsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type ListOAuthLoginsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -23135,6 +23511,56 @@ func (r GetOpenApiYamlResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetOpenApiYamlResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListHubResourceTypesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Id     string       `json:"id"`
+		Name   string       `json:"name"`
+		Schema *interface{} `json:"schema,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListHubResourceTypesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListHubResourceTypesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type QueryHubResourceTypesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Id string `json:"id"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r QueryHubResourceTypesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r QueryHubResourceTypesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -24543,6 +24969,7 @@ type GetFlowByPathWithDraftResponse struct {
 		Tag                  *string                 `json:"tag,omitempty"`
 		Value                FlowValue               `json:"value"`
 		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
+		WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
 	}
 }
 
@@ -24625,6 +25052,7 @@ type ListFlowsResponse struct {
 		Tag                  *string                 `json:"tag,omitempty"`
 		Value                FlowValue               `json:"value"`
 		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
+		WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
 	}
 }
 
@@ -24684,6 +25112,27 @@ func (r ListSearchFlowResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListSearchFlowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ToggleWorkspaceErrorHandlerForFlowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ToggleWorkspaceErrorHandlerForFlowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ToggleWorkspaceErrorHandlerForFlowResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -27055,6 +27504,27 @@ func (r RawScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
+type ToggleWorkspaceErrorHandlerForScriptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ToggleWorkspaceErrorHandlerForScriptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ToggleWorkspaceErrorHandlerForScriptResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -27681,19 +28151,20 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AutoInviteDomain      *string `json:"auto_invite_domain,omitempty"`
-		AutoInviteOperator    *bool   `json:"auto_invite_operator,omitempty"`
-		CodeCompletionEnabled bool    `json:"code_completion_enabled"`
-		CustomerId            *string `json:"customer_id,omitempty"`
-		DeployTo              *string `json:"deploy_to,omitempty"`
-		ErrorHandler          *string `json:"error_handler,omitempty"`
-		OpenaiResourcePath    *string `json:"openai_resource_path,omitempty"`
-		Plan                  *string `json:"plan,omitempty"`
-		SlackCommandScript    *string `json:"slack_command_script,omitempty"`
-		SlackName             *string `json:"slack_name,omitempty"`
-		SlackTeamId           *string `json:"slack_team_id,omitempty"`
-		Webhook               *string `json:"webhook,omitempty"`
-		WorkspaceId           *string `json:"workspace_id,omitempty"`
+		AutoInviteDomain      *string     `json:"auto_invite_domain,omitempty"`
+		AutoInviteOperator    *bool       `json:"auto_invite_operator,omitempty"`
+		CodeCompletionEnabled bool        `json:"code_completion_enabled"`
+		CustomerId            *string     `json:"customer_id,omitempty"`
+		DeployTo              *string     `json:"deploy_to,omitempty"`
+		ErrorHandler          *string     `json:"error_handler,omitempty"`
+		ErrorHandlerExtraArgs *ScriptArgs `json:"error_handler_extra_args,omitempty"`
+		OpenaiResourcePath    *string     `json:"openai_resource_path,omitempty"`
+		Plan                  *string     `json:"plan,omitempty"`
+		SlackCommandScript    *string     `json:"slack_command_script,omitempty"`
+		SlackName             *string     `json:"slack_name,omitempty"`
+		SlackTeamId           *string     `json:"slack_team_id,omitempty"`
+		Webhook               *string     `json:"webhook,omitempty"`
+		WorkspaceId           *string     `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -27775,6 +28246,27 @@ func (r GetPremiumInfoResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetPremiumInfoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunSlackMessageTestJobResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunSlackMessageTestJobResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunSlackMessageTestJobResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -28177,15 +28669,6 @@ func (c *ClientWithResponses) ConnectCallbackWithResponse(ctx context.Context, c
 	return ParseConnectCallbackResponse(rsp)
 }
 
-// ListOAuthConnectsWithResponse request returning *ListOAuthConnectsResponse
-func (c *ClientWithResponses) ListOAuthConnectsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListOAuthConnectsResponse, error) {
-	rsp, err := c.ListOAuthConnects(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseListOAuthConnectsResponse(rsp)
-}
-
 // ListOAuthLoginsWithResponse request returning *ListOAuthLoginsResponse
 func (c *ClientWithResponses) ListOAuthLoginsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListOAuthLoginsResponse, error) {
 	rsp, err := c.ListOAuthLogins(ctx, reqEditors...)
@@ -28219,6 +28702,24 @@ func (c *ClientWithResponses) GetOpenApiYamlWithResponse(ctx context.Context, re
 		return nil, err
 	}
 	return ParseGetOpenApiYamlResponse(rsp)
+}
+
+// ListHubResourceTypesWithResponse request returning *ListHubResourceTypesResponse
+func (c *ClientWithResponses) ListHubResourceTypesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubResourceTypesResponse, error) {
+	rsp, err := c.ListHubResourceTypes(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListHubResourceTypesResponse(rsp)
+}
+
+// QueryHubResourceTypesWithResponse request returning *QueryHubResourceTypesResponse
+func (c *ClientWithResponses) QueryHubResourceTypesWithResponse(ctx context.Context, params *QueryHubResourceTypesParams, reqEditors ...RequestEditorFn) (*QueryHubResourceTypesResponse, error) {
+	rsp, err := c.QueryHubResourceTypes(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseQueryHubResourceTypesResponse(rsp)
 }
 
 // PreviewScheduleWithBodyWithResponse request with arbitrary body returning *PreviewScheduleResponse
@@ -29016,6 +29517,23 @@ func (c *ClientWithResponses) ListSearchFlowWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseListSearchFlowResponse(rsp)
+}
+
+// ToggleWorkspaceErrorHandlerForFlowWithBodyWithResponse request with arbitrary body returning *ToggleWorkspaceErrorHandlerForFlowResponse
+func (c *ClientWithResponses) ToggleWorkspaceErrorHandlerForFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForFlowResponse, error) {
+	rsp, err := c.ToggleWorkspaceErrorHandlerForFlowWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseToggleWorkspaceErrorHandlerForFlowResponse(rsp)
+}
+
+func (c *ClientWithResponses) ToggleWorkspaceErrorHandlerForFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForFlowResponse, error) {
+	rsp, err := c.ToggleWorkspaceErrorHandlerForFlow(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseToggleWorkspaceErrorHandlerForFlowResponse(rsp)
 }
 
 // UpdateFlowWithBodyWithResponse request with arbitrary body returning *UpdateFlowResponse
@@ -29915,8 +30433,8 @@ func (c *ClientWithResponses) GetResourceValueWithResponse(ctx context.Context, 
 }
 
 // GetResourceValueInterpolatedWithResponse request returning *GetResourceValueInterpolatedResponse
-func (c *ClientWithResponses) GetResourceValueInterpolatedWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceValueInterpolatedResponse, error) {
-	rsp, err := c.GetResourceValueInterpolated(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetResourceValueInterpolatedWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceValueInterpolatedParams, reqEditors ...RequestEditorFn) (*GetResourceValueInterpolatedResponse, error) {
+	rsp, err := c.GetResourceValueInterpolated(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -30300,6 +30818,23 @@ func (c *ClientWithResponses) RawScriptByPathWithResponse(ctx context.Context, w
 		return nil, err
 	}
 	return ParseRawScriptByPathResponse(rsp)
+}
+
+// ToggleWorkspaceErrorHandlerForScriptWithBodyWithResponse request with arbitrary body returning *ToggleWorkspaceErrorHandlerForScriptResponse
+func (c *ClientWithResponses) ToggleWorkspaceErrorHandlerForScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForScriptResponse, error) {
+	rsp, err := c.ToggleWorkspaceErrorHandlerForScriptWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp)
+}
+
+func (c *ClientWithResponses) ToggleWorkspaceErrorHandlerForScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForScriptResponse, error) {
+	rsp, err := c.ToggleWorkspaceErrorHandlerForScript(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp)
 }
 
 // CreateUserWithBodyWithResponse request with arbitrary body returning *CreateUserResponse
@@ -30709,6 +31244,23 @@ func (c *ClientWithResponses) GetPremiumInfoWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseGetPremiumInfoResponse(rsp)
+}
+
+// RunSlackMessageTestJobWithBodyWithResponse request with arbitrary body returning *RunSlackMessageTestJobResponse
+func (c *ClientWithResponses) RunSlackMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error) {
+	rsp, err := c.RunSlackMessageTestJobWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunSlackMessageTestJobResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunSlackMessageTestJobWithResponse(ctx context.Context, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error) {
+	rsp, err := c.RunSlackMessageTestJob(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunSlackMessageTestJobResponse(rsp)
 }
 
 // GetCustomTagsWithResponse request returning *GetCustomTagsResponse
@@ -31202,37 +31754,6 @@ func ParseConnectCallbackResponse(rsp *http.Response) (*ConnectCallbackResponse,
 	return response, nil
 }
 
-// ParseListOAuthConnectsResponse parses an HTTP response from a ListOAuthConnectsWithResponse call
-func ParseListOAuthConnectsResponse(rsp *http.Response) (*ListOAuthConnectsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ListOAuthConnectsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			AdditionalProperties map[string]struct {
-				ExtraParams *interface{} `json:"extra_params,omitempty"`
-				Scopes      *[]string    `json:"scopes,omitempty"`
-			} `json:"-"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseListOAuthLoginsResponse parses an HTTP response from a ListOAuthLoginsWithResponse call
 func ParseListOAuthLoginsResponse(rsp *http.Response) (*ListOAuthLoginsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -31289,6 +31810,64 @@ func ParseGetOpenApiYamlResponse(rsp *http.Response) (*GetOpenApiYamlResponse, e
 	response := &GetOpenApiYamlResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListHubResourceTypesResponse parses an HTTP response from a ListHubResourceTypesWithResponse call
+func ParseListHubResourceTypesResponse(rsp *http.Response) (*ListHubResourceTypesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListHubResourceTypesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Id     string       `json:"id"`
+			Name   string       `json:"name"`
+			Schema *interface{} `json:"schema,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseQueryHubResourceTypesResponse parses an HTTP response from a QueryHubResourceTypesWithResponse call
+func ParseQueryHubResourceTypesResponse(rsp *http.Response) (*QueryHubResourceTypesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &QueryHubResourceTypesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Id string `json:"id"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -32627,6 +33206,7 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			Tag                  *string                 `json:"tag,omitempty"`
 			Value                FlowValue               `json:"value"`
 			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
+			WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -32721,6 +33301,7 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			Tag                  *string                 `json:"tag,omitempty"`
 			Value                FlowValue               `json:"value"`
 			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
+			WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -32772,6 +33353,22 @@ func ParseListSearchFlowResponse(rsp *http.Response) (*ListSearchFlowResponse, e
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseToggleWorkspaceErrorHandlerForFlowResponse parses an HTTP response from a ToggleWorkspaceErrorHandlerForFlowWithResponse call
+func ParseToggleWorkspaceErrorHandlerForFlowResponse(rsp *http.Response) (*ToggleWorkspaceErrorHandlerForFlowResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ToggleWorkspaceErrorHandlerForFlowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -35106,6 +35703,22 @@ func ParseRawScriptByPathResponse(rsp *http.Response) (*RawScriptByPathResponse,
 	return response, nil
 }
 
+// ParseToggleWorkspaceErrorHandlerForScriptResponse parses an HTTP response from a ToggleWorkspaceErrorHandlerForScriptWithResponse call
+func ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp *http.Response) (*ToggleWorkspaceErrorHandlerForScriptResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ToggleWorkspaceErrorHandlerForScriptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCreateUserResponse parses an HTTP response from a CreateUserWithResponse call
 func ParseCreateUserResponse(rsp *http.Response) (*CreateUserResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -35698,19 +36311,20 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AutoInviteDomain      *string `json:"auto_invite_domain,omitempty"`
-			AutoInviteOperator    *bool   `json:"auto_invite_operator,omitempty"`
-			CodeCompletionEnabled bool    `json:"code_completion_enabled"`
-			CustomerId            *string `json:"customer_id,omitempty"`
-			DeployTo              *string `json:"deploy_to,omitempty"`
-			ErrorHandler          *string `json:"error_handler,omitempty"`
-			OpenaiResourcePath    *string `json:"openai_resource_path,omitempty"`
-			Plan                  *string `json:"plan,omitempty"`
-			SlackCommandScript    *string `json:"slack_command_script,omitempty"`
-			SlackName             *string `json:"slack_name,omitempty"`
-			SlackTeamId           *string `json:"slack_team_id,omitempty"`
-			Webhook               *string `json:"webhook,omitempty"`
-			WorkspaceId           *string `json:"workspace_id,omitempty"`
+			AutoInviteDomain      *string     `json:"auto_invite_domain,omitempty"`
+			AutoInviteOperator    *bool       `json:"auto_invite_operator,omitempty"`
+			CodeCompletionEnabled bool        `json:"code_completion_enabled"`
+			CustomerId            *string     `json:"customer_id,omitempty"`
+			DeployTo              *string     `json:"deploy_to,omitempty"`
+			ErrorHandler          *string     `json:"error_handler,omitempty"`
+			ErrorHandlerExtraArgs *ScriptArgs `json:"error_handler_extra_args,omitempty"`
+			OpenaiResourcePath    *string     `json:"openai_resource_path,omitempty"`
+			Plan                  *string     `json:"plan,omitempty"`
+			SlackCommandScript    *string     `json:"slack_command_script,omitempty"`
+			SlackName             *string     `json:"slack_name,omitempty"`
+			SlackTeamId           *string     `json:"slack_team_id,omitempty"`
+			Webhook               *string     `json:"webhook,omitempty"`
+			WorkspaceId           *string     `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -35788,6 +36402,22 @@ func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, e
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseRunSlackMessageTestJobResponse parses an HTTP response from a RunSlackMessageTestJobWithResponse call
+func ParseRunSlackMessageTestJobResponse(rsp *http.Response) (*RunSlackMessageTestJobResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunSlackMessageTestJobResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
