@@ -539,6 +539,7 @@ type CompletedJob struct {
 	// The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
 	PermissionedAs string       `json:"permissioned_as"`
+	Priority       *int         `json:"priority,omitempty"`
 	RawCode        *string      `json:"raw_code,omitempty"`
 	RawFlow        *FlowValue   `json:"raw_flow,omitempty"`
 	Result         *interface{} `json:"result,omitempty"`
@@ -648,6 +649,7 @@ type Flow struct {
 	EditedBy             string                  `json:"edited_by"`
 	ExtraPerms           map[string]interface{}  `json:"extra_perms"`
 	Path                 string                  `json:"path"`
+	Priority             *int                    `json:"priority,omitempty"`
 	Schema               *map[string]interface{} `json:"schema,omitempty"`
 	Starred              *bool                   `json:"starred,omitempty"`
 	Summary              string                  `json:"summary"`
@@ -666,6 +668,7 @@ type FlowMetadata struct {
 	EditedBy             string                 `json:"edited_by"`
 	ExtraPerms           map[string]interface{} `json:"extra_perms"`
 	Path                 string                 `json:"path"`
+	Priority             *int                   `json:"priority,omitempty"`
 	Starred              *bool                  `json:"starred,omitempty"`
 	Tag                  *string                `json:"tag,omitempty"`
 	WorkspaceId          *string                `json:"workspace_id,omitempty"`
@@ -680,6 +683,7 @@ type FlowModule struct {
 		Enabled     *bool        `json:"enabled,omitempty"`
 		ReturnValue *interface{} `json:"return_value,omitempty"`
 	} `json:"mock,omitempty"`
+	Priority    *float32        `json:"priority,omitempty"`
 	Retry       *Retry          `json:"retry,omitempty"`
 	Sleep       *InputTransform `json:"sleep,omitempty"`
 	StopAfterIf *struct {
@@ -692,7 +696,9 @@ type FlowModule struct {
 		ResumeForm     *struct {
 			Schema *map[string]interface{} `json:"schema,omitempty"`
 		} `json:"resume_form,omitempty"`
-		Timeout *int `json:"timeout,omitempty"`
+		Timeout            *int            `json:"timeout,omitempty"`
+		UserAuthRequired   *bool           `json:"user_auth_required,omitempty"`
+		UserGroupsRequired *InputTransform `json:"user_groups_required,omitempty"`
 	} `json:"suspend,omitempty"`
 	Timeout *float32        `json:"timeout,omitempty"`
 	Value   FlowModuleValue `json:"value"`
@@ -789,6 +795,7 @@ type FlowValue struct {
 	ConcurrentLimit        *float32     `json:"concurrent_limit,omitempty"`
 	FailureModule          *FlowModule  `json:"failure_module,omitempty"`
 	Modules                []FlowModule `json:"modules"`
+	Priority               *float32     `json:"priority,omitempty"`
 	SameWorker             *bool        `json:"same_worker,omitempty"`
 	SkipExpr               *string      `json:"skip_expr,omitempty"`
 }
@@ -851,6 +858,9 @@ type Group struct {
 type Group_ExtraPerms struct {
 	AdditionalProperties map[string]bool `json:"-"`
 }
+
+// HubScriptKind defines model for HubScriptKind.
+type HubScriptKind = interface{}
 
 // Identity defines model for Identity.
 type Identity struct {
@@ -1012,6 +1022,7 @@ type NewScript struct {
 	Lock                   *[]string               `json:"lock,omitempty"`
 	ParentHash             *string                 `json:"parent_hash,omitempty"`
 	Path                   string                  `json:"path"`
+	Priority               *int                    `json:"priority,omitempty"`
 	Schema                 *map[string]interface{} `json:"schema,omitempty"`
 	Summary                string                  `json:"summary"`
 	Tag                    *string                 `json:"tag,omitempty"`
@@ -1042,6 +1053,7 @@ type NewScriptWithDraft struct {
 	Lock                   *[]string                  `json:"lock,omitempty"`
 	ParentHash             *string                    `json:"parent_hash,omitempty"`
 	Path                   string                     `json:"path"`
+	Priority               *int                       `json:"priority,omitempty"`
 	Schema                 *map[string]interface{}    `json:"schema,omitempty"`
 	Summary                string                     `json:"summary"`
 	Tag                    *string                    `json:"tag,omitempty"`
@@ -1087,6 +1099,7 @@ type OpenFlow struct {
 type OpenFlowWPath struct {
 	Description         *string                 `json:"description,omitempty"`
 	Path                string                  `json:"path"`
+	Priority            *int                    `json:"priority,omitempty"`
 	Schema              *map[string]interface{} `json:"schema,omitempty"`
 	Summary             string                  `json:"summary"`
 	Tag                 *string                 `json:"tag,omitempty"`
@@ -1179,6 +1192,7 @@ type QueuedJob struct {
 	// The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
 	PermissionedAs string     `json:"permissioned_as"`
+	Priority       *int       `json:"priority,omitempty"`
 	RawCode        *string    `json:"raw_code,omitempty"`
 	RawFlow        *FlowValue `json:"raw_flow,omitempty"`
 	Running        bool       `json:"running"`
@@ -1349,6 +1363,7 @@ type Script struct {
 	// The first element is the direct parent of the script, the second is the parent of the first, etc
 	ParentHashes        *[]string               `json:"parent_hashes,omitempty"`
 	Path                string                  `json:"path"`
+	Priority            *int                    `json:"priority,omitempty"`
 	Schema              *map[string]interface{} `json:"schema,omitempty"`
 	Starred             bool                    `json:"starred"`
 	Summary             string                  `json:"summary"`
@@ -1492,6 +1507,9 @@ type CreatedOrStartedAfter = time.Time
 // CreatedOrStartedBefore defines model for CreatedOrStartedBefore.
 type CreatedOrStartedBefore = time.Time
 
+// GetStarted defines model for GetStarted.
+type GetStarted = bool
+
 // IncludeHeader defines model for IncludeHeader.
 type IncludeHeader = string
 
@@ -1606,6 +1624,36 @@ type LoginJSONBody = Login
 // UpdateConfigJSONBody defines parameters for UpdateConfig.
 type UpdateConfigJSONBody = interface{}
 
+// QueryHubScriptsParams defines parameters for QueryHubScripts.
+type QueryHubScriptsParams struct {
+	// query text
+	Text string `form:"text" json:"text"`
+
+	// query scripts kind
+	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
+
+	// query limit
+	Limit *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// query scripts app
+	App *string `form:"app,omitempty" json:"app,omitempty"`
+}
+
+// QueryResourceTypesParams defines parameters for QueryResourceTypes.
+type QueryResourceTypesParams struct {
+	// query text
+	Text string `form:"text" json:"text"`
+
+	// query limit
+	Limit *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ListHubIntegrationsParams defines parameters for ListHubIntegrations.
+type ListHubIntegrationsParams struct {
+	// query integrations kind
+	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
+}
+
 // ConnectCallbackJSONBody defines parameters for ConnectCallback.
 type ConnectCallbackJSONBody struct {
 	Code  string `json:"code"`
@@ -1618,31 +1666,22 @@ type LoginWithOauthJSONBody struct {
 	State *string `json:"state,omitempty"`
 }
 
-// QueryHubResourceTypesParams defines parameters for QueryHubResourceTypes.
-type QueryHubResourceTypesParams struct {
-	// query text
-	Text string `form:"text" json:"text"`
-
-	// query limit
-	Limit *float32 `form:"limit,omitempty" json:"limit,omitempty"`
-}
-
 // PreviewScheduleJSONBody defines parameters for PreviewSchedule.
 type PreviewScheduleJSONBody struct {
 	Schedule string `json:"schedule"`
 	Timezone string `json:"timezone"`
 }
 
-// QueryHubScriptsParams defines parameters for QueryHubScripts.
-type QueryHubScriptsParams struct {
-	// query text
-	Text string `form:"text" json:"text"`
+// GetTopHubScriptsParams defines parameters for GetTopHubScripts.
+type GetTopHubScriptsParams struct {
+	// query limit
+	Limit *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// query scripts app
+	App *string `form:"app,omitempty" json:"app,omitempty"`
 
 	// query scripts kind
 	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
-
-	// query limit
-	Limit *float32 `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // SetGlobalJSONBody defines parameters for SetGlobal.
@@ -1865,6 +1904,7 @@ type CreateFlowJSONBody struct {
 	Description         *string                 `json:"description,omitempty"`
 	DraftOnly           *bool                   `json:"draft_only,omitempty"`
 	Path                string                  `json:"path"`
+	Priority            *int                    `json:"priority,omitempty"`
 	Schema              *map[string]interface{} `json:"schema,omitempty"`
 	Summary             string                  `json:"summary"`
 	Tag                 *string                 `json:"tag,omitempty"`
@@ -2416,6 +2456,11 @@ type CancelSuspendedJobPostJSONBody = map[string]interface{}
 // CancelSuspendedJobPostParams defines parameters for CancelSuspendedJobPost.
 type CancelSuspendedJobPostParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
+}
+
+// GetCompletedJobResultMaybeParams defines parameters for GetCompletedJobResultMaybe.
+type GetCompletedJobResultMaybeParams struct {
+	GetStarted *GetStarted `form:"get_started,omitempty" json:"get_started,omitempty"`
 }
 
 // GetSuspendedJobFlowParams defines parameters for GetSuspendedJobFlow.
@@ -4145,6 +4190,12 @@ type ClientInterface interface {
 	// GetLicenseId request
 	GetLicenseId(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// QueryHubScripts request
+	QueryHubScripts(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// QueryResourceTypes request
+	QueryResourceTypes(ctx context.Context, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetHubFlowById request
 	GetHubFlowById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4156,6 +4207,9 @@ type ClientInterface interface {
 
 	// ListInstanceGroups request
 	ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListHubIntegrations request
+	ListHubIntegrations(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetDbClock request
 	GetDbClock(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4176,12 +4230,6 @@ type ClientInterface interface {
 	// GetOpenApiYaml request
 	GetOpenApiYaml(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ListHubResourceTypes request
-	ListHubResourceTypes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// QueryHubResourceTypes request
-	QueryHubResourceTypes(ctx context.Context, params *QueryHubResourceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// PreviewSchedule request with any body
 	PreviewScheduleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4193,11 +4241,8 @@ type ClientInterface interface {
 	// GetHubScriptByPath request
 	GetHubScriptByPath(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ListHubScripts request
-	ListHubScripts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// QueryHubScripts request
-	QueryHubScripts(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetTopHubScripts request
+	GetTopHubScripts(ctx context.Context, params *GetTopHubScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RawScriptByPathTokened request
 	RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4627,7 +4672,7 @@ type ClientInterface interface {
 	GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCompletedJobResultMaybe request
-	GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetJob request
 	GetJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5149,6 +5194,30 @@ func (c *Client) GetLicenseId(ctx context.Context, reqEditors ...RequestEditorFn
 	return c.Client.Do(req)
 }
 
+func (c *Client) QueryHubScripts(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewQueryHubScriptsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) QueryResourceTypes(ctx context.Context, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewQueryResourceTypesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetHubFlowById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetHubFlowByIdRequest(c.Server, id)
 	if err != nil {
@@ -5187,6 +5256,18 @@ func (c *Client) GetInstanceGroup(ctx context.Context, name Name, reqEditors ...
 
 func (c *Client) ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListInstanceGroupsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListHubIntegrations(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListHubIntegrationsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -5281,30 +5362,6 @@ func (c *Client) GetOpenApiYaml(ctx context.Context, reqEditors ...RequestEditor
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListHubResourceTypes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListHubResourceTypesRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) QueryHubResourceTypes(ctx context.Context, params *QueryHubResourceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewQueryHubResourceTypesRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) PreviewScheduleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPreviewScheduleRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -5353,20 +5410,8 @@ func (c *Client) GetHubScriptByPath(ctx context.Context, path ScriptPath, reqEdi
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListHubScripts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListHubScriptsRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) QueryHubScripts(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewQueryHubScriptsRequest(c.Server, params)
+func (c *Client) GetTopHubScripts(ctx context.Context, params *GetTopHubScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTopHubScriptsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -7261,8 +7306,8 @@ func (c *Client) GetCompletedJobResult(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCompletedJobResultMaybeRequest(c.Server, workspace, id)
+func (c *Client) GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCompletedJobResultMaybeRequest(c.Server, workspace, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -9262,6 +9307,156 @@ func NewGetLicenseIdRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewQueryHubScriptsRequest generates requests for QueryHubScripts
+func NewQueryHubScriptsRequest(server string, params *QueryHubScriptsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/embeddings/query_hub_scripts")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "text", runtime.ParamLocationQuery, params.Text); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.Kind != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Limit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.App != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "app", runtime.ParamLocationQuery, *params.App); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewQueryResourceTypesRequest generates requests for QueryResourceTypes
+func NewQueryResourceTypesRequest(server string, params *QueryResourceTypesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/embeddings/query_resource_types")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "text", runtime.ParamLocationQuery, params.Text); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.Limit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetHubFlowByIdRequest generates requests for GetHubFlowById
 func NewGetHubFlowByIdRequest(server string, id PathId) (*http.Request, error) {
 	var err error
@@ -9375,6 +9570,53 @@ func NewListInstanceGroupsRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListHubIntegrationsRequest generates requests for ListHubIntegrations
+func NewListHubIntegrationsRequest(server string, params *ListHubIntegrationsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/integrations/hub/list")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Kind != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -9559,92 +9801,6 @@ func NewGetOpenApiYamlRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewListHubResourceTypesRequest generates requests for ListHubResourceTypes
-func NewListHubResourceTypesRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/resources/type/hub/list")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewQueryHubResourceTypesRequest generates requests for QueryHubResourceTypes
-func NewQueryHubResourceTypesRequest(server string, params *QueryHubResourceTypesParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/resources/type/hub/query")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	queryValues := queryURL.Query()
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "text", runtime.ParamLocationQuery, params.Text); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	if params.Limit != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
-	queryURL.RawQuery = queryValues.Encode()
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewPreviewScheduleRequest calls the generic PreviewSchedule builder with application/json body
 func NewPreviewScheduleRequest(server string, body PreviewScheduleJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -9753,8 +9909,8 @@ func NewGetHubScriptByPathRequest(server string, path ScriptPath) (*http.Request
 	return req, nil
 }
 
-// NewListHubScriptsRequest generates requests for ListHubScripts
-func NewListHubScriptsRequest(server string) (*http.Request, error) {
+// NewGetTopHubScriptsRequest generates requests for GetTopHubScripts
+func NewGetTopHubScriptsRequest(server string, params *GetTopHubScriptsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -9762,34 +9918,7 @@ func NewListHubScriptsRequest(server string) (*http.Request, error) {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/scripts/hub/list")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewQueryHubScriptsRequest generates requests for QueryHubScripts
-func NewQueryHubScriptsRequest(server string, params *QueryHubScriptsParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/scripts/hub/query")
+	operationPath := fmt.Sprintf("/scripts/hub/top")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -9801,21 +9930,9 @@ func NewQueryHubScriptsRequest(server string, params *QueryHubScriptsParams) (*h
 
 	queryValues := queryURL.Query()
 
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "text", runtime.ParamLocationQuery, params.Text); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
+	if params.Limit != nil {
 
-	if params.Kind != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -9829,9 +9946,25 @@ func NewQueryHubScriptsRequest(server string, params *QueryHubScriptsParams) (*h
 
 	}
 
-	if params.Limit != nil {
+	if params.App != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "app", runtime.ParamLocationQuery, *params.App); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Kind != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -16953,7 +17086,7 @@ func NewGetCompletedJobResultRequest(server string, workspace WorkspaceId, id Jo
 }
 
 // NewGetCompletedJobResultMaybeRequest generates requests for GetCompletedJobResultMaybe
-func NewGetCompletedJobResultMaybeRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+func NewGetCompletedJobResultMaybeRequest(server string, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -16984,6 +17117,26 @@ func NewGetCompletedJobResultMaybeRequest(server string, workspace WorkspaceId, 
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.GetStarted != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_started", runtime.ParamLocationQuery, *params.GetStarted); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -22225,6 +22378,12 @@ type ClientWithResponsesInterface interface {
 	// GetLicenseId request
 	GetLicenseIdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLicenseIdResponse, error)
 
+	// QueryHubScripts request
+	QueryHubScriptsWithResponse(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*QueryHubScriptsResponse, error)
+
+	// QueryResourceTypes request
+	QueryResourceTypesWithResponse(ctx context.Context, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*QueryResourceTypesResponse, error)
+
 	// GetHubFlowById request
 	GetHubFlowByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubFlowByIdResponse, error)
 
@@ -22236,6 +22395,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListInstanceGroups request
 	ListInstanceGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceGroupsResponse, error)
+
+	// ListHubIntegrations request
+	ListHubIntegrationsWithResponse(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*ListHubIntegrationsResponse, error)
 
 	// GetDbClock request
 	GetDbClockWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDbClockResponse, error)
@@ -22256,12 +22418,6 @@ type ClientWithResponsesInterface interface {
 	// GetOpenApiYaml request
 	GetOpenApiYamlWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOpenApiYamlResponse, error)
 
-	// ListHubResourceTypes request
-	ListHubResourceTypesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubResourceTypesResponse, error)
-
-	// QueryHubResourceTypes request
-	QueryHubResourceTypesWithResponse(ctx context.Context, params *QueryHubResourceTypesParams, reqEditors ...RequestEditorFn) (*QueryHubResourceTypesResponse, error)
-
 	// PreviewSchedule request with any body
 	PreviewScheduleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PreviewScheduleResponse, error)
 
@@ -22273,11 +22429,8 @@ type ClientWithResponsesInterface interface {
 	// GetHubScriptByPath request
 	GetHubScriptByPathWithResponse(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*GetHubScriptByPathResponse, error)
 
-	// ListHubScripts request
-	ListHubScriptsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubScriptsResponse, error)
-
-	// QueryHubScripts request
-	QueryHubScriptsWithResponse(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*QueryHubScriptsResponse, error)
+	// GetTopHubScripts request
+	GetTopHubScriptsWithResponse(ctx context.Context, params *GetTopHubScriptsParams, reqEditors ...RequestEditorFn) (*GetTopHubScriptsResponse, error)
 
 	// RawScriptByPathTokened request
 	RawScriptByPathTokenedWithResponse(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathTokenedResponse, error)
@@ -22707,7 +22860,7 @@ type ClientWithResponsesInterface interface {
 	GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error)
 
 	// GetCompletedJobResultMaybe request
-	GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error)
+	GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error)
 
 	// GetJob request
 	GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobResponse, error)
@@ -23307,6 +23460,62 @@ func (r GetLicenseIdResponse) StatusCode() int {
 	return 0
 }
 
+type QueryHubScriptsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		App       string        `json:"app"`
+		AskId     float32       `json:"ask_id"`
+		Id        float32       `json:"id"`
+		Kind      HubScriptKind `json:"kind"`
+		Score     float32       `json:"score"`
+		Summary   string        `json:"summary"`
+		VersionId float32       `json:"version_id"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r QueryHubScriptsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r QueryHubScriptsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type QueryResourceTypesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Name   string       `json:"name"`
+		Schema *interface{} `json:"schema,omitempty"`
+		Score  float32      `json:"score"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r QueryResourceTypesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r QueryResourceTypesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetHubFlowByIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -23400,6 +23609,30 @@ func (r ListInstanceGroupsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListInstanceGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListHubIntegrationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Name string `json:"name"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListHubIntegrationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListHubIntegrationsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -23517,56 +23750,6 @@ func (r GetOpenApiYamlResponse) StatusCode() int {
 	return 0
 }
 
-type ListHubResourceTypesResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *[]struct {
-		Id     string       `json:"id"`
-		Name   string       `json:"name"`
-		Schema *interface{} `json:"schema,omitempty"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r ListHubResourceTypesResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ListHubResourceTypesResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type QueryHubResourceTypesResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *[]struct {
-		Id string `json:"id"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r QueryHubResourceTypesResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r QueryHubResourceTypesResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type PreviewScheduleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -23638,25 +23821,25 @@ func (r GetHubScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
-type ListHubScriptsResponse struct {
+type GetTopHubScriptsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Asks *[]struct {
-			App      string  `json:"app"`
-			Approved bool    `json:"approved"`
-			AskId    float32 `json:"ask_id"`
-			Id       float32 `json:"id"`
-			Kind     string  `json:"kind"`
-			Summary  string  `json:"summary"`
-			Views    float32 `json:"views"`
-			Votes    float32 `json:"votes"`
+			App       string        `json:"app"`
+			AskId     float32       `json:"ask_id"`
+			Id        float32       `json:"id"`
+			Kind      HubScriptKind `json:"kind"`
+			Summary   string        `json:"summary"`
+			VersionId float32       `json:"version_id"`
+			Views     float32       `json:"views"`
+			Votes     float32       `json:"votes"`
 		} `json:"asks,omitempty"`
 	}
 }
 
 // Status returns HTTPResponse.Status
-func (r ListHubScriptsResponse) Status() string {
+func (r GetTopHubScriptsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -23664,31 +23847,7 @@ func (r ListHubScriptsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ListHubScriptsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type QueryHubScriptsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *[]struct {
-		Id string `json:"id"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r QueryHubScriptsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r QueryHubScriptsResponse) StatusCode() int {
+func (r GetTopHubScriptsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -24963,6 +25122,7 @@ type GetFlowByPathWithDraftResponse struct {
 		EditedBy             string                  `json:"edited_by"`
 		ExtraPerms           map[string]interface{}  `json:"extra_perms"`
 		Path                 string                  `json:"path"`
+		Priority             *int                    `json:"priority,omitempty"`
 		Schema               *map[string]interface{} `json:"schema,omitempty"`
 		Starred              *bool                   `json:"starred,omitempty"`
 		Summary              string                  `json:"summary"`
@@ -25046,6 +25206,7 @@ type ListFlowsResponse struct {
 		ExtraPerms           map[string]interface{}  `json:"extra_perms"`
 		HasDraft             *bool                   `json:"has_draft,omitempty"`
 		Path                 string                  `json:"path"`
+		Priority             *int                    `json:"priority,omitempty"`
 		Schema               *map[string]interface{} `json:"schema,omitempty"`
 		Starred              *bool                   `json:"starred,omitempty"`
 		Summary              string                  `json:"summary"`
@@ -26193,6 +26354,7 @@ type GetCompletedJobResultMaybeResponse struct {
 	JSON200      *struct {
 		Completed bool        `json:"completed"`
 		Result    interface{} `json:"result"`
+		Started   *bool       `json:"started,omitempty"`
 	}
 }
 
@@ -28607,6 +28769,24 @@ func (c *ClientWithResponses) GetLicenseIdWithResponse(ctx context.Context, reqE
 	return ParseGetLicenseIdResponse(rsp)
 }
 
+// QueryHubScriptsWithResponse request returning *QueryHubScriptsResponse
+func (c *ClientWithResponses) QueryHubScriptsWithResponse(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*QueryHubScriptsResponse, error) {
+	rsp, err := c.QueryHubScripts(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseQueryHubScriptsResponse(rsp)
+}
+
+// QueryResourceTypesWithResponse request returning *QueryResourceTypesResponse
+func (c *ClientWithResponses) QueryResourceTypesWithResponse(ctx context.Context, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*QueryResourceTypesResponse, error) {
+	rsp, err := c.QueryResourceTypes(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseQueryResourceTypesResponse(rsp)
+}
+
 // GetHubFlowByIdWithResponse request returning *GetHubFlowByIdResponse
 func (c *ClientWithResponses) GetHubFlowByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubFlowByIdResponse, error) {
 	rsp, err := c.GetHubFlowById(ctx, id, reqEditors...)
@@ -28641,6 +28821,15 @@ func (c *ClientWithResponses) ListInstanceGroupsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListInstanceGroupsResponse(rsp)
+}
+
+// ListHubIntegrationsWithResponse request returning *ListHubIntegrationsResponse
+func (c *ClientWithResponses) ListHubIntegrationsWithResponse(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*ListHubIntegrationsResponse, error) {
+	rsp, err := c.ListHubIntegrations(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListHubIntegrationsResponse(rsp)
 }
 
 // GetDbClockWithResponse request returning *GetDbClockResponse
@@ -28704,24 +28893,6 @@ func (c *ClientWithResponses) GetOpenApiYamlWithResponse(ctx context.Context, re
 	return ParseGetOpenApiYamlResponse(rsp)
 }
 
-// ListHubResourceTypesWithResponse request returning *ListHubResourceTypesResponse
-func (c *ClientWithResponses) ListHubResourceTypesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubResourceTypesResponse, error) {
-	rsp, err := c.ListHubResourceTypes(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseListHubResourceTypesResponse(rsp)
-}
-
-// QueryHubResourceTypesWithResponse request returning *QueryHubResourceTypesResponse
-func (c *ClientWithResponses) QueryHubResourceTypesWithResponse(ctx context.Context, params *QueryHubResourceTypesParams, reqEditors ...RequestEditorFn) (*QueryHubResourceTypesResponse, error) {
-	rsp, err := c.QueryHubResourceTypes(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseQueryHubResourceTypesResponse(rsp)
-}
-
 // PreviewScheduleWithBodyWithResponse request with arbitrary body returning *PreviewScheduleResponse
 func (c *ClientWithResponses) PreviewScheduleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PreviewScheduleResponse, error) {
 	rsp, err := c.PreviewScheduleWithBody(ctx, contentType, body, reqEditors...)
@@ -28757,22 +28928,13 @@ func (c *ClientWithResponses) GetHubScriptByPathWithResponse(ctx context.Context
 	return ParseGetHubScriptByPathResponse(rsp)
 }
 
-// ListHubScriptsWithResponse request returning *ListHubScriptsResponse
-func (c *ClientWithResponses) ListHubScriptsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubScriptsResponse, error) {
-	rsp, err := c.ListHubScripts(ctx, reqEditors...)
+// GetTopHubScriptsWithResponse request returning *GetTopHubScriptsResponse
+func (c *ClientWithResponses) GetTopHubScriptsWithResponse(ctx context.Context, params *GetTopHubScriptsParams, reqEditors ...RequestEditorFn) (*GetTopHubScriptsResponse, error) {
+	rsp, err := c.GetTopHubScripts(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseListHubScriptsResponse(rsp)
-}
-
-// QueryHubScriptsWithResponse request returning *QueryHubScriptsResponse
-func (c *ClientWithResponses) QueryHubScriptsWithResponse(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*QueryHubScriptsResponse, error) {
-	rsp, err := c.QueryHubScripts(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseQueryHubScriptsResponse(rsp)
+	return ParseGetTopHubScriptsResponse(rsp)
 }
 
 // RawScriptByPathTokenedWithResponse request returning *RawScriptByPathTokenedResponse
@@ -30145,8 +30307,8 @@ func (c *ClientWithResponses) GetCompletedJobResultWithResponse(ctx context.Cont
 }
 
 // GetCompletedJobResultMaybeWithResponse request returning *GetCompletedJobResultMaybeResponse
-func (c *ClientWithResponses) GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error) {
-	rsp, err := c.GetCompletedJobResultMaybe(ctx, workspace, id, reqEditors...)
+func (c *ClientWithResponses) GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error) {
+	rsp, err := c.GetCompletedJobResultMaybe(ctx, workspace, id, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -31587,6 +31749,70 @@ func ParseGetLicenseIdResponse(rsp *http.Response) (*GetLicenseIdResponse, error
 	return response, nil
 }
 
+// ParseQueryHubScriptsResponse parses an HTTP response from a QueryHubScriptsWithResponse call
+func ParseQueryHubScriptsResponse(rsp *http.Response) (*QueryHubScriptsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &QueryHubScriptsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			App       string        `json:"app"`
+			AskId     float32       `json:"ask_id"`
+			Id        float32       `json:"id"`
+			Kind      HubScriptKind `json:"kind"`
+			Score     float32       `json:"score"`
+			Summary   string        `json:"summary"`
+			VersionId float32       `json:"version_id"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseQueryResourceTypesResponse parses an HTTP response from a QueryResourceTypesWithResponse call
+func ParseQueryResourceTypesResponse(rsp *http.Response) (*QueryResourceTypesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &QueryResourceTypesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Name   string       `json:"name"`
+			Schema *interface{} `json:"schema,omitempty"`
+			Score  float32      `json:"score"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetHubFlowByIdResponse parses an HTTP response from a GetHubFlowByIdWithResponse call
 func ParseGetHubFlowByIdResponse(rsp *http.Response) (*GetHubFlowByIdResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -31692,6 +31918,34 @@ func ParseListInstanceGroupsResponse(rsp *http.Response) (*ListInstanceGroupsRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []InstanceGroup
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListHubIntegrationsResponse parses an HTTP response from a ListHubIntegrationsWithResponse call
+func ParseListHubIntegrationsResponse(rsp *http.Response) (*ListHubIntegrationsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListHubIntegrationsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Name string `json:"name"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -31815,64 +32069,6 @@ func ParseGetOpenApiYamlResponse(rsp *http.Response) (*GetOpenApiYamlResponse, e
 	return response, nil
 }
 
-// ParseListHubResourceTypesResponse parses an HTTP response from a ListHubResourceTypesWithResponse call
-func ParseListHubResourceTypesResponse(rsp *http.Response) (*ListHubResourceTypesResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ListHubResourceTypesResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []struct {
-			Id     string       `json:"id"`
-			Name   string       `json:"name"`
-			Schema *interface{} `json:"schema,omitempty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseQueryHubResourceTypesResponse parses an HTTP response from a QueryHubResourceTypesWithResponse call
-func ParseQueryHubResourceTypesResponse(rsp *http.Response) (*QueryHubResourceTypesResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &QueryHubResourceTypesResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []struct {
-			Id string `json:"id"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParsePreviewScheduleResponse parses an HTTP response from a PreviewScheduleWithResponse call
 func ParsePreviewScheduleResponse(rsp *http.Response) (*PreviewScheduleResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -31947,15 +32143,15 @@ func ParseGetHubScriptByPathResponse(rsp *http.Response) (*GetHubScriptByPathRes
 	return response, nil
 }
 
-// ParseListHubScriptsResponse parses an HTTP response from a ListHubScriptsWithResponse call
-func ParseListHubScriptsResponse(rsp *http.Response) (*ListHubScriptsResponse, error) {
+// ParseGetTopHubScriptsResponse parses an HTTP response from a GetTopHubScriptsWithResponse call
+func ParseGetTopHubScriptsResponse(rsp *http.Response) (*GetTopHubScriptsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ListHubScriptsResponse{
+	response := &GetTopHubScriptsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -31964,43 +32160,15 @@ func ParseListHubScriptsResponse(rsp *http.Response) (*ListHubScriptsResponse, e
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Asks *[]struct {
-				App      string  `json:"app"`
-				Approved bool    `json:"approved"`
-				AskId    float32 `json:"ask_id"`
-				Id       float32 `json:"id"`
-				Kind     string  `json:"kind"`
-				Summary  string  `json:"summary"`
-				Views    float32 `json:"views"`
-				Votes    float32 `json:"votes"`
+				App       string        `json:"app"`
+				AskId     float32       `json:"ask_id"`
+				Id        float32       `json:"id"`
+				Kind      HubScriptKind `json:"kind"`
+				Summary   string        `json:"summary"`
+				VersionId float32       `json:"version_id"`
+				Views     float32       `json:"views"`
+				Votes     float32       `json:"votes"`
 			} `json:"asks,omitempty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseQueryHubScriptsResponse parses an HTTP response from a QueryHubScriptsWithResponse call
-func ParseQueryHubScriptsResponse(rsp *http.Response) (*QueryHubScriptsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &QueryHubScriptsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []struct {
-			Id string `json:"id"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -33200,6 +33368,7 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			EditedBy             string                  `json:"edited_by"`
 			ExtraPerms           map[string]interface{}  `json:"extra_perms"`
 			Path                 string                  `json:"path"`
+			Priority             *int                    `json:"priority,omitempty"`
 			Schema               *map[string]interface{} `json:"schema,omitempty"`
 			Starred              *bool                   `json:"starred,omitempty"`
 			Summary              string                  `json:"summary"`
@@ -33295,6 +33464,7 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			ExtraPerms           map[string]interface{}  `json:"extra_perms"`
 			HasDraft             *bool                   `json:"has_draft,omitempty"`
 			Path                 string                  `json:"path"`
+			Priority             *int                    `json:"priority,omitempty"`
 			Schema               *map[string]interface{} `json:"schema,omitempty"`
 			Starred              *bool                   `json:"starred,omitempty"`
 			Summary              string                  `json:"summary"`
@@ -34425,6 +34595,7 @@ func ParseGetCompletedJobResultMaybeResponse(rsp *http.Response) (*GetCompletedJ
 		var dest struct {
 			Completed bool        `json:"completed"`
 			Result    interface{} `json:"result"`
+			Started   *bool       `json:"started,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
