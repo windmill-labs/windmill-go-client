@@ -1009,8 +1009,8 @@ type NewSchedule struct {
 // NewScript defines model for NewScript.
 type NewScript struct {
 	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
-	ConcurrencyTimeWindowS *[]int                  `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *[]int                  `json:"concurrent_limit,omitempty"`
+	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
 	Content                string                  `json:"content"`
 	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
 	Description            string                  `json:"description"`
@@ -1038,8 +1038,8 @@ type NewScriptLanguage string
 // NewScriptWithDraft defines model for NewScriptWithDraft.
 type NewScriptWithDraft struct {
 	CacheTtl               *float32                   `json:"cache_ttl,omitempty"`
-	ConcurrencyTimeWindowS *[]int                     `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *[]int                     `json:"concurrent_limit,omitempty"`
+	ConcurrencyTimeWindowS *int                       `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *int                       `json:"concurrent_limit,omitempty"`
 	Content                string                     `json:"content"`
 	DedicatedWorker        *bool                      `json:"dedicated_worker,omitempty"`
 	Description            string                     `json:"description"`
@@ -1341,8 +1341,8 @@ type ScheduleWJobs_ExtraPerms struct {
 type Script struct {
 	Archived               bool              `json:"archived"`
 	CacheTtl               *float32          `json:"cache_ttl,omitempty"`
-	ConcurrencyTimeWindowS *[]int            `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *[]int            `json:"concurrent_limit,omitempty"`
+	ConcurrencyTimeWindowS *int              `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *int              `json:"concurrent_limit,omitempty"`
 	Content                string            `json:"content"`
 	CreatedAt              time.Time         `json:"created_at"`
 	CreatedBy              string            `json:"created_by"`
