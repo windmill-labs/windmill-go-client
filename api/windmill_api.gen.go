@@ -709,10 +709,11 @@ type FlowModuleValue interface{}
 
 // FlowPreview defines model for FlowPreview.
 type FlowPreview struct {
-	Args  ScriptArgs `json:"args"`
-	Path  *string    `json:"path,omitempty"`
-	Tag   *string    `json:"tag,omitempty"`
-	Value FlowValue  `json:"value"`
+	Args          ScriptArgs     `json:"args"`
+	Path          *string        `json:"path,omitempty"`
+	RestartedFrom *RestartedFrom `json:"restarted_from,omitempty"`
+	Tag           *string        `json:"tag,omitempty"`
+	Value         FlowValue      `json:"value"`
 }
 
 // FlowStatus defines model for FlowStatus.
@@ -1260,6 +1261,12 @@ type ResourceType struct {
 	WorkspaceId *string      `json:"workspace_id,omitempty"`
 }
 
+// RestartedFrom defines model for RestartedFrom.
+type RestartedFrom struct {
+	FlowJobId *openapi_types.UUID `json:"flow_job_id,omitempty"`
+	StepId    *string             `json:"step_id,omitempty"`
+}
+
 // Retry defines model for Retry.
 type Retry struct {
 	Constant *struct {
@@ -1639,15 +1646,6 @@ type QueryHubScriptsParams struct {
 	App *string `form:"app,omitempty" json:"app,omitempty"`
 }
 
-// QueryResourceTypesParams defines parameters for QueryResourceTypes.
-type QueryResourceTypesParams struct {
-	// query text
-	Text string `form:"text" json:"text"`
-
-	// query limit
-	Limit *float32 `form:"limit,omitempty" json:"limit,omitempty"`
-}
-
 // ListHubIntegrationsParams defines parameters for ListHubIntegrations.
 type ListHubIntegrationsParams struct {
 	// query integrations kind
@@ -1875,6 +1873,15 @@ type CreateDraftJSONBodyTyp string
 
 // DeleteDraftParamsKind defines parameters for DeleteDraft.
 type DeleteDraftParamsKind string
+
+// QueryResourceTypesParams defines parameters for QueryResourceTypes.
+type QueryResourceTypesParams struct {
+	// query text
+	Text string `form:"text" json:"text"`
+
+	// query limit
+	Limit *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+}
 
 // StarJSONBody defines parameters for Star.
 type StarJSONBody struct {
@@ -2280,6 +2287,31 @@ type ListQueueParams struct {
 
 	// filter on jobs with a given tag/worker group
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
+}
+
+// RestartFlowAtStepJSONBody defines parameters for RestartFlowAtStep.
+type RestartFlowAtStepJSONBody = ScriptArgs
+
+// RestartFlowAtStepParams defines parameters for RestartFlowAtStep.
+type RestartFlowAtStepParams struct {
+	// when to schedule this job (leave empty for immediate run)
+	ScheduledFor *time.Time `form:"scheduled_for,omitempty" json:"scheduled_for,omitempty"`
+
+	// schedule the script to execute in the number of seconds starting now
+	ScheduledInSecs *int `form:"scheduled_in_secs,omitempty" json:"scheduled_in_secs,omitempty"`
+
+	// The parent job that is at the origin and responsible for the execution of this script if any
+	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// make the run invisible to the the flow owner (default false)
+	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
 }
 
 // GetResumeUrlsParams defines parameters for GetResumeUrls.
@@ -2946,6 +2978,9 @@ type OpenaiSyncFlowByPathJSONRequestBody = OpenaiSyncFlowByPathJSONBody
 
 // OpenaiSyncScriptByPathJSONRequestBody defines body for OpenaiSyncScriptByPath for application/json ContentType.
 type OpenaiSyncScriptByPathJSONRequestBody = OpenaiSyncScriptByPathJSONBody
+
+// RestartFlowAtStepJSONRequestBody defines body for RestartFlowAtStep for application/json ContentType.
+type RestartFlowAtStepJSONRequestBody = RestartFlowAtStepJSONBody
 
 // RunFlowByPathJSONRequestBody defines body for RunFlowByPath for application/json ContentType.
 type RunFlowByPathJSONRequestBody = RunFlowByPathJSONBody
@@ -4193,9 +4228,6 @@ type ClientInterface interface {
 	// QueryHubScripts request
 	QueryHubScripts(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// QueryResourceTypes request
-	QueryResourceTypes(ctx context.Context, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetHubFlowById request
 	GetHubFlowById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4434,6 +4466,9 @@ type ClientInterface interface {
 	// DeleteDraft request
 	DeleteDraft(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// QueryResourceTypes request
+	QueryResourceTypes(ctx context.Context, workspace WorkspaceId, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// Star request with any body
 	StarWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4612,6 +4647,11 @@ type ClientInterface interface {
 
 	// ListQueue request
 	ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RestartFlowAtStep request with any body
+	RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RestartFlowAtStep(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResultById request
 	ResultById(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5196,18 +5236,6 @@ func (c *Client) GetLicenseId(ctx context.Context, reqEditors ...RequestEditorFn
 
 func (c *Client) QueryHubScripts(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewQueryHubScriptsRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) QueryResourceTypes(ctx context.Context, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewQueryResourceTypesRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -6250,6 +6278,18 @@ func (c *Client) DeleteDraft(ctx context.Context, workspace WorkspaceId, kind De
 	return c.Client.Do(req)
 }
 
+func (c *Client) QueryResourceTypes(ctx context.Context, workspace WorkspaceId, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewQueryResourceTypesRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) StarWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewStarRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -7032,6 +7072,30 @@ func (c *Client) GetQueueCount(ctx context.Context, workspace WorkspaceId, reqEd
 
 func (c *Client) ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListQueueRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestartFlowAtStepRequestWithBody(c.Server, workspace, id, stepId, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RestartFlowAtStep(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestartFlowAtStepRequest(c.Server, workspace, id, stepId, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -9375,65 +9439,6 @@ func NewQueryHubScriptsRequest(server string, params *QueryHubScriptsParams) (*h
 	if params.App != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "app", runtime.ParamLocationQuery, *params.App); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
-	queryURL.RawQuery = queryValues.Encode()
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewQueryResourceTypesRequest generates requests for QueryResourceTypes
-func NewQueryResourceTypesRequest(server string, params *QueryResourceTypesParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/embeddings/query_resource_types")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	queryValues := queryURL.Query()
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "text", runtime.ParamLocationQuery, params.Text); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	if params.Limit != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -12289,6 +12294,72 @@ func NewDeleteDraftRequest(server string, workspace WorkspaceId, kind DeleteDraf
 	}
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewQueryResourceTypesRequest generates requests for QueryResourceTypes
+func NewQueryResourceTypesRequest(server string, workspace WorkspaceId, params *QueryResourceTypesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/embeddings/query_resource_types", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "text", runtime.ParamLocationQuery, params.Text); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.Limit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -15723,6 +15794,167 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewRestartFlowAtStepRequest calls the generic RestartFlowAtStep builder with application/json body
+func NewRestartFlowAtStepRequest(server string, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRestartFlowAtStepRequestWithBody(server, workspace, id, stepId, params, "application/json", bodyReader)
+}
+
+// NewRestartFlowAtStepRequestWithBody generates requests for RestartFlowAtStep with any type of body
+func NewRestartFlowAtStepRequestWithBody(server string, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "step_id", runtime.ParamLocationPath, stepId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/restart/f/%s/from/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.ScheduledFor != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for", runtime.ParamLocationQuery, *params.ScheduledFor); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ScheduledInSecs != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_in_secs", runtime.ParamLocationQuery, *params.ScheduledInSecs); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ParentJob != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.JobId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IncludeHeader != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.InvisibleToOwner != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "invisible_to_owner", runtime.ParamLocationQuery, *params.InvisibleToOwner); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -22381,9 +22613,6 @@ type ClientWithResponsesInterface interface {
 	// QueryHubScripts request
 	QueryHubScriptsWithResponse(ctx context.Context, params *QueryHubScriptsParams, reqEditors ...RequestEditorFn) (*QueryHubScriptsResponse, error)
 
-	// QueryResourceTypes request
-	QueryResourceTypesWithResponse(ctx context.Context, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*QueryResourceTypesResponse, error)
-
 	// GetHubFlowById request
 	GetHubFlowByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubFlowByIdResponse, error)
 
@@ -22622,6 +22851,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteDraft request
 	DeleteDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteDraftResponse, error)
 
+	// QueryResourceTypes request
+	QueryResourceTypesWithResponse(ctx context.Context, workspace WorkspaceId, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*QueryResourceTypesResponse, error)
+
 	// Star request with any body
 	StarWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StarResponse, error)
 
@@ -22800,6 +23032,11 @@ type ClientWithResponsesInterface interface {
 
 	// ListQueue request
 	ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error)
+
+	// RestartFlowAtStep request with any body
+	RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
+
+	RestartFlowAtStepWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
 
 	// ResultById request
 	ResultByIdWithResponse(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, reqEditors ...RequestEditorFn) (*ResultByIdResponse, error)
@@ -23484,32 +23721,6 @@ func (r QueryHubScriptsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r QueryHubScriptsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type QueryResourceTypesResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *[]struct {
-		Name   string       `json:"name"`
-		Schema *interface{} `json:"schema,omitempty"`
-		Score  float32      `json:"score"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r QueryResourceTypesResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r QueryResourceTypesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -24982,6 +25193,32 @@ func (r DeleteDraftResponse) StatusCode() int {
 	return 0
 }
 
+type QueryResourceTypesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Name   string       `json:"name"`
+		Schema *interface{} `json:"schema,omitempty"`
+		Score  float32      `json:"score"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r QueryResourceTypesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r QueryResourceTypesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type StarResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -26037,6 +26274,27 @@ func (r ListQueueResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListQueueResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RestartFlowAtStepResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RestartFlowAtStepResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RestartFlowAtStepResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -28778,15 +29036,6 @@ func (c *ClientWithResponses) QueryHubScriptsWithResponse(ctx context.Context, p
 	return ParseQueryHubScriptsResponse(rsp)
 }
 
-// QueryResourceTypesWithResponse request returning *QueryResourceTypesResponse
-func (c *ClientWithResponses) QueryResourceTypesWithResponse(ctx context.Context, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*QueryResourceTypesResponse, error) {
-	rsp, err := c.QueryResourceTypes(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseQueryResourceTypesResponse(rsp)
-}
-
 // GetHubFlowByIdWithResponse request returning *GetHubFlowByIdResponse
 func (c *ClientWithResponses) GetHubFlowByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubFlowByIdResponse, error) {
 	rsp, err := c.GetHubFlowById(ctx, id, reqEditors...)
@@ -29541,6 +29790,15 @@ func (c *ClientWithResponses) DeleteDraftWithResponse(ctx context.Context, works
 	return ParseDeleteDraftResponse(rsp)
 }
 
+// QueryResourceTypesWithResponse request returning *QueryResourceTypesResponse
+func (c *ClientWithResponses) QueryResourceTypesWithResponse(ctx context.Context, workspace WorkspaceId, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*QueryResourceTypesResponse, error) {
+	rsp, err := c.QueryResourceTypes(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseQueryResourceTypesResponse(rsp)
+}
+
 // StarWithBodyWithResponse request with arbitrary body returning *StarResponse
 func (c *ClientWithResponses) StarWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StarResponse, error) {
 	rsp, err := c.StarWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -30114,6 +30372,23 @@ func (c *ClientWithResponses) ListQueueWithResponse(ctx context.Context, workspa
 		return nil, err
 	}
 	return ParseListQueueResponse(rsp)
+}
+
+// RestartFlowAtStepWithBodyWithResponse request with arbitrary body returning *RestartFlowAtStepResponse
+func (c *ClientWithResponses) RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error) {
+	rsp, err := c.RestartFlowAtStepWithBody(ctx, workspace, id, stepId, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestartFlowAtStepResponse(rsp)
+}
+
+func (c *ClientWithResponses) RestartFlowAtStepWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error) {
+	rsp, err := c.RestartFlowAtStep(ctx, workspace, id, stepId, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestartFlowAtStepResponse(rsp)
 }
 
 // ResultByIdWithResponse request returning *ResultByIdResponse
@@ -31783,36 +32058,6 @@ func ParseQueryHubScriptsResponse(rsp *http.Response) (*QueryHubScriptsResponse,
 	return response, nil
 }
 
-// ParseQueryResourceTypesResponse parses an HTTP response from a QueryResourceTypesWithResponse call
-func ParseQueryResourceTypesResponse(rsp *http.Response) (*QueryResourceTypesResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &QueryResourceTypesResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []struct {
-			Name   string       `json:"name"`
-			Schema *interface{} `json:"schema,omitempty"`
-			Score  float32      `json:"score"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseGetHubFlowByIdResponse parses an HTTP response from a GetHubFlowByIdWithResponse call
 func ParseGetHubFlowByIdResponse(rsp *http.Response) (*GetHubFlowByIdResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -33237,6 +33482,36 @@ func ParseDeleteDraftResponse(rsp *http.Response) (*DeleteDraftResponse, error) 
 	return response, nil
 }
 
+// ParseQueryResourceTypesResponse parses an HTTP response from a QueryResourceTypesWithResponse call
+func ParseQueryResourceTypesResponse(rsp *http.Response) (*QueryResourceTypesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &QueryResourceTypesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Name   string       `json:"name"`
+			Schema *interface{} `json:"schema,omitempty"`
+			Score  float32      `json:"score"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseStarResponse parses an HTTP response from a StarWithResponse call
 func ParseStarResponse(rsp *http.Response) (*StarResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -34274,6 +34549,22 @@ func ParseListQueueResponse(rsp *http.Response) (*ListQueueResponse, error) {
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseRestartFlowAtStepResponse parses an HTTP response from a RestartFlowAtStepWithResponse call
+func ParseRestartFlowAtStepResponse(rsp *http.Response) (*RestartFlowAtStepResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RestartFlowAtStepResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
