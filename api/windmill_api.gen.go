@@ -1263,8 +1263,9 @@ type ResourceType struct {
 
 // RestartedFrom defines model for RestartedFrom.
 type RestartedFrom struct {
-	FlowJobId *openapi_types.UUID `json:"flow_job_id,omitempty"`
-	StepId    *string             `json:"step_id,omitempty"`
+	BranchOrIterationN *int                `json:"branch_or_iteration_n,omitempty"`
+	FlowJobId          *openapi_types.UUID `json:"flow_job_id,omitempty"`
+	StepId             *string             `json:"step_id,omitempty"`
 }
 
 // Retry defines model for Retry.
@@ -4649,9 +4650,9 @@ type ClientInterface interface {
 	ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RestartFlowAtStep request with any body
-	RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	RestartFlowAtStep(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RestartFlowAtStep(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResultById request
 	ResultById(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7082,8 +7083,8 @@ func (c *Client) ListQueue(ctx context.Context, workspace WorkspaceId, params *L
 	return c.Client.Do(req)
 }
 
-func (c *Client) RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRestartFlowAtStepRequestWithBody(c.Server, workspace, id, stepId, params, contentType, body)
+func (c *Client) RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestartFlowAtStepRequestWithBody(c.Server, workspace, id, stepId, branchOrIterationN, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -7094,8 +7095,8 @@ func (c *Client) RestartFlowAtStepWithBody(ctx context.Context, workspace Worksp
 	return c.Client.Do(req)
 }
 
-func (c *Client) RestartFlowAtStep(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRestartFlowAtStepRequest(c.Server, workspace, id, stepId, params, body)
+func (c *Client) RestartFlowAtStep(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestartFlowAtStepRequest(c.Server, workspace, id, stepId, branchOrIterationN, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15799,18 +15800,18 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 }
 
 // NewRestartFlowAtStepRequest calls the generic RestartFlowAtStep builder with application/json body
-func NewRestartFlowAtStepRequest(server string, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody) (*http.Request, error) {
+func NewRestartFlowAtStepRequest(server string, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewRestartFlowAtStepRequestWithBody(server, workspace, id, stepId, params, "application/json", bodyReader)
+	return NewRestartFlowAtStepRequestWithBody(server, workspace, id, stepId, branchOrIterationN, params, "application/json", bodyReader)
 }
 
 // NewRestartFlowAtStepRequestWithBody generates requests for RestartFlowAtStep with any type of body
-func NewRestartFlowAtStepRequestWithBody(server string, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, contentType string, body io.Reader) (*http.Request, error) {
+func NewRestartFlowAtStepRequestWithBody(server string, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -15834,12 +15835,19 @@ func NewRestartFlowAtStepRequestWithBody(server string, workspace WorkspaceId, i
 		return nil, err
 	}
 
+	var pathParam3 string
+
+	pathParam3, err = runtime.StyleParamWithLocation("simple", false, "branch_or_iteration_n", runtime.ParamLocationPath, branchOrIterationN)
+	if err != nil {
+		return nil, err
+	}
+
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/jobs/restart/f/%s/from/%s", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/w/%s/jobs/restart/f/%s/from/%s/%s", pathParam0, pathParam1, pathParam2, pathParam3)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -23034,9 +23042,9 @@ type ClientWithResponsesInterface interface {
 	ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error)
 
 	// RestartFlowAtStep request with any body
-	RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
+	RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
 
-	RestartFlowAtStepWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
+	RestartFlowAtStepWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
 
 	// ResultById request
 	ResultByIdWithResponse(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, reqEditors ...RequestEditorFn) (*ResultByIdResponse, error)
@@ -30375,16 +30383,16 @@ func (c *ClientWithResponses) ListQueueWithResponse(ctx context.Context, workspa
 }
 
 // RestartFlowAtStepWithBodyWithResponse request with arbitrary body returning *RestartFlowAtStepResponse
-func (c *ClientWithResponses) RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error) {
-	rsp, err := c.RestartFlowAtStepWithBody(ctx, workspace, id, stepId, params, contentType, body, reqEditors...)
+func (c *ClientWithResponses) RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error) {
+	rsp, err := c.RestartFlowAtStepWithBody(ctx, workspace, id, stepId, branchOrIterationN, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseRestartFlowAtStepResponse(rsp)
 }
 
-func (c *ClientWithResponses) RestartFlowAtStepWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error) {
-	rsp, err := c.RestartFlowAtStep(ctx, workspace, id, stepId, params, body, reqEditors...)
+func (c *ClientWithResponses) RestartFlowAtStepWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error) {
+	rsp, err := c.RestartFlowAtStep(ctx, workspace, id, stepId, branchOrIterationN, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
