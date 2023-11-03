@@ -622,6 +622,7 @@ type EditSchedule struct {
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
 	Schedule            string      `json:"schedule"`
 	Timezone            string      `json:"timezone"`
+	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
 }
 
 // EditVariable defines model for EditVariable.
@@ -1005,6 +1006,7 @@ type NewSchedule struct {
 	Schedule            string      `json:"schedule"`
 	ScriptPath          string      `json:"script_path"`
 	Timezone            string      `json:"timezone"`
+	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
 }
 
 // NewScript defines model for NewScript.
@@ -1305,6 +1307,7 @@ type Schedule struct {
 	Schedule            string              `json:"schedule"`
 	ScriptPath          string              `json:"script_path"`
 	Timezone            string              `json:"timezone"`
+	WsErrorHandlerMuted *bool               `json:"ws_error_handler_muted,omitempty"`
 }
 
 // Schedule_ExtraPerms defines model for Schedule.ExtraPerms.
@@ -1338,6 +1341,7 @@ type ScheduleWJobs struct {
 	Schedule            string      `json:"schedule"`
 	ScriptPath          string      `json:"script_path"`
 	Timezone            string      `json:"timezone"`
+	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
 }
 
 // ScheduleWJobs_ExtraPerms defines model for ScheduleWJobs.ExtraPerms.
