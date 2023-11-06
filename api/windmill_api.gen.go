@@ -1159,12 +1159,13 @@ type Policy_Triggerables struct {
 
 // Preview defines model for Preview.
 type Preview struct {
-	Args     ScriptArgs       `json:"args"`
-	Content  *string          `json:"content,omitempty"`
-	Kind     *PreviewKind     `json:"kind,omitempty"`
-	Language *PreviewLanguage `json:"language,omitempty"`
-	Path     *string          `json:"path,omitempty"`
-	Tag      *string          `json:"tag,omitempty"`
+	Args            ScriptArgs       `json:"args"`
+	Content         *string          `json:"content,omitempty"`
+	DedicatedWorker *bool            `json:"dedicated_worker,omitempty"`
+	Kind            *PreviewKind     `json:"kind,omitempty"`
+	Language        *PreviewLanguage `json:"language,omitempty"`
+	Path            *string          `json:"path,omitempty"`
+	Tag             *string          `json:"tag,omitempty"`
 }
 
 // PreviewKind defines model for Preview.Kind.
@@ -1471,6 +1472,7 @@ type WorkerPing struct {
 	JobsExecuted   int       `json:"jobs_executed"`
 	LastPing       *float32  `json:"last_ping,omitempty"`
 	StartedAt      time.Time `json:"started_at"`
+	WmVersion      string    `json:"wm_version"`
 	Worker         string    `json:"worker"`
 	WorkerGroup    string    `json:"worker_group"`
 	WorkerInstance string    `json:"worker_instance"`
@@ -2801,8 +2803,9 @@ type EditDeployToJSONBody struct {
 
 // EditErrorHandlerJSONBody defines parameters for EditErrorHandler.
 type EditErrorHandlerJSONBody struct {
-	ErrorHandler          *string     `json:"error_handler,omitempty"`
-	ErrorHandlerExtraArgs *ScriptArgs `json:"error_handler_extra_args,omitempty"`
+	ErrorHandler              *string     `json:"error_handler,omitempty"`
+	ErrorHandlerExtraArgs     *ScriptArgs `json:"error_handler_extra_args,omitempty"`
+	ErrorHandlerMutedOnCancel *bool       `json:"error_handler_muted_on_cancel,omitempty"`
 }
 
 // EditSlackCommandJSONBody defines parameters for EditSlackCommand.
@@ -4295,6 +4298,9 @@ type ClientInterface interface {
 	// GetLocal request
 	GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SendStats request
+	SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// TestLicenseKey request with any body
 	TestLicenseKeyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5505,6 +5511,18 @@ func (c *Client) SetGlobal(ctx context.Context, key Key, body SetGlobalJSONReque
 
 func (c *Client) GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetLocalRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSendStatsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -10147,6 +10165,33 @@ func NewGetLocalRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSendStatsRequest generates requests for SendStats
+func NewSendStatsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/send_stats")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -22687,6 +22732,9 @@ type ClientWithResponsesInterface interface {
 	// GetLocal request
 	GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error)
 
+	// SendStats request
+	SendStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SendStatsResponse, error)
+
 	// TestLicenseKey request with any body
 	TestLicenseKeyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestLicenseKeyResponse, error)
 
@@ -24157,6 +24205,27 @@ func (r GetLocalResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetLocalResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SendStatsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SendStatsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SendStatsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -28583,20 +28652,21 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AutoInviteDomain      *string     `json:"auto_invite_domain,omitempty"`
-		AutoInviteOperator    *bool       `json:"auto_invite_operator,omitempty"`
-		CodeCompletionEnabled bool        `json:"code_completion_enabled"`
-		CustomerId            *string     `json:"customer_id,omitempty"`
-		DeployTo              *string     `json:"deploy_to,omitempty"`
-		ErrorHandler          *string     `json:"error_handler,omitempty"`
-		ErrorHandlerExtraArgs *ScriptArgs `json:"error_handler_extra_args,omitempty"`
-		OpenaiResourcePath    *string     `json:"openai_resource_path,omitempty"`
-		Plan                  *string     `json:"plan,omitempty"`
-		SlackCommandScript    *string     `json:"slack_command_script,omitempty"`
-		SlackName             *string     `json:"slack_name,omitempty"`
-		SlackTeamId           *string     `json:"slack_team_id,omitempty"`
-		Webhook               *string     `json:"webhook,omitempty"`
-		WorkspaceId           *string     `json:"workspace_id,omitempty"`
+		AutoInviteDomain          *string     `json:"auto_invite_domain,omitempty"`
+		AutoInviteOperator        *bool       `json:"auto_invite_operator,omitempty"`
+		CodeCompletionEnabled     bool        `json:"code_completion_enabled"`
+		CustomerId                *string     `json:"customer_id,omitempty"`
+		DeployTo                  *string     `json:"deploy_to,omitempty"`
+		ErrorHandler              *string     `json:"error_handler,omitempty"`
+		ErrorHandlerExtraArgs     *ScriptArgs `json:"error_handler_extra_args,omitempty"`
+		ErrorHandlerMutedOnCancel *bool       `json:"error_handler_muted_on_cancel,omitempty"`
+		OpenaiResourcePath        *string     `json:"openai_resource_path,omitempty"`
+		Plan                      *string     `json:"plan,omitempty"`
+		SlackCommandScript        *string     `json:"slack_command_script,omitempty"`
+		SlackName                 *string     `json:"slack_name,omitempty"`
+		SlackTeamId               *string     `json:"slack_team_id,omitempty"`
+		Webhook                   *string     `json:"webhook,omitempty"`
+		WorkspaceId               *string     `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -29240,6 +29310,15 @@ func (c *ClientWithResponses) GetLocalWithResponse(ctx context.Context, reqEdito
 		return nil, err
 	}
 	return ParseGetLocalResponse(rsp)
+}
+
+// SendStatsWithResponse request returning *SendStatsResponse
+func (c *ClientWithResponses) SendStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SendStatsResponse, error) {
+	rsp, err := c.SendStats(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSendStatsResponse(rsp)
 }
 
 // TestLicenseKeyWithBodyWithResponse request with arbitrary body returning *TestLicenseKeyResponse
@@ -32516,6 +32595,22 @@ func ParseGetLocalResponse(rsp *http.Response) (*GetLocalResponse, error) {
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseSendStatsResponse parses an HTTP response from a SendStatsWithResponse call
+func ParseSendStatsResponse(rsp *http.Response) (*SendStatsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SendStatsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -36785,20 +36880,21 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AutoInviteDomain      *string     `json:"auto_invite_domain,omitempty"`
-			AutoInviteOperator    *bool       `json:"auto_invite_operator,omitempty"`
-			CodeCompletionEnabled bool        `json:"code_completion_enabled"`
-			CustomerId            *string     `json:"customer_id,omitempty"`
-			DeployTo              *string     `json:"deploy_to,omitempty"`
-			ErrorHandler          *string     `json:"error_handler,omitempty"`
-			ErrorHandlerExtraArgs *ScriptArgs `json:"error_handler_extra_args,omitempty"`
-			OpenaiResourcePath    *string     `json:"openai_resource_path,omitempty"`
-			Plan                  *string     `json:"plan,omitempty"`
-			SlackCommandScript    *string     `json:"slack_command_script,omitempty"`
-			SlackName             *string     `json:"slack_name,omitempty"`
-			SlackTeamId           *string     `json:"slack_team_id,omitempty"`
-			Webhook               *string     `json:"webhook,omitempty"`
-			WorkspaceId           *string     `json:"workspace_id,omitempty"`
+			AutoInviteDomain          *string     `json:"auto_invite_domain,omitempty"`
+			AutoInviteOperator        *bool       `json:"auto_invite_operator,omitempty"`
+			CodeCompletionEnabled     bool        `json:"code_completion_enabled"`
+			CustomerId                *string     `json:"customer_id,omitempty"`
+			DeployTo                  *string     `json:"deploy_to,omitempty"`
+			ErrorHandler              *string     `json:"error_handler,omitempty"`
+			ErrorHandlerExtraArgs     *ScriptArgs `json:"error_handler_extra_args,omitempty"`
+			ErrorHandlerMutedOnCancel *bool       `json:"error_handler_muted_on_cancel,omitempty"`
+			OpenaiResourcePath        *string     `json:"openai_resource_path,omitempty"`
+			Plan                      *string     `json:"plan,omitempty"`
+			SlackCommandScript        *string     `json:"slack_command_script,omitempty"`
+			SlackName                 *string     `json:"slack_name,omitempty"`
+			SlackTeamId               *string     `json:"slack_team_id,omitempty"`
+			Webhook                   *string     `json:"webhook,omitempty"`
+			WorkspaceId               *string     `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
