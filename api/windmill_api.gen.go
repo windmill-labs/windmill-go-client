@@ -2665,6 +2665,20 @@ type ListSchedulesWithJobsParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
+// SetDefaultErrorOrRecoveryHandlerJSONBody defines parameters for SetDefaultErrorOrRecoveryHandler.
+type SetDefaultErrorOrRecoveryHandlerJSONBody struct {
+	ExtraArgs              *map[string]interface{}                             `json:"extra_args,omitempty"`
+	HandlerType            SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType `json:"handler_type"`
+	NumberOfOccurence      *int                                                `json:"number_of_occurence,omitempty"`
+	NumberOfOccurenceExact *bool                                               `json:"number_of_occurence_exact,omitempty"`
+	OverrideExisting       bool                                                `json:"override_existing"`
+	Path                   string                                              `json:"path"`
+	WorkspaceHandlerMuted  *bool                                               `json:"workspace_handler_muted,omitempty"`
+}
+
+// SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType defines parameters for SetDefaultErrorOrRecoveryHandler.
+type SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType string
+
 // SetScheduleEnabledJSONBody defines parameters for SetScheduleEnabled.
 type SetScheduleEnabledJSONBody struct {
 	Enabled bool `json:"enabled"`
@@ -3055,6 +3069,9 @@ type UpdateResourceValueJSONRequestBody UpdateResourceValueJSONBody
 
 // CreateScheduleJSONRequestBody defines body for CreateSchedule for application/json ContentType.
 type CreateScheduleJSONRequestBody = CreateScheduleJSONBody
+
+// SetDefaultErrorOrRecoveryHandlerJSONRequestBody defines body for SetDefaultErrorOrRecoveryHandler for application/json ContentType.
+type SetDefaultErrorOrRecoveryHandlerJSONRequestBody SetDefaultErrorOrRecoveryHandlerJSONBody
 
 // SetScheduleEnabledJSONRequestBody defines body for SetScheduleEnabled for application/json ContentType.
 type SetScheduleEnabledJSONRequestBody SetScheduleEnabledJSONBody
@@ -4878,6 +4895,11 @@ type ClientInterface interface {
 
 	// ListSchedulesWithJobs request
 	ListSchedulesWithJobs(ctx context.Context, workspace WorkspaceId, params *ListSchedulesWithJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetDefaultErrorOrRecoveryHandler request with any body
+	SetDefaultErrorOrRecoveryHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetDefaultErrorOrRecoveryHandler(ctx context.Context, workspace WorkspaceId, body SetDefaultErrorOrRecoveryHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SetScheduleEnabled request with any body
 	SetScheduleEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8067,6 +8089,30 @@ func (c *Client) ListSchedules(ctx context.Context, workspace WorkspaceId, param
 
 func (c *Client) ListSchedulesWithJobs(ctx context.Context, workspace WorkspaceId, params *ListSchedulesWithJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListSchedulesWithJobsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetDefaultErrorOrRecoveryHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetDefaultErrorOrRecoveryHandlerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetDefaultErrorOrRecoveryHandler(ctx context.Context, workspace WorkspaceId, body SetDefaultErrorOrRecoveryHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetDefaultErrorOrRecoveryHandlerRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -19723,6 +19769,53 @@ func NewListSchedulesWithJobsRequest(server string, workspace WorkspaceId, param
 	return req, nil
 }
 
+// NewSetDefaultErrorOrRecoveryHandlerRequest calls the generic SetDefaultErrorOrRecoveryHandler builder with application/json body
+func NewSetDefaultErrorOrRecoveryHandlerRequest(server string, workspace WorkspaceId, body SetDefaultErrorOrRecoveryHandlerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetDefaultErrorOrRecoveryHandlerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetDefaultErrorOrRecoveryHandlerRequestWithBody generates requests for SetDefaultErrorOrRecoveryHandler with any type of body
+func NewSetDefaultErrorOrRecoveryHandlerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/schedules/setdefaulthandler", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewSetScheduleEnabledRequest calls the generic SetScheduleEnabled builder with application/json body
 func NewSetScheduleEnabledRequest(server string, workspace WorkspaceId, path Path, body SetScheduleEnabledJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -23312,6 +23405,11 @@ type ClientWithResponsesInterface interface {
 
 	// ListSchedulesWithJobs request
 	ListSchedulesWithJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListSchedulesWithJobsParams, reqEditors ...RequestEditorFn) (*ListSchedulesWithJobsResponse, error)
+
+	// SetDefaultErrorOrRecoveryHandler request with any body
+	SetDefaultErrorOrRecoveryHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetDefaultErrorOrRecoveryHandlerResponse, error)
+
+	SetDefaultErrorOrRecoveryHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body SetDefaultErrorOrRecoveryHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*SetDefaultErrorOrRecoveryHandlerResponse, error)
 
 	// SetScheduleEnabled request with any body
 	SetScheduleEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetScheduleEnabledResponse, error)
@@ -27632,6 +27730,27 @@ func (r ListSchedulesWithJobsResponse) StatusCode() int {
 	return 0
 }
 
+type SetDefaultErrorOrRecoveryHandlerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetDefaultErrorOrRecoveryHandlerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetDefaultErrorOrRecoveryHandlerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type SetScheduleEnabledResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -31169,6 +31288,23 @@ func (c *ClientWithResponses) ListSchedulesWithJobsWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseListSchedulesWithJobsResponse(rsp)
+}
+
+// SetDefaultErrorOrRecoveryHandlerWithBodyWithResponse request with arbitrary body returning *SetDefaultErrorOrRecoveryHandlerResponse
+func (c *ClientWithResponses) SetDefaultErrorOrRecoveryHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetDefaultErrorOrRecoveryHandlerResponse, error) {
+	rsp, err := c.SetDefaultErrorOrRecoveryHandlerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetDefaultErrorOrRecoveryHandlerResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetDefaultErrorOrRecoveryHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body SetDefaultErrorOrRecoveryHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*SetDefaultErrorOrRecoveryHandlerResponse, error) {
+	rsp, err := c.SetDefaultErrorOrRecoveryHandler(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetDefaultErrorOrRecoveryHandlerResponse(rsp)
 }
 
 // SetScheduleEnabledWithBodyWithResponse request with arbitrary body returning *SetScheduleEnabledResponse
@@ -35889,6 +36025,22 @@ func ParseListSchedulesWithJobsResponse(rsp *http.Response) (*ListSchedulesWithJ
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseSetDefaultErrorOrRecoveryHandlerResponse parses an HTTP response from a SetDefaultErrorOrRecoveryHandlerWithResponse call
+func ParseSetDefaultErrorOrRecoveryHandlerResponse(rsp *http.Response) (*SetDefaultErrorOrRecoveryHandlerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetDefaultErrorOrRecoveryHandlerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
