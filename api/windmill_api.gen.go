@@ -2672,7 +2672,7 @@ type SetDefaultErrorOrRecoveryHandlerJSONBody struct {
 	NumberOfOccurence      *int                                                `json:"number_of_occurence,omitempty"`
 	NumberOfOccurenceExact *bool                                               `json:"number_of_occurence_exact,omitempty"`
 	OverrideExisting       bool                                                `json:"override_existing"`
-	Path                   string                                              `json:"path"`
+	Path                   *string                                             `json:"path,omitempty"`
 	WorkspaceHandlerMuted  *bool                                               `json:"workspace_handler_muted,omitempty"`
 }
 
