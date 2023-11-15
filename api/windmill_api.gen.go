@@ -231,6 +231,11 @@ const (
 	JavascriptTransformTypeJavascript JavascriptTransformType = "javascript"
 )
 
+// Defines values for LargeFileStorageType.
+const (
+	S3Storage LargeFileStorageType = "S3Storage"
+)
+
 // Defines values for ListableAppExecutionMode.
 const (
 	ListableAppExecutionModeAnonymous ListableAppExecutionMode = "anonymous"
@@ -912,6 +917,15 @@ type JavascriptTransformType string
 // Job defines model for Job.
 type Job interface{}
 
+// LargeFileStorage defines model for LargeFileStorage.
+type LargeFileStorage struct {
+	S3ResourcePath *string               `json:"s3_resource_path,omitempty"`
+	Type           *LargeFileStorageType `json:"type,omitempty"`
+}
+
+// LargeFileStorageType defines model for LargeFileStorage.Type.
+type LargeFileStorageType string
+
 // ListableApp defines model for ListableApp.
 type ListableApp struct {
 	EditedAt      time.Time                `json:"edited_at"`
@@ -1470,6 +1484,12 @@ type UserWorkspaceList struct {
 		Name     string `json:"name"`
 		Username string `json:"username"`
 	} `json:"workspaces"`
+}
+
+// WindmillLargeFile defines model for WindmillLargeFile.
+type WindmillLargeFile struct {
+	S3       string  `json:"s3"`
+	S3Bucket *string `json:"s3_bucket,omitempty"`
 }
 
 // WorkerPing defines model for WorkerPing.
@@ -2100,6 +2120,9 @@ type ListInputsParams struct {
 
 // UpdateInputJSONBody defines parameters for UpdateInput.
 type UpdateInputJSONBody = UpdateInput
+
+// DuckdbConnectionSettingsJSONBody defines parameters for DuckdbConnectionSettings.
+type DuckdbConnectionSettingsJSONBody = interface{}
 
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
 type ListCompletedJobsParams struct {
@@ -2829,6 +2852,11 @@ type EditErrorHandlerJSONBody struct {
 	ErrorHandlerMutedOnCancel *bool       `json:"error_handler_muted_on_cancel,omitempty"`
 }
 
+// EditLargeFileStorageConfigJSONBody defines parameters for EditLargeFileStorageConfig.
+type EditLargeFileStorageConfigJSONBody struct {
+	LargeFileStorage *LargeFileStorage `json:"large_file_storage,omitempty"`
+}
+
 // EditSlackCommandJSONBody defines parameters for EditSlackCommand.
 type EditSlackCommandJSONBody struct {
 	SlackCommandScript *string `json:"slack_command_script,omitempty"`
@@ -2999,6 +3027,9 @@ type CreateInputJSONRequestBody = CreateInputJSONBody
 // UpdateInputJSONRequestBody defines body for UpdateInput for application/json ContentType.
 type UpdateInputJSONRequestBody = UpdateInputJSONBody
 
+// DuckdbConnectionSettingsJSONRequestBody defines body for DuckdbConnectionSettings for application/json ContentType.
+type DuckdbConnectionSettingsJSONRequestBody = DuckdbConnectionSettingsJSONBody
+
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
 
@@ -3124,6 +3155,9 @@ type EditDeployToJSONRequestBody EditDeployToJSONBody
 
 // EditErrorHandlerJSONRequestBody defines body for EditErrorHandler for application/json ContentType.
 type EditErrorHandlerJSONRequestBody EditErrorHandlerJSONBody
+
+// EditLargeFileStorageConfigJSONRequestBody defines body for EditLargeFileStorageConfig for application/json ContentType.
+type EditLargeFileStorageConfigJSONRequestBody EditLargeFileStorageConfigJSONBody
 
 // EditSlackCommandJSONRequestBody defines body for EditSlackCommand for application/json ContentType.
 type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
@@ -4644,6 +4678,17 @@ type ClientInterface interface {
 
 	UpdateInput(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DuckdbConnectionSettings request with any body
+	DuckdbConnectionSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DuckdbConnectionSettings(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PolarsConnectionSettings request
+	PolarsConnectionSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DatasetStorageTestConnection request
+	DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetCompletedCount request
 	GetCompletedCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5067,6 +5112,11 @@ type ClientInterface interface {
 
 	EditErrorHandler(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditLargeFileStorageConfig request with any body
+	EditLargeFileStorageConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditLargeFileStorageConfig(ctx context.Context, workspace WorkspaceId, body EditLargeFileStorageConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5083,6 +5133,9 @@ type ClientInterface interface {
 	// GetDeployTo request
 	GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetLargeFileStorageConfig request
+	GetLargeFileStorageConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetSettings request
 	GetSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5090,6 +5143,9 @@ type ClientInterface interface {
 	InviteUserWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	InviteUser(ctx context.Context, workspace WorkspaceId, body InviteUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetIsPremium request
+	GetIsPremium(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListPendingInvites request
 	ListPendingInvites(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6966,6 +7022,54 @@ func (c *Client) UpdateInput(ctx context.Context, workspace WorkspaceId, body Up
 	return c.Client.Do(req)
 }
 
+func (c *Client) DuckdbConnectionSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDuckdbConnectionSettingsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DuckdbConnectionSettings(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDuckdbConnectionSettingsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PolarsConnectionSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPolarsConnectionSettingsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDatasetStorageTestConnectionRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetCompletedCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCompletedCountRequest(c.Server, workspace)
 	if err != nil {
@@ -8826,6 +8930,30 @@ func (c *Client) EditErrorHandler(ctx context.Context, workspace WorkspaceId, bo
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditLargeFileStorageConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditLargeFileStorageConfigRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditLargeFileStorageConfig(ctx context.Context, workspace WorkspaceId, body EditLargeFileStorageConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditLargeFileStorageConfigRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditSlackCommandRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -8898,6 +9026,18 @@ func (c *Client) GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEdit
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetLargeFileStorageConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLargeFileStorageConfigRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetSettingsRequest(c.Server, workspace)
 	if err != nil {
@@ -8924,6 +9064,18 @@ func (c *Client) InviteUserWithBody(ctx context.Context, workspace WorkspaceId, 
 
 func (c *Client) InviteUser(ctx context.Context, workspace WorkspaceId, body InviteUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewInviteUserRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetIsPremium(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetIsPremiumRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -14490,6 +14642,121 @@ func NewUpdateInputRequestWithBody(server string, workspace WorkspaceId, content
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDuckdbConnectionSettingsRequest calls the generic DuckdbConnectionSettings builder with application/json body
+func NewDuckdbConnectionSettingsRequest(server string, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDuckdbConnectionSettingsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewDuckdbConnectionSettingsRequestWithBody generates requests for DuckdbConnectionSettings with any type of body
+func NewDuckdbConnectionSettingsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/duckdb_connection_settings", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPolarsConnectionSettingsRequest generates requests for PolarsConnectionSettings
+func NewPolarsConnectionSettingsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/list_stored_datasets", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDatasetStorageTestConnectionRequest generates requests for DatasetStorageTestConnection
+func NewDatasetStorageTestConnectionRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/test_connection", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -21913,6 +22180,53 @@ func NewEditErrorHandlerRequestWithBody(server string, workspace WorkspaceId, co
 	return req, nil
 }
 
+// NewEditLargeFileStorageConfigRequest calls the generic EditLargeFileStorageConfig builder with application/json body
+func NewEditLargeFileStorageConfigRequest(server string, workspace WorkspaceId, body EditLargeFileStorageConfigJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditLargeFileStorageConfigRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditLargeFileStorageConfigRequestWithBody generates requests for EditLargeFileStorageConfig with any type of body
+func NewEditLargeFileStorageConfigRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_large_file_storage_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditSlackCommandRequest calls the generic EditSlackCommand builder with application/json body
 func NewEditSlackCommandRequest(server string, workspace WorkspaceId, body EditSlackCommandJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -22075,6 +22389,40 @@ func NewGetDeployToRequest(server string, workspace WorkspaceId) (*http.Request,
 	return req, nil
 }
 
+// NewGetLargeFileStorageConfigRequest generates requests for GetLargeFileStorageConfig
+func NewGetLargeFileStorageConfigRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_large_file_storage_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetSettingsRequest generates requests for GetSettings
 func NewGetSettingsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -22152,6 +22500,40 @@ func NewInviteUserRequestWithBody(server string, workspace WorkspaceId, contentT
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetIsPremiumRequest generates requests for GetIsPremium
+func NewGetIsPremiumRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/is_premium", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -23154,6 +23536,17 @@ type ClientWithResponsesInterface interface {
 
 	UpdateInputWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInputResponse, error)
 
+	// DuckdbConnectionSettings request with any body
+	DuckdbConnectionSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error)
+
+	DuckdbConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error)
+
+	// PolarsConnectionSettings request
+	PolarsConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error)
+
+	// DatasetStorageTestConnection request
+	DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error)
+
 	// GetCompletedCount request
 	GetCompletedCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCompletedCountResponse, error)
 
@@ -23577,6 +23970,11 @@ type ClientWithResponsesInterface interface {
 
 	EditErrorHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error)
 
+	// EditLargeFileStorageConfig request with any body
+	EditLargeFileStorageConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditLargeFileStorageConfigResponse, error)
+
+	EditLargeFileStorageConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditLargeFileStorageConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditLargeFileStorageConfigResponse, error)
+
 	// EditSlackCommand request with any body
 	EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
 
@@ -23593,6 +23991,9 @@ type ClientWithResponsesInterface interface {
 	// GetDeployTo request
 	GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error)
 
+	// GetLargeFileStorageConfig request
+	GetLargeFileStorageConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetLargeFileStorageConfigResponse, error)
+
 	// GetSettings request
 	GetSettingsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSettingsResponse, error)
 
@@ -23600,6 +24001,9 @@ type ClientWithResponsesInterface interface {
 	InviteUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*InviteUserResponse, error)
 
 	InviteUserWithResponse(ctx context.Context, workspace WorkspaceId, body InviteUserJSONRequestBody, reqEditors ...RequestEditorFn) (*InviteUserResponse, error)
+
+	// GetIsPremium request
+	GetIsPremiumWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetIsPremiumResponse, error)
 
 	// ListPendingInvites request
 	ListPendingInvitesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPendingInvitesResponse, error)
@@ -26222,6 +26626,76 @@ func (r UpdateInputResponse) StatusCode() int {
 	return 0
 }
 
+type DuckdbConnectionSettingsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		ConnectionSettingsStr *string `json:"connection_settings_str,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r DuckdbConnectionSettingsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DuckdbConnectionSettingsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PolarsConnectionSettingsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		DatasetKeys *[]WindmillLargeFile `json:"dataset_keys,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r PolarsConnectionSettingsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PolarsConnectionSettingsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DatasetStorageTestConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r DatasetStorageTestConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DatasetStorageTestConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetCompletedCountResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -28687,6 +29161,28 @@ func (r EditErrorHandlerResponse) StatusCode() int {
 	return 0
 }
 
+type EditLargeFileStorageConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r EditLargeFileStorageConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditLargeFileStorageConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditSlackCommandResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -28774,25 +29270,48 @@ func (r GetDeployToResponse) StatusCode() int {
 	return 0
 }
 
+type GetLargeFileStorageConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LargeFileStorage
+}
+
+// Status returns HTTPResponse.Status
+func (r GetLargeFileStorageConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetLargeFileStorageConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AutoInviteDomain          *string     `json:"auto_invite_domain,omitempty"`
-		AutoInviteOperator        *bool       `json:"auto_invite_operator,omitempty"`
-		CodeCompletionEnabled     bool        `json:"code_completion_enabled"`
-		CustomerId                *string     `json:"customer_id,omitempty"`
-		DeployTo                  *string     `json:"deploy_to,omitempty"`
-		ErrorHandler              *string     `json:"error_handler,omitempty"`
-		ErrorHandlerExtraArgs     *ScriptArgs `json:"error_handler_extra_args,omitempty"`
-		ErrorHandlerMutedOnCancel *bool       `json:"error_handler_muted_on_cancel,omitempty"`
-		OpenaiResourcePath        *string     `json:"openai_resource_path,omitempty"`
-		Plan                      *string     `json:"plan,omitempty"`
-		SlackCommandScript        *string     `json:"slack_command_script,omitempty"`
-		SlackName                 *string     `json:"slack_name,omitempty"`
-		SlackTeamId               *string     `json:"slack_team_id,omitempty"`
-		Webhook                   *string     `json:"webhook,omitempty"`
-		WorkspaceId               *string     `json:"workspace_id,omitempty"`
+		AutoInviteDomain          *string           `json:"auto_invite_domain,omitempty"`
+		AutoInviteOperator        *bool             `json:"auto_invite_operator,omitempty"`
+		CodeCompletionEnabled     bool              `json:"code_completion_enabled"`
+		CustomerId                *string           `json:"customer_id,omitempty"`
+		DeployTo                  *string           `json:"deploy_to,omitempty"`
+		ErrorHandler              *string           `json:"error_handler,omitempty"`
+		ErrorHandlerExtraArgs     *ScriptArgs       `json:"error_handler_extra_args,omitempty"`
+		ErrorHandlerMutedOnCancel *bool             `json:"error_handler_muted_on_cancel,omitempty"`
+		LargeFileStorage          *LargeFileStorage `json:"large_file_storage,omitempty"`
+		OpenaiResourcePath        *string           `json:"openai_resource_path,omitempty"`
+		Plan                      *string           `json:"plan,omitempty"`
+		SlackCommandScript        *string           `json:"slack_command_script,omitempty"`
+		SlackName                 *string           `json:"slack_name,omitempty"`
+		SlackTeamId               *string           `json:"slack_team_id,omitempty"`
+		Webhook                   *string           `json:"webhook,omitempty"`
+		WorkspaceId               *string           `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -28833,6 +29352,28 @@ func (r InviteUserResponse) StatusCode() int {
 	return 0
 }
 
+type GetIsPremiumResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r GetIsPremiumResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetIsPremiumResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListPendingInvitesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -28860,6 +29401,7 @@ type GetPremiumInfoResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Premium bool     `json:"premium"`
+		Seats   *float32 `json:"seats,omitempty"`
 		Usage   *float32 `json:"usage,omitempty"`
 	}
 }
@@ -30468,6 +31010,41 @@ func (c *ClientWithResponses) UpdateInputWithResponse(ctx context.Context, works
 	return ParseUpdateInputResponse(rsp)
 }
 
+// DuckdbConnectionSettingsWithBodyWithResponse request with arbitrary body returning *DuckdbConnectionSettingsResponse
+func (c *ClientWithResponses) DuckdbConnectionSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error) {
+	rsp, err := c.DuckdbConnectionSettingsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDuckdbConnectionSettingsResponse(rsp)
+}
+
+func (c *ClientWithResponses) DuckdbConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error) {
+	rsp, err := c.DuckdbConnectionSettings(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDuckdbConnectionSettingsResponse(rsp)
+}
+
+// PolarsConnectionSettingsWithResponse request returning *PolarsConnectionSettingsResponse
+func (c *ClientWithResponses) PolarsConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error) {
+	rsp, err := c.PolarsConnectionSettings(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePolarsConnectionSettingsResponse(rsp)
+}
+
+// DatasetStorageTestConnectionWithResponse request returning *DatasetStorageTestConnectionResponse
+func (c *ClientWithResponses) DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error) {
+	rsp, err := c.DatasetStorageTestConnection(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDatasetStorageTestConnectionResponse(rsp)
+}
+
 // GetCompletedCountWithResponse request returning *GetCompletedCountResponse
 func (c *ClientWithResponses) GetCompletedCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCompletedCountResponse, error) {
 	rsp, err := c.GetCompletedCount(ctx, workspace, reqEditors...)
@@ -31821,6 +32398,23 @@ func (c *ClientWithResponses) EditErrorHandlerWithResponse(ctx context.Context, 
 	return ParseEditErrorHandlerResponse(rsp)
 }
 
+// EditLargeFileStorageConfigWithBodyWithResponse request with arbitrary body returning *EditLargeFileStorageConfigResponse
+func (c *ClientWithResponses) EditLargeFileStorageConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditLargeFileStorageConfigResponse, error) {
+	rsp, err := c.EditLargeFileStorageConfigWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditLargeFileStorageConfigResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditLargeFileStorageConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditLargeFileStorageConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditLargeFileStorageConfigResponse, error) {
+	rsp, err := c.EditLargeFileStorageConfig(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditLargeFileStorageConfigResponse(rsp)
+}
+
 // EditSlackCommandWithBodyWithResponse request with arbitrary body returning *EditSlackCommandResponse
 func (c *ClientWithResponses) EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error) {
 	rsp, err := c.EditSlackCommandWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -31873,6 +32467,15 @@ func (c *ClientWithResponses) GetDeployToWithResponse(ctx context.Context, works
 	return ParseGetDeployToResponse(rsp)
 }
 
+// GetLargeFileStorageConfigWithResponse request returning *GetLargeFileStorageConfigResponse
+func (c *ClientWithResponses) GetLargeFileStorageConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetLargeFileStorageConfigResponse, error) {
+	rsp, err := c.GetLargeFileStorageConfig(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetLargeFileStorageConfigResponse(rsp)
+}
+
 // GetSettingsWithResponse request returning *GetSettingsResponse
 func (c *ClientWithResponses) GetSettingsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSettingsResponse, error) {
 	rsp, err := c.GetSettings(ctx, workspace, reqEditors...)
@@ -31897,6 +32500,15 @@ func (c *ClientWithResponses) InviteUserWithResponse(ctx context.Context, worksp
 		return nil, err
 	}
 	return ParseInviteUserResponse(rsp)
+}
+
+// GetIsPremiumWithResponse request returning *GetIsPremiumResponse
+func (c *ClientWithResponses) GetIsPremiumWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetIsPremiumResponse, error) {
+	rsp, err := c.GetIsPremium(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetIsPremiumResponse(rsp)
 }
 
 // ListPendingInvitesWithResponse request returning *ListPendingInvitesResponse
@@ -34534,6 +35146,88 @@ func ParseUpdateInputResponse(rsp *http.Response) (*UpdateInputResponse, error) 
 	return response, nil
 }
 
+// ParseDuckdbConnectionSettingsResponse parses an HTTP response from a DuckdbConnectionSettingsWithResponse call
+func ParseDuckdbConnectionSettingsResponse(rsp *http.Response) (*DuckdbConnectionSettingsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DuckdbConnectionSettingsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			ConnectionSettingsStr *string `json:"connection_settings_str,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePolarsConnectionSettingsResponse parses an HTTP response from a PolarsConnectionSettingsWithResponse call
+func ParsePolarsConnectionSettingsResponse(rsp *http.Response) (*PolarsConnectionSettingsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PolarsConnectionSettingsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			DatasetKeys *[]WindmillLargeFile `json:"dataset_keys,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDatasetStorageTestConnectionResponse parses an HTTP response from a DatasetStorageTestConnectionWithResponse call
+func ParseDatasetStorageTestConnectionResponse(rsp *http.Response) (*DatasetStorageTestConnectionResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DatasetStorageTestConnectionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetCompletedCountResponse parses an HTTP response from a GetCompletedCountWithResponse call
 func ParseGetCompletedCountResponse(rsp *http.Response) (*GetCompletedCountResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -36947,6 +37641,32 @@ func ParseEditErrorHandlerResponse(rsp *http.Response) (*EditErrorHandlerRespons
 	return response, nil
 }
 
+// ParseEditLargeFileStorageConfigResponse parses an HTTP response from a EditLargeFileStorageConfigWithResponse call
+func ParseEditLargeFileStorageConfigResponse(rsp *http.Response) (*EditLargeFileStorageConfigResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditLargeFileStorageConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseEditSlackCommandResponse parses an HTTP response from a EditSlackCommandWithResponse call
 func ParseEditSlackCommandResponse(rsp *http.Response) (*EditSlackCommandResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -37023,6 +37743,32 @@ func ParseGetDeployToResponse(rsp *http.Response) (*GetDeployToResponse, error) 
 	return response, nil
 }
 
+// ParseGetLargeFileStorageConfigResponse parses an HTTP response from a GetLargeFileStorageConfigWithResponse call
+func ParseGetLargeFileStorageConfigResponse(rsp *http.Response) (*GetLargeFileStorageConfigResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetLargeFileStorageConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LargeFileStorage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetSettingsResponse parses an HTTP response from a GetSettingsWithResponse call
 func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -37039,21 +37785,22 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AutoInviteDomain          *string     `json:"auto_invite_domain,omitempty"`
-			AutoInviteOperator        *bool       `json:"auto_invite_operator,omitempty"`
-			CodeCompletionEnabled     bool        `json:"code_completion_enabled"`
-			CustomerId                *string     `json:"customer_id,omitempty"`
-			DeployTo                  *string     `json:"deploy_to,omitempty"`
-			ErrorHandler              *string     `json:"error_handler,omitempty"`
-			ErrorHandlerExtraArgs     *ScriptArgs `json:"error_handler_extra_args,omitempty"`
-			ErrorHandlerMutedOnCancel *bool       `json:"error_handler_muted_on_cancel,omitempty"`
-			OpenaiResourcePath        *string     `json:"openai_resource_path,omitempty"`
-			Plan                      *string     `json:"plan,omitempty"`
-			SlackCommandScript        *string     `json:"slack_command_script,omitempty"`
-			SlackName                 *string     `json:"slack_name,omitempty"`
-			SlackTeamId               *string     `json:"slack_team_id,omitempty"`
-			Webhook                   *string     `json:"webhook,omitempty"`
-			WorkspaceId               *string     `json:"workspace_id,omitempty"`
+			AutoInviteDomain          *string           `json:"auto_invite_domain,omitempty"`
+			AutoInviteOperator        *bool             `json:"auto_invite_operator,omitempty"`
+			CodeCompletionEnabled     bool              `json:"code_completion_enabled"`
+			CustomerId                *string           `json:"customer_id,omitempty"`
+			DeployTo                  *string           `json:"deploy_to,omitempty"`
+			ErrorHandler              *string           `json:"error_handler,omitempty"`
+			ErrorHandlerExtraArgs     *ScriptArgs       `json:"error_handler_extra_args,omitempty"`
+			ErrorHandlerMutedOnCancel *bool             `json:"error_handler_muted_on_cancel,omitempty"`
+			LargeFileStorage          *LargeFileStorage `json:"large_file_storage,omitempty"`
+			OpenaiResourcePath        *string           `json:"openai_resource_path,omitempty"`
+			Plan                      *string           `json:"plan,omitempty"`
+			SlackCommandScript        *string           `json:"slack_command_script,omitempty"`
+			SlackName                 *string           `json:"slack_name,omitempty"`
+			SlackTeamId               *string           `json:"slack_team_id,omitempty"`
+			Webhook                   *string           `json:"webhook,omitempty"`
+			WorkspaceId               *string           `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -37076,6 +37823,32 @@ func ParseInviteUserResponse(rsp *http.Response) (*InviteUserResponse, error) {
 	response := &InviteUserResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetIsPremiumResponse parses an HTTP response from a GetIsPremiumWithResponse call
+func ParseGetIsPremiumResponse(rsp *http.Response) (*GetIsPremiumResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetIsPremiumResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -37124,6 +37897,7 @@ func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, e
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Premium bool     `json:"premium"`
+			Seats   *float32 `json:"seats,omitempty"`
 			Usage   *float32 `json:"usage,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
