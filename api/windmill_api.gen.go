@@ -656,6 +656,7 @@ type EditWorkspaceUser struct {
 type Flow struct {
 	AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
 	Archived             bool                    `json:"archived"`
+	DedicatedWorker      *bool                   `json:"dedicated_worker,omitempty"`
 	Description          *string                 `json:"description,omitempty"`
 	DraftOnly            *bool                   `json:"draft_only,omitempty"`
 	EditedAt             time.Time               `json:"edited_at"`
@@ -676,6 +677,7 @@ type Flow struct {
 type FlowMetadata struct {
 	AdditionalProperties *bool                  `json:"additionalProperties,omitempty"`
 	Archived             bool                   `json:"archived"`
+	DedicatedWorker      *bool                  `json:"dedicated_worker,omitempty"`
 	DraftOnly            *bool                  `json:"draft_only,omitempty"`
 	EditedAt             time.Time              `json:"edited_at"`
 	EditedBy             string                 `json:"edited_by"`
@@ -1121,6 +1123,7 @@ type OpenFlow struct {
 
 // OpenFlowWPath defines model for OpenFlowWPath.
 type OpenFlowWPath struct {
+	DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
 	Description         *string                 `json:"description,omitempty"`
 	Path                string                  `json:"path"`
 	Priority            *int                    `json:"priority,omitempty"`
@@ -1942,6 +1945,7 @@ type ArchiveFlowByPathJSONBody struct {
 
 // CreateFlowJSONBody defines parameters for CreateFlow.
 type CreateFlowJSONBody struct {
+	DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
 	Description         *string                 `json:"description,omitempty"`
 	DraftOnly           *bool                   `json:"draft_only,omitempty"`
 	Path                string                  `json:"path"`
@@ -25942,6 +25946,7 @@ type GetFlowByPathWithDraftResponse struct {
 	JSON200      *struct {
 		AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
 		Archived             bool                    `json:"archived"`
+		DedicatedWorker      *bool                   `json:"dedicated_worker,omitempty"`
 		Description          *string                 `json:"description,omitempty"`
 		Draft                *Flow                   `json:"draft,omitempty"`
 		DraftOnly            *bool                   `json:"draft_only,omitempty"`
@@ -26026,6 +26031,7 @@ type ListFlowsResponse struct {
 	JSON200      *[]struct {
 		AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
 		Archived             bool                    `json:"archived"`
+		DedicatedWorker      *bool                   `json:"dedicated_worker,omitempty"`
 		Description          *string                 `json:"description,omitempty"`
 		DraftOnly            *bool                   `json:"draft_only,omitempty"`
 		EditedAt             time.Time               `json:"edited_at"`
@@ -34498,6 +34504,7 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 		var dest struct {
 			AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
 			Archived             bool                    `json:"archived"`
+			DedicatedWorker      *bool                   `json:"dedicated_worker,omitempty"`
 			Description          *string                 `json:"description,omitempty"`
 			Draft                *Flow                   `json:"draft,omitempty"`
 			DraftOnly            *bool                   `json:"draft_only,omitempty"`
@@ -34594,6 +34601,7 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 		var dest []struct {
 			AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
 			Archived             bool                    `json:"archived"`
+			DedicatedWorker      *bool                   `json:"dedicated_worker,omitempty"`
 			Description          *string                 `json:"description,omitempty"`
 			DraftOnly            *bool                   `json:"draft_only,omitempty"`
 			EditedAt             time.Time               `json:"edited_at"`
