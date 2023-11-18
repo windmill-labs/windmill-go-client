@@ -2835,7 +2835,8 @@ type DeleteInviteJSONBody struct {
 
 // EditAutoInviteJSONBody defines parameters for EditAutoInvite.
 type EditAutoInviteJSONBody struct {
-	Operator *bool `json:"operator,omitempty"`
+	InviteAll *bool `json:"invite_all,omitempty"`
+	Operator  *bool `json:"operator,omitempty"`
 }
 
 // EditCopilotConfigJSONBody defines parameters for EditCopilotConfig.
@@ -4403,6 +4404,9 @@ type ClientInterface interface {
 	// ExistsEmail request
 	ExistsEmail(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// LeaveInstance request
+	LeaveInstance(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListUsersAsSuperAdmin request
 	ListUsersAsSuperAdmin(ctx context.Context, params *ListUsersAsSuperAdminParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5030,9 +5034,6 @@ type ClientInterface interface {
 	// IsOwnerOfPath request
 	IsOwnerOfPath(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// LeaveWorkspace request
-	LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ListUsers request
 	ListUsers(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5150,6 +5151,9 @@ type ClientInterface interface {
 
 	// GetIsPremium request
 	GetIsPremium(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LeaveWorkspace request
+	LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListPendingInvites request
 	ListPendingInvites(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5792,6 +5796,18 @@ func (c *Client) GetCurrentEmail(ctx context.Context, reqEditors ...RequestEdito
 
 func (c *Client) ExistsEmail(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsEmailRequest(c.Server, email)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LeaveInstance(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLeaveInstanceRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -8550,18 +8566,6 @@ func (c *Client) IsOwnerOfPath(ctx context.Context, workspace WorkspaceId, path 
 	return c.Client.Do(req)
 }
 
-func (c *Client) LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewLeaveWorkspaceRequest(c.Server, workspace)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) ListUsers(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListUsersRequest(c.Server, workspace)
 	if err != nil {
@@ -9080,6 +9084,18 @@ func (c *Client) InviteUser(ctx context.Context, workspace WorkspaceId, body Inv
 
 func (c *Client) GetIsPremium(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetIsPremiumRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLeaveWorkspaceRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -10750,6 +10766,33 @@ func NewExistsEmailRequest(server string, email string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewLeaveInstanceRequest generates requests for LeaveInstance
+func NewLeaveInstanceRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/leave_instance")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -21197,40 +21240,6 @@ func NewIsOwnerOfPathRequest(server string, workspace WorkspaceId, path Path) (*
 	return req, nil
 }
 
-// NewLeaveWorkspaceRequest generates requests for LeaveWorkspace
-func NewLeaveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/users/leave_workspace", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewListUsersRequest generates requests for ListUsers
 func NewListUsersRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -22542,6 +22551,40 @@ func NewGetIsPremiumRequest(server string, workspace WorkspaceId) (*http.Request
 	return req, nil
 }
 
+// NewLeaveWorkspaceRequest generates requests for LeaveWorkspace
+func NewLeaveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/leave", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListPendingInvitesRequest generates requests for ListPendingInvites
 func NewListPendingInvitesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -23261,6 +23304,9 @@ type ClientWithResponsesInterface interface {
 	// ExistsEmail request
 	ExistsEmailWithResponse(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*ExistsEmailResponse, error)
 
+	// LeaveInstance request
+	LeaveInstanceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LeaveInstanceResponse, error)
+
 	// ListUsersAsSuperAdmin request
 	ListUsersAsSuperAdminWithResponse(ctx context.Context, params *ListUsersAsSuperAdminParams, reqEditors ...RequestEditorFn) (*ListUsersAsSuperAdminResponse, error)
 
@@ -23888,9 +23934,6 @@ type ClientWithResponsesInterface interface {
 	// IsOwnerOfPath request
 	IsOwnerOfPathWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*IsOwnerOfPathResponse, error)
 
-	// LeaveWorkspace request
-	LeaveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*LeaveWorkspaceResponse, error)
-
 	// ListUsers request
 	ListUsersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListUsersResponse, error)
 
@@ -24008,6 +24051,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetIsPremium request
 	GetIsPremiumWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetIsPremiumResponse, error)
+
+	// LeaveWorkspace request
+	LeaveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*LeaveWorkspaceResponse, error)
 
 	// ListPendingInvites request
 	ListPendingInvitesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPendingInvitesResponse, error)
@@ -24959,6 +25005,27 @@ func (r ExistsEmailResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ExistsEmailResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LeaveInstanceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r LeaveInstanceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LeaveInstanceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -28696,27 +28763,6 @@ func (r IsOwnerOfPathResponse) StatusCode() int {
 	return 0
 }
 
-type LeaveWorkspaceResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r LeaveWorkspaceResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r LeaveWorkspaceResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type ListUsersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -29374,6 +29420,27 @@ func (r GetIsPremiumResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetIsPremiumResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LeaveWorkspaceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r LeaveWorkspaceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LeaveWorkspaceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -30123,6 +30190,15 @@ func (c *ClientWithResponses) ExistsEmailWithResponse(ctx context.Context, email
 		return nil, err
 	}
 	return ParseExistsEmailResponse(rsp)
+}
+
+// LeaveInstanceWithResponse request returning *LeaveInstanceResponse
+func (c *ClientWithResponses) LeaveInstanceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LeaveInstanceResponse, error) {
+	rsp, err := c.LeaveInstance(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLeaveInstanceResponse(rsp)
 }
 
 // ListUsersAsSuperAdminWithResponse request returning *ListUsersAsSuperAdminResponse
@@ -32126,15 +32202,6 @@ func (c *ClientWithResponses) IsOwnerOfPathWithResponse(ctx context.Context, wor
 	return ParseIsOwnerOfPathResponse(rsp)
 }
 
-// LeaveWorkspaceWithResponse request returning *LeaveWorkspaceResponse
-func (c *ClientWithResponses) LeaveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*LeaveWorkspaceResponse, error) {
-	rsp, err := c.LeaveWorkspace(ctx, workspace, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseLeaveWorkspaceResponse(rsp)
-}
-
 // ListUsersWithResponse request returning *ListUsersResponse
 func (c *ClientWithResponses) ListUsersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListUsersResponse, error) {
 	rsp, err := c.ListUsers(ctx, workspace, reqEditors...)
@@ -32515,6 +32582,15 @@ func (c *ClientWithResponses) GetIsPremiumWithResponse(ctx context.Context, work
 		return nil, err
 	}
 	return ParseGetIsPremiumResponse(rsp)
+}
+
+// LeaveWorkspaceWithResponse request returning *LeaveWorkspaceResponse
+func (c *ClientWithResponses) LeaveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*LeaveWorkspaceResponse, error) {
+	rsp, err := c.LeaveWorkspace(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLeaveWorkspaceResponse(rsp)
 }
 
 // ListPendingInvitesWithResponse request returning *ListPendingInvitesResponse
@@ -33560,6 +33636,22 @@ func ParseExistsEmailResponse(rsp *http.Response) (*ExistsEmailResponse, error) 
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseLeaveInstanceResponse parses an HTTP response from a LeaveInstanceWithResponse call
+func ParseLeaveInstanceResponse(rsp *http.Response) (*LeaveInstanceResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LeaveInstanceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -37207,22 +37299,6 @@ func ParseIsOwnerOfPathResponse(rsp *http.Response) (*IsOwnerOfPathResponse, err
 	return response, nil
 }
 
-// ParseLeaveWorkspaceResponse parses an HTTP response from a LeaveWorkspaceWithResponse call
-func ParseLeaveWorkspaceResponse(rsp *http.Response) (*LeaveWorkspaceResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &LeaveWorkspaceResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
 // ParseListUsersResponse parses an HTTP response from a ListUsersWithResponse call
 func ParseListUsersResponse(rsp *http.Response) (*ListUsersResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -37857,6 +37933,22 @@ func ParseGetIsPremiumResponse(rsp *http.Response) (*GetIsPremiumResponse, error
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseLeaveWorkspaceResponse parses an HTTP response from a LeaveWorkspaceWithResponse call
+func ParseLeaveWorkspaceResponse(rsp *http.Response) (*LeaveWorkspaceResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LeaveWorkspaceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
