@@ -426,6 +426,14 @@ const (
 	StaticTransformTypeJavascript StaticTransformType = "javascript"
 )
 
+// Defines values for WindmillFilePreviewContentPreviewContentType.
+const (
+	Csv     WindmillFilePreviewContentPreviewContentType = "Csv"
+	Parquet WindmillFilePreviewContentPreviewContentType = "Parquet"
+	RawText WindmillFilePreviewContentPreviewContentType = "RawText"
+	Unknown WindmillFilePreviewContentPreviewContentType = "Unknown"
+)
+
 // Defines values for ActionKind.
 const (
 	ActionKindCreate  ActionKind = "Create"
@@ -1489,10 +1497,26 @@ type UserWorkspaceList struct {
 	} `json:"workspaces"`
 }
 
+// WindmillFilePreview defines model for WindmillFilePreview.
+type WindmillFilePreview struct {
+	ContentPreview struct {
+		Content     *string                                      `json:"content,omitempty"`
+		ContentType WindmillFilePreviewContentPreviewContentType `json:"content_type"`
+		Msg         *string                                      `json:"msg,omitempty"`
+	} `json:"content_preview"`
+	Expires      *time.Time `json:"expires,omitempty"`
+	LastModified *time.Time `json:"last_modified,omitempty"`
+	MimeType     *string    `json:"mime_type,omitempty"`
+	SizeInBytes  *int       `json:"size_in_bytes,omitempty"`
+	VersionId    *string    `json:"version_id,omitempty"`
+}
+
+// WindmillFilePreviewContentPreviewContentType defines model for WindmillFilePreview.ContentPreview.ContentType.
+type WindmillFilePreviewContentPreviewContentType string
+
 // WindmillLargeFile defines model for WindmillLargeFile.
 type WindmillLargeFile struct {
-	S3       string  `json:"s3"`
-	S3Bucket *string `json:"s3_bucket,omitempty"`
+	S3 string `json:"s3"`
 }
 
 // WorkerPing defines model for WorkerPing.
@@ -2127,6 +2151,14 @@ type UpdateInputJSONBody = UpdateInput
 
 // DuckdbConnectionSettingsJSONBody defines parameters for DuckdbConnectionSettings.
 type DuckdbConnectionSettingsJSONBody = interface{}
+
+// LoadFilePreviewParams defines parameters for LoadFilePreview.
+type LoadFilePreviewParams struct {
+	FileKey   string  `form:"file_key" json:"file_key"`
+	From      *int    `form:"from,omitempty" json:"from,omitempty"`
+	Length    *int    `form:"length,omitempty" json:"length,omitempty"`
+	Separator *string `form:"separator,omitempty" json:"separator,omitempty"`
+}
 
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
 type ListCompletedJobsParams struct {
@@ -4691,8 +4723,11 @@ type ClientInterface interface {
 
 	DuckdbConnectionSettings(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PolarsConnectionSettings request
-	PolarsConnectionSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListStoredFiles request
+	ListStoredFiles(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LoadFilePreview request
+	LoadFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7066,8 +7101,20 @@ func (c *Client) DuckdbConnectionSettings(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
-func (c *Client) PolarsConnectionSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPolarsConnectionSettingsRequest(c.Server, workspace)
+func (c *Client) ListStoredFiles(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListStoredFilesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LoadFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoadFilePreviewRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -14740,8 +14787,8 @@ func NewDuckdbConnectionSettingsRequestWithBody(server string, workspace Workspa
 	return req, nil
 }
 
-// NewPolarsConnectionSettingsRequest generates requests for PolarsConnectionSettings
-func NewPolarsConnectionSettingsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+// NewListStoredFilesRequest generates requests for ListStoredFiles
+func NewListStoredFilesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -14756,7 +14803,7 @@ func NewPolarsConnectionSettingsRequest(server string, workspace WorkspaceId) (*
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/job_helpers/list_stored_datasets", pathParam0)
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/list_stored_files", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -14766,7 +14813,105 @@ func NewPolarsConnectionSettingsRequest(server string, workspace WorkspaceId) (*
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewLoadFilePreviewRequest generates requests for LoadFilePreview
+func NewLoadFilePreviewRequest(server string, workspace WorkspaceId, params *LoadFilePreviewParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/load_file_preview", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.From != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "from", runtime.ParamLocationQuery, *params.From); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Length != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "length", runtime.ParamLocationQuery, *params.Length); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Separator != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "separator", runtime.ParamLocationQuery, *params.Separator); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -23591,8 +23736,11 @@ type ClientWithResponsesInterface interface {
 
 	DuckdbConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error)
 
-	// PolarsConnectionSettings request
-	PolarsConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error)
+	// ListStoredFiles request
+	ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error)
+
+	// LoadFilePreview request
+	LoadFilePreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*LoadFilePreviewResponse, error)
 
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error)
@@ -26723,16 +26871,17 @@ func (r DuckdbConnectionSettingsResponse) StatusCode() int {
 	return 0
 }
 
-type PolarsConnectionSettingsResponse struct {
+type ListStoredFilesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		DatasetKeys *[]WindmillLargeFile `json:"dataset_keys,omitempty"`
+		FileCount          int                 `json:"file_count"`
+		WindmillLargeFiles []WindmillLargeFile `json:"windmill_large_files"`
 	}
 }
 
 // Status returns HTTPResponse.Status
-func (r PolarsConnectionSettingsResponse) Status() string {
+func (r ListStoredFilesResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -26740,7 +26889,29 @@ func (r PolarsConnectionSettingsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PolarsConnectionSettingsResponse) StatusCode() int {
+func (r ListStoredFilesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LoadFilePreviewResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *WindmillFilePreview
+}
+
+// Status returns HTTPResponse.Status
+func (r LoadFilePreviewResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LoadFilePreviewResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -31109,13 +31280,22 @@ func (c *ClientWithResponses) DuckdbConnectionSettingsWithResponse(ctx context.C
 	return ParseDuckdbConnectionSettingsResponse(rsp)
 }
 
-// PolarsConnectionSettingsWithResponse request returning *PolarsConnectionSettingsResponse
-func (c *ClientWithResponses) PolarsConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error) {
-	rsp, err := c.PolarsConnectionSettings(ctx, workspace, reqEditors...)
+// ListStoredFilesWithResponse request returning *ListStoredFilesResponse
+func (c *ClientWithResponses) ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error) {
+	rsp, err := c.ListStoredFiles(ctx, workspace, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePolarsConnectionSettingsResponse(rsp)
+	return ParseListStoredFilesResponse(rsp)
+}
+
+// LoadFilePreviewWithResponse request returning *LoadFilePreviewResponse
+func (c *ClientWithResponses) LoadFilePreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*LoadFilePreviewResponse, error) {
+	rsp, err := c.LoadFilePreview(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoadFilePreviewResponse(rsp)
 }
 
 // DatasetStorageTestConnectionWithResponse request returning *DatasetStorageTestConnectionResponse
@@ -35274,15 +35454,15 @@ func ParseDuckdbConnectionSettingsResponse(rsp *http.Response) (*DuckdbConnectio
 	return response, nil
 }
 
-// ParsePolarsConnectionSettingsResponse parses an HTTP response from a PolarsConnectionSettingsWithResponse call
-func ParsePolarsConnectionSettingsResponse(rsp *http.Response) (*PolarsConnectionSettingsResponse, error) {
+// ParseListStoredFilesResponse parses an HTTP response from a ListStoredFilesWithResponse call
+func ParseListStoredFilesResponse(rsp *http.Response) (*ListStoredFilesResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PolarsConnectionSettingsResponse{
+	response := &ListStoredFilesResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -35290,8 +35470,35 @@ func ParsePolarsConnectionSettingsResponse(rsp *http.Response) (*PolarsConnectio
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			DatasetKeys *[]WindmillLargeFile `json:"dataset_keys,omitempty"`
+			FileCount          int                 `json:"file_count"`
+			WindmillLargeFiles []WindmillLargeFile `json:"windmill_large_files"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseLoadFilePreviewResponse parses an HTTP response from a LoadFilePreviewWithResponse call
+func ParseLoadFilePreviewResponse(rsp *http.Response) (*LoadFilePreviewResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LoadFilePreviewResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WindmillFilePreview
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
