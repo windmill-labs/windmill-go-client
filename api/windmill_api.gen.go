@@ -426,12 +426,12 @@ const (
 	StaticTransformTypeJavascript StaticTransformType = "javascript"
 )
 
-// Defines values for WindmillFilePreviewContentPreviewContentType.
+// Defines values for WindmillFilePreviewContentType.
 const (
-	Csv     WindmillFilePreviewContentPreviewContentType = "Csv"
-	Parquet WindmillFilePreviewContentPreviewContentType = "Parquet"
-	RawText WindmillFilePreviewContentPreviewContentType = "RawText"
-	Unknown WindmillFilePreviewContentPreviewContentType = "Unknown"
+	Csv     WindmillFilePreviewContentType = "Csv"
+	Parquet WindmillFilePreviewContentType = "Parquet"
+	RawText WindmillFilePreviewContentType = "RawText"
+	Unknown WindmillFilePreviewContentType = "Unknown"
 )
 
 // Defines values for ActionKind.
@@ -1497,13 +1497,8 @@ type UserWorkspaceList struct {
 	} `json:"workspaces"`
 }
 
-// WindmillFilePreview defines model for WindmillFilePreview.
-type WindmillFilePreview struct {
-	ContentPreview struct {
-		Content     *string                                      `json:"content,omitempty"`
-		ContentType WindmillFilePreviewContentPreviewContentType `json:"content_type"`
-		Msg         *string                                      `json:"msg,omitempty"`
-	} `json:"content_preview"`
+// WindmillFileMetadata defines model for WindmillFileMetadata.
+type WindmillFileMetadata struct {
 	Expires      *time.Time `json:"expires,omitempty"`
 	LastModified *time.Time `json:"last_modified,omitempty"`
 	MimeType     *string    `json:"mime_type,omitempty"`
@@ -1511,8 +1506,15 @@ type WindmillFilePreview struct {
 	VersionId    *string    `json:"version_id,omitempty"`
 }
 
-// WindmillFilePreviewContentPreviewContentType defines model for WindmillFilePreview.ContentPreview.ContentType.
-type WindmillFilePreviewContentPreviewContentType string
+// WindmillFilePreview defines model for WindmillFilePreview.
+type WindmillFilePreview struct {
+	Content     *string                        `json:"content,omitempty"`
+	ContentType WindmillFilePreviewContentType `json:"content_type"`
+	Msg         *string                        `json:"msg,omitempty"`
+}
+
+// WindmillFilePreviewContentType defines model for WindmillFilePreview.ContentType.
+type WindmillFilePreviewContentType string
 
 // WindmillLargeFile defines model for WindmillLargeFile.
 type WindmillLargeFile struct {
@@ -2152,12 +2154,25 @@ type UpdateInputJSONBody = UpdateInput
 // DuckdbConnectionSettingsJSONBody defines parameters for DuckdbConnectionSettings.
 type DuckdbConnectionSettingsJSONBody = interface{}
 
+// ListStoredFilesParams defines parameters for ListStoredFiles.
+type ListStoredFilesParams struct {
+	MaxKeys int     `form:"max_keys" json:"max_keys"`
+	Marker  *string `form:"marker,omitempty" json:"marker,omitempty"`
+}
+
+// LoadFileMetadataParams defines parameters for LoadFileMetadata.
+type LoadFileMetadataParams struct {
+	FileKey string `form:"file_key" json:"file_key"`
+}
+
 // LoadFilePreviewParams defines parameters for LoadFilePreview.
 type LoadFilePreviewParams struct {
-	FileKey   string  `form:"file_key" json:"file_key"`
-	From      *int    `form:"from,omitempty" json:"from,omitempty"`
-	Length    *int    `form:"length,omitempty" json:"length,omitempty"`
-	Separator *string `form:"separator,omitempty" json:"separator,omitempty"`
+	FileKey         string  `form:"file_key" json:"file_key"`
+	FileSizeInBytes *int    `form:"file_size_in_bytes,omitempty" json:"file_size_in_bytes,omitempty"`
+	FileMimeType    *string `form:"file_mime_type,omitempty" json:"file_mime_type,omitempty"`
+	CsvSeparator    *string `form:"csv_separator,omitempty" json:"csv_separator,omitempty"`
+	ReadBytesFrom   *int    `form:"read_bytes_from,omitempty" json:"read_bytes_from,omitempty"`
+	ReadBytesLength *int    `form:"read_bytes_length,omitempty" json:"read_bytes_length,omitempty"`
 }
 
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
@@ -4724,7 +4739,10 @@ type ClientInterface interface {
 	DuckdbConnectionSettings(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListStoredFiles request
-	ListStoredFiles(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListStoredFiles(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LoadFileMetadata request
+	LoadFileMetadata(ctx context.Context, workspace WorkspaceId, params *LoadFileMetadataParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// LoadFilePreview request
 	LoadFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7101,8 +7119,20 @@ func (c *Client) DuckdbConnectionSettings(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListStoredFiles(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListStoredFilesRequest(c.Server, workspace)
+func (c *Client) ListStoredFiles(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListStoredFilesRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LoadFileMetadata(ctx context.Context, workspace WorkspaceId, params *LoadFileMetadataParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoadFileMetadataRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -14788,7 +14818,7 @@ func NewDuckdbConnectionSettingsRequestWithBody(server string, workspace Workspa
 }
 
 // NewListStoredFilesRequest generates requests for ListStoredFiles
-func NewListStoredFilesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewListStoredFilesRequest(server string, workspace WorkspaceId, params *ListStoredFilesParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -14812,6 +14842,88 @@ func NewListStoredFilesRequest(server string, workspace WorkspaceId) (*http.Requ
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_keys", runtime.ParamLocationQuery, params.MaxKeys); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.Marker != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "marker", runtime.ParamLocationQuery, *params.Marker); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewLoadFileMetadataRequest generates requests for LoadFileMetadata
+func NewLoadFileMetadataRequest(server string, workspace WorkspaceId, params *LoadFileMetadataParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/load_file_metadata", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -14861,9 +14973,9 @@ func NewLoadFilePreviewRequest(server string, workspace WorkspaceId, params *Loa
 		}
 	}
 
-	if params.From != nil {
+	if params.FileSizeInBytes != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "from", runtime.ParamLocationQuery, *params.From); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_size_in_bytes", runtime.ParamLocationQuery, *params.FileSizeInBytes); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -14877,9 +14989,9 @@ func NewLoadFilePreviewRequest(server string, workspace WorkspaceId, params *Loa
 
 	}
 
-	if params.Length != nil {
+	if params.FileMimeType != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "length", runtime.ParamLocationQuery, *params.Length); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_mime_type", runtime.ParamLocationQuery, *params.FileMimeType); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -14893,9 +15005,41 @@ func NewLoadFilePreviewRequest(server string, workspace WorkspaceId, params *Loa
 
 	}
 
-	if params.Separator != nil {
+	if params.CsvSeparator != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "separator", runtime.ParamLocationQuery, *params.Separator); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_separator", runtime.ParamLocationQuery, *params.CsvSeparator); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ReadBytesFrom != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "read_bytes_from", runtime.ParamLocationQuery, *params.ReadBytesFrom); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ReadBytesLength != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "read_bytes_length", runtime.ParamLocationQuery, *params.ReadBytesLength); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -23737,7 +23881,10 @@ type ClientWithResponsesInterface interface {
 	DuckdbConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error)
 
 	// ListStoredFiles request
-	ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error)
+	ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error)
+
+	// LoadFileMetadata request
+	LoadFileMetadataWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadFileMetadataParams, reqEditors ...RequestEditorFn) (*LoadFileMetadataResponse, error)
 
 	// LoadFilePreview request
 	LoadFilePreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*LoadFilePreviewResponse, error)
@@ -26875,7 +27022,7 @@ type ListStoredFilesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		FileCount          int                 `json:"file_count"`
+		NextMarker         *string             `json:"next_marker,omitempty"`
 		WindmillLargeFiles []WindmillLargeFile `json:"windmill_large_files"`
 	}
 }
@@ -26890,6 +27037,28 @@ func (r ListStoredFilesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListStoredFilesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LoadFileMetadataResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *WindmillFileMetadata
+}
+
+// Status returns HTTPResponse.Status
+func (r LoadFileMetadataResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LoadFileMetadataResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -31281,12 +31450,21 @@ func (c *ClientWithResponses) DuckdbConnectionSettingsWithResponse(ctx context.C
 }
 
 // ListStoredFilesWithResponse request returning *ListStoredFilesResponse
-func (c *ClientWithResponses) ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error) {
-	rsp, err := c.ListStoredFiles(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error) {
+	rsp, err := c.ListStoredFiles(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseListStoredFilesResponse(rsp)
+}
+
+// LoadFileMetadataWithResponse request returning *LoadFileMetadataResponse
+func (c *ClientWithResponses) LoadFileMetadataWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadFileMetadataParams, reqEditors ...RequestEditorFn) (*LoadFileMetadataResponse, error) {
+	rsp, err := c.LoadFileMetadata(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoadFileMetadataResponse(rsp)
 }
 
 // LoadFilePreviewWithResponse request returning *LoadFilePreviewResponse
@@ -35470,9 +35648,35 @@ func ParseListStoredFilesResponse(rsp *http.Response) (*ListStoredFilesResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			FileCount          int                 `json:"file_count"`
+			NextMarker         *string             `json:"next_marker,omitempty"`
 			WindmillLargeFiles []WindmillLargeFile `json:"windmill_large_files"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseLoadFileMetadataResponse parses an HTTP response from a LoadFileMetadataWithResponse call
+func ParseLoadFileMetadataResponse(rsp *http.Response) (*LoadFileMetadataResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LoadFileMetadataResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WindmillFileMetadata
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
