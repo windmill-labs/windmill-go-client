@@ -1173,6 +1173,11 @@ type PathScript_InputTransforms struct {
 // PathScriptType defines model for PathScript.Type.
 type PathScriptType string
 
+// PolarsClientKwargs defines model for PolarsClientKwargs.
+type PolarsClientKwargs struct {
+	RegionName string `json:"region_name"`
+}
+
 // Policy defines model for Policy.
 type Policy struct {
 	ExecutionMode   *PolicyExecutionMode `json:"execution_mode,omitempty"`
@@ -2175,6 +2180,9 @@ type LoadFilePreviewParams struct {
 	ReadBytesLength *int    `form:"read_bytes_length,omitempty" json:"read_bytes_length,omitempty"`
 }
 
+// PolarsConnectionSettingsJSONBody defines parameters for PolarsConnectionSettings.
+type PolarsConnectionSettingsJSONBody = interface{}
+
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
 type ListCompletedJobsParams struct {
 	// order by desc order (default true)
@@ -3081,6 +3089,9 @@ type UpdateInputJSONRequestBody = UpdateInputJSONBody
 
 // DuckdbConnectionSettingsJSONRequestBody defines body for DuckdbConnectionSettings for application/json ContentType.
 type DuckdbConnectionSettingsJSONRequestBody = DuckdbConnectionSettingsJSONBody
+
+// PolarsConnectionSettingsJSONRequestBody defines body for PolarsConnectionSettings for application/json ContentType.
+type PolarsConnectionSettingsJSONRequestBody = PolarsConnectionSettingsJSONBody
 
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
@@ -4746,6 +4757,11 @@ type ClientInterface interface {
 
 	// LoadFilePreview request
 	LoadFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PolarsConnectionSettings request with any body
+	PolarsConnectionSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PolarsConnectionSettings(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7145,6 +7161,30 @@ func (c *Client) LoadFileMetadata(ctx context.Context, workspace WorkspaceId, pa
 
 func (c *Client) LoadFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLoadFilePreviewRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PolarsConnectionSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPolarsConnectionSettingsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PolarsConnectionSettings(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPolarsConnectionSettingsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15059,6 +15099,53 @@ func NewLoadFilePreviewRequest(server string, workspace WorkspaceId, params *Loa
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewPolarsConnectionSettingsRequest calls the generic PolarsConnectionSettings builder with application/json body
+func NewPolarsConnectionSettingsRequest(server string, workspace WorkspaceId, body PolarsConnectionSettingsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPolarsConnectionSettingsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewPolarsConnectionSettingsRequestWithBody generates requests for PolarsConnectionSettings with any type of body
+func NewPolarsConnectionSettingsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/polars_connection_settings", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -23889,6 +23976,11 @@ type ClientWithResponsesInterface interface {
 	// LoadFilePreview request
 	LoadFilePreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*LoadFilePreviewResponse, error)
 
+	// PolarsConnectionSettings request with any body
+	PolarsConnectionSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error)
+
+	PolarsConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error)
+
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error)
 
@@ -27081,6 +27173,35 @@ func (r LoadFilePreviewResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LoadFilePreviewResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PolarsConnectionSettingsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		CacheRegions bool               `json:"cache_regions"`
+		ClientKwargs PolarsClientKwargs `json:"client_kwargs"`
+		EndpointUrl  string             `json:"endpoint_url"`
+		Key          *string            `json:"key,omitempty"`
+		Secret       *string            `json:"secret,omitempty"`
+		UseSsl       bool               `json:"use_ssl"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r PolarsConnectionSettingsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PolarsConnectionSettingsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -31476,6 +31597,23 @@ func (c *ClientWithResponses) LoadFilePreviewWithResponse(ctx context.Context, w
 	return ParseLoadFilePreviewResponse(rsp)
 }
 
+// PolarsConnectionSettingsWithBodyWithResponse request with arbitrary body returning *PolarsConnectionSettingsResponse
+func (c *ClientWithResponses) PolarsConnectionSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error) {
+	rsp, err := c.PolarsConnectionSettingsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePolarsConnectionSettingsResponse(rsp)
+}
+
+func (c *ClientWithResponses) PolarsConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error) {
+	rsp, err := c.PolarsConnectionSettings(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePolarsConnectionSettingsResponse(rsp)
+}
+
 // DatasetStorageTestConnectionWithResponse request returning *DatasetStorageTestConnectionResponse
 func (c *ClientWithResponses) DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error) {
 	rsp, err := c.DatasetStorageTestConnection(ctx, workspace, reqEditors...)
@@ -35703,6 +35841,39 @@ func ParseLoadFilePreviewResponse(rsp *http.Response) (*LoadFilePreviewResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest WindmillFilePreview
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePolarsConnectionSettingsResponse parses an HTTP response from a PolarsConnectionSettingsWithResponse call
+func ParsePolarsConnectionSettingsResponse(rsp *http.Response) (*PolarsConnectionSettingsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PolarsConnectionSettingsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CacheRegions bool               `json:"cache_regions"`
+			ClientKwargs PolarsClientKwargs `json:"client_kwargs"`
+			EndpointUrl  string             `json:"endpoint_url"`
+			Key          *string            `json:"key,omitempty"`
+			Secret       *string            `json:"secret,omitempty"`
+			UseSsl       bool               `json:"use_ssl"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
