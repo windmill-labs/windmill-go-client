@@ -817,6 +817,7 @@ type FlowValue struct {
 	CacheTtl               *float32     `json:"cache_ttl,omitempty"`
 	ConcurrencyTimeWindowS *float32     `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *float32     `json:"concurrent_limit,omitempty"`
+	EarlyReturn            *string      `json:"early_return,omitempty"`
 	FailureModule          *FlowModule  `json:"failure_module,omitempty"`
 	Modules                []FlowModule `json:"modules"`
 	Priority               *float32     `json:"priority,omitempty"`
