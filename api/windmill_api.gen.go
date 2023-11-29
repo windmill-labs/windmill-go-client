@@ -1814,6 +1814,11 @@ type CreateTokenJSONBody = NewToken
 // CreateTokenImpersonateJSONBody defines parameters for CreateTokenImpersonate.
 type CreateTokenImpersonateJSONBody = NewTokenImpersonate
 
+// ListTokensParams defines parameters for ListTokens.
+type ListTokensParams struct {
+	ExcludeEphemeral *bool `form:"exclude_ephemeral,omitempty" json:"exclude_ephemeral,omitempty"`
+}
+
 // UpdateTutorialProgressJSONBody defines parameters for UpdateTutorialProgress.
 type UpdateTutorialProgressJSONBody struct {
 	Progress *int `json:"progress,omitempty"`
@@ -4494,7 +4499,7 @@ type ClientInterface interface {
 	CreateTokenImpersonate(ctx context.Context, body CreateTokenImpersonateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListTokens request
-	ListTokens(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListTokens(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetTutorialProgress request
 	GetTutorialProgress(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6008,8 +6013,8 @@ func (c *Client) CreateTokenImpersonate(ctx context.Context, body CreateTokenImp
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListTokens(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListTokensRequest(c.Server)
+func (c *Client) ListTokens(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListTokensRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -11190,7 +11195,7 @@ func NewCreateTokenImpersonateRequestWithBody(server string, contentType string,
 }
 
 // NewListTokensRequest generates requests for ListTokens
-func NewListTokensRequest(server string) (*http.Request, error) {
+func NewListTokensRequest(server string, params *ListTokensParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -11207,6 +11212,26 @@ func NewListTokensRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.ExcludeEphemeral != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "exclude_ephemeral", runtime.ParamLocationQuery, *params.ExcludeEphemeral); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -23712,7 +23737,7 @@ type ClientWithResponsesInterface interface {
 	CreateTokenImpersonateWithResponse(ctx context.Context, body CreateTokenImpersonateJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateTokenImpersonateResponse, error)
 
 	// ListTokens request
-	ListTokensWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListTokensResponse, error)
+	ListTokensWithResponse(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*ListTokensResponse, error)
 
 	// GetTutorialProgress request
 	GetTutorialProgressWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTutorialProgressResponse, error)
@@ -30751,8 +30776,8 @@ func (c *ClientWithResponses) CreateTokenImpersonateWithResponse(ctx context.Con
 }
 
 // ListTokensWithResponse request returning *ListTokensResponse
-func (c *ClientWithResponses) ListTokensWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListTokensResponse, error) {
-	rsp, err := c.ListTokens(ctx, reqEditors...)
+func (c *ClientWithResponses) ListTokensWithResponse(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*ListTokensResponse, error) {
+	rsp, err := c.ListTokens(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
