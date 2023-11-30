@@ -1325,6 +1325,17 @@ type Retry struct {
 // RunnableType defines model for RunnableType.
 type RunnableType string
 
+// S3Resource defines model for S3Resource.
+type S3Resource struct {
+	AccessKey *string `json:"accessKey,omitempty"`
+	Bucket    string  `json:"bucket"`
+	EndPoint  string  `json:"endPoint"`
+	PathStyle bool    `json:"pathStyle"`
+	Region    string  `json:"region"`
+	SecretKey *string `json:"secretKey,omitempty"`
+	UseSSL    bool    `json:"useSSL"`
+}
+
 // Schedule defines model for Schedule.
 type Schedule struct {
 	Args                *ScriptArgs         `json:"args,omitempty"`
@@ -2163,7 +2174,9 @@ type ListInputsParams struct {
 type UpdateInputJSONBody = UpdateInput
 
 // DuckdbConnectionSettingsJSONBody defines parameters for DuckdbConnectionSettings.
-type DuckdbConnectionSettingsJSONBody = interface{}
+type DuckdbConnectionSettingsJSONBody struct {
+	S3Resource *S3Resource `json:"s3_resource,omitempty"`
+}
 
 // ListStoredFilesParams defines parameters for ListStoredFiles.
 type ListStoredFilesParams struct {
@@ -2187,7 +2200,9 @@ type LoadFilePreviewParams struct {
 }
 
 // PolarsConnectionSettingsJSONBody defines parameters for PolarsConnectionSettings.
-type PolarsConnectionSettingsJSONBody = interface{}
+type PolarsConnectionSettingsJSONBody struct {
+	S3Resource *S3Resource `json:"s3_resource,omitempty"`
+}
 
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
 type ListCompletedJobsParams struct {
@@ -3094,10 +3109,10 @@ type CreateInputJSONRequestBody = CreateInputJSONBody
 type UpdateInputJSONRequestBody = UpdateInputJSONBody
 
 // DuckdbConnectionSettingsJSONRequestBody defines body for DuckdbConnectionSettings for application/json ContentType.
-type DuckdbConnectionSettingsJSONRequestBody = DuckdbConnectionSettingsJSONBody
+type DuckdbConnectionSettingsJSONRequestBody DuckdbConnectionSettingsJSONBody
 
 // PolarsConnectionSettingsJSONRequestBody defines body for PolarsConnectionSettings for application/json ContentType.
-type PolarsConnectionSettingsJSONRequestBody = PolarsConnectionSettingsJSONBody
+type PolarsConnectionSettingsJSONRequestBody PolarsConnectionSettingsJSONBody
 
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
