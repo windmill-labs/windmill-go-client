@@ -145,15 +145,16 @@ const (
 
 // Defines values for CompletedJobJobKind.
 const (
-	CompletedJobJobKindAppdependencies  CompletedJobJobKind = "appdependencies"
-	CompletedJobJobKindDependencies     CompletedJobJobKind = "dependencies"
-	CompletedJobJobKindFlow             CompletedJobJobKind = "flow"
-	CompletedJobJobKindFlowdependencies CompletedJobJobKind = "flowdependencies"
-	CompletedJobJobKindFlowpreview      CompletedJobJobKind = "flowpreview"
-	CompletedJobJobKindIdentity         CompletedJobJobKind = "identity"
-	CompletedJobJobKindPreview          CompletedJobJobKind = "preview"
-	CompletedJobJobKindScript           CompletedJobJobKind = "script"
-	CompletedJobJobKindScriptHub        CompletedJobJobKind = "script_hub"
+	CompletedJobJobKindAppdependencies    CompletedJobJobKind = "appdependencies"
+	CompletedJobJobKindDependencies       CompletedJobJobKind = "dependencies"
+	CompletedJobJobKindDeploymentcallback CompletedJobJobKind = "deploymentcallback"
+	CompletedJobJobKindFlow               CompletedJobJobKind = "flow"
+	CompletedJobJobKindFlowdependencies   CompletedJobJobKind = "flowdependencies"
+	CompletedJobJobKindFlowpreview        CompletedJobJobKind = "flowpreview"
+	CompletedJobJobKindIdentity           CompletedJobJobKind = "identity"
+	CompletedJobJobKindPreview            CompletedJobJobKind = "preview"
+	CompletedJobJobKindScript             CompletedJobJobKind = "script"
+	CompletedJobJobKindScriptHub          CompletedJobJobKind = "script_hub"
 )
 
 // Defines values for CompletedJobLanguage.
@@ -338,15 +339,16 @@ const (
 
 // Defines values for QueuedJobJobKind.
 const (
-	QueuedJobJobKindAppdependencies  QueuedJobJobKind = "appdependencies"
-	QueuedJobJobKindDependencies     QueuedJobJobKind = "dependencies"
-	QueuedJobJobKindFlow             QueuedJobJobKind = "flow"
-	QueuedJobJobKindFlowdependencies QueuedJobJobKind = "flowdependencies"
-	QueuedJobJobKindFlowpreview      QueuedJobJobKind = "flowpreview"
-	QueuedJobJobKindIdentity         QueuedJobJobKind = "identity"
-	QueuedJobJobKindPreview          QueuedJobJobKind = "preview"
-	QueuedJobJobKindScript           QueuedJobJobKind = "script"
-	QueuedJobJobKindScriptHub        QueuedJobJobKind = "script_hub"
+	QueuedJobJobKindAppdependencies    QueuedJobJobKind = "appdependencies"
+	QueuedJobJobKindDependencies       QueuedJobJobKind = "dependencies"
+	QueuedJobJobKindDeploymentcallback QueuedJobJobKind = "deploymentcallback"
+	QueuedJobJobKindFlow               QueuedJobJobKind = "flow"
+	QueuedJobJobKindFlowdependencies   QueuedJobJobKind = "flowdependencies"
+	QueuedJobJobKindFlowpreview        QueuedJobJobKind = "flowpreview"
+	QueuedJobJobKindIdentity           QueuedJobJobKind = "identity"
+	QueuedJobJobKindPreview            QueuedJobJobKind = "preview"
+	QueuedJobJobKindScript             QueuedJobJobKind = "script"
+	QueuedJobJobKindScriptHub          QueuedJobJobKind = "script_hub"
 )
 
 // Defines values for QueuedJobLanguage.
@@ -441,6 +443,12 @@ const (
 	ActionKindExecute ActionKind = "Execute"
 	ActionKindUpdate  ActionKind = "Update"
 )
+
+// AppHistory defines model for AppHistory.
+type AppHistory struct {
+	DeploymentMsg *string `json:"deployment_msg,omitempty"`
+	Version       int     `json:"version"`
+}
 
 // AppWithLastVersion defines model for AppWithLastVersion.
 type AppWithLastVersion struct {
@@ -676,6 +684,7 @@ type Flow struct {
 	Starred              *bool                   `json:"starred,omitempty"`
 	Summary              string                  `json:"summary"`
 	Tag                  *string                 `json:"tag,omitempty"`
+	Timeout              *float32                `json:"timeout,omitempty"`
 	Value                FlowValue               `json:"value"`
 	WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 	WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -694,15 +703,17 @@ type FlowMetadata struct {
 	Priority             *int                   `json:"priority,omitempty"`
 	Starred              *bool                  `json:"starred,omitempty"`
 	Tag                  *string                `json:"tag,omitempty"`
+	Timeout              *float32               `json:"timeout,omitempty"`
 	WorkspaceId          *string                `json:"workspace_id,omitempty"`
 	WsErrorHandlerMuted  *bool                  `json:"ws_error_handler_muted,omitempty"`
 }
 
 // FlowModule defines model for FlowModule.
 type FlowModule struct {
-	CacheTtl *float32 `json:"cache_ttl,omitempty"`
-	Id       string   `json:"id"`
-	Mock     *struct {
+	CacheTtl       *float32 `json:"cache_ttl,omitempty"`
+	DeleteAfterUse *bool    `json:"delete_after_use,omitempty"`
+	Id             string   `json:"id"`
+	Mock           *struct {
 		Enabled     *bool        `json:"enabled,omitempty"`
 		ReturnValue *interface{} `json:"return_value,omitempty"`
 	} `json:"mock,omitempty"`
@@ -1048,6 +1059,8 @@ type NewScript struct {
 	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
 	Content                string                  `json:"content"`
 	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse         *bool                   `json:"delete_after_use,omitempty"`
+	DeploymentMessage      *string                 `json:"deployment_message,omitempty"`
 	Description            string                  `json:"description"`
 	DraftOnly              *bool                   `json:"draft_only,omitempty"`
 	Envs                   *[]string               `json:"envs,omitempty"`
@@ -1058,9 +1071,11 @@ type NewScript struct {
 	ParentHash             *string                 `json:"parent_hash,omitempty"`
 	Path                   string                  `json:"path"`
 	Priority               *int                    `json:"priority,omitempty"`
+	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
 	Schema                 *map[string]interface{} `json:"schema,omitempty"`
 	Summary                string                  `json:"summary"`
 	Tag                    *string                 `json:"tag,omitempty"`
+	Timeout                *int                    `json:"timeout,omitempty"`
 	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
@@ -1077,6 +1092,8 @@ type NewScriptWithDraft struct {
 	ConcurrentLimit        *int                       `json:"concurrent_limit,omitempty"`
 	Content                string                     `json:"content"`
 	DedicatedWorker        *bool                      `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse         *bool                      `json:"delete_after_use,omitempty"`
+	DeploymentMessage      *string                    `json:"deployment_message,omitempty"`
 	Description            string                     `json:"description"`
 	Draft                  *NewScript                 `json:"draft,omitempty"`
 	DraftOnly              *bool                      `json:"draft_only,omitempty"`
@@ -1089,9 +1106,11 @@ type NewScriptWithDraft struct {
 	ParentHash             *string                    `json:"parent_hash,omitempty"`
 	Path                   string                     `json:"path"`
 	Priority               *int                       `json:"priority,omitempty"`
+	RestartUnlessCancelled *bool                      `json:"restart_unless_cancelled,omitempty"`
 	Schema                 *map[string]interface{}    `json:"schema,omitempty"`
 	Summary                string                     `json:"summary"`
 	Tag                    *string                    `json:"tag,omitempty"`
+	Timeout                *int                       `json:"timeout,omitempty"`
 	WsErrorHandlerMuted    *bool                      `json:"ws_error_handler_muted,omitempty"`
 }
 
@@ -1139,6 +1158,7 @@ type OpenFlowWPath struct {
 	Schema              *map[string]interface{} `json:"schema,omitempty"`
 	Summary             string                  `json:"summary"`
 	Tag                 *string                 `json:"tag,omitempty"`
+	Timeout             *float32                `json:"timeout,omitempty"`
 	Value               FlowValue               `json:"value"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
@@ -1409,6 +1429,7 @@ type Script struct {
 	CreatedAt              time.Time         `json:"created_at"`
 	CreatedBy              string            `json:"created_by"`
 	DedicatedWorker        *bool             `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse         *bool             `json:"delete_after_use,omitempty"`
 	Deleted                bool              `json:"deleted"`
 	Description            string            `json:"description"`
 	DraftOnly              *bool             `json:"draft_only,omitempty"`
@@ -1423,15 +1444,17 @@ type Script struct {
 	LockErrorLogs          *string           `json:"lock_error_logs,omitempty"`
 
 	// The first element is the direct parent of the script, the second is the parent of the first, etc
-	ParentHashes        *[]string               `json:"parent_hashes,omitempty"`
-	Path                string                  `json:"path"`
-	Priority            *int                    `json:"priority,omitempty"`
-	Schema              *map[string]interface{} `json:"schema,omitempty"`
-	Starred             bool                    `json:"starred"`
-	Summary             string                  `json:"summary"`
-	Tag                 *string                 `json:"tag,omitempty"`
-	WorkspaceId         *string                 `json:"workspace_id,omitempty"`
-	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+	ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
+	Path                   string                  `json:"path"`
+	Priority               *int                    `json:"priority,omitempty"`
+	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
+	Schema                 *map[string]interface{} `json:"schema,omitempty"`
+	Starred                bool                    `json:"starred"`
+	Summary                string                  `json:"summary"`
+	Tag                    *string                 `json:"tag,omitempty"`
+	Timeout                *int                    `json:"timeout,omitempty"`
+	WorkspaceId            *string                 `json:"workspace_id,omitempty"`
+	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // Script_ExtraPerms defines model for Script.ExtraPerms.
@@ -1448,6 +1471,12 @@ type ScriptLanguage string
 // ScriptArgs defines model for ScriptArgs.
 type ScriptArgs struct {
 	AdditionalProperties map[string]interface{} `json:"-"`
+}
+
+// ScriptHistory defines model for ScriptHistory.
+type ScriptHistory struct {
+	DeploymentMsg *string `json:"deployment_msg,omitempty"`
+	ScriptHash    string  `json:"script_hash"`
 }
 
 // StaticTransform defines model for StaticTransform.
@@ -1559,6 +1588,12 @@ type Workspace struct {
 	Owner  string  `json:"owner"`
 }
 
+// WorkspaceGitSync defines model for WorkspaceGitSync.
+type WorkspaceGitSync struct {
+	GitRepoResourcePath string `json:"git_repo_resource_path"`
+	ScriptPath          string `json:"script_path"`
+}
+
 // WorkspaceInvite defines model for WorkspaceInvite.
 type WorkspaceInvite struct {
 	Email       string `json:"email"`
@@ -1635,6 +1670,9 @@ type Path = string
 
 // PathId defines model for PathId.
 type PathId = int
+
+// PathVersion defines model for PathVersion.
+type PathVersion = int
 
 // Payload defines model for Payload.
 type Payload = string
@@ -1862,11 +1900,17 @@ type RemoveGranularAclsParamsKind string
 
 // CreateAppJSONBody defines parameters for CreateApp.
 type CreateAppJSONBody struct {
-	DraftOnly *bool       `json:"draft_only,omitempty"`
-	Path      string      `json:"path"`
-	Policy    Policy      `json:"policy"`
-	Summary   string      `json:"summary"`
-	Value     interface{} `json:"value"`
+	DeploymentMessage *string     `json:"deployment_message,omitempty"`
+	DraftOnly         *bool       `json:"draft_only,omitempty"`
+	Path              string      `json:"path"`
+	Policy            Policy      `json:"policy"`
+	Summary           string      `json:"summary"`
+	Value             interface{} `json:"value"`
+}
+
+// UpdateAppHistoryJSONBody defines parameters for UpdateAppHistory.
+type UpdateAppHistoryJSONBody struct {
+	DeploymentMsg *string `json:"deployment_msg,omitempty"`
 }
 
 // ListAppsParams defines parameters for ListApps.
@@ -1896,10 +1940,11 @@ type ListAppsParams struct {
 
 // UpdateAppJSONBody defines parameters for UpdateApp.
 type UpdateAppJSONBody struct {
-	Path    *string      `json:"path,omitempty"`
-	Policy  *Policy      `json:"policy,omitempty"`
-	Summary *string      `json:"summary,omitempty"`
-	Value   *interface{} `json:"value,omitempty"`
+	DeploymentMessage *string      `json:"deployment_message,omitempty"`
+	Path              *string      `json:"path,omitempty"`
+	Policy            *Policy      `json:"policy,omitempty"`
+	Summary           *string      `json:"summary,omitempty"`
+	Value             *interface{} `json:"value,omitempty"`
 }
 
 // ExecuteComponentJSONBody defines parameters for ExecuteComponent.
@@ -1994,6 +2039,7 @@ type ArchiveFlowByPathJSONBody struct {
 // CreateFlowJSONBody defines parameters for CreateFlow.
 type CreateFlowJSONBody struct {
 	DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
+	DeploymentMessage   *string                 `json:"deployment_message,omitempty"`
 	Description         *string                 `json:"description,omitempty"`
 	DraftOnly           *bool                   `json:"draft_only,omitempty"`
 	Path                string                  `json:"path"`
@@ -2001,6 +2047,7 @@ type CreateFlowJSONBody struct {
 	Schema              *map[string]interface{} `json:"schema,omitempty"`
 	Summary             string                  `json:"summary"`
 	Tag                 *string                 `json:"tag,omitempty"`
+	Timeout             *float32                `json:"timeout,omitempty"`
 	Value               FlowValue               `json:"value"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
@@ -2051,7 +2098,19 @@ type ToggleWorkspaceErrorHandlerForFlowJSONBody struct {
 }
 
 // UpdateFlowJSONBody defines parameters for UpdateFlow.
-type UpdateFlowJSONBody = OpenFlowWPath
+type UpdateFlowJSONBody struct {
+	DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
+	DeploymentMessage   *string                 `json:"deployment_message,omitempty"`
+	Description         *string                 `json:"description,omitempty"`
+	Path                string                  `json:"path"`
+	Priority            *int                    `json:"priority,omitempty"`
+	Schema              *map[string]interface{} `json:"schema,omitempty"`
+	Summary             string                  `json:"summary"`
+	Tag                 *string                 `json:"tag,omitempty"`
+	Timeout             *float32                `json:"timeout,omitempty"`
+	Value               FlowValue               `json:"value"`
+	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+}
 
 // AddOwnerToFolderJSONBody defines parameters for AddOwnerToFolder.
 type AddOwnerToFolderJSONBody struct {
@@ -2195,6 +2254,7 @@ type LoadFilePreviewParams struct {
 	FileSizeInBytes *int    `form:"file_size_in_bytes,omitempty" json:"file_size_in_bytes,omitempty"`
 	FileMimeType    *string `form:"file_mime_type,omitempty" json:"file_mime_type,omitempty"`
 	CsvSeparator    *string `form:"csv_separator,omitempty" json:"csv_separator,omitempty"`
+	CsvHasHeader    *bool   `form:"csv_has_header,omitempty" json:"csv_has_header,omitempty"`
 	ReadBytesFrom   *int    `form:"read_bytes_from,omitempty" json:"read_bytes_from,omitempty"`
 	ReadBytesLength *int    `form:"read_bytes_length,omitempty" json:"read_bytes_length,omitempty"`
 }
@@ -2202,6 +2262,16 @@ type LoadFilePreviewParams struct {
 // PolarsConnectionSettingsJSONBody defines parameters for PolarsConnectionSettings.
 type PolarsConnectionSettingsJSONBody struct {
 	S3Resource *S3Resource `json:"s3_resource,omitempty"`
+}
+
+// DuckdbConnectionSettingsV2JSONBody defines parameters for DuckdbConnectionSettingsV2.
+type DuckdbConnectionSettingsV2JSONBody struct {
+	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
+}
+
+// PolarsConnectionSettingsV2JSONBody defines parameters for PolarsConnectionSettingsV2.
+type PolarsConnectionSettingsV2JSONBody struct {
+	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
 }
 
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
@@ -2800,6 +2870,11 @@ type UpdateScheduleJSONBody = EditSchedule
 // CreateScriptJSONBody defines parameters for CreateScript.
 type CreateScriptJSONBody = NewScript
 
+// UpdateScriptHistoryJSONBody defines parameters for UpdateScriptHistory.
+type UpdateScriptHistoryJSONBody struct {
+	DeploymentMsg *string `json:"deployment_msg,omitempty"`
+}
+
 // ListScriptsParams defines parameters for ListScripts.
 type ListScriptsParams struct {
 	// which page to return (start at 1, default 1)
@@ -2933,6 +3008,11 @@ type EditErrorHandlerJSONBody struct {
 	ErrorHandlerMutedOnCancel *bool       `json:"error_handler_muted_on_cancel,omitempty"`
 }
 
+// EditWorkspaceGitSyncConfigJSONBody defines parameters for EditWorkspaceGitSyncConfig.
+type EditWorkspaceGitSyncConfigJSONBody struct {
+	GitSyncSettings *WorkspaceGitSync `json:"git_sync_settings,omitempty"`
+}
+
 // EditLargeFileStorageConfigJSONBody defines parameters for EditLargeFileStorageConfig.
 type EditLargeFileStorageConfigJSONBody struct {
 	LargeFileStorage *LargeFileStorage `json:"large_file_storage,omitempty"`
@@ -3051,6 +3131,9 @@ type RemoveGranularAclsJSONRequestBody RemoveGranularAclsJSONBody
 // CreateAppJSONRequestBody defines body for CreateApp for application/json ContentType.
 type CreateAppJSONRequestBody CreateAppJSONBody
 
+// UpdateAppHistoryJSONRequestBody defines body for UpdateAppHistory for application/json ContentType.
+type UpdateAppHistoryJSONRequestBody UpdateAppHistoryJSONBody
+
 // UpdateAppJSONRequestBody defines body for UpdateApp for application/json ContentType.
 type UpdateAppJSONRequestBody UpdateAppJSONBody
 
@@ -3076,7 +3159,7 @@ type CreateFlowJSONRequestBody CreateFlowJSONBody
 type ToggleWorkspaceErrorHandlerForFlowJSONRequestBody ToggleWorkspaceErrorHandlerForFlowJSONBody
 
 // UpdateFlowJSONRequestBody defines body for UpdateFlow for application/json ContentType.
-type UpdateFlowJSONRequestBody = UpdateFlowJSONBody
+type UpdateFlowJSONRequestBody UpdateFlowJSONBody
 
 // AddOwnerToFolderJSONRequestBody defines body for AddOwnerToFolder for application/json ContentType.
 type AddOwnerToFolderJSONRequestBody AddOwnerToFolderJSONBody
@@ -3113,6 +3196,12 @@ type DuckdbConnectionSettingsJSONRequestBody DuckdbConnectionSettingsJSONBody
 
 // PolarsConnectionSettingsJSONRequestBody defines body for PolarsConnectionSettings for application/json ContentType.
 type PolarsConnectionSettingsJSONRequestBody PolarsConnectionSettingsJSONBody
+
+// DuckdbConnectionSettingsV2JSONRequestBody defines body for DuckdbConnectionSettingsV2 for application/json ContentType.
+type DuckdbConnectionSettingsV2JSONRequestBody DuckdbConnectionSettingsV2JSONBody
+
+// PolarsConnectionSettingsV2JSONRequestBody defines body for PolarsConnectionSettingsV2 for application/json ContentType.
+type PolarsConnectionSettingsV2JSONRequestBody PolarsConnectionSettingsV2JSONBody
 
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
@@ -3204,6 +3293,9 @@ type UpdateScheduleJSONRequestBody = UpdateScheduleJSONBody
 // CreateScriptJSONRequestBody defines body for CreateScript for application/json ContentType.
 type CreateScriptJSONRequestBody = CreateScriptJSONBody
 
+// UpdateScriptHistoryJSONRequestBody defines body for UpdateScriptHistory for application/json ContentType.
+type UpdateScriptHistoryJSONRequestBody UpdateScriptHistoryJSONBody
+
 // ToggleWorkspaceErrorHandlerForScriptJSONRequestBody defines body for ToggleWorkspaceErrorHandlerForScript for application/json ContentType.
 type ToggleWorkspaceErrorHandlerForScriptJSONRequestBody ToggleWorkspaceErrorHandlerForScriptJSONBody
 
@@ -3239,6 +3331,9 @@ type EditDeployToJSONRequestBody EditDeployToJSONBody
 
 // EditErrorHandlerJSONRequestBody defines body for EditErrorHandler for application/json ContentType.
 type EditErrorHandlerJSONRequestBody EditErrorHandlerJSONBody
+
+// EditWorkspaceGitSyncConfigJSONRequestBody defines body for EditWorkspaceGitSyncConfig for application/json ContentType.
+type EditWorkspaceGitSyncConfigJSONRequestBody EditWorkspaceGitSyncConfigJSONBody
 
 // EditLargeFileStorageConfigJSONRequestBody defines body for EditLargeFileStorageConfig for application/json ContentType.
 type EditLargeFileStorageConfigJSONRequestBody EditLargeFileStorageConfigJSONBody
@@ -4574,6 +4669,14 @@ type ClientInterface interface {
 	// GetRawAppData request
 	GetRawAppData(ctx context.Context, workspace WorkspaceId, version VersionId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetAppHistoryByPath request
+	GetAppHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateAppHistory request with any body
+	UpdateAppHistoryWithBody(ctx context.Context, workspace WorkspaceId, id PathId, version PathVersion, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateAppHistory(ctx context.Context, workspace WorkspaceId, id PathId, version PathVersion, body UpdateAppHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListApps request
 	ListApps(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4786,6 +4889,16 @@ type ClientInterface interface {
 
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DuckdbConnectionSettingsV2 request with any body
+	DuckdbConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DuckdbConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PolarsConnectionSettingsV2 request with any body
+	PolarsConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PolarsConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCompletedCount request
 	GetCompletedCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5093,6 +5206,14 @@ type ClientInterface interface {
 	// GetScriptByPath request
 	GetScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetScriptHistoryByPath request
+	GetScriptHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateScriptHistory request with any body
+	UpdateScriptHistoryWithBody(ctx context.Context, workspace WorkspaceId, hash ScriptHash, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateScriptHistory(ctx context.Context, workspace WorkspaceId, hash ScriptHash, path ScriptPath, body UpdateScriptHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListScripts request
 	ListScripts(ctx context.Context, workspace WorkspaceId, params *ListScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5206,6 +5327,11 @@ type ClientInterface interface {
 	EditErrorHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditErrorHandler(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EditWorkspaceGitSyncConfig request with any body
+	EditWorkspaceGitSyncConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditWorkspaceGitSyncConfig(ctx context.Context, workspace WorkspaceId, body EditWorkspaceGitSyncConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditLargeFileStorageConfig request with any body
 	EditLargeFileStorageConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6292,6 +6418,42 @@ func (c *Client) GetRawAppData(ctx context.Context, workspace WorkspaceId, versi
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetAppHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppHistoryByPathRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateAppHistoryWithBody(ctx context.Context, workspace WorkspaceId, id PathId, version PathVersion, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateAppHistoryRequestWithBody(c.Server, workspace, id, version, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateAppHistory(ctx context.Context, workspace WorkspaceId, id PathId, version PathVersion, body UpdateAppHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateAppHistoryRequest(c.Server, workspace, id, version, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListApps(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAppsRequest(c.Server, workspace, params)
 	if err != nil {
@@ -7218,6 +7380,54 @@ func (c *Client) PolarsConnectionSettings(ctx context.Context, workspace Workspa
 
 func (c *Client) DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDatasetStorageTestConnectionRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DuckdbConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDuckdbConnectionSettingsV2RequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DuckdbConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDuckdbConnectionSettingsV2Request(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PolarsConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPolarsConnectionSettingsV2RequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PolarsConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPolarsConnectionSettingsV2Request(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -8572,6 +8782,42 @@ func (c *Client) GetScriptByPath(ctx context.Context, workspace WorkspaceId, pat
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetScriptHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetScriptHistoryByPathRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateScriptHistoryWithBody(ctx context.Context, workspace WorkspaceId, hash ScriptHash, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateScriptHistoryRequestWithBody(c.Server, workspace, hash, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateScriptHistory(ctx context.Context, workspace WorkspaceId, hash ScriptHash, path ScriptPath, body UpdateScriptHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateScriptHistoryRequest(c.Server, workspace, hash, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListScripts(ctx context.Context, workspace WorkspaceId, params *ListScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListScriptsRequest(c.Server, workspace, params)
 	if err != nil {
@@ -9066,6 +9312,30 @@ func (c *Client) EditErrorHandlerWithBody(ctx context.Context, workspace Workspa
 
 func (c *Client) EditErrorHandler(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditErrorHandlerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditWorkspaceGitSyncConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditWorkspaceGitSyncConfigRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditWorkspaceGitSyncConfig(ctx context.Context, workspace WorkspaceId, body EditWorkspaceGitSyncConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditWorkspaceGitSyncConfigRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -11917,6 +12187,108 @@ func NewGetRawAppDataRequest(server string, workspace WorkspaceId, version Versi
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGetAppHistoryByPathRequest generates requests for GetAppHistoryByPath
+func NewGetAppHistoryByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/history/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateAppHistoryRequest calls the generic UpdateAppHistory builder with application/json body
+func NewUpdateAppHistoryRequest(server string, workspace WorkspaceId, id PathId, version PathVersion, body UpdateAppHistoryJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateAppHistoryRequestWithBody(server, workspace, id, version, "application/json", bodyReader)
+}
+
+// NewUpdateAppHistoryRequestWithBody generates requests for UpdateAppHistory with any type of body
+func NewUpdateAppHistoryRequestWithBody(server string, workspace WorkspaceId, id PathId, version PathVersion, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/history_update/a/%s/v/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -15102,6 +15474,22 @@ func NewLoadFilePreviewRequest(server string, workspace WorkspaceId, params *Loa
 
 	}
 
+	if params.CsvHasHeader != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_has_header", runtime.ParamLocationQuery, *params.CsvHasHeader); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.ReadBytesFrom != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "read_bytes_from", runtime.ParamLocationQuery, *params.ReadBytesFrom); err != nil {
@@ -15221,6 +15609,100 @@ func NewDatasetStorageTestConnectionRequest(server string, workspace WorkspaceId
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewDuckdbConnectionSettingsV2Request calls the generic DuckdbConnectionSettingsV2 builder with application/json body
+func NewDuckdbConnectionSettingsV2Request(server string, workspace WorkspaceId, body DuckdbConnectionSettingsV2JSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDuckdbConnectionSettingsV2RequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewDuckdbConnectionSettingsV2RequestWithBody generates requests for DuckdbConnectionSettingsV2 with any type of body
+func NewDuckdbConnectionSettingsV2RequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/v2/duckdb_connection_settings", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPolarsConnectionSettingsV2Request calls the generic PolarsConnectionSettingsV2 builder with application/json body
+func NewPolarsConnectionSettingsV2Request(server string, workspace WorkspaceId, body PolarsConnectionSettingsV2JSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPolarsConnectionSettingsV2RequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewPolarsConnectionSettingsV2RequestWithBody generates requests for PolarsConnectionSettingsV2 with any type of body
+func NewPolarsConnectionSettingsV2RequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/v2/polars_connection_settings", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -21078,6 +21560,108 @@ func NewGetScriptByPathRequest(server string, workspace WorkspaceId, path Script
 	return req, nil
 }
 
+// NewGetScriptHistoryByPathRequest generates requests for GetScriptHistoryByPath
+func NewGetScriptHistoryByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/history/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateScriptHistoryRequest calls the generic UpdateScriptHistory builder with application/json body
+func NewUpdateScriptHistoryRequest(server string, workspace WorkspaceId, hash ScriptHash, path ScriptPath, body UpdateScriptHistoryJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateScriptHistoryRequestWithBody(server, workspace, hash, path, "application/json", bodyReader)
+}
+
+// NewUpdateScriptHistoryRequestWithBody generates requests for UpdateScriptHistory with any type of body
+func NewUpdateScriptHistoryRequestWithBody(server string, workspace WorkspaceId, hash ScriptHash, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "hash", runtime.ParamLocationPath, hash)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/history_update/h/%s/p/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewListScriptsRequest generates requests for ListScripts
 func NewListScriptsRequest(server string, workspace WorkspaceId, params *ListScriptsParams) (*http.Request, error) {
 	var err error
@@ -22610,6 +23194,53 @@ func NewEditErrorHandlerRequestWithBody(server string, workspace WorkspaceId, co
 	return req, nil
 }
 
+// NewEditWorkspaceGitSyncConfigRequest calls the generic EditWorkspaceGitSyncConfig builder with application/json body
+func NewEditWorkspaceGitSyncConfigRequest(server string, workspace WorkspaceId, body EditWorkspaceGitSyncConfigJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditWorkspaceGitSyncConfigRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditWorkspaceGitSyncConfigRequestWithBody generates requests for EditWorkspaceGitSyncConfig with any type of body
+func NewEditWorkspaceGitSyncConfigRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_git_sync_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditLargeFileStorageConfigRequest calls the generic EditLargeFileStorageConfig builder with application/json body
 func NewEditLargeFileStorageConfigRequest(server string, workspace WorkspaceId, body EditLargeFileStorageConfigJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -23812,6 +24443,14 @@ type ClientWithResponsesInterface interface {
 	// GetRawAppData request
 	GetRawAppDataWithResponse(ctx context.Context, workspace WorkspaceId, version VersionId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetRawAppDataResponse, error)
 
+	// GetAppHistoryByPath request
+	GetAppHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppHistoryByPathResponse, error)
+
+	// UpdateAppHistory request with any body
+	UpdateAppHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, version PathVersion, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppHistoryResponse, error)
+
+	UpdateAppHistoryWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, version PathVersion, body UpdateAppHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAppHistoryResponse, error)
+
 	// ListApps request
 	ListAppsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*ListAppsResponse, error)
 
@@ -24024,6 +24663,16 @@ type ClientWithResponsesInterface interface {
 
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error)
+
+	// DuckdbConnectionSettingsV2 request with any body
+	DuckdbConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsV2Response, error)
+
+	DuckdbConnectionSettingsV2WithResponse(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsV2Response, error)
+
+	// PolarsConnectionSettingsV2 request with any body
+	PolarsConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsV2Response, error)
+
+	PolarsConnectionSettingsV2WithResponse(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsV2Response, error)
 
 	// GetCompletedCount request
 	GetCompletedCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCompletedCountResponse, error)
@@ -24331,6 +24980,14 @@ type ClientWithResponsesInterface interface {
 	// GetScriptByPath request
 	GetScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptByPathResponse, error)
 
+	// GetScriptHistoryByPath request
+	GetScriptHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptHistoryByPathResponse, error)
+
+	// UpdateScriptHistory request with any body
+	UpdateScriptHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateScriptHistoryResponse, error)
+
+	UpdateScriptHistoryWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, path ScriptPath, body UpdateScriptHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateScriptHistoryResponse, error)
+
 	// ListScripts request
 	ListScriptsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListScriptsParams, reqEditors ...RequestEditorFn) (*ListScriptsResponse, error)
 
@@ -24444,6 +25101,11 @@ type ClientWithResponsesInterface interface {
 	EditErrorHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error)
 
 	EditErrorHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error)
+
+	// EditWorkspaceGitSyncConfig request with any body
+	EditWorkspaceGitSyncConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceGitSyncConfigResponse, error)
+
+	EditWorkspaceGitSyncConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditWorkspaceGitSyncConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWorkspaceGitSyncConfigResponse, error)
 
 	// EditLargeFileStorageConfig request with any body
 	EditLargeFileStorageConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditLargeFileStorageConfigResponse, error)
@@ -25978,6 +26640,49 @@ func (r GetRawAppDataResponse) StatusCode() int {
 	return 0
 }
 
+type GetAppHistoryByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]AppHistory
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAppHistoryByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAppHistoryByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateAppHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateAppHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateAppHistoryResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListAppsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -26454,6 +27159,7 @@ type GetFlowByPathWithDraftResponse struct {
 		Starred              *bool                   `json:"starred,omitempty"`
 		Summary              string                  `json:"summary"`
 		Tag                  *string                 `json:"tag,omitempty"`
+		Timeout              *float32                `json:"timeout,omitempty"`
 		Value                FlowValue               `json:"value"`
 		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 		WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -26539,6 +27245,7 @@ type ListFlowsResponse struct {
 		Starred              *bool                   `json:"starred,omitempty"`
 		Summary              string                  `json:"summary"`
 		Tag                  *string                 `json:"tag,omitempty"`
+		Timeout              *float32                `json:"timeout,omitempty"`
 		Value                FlowValue               `json:"value"`
 		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 		WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -27265,6 +27972,68 @@ func (r DatasetStorageTestConnectionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DatasetStorageTestConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DuckdbConnectionSettingsV2Response struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		ConnectionSettingsStr string `json:"connection_settings_str"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r DuckdbConnectionSettingsV2Response) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DuckdbConnectionSettingsV2Response) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PolarsConnectionSettingsV2Response struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		PolarsCloudOptions *struct {
+			AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
+			AwsAllowHttp       bool    `json:"aws_allow_http"`
+			AwsEndpointUrl     string  `json:"aws_endpoint_url"`
+			AwsRegion          string  `json:"aws_region"`
+			AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
+		} `json:"polars_cloud_options,omitempty"`
+		S3fsArgs struct {
+			CacheRegions bool               `json:"cache_regions"`
+			ClientKwargs PolarsClientKwargs `json:"client_kwargs"`
+			EndpointUrl  string             `json:"endpoint_url"`
+			Key          *string            `json:"key,omitempty"`
+			Secret       *string            `json:"secret,omitempty"`
+			UseSsl       bool               `json:"use_ssl"`
+		} `json:"s3fs_args"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r PolarsConnectionSettingsV2Response) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PolarsConnectionSettingsV2Response) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -29070,6 +29839,49 @@ func (r GetScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
+type GetScriptHistoryByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]ScriptHistory
+}
+
+// Status returns HTTPResponse.Status
+func (r GetScriptHistoryByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetScriptHistoryByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateScriptHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateScriptHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateScriptHistoryResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListScriptsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -29715,6 +30527,28 @@ func (r EditErrorHandlerResponse) StatusCode() int {
 	return 0
 }
 
+type EditWorkspaceGitSyncConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r EditWorkspaceGitSyncConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditWorkspaceGitSyncConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditLargeFileStorageConfigResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -29858,6 +30692,7 @@ type GetSettingsResponse struct {
 		ErrorHandler              *string           `json:"error_handler,omitempty"`
 		ErrorHandlerExtraArgs     *ScriptArgs       `json:"error_handler_extra_args,omitempty"`
 		ErrorHandlerMutedOnCancel *bool             `json:"error_handler_muted_on_cancel,omitempty"`
+		GitSync                   *WorkspaceGitSync `json:"git_sync,omitempty"`
 		LargeFileStorage          *LargeFileStorage `json:"large_file_storage,omitempty"`
 		OpenaiResourcePath        *string           `json:"openai_resource_path,omitempty"`
 		Plan                      *string           `json:"plan,omitempty"`
@@ -30983,6 +31818,32 @@ func (c *ClientWithResponses) GetRawAppDataWithResponse(ctx context.Context, wor
 	return ParseGetRawAppDataResponse(rsp)
 }
 
+// GetAppHistoryByPathWithResponse request returning *GetAppHistoryByPathResponse
+func (c *ClientWithResponses) GetAppHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppHistoryByPathResponse, error) {
+	rsp, err := c.GetAppHistoryByPath(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAppHistoryByPathResponse(rsp)
+}
+
+// UpdateAppHistoryWithBodyWithResponse request with arbitrary body returning *UpdateAppHistoryResponse
+func (c *ClientWithResponses) UpdateAppHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, version PathVersion, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppHistoryResponse, error) {
+	rsp, err := c.UpdateAppHistoryWithBody(ctx, workspace, id, version, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAppHistoryResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateAppHistoryWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, version PathVersion, body UpdateAppHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAppHistoryResponse, error) {
+	rsp, err := c.UpdateAppHistory(ctx, workspace, id, version, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAppHistoryResponse(rsp)
+}
+
 // ListAppsWithResponse request returning *ListAppsResponse
 func (c *ClientWithResponses) ListAppsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*ListAppsResponse, error) {
 	rsp, err := c.ListApps(ctx, workspace, params, reqEditors...)
@@ -31662,6 +32523,40 @@ func (c *ClientWithResponses) DatasetStorageTestConnectionWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseDatasetStorageTestConnectionResponse(rsp)
+}
+
+// DuckdbConnectionSettingsV2WithBodyWithResponse request with arbitrary body returning *DuckdbConnectionSettingsV2Response
+func (c *ClientWithResponses) DuckdbConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsV2Response, error) {
+	rsp, err := c.DuckdbConnectionSettingsV2WithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDuckdbConnectionSettingsV2Response(rsp)
+}
+
+func (c *ClientWithResponses) DuckdbConnectionSettingsV2WithResponse(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsV2Response, error) {
+	rsp, err := c.DuckdbConnectionSettingsV2(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDuckdbConnectionSettingsV2Response(rsp)
+}
+
+// PolarsConnectionSettingsV2WithBodyWithResponse request with arbitrary body returning *PolarsConnectionSettingsV2Response
+func (c *ClientWithResponses) PolarsConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsV2Response, error) {
+	rsp, err := c.PolarsConnectionSettingsV2WithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePolarsConnectionSettingsV2Response(rsp)
+}
+
+func (c *ClientWithResponses) PolarsConnectionSettingsV2WithResponse(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsV2Response, error) {
+	rsp, err := c.PolarsConnectionSettingsV2(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePolarsConnectionSettingsV2Response(rsp)
 }
 
 // GetCompletedCountWithResponse request returning *GetCompletedCountResponse
@@ -32642,6 +33537,32 @@ func (c *ClientWithResponses) GetScriptByPathWithResponse(ctx context.Context, w
 	return ParseGetScriptByPathResponse(rsp)
 }
 
+// GetScriptHistoryByPathWithResponse request returning *GetScriptHistoryByPathResponse
+func (c *ClientWithResponses) GetScriptHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptHistoryByPathResponse, error) {
+	rsp, err := c.GetScriptHistoryByPath(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetScriptHistoryByPathResponse(rsp)
+}
+
+// UpdateScriptHistoryWithBodyWithResponse request with arbitrary body returning *UpdateScriptHistoryResponse
+func (c *ClientWithResponses) UpdateScriptHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateScriptHistoryResponse, error) {
+	rsp, err := c.UpdateScriptHistoryWithBody(ctx, workspace, hash, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateScriptHistoryResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateScriptHistoryWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, path ScriptPath, body UpdateScriptHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateScriptHistoryResponse, error) {
+	rsp, err := c.UpdateScriptHistory(ctx, workspace, hash, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateScriptHistoryResponse(rsp)
+}
+
 // ListScriptsWithResponse request returning *ListScriptsResponse
 func (c *ClientWithResponses) ListScriptsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListScriptsParams, reqEditors ...RequestEditorFn) (*ListScriptsResponse, error) {
 	rsp, err := c.ListScripts(ctx, workspace, params, reqEditors...)
@@ -33006,6 +33927,23 @@ func (c *ClientWithResponses) EditErrorHandlerWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseEditErrorHandlerResponse(rsp)
+}
+
+// EditWorkspaceGitSyncConfigWithBodyWithResponse request with arbitrary body returning *EditWorkspaceGitSyncConfigResponse
+func (c *ClientWithResponses) EditWorkspaceGitSyncConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceGitSyncConfigResponse, error) {
+	rsp, err := c.EditWorkspaceGitSyncConfigWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditWorkspaceGitSyncConfigResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditWorkspaceGitSyncConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditWorkspaceGitSyncConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWorkspaceGitSyncConfigResponse, error) {
+	rsp, err := c.EditWorkspaceGitSyncConfig(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditWorkspaceGitSyncConfigResponse(rsp)
 }
 
 // EditLargeFileStorageConfigWithBodyWithResponse request with arbitrary body returning *EditLargeFileStorageConfigResponse
@@ -34682,6 +35620,48 @@ func ParseGetRawAppDataResponse(rsp *http.Response) (*GetRawAppDataResponse, err
 	return response, nil
 }
 
+// ParseGetAppHistoryByPathResponse parses an HTTP response from a GetAppHistoryByPathWithResponse call
+func ParseGetAppHistoryByPathResponse(rsp *http.Response) (*GetAppHistoryByPathResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAppHistoryByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []AppHistory
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateAppHistoryResponse parses an HTTP response from a UpdateAppHistoryWithResponse call
+func ParseUpdateAppHistoryResponse(rsp *http.Response) (*UpdateAppHistoryResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateAppHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseListAppsResponse parses an HTTP response from a ListAppsWithResponse call
 func ParseListAppsResponse(rsp *http.Response) (*ListAppsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -35146,6 +36126,7 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			Starred              *bool                   `json:"starred,omitempty"`
 			Summary              string                  `json:"summary"`
 			Tag                  *string                 `json:"tag,omitempty"`
+			Timeout              *float32                `json:"timeout,omitempty"`
 			Value                FlowValue               `json:"value"`
 			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 			WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -35243,6 +36224,7 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			Starred              *bool                   `json:"starred,omitempty"`
 			Summary              string                  `json:"summary"`
 			Tag                  *string                 `json:"tag,omitempty"`
+			Timeout              *float32                `json:"timeout,omitempty"`
 			Value                FlowValue               `json:"value"`
 			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 			WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -35941,6 +36923,76 @@ func ParseDatasetStorageTestConnectionResponse(rsp *http.Response) (*DatasetStor
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDuckdbConnectionSettingsV2Response parses an HTTP response from a DuckdbConnectionSettingsV2WithResponse call
+func ParseDuckdbConnectionSettingsV2Response(rsp *http.Response) (*DuckdbConnectionSettingsV2Response, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DuckdbConnectionSettingsV2Response{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			ConnectionSettingsStr string `json:"connection_settings_str"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePolarsConnectionSettingsV2Response parses an HTTP response from a PolarsConnectionSettingsV2WithResponse call
+func ParsePolarsConnectionSettingsV2Response(rsp *http.Response) (*PolarsConnectionSettingsV2Response, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PolarsConnectionSettingsV2Response{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			PolarsCloudOptions *struct {
+				AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
+				AwsAllowHttp       bool    `json:"aws_allow_http"`
+				AwsEndpointUrl     string  `json:"aws_endpoint_url"`
+				AwsRegion          string  `json:"aws_region"`
+				AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
+			} `json:"polars_cloud_options,omitempty"`
+			S3fsArgs struct {
+				CacheRegions bool               `json:"cache_regions"`
+				ClientKwargs PolarsClientKwargs `json:"client_kwargs"`
+				EndpointUrl  string             `json:"endpoint_url"`
+				Key          *string            `json:"key,omitempty"`
+				Secret       *string            `json:"secret,omitempty"`
+				UseSsl       bool               `json:"use_ssl"`
+			} `json:"s3fs_args"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -37745,6 +38797,48 @@ func ParseGetScriptByPathResponse(rsp *http.Response) (*GetScriptByPathResponse,
 	return response, nil
 }
 
+// ParseGetScriptHistoryByPathResponse parses an HTTP response from a GetScriptHistoryByPathWithResponse call
+func ParseGetScriptHistoryByPathResponse(rsp *http.Response) (*GetScriptHistoryByPathResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetScriptHistoryByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ScriptHistory
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateScriptHistoryResponse parses an HTTP response from a UpdateScriptHistoryWithResponse call
+func ParseUpdateScriptHistoryResponse(rsp *http.Response) (*UpdateScriptHistoryResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateScriptHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseListScriptsResponse parses an HTTP response from a ListScriptsWithResponse call
 func ParseListScriptsResponse(rsp *http.Response) (*ListScriptsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -38348,6 +39442,32 @@ func ParseEditErrorHandlerResponse(rsp *http.Response) (*EditErrorHandlerRespons
 	return response, nil
 }
 
+// ParseEditWorkspaceGitSyncConfigResponse parses an HTTP response from a EditWorkspaceGitSyncConfigWithResponse call
+func ParseEditWorkspaceGitSyncConfigResponse(rsp *http.Response) (*EditWorkspaceGitSyncConfigResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditWorkspaceGitSyncConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseEditLargeFileStorageConfigResponse parses an HTTP response from a EditLargeFileStorageConfigWithResponse call
 func ParseEditLargeFileStorageConfigResponse(rsp *http.Response) (*EditLargeFileStorageConfigResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -38500,6 +39620,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			ErrorHandler              *string           `json:"error_handler,omitempty"`
 			ErrorHandlerExtraArgs     *ScriptArgs       `json:"error_handler_extra_args,omitempty"`
 			ErrorHandlerMutedOnCancel *bool             `json:"error_handler_muted_on_cancel,omitempty"`
+			GitSync                   *WorkspaceGitSync `json:"git_sync,omitempty"`
 			LargeFileStorage          *LargeFileStorage `json:"large_file_storage,omitempty"`
 			OpenaiResourcePath        *string           `json:"openai_resource_path,omitempty"`
 			Plan                      *string           `json:"plan,omitempty"`
