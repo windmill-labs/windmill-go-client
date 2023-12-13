@@ -1336,9 +1336,10 @@ type Retry struct {
 		Seconds  *int `json:"seconds,omitempty"`
 	} `json:"constant,omitempty"`
 	Exponential *struct {
-		Attempts   *int `json:"attempts,omitempty"`
-		Multiplier *int `json:"multiplier,omitempty"`
-		Seconds    *int `json:"seconds,omitempty"`
+		Attempts     *int `json:"attempts,omitempty"`
+		Multiplier   *int `json:"multiplier,omitempty"`
+		RandomFactor *int `json:"random_factor,omitempty"`
+		Seconds      *int `json:"seconds,omitempty"`
 	} `json:"exponential,omitempty"`
 }
 
