@@ -2960,6 +2960,9 @@ type GetVariableParams struct {
 	// ask to decrypt secret if this variable is secret
 	// (if not secret no effect, default: true)
 	DecryptSecret *bool `form:"decrypt_secret,omitempty" json:"decrypt_secret,omitempty"`
+
+	// ask to include the encrypted value if secret and decrypt secret is not true (default: false)
+	IncludeEncrypted *bool `form:"include_encrypted,omitempty" json:"include_encrypted,omitempty"`
 }
 
 // UpdateVariableJSONBody defines parameters for UpdateVariable.
@@ -22693,6 +22696,22 @@ func NewGetVariableRequest(server string, workspace WorkspaceId, path Path, para
 	if params.DecryptSecret != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "decrypt_secret", runtime.ParamLocationQuery, *params.DecryptSecret); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IncludeEncrypted != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_encrypted", runtime.ParamLocationQuery, *params.IncludeEncrypted); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
