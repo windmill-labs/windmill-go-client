@@ -1557,6 +1557,7 @@ type WindmillFileMetadata struct {
 type WindmillFilePreview struct {
 	Content     *string                        `json:"content,omitempty"`
 	ContentType WindmillFilePreviewContentType `json:"content_type"`
+	DownloadUrl *string                        `json:"download_url,omitempty"`
 	Msg         *string                        `json:"msg,omitempty"`
 }
 
@@ -1702,6 +1703,9 @@ type Running = bool
 // SchedulePath defines model for SchedulePath.
 type SchedulePath = string
 
+// ScheduledForBeforeNow defines model for ScheduledForBeforeNow.
+type ScheduledForBeforeNow = bool
+
 // ScriptExactHash defines model for ScriptExactHash.
 type ScriptExactHash = string
 
@@ -1740,6 +1744,9 @@ type Username = string
 
 // VersionId defines model for VersionId.
 type VersionId = float32
+
+// WorkerTag defines model for WorkerTag.
+type WorkerTag = string
 
 // WorkspaceId defines model for WorkspaceId.
 type WorkspaceId = string
@@ -2265,6 +2272,11 @@ type PolarsConnectionSettingsJSONBody struct {
 	S3Resource *S3Resource `json:"s3_resource,omitempty"`
 }
 
+// Boto3ConnectionSettingsV2JSONBody defines parameters for Boto3ConnectionSettingsV2.
+type Boto3ConnectionSettingsV2JSONBody struct {
+	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
+}
+
 // DuckdbConnectionSettingsV2JSONBody defines parameters for DuckdbConnectionSettingsV2.
 type DuckdbConnectionSettingsV2JSONBody struct {
 	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
@@ -2366,6 +2378,9 @@ type ListJobsParams struct {
 	// filter on running jobs
 	Running *Running `form:"running,omitempty" json:"running,omitempty"`
 
+	// filter on jobs scheduled_for before now (hence waitinf for a worker)
+	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
+
 	// filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp
 	CreatedOrStartedAfter *CreatedOrStartedAfter `form:"created_or_started_after,omitempty" json:"created_or_started_after,omitempty"`
 
@@ -2458,6 +2473,9 @@ type ListQueueParams struct {
 	// filter on successful jobs
 	Success *Success `form:"success,omitempty" json:"success,omitempty"`
 
+	// filter on jobs scheduled_for before now (hence waitinf for a worker)
+	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
+
 	// filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
 
@@ -2491,6 +2509,9 @@ type RestartFlowAtStepParams struct {
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
+	// Override the tag to use
+	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
+
 	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 
@@ -2521,6 +2542,9 @@ type RunFlowByPathParams struct {
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
+	// Override the tag to use
+	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
+
 	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 
@@ -2546,6 +2570,9 @@ type RunScriptByHashParams struct {
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
+	// Override the tag to use
+	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
+
 	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 
@@ -2570,6 +2597,9 @@ type RunScriptByPathParams struct {
 
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// Override the tag to use
+	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
@@ -2631,6 +2661,9 @@ type RunWaitResultScriptByPathGetParams struct {
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
+	// Override the tag to use
+	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
+
 	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 
@@ -2653,6 +2686,9 @@ type RunWaitResultScriptByPathJSONBody = ScriptArgs
 type RunWaitResultScriptByPathParams struct {
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// Override the tag to use
+	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
@@ -2696,6 +2732,11 @@ type GetJobUpdatesParams struct {
 
 // CancelQueuedJobJSONBody defines parameters for CancelQueuedJob.
 type CancelQueuedJobJSONBody struct {
+	Reason *string `json:"reason,omitempty"`
+}
+
+// CancelPersistentQueuedJobsJSONBody defines parameters for CancelPersistentQueuedJobs.
+type CancelPersistentQueuedJobsJSONBody struct {
 	Reason *string `json:"reason,omitempty"`
 }
 
@@ -3206,6 +3247,9 @@ type DuckdbConnectionSettingsJSONRequestBody DuckdbConnectionSettingsJSONBody
 // PolarsConnectionSettingsJSONRequestBody defines body for PolarsConnectionSettings for application/json ContentType.
 type PolarsConnectionSettingsJSONRequestBody PolarsConnectionSettingsJSONBody
 
+// Boto3ConnectionSettingsV2JSONRequestBody defines body for Boto3ConnectionSettingsV2 for application/json ContentType.
+type Boto3ConnectionSettingsV2JSONRequestBody Boto3ConnectionSettingsV2JSONBody
+
 // DuckdbConnectionSettingsV2JSONRequestBody defines body for DuckdbConnectionSettingsV2 for application/json ContentType.
 type DuckdbConnectionSettingsV2JSONRequestBody DuckdbConnectionSettingsV2JSONBody
 
@@ -3250,6 +3294,9 @@ type CancelSuspendedJobPostJSONRequestBody = CancelSuspendedJobPostJSONBody
 
 // CancelQueuedJobJSONRequestBody defines body for CancelQueuedJob for application/json ContentType.
 type CancelQueuedJobJSONRequestBody CancelQueuedJobJSONBody
+
+// CancelPersistentQueuedJobsJSONRequestBody defines body for CancelPersistentQueuedJobs for application/json ContentType.
+type CancelPersistentQueuedJobsJSONRequestBody CancelPersistentQueuedJobsJSONBody
 
 // ForceCancelQueuedJobJSONRequestBody defines body for ForceCancelQueuedJob for application/json ContentType.
 type ForceCancelQueuedJobJSONRequestBody ForceCancelQueuedJobJSONBody
@@ -4899,6 +4946,11 @@ type ClientInterface interface {
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// Boto3ConnectionSettingsV2 request with any body
+	Boto3ConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	Boto3ConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body Boto3ConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DuckdbConnectionSettingsV2 request with any body
 	DuckdbConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5030,6 +5082,11 @@ type ClientInterface interface {
 	CancelQueuedJobWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CancelQueuedJob(ctx context.Context, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CancelPersistentQueuedJobs request with any body
+	CancelPersistentQueuedJobsWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CancelPersistentQueuedJobs(ctx context.Context, workspace WorkspaceId, path Path, body CancelPersistentQueuedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ForceCancelQueuedJob request with any body
 	ForceCancelQueuedJobWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7402,6 +7459,30 @@ func (c *Client) DatasetStorageTestConnection(ctx context.Context, workspace Wor
 	return c.Client.Do(req)
 }
 
+func (c *Client) Boto3ConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBoto3ConnectionSettingsV2RequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) Boto3ConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body Boto3ConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBoto3ConnectionSettingsV2Request(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) DuckdbConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDuckdbConnectionSettingsV2RequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -7980,6 +8061,30 @@ func (c *Client) CancelQueuedJobWithBody(ctx context.Context, workspace Workspac
 
 func (c *Client) CancelQueuedJob(ctx context.Context, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCancelQueuedJobRequest(c.Server, workspace, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelPersistentQueuedJobsWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelPersistentQueuedJobsRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelPersistentQueuedJobs(ctx context.Context, workspace WorkspaceId, path Path, body CancelPersistentQueuedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelPersistentQueuedJobsRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15637,6 +15742,53 @@ func NewDatasetStorageTestConnectionRequest(server string, workspace WorkspaceId
 	return req, nil
 }
 
+// NewBoto3ConnectionSettingsV2Request calls the generic Boto3ConnectionSettingsV2 builder with application/json body
+func NewBoto3ConnectionSettingsV2Request(server string, workspace WorkspaceId, body Boto3ConnectionSettingsV2JSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewBoto3ConnectionSettingsV2RequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewBoto3ConnectionSettingsV2RequestWithBody generates requests for Boto3ConnectionSettingsV2 with any type of body
+func NewBoto3ConnectionSettingsV2RequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/v2/boto3_connection_settings", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewDuckdbConnectionSettingsV2Request calls the generic DuckdbConnectionSettingsV2 builder with application/json body
 func NewDuckdbConnectionSettingsV2Request(server string, workspace WorkspaceId, body DuckdbConnectionSettingsV2JSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -16410,6 +16562,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 	}
 
+	if params.ScheduledForBeforeNow != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for_before_now", runtime.ParamLocationQuery, *params.ScheduledForBeforeNow); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.CreatedOrStartedAfter != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after", runtime.ParamLocationQuery, *params.CreatedOrStartedAfter); err != nil {
@@ -17032,6 +17200,22 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 
 	}
 
+	if params.ScheduledForBeforeNow != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for_before_now", runtime.ParamLocationQuery, *params.ScheduledForBeforeNow); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.JobKinds != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_kinds", runtime.ParamLocationQuery, *params.JobKinds); err != nil {
@@ -17233,6 +17417,22 @@ func NewRestartFlowAtStepRequestWithBody(server string, workspace WorkspaceId, i
 	if params.ParentJob != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Tag != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -17516,6 +17716,22 @@ func NewRunFlowByPathRequestWithBody(server string, workspace WorkspaceId, path 
 
 	}
 
+	if params.Tag != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.JobId != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
@@ -17670,6 +17886,22 @@ func NewRunScriptByHashRequestWithBody(server string, workspace WorkspaceId, has
 
 	}
 
+	if params.Tag != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.JobId != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
@@ -17811,6 +18043,22 @@ func NewRunScriptByPathRequestWithBody(server string, workspace WorkspaceId, pat
 	if params.ParentJob != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Tag != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -18223,6 +18471,22 @@ func NewRunWaitResultScriptByPathGetRequest(server string, workspace WorkspaceId
 
 	}
 
+	if params.Tag != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.JobId != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
@@ -18346,6 +18610,22 @@ func NewRunWaitResultScriptByPathRequestWithBody(server string, workspace Worksp
 	if params.ParentJob != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Tag != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -18994,6 +19274,60 @@ func NewCancelQueuedJobRequestWithBody(server string, workspace WorkspaceId, id 
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/jobs_u/queue/cancel/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCancelPersistentQueuedJobsRequest calls the generic CancelPersistentQueuedJobs builder with application/json body
+func NewCancelPersistentQueuedJobsRequest(server string, workspace WorkspaceId, path Path, body CancelPersistentQueuedJobsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCancelPersistentQueuedJobsRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewCancelPersistentQueuedJobsRequestWithBody generates requests for CancelPersistentQueuedJobs with any type of body
+func NewCancelPersistentQueuedJobsRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/queue/cancel_persistent/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -24747,6 +25081,11 @@ type ClientWithResponsesInterface interface {
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error)
 
+	// Boto3ConnectionSettingsV2 request with any body
+	Boto3ConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*Boto3ConnectionSettingsV2Response, error)
+
+	Boto3ConnectionSettingsV2WithResponse(ctx context.Context, workspace WorkspaceId, body Boto3ConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*Boto3ConnectionSettingsV2Response, error)
+
 	// DuckdbConnectionSettingsV2 request with any body
 	DuckdbConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsV2Response, error)
 
@@ -24878,6 +25217,11 @@ type ClientWithResponsesInterface interface {
 	CancelQueuedJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelQueuedJobResponse, error)
 
 	CancelQueuedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body CancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelQueuedJobResponse, error)
+
+	// CancelPersistentQueuedJobs request with any body
+	CancelPersistentQueuedJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelPersistentQueuedJobsResponse, error)
+
+	CancelPersistentQueuedJobsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body CancelPersistentQueuedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelPersistentQueuedJobsResponse, error)
 
 	// ForceCancelQueuedJob request with any body
 	ForceCancelQueuedJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ForceCancelQueuedJobResponse, error)
@@ -28064,6 +28408,34 @@ func (r DatasetStorageTestConnectionResponse) StatusCode() int {
 	return 0
 }
 
+type Boto3ConnectionSettingsV2Response struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
+		AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
+		EndpointUrl        string  `json:"endpoint_url"`
+		RegionName         string  `json:"region_name"`
+		UseSsl             bool    `json:"use_ssl"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r Boto3ConnectionSettingsV2Response) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r Boto3ConnectionSettingsV2Response) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DuckdbConnectionSettingsV2Response struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -28092,13 +28464,13 @@ type PolarsConnectionSettingsV2Response struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		PolarsCloudOptions *struct {
+		PolarsCloudOptions struct {
 			AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
 			AwsAllowHttp       bool    `json:"aws_allow_http"`
 			AwsEndpointUrl     string  `json:"aws_endpoint_url"`
 			AwsRegion          string  `json:"aws_region"`
 			AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
-		} `json:"polars_cloud_options,omitempty"`
+		} `json:"polars_cloud_options"`
 		S3fsArgs struct {
 			CacheRegions bool               `json:"cache_regions"`
 			ClientKwargs PolarsClientKwargs `json:"client_kwargs"`
@@ -28835,6 +29207,27 @@ func (r CancelQueuedJobResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CancelQueuedJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CancelPersistentQueuedJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CancelPersistentQueuedJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CancelPersistentQueuedJobsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -32633,6 +33026,23 @@ func (c *ClientWithResponses) DatasetStorageTestConnectionWithResponse(ctx conte
 	return ParseDatasetStorageTestConnectionResponse(rsp)
 }
 
+// Boto3ConnectionSettingsV2WithBodyWithResponse request with arbitrary body returning *Boto3ConnectionSettingsV2Response
+func (c *ClientWithResponses) Boto3ConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*Boto3ConnectionSettingsV2Response, error) {
+	rsp, err := c.Boto3ConnectionSettingsV2WithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBoto3ConnectionSettingsV2Response(rsp)
+}
+
+func (c *ClientWithResponses) Boto3ConnectionSettingsV2WithResponse(ctx context.Context, workspace WorkspaceId, body Boto3ConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*Boto3ConnectionSettingsV2Response, error) {
+	rsp, err := c.Boto3ConnectionSettingsV2(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBoto3ConnectionSettingsV2Response(rsp)
+}
+
 // DuckdbConnectionSettingsV2WithBodyWithResponse request with arbitrary body returning *DuckdbConnectionSettingsV2Response
 func (c *ClientWithResponses) DuckdbConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsV2Response, error) {
 	rsp, err := c.DuckdbConnectionSettingsV2WithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -33057,6 +33467,23 @@ func (c *ClientWithResponses) CancelQueuedJobWithResponse(ctx context.Context, w
 		return nil, err
 	}
 	return ParseCancelQueuedJobResponse(rsp)
+}
+
+// CancelPersistentQueuedJobsWithBodyWithResponse request with arbitrary body returning *CancelPersistentQueuedJobsResponse
+func (c *ClientWithResponses) CancelPersistentQueuedJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelPersistentQueuedJobsResponse, error) {
+	rsp, err := c.CancelPersistentQueuedJobsWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelPersistentQueuedJobsResponse(rsp)
+}
+
+func (c *ClientWithResponses) CancelPersistentQueuedJobsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body CancelPersistentQueuedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelPersistentQueuedJobsResponse, error) {
+	rsp, err := c.CancelPersistentQueuedJobs(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelPersistentQueuedJobsResponse(rsp)
 }
 
 // ForceCancelQueuedJobWithBodyWithResponse request with arbitrary body returning *ForceCancelQueuedJobResponse
@@ -37050,6 +37477,38 @@ func ParseDatasetStorageTestConnectionResponse(rsp *http.Response) (*DatasetStor
 	return response, nil
 }
 
+// ParseBoto3ConnectionSettingsV2Response parses an HTTP response from a Boto3ConnectionSettingsV2WithResponse call
+func ParseBoto3ConnectionSettingsV2Response(rsp *http.Response) (*Boto3ConnectionSettingsV2Response, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &Boto3ConnectionSettingsV2Response{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
+			AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
+			EndpointUrl        string  `json:"endpoint_url"`
+			RegionName         string  `json:"region_name"`
+			UseSsl             bool    `json:"use_ssl"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseDuckdbConnectionSettingsV2Response parses an HTTP response from a DuckdbConnectionSettingsV2WithResponse call
 func ParseDuckdbConnectionSettingsV2Response(rsp *http.Response) (*DuckdbConnectionSettingsV2Response, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -37094,13 +37553,13 @@ func ParsePolarsConnectionSettingsV2Response(rsp *http.Response) (*PolarsConnect
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			PolarsCloudOptions *struct {
+			PolarsCloudOptions struct {
 				AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
 				AwsAllowHttp       bool    `json:"aws_allow_http"`
 				AwsEndpointUrl     string  `json:"aws_endpoint_url"`
 				AwsRegion          string  `json:"aws_region"`
 				AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
-			} `json:"polars_cloud_options,omitempty"`
+			} `json:"polars_cloud_options"`
 			S3fsArgs struct {
 				CacheRegions bool               `json:"cache_regions"`
 				ClientKwargs PolarsClientKwargs `json:"client_kwargs"`
@@ -37848,6 +38307,22 @@ func ParseCancelQueuedJobResponse(rsp *http.Response) (*CancelQueuedJobResponse,
 	}
 
 	response := &CancelQueuedJobResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCancelPersistentQueuedJobsResponse parses an HTTP response from a CancelPersistentQueuedJobsWithResponse call
+func ParseCancelPersistentQueuedJobsResponse(rsp *http.Response) (*CancelPersistentQueuedJobsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CancelPersistentQueuedJobsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
