@@ -2272,11 +2272,6 @@ type PolarsConnectionSettingsJSONBody struct {
 	S3Resource *S3Resource `json:"s3_resource,omitempty"`
 }
 
-// Boto3ConnectionSettingsV2JSONBody defines parameters for Boto3ConnectionSettingsV2.
-type Boto3ConnectionSettingsV2JSONBody struct {
-	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
-}
-
 // DuckdbConnectionSettingsV2JSONBody defines parameters for DuckdbConnectionSettingsV2.
 type DuckdbConnectionSettingsV2JSONBody struct {
 	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
@@ -2284,6 +2279,11 @@ type DuckdbConnectionSettingsV2JSONBody struct {
 
 // PolarsConnectionSettingsV2JSONBody defines parameters for PolarsConnectionSettingsV2.
 type PolarsConnectionSettingsV2JSONBody struct {
+	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
+}
+
+// S3ResourceInfoJSONBody defines parameters for S3ResourceInfo.
+type S3ResourceInfoJSONBody struct {
 	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
 }
 
@@ -3247,14 +3247,14 @@ type DuckdbConnectionSettingsJSONRequestBody DuckdbConnectionSettingsJSONBody
 // PolarsConnectionSettingsJSONRequestBody defines body for PolarsConnectionSettings for application/json ContentType.
 type PolarsConnectionSettingsJSONRequestBody PolarsConnectionSettingsJSONBody
 
-// Boto3ConnectionSettingsV2JSONRequestBody defines body for Boto3ConnectionSettingsV2 for application/json ContentType.
-type Boto3ConnectionSettingsV2JSONRequestBody Boto3ConnectionSettingsV2JSONBody
-
 // DuckdbConnectionSettingsV2JSONRequestBody defines body for DuckdbConnectionSettingsV2 for application/json ContentType.
 type DuckdbConnectionSettingsV2JSONRequestBody DuckdbConnectionSettingsV2JSONBody
 
 // PolarsConnectionSettingsV2JSONRequestBody defines body for PolarsConnectionSettingsV2 for application/json ContentType.
 type PolarsConnectionSettingsV2JSONRequestBody PolarsConnectionSettingsV2JSONBody
+
+// S3ResourceInfoJSONRequestBody defines body for S3ResourceInfo for application/json ContentType.
+type S3ResourceInfoJSONRequestBody S3ResourceInfoJSONBody
 
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
@@ -4946,11 +4946,6 @@ type ClientInterface interface {
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Boto3ConnectionSettingsV2 request with any body
-	Boto3ConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	Boto3ConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body Boto3ConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// DuckdbConnectionSettingsV2 request with any body
 	DuckdbConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4960,6 +4955,11 @@ type ClientInterface interface {
 	PolarsConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PolarsConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// S3ResourceInfo request with any body
+	S3ResourceInfoWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	S3ResourceInfo(ctx context.Context, workspace WorkspaceId, body S3ResourceInfoJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCompletedCount request
 	GetCompletedCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7459,30 +7459,6 @@ func (c *Client) DatasetStorageTestConnection(ctx context.Context, workspace Wor
 	return c.Client.Do(req)
 }
 
-func (c *Client) Boto3ConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewBoto3ConnectionSettingsV2RequestWithBody(c.Server, workspace, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) Boto3ConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body Boto3ConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewBoto3ConnectionSettingsV2Request(c.Server, workspace, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) DuckdbConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDuckdbConnectionSettingsV2RequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -7521,6 +7497,30 @@ func (c *Client) PolarsConnectionSettingsV2WithBody(ctx context.Context, workspa
 
 func (c *Client) PolarsConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPolarsConnectionSettingsV2Request(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) S3ResourceInfoWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewS3ResourceInfoRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) S3ResourceInfo(ctx context.Context, workspace WorkspaceId, body S3ResourceInfoJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewS3ResourceInfoRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15742,53 +15742,6 @@ func NewDatasetStorageTestConnectionRequest(server string, workspace WorkspaceId
 	return req, nil
 }
 
-// NewBoto3ConnectionSettingsV2Request calls the generic Boto3ConnectionSettingsV2 builder with application/json body
-func NewBoto3ConnectionSettingsV2Request(server string, workspace WorkspaceId, body Boto3ConnectionSettingsV2JSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewBoto3ConnectionSettingsV2RequestWithBody(server, workspace, "application/json", bodyReader)
-}
-
-// NewBoto3ConnectionSettingsV2RequestWithBody generates requests for Boto3ConnectionSettingsV2 with any type of body
-func NewBoto3ConnectionSettingsV2RequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/job_helpers/v2/boto3_connection_settings", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewDuckdbConnectionSettingsV2Request calls the generic DuckdbConnectionSettingsV2 builder with application/json body
 func NewDuckdbConnectionSettingsV2Request(server string, workspace WorkspaceId, body DuckdbConnectionSettingsV2JSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -15864,6 +15817,53 @@ func NewPolarsConnectionSettingsV2RequestWithBody(server string, workspace Works
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/job_helpers/v2/polars_connection_settings", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewS3ResourceInfoRequest calls the generic S3ResourceInfo builder with application/json body
+func NewS3ResourceInfoRequest(server string, workspace WorkspaceId, body S3ResourceInfoJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewS3ResourceInfoRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewS3ResourceInfoRequestWithBody generates requests for S3ResourceInfo with any type of body
+func NewS3ResourceInfoRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/v2/s3_resource_info", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -25081,11 +25081,6 @@ type ClientWithResponsesInterface interface {
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error)
 
-	// Boto3ConnectionSettingsV2 request with any body
-	Boto3ConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*Boto3ConnectionSettingsV2Response, error)
-
-	Boto3ConnectionSettingsV2WithResponse(ctx context.Context, workspace WorkspaceId, body Boto3ConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*Boto3ConnectionSettingsV2Response, error)
-
 	// DuckdbConnectionSettingsV2 request with any body
 	DuckdbConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsV2Response, error)
 
@@ -25095,6 +25090,11 @@ type ClientWithResponsesInterface interface {
 	PolarsConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsV2Response, error)
 
 	PolarsConnectionSettingsV2WithResponse(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsV2Response, error)
+
+	// S3ResourceInfo request with any body
+	S3ResourceInfoWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*S3ResourceInfoResponse, error)
+
+	S3ResourceInfoWithResponse(ctx context.Context, workspace WorkspaceId, body S3ResourceInfoJSONRequestBody, reqEditors ...RequestEditorFn) (*S3ResourceInfoResponse, error)
 
 	// GetCompletedCount request
 	GetCompletedCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCompletedCountResponse, error)
@@ -28408,34 +28408,6 @@ func (r DatasetStorageTestConnectionResponse) StatusCode() int {
 	return 0
 }
 
-type Boto3ConnectionSettingsV2Response struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
-		AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
-		EndpointUrl        string  `json:"endpoint_url"`
-		RegionName         string  `json:"region_name"`
-		UseSsl             bool    `json:"use_ssl"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r Boto3ConnectionSettingsV2Response) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r Boto3ConnectionSettingsV2Response) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type DuckdbConnectionSettingsV2Response struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -28492,6 +28464,28 @@ func (r PolarsConnectionSettingsV2Response) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PolarsConnectionSettingsV2Response) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type S3ResourceInfoResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *S3Resource
+}
+
+// Status returns HTTPResponse.Status
+func (r S3ResourceInfoResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r S3ResourceInfoResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -33026,23 +33020,6 @@ func (c *ClientWithResponses) DatasetStorageTestConnectionWithResponse(ctx conte
 	return ParseDatasetStorageTestConnectionResponse(rsp)
 }
 
-// Boto3ConnectionSettingsV2WithBodyWithResponse request with arbitrary body returning *Boto3ConnectionSettingsV2Response
-func (c *ClientWithResponses) Boto3ConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*Boto3ConnectionSettingsV2Response, error) {
-	rsp, err := c.Boto3ConnectionSettingsV2WithBody(ctx, workspace, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseBoto3ConnectionSettingsV2Response(rsp)
-}
-
-func (c *ClientWithResponses) Boto3ConnectionSettingsV2WithResponse(ctx context.Context, workspace WorkspaceId, body Boto3ConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*Boto3ConnectionSettingsV2Response, error) {
-	rsp, err := c.Boto3ConnectionSettingsV2(ctx, workspace, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseBoto3ConnectionSettingsV2Response(rsp)
-}
-
 // DuckdbConnectionSettingsV2WithBodyWithResponse request with arbitrary body returning *DuckdbConnectionSettingsV2Response
 func (c *ClientWithResponses) DuckdbConnectionSettingsV2WithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsV2Response, error) {
 	rsp, err := c.DuckdbConnectionSettingsV2WithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -33075,6 +33052,23 @@ func (c *ClientWithResponses) PolarsConnectionSettingsV2WithResponse(ctx context
 		return nil, err
 	}
 	return ParsePolarsConnectionSettingsV2Response(rsp)
+}
+
+// S3ResourceInfoWithBodyWithResponse request with arbitrary body returning *S3ResourceInfoResponse
+func (c *ClientWithResponses) S3ResourceInfoWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*S3ResourceInfoResponse, error) {
+	rsp, err := c.S3ResourceInfoWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseS3ResourceInfoResponse(rsp)
+}
+
+func (c *ClientWithResponses) S3ResourceInfoWithResponse(ctx context.Context, workspace WorkspaceId, body S3ResourceInfoJSONRequestBody, reqEditors ...RequestEditorFn) (*S3ResourceInfoResponse, error) {
+	rsp, err := c.S3ResourceInfo(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseS3ResourceInfoResponse(rsp)
 }
 
 // GetCompletedCountWithResponse request returning *GetCompletedCountResponse
@@ -37477,38 +37471,6 @@ func ParseDatasetStorageTestConnectionResponse(rsp *http.Response) (*DatasetStor
 	return response, nil
 }
 
-// ParseBoto3ConnectionSettingsV2Response parses an HTTP response from a Boto3ConnectionSettingsV2WithResponse call
-func ParseBoto3ConnectionSettingsV2Response(rsp *http.Response) (*Boto3ConnectionSettingsV2Response, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &Boto3ConnectionSettingsV2Response{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
-			AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
-			EndpointUrl        string  `json:"endpoint_url"`
-			RegionName         string  `json:"region_name"`
-			UseSsl             bool    `json:"use_ssl"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseDuckdbConnectionSettingsV2Response parses an HTTP response from a DuckdbConnectionSettingsV2WithResponse call
 func ParseDuckdbConnectionSettingsV2Response(rsp *http.Response) (*DuckdbConnectionSettingsV2Response, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -37569,6 +37531,32 @@ func ParsePolarsConnectionSettingsV2Response(rsp *http.Response) (*PolarsConnect
 				UseSsl       bool               `json:"use_ssl"`
 			} `json:"s3fs_args"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseS3ResourceInfoResponse parses an HTTP response from a S3ResourceInfoWithResponse call
+func ParseS3ResourceInfoResponse(rsp *http.Response) (*S3ResourceInfoResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &S3ResourceInfoResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest S3Resource
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
