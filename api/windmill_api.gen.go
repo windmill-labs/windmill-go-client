@@ -155,6 +155,7 @@ const (
 	CompletedJobJobKindPreview            CompletedJobJobKind = "preview"
 	CompletedJobJobKindScript             CompletedJobJobKind = "script"
 	CompletedJobJobKindScriptHub          CompletedJobJobKind = "script_hub"
+	CompletedJobJobKindSinglescriptflow   CompletedJobJobKind = "singlescriptflow"
 )
 
 // Defines values for CompletedJobLanguage.
@@ -349,6 +350,7 @@ const (
 	QueuedJobJobKindPreview            QueuedJobJobKind = "preview"
 	QueuedJobJobKindScript             QueuedJobJobKind = "script"
 	QueuedJobJobKindScriptHub          QueuedJobJobKind = "script_hub"
+	QueuedJobJobKindSinglescriptflow   QueuedJobJobKind = "singlescriptflow"
 )
 
 // Defines values for QueuedJobLanguage.
@@ -648,6 +650,7 @@ type EditSchedule struct {
 	OnRecovery          *string     `json:"on_recovery,omitempty"`
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
+	Retry               *Retry      `json:"retry,omitempty"`
 	Schedule            string      `json:"schedule"`
 	Timezone            string      `json:"timezone"`
 	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
@@ -1046,6 +1049,7 @@ type NewSchedule struct {
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
 	Path                string      `json:"path"`
+	Retry               *Retry      `json:"retry,omitempty"`
 	Schedule            string      `json:"schedule"`
 	ScriptPath          string      `json:"script_path"`
 	Timezone            string      `json:"timezone"`
@@ -1375,6 +1379,7 @@ type Schedule struct {
 	OnRecoveryExtraArgs *ScriptArgs         `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32            `json:"on_recovery_times,omitempty"`
 	Path                string              `json:"path"`
+	Retry               *Retry              `json:"retry,omitempty"`
 	Schedule            string              `json:"schedule"`
 	ScriptPath          string              `json:"script_path"`
 	Timezone            string              `json:"timezone"`
@@ -1409,6 +1414,7 @@ type ScheduleWJobs struct {
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
 	Path                string      `json:"path"`
+	Retry               *Retry      `json:"retry,omitempty"`
 	Schedule            string      `json:"schedule"`
 	ScriptPath          string      `json:"script_path"`
 	Timezone            string      `json:"timezone"`
@@ -1512,6 +1518,12 @@ type UpdateInput struct {
 	Id       string `json:"id"`
 	IsPublic bool   `json:"is_public"`
 	Name     string `json:"name"`
+}
+
+// UploadFilePart defines model for UploadFilePart.
+type UploadFilePart struct {
+	PartNumber int    `json:"part_number"`
+	Tag        string `json:"tag"`
 }
 
 // Usage defines model for Usage.
@@ -2240,6 +2252,11 @@ type ListInputsParams struct {
 // UpdateInputJSONBody defines parameters for UpdateInput.
 type UpdateInputJSONBody = UpdateInput
 
+// DeleteS3FileParams defines parameters for DeleteS3File.
+type DeleteS3FileParams struct {
+	FileKey string `form:"file_key" json:"file_key"`
+}
+
 // DuckdbConnectionSettingsJSONBody defines parameters for DuckdbConnectionSettings.
 type DuckdbConnectionSettingsJSONBody struct {
 	S3Resource *S3Resource `json:"s3_resource,omitempty"`
@@ -2265,6 +2282,22 @@ type LoadFilePreviewParams struct {
 	CsvHasHeader    *bool   `form:"csv_has_header,omitempty" json:"csv_has_header,omitempty"`
 	ReadBytesFrom   *int    `form:"read_bytes_from,omitempty" json:"read_bytes_from,omitempty"`
 	ReadBytesLength *int    `form:"read_bytes_length,omitempty" json:"read_bytes_length,omitempty"`
+}
+
+// MoveS3FileParams defines parameters for MoveS3File.
+type MoveS3FileParams struct {
+	SrcFileKey  string `form:"src_file_key" json:"src_file_key"`
+	DestFileKey string `form:"dest_file_key" json:"dest_file_key"`
+}
+
+// MultipartFileUploadJSONBody defines parameters for MultipartFileUpload.
+type MultipartFileUploadJSONBody struct {
+	CancelUpload bool             `json:"cancel_upload"`
+	FileKey      string           `json:"file_key"`
+	IsFinal      bool             `json:"is_final"`
+	PartContent  *[]int           `json:"part_content,omitempty"`
+	Parts        []UploadFilePart `json:"parts"`
+	UploadId     *string          `json:"upload_id,omitempty"`
 }
 
 // PolarsConnectionSettingsJSONBody defines parameters for PolarsConnectionSettings.
@@ -3243,6 +3276,9 @@ type UpdateInputJSONRequestBody = UpdateInputJSONBody
 
 // DuckdbConnectionSettingsJSONRequestBody defines body for DuckdbConnectionSettings for application/json ContentType.
 type DuckdbConnectionSettingsJSONRequestBody DuckdbConnectionSettingsJSONBody
+
+// MultipartFileUploadJSONRequestBody defines body for MultipartFileUpload for application/json ContentType.
+type MultipartFileUploadJSONRequestBody MultipartFileUploadJSONBody
 
 // PolarsConnectionSettingsJSONRequestBody defines body for PolarsConnectionSettings for application/json ContentType.
 type PolarsConnectionSettingsJSONRequestBody PolarsConnectionSettingsJSONBody
@@ -4924,6 +4960,9 @@ type ClientInterface interface {
 
 	UpdateInput(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteS3File request
+	DeleteS3File(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DuckdbConnectionSettings request with any body
 	DuckdbConnectionSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -4937,6 +4976,14 @@ type ClientInterface interface {
 
 	// LoadFilePreview request
 	LoadFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// MoveS3File request
+	MoveS3File(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// MultipartFileUpload request with any body
+	MultipartFileUploadWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MultipartFileUpload(ctx context.Context, workspace WorkspaceId, body MultipartFileUploadJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PolarsConnectionSettings request with any body
 	PolarsConnectionSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7363,6 +7410,18 @@ func (c *Client) UpdateInput(ctx context.Context, workspace WorkspaceId, body Up
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeleteS3File(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteS3FileRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) DuckdbConnectionSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDuckdbConnectionSettingsRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -7413,6 +7472,42 @@ func (c *Client) LoadFileMetadata(ctx context.Context, workspace WorkspaceId, pa
 
 func (c *Client) LoadFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLoadFilePreviewRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MoveS3File(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMoveS3FileRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MultipartFileUploadWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMultipartFileUploadRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MultipartFileUpload(ctx context.Context, workspace WorkspaceId, body MultipartFileUploadJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMultipartFileUploadRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15352,6 +15447,56 @@ func NewUpdateInputRequestWithBody(server string, workspace WorkspaceId, content
 	return req, nil
 }
 
+// NewDeleteS3FileRequest generates requests for DeleteS3File
+func NewDeleteS3FileRequest(server string, workspace WorkspaceId, params *DeleteS3FileParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/delete_s3_file", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewDuckdbConnectionSettingsRequest calls the generic DuckdbConnectionSettings builder with application/json body
 func NewDuckdbConnectionSettingsRequest(server string, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -15657,6 +15802,115 @@ func NewLoadFilePreviewRequest(server string, workspace WorkspaceId, params *Loa
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewMoveS3FileRequest generates requests for MoveS3File
+func NewMoveS3FileRequest(server string, workspace WorkspaceId, params *MoveS3FileParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/move_s3_file", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "src_file_key", runtime.ParamLocationQuery, params.SrcFileKey); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dest_file_key", runtime.ParamLocationQuery, params.DestFileKey); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewMultipartFileUploadRequest calls the generic MultipartFileUpload builder with application/json body
+func NewMultipartFileUploadRequest(server string, workspace WorkspaceId, body MultipartFileUploadJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMultipartFileUploadRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewMultipartFileUploadRequestWithBody generates requests for MultipartFileUpload with any type of body
+func NewMultipartFileUploadRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/multipart_upload_s3_file", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -25059,6 +25313,9 @@ type ClientWithResponsesInterface interface {
 
 	UpdateInputWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInputResponse, error)
 
+	// DeleteS3File request
+	DeleteS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*DeleteS3FileResponse, error)
+
 	// DuckdbConnectionSettings request with any body
 	DuckdbConnectionSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error)
 
@@ -25072,6 +25329,14 @@ type ClientWithResponsesInterface interface {
 
 	// LoadFilePreview request
 	LoadFilePreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*LoadFilePreviewResponse, error)
+
+	// MoveS3File request
+	MoveS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*MoveS3FileResponse, error)
+
+	// MultipartFileUpload request with any body
+	MultipartFileUploadWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MultipartFileUploadResponse, error)
+
+	MultipartFileUploadWithResponse(ctx context.Context, workspace WorkspaceId, body MultipartFileUploadJSONRequestBody, reqEditors ...RequestEditorFn) (*MultipartFileUploadResponse, error)
 
 	// PolarsConnectionSettings request with any body
 	PolarsConnectionSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error)
@@ -28264,6 +28529,28 @@ func (r UpdateInputResponse) StatusCode() int {
 	return 0
 }
 
+type DeleteS3FileResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteS3FileResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteS3FileResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DuckdbConnectionSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -28357,6 +28644,54 @@ func (r LoadFilePreviewResponse) StatusCode() int {
 	return 0
 }
 
+type MoveS3FileResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r MoveS3FileResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MoveS3FileResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type MultipartFileUploadResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		IsDone   bool             `json:"is_done"`
+		Parts    []UploadFilePart `json:"parts"`
+		UploadId string           `json:"upload_id"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r MultipartFileUploadResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MultipartFileUploadResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type PolarsConnectionSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -28436,13 +28771,6 @@ type PolarsConnectionSettingsV2Response struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		PolarsCloudOptions struct {
-			AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
-			AwsAllowHttp       bool    `json:"aws_allow_http"`
-			AwsEndpointUrl     string  `json:"aws_endpoint_url"`
-			AwsRegion          string  `json:"aws_region"`
-			AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
-		} `json:"polars_cloud_options"`
 		S3fsArgs struct {
 			CacheRegions bool               `json:"cache_regions"`
 			ClientKwargs PolarsClientKwargs `json:"client_kwargs"`
@@ -28451,6 +28779,13 @@ type PolarsConnectionSettingsV2Response struct {
 			Secret       *string            `json:"secret,omitempty"`
 			UseSsl       bool               `json:"use_ssl"`
 		} `json:"s3fs_args"`
+		StorageOptions struct {
+			AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
+			AwsAllowHttp       string  `json:"aws_allow_http"`
+			AwsEndpointUrl     string  `json:"aws_endpoint_url"`
+			AwsRegion          string  `json:"aws_region"`
+			AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
+		} `json:"storage_options"`
 	}
 }
 
@@ -32950,6 +33285,15 @@ func (c *ClientWithResponses) UpdateInputWithResponse(ctx context.Context, works
 	return ParseUpdateInputResponse(rsp)
 }
 
+// DeleteS3FileWithResponse request returning *DeleteS3FileResponse
+func (c *ClientWithResponses) DeleteS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*DeleteS3FileResponse, error) {
+	rsp, err := c.DeleteS3File(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteS3FileResponse(rsp)
+}
+
 // DuckdbConnectionSettingsWithBodyWithResponse request with arbitrary body returning *DuckdbConnectionSettingsResponse
 func (c *ClientWithResponses) DuckdbConnectionSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error) {
 	rsp, err := c.DuckdbConnectionSettingsWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -32992,6 +33336,32 @@ func (c *ClientWithResponses) LoadFilePreviewWithResponse(ctx context.Context, w
 		return nil, err
 	}
 	return ParseLoadFilePreviewResponse(rsp)
+}
+
+// MoveS3FileWithResponse request returning *MoveS3FileResponse
+func (c *ClientWithResponses) MoveS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*MoveS3FileResponse, error) {
+	rsp, err := c.MoveS3File(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMoveS3FileResponse(rsp)
+}
+
+// MultipartFileUploadWithBodyWithResponse request with arbitrary body returning *MultipartFileUploadResponse
+func (c *ClientWithResponses) MultipartFileUploadWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MultipartFileUploadResponse, error) {
+	rsp, err := c.MultipartFileUploadWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMultipartFileUploadResponse(rsp)
+}
+
+func (c *ClientWithResponses) MultipartFileUploadWithResponse(ctx context.Context, workspace WorkspaceId, body MultipartFileUploadJSONRequestBody, reqEditors ...RequestEditorFn) (*MultipartFileUploadResponse, error) {
+	rsp, err := c.MultipartFileUpload(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMultipartFileUploadResponse(rsp)
 }
 
 // PolarsConnectionSettingsWithBodyWithResponse request with arbitrary body returning *PolarsConnectionSettingsResponse
@@ -37303,6 +37673,32 @@ func ParseUpdateInputResponse(rsp *http.Response) (*UpdateInputResponse, error) 
 	return response, nil
 }
 
+// ParseDeleteS3FileResponse parses an HTTP response from a DeleteS3FileWithResponse call
+func ParseDeleteS3FileResponse(rsp *http.Response) (*DeleteS3FileResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteS3FileResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseDuckdbConnectionSettingsResponse parses an HTTP response from a DuckdbConnectionSettingsWithResponse call
 func ParseDuckdbConnectionSettingsResponse(rsp *http.Response) (*DuckdbConnectionSettingsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -37402,6 +37798,62 @@ func ParseLoadFilePreviewResponse(rsp *http.Response) (*LoadFilePreviewResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest WindmillFilePreview
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseMoveS3FileResponse parses an HTTP response from a MoveS3FileWithResponse call
+func ParseMoveS3FileResponse(rsp *http.Response) (*MoveS3FileResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MoveS3FileResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseMultipartFileUploadResponse parses an HTTP response from a MultipartFileUploadWithResponse call
+func ParseMultipartFileUploadResponse(rsp *http.Response) (*MultipartFileUploadResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MultipartFileUploadResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			IsDone   bool             `json:"is_done"`
+			Parts    []UploadFilePart `json:"parts"`
+			UploadId string           `json:"upload_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -37515,13 +37967,6 @@ func ParsePolarsConnectionSettingsV2Response(rsp *http.Response) (*PolarsConnect
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			PolarsCloudOptions struct {
-				AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
-				AwsAllowHttp       bool    `json:"aws_allow_http"`
-				AwsEndpointUrl     string  `json:"aws_endpoint_url"`
-				AwsRegion          string  `json:"aws_region"`
-				AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
-			} `json:"polars_cloud_options"`
 			S3fsArgs struct {
 				CacheRegions bool               `json:"cache_regions"`
 				ClientKwargs PolarsClientKwargs `json:"client_kwargs"`
@@ -37530,6 +37975,13 @@ func ParsePolarsConnectionSettingsV2Response(rsp *http.Response) (*PolarsConnect
 				Secret       *string            `json:"secret,omitempty"`
 				UseSsl       bool               `json:"use_ssl"`
 			} `json:"s3fs_args"`
+			StorageOptions struct {
+				AwsAccessKeyId     *string `json:"aws_access_key_id,omitempty"`
+				AwsAllowHttp       string  `json:"aws_allow_http"`
+				AwsEndpointUrl     string  `json:"aws_endpoint_url"`
+				AwsRegion          string  `json:"aws_region"`
+				AwsSecretAccessKey *string `json:"aws_secret_access_key,omitempty"`
+			} `json:"storage_options"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
