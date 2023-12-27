@@ -643,6 +643,7 @@ type EditResourceType struct {
 // EditSchedule defines model for EditSchedule.
 type EditSchedule struct {
 	Args                ScriptArgs  `json:"args"`
+	NoFlowOverlap       *bool       `json:"no_flow_overlap,omitempty"`
 	OnFailure           *string     `json:"on_failure,omitempty"`
 	OnFailureExact      *bool       `json:"on_failure_exact,omitempty"`
 	OnFailureExtraArgs  *ScriptArgs `json:"on_failure_extra_args,omitempty"`
@@ -652,6 +653,7 @@ type EditSchedule struct {
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
 	Retry               *Retry      `json:"retry,omitempty"`
 	Schedule            string      `json:"schedule"`
+	Summary             *string     `json:"summary,omitempty"`
 	Timezone            string      `json:"timezone"`
 	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
 }
@@ -1041,6 +1043,7 @@ type NewSchedule struct {
 	Args                ScriptArgs  `json:"args"`
 	Enabled             *bool       `json:"enabled,omitempty"`
 	IsFlow              bool        `json:"is_flow"`
+	NoFlowOverlap       *bool       `json:"no_flow_overlap,omitempty"`
 	OnFailure           *string     `json:"on_failure,omitempty"`
 	OnFailureExact      *bool       `json:"on_failure_exact,omitempty"`
 	OnFailureExtraArgs  *ScriptArgs `json:"on_failure_extra_args,omitempty"`
@@ -1052,6 +1055,7 @@ type NewSchedule struct {
 	Retry               *Retry      `json:"retry,omitempty"`
 	Schedule            string      `json:"schedule"`
 	ScriptPath          string      `json:"script_path"`
+	Summary             *string     `json:"summary,omitempty"`
 	Timezone            string      `json:"timezone"`
 	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
 }
@@ -1371,6 +1375,7 @@ type Schedule struct {
 	Error               *string             `json:"error,omitempty"`
 	ExtraPerms          Schedule_ExtraPerms `json:"extra_perms"`
 	IsFlow              bool                `json:"is_flow"`
+	NoFlowOverlap       *bool               `json:"no_flow_overlap,omitempty"`
 	OnFailure           *string             `json:"on_failure,omitempty"`
 	OnFailureExact      *bool               `json:"on_failure_exact,omitempty"`
 	OnFailureExtraArgs  *ScriptArgs         `json:"on_failure_extra_args,omitempty"`
@@ -1382,6 +1387,7 @@ type Schedule struct {
 	Retry               *Retry              `json:"retry,omitempty"`
 	Schedule            string              `json:"schedule"`
 	ScriptPath          string              `json:"script_path"`
+	Summary             *string             `json:"summary,omitempty"`
 	Timezone            string              `json:"timezone"`
 	WsErrorHandlerMuted *bool               `json:"ws_error_handler_muted,omitempty"`
 }
@@ -1406,6 +1412,7 @@ type ScheduleWJobs struct {
 		Id         string  `json:"id"`
 		Success    bool    `json:"success"`
 	} `json:"jobs,omitempty"`
+	NoFlowOverlap       *bool       `json:"no_flow_overlap,omitempty"`
 	OnFailure           *string     `json:"on_failure,omitempty"`
 	OnFailureExact      *bool       `json:"on_failure_exact,omitempty"`
 	OnFailureExtraArgs  *ScriptArgs `json:"on_failure_extra_args,omitempty"`
@@ -1417,6 +1424,7 @@ type ScheduleWJobs struct {
 	Retry               *Retry      `json:"retry,omitempty"`
 	Schedule            string      `json:"schedule"`
 	ScriptPath          string      `json:"script_path"`
+	Summary             *string     `json:"summary,omitempty"`
 	Timezone            string      `json:"timezone"`
 	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
 }
