@@ -1038,6 +1038,18 @@ type Login struct {
 	Password string `json:"password"`
 }
 
+// MetricDataPoint defines model for MetricDataPoint.
+type MetricDataPoint struct {
+	Timestamp time.Time `json:"timestamp"`
+	Value     float32   `json:"value"`
+}
+
+// MetricMetadata defines model for MetricMetadata.
+type MetricMetadata struct {
+	Id   string  `json:"id"`
+	Name *string `json:"name,omitempty"`
+}
+
 // NewSchedule defines model for NewSchedule.
 type NewSchedule struct {
 	Args                ScriptArgs  `json:"args"`
@@ -1365,6 +1377,12 @@ type S3Resource struct {
 	UseSSL    bool    `json:"useSSL"`
 }
 
+// ScalarMetric defines model for ScalarMetric.
+type ScalarMetric struct {
+	MetricId *string `json:"metric_id,omitempty"`
+	Value    float32 `json:"value"`
+}
+
 // Schedule defines model for Schedule.
 type Schedule struct {
 	Args                *ScriptArgs         `json:"args,omitempty"`
@@ -1503,6 +1521,12 @@ type StaticTransform struct {
 // StaticTransformType defines model for StaticTransform.Type.
 type StaticTransformType string
 
+// TimeseriesMetric defines model for TimeseriesMetric.
+type TimeseriesMetric struct {
+	MetricId *string           `json:"metric_id,omitempty"`
+	Values   []MetricDataPoint `json:"values"`
+}
+
 // TokenResponse defines model for TokenResponse.
 type TokenResponse struct {
 	AccessToken  string    `json:"access_token"`
@@ -1614,6 +1638,7 @@ type Workspace struct {
 type WorkspaceGitSync struct {
 	GitRepoResourcePath string `json:"git_repo_resource_path"`
 	ScriptPath          string `json:"script_path"`
+	UseIndividualBranch *bool  `json:"use_individual_branch,omitempty"`
 }
 
 // WorkspaceInvite defines model for WorkspaceInvite.
@@ -2326,6 +2351,13 @@ type PolarsConnectionSettingsV2JSONBody struct {
 // S3ResourceInfoJSONBody defines parameters for S3ResourceInfo.
 type S3ResourceInfoJSONBody struct {
 	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
+}
+
+// GetJobMetricsJSONBody defines parameters for GetJobMetrics.
+type GetJobMetricsJSONBody struct {
+	FromTimestamp           *time.Time `json:"from_timestamp,omitempty"`
+	TimeseriesMaxDatapoints *int       `json:"timeseries_max_datapoints,omitempty"`
+	ToTimestamp             *time.Time `json:"to_timestamp,omitempty"`
 }
 
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
@@ -3299,6 +3331,9 @@ type PolarsConnectionSettingsV2JSONRequestBody PolarsConnectionSettingsV2JSONBod
 
 // S3ResourceInfoJSONRequestBody defines body for S3ResourceInfo for application/json ContentType.
 type S3ResourceInfoJSONRequestBody S3ResourceInfoJSONBody
+
+// GetJobMetricsJSONRequestBody defines body for GetJobMetrics for application/json ContentType.
+type GetJobMetricsJSONRequestBody GetJobMetricsJSONBody
 
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
@@ -5015,6 +5050,11 @@ type ClientInterface interface {
 	S3ResourceInfoWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	S3ResourceInfo(ctx context.Context, workspace WorkspaceId, body S3ResourceInfoJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetJobMetrics request with any body
+	GetJobMetricsWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GetJobMetrics(ctx context.Context, workspace WorkspaceId, id JobId, body GetJobMetricsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCompletedCount request
 	GetCompletedCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7624,6 +7664,30 @@ func (c *Client) S3ResourceInfoWithBody(ctx context.Context, workspace Workspace
 
 func (c *Client) S3ResourceInfo(ctx context.Context, workspace WorkspaceId, body S3ResourceInfoJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewS3ResourceInfoRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetJobMetricsWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetJobMetricsRequestWithBody(c.Server, workspace, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetJobMetrics(ctx context.Context, workspace WorkspaceId, id JobId, body GetJobMetricsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetJobMetricsRequest(c.Server, workspace, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16126,6 +16190,60 @@ func NewS3ResourceInfoRequestWithBody(server string, workspace WorkspaceId, cont
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/job_helpers/v2/s3_resource_info", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetJobMetricsRequest calls the generic GetJobMetrics builder with application/json body
+func NewGetJobMetricsRequest(server string, workspace WorkspaceId, id JobId, body GetJobMetricsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGetJobMetricsRequestWithBody(server, workspace, id, "application/json", bodyReader)
+}
+
+// NewGetJobMetricsRequestWithBody generates requests for GetJobMetrics with any type of body
+func NewGetJobMetricsRequestWithBody(server string, workspace WorkspaceId, id JobId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_metrics/get/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -25369,6 +25487,11 @@ type ClientWithResponsesInterface interface {
 
 	S3ResourceInfoWithResponse(ctx context.Context, workspace WorkspaceId, body S3ResourceInfoJSONRequestBody, reqEditors ...RequestEditorFn) (*S3ResourceInfoResponse, error)
 
+	// GetJobMetrics request with any body
+	GetJobMetricsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetJobMetricsResponse, error)
+
+	GetJobMetricsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body GetJobMetricsJSONRequestBody, reqEditors ...RequestEditorFn) (*GetJobMetricsResponse, error)
+
 	// GetCompletedCount request
 	GetCompletedCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCompletedCountResponse, error)
 
@@ -28829,6 +28952,32 @@ func (r S3ResourceInfoResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r S3ResourceInfoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetJobMetricsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		MetricsMetadata   *[]MetricMetadata   `json:"metrics_metadata,omitempty"`
+		ScalarMetrics     *[]ScalarMetric     `json:"scalar_metrics,omitempty"`
+		TimeseriesMetrics *[]TimeseriesMetric `json:"timeseries_metrics,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetJobMetricsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetJobMetricsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -33449,6 +33598,23 @@ func (c *ClientWithResponses) S3ResourceInfoWithResponse(ctx context.Context, wo
 	return ParseS3ResourceInfoResponse(rsp)
 }
 
+// GetJobMetricsWithBodyWithResponse request with arbitrary body returning *GetJobMetricsResponse
+func (c *ClientWithResponses) GetJobMetricsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetJobMetricsResponse, error) {
+	rsp, err := c.GetJobMetricsWithBody(ctx, workspace, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetJobMetricsResponse(rsp)
+}
+
+func (c *ClientWithResponses) GetJobMetricsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body GetJobMetricsJSONRequestBody, reqEditors ...RequestEditorFn) (*GetJobMetricsResponse, error) {
+	rsp, err := c.GetJobMetrics(ctx, workspace, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetJobMetricsResponse(rsp)
+}
+
 // GetCompletedCountWithResponse request returning *GetCompletedCountResponse
 func (c *ClientWithResponses) GetCompletedCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCompletedCountResponse, error) {
 	rsp, err := c.GetCompletedCount(ctx, workspace, reqEditors...)
@@ -38017,6 +38183,36 @@ func ParseS3ResourceInfoResponse(rsp *http.Response) (*S3ResourceInfoResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest S3Resource
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetJobMetricsResponse parses an HTTP response from a GetJobMetricsWithResponse call
+func ParseGetJobMetricsResponse(rsp *http.Response) (*GetJobMetricsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetJobMetricsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			MetricsMetadata   *[]MetricMetadata   `json:"metrics_metadata,omitempty"`
+			ScalarMetrics     *[]ScalarMetric     `json:"scalar_metrics,omitempty"`
+			TimeseriesMetrics *[]TimeseriesMetric `json:"timeseries_metrics,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
