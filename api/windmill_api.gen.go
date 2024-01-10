@@ -2325,12 +2325,13 @@ type MoveS3FileParams struct {
 
 // MultipartFileUploadJSONBody defines parameters for MultipartFileUpload.
 type MultipartFileUploadJSONBody struct {
-	CancelUpload bool             `json:"cancel_upload"`
-	FileKey      string           `json:"file_key"`
-	IsFinal      bool             `json:"is_final"`
-	PartContent  *[]int           `json:"part_content,omitempty"`
-	Parts        []UploadFilePart `json:"parts"`
-	UploadId     *string          `json:"upload_id,omitempty"`
+	CancelUpload   bool             `json:"cancel_upload"`
+	FileKey        string           `json:"file_key"`
+	IsFinal        bool             `json:"is_final"`
+	PartContent    *[]int           `json:"part_content,omitempty"`
+	Parts          []UploadFilePart `json:"parts"`
+	S3ResourcePath *string          `json:"s3_resource_path,omitempty"`
+	UploadId       *string          `json:"upload_id,omitempty"`
 }
 
 // PolarsConnectionSettingsJSONBody defines parameters for PolarsConnectionSettings.
