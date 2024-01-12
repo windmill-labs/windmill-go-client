@@ -10678,7 +10678,7 @@ func NewAddUserToInstanceGroupRequestWithBody(server string, name Name, contentT
 		return nil, err
 	}
 
-	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -10860,7 +10860,7 @@ func NewRemoveUserFromInstanceGroupRequestWithBody(server string, name Name, con
 		return nil, err
 	}
 
-	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -10897,7 +10897,7 @@ func NewUpdateInstanceGroupRequestWithBody(server string, name Name, contentType
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/groups/udpate/%s", pathParam0)
+	operationPath := fmt.Sprintf("/groups/update/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
