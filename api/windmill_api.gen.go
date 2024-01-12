@@ -928,8 +928,9 @@ type InputTransform interface{}
 
 // InstanceGroup defines model for InstanceGroup.
 type InstanceGroup struct {
-	Emails *[]string `json:"emails,omitempty"`
-	Name   string    `json:"name"`
+	Emails  *[]string `json:"emails,omitempty"`
+	Name    string    `json:"name"`
+	Summary *string   `json:"summary,omitempty"`
 }
 
 // JavascriptTransform defines model for JavascriptTransform.
@@ -1815,6 +1816,27 @@ type QueryHubScriptsParams struct {
 
 	// query scripts app
 	App *string `form:"app,omitempty" json:"app,omitempty"`
+}
+
+// AddUserToInstanceGroupJSONBody defines parameters for AddUserToInstanceGroup.
+type AddUserToInstanceGroupJSONBody struct {
+	Email string `json:"email"`
+}
+
+// CreateInstanceGroupJSONBody defines parameters for CreateInstanceGroup.
+type CreateInstanceGroupJSONBody struct {
+	Name    string  `json:"name"`
+	Summary *string `json:"summary,omitempty"`
+}
+
+// RemoveUserFromInstanceGroupJSONBody defines parameters for RemoveUserFromInstanceGroup.
+type RemoveUserFromInstanceGroupJSONBody struct {
+	Email string `json:"email"`
+}
+
+// UpdateInstanceGroupJSONBody defines parameters for UpdateInstanceGroup.
+type UpdateInstanceGroupJSONBody struct {
+	NewSummary string `json:"new_summary"`
 }
 
 // ListHubIntegrationsParams defines parameters for ListHubIntegrations.
@@ -3203,6 +3225,18 @@ type LoginJSONRequestBody = LoginJSONBody
 
 // UpdateConfigJSONRequestBody defines body for UpdateConfig for application/json ContentType.
 type UpdateConfigJSONRequestBody = UpdateConfigJSONBody
+
+// AddUserToInstanceGroupJSONRequestBody defines body for AddUserToInstanceGroup for application/json ContentType.
+type AddUserToInstanceGroupJSONRequestBody AddUserToInstanceGroupJSONBody
+
+// CreateInstanceGroupJSONRequestBody defines body for CreateInstanceGroup for application/json ContentType.
+type CreateInstanceGroupJSONRequestBody CreateInstanceGroupJSONBody
+
+// RemoveUserFromInstanceGroupJSONRequestBody defines body for RemoveUserFromInstanceGroup for application/json ContentType.
+type RemoveUserFromInstanceGroupJSONRequestBody RemoveUserFromInstanceGroupJSONBody
+
+// UpdateInstanceGroupJSONRequestBody defines body for UpdateInstanceGroup for application/json ContentType.
+type UpdateInstanceGroupJSONRequestBody UpdateInstanceGroupJSONBody
 
 // ConnectCallbackJSONRequestBody defines body for ConnectCallback for application/json ContentType.
 type ConnectCallbackJSONRequestBody ConnectCallbackJSONBody
@@ -4615,11 +4649,34 @@ type ClientInterface interface {
 	// ListHubFlows request
 	ListHubFlows(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AddUserToInstanceGroup request with any body
+	AddUserToInstanceGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AddUserToInstanceGroup(ctx context.Context, name Name, body AddUserToInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateInstanceGroup request with any body
+	CreateInstanceGroupWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateInstanceGroup(ctx context.Context, body CreateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteInstanceGroup request
+	DeleteInstanceGroup(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetInstanceGroup request
 	GetInstanceGroup(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListInstanceGroups request
 	ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RemoveUserFromInstanceGroup request with any body
+	RemoveUserFromInstanceGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RemoveUserFromInstanceGroup(ctx context.Context, name Name, body RemoveUserFromInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateInstanceGroup request with any body
+	UpdateInstanceGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateInstanceGroup(ctx context.Context, name Name, body UpdateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListHubIntegrations request
 	ListHubIntegrations(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5755,6 +5812,66 @@ func (c *Client) ListHubFlows(ctx context.Context, reqEditors ...RequestEditorFn
 	return c.Client.Do(req)
 }
 
+func (c *Client) AddUserToInstanceGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAddUserToInstanceGroupRequestWithBody(c.Server, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AddUserToInstanceGroup(ctx context.Context, name Name, body AddUserToInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAddUserToInstanceGroupRequest(c.Server, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateInstanceGroupWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateInstanceGroupRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateInstanceGroup(ctx context.Context, body CreateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateInstanceGroupRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteInstanceGroup(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteInstanceGroupRequest(c.Server, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetInstanceGroup(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetInstanceGroupRequest(c.Server, name)
 	if err != nil {
@@ -5769,6 +5886,54 @@ func (c *Client) GetInstanceGroup(ctx context.Context, name Name, reqEditors ...
 
 func (c *Client) ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListInstanceGroupsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RemoveUserFromInstanceGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRemoveUserFromInstanceGroupRequestWithBody(c.Server, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RemoveUserFromInstanceGroup(ctx context.Context, name Name, body RemoveUserFromInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRemoveUserFromInstanceGroupRequest(c.Server, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateInstanceGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateInstanceGroupRequestWithBody(c.Server, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateInstanceGroup(ctx context.Context, name Name, body UpdateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateInstanceGroupRequest(c.Server, name, body)
 	if err != nil {
 		return nil, err
 	}
@@ -10476,6 +10641,127 @@ func NewListHubFlowsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewAddUserToInstanceGroupRequest calls the generic AddUserToInstanceGroup builder with application/json body
+func NewAddUserToInstanceGroupRequest(server string, name Name, body AddUserToInstanceGroupJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAddUserToInstanceGroupRequestWithBody(server, name, "application/json", bodyReader)
+}
+
+// NewAddUserToInstanceGroupRequestWithBody generates requests for AddUserToInstanceGroup with any type of body
+func NewAddUserToInstanceGroupRequestWithBody(server string, name Name, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/adduser/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateInstanceGroupRequest calls the generic CreateInstanceGroup builder with application/json body
+func NewCreateInstanceGroupRequest(server string, body CreateInstanceGroupJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateInstanceGroupRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateInstanceGroupRequestWithBody generates requests for CreateInstanceGroup with any type of body
+func NewCreateInstanceGroupRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/create")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteInstanceGroupRequest generates requests for DeleteInstanceGroup
+func NewDeleteInstanceGroupRequest(server string, name Name) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/delete/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetInstanceGroupRequest generates requests for GetInstanceGroup
 func NewGetInstanceGroupRequest(server string, name Name) (*http.Request, error) {
 	var err error
@@ -10533,6 +10819,100 @@ func NewListInstanceGroupsRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewRemoveUserFromInstanceGroupRequest calls the generic RemoveUserFromInstanceGroup builder with application/json body
+func NewRemoveUserFromInstanceGroupRequest(server string, name Name, body RemoveUserFromInstanceGroupJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRemoveUserFromInstanceGroupRequestWithBody(server, name, "application/json", bodyReader)
+}
+
+// NewRemoveUserFromInstanceGroupRequestWithBody generates requests for RemoveUserFromInstanceGroup with any type of body
+func NewRemoveUserFromInstanceGroupRequestWithBody(server string, name Name, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/removeuser/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateInstanceGroupRequest calls the generic UpdateInstanceGroup builder with application/json body
+func NewUpdateInstanceGroupRequest(server string, name Name, body UpdateInstanceGroupJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateInstanceGroupRequestWithBody(server, name, "application/json", bodyReader)
+}
+
+// NewUpdateInstanceGroupRequestWithBody generates requests for UpdateInstanceGroup with any type of body
+func NewUpdateInstanceGroupRequestWithBody(server string, name Name, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/udpate/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -25051,11 +25431,34 @@ type ClientWithResponsesInterface interface {
 	// ListHubFlows request
 	ListHubFlowsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubFlowsResponse, error)
 
+	// AddUserToInstanceGroup request with any body
+	AddUserToInstanceGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserToInstanceGroupResponse, error)
+
+	AddUserToInstanceGroupWithResponse(ctx context.Context, name Name, body AddUserToInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*AddUserToInstanceGroupResponse, error)
+
+	// CreateInstanceGroup request with any body
+	CreateInstanceGroupWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateInstanceGroupResponse, error)
+
+	CreateInstanceGroupWithResponse(ctx context.Context, body CreateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateInstanceGroupResponse, error)
+
+	// DeleteInstanceGroup request
+	DeleteInstanceGroupWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*DeleteInstanceGroupResponse, error)
+
 	// GetInstanceGroup request
 	GetInstanceGroupWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetInstanceGroupResponse, error)
 
 	// ListInstanceGroups request
 	ListInstanceGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceGroupsResponse, error)
+
+	// RemoveUserFromInstanceGroup request with any body
+	RemoveUserFromInstanceGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RemoveUserFromInstanceGroupResponse, error)
+
+	RemoveUserFromInstanceGroupWithResponse(ctx context.Context, name Name, body RemoveUserFromInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveUserFromInstanceGroupResponse, error)
+
+	// UpdateInstanceGroup request with any body
+	UpdateInstanceGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateInstanceGroupResponse, error)
+
+	UpdateInstanceGroupWithResponse(ctx context.Context, name Name, body UpdateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInstanceGroupResponse, error)
 
 	// ListHubIntegrations request
 	ListHubIntegrationsWithResponse(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*ListHubIntegrationsResponse, error)
@@ -26318,6 +26721,69 @@ func (r ListHubFlowsResponse) StatusCode() int {
 	return 0
 }
 
+type AddUserToInstanceGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AddUserToInstanceGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AddUserToInstanceGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateInstanceGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateInstanceGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateInstanceGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteInstanceGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteInstanceGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteInstanceGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetInstanceGroupResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -26356,6 +26822,48 @@ func (r ListInstanceGroupsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListInstanceGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RemoveUserFromInstanceGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RemoveUserFromInstanceGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RemoveUserFromInstanceGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateInstanceGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateInstanceGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateInstanceGroupResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -32202,6 +32710,49 @@ func (c *ClientWithResponses) ListHubFlowsWithResponse(ctx context.Context, reqE
 	return ParseListHubFlowsResponse(rsp)
 }
 
+// AddUserToInstanceGroupWithBodyWithResponse request with arbitrary body returning *AddUserToInstanceGroupResponse
+func (c *ClientWithResponses) AddUserToInstanceGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserToInstanceGroupResponse, error) {
+	rsp, err := c.AddUserToInstanceGroupWithBody(ctx, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAddUserToInstanceGroupResponse(rsp)
+}
+
+func (c *ClientWithResponses) AddUserToInstanceGroupWithResponse(ctx context.Context, name Name, body AddUserToInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*AddUserToInstanceGroupResponse, error) {
+	rsp, err := c.AddUserToInstanceGroup(ctx, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAddUserToInstanceGroupResponse(rsp)
+}
+
+// CreateInstanceGroupWithBodyWithResponse request with arbitrary body returning *CreateInstanceGroupResponse
+func (c *ClientWithResponses) CreateInstanceGroupWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateInstanceGroupResponse, error) {
+	rsp, err := c.CreateInstanceGroupWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateInstanceGroupResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateInstanceGroupWithResponse(ctx context.Context, body CreateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateInstanceGroupResponse, error) {
+	rsp, err := c.CreateInstanceGroup(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateInstanceGroupResponse(rsp)
+}
+
+// DeleteInstanceGroupWithResponse request returning *DeleteInstanceGroupResponse
+func (c *ClientWithResponses) DeleteInstanceGroupWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*DeleteInstanceGroupResponse, error) {
+	rsp, err := c.DeleteInstanceGroup(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteInstanceGroupResponse(rsp)
+}
+
 // GetInstanceGroupWithResponse request returning *GetInstanceGroupResponse
 func (c *ClientWithResponses) GetInstanceGroupWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetInstanceGroupResponse, error) {
 	rsp, err := c.GetInstanceGroup(ctx, name, reqEditors...)
@@ -32218,6 +32769,40 @@ func (c *ClientWithResponses) ListInstanceGroupsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListInstanceGroupsResponse(rsp)
+}
+
+// RemoveUserFromInstanceGroupWithBodyWithResponse request with arbitrary body returning *RemoveUserFromInstanceGroupResponse
+func (c *ClientWithResponses) RemoveUserFromInstanceGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RemoveUserFromInstanceGroupResponse, error) {
+	rsp, err := c.RemoveUserFromInstanceGroupWithBody(ctx, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRemoveUserFromInstanceGroupResponse(rsp)
+}
+
+func (c *ClientWithResponses) RemoveUserFromInstanceGroupWithResponse(ctx context.Context, name Name, body RemoveUserFromInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveUserFromInstanceGroupResponse, error) {
+	rsp, err := c.RemoveUserFromInstanceGroup(ctx, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRemoveUserFromInstanceGroupResponse(rsp)
+}
+
+// UpdateInstanceGroupWithBodyWithResponse request with arbitrary body returning *UpdateInstanceGroupResponse
+func (c *ClientWithResponses) UpdateInstanceGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateInstanceGroupResponse, error) {
+	rsp, err := c.UpdateInstanceGroupWithBody(ctx, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateInstanceGroupResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateInstanceGroupWithResponse(ctx context.Context, name Name, body UpdateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInstanceGroupResponse, error) {
+	rsp, err := c.UpdateInstanceGroup(ctx, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateInstanceGroupResponse(rsp)
 }
 
 // ListHubIntegrationsWithResponse request returning *ListHubIntegrationsResponse
@@ -35607,6 +36192,54 @@ func ParseListHubFlowsResponse(rsp *http.Response) (*ListHubFlowsResponse, error
 	return response, nil
 }
 
+// ParseAddUserToInstanceGroupResponse parses an HTTP response from a AddUserToInstanceGroupWithResponse call
+func ParseAddUserToInstanceGroupResponse(rsp *http.Response) (*AddUserToInstanceGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AddUserToInstanceGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateInstanceGroupResponse parses an HTTP response from a CreateInstanceGroupWithResponse call
+func ParseCreateInstanceGroupResponse(rsp *http.Response) (*CreateInstanceGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateInstanceGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteInstanceGroupResponse parses an HTTP response from a DeleteInstanceGroupWithResponse call
+func ParseDeleteInstanceGroupResponse(rsp *http.Response) (*DeleteInstanceGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteInstanceGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetInstanceGroupResponse parses an HTTP response from a GetInstanceGroupWithResponse call
 func ParseGetInstanceGroupResponse(rsp *http.Response) (*GetInstanceGroupResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -35654,6 +36287,38 @@ func ParseListInstanceGroupsResponse(rsp *http.Response) (*ListInstanceGroupsRes
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseRemoveUserFromInstanceGroupResponse parses an HTTP response from a RemoveUserFromInstanceGroupWithResponse call
+func ParseRemoveUserFromInstanceGroupResponse(rsp *http.Response) (*RemoveUserFromInstanceGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RemoveUserFromInstanceGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateInstanceGroupResponse parses an HTTP response from a UpdateInstanceGroupWithResponse call
+func ParseUpdateInstanceGroupResponse(rsp *http.Response) (*UpdateInstanceGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateInstanceGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
