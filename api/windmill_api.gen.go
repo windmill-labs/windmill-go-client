@@ -2871,7 +2871,6 @@ type ConnectSlackCallbackJSONBody struct {
 type CreateAccountJSONBody struct {
 	Client       string  `json:"client"`
 	ExpiresIn    int     `json:"expires_in"`
-	Owner        string  `json:"owner"`
 	RefreshToken *string `json:"refresh_token,omitempty"`
 }
 
