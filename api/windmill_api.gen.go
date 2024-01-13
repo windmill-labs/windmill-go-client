@@ -654,6 +654,7 @@ type EditSchedule struct {
 	Retry               *Retry      `json:"retry,omitempty"`
 	Schedule            string      `json:"schedule"`
 	Summary             *string     `json:"summary,omitempty"`
+	Tag                 *string     `json:"tag,omitempty"`
 	Timezone            string      `json:"timezone"`
 	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
 }
@@ -1069,6 +1070,7 @@ type NewSchedule struct {
 	Schedule            string      `json:"schedule"`
 	ScriptPath          string      `json:"script_path"`
 	Summary             *string     `json:"summary,omitempty"`
+	Tag                 *string     `json:"tag,omitempty"`
 	Timezone            string      `json:"timezone"`
 	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
 }
@@ -1407,6 +1409,7 @@ type Schedule struct {
 	Schedule            string              `json:"schedule"`
 	ScriptPath          string              `json:"script_path"`
 	Summary             *string             `json:"summary,omitempty"`
+	Tag                 *string             `json:"tag,omitempty"`
 	Timezone            string              `json:"timezone"`
 	WsErrorHandlerMuted *bool               `json:"ws_error_handler_muted,omitempty"`
 }
@@ -1444,6 +1447,7 @@ type ScheduleWJobs struct {
 	Schedule            string      `json:"schedule"`
 	ScriptPath          string      `json:"script_path"`
 	Summary             *string     `json:"summary,omitempty"`
+	Tag                 *string     `json:"tag,omitempty"`
 	Timezone            string      `json:"timezone"`
 	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
 }
@@ -3151,7 +3155,7 @@ type EditErrorHandlerJSONBody struct {
 
 // EditWorkspaceGitSyncConfigJSONBody defines parameters for EditWorkspaceGitSyncConfig.
 type EditWorkspaceGitSyncConfigJSONBody struct {
-	GitSyncSettings *WorkspaceGitSync `json:"git_sync_settings,omitempty"`
+	GitSyncSettings *[]WorkspaceGitSync `json:"git_sync_settings,omitempty"`
 }
 
 // EditLargeFileStorageConfigJSONBody defines parameters for EditLargeFileStorageConfig.
@@ -32158,23 +32162,23 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AutoInviteDomain          *string           `json:"auto_invite_domain,omitempty"`
-		AutoInviteOperator        *bool             `json:"auto_invite_operator,omitempty"`
-		CodeCompletionEnabled     bool              `json:"code_completion_enabled"`
-		CustomerId                *string           `json:"customer_id,omitempty"`
-		DeployTo                  *string           `json:"deploy_to,omitempty"`
-		ErrorHandler              *string           `json:"error_handler,omitempty"`
-		ErrorHandlerExtraArgs     *ScriptArgs       `json:"error_handler_extra_args,omitempty"`
-		ErrorHandlerMutedOnCancel *bool             `json:"error_handler_muted_on_cancel,omitempty"`
-		GitSync                   *WorkspaceGitSync `json:"git_sync,omitempty"`
-		LargeFileStorage          *LargeFileStorage `json:"large_file_storage,omitempty"`
-		OpenaiResourcePath        *string           `json:"openai_resource_path,omitempty"`
-		Plan                      *string           `json:"plan,omitempty"`
-		SlackCommandScript        *string           `json:"slack_command_script,omitempty"`
-		SlackName                 *string           `json:"slack_name,omitempty"`
-		SlackTeamId               *string           `json:"slack_team_id,omitempty"`
-		Webhook                   *string           `json:"webhook,omitempty"`
-		WorkspaceId               *string           `json:"workspace_id,omitempty"`
+		AutoInviteDomain          *string             `json:"auto_invite_domain,omitempty"`
+		AutoInviteOperator        *bool               `json:"auto_invite_operator,omitempty"`
+		CodeCompletionEnabled     bool                `json:"code_completion_enabled"`
+		CustomerId                *string             `json:"customer_id,omitempty"`
+		DeployTo                  *string             `json:"deploy_to,omitempty"`
+		ErrorHandler              *string             `json:"error_handler,omitempty"`
+		ErrorHandlerExtraArgs     *ScriptArgs         `json:"error_handler_extra_args,omitempty"`
+		ErrorHandlerMutedOnCancel *bool               `json:"error_handler_muted_on_cancel,omitempty"`
+		GitSync                   *[]WorkspaceGitSync `json:"git_sync,omitempty"`
+		LargeFileStorage          *LargeFileStorage   `json:"large_file_storage,omitempty"`
+		OpenaiResourcePath        *string             `json:"openai_resource_path,omitempty"`
+		Plan                      *string             `json:"plan,omitempty"`
+		SlackCommandScript        *string             `json:"slack_command_script,omitempty"`
+		SlackName                 *string             `json:"slack_name,omitempty"`
+		SlackTeamId               *string             `json:"slack_team_id,omitempty"`
+		Webhook                   *string             `json:"webhook,omitempty"`
+		WorkspaceId               *string             `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -41514,23 +41518,23 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AutoInviteDomain          *string           `json:"auto_invite_domain,omitempty"`
-			AutoInviteOperator        *bool             `json:"auto_invite_operator,omitempty"`
-			CodeCompletionEnabled     bool              `json:"code_completion_enabled"`
-			CustomerId                *string           `json:"customer_id,omitempty"`
-			DeployTo                  *string           `json:"deploy_to,omitempty"`
-			ErrorHandler              *string           `json:"error_handler,omitempty"`
-			ErrorHandlerExtraArgs     *ScriptArgs       `json:"error_handler_extra_args,omitempty"`
-			ErrorHandlerMutedOnCancel *bool             `json:"error_handler_muted_on_cancel,omitempty"`
-			GitSync                   *WorkspaceGitSync `json:"git_sync,omitempty"`
-			LargeFileStorage          *LargeFileStorage `json:"large_file_storage,omitempty"`
-			OpenaiResourcePath        *string           `json:"openai_resource_path,omitempty"`
-			Plan                      *string           `json:"plan,omitempty"`
-			SlackCommandScript        *string           `json:"slack_command_script,omitempty"`
-			SlackName                 *string           `json:"slack_name,omitempty"`
-			SlackTeamId               *string           `json:"slack_team_id,omitempty"`
-			Webhook                   *string           `json:"webhook,omitempty"`
-			WorkspaceId               *string           `json:"workspace_id,omitempty"`
+			AutoInviteDomain          *string             `json:"auto_invite_domain,omitempty"`
+			AutoInviteOperator        *bool               `json:"auto_invite_operator,omitempty"`
+			CodeCompletionEnabled     bool                `json:"code_completion_enabled"`
+			CustomerId                *string             `json:"customer_id,omitempty"`
+			DeployTo                  *string             `json:"deploy_to,omitempty"`
+			ErrorHandler              *string             `json:"error_handler,omitempty"`
+			ErrorHandlerExtraArgs     *ScriptArgs         `json:"error_handler_extra_args,omitempty"`
+			ErrorHandlerMutedOnCancel *bool               `json:"error_handler_muted_on_cancel,omitempty"`
+			GitSync                   *[]WorkspaceGitSync `json:"git_sync,omitempty"`
+			LargeFileStorage          *LargeFileStorage   `json:"large_file_storage,omitempty"`
+			OpenaiResourcePath        *string             `json:"openai_resource_path,omitempty"`
+			Plan                      *string             `json:"plan,omitempty"`
+			SlackCommandScript        *string             `json:"slack_command_script,omitempty"`
+			SlackName                 *string             `json:"slack_name,omitempty"`
+			SlackTeamId               *string             `json:"slack_team_id,omitempty"`
+			Webhook                   *string             `json:"webhook,omitempty"`
+			WorkspaceId               *string             `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
