@@ -392,6 +392,23 @@ const (
 	Rawscript RawScriptType = "rawscript"
 )
 
+// Defines values for RawScriptForDependenciesLanguage.
+const (
+	RawScriptForDependenciesLanguageBash       RawScriptForDependenciesLanguage = "bash"
+	RawScriptForDependenciesLanguageBigquery   RawScriptForDependenciesLanguage = "bigquery"
+	RawScriptForDependenciesLanguageBun        RawScriptForDependenciesLanguage = "bun"
+	RawScriptForDependenciesLanguageDeno       RawScriptForDependenciesLanguage = "deno"
+	RawScriptForDependenciesLanguageGo         RawScriptForDependenciesLanguage = "go"
+	RawScriptForDependenciesLanguageGraphql    RawScriptForDependenciesLanguage = "graphql"
+	RawScriptForDependenciesLanguageMssql      RawScriptForDependenciesLanguage = "mssql"
+	RawScriptForDependenciesLanguageMysql      RawScriptForDependenciesLanguage = "mysql"
+	RawScriptForDependenciesLanguageNativets   RawScriptForDependenciesLanguage = "nativets"
+	RawScriptForDependenciesLanguagePostgresql RawScriptForDependenciesLanguage = "postgresql"
+	RawScriptForDependenciesLanguagePowershell RawScriptForDependenciesLanguage = "powershell"
+	RawScriptForDependenciesLanguagePython3    RawScriptForDependenciesLanguage = "python3"
+	RawScriptForDependenciesLanguageSnowflake  RawScriptForDependenciesLanguage = "snowflake"
+)
+
 // Defines values for RunnableType.
 const (
 	RunnableTypeFlowPath   RunnableType = "FlowPath"
@@ -1320,6 +1337,16 @@ type RawScriptLanguage string
 
 // RawScriptType defines model for RawScript.Type.
 type RawScriptType string
+
+// RawScriptForDependencies defines model for RawScriptForDependencies.
+type RawScriptForDependencies struct {
+	Content  string                           `json:"content"`
+	Language RawScriptForDependenciesLanguage `json:"language"`
+	Path     string                           `json:"path"`
+}
+
+// RawScriptForDependenciesLanguage defines model for RawScriptForDependencies.Language.
+type RawScriptForDependenciesLanguage string
 
 // Resource defines model for Resource.
 type Resource struct {
@@ -2628,6 +2655,12 @@ type GetResumeUrlsParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
 }
 
+// RunRawScriptDependenciesJSONBody defines parameters for RunRawScriptDependencies.
+type RunRawScriptDependenciesJSONBody struct {
+	Entrypoint string                     `json:"entrypoint"`
+	RawScripts []RawScriptForDependencies `json:"raw_scripts"`
+}
+
 // RunFlowByPathJSONBody defines parameters for RunFlowByPath.
 type RunFlowByPathJSONBody = ScriptArgs
 
@@ -3384,6 +3417,9 @@ type OpenaiSyncScriptByPathJSONRequestBody = OpenaiSyncScriptByPathJSONBody
 
 // RestartFlowAtStepJSONRequestBody defines body for RestartFlowAtStep for application/json ContentType.
 type RestartFlowAtStepJSONRequestBody = RestartFlowAtStepJSONBody
+
+// RunRawScriptDependenciesJSONRequestBody defines body for RunRawScriptDependencies for application/json ContentType.
+type RunRawScriptDependenciesJSONRequestBody RunRawScriptDependenciesJSONBody
 
 // RunFlowByPathJSONRequestBody defines body for RunFlowByPath for application/json ContentType.
 type RunFlowByPathJSONRequestBody = RunFlowByPathJSONBody
@@ -5166,6 +5202,11 @@ type ClientInterface interface {
 
 	// GetResumeUrls request
 	GetResumeUrls(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunRawScriptDependencies request with any body
+	RunRawScriptDependenciesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunRawScriptDependencies(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunFlowByPath request with any body
 	RunFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8073,6 +8114,30 @@ func (c *Client) ResultById(ctx context.Context, workspace WorkspaceId, flowJobI
 
 func (c *Client) GetResumeUrls(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetResumeUrlsRequest(c.Server, workspace, id, resumeId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunRawScriptDependenciesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunRawScriptDependenciesRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunRawScriptDependencies(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunRawScriptDependenciesRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -18386,6 +18451,53 @@ func NewGetResumeUrlsRequest(server string, workspace WorkspaceId, id JobId, res
 	return req, nil
 }
 
+// NewRunRawScriptDependenciesRequest calls the generic RunRawScriptDependencies builder with application/json body
+func NewRunRawScriptDependenciesRequest(server string, workspace WorkspaceId, body RunRawScriptDependenciesJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunRawScriptDependenciesRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRunRawScriptDependenciesRequestWithBody generates requests for RunRawScriptDependencies with any type of body
+func NewRunRawScriptDependenciesRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run/dependencies", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRunFlowByPathRequest calls the generic RunFlowByPath builder with application/json body
 func NewRunFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, body RunFlowByPathJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -25949,6 +26061,11 @@ type ClientWithResponsesInterface interface {
 	// GetResumeUrls request
 	GetResumeUrlsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*GetResumeUrlsResponse, error)
 
+	// RunRawScriptDependencies request with any body
+	RunRawScriptDependenciesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesResponse, error)
+
+	RunRawScriptDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesResponse, error)
+
 	// RunFlowByPath request with any body
 	RunFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowByPathResponse, error)
 
@@ -29803,6 +29920,30 @@ func (r GetResumeUrlsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetResumeUrlsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunRawScriptDependenciesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		Lock string `json:"lock"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r RunRawScriptDependenciesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunRawScriptDependenciesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -34360,6 +34501,23 @@ func (c *ClientWithResponses) GetResumeUrlsWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseGetResumeUrlsResponse(rsp)
+}
+
+// RunRawScriptDependenciesWithBodyWithResponse request with arbitrary body returning *RunRawScriptDependenciesResponse
+func (c *ClientWithResponses) RunRawScriptDependenciesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesResponse, error) {
+	rsp, err := c.RunRawScriptDependenciesWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunRawScriptDependenciesResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunRawScriptDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesResponse, error) {
+	rsp, err := c.RunRawScriptDependencies(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunRawScriptDependenciesResponse(rsp)
 }
 
 // RunFlowByPathWithBodyWithResponse request with arbitrary body returning *RunFlowByPathResponse
@@ -39228,6 +39386,34 @@ func ParseGetResumeUrlsResponse(rsp *http.Response) (*GetResumeUrlsResponse, err
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRunRawScriptDependenciesResponse parses an HTTP response from a RunRawScriptDependenciesWithResponse call
+func ParseRunRawScriptDependenciesResponse(rsp *http.Response) (*RunRawScriptDependenciesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunRawScriptDependenciesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			Lock string `json:"lock"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
 
 	}
 
