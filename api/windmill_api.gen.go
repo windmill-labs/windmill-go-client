@@ -5319,6 +5319,9 @@ type ClientInterface interface {
 
 	RefreshToken(ctx context.Context, workspace WorkspaceId, id AccountId, body RefreshTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetOidcToken request
+	GetOidcToken(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateRawApp request with any body
 	CreateRawAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8642,6 +8645,18 @@ func (c *Client) RefreshTokenWithBody(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) RefreshToken(ctx context.Context, workspace WorkspaceId, id AccountId, body RefreshTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRefreshTokenRequest(c.Server, workspace, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetOidcToken(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOidcTokenRequest(c.Server, workspace, audience)
 	if err != nil {
 		return nil, err
 	}
@@ -20679,6 +20694,47 @@ func NewRefreshTokenRequestWithBody(server string, workspace WorkspaceId, id Acc
 	return req, nil
 }
 
+// NewGetOidcTokenRequest generates requests for GetOidcToken
+func NewGetOidcTokenRequest(server string, workspace WorkspaceId, audience string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "audience", runtime.ParamLocationPath, audience)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/oidc/token/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateRawAppRequest calls the generic CreateRawApp builder with application/json body
 func NewCreateRawAppRequest(server string, workspace WorkspaceId, body CreateRawAppJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -26177,6 +26233,9 @@ type ClientWithResponsesInterface interface {
 
 	RefreshTokenWithResponse(ctx context.Context, workspace WorkspaceId, id AccountId, body RefreshTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*RefreshTokenResponse, error)
 
+	// GetOidcToken request
+	GetOidcTokenWithResponse(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*GetOidcTokenResponse, error)
+
 	// CreateRawApp request with any body
 	CreateRawAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateRawAppResponse, error)
 
@@ -30541,6 +30600,27 @@ func (r RefreshTokenResponse) StatusCode() int {
 	return 0
 }
 
+type GetOidcTokenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetOidcTokenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOidcTokenResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateRawAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -34881,6 +34961,15 @@ func (c *ClientWithResponses) RefreshTokenWithResponse(ctx context.Context, work
 		return nil, err
 	}
 	return ParseRefreshTokenResponse(rsp)
+}
+
+// GetOidcTokenWithResponse request returning *GetOidcTokenResponse
+func (c *ClientWithResponses) GetOidcTokenWithResponse(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*GetOidcTokenResponse, error) {
+	rsp, err := c.GetOidcToken(ctx, workspace, audience, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOidcTokenResponse(rsp)
 }
 
 // CreateRawAppWithBodyWithResponse request with arbitrary body returning *CreateRawAppResponse
@@ -39950,6 +40039,22 @@ func ParseRefreshTokenResponse(rsp *http.Response) (*RefreshTokenResponse, error
 	}
 
 	response := &RefreshTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetOidcTokenResponse parses an HTTP response from a GetOidcTokenWithResponse call
+func ParseGetOidcTokenResponse(rsp *http.Response) (*GetOidcTokenResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetOidcTokenResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
