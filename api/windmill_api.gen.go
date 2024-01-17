@@ -1107,7 +1107,7 @@ type NewScript struct {
 	IsTemplate             *bool                   `json:"is_template,omitempty"`
 	Kind                   *NewScriptKind          `json:"kind,omitempty"`
 	Language               NewScriptLanguage       `json:"language"`
-	Lock                   *[]string               `json:"lock,omitempty"`
+	Lock                   *string                 `json:"lock,omitempty"`
 	ParentHash             *string                 `json:"parent_hash,omitempty"`
 	Path                   string                  `json:"path"`
 	Priority               *int                    `json:"priority,omitempty"`
@@ -1142,7 +1142,7 @@ type NewScriptWithDraft struct {
 	IsTemplate             *bool                      `json:"is_template,omitempty"`
 	Kind                   *NewScriptWithDraftKind    `json:"kind,omitempty"`
 	Language               NewScriptWithDraftLanguage `json:"language"`
-	Lock                   *[]string                  `json:"lock,omitempty"`
+	Lock                   *string                    `json:"lock,omitempty"`
 	ParentHash             *string                    `json:"parent_hash,omitempty"`
 	Path                   string                     `json:"path"`
 	Priority               *int                       `json:"priority,omitempty"`
@@ -1340,9 +1340,9 @@ type RawScriptType string
 
 // RawScriptForDependencies defines model for RawScriptForDependencies.
 type RawScriptForDependencies struct {
-	Content  string                           `json:"content"`
 	Language RawScriptForDependenciesLanguage `json:"language"`
 	Path     string                           `json:"path"`
+	RawCode  string                           `json:"raw_code"`
 }
 
 // RawScriptForDependenciesLanguage defines model for RawScriptForDependencies.Language.
