@@ -2379,9 +2379,10 @@ type MoveS3FileParams struct {
 // MultipartFileUploadJSONBody defines parameters for MultipartFileUpload.
 type MultipartFileUploadJSONBody struct {
 	CancelUpload   bool             `json:"cancel_upload"`
-	FileKey        string           `json:"file_key"`
+	FileExtension  *string          `json:"file_extension,omitempty"`
+	FileKey        *string          `json:"file_key,omitempty"`
 	IsFinal        bool             `json:"is_final"`
-	PartContent    *[]int           `json:"part_content,omitempty"`
+	PartContent    []int            `json:"part_content"`
 	Parts          []UploadFilePart `json:"parts"`
 	S3ResourcePath *string          `json:"s3_resource_path,omitempty"`
 	UploadId       *string          `json:"upload_id,omitempty"`
@@ -29489,6 +29490,7 @@ type MultipartFileUploadResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
+		FileKey  string           `json:"file_key"`
 		IsDone   bool             `json:"is_done"`
 		Parts    []UploadFilePart `json:"parts"`
 		UploadId string           `json:"upload_id"`
@@ -30273,6 +30275,7 @@ type GetCompletedJobResultMaybeResponse struct {
 		Completed bool        `json:"completed"`
 		Result    interface{} `json:"result"`
 		Started   *bool       `json:"started,omitempty"`
+		Success   *bool       `json:"success,omitempty"`
 	}
 }
 
@@ -38940,6 +38943,7 @@ func ParseMultipartFileUploadResponse(rsp *http.Response) (*MultipartFileUploadR
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
+			FileKey  string           `json:"file_key"`
 			IsDone   bool             `json:"is_done"`
 			Parts    []UploadFilePart `json:"parts"`
 			UploadId string           `json:"upload_id"`
@@ -39770,6 +39774,7 @@ func ParseGetCompletedJobResultMaybeResponse(rsp *http.Response) (*GetCompletedJ
 			Completed bool        `json:"completed"`
 			Result    interface{} `json:"result"`
 			Started   *bool       `json:"started,omitempty"`
+			Success   *bool       `json:"success,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
