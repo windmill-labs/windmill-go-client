@@ -1633,7 +1633,6 @@ type WindmillFileMetadata struct {
 type WindmillFilePreview struct {
 	Content     *string                        `json:"content,omitempty"`
 	ContentType WindmillFilePreviewContentType `json:"content_type"`
-	DownloadUrl *string                        `json:"download_url,omitempty"`
 	Msg         *string                        `json:"msg,omitempty"`
 }
 
@@ -2346,6 +2345,11 @@ type DeleteS3FileParams struct {
 // DuckdbConnectionSettingsJSONBody defines parameters for DuckdbConnectionSettings.
 type DuckdbConnectionSettingsJSONBody struct {
 	S3Resource *S3Resource `json:"s3_resource,omitempty"`
+}
+
+// GenerateDownloadUrlParams defines parameters for GenerateDownloadUrl.
+type GenerateDownloadUrlParams struct {
+	FileKey string `form:"file_key" json:"file_key"`
 }
 
 // ListStoredFilesParams defines parameters for ListStoredFiles.
@@ -5109,6 +5113,9 @@ type ClientInterface interface {
 
 	DuckdbConnectionSettings(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GenerateDownloadUrl request
+	GenerateDownloadUrl(ctx context.Context, workspace WorkspaceId, params *GenerateDownloadUrlParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListStoredFiles request
 	ListStoredFiles(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7698,6 +7705,18 @@ func (c *Client) DuckdbConnectionSettingsWithBody(ctx context.Context, workspace
 
 func (c *Client) DuckdbConnectionSettings(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDuckdbConnectionSettingsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GenerateDownloadUrl(ctx context.Context, workspace WorkspaceId, params *GenerateDownloadUrlParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGenerateDownloadUrlRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -16077,6 +16096,56 @@ func NewDuckdbConnectionSettingsRequestWithBody(server string, workspace Workspa
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGenerateDownloadUrlRequest generates requests for GenerateDownloadUrl
+func NewGenerateDownloadUrlRequest(server string, workspace WorkspaceId, params *GenerateDownloadUrlParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/generate_download_url", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -26023,6 +26092,9 @@ type ClientWithResponsesInterface interface {
 
 	DuckdbConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error)
 
+	// GenerateDownloadUrl request
+	GenerateDownloadUrlWithResponse(ctx context.Context, workspace WorkspaceId, params *GenerateDownloadUrlParams, reqEditors ...RequestEditorFn) (*GenerateDownloadUrlResponse, error)
+
 	// ListStoredFiles request
 	ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error)
 
@@ -29389,6 +29461,30 @@ func (r DuckdbConnectionSettingsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DuckdbConnectionSettingsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GenerateDownloadUrlResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		DownloadUrl string `json:"download_url"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GenerateDownloadUrlResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GenerateDownloadUrlResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -34281,6 +34377,15 @@ func (c *ClientWithResponses) DuckdbConnectionSettingsWithResponse(ctx context.C
 	return ParseDuckdbConnectionSettingsResponse(rsp)
 }
 
+// GenerateDownloadUrlWithResponse request returning *GenerateDownloadUrlResponse
+func (c *ClientWithResponses) GenerateDownloadUrlWithResponse(ctx context.Context, workspace WorkspaceId, params *GenerateDownloadUrlParams, reqEditors ...RequestEditorFn) (*GenerateDownloadUrlResponse, error) {
+	rsp, err := c.GenerateDownloadUrl(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGenerateDownloadUrlResponse(rsp)
+}
+
 // ListStoredFilesWithResponse request returning *ListStoredFilesResponse
 func (c *ClientWithResponses) ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error) {
 	rsp, err := c.ListStoredFiles(ctx, workspace, params, reqEditors...)
@@ -38809,6 +38914,34 @@ func ParseDuckdbConnectionSettingsResponse(rsp *http.Response) (*DuckdbConnectio
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			ConnectionSettingsStr *string `json:"connection_settings_str,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGenerateDownloadUrlResponse parses an HTTP response from a GenerateDownloadUrlWithResponse call
+func ParseGenerateDownloadUrlResponse(rsp *http.Response) (*GenerateDownloadUrlResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GenerateDownloadUrlResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			DownloadUrl string `json:"download_url"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
