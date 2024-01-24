@@ -606,6 +606,12 @@ type CompletedJobJobKind string
 // CompletedJobLanguage defines model for CompletedJob.Language.
 type CompletedJobLanguage string
 
+// ConcurrencyGroup defines model for ConcurrencyGroup.
+type ConcurrencyGroup struct {
+	ConcurrencyId string   `json:"concurrency_id"`
+	JobUuids      []string `json:"job_uuids"`
+}
+
 // ContextualVariable defines model for ContextualVariable.
 type ContextualVariable struct {
 	Description string `json:"description"`
@@ -1095,6 +1101,7 @@ type NewSchedule struct {
 // NewScript defines model for NewScript.
 type NewScript struct {
 	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
+	ConcurrencyKey         *string                 `json:"concurrency_key,omitempty"`
 	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
 	Content                string                  `json:"content"`
@@ -1128,6 +1135,7 @@ type NewScriptLanguage string
 // NewScriptWithDraft defines model for NewScriptWithDraft.
 type NewScriptWithDraft struct {
 	CacheTtl               *float32                   `json:"cache_ttl,omitempty"`
+	ConcurrencyKey         *string                    `json:"concurrency_key,omitempty"`
 	ConcurrencyTimeWindowS *int                       `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *int                       `json:"concurrent_limit,omitempty"`
 	Content                string                     `json:"content"`
@@ -1697,6 +1705,9 @@ type Before = time.Time
 
 // ClientName defines model for ClientName.
 type ClientName = string
+
+// ConcurrencyId defines model for ConcurrencyId.
+type ConcurrencyId = string
 
 // CreatedBy defines model for CreatedBy.
 type CreatedBy = string
@@ -3178,6 +3189,11 @@ type EditCopilotConfigJSONBody struct {
 	OpenaiResourcePath    *string `json:"openai_resource_path,omitempty"`
 }
 
+// EditWorkspaceDefaultAppJSONBody defines parameters for EditWorkspaceDefaultApp.
+type EditWorkspaceDefaultAppJSONBody struct {
+	DefaultAppPath *string `json:"default_app_path,omitempty"`
+}
+
 // EditDeployToJSONBody defines parameters for EditDeployTo.
 type EditDeployToJSONBody struct {
 	DeployTo *string `json:"deploy_to,omitempty"`
@@ -3539,6 +3555,9 @@ type EditAutoInviteJSONRequestBody EditAutoInviteJSONBody
 
 // EditCopilotConfigJSONRequestBody defines body for EditCopilotConfig for application/json ContentType.
 type EditCopilotConfigJSONRequestBody EditCopilotConfigJSONBody
+
+// EditWorkspaceDefaultAppJSONRequestBody defines body for EditWorkspaceDefaultApp for application/json ContentType.
+type EditWorkspaceDefaultAppJSONRequestBody EditWorkspaceDefaultAppJSONBody
 
 // EditDeployToJSONRequestBody defines body for EditDeployTo for application/json ContentType.
 type EditDeployToJSONRequestBody EditDeployToJSONBody
@@ -4667,6 +4686,12 @@ type ClientInterface interface {
 	// Logout request
 	Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListConcurrencyGroups request
+	ListConcurrencyGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteConcurrencyGroup request
+	DeleteConcurrencyGroup(ctx context.Context, concurrencyId ConcurrencyId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetConfig request
 	GetConfig(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5577,6 +5602,9 @@ type ClientInterface interface {
 	// ArchiveWorkspace request
 	ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetWorkspaceDefaultApp request
+	GetWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteInvite request with any body
 	DeleteInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5591,6 +5619,11 @@ type ClientInterface interface {
 	EditCopilotConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditCopilotConfig(ctx context.Context, workspace WorkspaceId, body EditCopilotConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EditWorkspaceDefaultApp request with any body
+	EditWorkspaceDefaultAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDefaultAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditDeployTo request with any body
 	EditDeployToWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5749,6 +5782,30 @@ func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditor
 
 func (c *Client) Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLogoutRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListConcurrencyGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListConcurrencyGroupsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteConcurrencyGroup(ctx context.Context, concurrencyId ConcurrencyId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteConcurrencyGroupRequest(c.Server, concurrencyId)
 	if err != nil {
 		return nil, err
 	}
@@ -9755,6 +9812,18 @@ func (c *Client) ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, re
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetWorkspaceDefaultAppRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) DeleteInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteInviteRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -9817,6 +9886,30 @@ func (c *Client) EditCopilotConfigWithBody(ctx context.Context, workspace Worksp
 
 func (c *Client) EditCopilotConfig(ctx context.Context, workspace WorkspaceId, body EditCopilotConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditCopilotConfigRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditWorkspaceDefaultAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditWorkspaceDefaultAppRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDefaultAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditWorkspaceDefaultAppRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -10416,6 +10509,67 @@ func NewLogoutRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListConcurrencyGroupsRequest generates requests for ListConcurrencyGroups
+func NewListConcurrencyGroupsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/concurrency_groups/list")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDeleteConcurrencyGroupRequest generates requests for DeleteConcurrencyGroup
+func NewDeleteConcurrencyGroupRequest(server string, concurrencyId ConcurrencyId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "concurrency_id", runtime.ParamLocationPath, concurrencyId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/concurrency_groups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -24335,6 +24489,40 @@ func NewArchiveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Req
 	return req, nil
 }
 
+// NewGetWorkspaceDefaultAppRequest generates requests for GetWorkspaceDefaultApp
+func NewGetWorkspaceDefaultAppRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/default_app", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewDeleteInviteRequest calls the generic DeleteInvite builder with application/json body
 func NewDeleteInviteRequest(server string, workspace WorkspaceId, body DeleteInviteJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -24457,6 +24645,53 @@ func NewEditCopilotConfigRequestWithBody(server string, workspace WorkspaceId, c
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_copilot_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewEditWorkspaceDefaultAppRequest calls the generic EditWorkspaceDefaultApp builder with application/json body
+func NewEditWorkspaceDefaultAppRequest(server string, workspace WorkspaceId, body EditWorkspaceDefaultAppJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditWorkspaceDefaultAppRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditWorkspaceDefaultAppRequestWithBody generates requests for EditWorkspaceDefaultApp with any type of body
+func NewEditWorkspaceDefaultAppRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_default_app", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -25646,6 +25881,12 @@ type ClientWithResponsesInterface interface {
 	// Logout request
 	LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error)
 
+	// ListConcurrencyGroups request
+	ListConcurrencyGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListConcurrencyGroupsResponse, error)
+
+	// DeleteConcurrencyGroup request
+	DeleteConcurrencyGroupWithResponse(ctx context.Context, concurrencyId ConcurrencyId, reqEditors ...RequestEditorFn) (*DeleteConcurrencyGroupResponse, error)
+
 	// GetConfig request
 	GetConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetConfigResponse, error)
 
@@ -26556,6 +26797,9 @@ type ClientWithResponsesInterface interface {
 	// ArchiveWorkspace request
 	ArchiveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ArchiveWorkspaceResponse, error)
 
+	// GetWorkspaceDefaultApp request
+	GetWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceDefaultAppResponse, error)
+
 	// DeleteInvite request with any body
 	DeleteInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error)
 
@@ -26570,6 +26814,11 @@ type ClientWithResponsesInterface interface {
 	EditCopilotConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditCopilotConfigResponse, error)
 
 	EditCopilotConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditCopilotConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditCopilotConfigResponse, error)
+
+	// EditWorkspaceDefaultApp request with any body
+	EditWorkspaceDefaultAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceDefaultAppResponse, error)
+
+	EditWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDefaultAppJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWorkspaceDefaultAppResponse, error)
 
 	// EditDeployTo request with any body
 	EditDeployToWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error)
@@ -26772,6 +27021,50 @@ func (r LogoutResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LogoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListConcurrencyGroupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]ConcurrencyGroup
+}
+
+// Status returns HTTPResponse.Status
+func (r ListConcurrencyGroupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListConcurrencyGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteConcurrencyGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteConcurrencyGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteConcurrencyGroupResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -32219,6 +32512,30 @@ func (r ArchiveWorkspaceResponse) StatusCode() int {
 	return 0
 }
 
+type GetWorkspaceDefaultAppResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		DefaultAppPath *string `json:"default_app_path,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetWorkspaceDefaultAppResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetWorkspaceDefaultAppResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DeleteInviteResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -32276,6 +32593,27 @@ func (r EditCopilotConfigResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r EditCopilotConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type EditWorkspaceDefaultAppResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditWorkspaceDefaultAppResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditWorkspaceDefaultAppResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -32485,6 +32823,7 @@ type GetSettingsResponse struct {
 		AutoInviteOperator        *bool               `json:"auto_invite_operator,omitempty"`
 		CodeCompletionEnabled     bool                `json:"code_completion_enabled"`
 		CustomerId                *string             `json:"customer_id,omitempty"`
+		DefaultApp                *string             `json:"default_app,omitempty"`
 		DeployTo                  *string             `json:"deploy_to,omitempty"`
 		ErrorHandler              *string             `json:"error_handler,omitempty"`
 		ErrorHandlerExtraArgs     *ScriptArgs         `json:"error_handler_extra_args,omitempty"`
@@ -32951,6 +33290,24 @@ func (c *ClientWithResponses) LogoutWithResponse(ctx context.Context, reqEditors
 		return nil, err
 	}
 	return ParseLogoutResponse(rsp)
+}
+
+// ListConcurrencyGroupsWithResponse request returning *ListConcurrencyGroupsResponse
+func (c *ClientWithResponses) ListConcurrencyGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListConcurrencyGroupsResponse, error) {
+	rsp, err := c.ListConcurrencyGroups(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListConcurrencyGroupsResponse(rsp)
+}
+
+// DeleteConcurrencyGroupWithResponse request returning *DeleteConcurrencyGroupResponse
+func (c *ClientWithResponses) DeleteConcurrencyGroupWithResponse(ctx context.Context, concurrencyId ConcurrencyId, reqEditors ...RequestEditorFn) (*DeleteConcurrencyGroupResponse, error) {
+	rsp, err := c.DeleteConcurrencyGroup(ctx, concurrencyId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteConcurrencyGroupResponse(rsp)
 }
 
 // GetConfigWithResponse request returning *GetConfigResponse
@@ -35861,6 +36218,15 @@ func (c *ClientWithResponses) ArchiveWorkspaceWithResponse(ctx context.Context, 
 	return ParseArchiveWorkspaceResponse(rsp)
 }
 
+// GetWorkspaceDefaultAppWithResponse request returning *GetWorkspaceDefaultAppResponse
+func (c *ClientWithResponses) GetWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceDefaultAppResponse, error) {
+	rsp, err := c.GetWorkspaceDefaultApp(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetWorkspaceDefaultAppResponse(rsp)
+}
+
 // DeleteInviteWithBodyWithResponse request with arbitrary body returning *DeleteInviteResponse
 func (c *ClientWithResponses) DeleteInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error) {
 	rsp, err := c.DeleteInviteWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -35910,6 +36276,23 @@ func (c *ClientWithResponses) EditCopilotConfigWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseEditCopilotConfigResponse(rsp)
+}
+
+// EditWorkspaceDefaultAppWithBodyWithResponse request with arbitrary body returning *EditWorkspaceDefaultAppResponse
+func (c *ClientWithResponses) EditWorkspaceDefaultAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceDefaultAppResponse, error) {
+	rsp, err := c.EditWorkspaceDefaultAppWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditWorkspaceDefaultAppResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDefaultAppJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWorkspaceDefaultAppResponse, error) {
+	rsp, err := c.EditWorkspaceDefaultApp(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditWorkspaceDefaultAppResponse(rsp)
 }
 
 // EditDeployToWithBodyWithResponse request with arbitrary body returning *EditDeployToResponse
@@ -36345,6 +36728,58 @@ func ParseLogoutResponse(rsp *http.Response) (*LogoutResponse, error) {
 	response := &LogoutResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListConcurrencyGroupsResponse parses an HTTP response from a ListConcurrencyGroupsWithResponse call
+func ParseListConcurrencyGroupsResponse(rsp *http.Response) (*ListConcurrencyGroupsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListConcurrencyGroupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ConcurrencyGroup
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteConcurrencyGroupResponse parses an HTTP response from a DeleteConcurrencyGroupWithResponse call
+func ParseDeleteConcurrencyGroupResponse(rsp *http.Response) (*DeleteConcurrencyGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteConcurrencyGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -41696,6 +42131,34 @@ func ParseArchiveWorkspaceResponse(rsp *http.Response) (*ArchiveWorkspaceRespons
 	return response, nil
 }
 
+// ParseGetWorkspaceDefaultAppResponse parses an HTTP response from a GetWorkspaceDefaultAppWithResponse call
+func ParseGetWorkspaceDefaultAppResponse(rsp *http.Response) (*GetWorkspaceDefaultAppResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetWorkspaceDefaultAppResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			DefaultAppPath *string `json:"default_app_path,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseDeleteInviteResponse parses an HTTP response from a DeleteInviteWithResponse call
 func ParseDeleteInviteResponse(rsp *http.Response) (*DeleteInviteResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -41737,6 +42200,22 @@ func ParseEditCopilotConfigResponse(rsp *http.Response) (*EditCopilotConfigRespo
 	}
 
 	response := &EditCopilotConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseEditWorkspaceDefaultAppResponse parses an HTTP response from a EditWorkspaceDefaultAppWithResponse call
+func ParseEditWorkspaceDefaultAppResponse(rsp *http.Response) (*EditWorkspaceDefaultAppResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditWorkspaceDefaultAppResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -41950,6 +42429,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			AutoInviteOperator        *bool               `json:"auto_invite_operator,omitempty"`
 			CodeCompletionEnabled     bool                `json:"code_completion_enabled"`
 			CustomerId                *string             `json:"customer_id,omitempty"`
+			DefaultApp                *string             `json:"default_app,omitempty"`
 			DeployTo                  *string             `json:"deploy_to,omitempty"`
 			ErrorHandler              *string             `json:"error_handler,omitempty"`
 			ErrorHandlerExtraArgs     *ScriptArgs         `json:"error_handler_extra_args,omitempty"`
