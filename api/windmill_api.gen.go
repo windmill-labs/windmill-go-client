@@ -971,6 +971,7 @@ type Job interface{}
 
 // LargeFileStorage defines model for LargeFileStorage.
 type LargeFileStorage struct {
+	PublicResource *bool                 `json:"public_resource,omitempty"`
 	S3ResourcePath *string               `json:"s3_resource_path,omitempty"`
 	Type           *LargeFileStorageType `json:"type,omitempty"`
 }
@@ -2391,9 +2392,18 @@ type MoveS3FileParams struct {
 	DestFileKey string `form:"dest_file_key" json:"dest_file_key"`
 }
 
+// MultipartFileDownloadJSONBody defines parameters for MultipartFileDownload.
+type MultipartFileDownloadJSONBody struct {
+	FileKey        string  `json:"file_key"`
+	FileSize       *int    `json:"file_size,omitempty"`
+	PartNumber     int     `json:"part_number"`
+	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
+}
+
 // MultipartFileUploadJSONBody defines parameters for MultipartFileUpload.
 type MultipartFileUploadJSONBody struct {
 	CancelUpload   bool             `json:"cancel_upload"`
+	FileExpiration *time.Time       `json:"file_expiration,omitempty"`
 	FileExtension  *string          `json:"file_extension,omitempty"`
 	FileKey        *string          `json:"file_key,omitempty"`
 	IsFinal        bool             `json:"is_final"`
@@ -3408,6 +3418,9 @@ type UpdateInputJSONRequestBody = UpdateInputJSONBody
 
 // DuckdbConnectionSettingsJSONRequestBody defines body for DuckdbConnectionSettings for application/json ContentType.
 type DuckdbConnectionSettingsJSONRequestBody DuckdbConnectionSettingsJSONBody
+
+// MultipartFileDownloadJSONRequestBody defines body for MultipartFileDownload for application/json ContentType.
+type MultipartFileDownloadJSONRequestBody MultipartFileDownloadJSONBody
 
 // MultipartFileUploadJSONRequestBody defines body for MultipartFileUpload for application/json ContentType.
 type MultipartFileUploadJSONRequestBody MultipartFileUploadJSONBody
@@ -5152,6 +5165,11 @@ type ClientInterface interface {
 
 	// MoveS3File request
 	MoveS3File(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// MultipartFileDownload request with any body
+	MultipartFileDownloadWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MultipartFileDownload(ctx context.Context, workspace WorkspaceId, body MultipartFileDownloadJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// MultipartFileUpload request with any body
 	MultipartFileUploadWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7822,6 +7840,30 @@ func (c *Client) LoadFilePreview(ctx context.Context, workspace WorkspaceId, par
 
 func (c *Client) MoveS3File(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewMoveS3FileRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MultipartFileDownloadWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMultipartFileDownloadRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MultipartFileDownload(ctx context.Context, workspace WorkspaceId, body MultipartFileDownloadJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMultipartFileDownloadRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16624,6 +16666,53 @@ func NewMoveS3FileRequest(server string, workspace WorkspaceId, params *MoveS3Fi
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewMultipartFileDownloadRequest calls the generic MultipartFileDownload builder with application/json body
+func NewMultipartFileDownloadRequest(server string, workspace WorkspaceId, body MultipartFileDownloadJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMultipartFileDownloadRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewMultipartFileDownloadRequestWithBody generates requests for MultipartFileDownload with any type of body
+func NewMultipartFileDownloadRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/multipart_download_s3_file", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -26348,6 +26437,11 @@ type ClientWithResponsesInterface interface {
 	// MoveS3File request
 	MoveS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*MoveS3FileResponse, error)
 
+	// MultipartFileDownload request with any body
+	MultipartFileDownloadWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MultipartFileDownloadResponse, error)
+
+	MultipartFileDownloadWithResponse(ctx context.Context, workspace WorkspaceId, body MultipartFileDownloadJSONRequestBody, reqEditors ...RequestEditorFn) (*MultipartFileDownloadResponse, error)
+
 	// MultipartFileUpload request with any body
 	MultipartFileUploadWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MultipartFileUploadResponse, error)
 
@@ -29789,6 +29883,7 @@ type ListStoredFilesResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		NextMarker         *string             `json:"next_marker,omitempty"`
+		RestrictedAccess   *bool               `json:"restricted_access,omitempty"`
 		WindmillLargeFiles []WindmillLargeFile `json:"windmill_large_files"`
 	}
 }
@@ -29869,6 +29964,32 @@ func (r MoveS3FileResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r MoveS3FileResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type MultipartFileDownloadResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		FileSize       *int  `json:"file_size,omitempty"`
+		NextPartNumber *int  `json:"next_part_number,omitempty"`
+		PartContent    []int `json:"part_content"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r MultipartFileDownloadResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MultipartFileDownloadResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -34779,6 +34900,23 @@ func (c *ClientWithResponses) MoveS3FileWithResponse(ctx context.Context, worksp
 	return ParseMoveS3FileResponse(rsp)
 }
 
+// MultipartFileDownloadWithBodyWithResponse request with arbitrary body returning *MultipartFileDownloadResponse
+func (c *ClientWithResponses) MultipartFileDownloadWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MultipartFileDownloadResponse, error) {
+	rsp, err := c.MultipartFileDownloadWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMultipartFileDownloadResponse(rsp)
+}
+
+func (c *ClientWithResponses) MultipartFileDownloadWithResponse(ctx context.Context, workspace WorkspaceId, body MultipartFileDownloadJSONRequestBody, reqEditors ...RequestEditorFn) (*MultipartFileDownloadResponse, error) {
+	rsp, err := c.MultipartFileDownload(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMultipartFileDownloadResponse(rsp)
+}
+
 // MultipartFileUploadWithBodyWithResponse request with arbitrary body returning *MultipartFileUploadResponse
 func (c *ClientWithResponses) MultipartFileUploadWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MultipartFileUploadResponse, error) {
 	rsp, err := c.MultipartFileUploadWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -39405,6 +39543,7 @@ func ParseListStoredFilesResponse(rsp *http.Response) (*ListStoredFilesResponse,
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			NextMarker         *string             `json:"next_marker,omitempty"`
+			RestrictedAccess   *bool               `json:"restricted_access,omitempty"`
 			WindmillLargeFiles []WindmillLargeFile `json:"windmill_large_files"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -39485,6 +39624,36 @@ func ParseMoveS3FileResponse(rsp *http.Response) (*MoveS3FileResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseMultipartFileDownloadResponse parses an HTTP response from a MultipartFileDownloadWithResponse call
+func ParseMultipartFileDownloadResponse(rsp *http.Response) (*MultipartFileDownloadResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MultipartFileDownloadResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			FileSize       *int  `json:"file_size,omitempty"`
+			NextPartNumber *int  `json:"next_part_number,omitempty"`
+			PartContent    []int `json:"part_content"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
