@@ -2386,6 +2386,15 @@ type LoadFilePreviewParams struct {
 	ReadBytesLength *int    `form:"read_bytes_length,omitempty" json:"read_bytes_length,omitempty"`
 }
 
+// LoadParquetPreviewParams defines parameters for LoadParquetPreview.
+type LoadParquetPreviewParams struct {
+	Offset   *float32 `form:"offset,omitempty" json:"offset,omitempty"`
+	Limit    *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+	SortCol  *string  `form:"sort_col,omitempty" json:"sort_col,omitempty"`
+	SortDesc *bool    `form:"sort_desc,omitempty" json:"sort_desc,omitempty"`
+	Search   *string  `form:"search,omitempty" json:"search,omitempty"`
+}
+
 // MoveS3FileParams defines parameters for MoveS3File.
 type MoveS3FileParams struct {
 	SrcFileKey  string `form:"src_file_key" json:"src_file_key"`
@@ -5163,6 +5172,9 @@ type ClientInterface interface {
 	// LoadFilePreview request
 	LoadFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// LoadParquetPreview request
+	LoadParquetPreview(ctx context.Context, workspace WorkspaceId, path Path, params *LoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// MoveS3File request
 	MoveS3File(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7828,6 +7840,18 @@ func (c *Client) LoadFileMetadata(ctx context.Context, workspace WorkspaceId, pa
 
 func (c *Client) LoadFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLoadFilePreviewRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LoadParquetPreview(ctx context.Context, workspace WorkspaceId, path Path, params *LoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoadParquetPreviewRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -16585,6 +16609,131 @@ func NewLoadFilePreviewRequest(server string, workspace WorkspaceId, params *Loa
 	if params.ReadBytesLength != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "read_bytes_length", runtime.ParamLocationQuery, *params.ReadBytesLength); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewLoadParquetPreviewRequest generates requests for LoadParquetPreview
+func NewLoadParquetPreviewRequest(server string, workspace WorkspaceId, path Path, params *LoadParquetPreviewParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/load_parquet_preview/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Offset != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "offset", runtime.ParamLocationQuery, *params.Offset); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Limit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SortCol != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort_col", runtime.ParamLocationQuery, *params.SortCol); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SortDesc != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort_desc", runtime.ParamLocationQuery, *params.SortDesc); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Search != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -26434,6 +26583,9 @@ type ClientWithResponsesInterface interface {
 	// LoadFilePreview request
 	LoadFilePreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*LoadFilePreviewResponse, error)
 
+	// LoadParquetPreview request
+	LoadParquetPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *LoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*LoadParquetPreviewResponse, error)
+
 	// MoveS3File request
 	MoveS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*MoveS3FileResponse, error)
 
@@ -29942,6 +30094,28 @@ func (r LoadFilePreviewResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LoadFilePreviewResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LoadParquetPreviewResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r LoadParquetPreviewResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LoadParquetPreviewResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -34891,6 +35065,15 @@ func (c *ClientWithResponses) LoadFilePreviewWithResponse(ctx context.Context, w
 	return ParseLoadFilePreviewResponse(rsp)
 }
 
+// LoadParquetPreviewWithResponse request returning *LoadParquetPreviewResponse
+func (c *ClientWithResponses) LoadParquetPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *LoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*LoadParquetPreviewResponse, error) {
+	rsp, err := c.LoadParquetPreview(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoadParquetPreviewResponse(rsp)
+}
+
 // MoveS3FileWithResponse request returning *MoveS3FileResponse
 func (c *ClientWithResponses) MoveS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*MoveS3FileResponse, error) {
 	rsp, err := c.MoveS3File(ctx, workspace, params, reqEditors...)
@@ -39598,6 +39781,32 @@ func ParseLoadFilePreviewResponse(rsp *http.Response) (*LoadFilePreviewResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest WindmillFilePreview
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseLoadParquetPreviewResponse parses an HTTP response from a LoadParquetPreviewWithResponse call
+func ParseLoadParquetPreviewResponse(rsp *http.Response) (*LoadParquetPreviewResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LoadParquetPreviewResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
