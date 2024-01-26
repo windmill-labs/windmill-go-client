@@ -2388,11 +2388,12 @@ type LoadFilePreviewParams struct {
 
 // LoadParquetPreviewParams defines parameters for LoadParquetPreview.
 type LoadParquetPreviewParams struct {
-	Offset   *float32 `form:"offset,omitempty" json:"offset,omitempty"`
-	Limit    *float32 `form:"limit,omitempty" json:"limit,omitempty"`
-	SortCol  *string  `form:"sort_col,omitempty" json:"sort_col,omitempty"`
-	SortDesc *bool    `form:"sort_desc,omitempty" json:"sort_desc,omitempty"`
-	Search   *string  `form:"search,omitempty" json:"search,omitempty"`
+	Offset     *float32 `form:"offset,omitempty" json:"offset,omitempty"`
+	Limit      *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+	SortCol    *string  `form:"sort_col,omitempty" json:"sort_col,omitempty"`
+	SortDesc   *bool    `form:"sort_desc,omitempty" json:"sort_desc,omitempty"`
+	SearchCol  *string  `form:"search_col,omitempty" json:"search_col,omitempty"`
+	SearchTerm *string  `form:"search_term,omitempty" json:"search_term,omitempty"`
 }
 
 // MoveS3FileParams defines parameters for MoveS3File.
@@ -16731,9 +16732,25 @@ func NewLoadParquetPreviewRequest(server string, workspace WorkspaceId, path Pat
 
 	}
 
-	if params.Search != nil {
+	if params.SearchCol != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_col", runtime.ParamLocationQuery, *params.SearchCol); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SearchTerm != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_term", runtime.ParamLocationQuery, *params.SearchTerm); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
