@@ -1271,6 +1271,7 @@ type Preview struct {
 	DedicatedWorker *bool            `json:"dedicated_worker,omitempty"`
 	Kind            *PreviewKind     `json:"kind,omitempty"`
 	Language        *PreviewLanguage `json:"language,omitempty"`
+	Lock            *string          `json:"lock,omitempty"`
 	Path            *string          `json:"path,omitempty"`
 	Tag             *string          `json:"tag,omitempty"`
 }
