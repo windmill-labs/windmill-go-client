@@ -235,7 +235,8 @@ const (
 
 // Defines values for LargeFileStorageType.
 const (
-	S3Storage LargeFileStorageType = "S3Storage"
+	AzureBlobStorage LargeFileStorageType = "AzureBlobStorage"
+	S3Storage        LargeFileStorageType = "S3Storage"
 )
 
 // Defines values for ListableAppExecutionMode.
@@ -759,9 +760,10 @@ type FlowModule struct {
 		ResumeForm     *struct {
 			Schema *map[string]interface{} `json:"schema,omitempty"`
 		} `json:"resume_form,omitempty"`
-		Timeout            *int            `json:"timeout,omitempty"`
-		UserAuthRequired   *bool           `json:"user_auth_required,omitempty"`
-		UserGroupsRequired *InputTransform `json:"user_groups_required,omitempty"`
+		SelfApprovalDisabled *bool           `json:"self_approval_disabled,omitempty"`
+		Timeout              *int            `json:"timeout,omitempty"`
+		UserAuthRequired     *bool           `json:"user_auth_required,omitempty"`
+		UserGroupsRequired   *InputTransform `json:"user_groups_required,omitempty"`
 	} `json:"suspend,omitempty"`
 	Timeout *float32        `json:"timeout,omitempty"`
 	Value   FlowModuleValue `json:"value"`
@@ -971,9 +973,10 @@ type Job interface{}
 
 // LargeFileStorage defines model for LargeFileStorage.
 type LargeFileStorage struct {
-	PublicResource *bool                 `json:"public_resource,omitempty"`
-	S3ResourcePath *string               `json:"s3_resource_path,omitempty"`
-	Type           *LargeFileStorageType `json:"type,omitempty"`
+	AzureBlobResourcePath *string               `json:"azure_blob_resource_path,omitempty"`
+	PublicResource        *bool                 `json:"public_resource,omitempty"`
+	S3ResourcePath        *string               `json:"s3_resource_path,omitempty"`
+	Type                  *LargeFileStorageType `json:"type,omitempty"`
 }
 
 // LargeFileStorageType defines model for LargeFileStorage.Type.
@@ -2353,6 +2356,7 @@ type DeleteS3FileParams struct {
 type FileDownloadParams struct {
 	FileKey        string  `form:"file_key" json:"file_key"`
 	S3ResourcePath *string `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
+	ResourceType   *string `form:"resource_type,omitempty" json:"resource_type,omitempty"`
 }
 
 // DuckdbConnectionSettingsJSONBody defines parameters for DuckdbConnectionSettings.
@@ -2409,6 +2413,7 @@ type FileUploadParams struct {
 	FileKey        *string `form:"file_key,omitempty" json:"file_key,omitempty"`
 	FileExtension  *string `form:"file_extension,omitempty" json:"file_extension,omitempty"`
 	S3ResourcePath *string `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
+	ResourceType   *string `form:"resource_type,omitempty" json:"resource_type,omitempty"`
 }
 
 // DuckdbConnectionSettingsV2JSONBody defines parameters for DuckdbConnectionSettingsV2.
@@ -16265,6 +16270,22 @@ func NewFileDownloadRequest(server string, workspace WorkspaceId, params *FileDo
 
 	}
 
+	if params.ResourceType != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resource_type", runtime.ParamLocationQuery, *params.ResourceType); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -16947,6 +16968,22 @@ func NewFileUploadRequestWithBody(server string, workspace WorkspaceId, params *
 	if params.S3ResourcePath != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "s3_resource_path", runtime.ParamLocationQuery, *params.S3ResourcePath); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ResourceType != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resource_type", runtime.ParamLocationQuery, *params.ResourceType); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
