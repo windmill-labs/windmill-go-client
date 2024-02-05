@@ -5315,6 +5315,9 @@ type ClientInterface interface {
 	// GetJobLogs request
 	GetJobLogs(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetRootJobId request
+	GetRootJobId(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetJobUpdates request
 	GetJobUpdates(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8528,6 +8531,18 @@ func (c *Client) GetFlowDebugInfo(ctx context.Context, workspace WorkspaceId, id
 
 func (c *Client) GetJobLogs(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetJobLogsRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetRootJobId(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRootJobIdRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -20586,6 +20601,47 @@ func NewGetJobLogsRequest(server string, workspace WorkspaceId, id JobId) (*http
 	return req, nil
 }
 
+// NewGetRootJobIdRequest generates requests for GetRootJobId
+func NewGetRootJobIdRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/get_root_job_id/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetJobUpdatesRequest generates requests for GetJobUpdates
 func NewGetJobUpdatesRequest(server string, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams) (*http.Request, error) {
 	var err error
@@ -26813,6 +26869,9 @@ type ClientWithResponsesInterface interface {
 	// GetJobLogs request
 	GetJobLogsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobLogsResponse, error)
 
+	// GetRootJobId request
+	GetRootJobIdWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetRootJobIdResponse, error)
+
 	// GetJobUpdates request
 	GetJobUpdatesWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*GetJobUpdatesResponse, error)
 
@@ -31101,6 +31160,28 @@ func (r GetJobLogsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetJobLogsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetRootJobIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetRootJobIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetRootJobIdResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -35634,6 +35715,15 @@ func (c *ClientWithResponses) GetJobLogsWithResponse(ctx context.Context, worksp
 		return nil, err
 	}
 	return ParseGetJobLogsResponse(rsp)
+}
+
+// GetRootJobIdWithResponse request returning *GetRootJobIdResponse
+func (c *ClientWithResponses) GetRootJobIdWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetRootJobIdResponse, error) {
+	rsp, err := c.GetRootJobId(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetRootJobIdResponse(rsp)
 }
 
 // GetJobUpdatesWithResponse request returning *GetJobUpdatesResponse
@@ -40824,6 +40914,32 @@ func ParseGetJobLogsResponse(rsp *http.Response) (*GetJobLogsResponse, error) {
 	response := &GetJobLogsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetRootJobIdResponse parses an HTTP response from a GetRootJobIdWithResponse call
+func ParseGetRootJobIdResponse(rsp *http.Response) (*GetRootJobIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetRootJobIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
