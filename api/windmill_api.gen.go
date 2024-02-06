@@ -3261,6 +3261,9 @@ type ListWorkersParams struct {
 
 	// number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// number of seconds the worker must have had a last ping more recent of (default to 300)
+	PingSince *int `form:"ping_since,omitempty" json:"ping_since,omitempty"`
 }
 
 // CreateWorkspaceJSONBody defines parameters for CreateWorkspace.
@@ -25834,6 +25837,22 @@ func NewListWorkersRequest(server string, params *ListWorkersParams) (*http.Requ
 	if params.PerPage != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PingSince != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "ping_since", runtime.ParamLocationQuery, *params.PingSince); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
