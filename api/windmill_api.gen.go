@@ -218,11 +218,6 @@ const (
 	Password GlobalUserInfoLoginType = "password"
 )
 
-// Defines values for GraphqlType.
-const (
-	GraphqlTypeGraphql GraphqlType = "graphql"
-)
-
 // Defines values for IdentityType.
 const (
 	IdentityTypeIdentity IdentityType = "identity"
@@ -904,14 +899,6 @@ type GlobalUserInfo struct {
 
 // GlobalUserInfoLoginType defines model for GlobalUserInfo.LoginType.
 type GlobalUserInfoLoginType string
-
-// Graphql defines model for Graphql.
-type Graphql struct {
-	Type GraphqlType `json:"type"`
-}
-
-// GraphqlType defines model for Graphql.Type.
-type GraphqlType string
 
 // Group defines model for Group.
 type Group struct {
