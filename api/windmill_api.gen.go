@@ -451,6 +451,14 @@ const (
 	Unknown WindmillFilePreviewContentType = "Unknown"
 )
 
+// Defines values for WorkspaceGitSyncSettingsIncludeType.
+const (
+	WorkspaceGitSyncSettingsIncludeTypeApp    WorkspaceGitSyncSettingsIncludeType = "app"
+	WorkspaceGitSyncSettingsIncludeTypeFlow   WorkspaceGitSyncSettingsIncludeType = "flow"
+	WorkspaceGitSyncSettingsIncludeTypeFolder WorkspaceGitSyncSettingsIncludeType = "folder"
+	WorkspaceGitSyncSettingsIncludeTypeScript WorkspaceGitSyncSettingsIncludeType = "script"
+)
+
 // Defines values for ActionKind.
 const (
 	ActionKindCreate  ActionKind = "Create"
@@ -886,6 +894,13 @@ type ForloopFlow struct {
 
 // ForloopFlowType defines model for ForloopFlow.Type.
 type ForloopFlowType string
+
+// GitRepositorySettings defines model for GitRepositorySettings.
+type GitRepositorySettings struct {
+	GitRepoResourcePath string `json:"git_repo_resource_path"`
+	ScriptPath          string `json:"script_path"`
+	UseIndividualBranch *bool  `json:"use_individual_branch,omitempty"`
+}
 
 // GlobalUserInfo defines model for GlobalUserInfo.
 type GlobalUserInfo struct {
@@ -1659,12 +1674,15 @@ type Workspace struct {
 	Owner  string  `json:"owner"`
 }
 
-// WorkspaceGitSync defines model for WorkspaceGitSync.
-type WorkspaceGitSync struct {
-	GitRepoResourcePath string `json:"git_repo_resource_path"`
-	ScriptPath          string `json:"script_path"`
-	UseIndividualBranch *bool  `json:"use_individual_branch,omitempty"`
+// WorkspaceGitSyncSettings defines model for WorkspaceGitSyncSettings.
+type WorkspaceGitSyncSettings struct {
+	IncludePath  *[]string                              `json:"include_path,omitempty"`
+	IncludeType  *[]WorkspaceGitSyncSettingsIncludeType `json:"include_type,omitempty"`
+	Repositories *[]GitRepositorySettings               `json:"repositories,omitempty"`
 }
+
+// WorkspaceGitSyncSettingsIncludeType defines model for WorkspaceGitSyncSettings.IncludeType.
+type WorkspaceGitSyncSettingsIncludeType string
 
 // WorkspaceInvite defines model for WorkspaceInvite.
 type WorkspaceInvite struct {
@@ -3204,7 +3222,7 @@ type EditErrorHandlerJSONBody struct {
 
 // EditWorkspaceGitSyncConfigJSONBody defines parameters for EditWorkspaceGitSyncConfig.
 type EditWorkspaceGitSyncConfigJSONBody struct {
-	GitSyncSettings *[]WorkspaceGitSync `json:"git_sync_settings,omitempty"`
+	GitSyncSettings *WorkspaceGitSyncSettings `json:"git_sync_settings,omitempty"`
 }
 
 // EditLargeFileStorageConfigJSONBody defines parameters for EditLargeFileStorageConfig.
@@ -33258,25 +33276,25 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AutoAdd                   *bool               `json:"auto_add,omitempty"`
-		AutoInviteDomain          *string             `json:"auto_invite_domain,omitempty"`
-		AutoInviteOperator        *bool               `json:"auto_invite_operator,omitempty"`
-		CodeCompletionEnabled     bool                `json:"code_completion_enabled"`
-		CustomerId                *string             `json:"customer_id,omitempty"`
-		DefaultApp                *string             `json:"default_app,omitempty"`
-		DeployTo                  *string             `json:"deploy_to,omitempty"`
-		ErrorHandler              *string             `json:"error_handler,omitempty"`
-		ErrorHandlerExtraArgs     *ScriptArgs         `json:"error_handler_extra_args,omitempty"`
-		ErrorHandlerMutedOnCancel *bool               `json:"error_handler_muted_on_cancel,omitempty"`
-		GitSync                   *[]WorkspaceGitSync `json:"git_sync,omitempty"`
-		LargeFileStorage          *LargeFileStorage   `json:"large_file_storage,omitempty"`
-		OpenaiResourcePath        *string             `json:"openai_resource_path,omitempty"`
-		Plan                      *string             `json:"plan,omitempty"`
-		SlackCommandScript        *string             `json:"slack_command_script,omitempty"`
-		SlackName                 *string             `json:"slack_name,omitempty"`
-		SlackTeamId               *string             `json:"slack_team_id,omitempty"`
-		Webhook                   *string             `json:"webhook,omitempty"`
-		WorkspaceId               *string             `json:"workspace_id,omitempty"`
+		AutoAdd                   *bool                     `json:"auto_add,omitempty"`
+		AutoInviteDomain          *string                   `json:"auto_invite_domain,omitempty"`
+		AutoInviteOperator        *bool                     `json:"auto_invite_operator,omitempty"`
+		CodeCompletionEnabled     bool                      `json:"code_completion_enabled"`
+		CustomerId                *string                   `json:"customer_id,omitempty"`
+		DefaultApp                *string                   `json:"default_app,omitempty"`
+		DeployTo                  *string                   `json:"deploy_to,omitempty"`
+		ErrorHandler              *string                   `json:"error_handler,omitempty"`
+		ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
+		ErrorHandlerMutedOnCancel *bool                     `json:"error_handler_muted_on_cancel,omitempty"`
+		GitSync                   *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
+		LargeFileStorage          *LargeFileStorage         `json:"large_file_storage,omitempty"`
+		OpenaiResourcePath        *string                   `json:"openai_resource_path,omitempty"`
+		Plan                      *string                   `json:"plan,omitempty"`
+		SlackCommandScript        *string                   `json:"slack_command_script,omitempty"`
+		SlackName                 *string                   `json:"slack_name,omitempty"`
+		SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
+		Webhook                   *string                   `json:"webhook,omitempty"`
+		WorkspaceId               *string                   `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -42948,25 +42966,25 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AutoAdd                   *bool               `json:"auto_add,omitempty"`
-			AutoInviteDomain          *string             `json:"auto_invite_domain,omitempty"`
-			AutoInviteOperator        *bool               `json:"auto_invite_operator,omitempty"`
-			CodeCompletionEnabled     bool                `json:"code_completion_enabled"`
-			CustomerId                *string             `json:"customer_id,omitempty"`
-			DefaultApp                *string             `json:"default_app,omitempty"`
-			DeployTo                  *string             `json:"deploy_to,omitempty"`
-			ErrorHandler              *string             `json:"error_handler,omitempty"`
-			ErrorHandlerExtraArgs     *ScriptArgs         `json:"error_handler_extra_args,omitempty"`
-			ErrorHandlerMutedOnCancel *bool               `json:"error_handler_muted_on_cancel,omitempty"`
-			GitSync                   *[]WorkspaceGitSync `json:"git_sync,omitempty"`
-			LargeFileStorage          *LargeFileStorage   `json:"large_file_storage,omitempty"`
-			OpenaiResourcePath        *string             `json:"openai_resource_path,omitempty"`
-			Plan                      *string             `json:"plan,omitempty"`
-			SlackCommandScript        *string             `json:"slack_command_script,omitempty"`
-			SlackName                 *string             `json:"slack_name,omitempty"`
-			SlackTeamId               *string             `json:"slack_team_id,omitempty"`
-			Webhook                   *string             `json:"webhook,omitempty"`
-			WorkspaceId               *string             `json:"workspace_id,omitempty"`
+			AutoAdd                   *bool                     `json:"auto_add,omitempty"`
+			AutoInviteDomain          *string                   `json:"auto_invite_domain,omitempty"`
+			AutoInviteOperator        *bool                     `json:"auto_invite_operator,omitempty"`
+			CodeCompletionEnabled     bool                      `json:"code_completion_enabled"`
+			CustomerId                *string                   `json:"customer_id,omitempty"`
+			DefaultApp                *string                   `json:"default_app,omitempty"`
+			DeployTo                  *string                   `json:"deploy_to,omitempty"`
+			ErrorHandler              *string                   `json:"error_handler,omitempty"`
+			ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
+			ErrorHandlerMutedOnCancel *bool                     `json:"error_handler_muted_on_cancel,omitempty"`
+			GitSync                   *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
+			LargeFileStorage          *LargeFileStorage         `json:"large_file_storage,omitempty"`
+			OpenaiResourcePath        *string                   `json:"openai_resource_path,omitempty"`
+			Plan                      *string                   `json:"plan,omitempty"`
+			SlackCommandScript        *string                   `json:"slack_command_script,omitempty"`
+			SlackName                 *string                   `json:"slack_name,omitempty"`
+			SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
+			Webhook                   *string                   `json:"webhook,omitempty"`
+			WorkspaceId               *string                   `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
