@@ -5716,6 +5716,12 @@ type ClientInterface interface {
 	// ExistsWorkerWithTag request
 	ExistsWorkerWithTag(ctx context.Context, params *ExistsWorkerWithTagParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GeDefaultTags request
+	GeDefaultTags(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// IsDefaultTagsPerWorkspace request
+	IsDefaultTagsPerWorkspace(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListWorkers request
 	ListWorkers(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10267,6 +10273,30 @@ func (c *Client) GetCustomTags(ctx context.Context, reqEditors ...RequestEditorF
 
 func (c *Client) ExistsWorkerWithTag(ctx context.Context, params *ExistsWorkerWithTagParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsWorkerWithTagRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GeDefaultTags(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGeDefaultTagsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) IsDefaultTagsPerWorkspace(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewIsDefaultTagsPerWorkspaceRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -25802,6 +25832,60 @@ func NewExistsWorkerWithTagRequest(server string, params *ExistsWorkerWithTagPar
 	return req, nil
 }
 
+// NewGeDefaultTagsRequest generates requests for GeDefaultTags
+func NewGeDefaultTagsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workers/get_default_tags")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewIsDefaultTagsPerWorkspaceRequest generates requests for IsDefaultTagsPerWorkspace
+func NewIsDefaultTagsPerWorkspaceRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workers/is_default_tags_per_workspace")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListWorkersRequest generates requests for ListWorkers
 func NewListWorkersRequest(server string, params *ListWorkersParams) (*http.Request, error) {
 	var err error
@@ -27285,6 +27369,12 @@ type ClientWithResponsesInterface interface {
 
 	// ExistsWorkerWithTag request
 	ExistsWorkerWithTagWithResponse(ctx context.Context, params *ExistsWorkerWithTagParams, reqEditors ...RequestEditorFn) (*ExistsWorkerWithTagResponse, error)
+
+	// GeDefaultTags request
+	GeDefaultTagsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GeDefaultTagsResponse, error)
+
+	// IsDefaultTagsPerWorkspace request
+	IsDefaultTagsPerWorkspaceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsDefaultTagsPerWorkspaceResponse, error)
 
 	// ListWorkers request
 	ListWorkersWithResponse(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*ListWorkersResponse, error)
@@ -33491,6 +33581,50 @@ func (r ExistsWorkerWithTagResponse) StatusCode() int {
 	return 0
 }
 
+type GeDefaultTagsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r GeDefaultTagsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GeDefaultTagsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type IsDefaultTagsPerWorkspaceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r IsDefaultTagsPerWorkspaceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r IsDefaultTagsPerWorkspaceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListWorkersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -36996,6 +37130,24 @@ func (c *ClientWithResponses) ExistsWorkerWithTagWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseExistsWorkerWithTagResponse(rsp)
+}
+
+// GeDefaultTagsWithResponse request returning *GeDefaultTagsResponse
+func (c *ClientWithResponses) GeDefaultTagsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GeDefaultTagsResponse, error) {
+	rsp, err := c.GeDefaultTags(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGeDefaultTagsResponse(rsp)
+}
+
+// IsDefaultTagsPerWorkspaceWithResponse request returning *IsDefaultTagsPerWorkspaceResponse
+func (c *ClientWithResponses) IsDefaultTagsPerWorkspaceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsDefaultTagsPerWorkspaceResponse, error) {
+	rsp, err := c.IsDefaultTagsPerWorkspace(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseIsDefaultTagsPerWorkspaceResponse(rsp)
 }
 
 // ListWorkersWithResponse request returning *ListWorkersResponse
@@ -43161,6 +43313,58 @@ func ParseExistsWorkerWithTagResponse(rsp *http.Response) (*ExistsWorkerWithTagR
 	}
 
 	response := &ExistsWorkerWithTagResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGeDefaultTagsResponse parses an HTTP response from a GeDefaultTagsWithResponse call
+func ParseGeDefaultTagsResponse(rsp *http.Response) (*GeDefaultTagsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GeDefaultTagsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseIsDefaultTagsPerWorkspaceResponse parses an HTTP response from a IsDefaultTagsPerWorkspaceWithResponse call
+func ParseIsDefaultTagsPerWorkspaceResponse(rsp *http.Response) (*IsDefaultTagsPerWorkspaceResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &IsDefaultTagsPerWorkspaceResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
