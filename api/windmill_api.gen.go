@@ -453,10 +453,15 @@ const (
 
 // Defines values for WorkspaceGitSyncSettingsIncludeType.
 const (
-	WorkspaceGitSyncSettingsIncludeTypeApp    WorkspaceGitSyncSettingsIncludeType = "app"
-	WorkspaceGitSyncSettingsIncludeTypeFlow   WorkspaceGitSyncSettingsIncludeType = "flow"
-	WorkspaceGitSyncSettingsIncludeTypeFolder WorkspaceGitSyncSettingsIncludeType = "folder"
-	WorkspaceGitSyncSettingsIncludeTypeScript WorkspaceGitSyncSettingsIncludeType = "script"
+	WorkspaceGitSyncSettingsIncludeTypeApp          WorkspaceGitSyncSettingsIncludeType = "app"
+	WorkspaceGitSyncSettingsIncludeTypeFlow         WorkspaceGitSyncSettingsIncludeType = "flow"
+	WorkspaceGitSyncSettingsIncludeTypeFolder       WorkspaceGitSyncSettingsIncludeType = "folder"
+	WorkspaceGitSyncSettingsIncludeTypeResource     WorkspaceGitSyncSettingsIncludeType = "resource"
+	WorkspaceGitSyncSettingsIncludeTypeResourcetype WorkspaceGitSyncSettingsIncludeType = "resourcetype"
+	WorkspaceGitSyncSettingsIncludeTypeSchedule     WorkspaceGitSyncSettingsIncludeType = "schedule"
+	WorkspaceGitSyncSettingsIncludeTypeScript       WorkspaceGitSyncSettingsIncludeType = "script"
+	WorkspaceGitSyncSettingsIncludeTypeSecret       WorkspaceGitSyncSettingsIncludeType = "secret"
+	WorkspaceGitSyncSettingsIncludeTypeVariable     WorkspaceGitSyncSettingsIncludeType = "variable"
 )
 
 // Defines values for ActionKind.
@@ -2560,6 +2565,9 @@ type ListJobsParams struct {
 
 	// filter on successful jobs
 	Success *bool `form:"success,omitempty" json:"success,omitempty"`
+
+	// get jobs from all workspaces (only valid if request come from the `admins` workspace)
+	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 }
 
 // OpenaiSyncFlowByPathJSONBody defines parameters for OpenaiSyncFlowByPath.
@@ -2595,6 +2603,12 @@ type OpenaiSyncScriptByPathParams struct {
 
 	// The maximum size of the queue for which the request would get rejected if that job would push it above that limit
 	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+}
+
+// GetQueueCountParams defines parameters for GetQueueCount.
+type GetQueueCountParams struct {
+	// get jobs from all workspaces (only valid if request come from the `admins` workspace)
+	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 }
 
 // ListQueueParams defines parameters for ListQueue.
@@ -2649,6 +2663,9 @@ type ListQueueParams struct {
 
 	// filter on jobs with a given tag/worker group
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// get jobs from all workspaces (only valid if request come from the `admins` workspace)
+	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 }
 
 // RestartFlowAtStepJSONBody defines parameters for RestartFlowAtStep.
@@ -5235,7 +5252,7 @@ type ClientInterface interface {
 	CancelAll(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetQueueCount request
-	GetQueueCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetQueueCount(ctx context.Context, workspace WorkspaceId, params *GetQueueCountParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListQueue request
 	ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8159,8 +8176,8 @@ func (c *Client) CancelAll(ctx context.Context, workspace WorkspaceId, reqEditor
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetQueueCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetQueueCountRequest(c.Server, workspace)
+func (c *Client) GetQueueCount(ctx context.Context, workspace WorkspaceId, params *GetQueueCountParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetQueueCountRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -18095,6 +18112,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 	}
 
+	if params.AllWorkspaces != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -18368,7 +18401,7 @@ func NewCancelAllRequest(server string, workspace WorkspaceId) (*http.Request, e
 }
 
 // NewGetQueueCountRequest generates requests for GetQueueCount
-func NewGetQueueCountRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewGetQueueCountRequest(server string, workspace WorkspaceId, params *GetQueueCountParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -18392,6 +18425,26 @@ func NewGetQueueCountRequest(server string, workspace WorkspaceId) (*http.Reques
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.AllWorkspaces != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -18688,6 +18741,22 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 	if params.Tag != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.AllWorkspaces != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -26889,7 +26958,7 @@ type ClientWithResponsesInterface interface {
 	CancelAllWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*CancelAllResponse, error)
 
 	// GetQueueCount request
-	GetQueueCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetQueueCountResponse, error)
+	GetQueueCountWithResponse(ctx context.Context, workspace WorkspaceId, params *GetQueueCountParams, reqEditors ...RequestEditorFn) (*GetQueueCountResponse, error)
 
 	// ListQueue request
 	ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error)
@@ -35589,8 +35658,8 @@ func (c *ClientWithResponses) CancelAllWithResponse(ctx context.Context, workspa
 }
 
 // GetQueueCountWithResponse request returning *GetQueueCountResponse
-func (c *ClientWithResponses) GetQueueCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetQueueCountResponse, error) {
-	rsp, err := c.GetQueueCount(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) GetQueueCountWithResponse(ctx context.Context, workspace WorkspaceId, params *GetQueueCountParams, reqEditors ...RequestEditorFn) (*GetQueueCountResponse, error) {
+	rsp, err := c.GetQueueCount(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
