@@ -212,6 +212,19 @@ const (
 	Forloopflow ForloopFlowType = "forloopflow"
 )
 
+// Defines values for GitRepositorySettingsExcludeTypesOverride.
+const (
+	GitRepositorySettingsExcludeTypesOverrideApp          GitRepositorySettingsExcludeTypesOverride = "app"
+	GitRepositorySettingsExcludeTypesOverrideFlow         GitRepositorySettingsExcludeTypesOverride = "flow"
+	GitRepositorySettingsExcludeTypesOverrideFolder       GitRepositorySettingsExcludeTypesOverride = "folder"
+	GitRepositorySettingsExcludeTypesOverrideResource     GitRepositorySettingsExcludeTypesOverride = "resource"
+	GitRepositorySettingsExcludeTypesOverrideResourcetype GitRepositorySettingsExcludeTypesOverride = "resourcetype"
+	GitRepositorySettingsExcludeTypesOverrideSchedule     GitRepositorySettingsExcludeTypesOverride = "schedule"
+	GitRepositorySettingsExcludeTypesOverrideScript       GitRepositorySettingsExcludeTypesOverride = "script"
+	GitRepositorySettingsExcludeTypesOverrideSecret       GitRepositorySettingsExcludeTypesOverride = "secret"
+	GitRepositorySettingsExcludeTypesOverrideVariable     GitRepositorySettingsExcludeTypesOverride = "variable"
+)
+
 // Defines values for GlobalUserInfoLoginType.
 const (
 	Github   GlobalUserInfoLoginType = "github"
@@ -902,10 +915,14 @@ type ForloopFlowType string
 
 // GitRepositorySettings defines model for GitRepositorySettings.
 type GitRepositorySettings struct {
-	GitRepoResourcePath string `json:"git_repo_resource_path"`
-	ScriptPath          string `json:"script_path"`
-	UseIndividualBranch *bool  `json:"use_individual_branch,omitempty"`
+	ExcludeTypesOverride *[]GitRepositorySettingsExcludeTypesOverride `json:"exclude_types_override,omitempty"`
+	GitRepoResourcePath  string                                       `json:"git_repo_resource_path"`
+	ScriptPath           string                                       `json:"script_path"`
+	UseIndividualBranch  *bool                                        `json:"use_individual_branch,omitempty"`
 }
+
+// GitRepositorySettingsExcludeTypesOverride defines model for GitRepositorySettings.ExcludeTypesOverride.
+type GitRepositorySettingsExcludeTypesOverride string
 
 // GlobalUserInfo defines model for GlobalUserInfo.
 type GlobalUserInfo struct {
@@ -3257,6 +3274,11 @@ type EditWebhookJSONBody struct {
 	Webhook *string `json:"webhook,omitempty"`
 }
 
+// SetWorkspaceEncryptionKeyJSONBody defines parameters for SetWorkspaceEncryptionKey.
+type SetWorkspaceEncryptionKeyJSONBody struct {
+	NewKey string `json:"new_key"`
+}
+
 // InviteUserJSONBody defines parameters for InviteUser.
 type InviteUserJSONBody struct {
 	Email    string `json:"email"`
@@ -3607,6 +3629,9 @@ type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
 
 // EditWebhookJSONRequestBody defines body for EditWebhook for application/json ContentType.
 type EditWebhookJSONRequestBody EditWebhookJSONBody
+
+// SetWorkspaceEncryptionKeyJSONRequestBody defines body for SetWorkspaceEncryptionKey for application/json ContentType.
+type SetWorkspaceEncryptionKeyJSONRequestBody SetWorkspaceEncryptionKeyJSONBody
 
 // InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
 type InviteUserJSONRequestBody InviteUserJSONBody
@@ -5692,6 +5717,14 @@ type ClientInterface interface {
 	EditWebhookWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditWebhook(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetWorkspaceEncryptionKey request
+	GetWorkspaceEncryptionKey(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetWorkspaceEncryptionKey request with any body
+	SetWorkspaceEncryptionKeyWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetWorkspaceEncryptionKey(ctx context.Context, workspace WorkspaceId, body SetWorkspaceEncryptionKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCopilotInfo request
 	GetCopilotInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10122,6 +10155,42 @@ func (c *Client) EditWebhookWithBody(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) EditWebhook(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditWebhookRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetWorkspaceEncryptionKey(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetWorkspaceEncryptionKeyRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetWorkspaceEncryptionKeyWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWorkspaceEncryptionKeyRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetWorkspaceEncryptionKey(ctx context.Context, workspace WorkspaceId, body SetWorkspaceEncryptionKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWorkspaceEncryptionKeyRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -25465,6 +25534,87 @@ func NewEditWebhookRequestWithBody(server string, workspace WorkspaceId, content
 	return req, nil
 }
 
+// NewGetWorkspaceEncryptionKeyRequest generates requests for GetWorkspaceEncryptionKey
+func NewGetWorkspaceEncryptionKeyRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/encryption_key", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetWorkspaceEncryptionKeyRequest calls the generic SetWorkspaceEncryptionKey builder with application/json body
+func NewSetWorkspaceEncryptionKeyRequest(server string, workspace WorkspaceId, body SetWorkspaceEncryptionKeyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetWorkspaceEncryptionKeyRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetWorkspaceEncryptionKeyRequestWithBody generates requests for SetWorkspaceEncryptionKey with any type of body
+func NewSetWorkspaceEncryptionKeyRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/encryption_key", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetCopilotInfoRequest generates requests for GetCopilotInfo
 func NewGetCopilotInfoRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -27398,6 +27548,14 @@ type ClientWithResponsesInterface interface {
 	EditWebhookWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
 
 	EditWebhookWithResponse(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
+
+	// GetWorkspaceEncryptionKey request
+	GetWorkspaceEncryptionKeyWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceEncryptionKeyResponse, error)
+
+	// SetWorkspaceEncryptionKey request with any body
+	SetWorkspaceEncryptionKeyWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWorkspaceEncryptionKeyResponse, error)
+
+	SetWorkspaceEncryptionKeyWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceEncryptionKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceEncryptionKeyResponse, error)
 
 	// GetCopilotInfo request
 	GetCopilotInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCopilotInfoResponse, error)
@@ -33364,6 +33522,51 @@ func (r EditWebhookResponse) StatusCode() int {
 	return 0
 }
 
+type GetWorkspaceEncryptionKeyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Key string `json:"key"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetWorkspaceEncryptionKeyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetWorkspaceEncryptionKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetWorkspaceEncryptionKeyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetWorkspaceEncryptionKeyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetWorkspaceEncryptionKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetCopilotInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -37075,6 +37278,32 @@ func (c *ClientWithResponses) EditWebhookWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseEditWebhookResponse(rsp)
+}
+
+// GetWorkspaceEncryptionKeyWithResponse request returning *GetWorkspaceEncryptionKeyResponse
+func (c *ClientWithResponses) GetWorkspaceEncryptionKeyWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceEncryptionKeyResponse, error) {
+	rsp, err := c.GetWorkspaceEncryptionKey(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetWorkspaceEncryptionKeyResponse(rsp)
+}
+
+// SetWorkspaceEncryptionKeyWithBodyWithResponse request with arbitrary body returning *SetWorkspaceEncryptionKeyResponse
+func (c *ClientWithResponses) SetWorkspaceEncryptionKeyWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWorkspaceEncryptionKeyResponse, error) {
+	rsp, err := c.SetWorkspaceEncryptionKeyWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetWorkspaceEncryptionKeyResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetWorkspaceEncryptionKeyWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceEncryptionKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceEncryptionKeyResponse, error) {
+	rsp, err := c.SetWorkspaceEncryptionKey(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetWorkspaceEncryptionKeyResponse(rsp)
 }
 
 // GetCopilotInfoWithResponse request returning *GetCopilotInfoResponse
@@ -43094,6 +43323,50 @@ func ParseEditWebhookResponse(rsp *http.Response) (*EditWebhookResponse, error) 
 	}
 
 	response := &EditWebhookResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetWorkspaceEncryptionKeyResponse parses an HTTP response from a GetWorkspaceEncryptionKeyWithResponse call
+func ParseGetWorkspaceEncryptionKeyResponse(rsp *http.Response) (*GetWorkspaceEncryptionKeyResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetWorkspaceEncryptionKeyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Key string `json:"key"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetWorkspaceEncryptionKeyResponse parses an HTTP response from a SetWorkspaceEncryptionKeyWithResponse call
+func ParseSetWorkspaceEncryptionKeyResponse(rsp *http.Response) (*SetWorkspaceEncryptionKeyResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetWorkspaceEncryptionKeyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
