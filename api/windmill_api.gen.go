@@ -1924,6 +1924,9 @@ type LoginWithOauthJSONBody struct {
 	State *string `json:"state,omitempty"`
 }
 
+// TestMetadataJSONBody defines parameters for TestMetadata.
+type TestMetadataJSONBody = string
+
 // PreviewScheduleJSONBody defines parameters for PreviewSchedule.
 type PreviewScheduleJSONBody struct {
 	Schedule string `json:"schedule"`
@@ -3356,6 +3359,9 @@ type ConnectCallbackJSONRequestBody ConnectCallbackJSONBody
 
 // LoginWithOauthJSONRequestBody defines body for LoginWithOauth for application/json ContentType.
 type LoginWithOauthJSONRequestBody LoginWithOauthJSONBody
+
+// TestMetadataJSONRequestBody defines body for TestMetadata for application/json ContentType.
+type TestMetadataJSONRequestBody = TestMetadataJSONBody
 
 // PreviewScheduleJSONRequestBody defines body for PreviewSchedule for application/json ContentType.
 type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
@@ -4825,6 +4831,11 @@ type ClientInterface interface {
 	// GetOpenApiYaml request
 	GetOpenApiYaml(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// TestMetadata request with any body
+	TestMetadataWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestMetadata(ctx context.Context, body TestMetadataJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// PreviewSchedule request with any body
 	PreviewScheduleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6219,6 +6230,30 @@ func (c *Client) LoginWithOauth(ctx context.Context, clientName ClientName, body
 
 func (c *Client) GetOpenApiYaml(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetOpenApiYamlRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestMetadataWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestMetadataRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestMetadata(ctx context.Context, body TestMetadataJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestMetadataRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -11553,6 +11588,46 @@ func NewGetOpenApiYamlRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewTestMetadataRequest calls the generic TestMetadata builder with application/json body
+func NewTestMetadataRequest(server string, body TestMetadataJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestMetadataRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewTestMetadataRequestWithBody generates requests for TestMetadata with any type of body
+func NewTestMetadataRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/saml/test_metadata")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -26656,6 +26731,11 @@ type ClientWithResponsesInterface interface {
 	// GetOpenApiYaml request
 	GetOpenApiYamlWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOpenApiYamlResponse, error)
 
+	// TestMetadata request with any body
+	TestMetadataWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestMetadataResponse, error)
+
+	TestMetadataWithResponse(ctx context.Context, body TestMetadataJSONRequestBody, reqEditors ...RequestEditorFn) (*TestMetadataResponse, error)
+
 	// PreviewSchedule request with any body
 	PreviewScheduleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PreviewScheduleResponse, error)
 
@@ -28257,6 +28337,27 @@ func (r GetOpenApiYamlResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetOpenApiYamlResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestMetadataResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestMetadataResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestMetadataResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -34419,6 +34520,23 @@ func (c *ClientWithResponses) GetOpenApiYamlWithResponse(ctx context.Context, re
 	return ParseGetOpenApiYamlResponse(rsp)
 }
 
+// TestMetadataWithBodyWithResponse request with arbitrary body returning *TestMetadataResponse
+func (c *ClientWithResponses) TestMetadataWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestMetadataResponse, error) {
+	rsp, err := c.TestMetadataWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestMetadataResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestMetadataWithResponse(ctx context.Context, body TestMetadataJSONRequestBody, reqEditors ...RequestEditorFn) (*TestMetadataResponse, error) {
+	rsp, err := c.TestMetadata(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestMetadataResponse(rsp)
+}
+
 // PreviewScheduleWithBodyWithResponse request with arbitrary body returning *PreviewScheduleResponse
 func (c *ClientWithResponses) PreviewScheduleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PreviewScheduleResponse, error) {
 	rsp, err := c.PreviewScheduleWithBody(ctx, contentType, body, reqEditors...)
@@ -38178,6 +38296,22 @@ func ParseGetOpenApiYamlResponse(rsp *http.Response) (*GetOpenApiYamlResponse, e
 	}
 
 	response := &GetOpenApiYamlResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestMetadataResponse parses an HTTP response from a TestMetadataWithResponse call
+func ParseTestMetadataResponse(rsp *http.Response) (*TestMetadataResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestMetadataResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
