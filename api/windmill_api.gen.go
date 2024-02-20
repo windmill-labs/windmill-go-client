@@ -3296,6 +3296,12 @@ type RunSlackMessageTestJobJSONBody struct {
 	TestMsg       *string `json:"test_msg,omitempty"`
 }
 
+// SetAutomaticBillingJSONBody defines parameters for SetAutomaticBilling.
+type SetAutomaticBillingJSONBody struct {
+	AutomaticBilling bool     `json:"automatic_billing"`
+	Seats            *float32 `json:"seats,omitempty"`
+}
+
 // ExistsWorkerWithTagParams defines parameters for ExistsWorkerWithTag.
 type ExistsWorkerWithTagParams struct {
 	Tag string `form:"tag" json:"tag"`
@@ -3644,6 +3650,9 @@ type InviteUserJSONRequestBody InviteUserJSONBody
 
 // RunSlackMessageTestJobJSONRequestBody defines body for RunSlackMessageTestJob for application/json ContentType.
 type RunSlackMessageTestJobJSONRequestBody RunSlackMessageTestJobJSONBody
+
+// SetAutomaticBillingJSONRequestBody defines body for SetAutomaticBilling for application/json ContentType.
+type SetAutomaticBillingJSONRequestBody SetAutomaticBillingJSONBody
 
 // CreateWorkspaceJSONRequestBody defines body for CreateWorkspace for application/json ContentType.
 type CreateWorkspaceJSONRequestBody = CreateWorkspaceJSONBody
@@ -5770,6 +5779,11 @@ type ClientInterface interface {
 	RunSlackMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunSlackMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetAutomaticBilling request with any body
+	SetAutomaticBillingWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetAutomaticBilling(ctx context.Context, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCustomTags request
 	GetCustomTags(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10370,6 +10384,30 @@ func (c *Client) RunSlackMessageTestJobWithBody(ctx context.Context, workspace W
 
 func (c *Client) RunSlackMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunSlackMessageTestJobRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetAutomaticBillingWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetAutomaticBillingRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetAutomaticBilling(ctx context.Context, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetAutomaticBillingRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -26056,6 +26094,53 @@ func NewRunSlackMessageTestJobRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewSetAutomaticBillingRequest calls the generic SetAutomaticBilling builder with application/json body
+func NewSetAutomaticBillingRequest(server string, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetAutomaticBillingRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetAutomaticBillingRequestWithBody generates requests for SetAutomaticBilling with any type of body
+func NewSetAutomaticBillingRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/set_automatic_billing", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetCustomTagsRequest generates requests for GetCustomTags
 func NewGetCustomTagsRequest(server string) (*http.Request, error) {
 	var err error
@@ -27670,6 +27755,11 @@ type ClientWithResponsesInterface interface {
 	RunSlackMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error)
 
 	RunSlackMessageTestJobWithResponse(ctx context.Context, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error)
+
+	// SetAutomaticBilling request with any body
+	SetAutomaticBillingWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAutomaticBillingResponse, error)
+
+	SetAutomaticBillingWithResponse(ctx context.Context, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody, reqEditors ...RequestEditorFn) (*SetAutomaticBillingResponse, error)
 
 	// GetCustomTags request
 	GetCustomTagsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error)
@@ -33742,6 +33832,7 @@ type GetSettingsResponse struct {
 		AutoAdd                   *bool                     `json:"auto_add,omitempty"`
 		AutoInviteDomain          *string                   `json:"auto_invite_domain,omitempty"`
 		AutoInviteOperator        *bool                     `json:"auto_invite_operator,omitempty"`
+		AutomaticBilling          bool                      `json:"automatic_billing"`
 		CodeCompletionEnabled     bool                      `json:"code_completion_enabled"`
 		CustomerId                *string                   `json:"customer_id,omitempty"`
 		DefaultApp                *string                   `json:"default_app,omitempty"`
@@ -33867,9 +33958,10 @@ type GetPremiumInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Premium bool     `json:"premium"`
-		Seats   *float32 `json:"seats,omitempty"`
-		Usage   *float32 `json:"usage,omitempty"`
+		AutomaticBilling bool     `json:"automatic_billing"`
+		Premium          bool     `json:"premium"`
+		Seats            *float32 `json:"seats,omitempty"`
+		Usage            *float32 `json:"usage,omitempty"`
 	}
 }
 
@@ -33904,6 +33996,27 @@ func (r RunSlackMessageTestJobResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunSlackMessageTestJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetAutomaticBillingResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetAutomaticBillingResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetAutomaticBillingResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -37528,6 +37641,23 @@ func (c *ClientWithResponses) RunSlackMessageTestJobWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseRunSlackMessageTestJobResponse(rsp)
+}
+
+// SetAutomaticBillingWithBodyWithResponse request with arbitrary body returning *SetAutomaticBillingResponse
+func (c *ClientWithResponses) SetAutomaticBillingWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAutomaticBillingResponse, error) {
+	rsp, err := c.SetAutomaticBillingWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetAutomaticBillingResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetAutomaticBillingWithResponse(ctx context.Context, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody, reqEditors ...RequestEditorFn) (*SetAutomaticBillingResponse, error) {
+	rsp, err := c.SetAutomaticBilling(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetAutomaticBillingResponse(rsp)
 }
 
 // GetCustomTagsWithResponse request returning *GetCustomTagsResponse
@@ -43597,6 +43727,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			AutoAdd                   *bool                     `json:"auto_add,omitempty"`
 			AutoInviteDomain          *string                   `json:"auto_invite_domain,omitempty"`
 			AutoInviteOperator        *bool                     `json:"auto_invite_operator,omitempty"`
+			AutomaticBilling          bool                      `json:"automatic_billing"`
 			CodeCompletionEnabled     bool                      `json:"code_completion_enabled"`
 			CustomerId                *string                   `json:"customer_id,omitempty"`
 			DefaultApp                *string                   `json:"default_app,omitempty"`
@@ -43724,9 +43855,10 @@ func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Premium bool     `json:"premium"`
-			Seats   *float32 `json:"seats,omitempty"`
-			Usage   *float32 `json:"usage,omitempty"`
+			AutomaticBilling bool     `json:"automatic_billing"`
+			Premium          bool     `json:"premium"`
+			Seats            *float32 `json:"seats,omitempty"`
+			Usage            *float32 `json:"usage,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -43747,6 +43879,22 @@ func ParseRunSlackMessageTestJobResponse(rsp *http.Response) (*RunSlackMessageTe
 	}
 
 	response := &RunSlackMessageTestJobResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSetAutomaticBillingResponse parses an HTTP response from a SetAutomaticBillingWithResponse call
+func ParseSetAutomaticBillingResponse(rsp *http.Response) (*SetAutomaticBillingResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetAutomaticBillingResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
