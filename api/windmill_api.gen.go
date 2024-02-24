@@ -2259,7 +2259,7 @@ type UpdateFlowJSONBody struct {
 
 // AddOwnerToFolderJSONBody defines parameters for AddOwnerToFolder.
 type AddOwnerToFolderJSONBody struct {
-	Owner *string `json:"owner,omitempty"`
+	Owner string `json:"owner"`
 }
 
 // CreateFolderJSONBody defines parameters for CreateFolder.
@@ -2291,7 +2291,8 @@ type ListFolderNamesParams struct {
 
 // RemoveOwnerToFolderJSONBody defines parameters for RemoveOwnerToFolder.
 type RemoveOwnerToFolderJSONBody struct {
-	Owner *string `json:"owner,omitempty"`
+	Owner string `json:"owner"`
+	Write bool   `json:"write"`
 }
 
 // UpdateFolderJSONBody defines parameters for UpdateFolder.
@@ -2517,6 +2518,9 @@ type ListCompletedJobsParams struct {
 
 	// is the job a flow step
 	IsFlowStep *bool `form:"is_flow_step,omitempty" json:"is_flow_step,omitempty"`
+
+	// has null parent
+	HasNullParent *bool `form:"has_null_parent,omitempty" json:"has_null_parent,omitempty"`
 }
 
 // ResumeSuspendedFlowAsOwnerJSONBody defines parameters for ResumeSuspendedFlowAsOwner.
@@ -2582,6 +2586,9 @@ type ListJobsParams struct {
 
 	// is the job a flow step
 	IsFlowStep *bool `form:"is_flow_step,omitempty" json:"is_flow_step,omitempty"`
+
+	// has null parent
+	HasNullParent *bool `form:"has_null_parent,omitempty" json:"has_null_parent,omitempty"`
 
 	// filter on successful jobs
 	Success *bool `form:"success,omitempty" json:"success,omitempty"`
@@ -17830,6 +17837,22 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 
 	}
 
+	if params.HasNullParent != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "has_null_parent", runtime.ParamLocationQuery, *params.HasNullParent); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -18265,6 +18288,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	if params.IsFlowStep != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow_step", runtime.ParamLocationQuery, *params.IsFlowStep); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.HasNullParent != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "has_null_parent", runtime.ParamLocationQuery, *params.HasNullParent); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
