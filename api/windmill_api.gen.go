@@ -2292,7 +2292,7 @@ type ListFolderNamesParams struct {
 // RemoveOwnerToFolderJSONBody defines parameters for RemoveOwnerToFolder.
 type RemoveOwnerToFolderJSONBody struct {
 	Owner string `json:"owner"`
-	Write bool   `json:"write"`
+	Write *bool  `json:"write,omitempty"`
 }
 
 // UpdateFolderJSONBody defines parameters for UpdateFolder.
