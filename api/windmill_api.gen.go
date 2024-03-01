@@ -1210,13 +1210,6 @@ type NewTokenImpersonate struct {
 	Label            *string    `json:"label,omitempty"`
 }
 
-// NewUser defines model for NewUser.
-type NewUser struct {
-	Email    string `json:"email"`
-	IsAdmin  bool   `json:"is_admin"`
-	Username string `json:"username"`
-}
-
 // OpenFlow defines model for OpenFlow.
 type OpenFlow struct {
 	Description *string                 `json:"description,omitempty"`
@@ -3184,9 +3177,6 @@ type ToggleWorkspaceErrorHandlerForScriptJSONBody struct {
 	Muted *bool `json:"muted,omitempty"`
 }
 
-// CreateUserJSONBody defines parameters for CreateUser.
-type CreateUserJSONBody = NewUser
-
 // UpdateUserJSONBody defines parameters for UpdateUser.
 type UpdateUserJSONBody = EditWorkspaceUser
 
@@ -3600,9 +3590,6 @@ type UpdateScriptHistoryJSONRequestBody UpdateScriptHistoryJSONBody
 
 // ToggleWorkspaceErrorHandlerForScriptJSONRequestBody defines body for ToggleWorkspaceErrorHandlerForScript for application/json ContentType.
 type ToggleWorkspaceErrorHandlerForScriptJSONRequestBody ToggleWorkspaceErrorHandlerForScriptJSONBody
-
-// CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
-type CreateUserJSONRequestBody = CreateUserJSONBody
 
 // UpdateUserJSONRequestBody defines body for UpdateUser for application/json ContentType.
 type UpdateUserJSONRequestBody = UpdateUserJSONBody
@@ -5623,11 +5610,6 @@ type ClientInterface interface {
 
 	ToggleWorkspaceErrorHandlerForScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// CreateUser request with any body
-	CreateUserWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	CreateUser(ctx context.Context, workspace WorkspaceId, body CreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// DeleteUser request
 	DeleteUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5653,6 +5635,9 @@ type ClientInterface interface {
 
 	// Whois request
 	Whois(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetUser request
+	GetUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateVariable request with any body
 	CreateVariableWithBody(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9672,30 +9657,6 @@ func (c *Client) ToggleWorkspaceErrorHandlerForScript(ctx context.Context, works
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateUserWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateUserRequestWithBody(c.Server, workspace, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CreateUser(ctx context.Context, workspace WorkspaceId, body CreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateUserRequest(c.Server, workspace, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) DeleteUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteUserRequest(c.Server, workspace, username)
 	if err != nil {
@@ -9794,6 +9755,18 @@ func (c *Client) Whoami(ctx context.Context, workspace WorkspaceId, reqEditors .
 
 func (c *Client) Whois(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewWhoisRequest(c.Server, workspace, username)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUserRequest(c.Server, workspace, username)
 	if err != nil {
 		return nil, err
 	}
@@ -24334,53 +24307,6 @@ func NewToggleWorkspaceErrorHandlerForScriptRequestWithBody(server string, works
 	return req, nil
 }
 
-// NewCreateUserRequest calls the generic CreateUser builder with application/json body
-func NewCreateUserRequest(server string, workspace WorkspaceId, body CreateUserJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewCreateUserRequestWithBody(server, workspace, "application/json", bodyReader)
-}
-
-// NewCreateUserRequestWithBody generates requests for CreateUser with any type of body
-func NewCreateUserRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/users/add", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewDeleteUserRequest generates requests for DeleteUser
 func NewDeleteUserRequest(server string, workspace WorkspaceId, username string) (*http.Request, error) {
 	var err error
@@ -24677,6 +24603,47 @@ func NewWhoisRequest(server string, workspace WorkspaceId, username string) (*ht
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/users/whois/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetUserRequest generates requests for GetUser
+func NewGetUserRequest(server string, workspace WorkspaceId, username string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "username", runtime.ParamLocationPath, username)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/users/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -27680,11 +27647,6 @@ type ClientWithResponsesInterface interface {
 
 	ToggleWorkspaceErrorHandlerForScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForScriptResponse, error)
 
-	// CreateUser request with any body
-	CreateUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateUserResponse, error)
-
-	CreateUserWithResponse(ctx context.Context, workspace WorkspaceId, body CreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateUserResponse, error)
-
 	// DeleteUser request
 	DeleteUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*DeleteUserResponse, error)
 
@@ -27710,6 +27672,9 @@ type ClientWithResponsesInterface interface {
 
 	// Whois request
 	WhoisWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*WhoisResponse, error)
+
+	// GetUser request
+	GetUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*GetUserResponse, error)
 
 	// CreateVariable request with any body
 	CreateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateVariableResponse, error)
@@ -33159,27 +33124,6 @@ func (r ToggleWorkspaceErrorHandlerForScriptResponse) StatusCode() int {
 	return 0
 }
 
-type CreateUserResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r CreateUserResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CreateUserResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type DeleteUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -33348,6 +33292,28 @@ func (r WhoisResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r WhoisResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *User
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUserResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -37226,23 +37192,6 @@ func (c *ClientWithResponses) ToggleWorkspaceErrorHandlerForScriptWithResponse(c
 	return ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp)
 }
 
-// CreateUserWithBodyWithResponse request with arbitrary body returning *CreateUserResponse
-func (c *ClientWithResponses) CreateUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateUserResponse, error) {
-	rsp, err := c.CreateUserWithBody(ctx, workspace, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateUserResponse(rsp)
-}
-
-func (c *ClientWithResponses) CreateUserWithResponse(ctx context.Context, workspace WorkspaceId, body CreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateUserResponse, error) {
-	rsp, err := c.CreateUser(ctx, workspace, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateUserResponse(rsp)
-}
-
 // DeleteUserWithResponse request returning *DeleteUserResponse
 func (c *ClientWithResponses) DeleteUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*DeleteUserResponse, error) {
 	rsp, err := c.DeleteUser(ctx, workspace, username, reqEditors...)
@@ -37321,6 +37270,15 @@ func (c *ClientWithResponses) WhoisWithResponse(ctx context.Context, workspace W
 		return nil, err
 	}
 	return ParseWhoisResponse(rsp)
+}
+
+// GetUserWithResponse request returning *GetUserResponse
+func (c *ClientWithResponses) GetUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*GetUserResponse, error) {
+	rsp, err := c.GetUser(ctx, workspace, username, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUserResponse(rsp)
 }
 
 // CreateVariableWithBodyWithResponse request with arbitrary body returning *CreateVariableResponse
@@ -43104,22 +43062,6 @@ func ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp *http.Response) (*Tog
 	return response, nil
 }
 
-// ParseCreateUserResponse parses an HTTP response from a CreateUserWithResponse call
-func ParseCreateUserResponse(rsp *http.Response) (*CreateUserResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CreateUserResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
 // ParseDeleteUserResponse parses an HTTP response from a DeleteUserWithResponse call
 func ParseDeleteUserResponse(rsp *http.Response) (*DeleteUserResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -43291,6 +43233,32 @@ func ParseWhoisResponse(rsp *http.Response) (*WhoisResponse, error) {
 	}
 
 	response := &WhoisResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest User
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetUserResponse parses an HTTP response from a GetUserWithResponse call
+func ParseGetUserResponse(rsp *http.Response) (*GetUserResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUserResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
