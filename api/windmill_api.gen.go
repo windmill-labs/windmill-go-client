@@ -1681,6 +1681,11 @@ type WorkerPing struct {
 	WorkerInstance string    `json:"worker_instance"`
 }
 
+// WorkflowTask defines model for WorkflowTask.
+type WorkflowTask struct {
+	Args ScriptArgs `json:"args"`
+}
+
 // Workspace defines model for Workspace.
 type Workspace struct {
 	Domain *string `json:"domain,omitempty"`
@@ -2900,6 +2905,9 @@ type RunWaitResultScriptByPathParams struct {
 	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
 }
 
+// RunCodeWorkflowTaskJSONBody defines parameters for RunCodeWorkflowTask.
+type RunCodeWorkflowTaskJSONBody = WorkflowTask
+
 // CancelSuspendedJobGetParams defines parameters for CancelSuspendedJobGet.
 type CancelSuspendedJobGetParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
@@ -3524,6 +3532,9 @@ type RunWaitResultFlowByPathJSONRequestBody = RunWaitResultFlowByPathJSONBody
 
 // RunWaitResultScriptByPathJSONRequestBody defines body for RunWaitResultScriptByPath for application/json ContentType.
 type RunWaitResultScriptByPathJSONRequestBody = RunWaitResultScriptByPathJSONBody
+
+// RunCodeWorkflowTaskJSONRequestBody defines body for RunCodeWorkflowTask for application/json ContentType.
+type RunCodeWorkflowTaskJSONRequestBody = RunCodeWorkflowTaskJSONBody
 
 // CancelSuspendedJobPostJSONRequestBody defines body for CancelSuspendedJobPost for application/json ContentType.
 type CancelSuspendedJobPostJSONRequestBody = CancelSuspendedJobPostJSONBody
@@ -5349,6 +5360,11 @@ type ClientInterface interface {
 	RunWaitResultScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunWaitResultScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunCodeWorkflowTask request with any body
+	RunCodeWorkflowTaskWithBody(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunCodeWorkflowTask(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, body RunCodeWorkflowTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CancelSuspendedJobGet request
 	CancelSuspendedJobGet(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8519,6 +8535,30 @@ func (c *Client) RunWaitResultScriptByPathWithBody(ctx context.Context, workspac
 
 func (c *Client) RunWaitResultScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunWaitResultScriptByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunCodeWorkflowTaskWithBody(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunCodeWorkflowTaskRequestWithBody(c.Server, workspace, jobId, entrypoint, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunCodeWorkflowTask(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, body RunCodeWorkflowTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunCodeWorkflowTaskRequest(c.Server, workspace, jobId, entrypoint, body)
 	if err != nil {
 		return nil, err
 	}
@@ -20413,6 +20453,67 @@ func NewRunWaitResultScriptByPathRequestWithBody(server string, workspace Worksp
 	return req, nil
 }
 
+// NewRunCodeWorkflowTaskRequest calls the generic RunCodeWorkflowTask builder with application/json body
+func NewRunCodeWorkflowTaskRequest(server string, workspace WorkspaceId, jobId string, entrypoint string, body RunCodeWorkflowTaskJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunCodeWorkflowTaskRequestWithBody(server, workspace, jobId, entrypoint, "application/json", bodyReader)
+}
+
+// NewRunCodeWorkflowTaskRequestWithBody generates requests for RunCodeWorkflowTask with any type of body
+func NewRunCodeWorkflowTaskRequestWithBody(server string, workspace WorkspaceId, jobId string, entrypoint string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "job_id", runtime.ParamLocationPath, jobId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "entrypoint", runtime.ParamLocationPath, entrypoint)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/workflow_as_code/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCancelSuspendedJobGetRequest generates requests for CancelSuspendedJobGet
 func NewCancelSuspendedJobGetRequest(server string, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobGetParams) (*http.Request, error) {
 	var err error
@@ -27387,6 +27488,11 @@ type ClientWithResponsesInterface interface {
 
 	RunWaitResultScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunWaitResultScriptByPathResponse, error)
 
+	// RunCodeWorkflowTask request with any body
+	RunCodeWorkflowTaskWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunCodeWorkflowTaskResponse, error)
+
+	RunCodeWorkflowTaskWithResponse(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, body RunCodeWorkflowTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*RunCodeWorkflowTaskResponse, error)
+
 	// CancelSuspendedJobGet request
 	CancelSuspendedJobGetWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *CancelSuspendedJobGetParams, reqEditors ...RequestEditorFn) (*CancelSuspendedJobGetResponse, error)
 
@@ -31542,6 +31648,27 @@ func (r RunWaitResultScriptByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunWaitResultScriptByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunCodeWorkflowTaskResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunCodeWorkflowTaskResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunCodeWorkflowTaskResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -36366,6 +36493,23 @@ func (c *ClientWithResponses) RunWaitResultScriptByPathWithResponse(ctx context.
 		return nil, err
 	}
 	return ParseRunWaitResultScriptByPathResponse(rsp)
+}
+
+// RunCodeWorkflowTaskWithBodyWithResponse request with arbitrary body returning *RunCodeWorkflowTaskResponse
+func (c *ClientWithResponses) RunCodeWorkflowTaskWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunCodeWorkflowTaskResponse, error) {
+	rsp, err := c.RunCodeWorkflowTaskWithBody(ctx, workspace, jobId, entrypoint, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunCodeWorkflowTaskResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunCodeWorkflowTaskWithResponse(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, body RunCodeWorkflowTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*RunCodeWorkflowTaskResponse, error) {
+	rsp, err := c.RunCodeWorkflowTask(ctx, workspace, jobId, entrypoint, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunCodeWorkflowTaskResponse(rsp)
 }
 
 // CancelSuspendedJobGetWithResponse request returning *CancelSuspendedJobGetResponse
@@ -41517,6 +41661,22 @@ func ParseRunWaitResultScriptByPathResponse(rsp *http.Response) (*RunWaitResultS
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseRunCodeWorkflowTaskResponse parses an HTTP response from a RunCodeWorkflowTaskWithResponse call
+func ParseRunCodeWorkflowTaskResponse(rsp *http.Response) (*RunCodeWorkflowTaskResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunCodeWorkflowTaskResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
