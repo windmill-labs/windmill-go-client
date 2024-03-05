@@ -1681,6 +1681,19 @@ type WorkerPing struct {
 	WorkerInstance string    `json:"worker_instance"`
 }
 
+// WorkflowStatus defines model for WorkflowStatus.
+type WorkflowStatus struct {
+	DurationMs   *float32   `json:"duration_ms,omitempty"`
+	Name         *string    `json:"name,omitempty"`
+	ScheduledFor *time.Time `json:"scheduled_for,omitempty"`
+	StartedAt    *time.Time `json:"started_at,omitempty"`
+}
+
+// WorkflowStatusRecord defines model for WorkflowStatusRecord.
+type WorkflowStatusRecord struct {
+	AdditionalProperties map[string]WorkflowStatus `json:"-"`
+}
+
 // WorkflowTask defines model for WorkflowTask.
 type WorkflowTask struct {
 	Args ScriptArgs `json:"args"`
@@ -4663,6 +4676,59 @@ func (a *ScriptArgs) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for ScriptArgs to handle AdditionalProperties
 func (a ScriptArgs) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for WorkflowStatusRecord. Returns the specified
+// element and whether it was found
+func (a WorkflowStatusRecord) Get(fieldName string) (value WorkflowStatus, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for WorkflowStatusRecord
+func (a *WorkflowStatusRecord) Set(fieldName string, value WorkflowStatus) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]WorkflowStatus)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for WorkflowStatusRecord to handle AdditionalProperties
+func (a *WorkflowStatusRecord) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]WorkflowStatus)
+		for fieldName, fieldBuf := range object {
+			var fieldVal WorkflowStatus
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for WorkflowStatusRecord to handle AdditionalProperties
+func (a WorkflowStatusRecord) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -31907,10 +31973,11 @@ type GetJobUpdatesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Completed *bool   `json:"completed,omitempty"`
-		MemPeak   *int    `json:"mem_peak,omitempty"`
-		NewLogs   *string `json:"new_logs,omitempty"`
-		Running   *bool   `json:"running,omitempty"`
+		Completed  *bool                 `json:"completed,omitempty"`
+		FlowStatus *WorkflowStatusRecord `json:"flow_status,omitempty"`
+		MemPeak    *int                  `json:"mem_peak,omitempty"`
+		NewLogs    *string               `json:"new_logs,omitempty"`
+		Running    *bool                 `json:"running,omitempty"`
 	}
 }
 
@@ -41939,10 +42006,11 @@ func ParseGetJobUpdatesResponse(rsp *http.Response) (*GetJobUpdatesResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Completed *bool   `json:"completed,omitempty"`
-			MemPeak   *int    `json:"mem_peak,omitempty"`
-			NewLogs   *string `json:"new_logs,omitempty"`
-			Running   *bool   `json:"running,omitempty"`
+			Completed  *bool                 `json:"completed,omitempty"`
+			FlowStatus *WorkflowStatusRecord `json:"flow_status,omitempty"`
+			MemPeak    *int                  `json:"mem_peak,omitempty"`
+			NewLogs    *string               `json:"new_logs,omitempty"`
+			Running    *bool                 `json:"running,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
