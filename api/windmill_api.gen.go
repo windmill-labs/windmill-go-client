@@ -243,8 +243,10 @@ const (
 
 // Defines values for LargeFileStorageType.
 const (
-	AzureBlobStorage LargeFileStorageType = "AzureBlobStorage"
-	S3Storage        LargeFileStorageType = "S3Storage"
+	AzureBlobStorage      LargeFileStorageType = "AzureBlobStorage"
+	AzureWorkloadIdentity LargeFileStorageType = "AzureWorkloadIdentity"
+	S3AwsOidc             LargeFileStorageType = "S3AwsOidc"
+	S3Storage             LargeFileStorageType = "S3Storage"
 )
 
 // Defines values for ListableAppExecutionMode.
