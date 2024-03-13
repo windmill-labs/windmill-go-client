@@ -217,11 +217,13 @@ const (
 	GitRepositorySettingsExcludeTypesOverrideApp          GitRepositorySettingsExcludeTypesOverride = "app"
 	GitRepositorySettingsExcludeTypesOverrideFlow         GitRepositorySettingsExcludeTypesOverride = "flow"
 	GitRepositorySettingsExcludeTypesOverrideFolder       GitRepositorySettingsExcludeTypesOverride = "folder"
+	GitRepositorySettingsExcludeTypesOverrideGroup        GitRepositorySettingsExcludeTypesOverride = "group"
 	GitRepositorySettingsExcludeTypesOverrideResource     GitRepositorySettingsExcludeTypesOverride = "resource"
 	GitRepositorySettingsExcludeTypesOverrideResourcetype GitRepositorySettingsExcludeTypesOverride = "resourcetype"
 	GitRepositorySettingsExcludeTypesOverrideSchedule     GitRepositorySettingsExcludeTypesOverride = "schedule"
 	GitRepositorySettingsExcludeTypesOverrideScript       GitRepositorySettingsExcludeTypesOverride = "script"
 	GitRepositorySettingsExcludeTypesOverrideSecret       GitRepositorySettingsExcludeTypesOverride = "secret"
+	GitRepositorySettingsExcludeTypesOverrideUser         GitRepositorySettingsExcludeTypesOverride = "user"
 	GitRepositorySettingsExcludeTypesOverrideVariable     GitRepositorySettingsExcludeTypesOverride = "variable"
 )
 
@@ -471,11 +473,13 @@ const (
 	WorkspaceGitSyncSettingsIncludeTypeApp          WorkspaceGitSyncSettingsIncludeType = "app"
 	WorkspaceGitSyncSettingsIncludeTypeFlow         WorkspaceGitSyncSettingsIncludeType = "flow"
 	WorkspaceGitSyncSettingsIncludeTypeFolder       WorkspaceGitSyncSettingsIncludeType = "folder"
+	WorkspaceGitSyncSettingsIncludeTypeGroup        WorkspaceGitSyncSettingsIncludeType = "group"
 	WorkspaceGitSyncSettingsIncludeTypeResource     WorkspaceGitSyncSettingsIncludeType = "resource"
 	WorkspaceGitSyncSettingsIncludeTypeResourcetype WorkspaceGitSyncSettingsIncludeType = "resourcetype"
 	WorkspaceGitSyncSettingsIncludeTypeSchedule     WorkspaceGitSyncSettingsIncludeType = "schedule"
 	WorkspaceGitSyncSettingsIncludeTypeScript       WorkspaceGitSyncSettingsIncludeType = "script"
 	WorkspaceGitSyncSettingsIncludeTypeSecret       WorkspaceGitSyncSettingsIncludeType = "secret"
+	WorkspaceGitSyncSettingsIncludeTypeUser         WorkspaceGitSyncSettingsIncludeType = "user"
 	WorkspaceGitSyncSettingsIncludeTypeVariable     WorkspaceGitSyncSettingsIncludeType = "variable"
 )
 
@@ -669,9 +673,9 @@ type CreateVariable struct {
 
 // CreateWorkspace defines model for CreateWorkspace.
 type CreateWorkspace struct {
-	Id       string `json:"id"`
-	Name     string `json:"name"`
-	Username string `json:"username"`
+	Id       string  `json:"id"`
+	Name     string  `json:"name"`
+	Username *string `json:"username,omitempty"`
 }
 
 // EditResource defines model for EditResource.
@@ -933,6 +937,7 @@ type GlobalUserInfo struct {
 	LoginType  GlobalUserInfoLoginType `json:"login_type"`
 	Name       *string                 `json:"name,omitempty"`
 	SuperAdmin bool                    `json:"super_admin"`
+	Username   *string                 `json:"username,omitempty"`
 	Verified   bool                    `json:"verified"`
 }
 
@@ -1709,6 +1714,18 @@ type Workspace struct {
 	Owner  string  `json:"owner"`
 }
 
+// WorkspaceDefaultScripts defines model for WorkspaceDefaultScripts.
+type WorkspaceDefaultScripts struct {
+	DefaultScriptContent *WorkspaceDefaultScripts_DefaultScriptContent `json:"default_script_content,omitempty"`
+	Hidden               *[]string                                     `json:"hidden,omitempty"`
+	Order                *[]string                                     `json:"order,omitempty"`
+}
+
+// WorkspaceDefaultScripts_DefaultScriptContent defines model for WorkspaceDefaultScripts.DefaultScriptContent.
+type WorkspaceDefaultScripts_DefaultScriptContent struct {
+	AdditionalProperties map[string]string `json:"-"`
+}
+
 // WorkspaceGitSyncSettings defines model for WorkspaceGitSyncSettings.
 type WorkspaceGitSyncSettings struct {
 	IncludePath  *[]string                              `json:"include_path,omitempty"`
@@ -1983,8 +2000,8 @@ type TestSmtpJSONBody struct {
 
 // AcceptInviteJSONBody defines parameters for AcceptInvite.
 type AcceptInviteJSONBody struct {
-	Username    string `json:"username"`
-	WorkspaceId string `json:"workspace_id"`
+	Username    *string `json:"username,omitempty"`
+	WorkspaceId string  `json:"workspace_id"`
 }
 
 // CreateUserGloballyJSONBody defines parameters for CreateUserGlobally.
@@ -2008,6 +2025,11 @@ type ListUsersAsSuperAdminParams struct {
 
 	// number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// GlobalUserRenameJSONBody defines parameters for GlobalUserRename.
+type GlobalUserRenameJSONBody struct {
+	NewUsername string `json:"new_username"`
 }
 
 // SetPasswordJSONBody defines parameters for SetPassword.
@@ -3234,11 +3256,14 @@ type UpdateVariableParams struct {
 
 // AddUserJSONBody defines parameters for AddUser.
 type AddUserJSONBody struct {
-	Email    string `json:"email"`
-	IsAdmin  bool   `json:"is_admin"`
-	Operator bool   `json:"operator"`
-	Username string `json:"username"`
+	Email    string  `json:"email"`
+	IsAdmin  bool    `json:"is_admin"`
+	Operator bool    `json:"operator"`
+	Username *string `json:"username,omitempty"`
 }
+
+// EditDefaultScriptsJSONBody defines parameters for EditDefaultScripts.
+type EditDefaultScriptsJSONBody = WorkspaceDefaultScripts
 
 // DeleteInviteJSONBody defines parameters for DeleteInvite.
 type DeleteInviteJSONBody struct {
@@ -3409,6 +3434,9 @@ type CreateUserGloballyJSONRequestBody CreateUserGloballyJSONBody
 
 // DeclineInviteJSONRequestBody defines body for DeclineInvite for application/json ContentType.
 type DeclineInviteJSONRequestBody DeclineInviteJSONBody
+
+// GlobalUserRenameJSONRequestBody defines body for GlobalUserRename for application/json ContentType.
+type GlobalUserRenameJSONRequestBody GlobalUserRenameJSONBody
 
 // SetPasswordJSONRequestBody defines body for SetPassword for application/json ContentType.
 type SetPasswordJSONRequestBody SetPasswordJSONBody
@@ -3631,6 +3659,9 @@ type UpdateVariableJSONRequestBody = UpdateVariableJSONBody
 
 // AddUserJSONRequestBody defines body for AddUser for application/json ContentType.
 type AddUserJSONRequestBody AddUserJSONBody
+
+// EditDefaultScriptsJSONRequestBody defines body for EditDefaultScripts for application/json ContentType.
+type EditDefaultScriptsJSONRequestBody = EditDefaultScriptsJSONBody
 
 // DeleteInviteJSONRequestBody defines body for DeleteInvite for application/json ContentType.
 type DeleteInviteJSONRequestBody DeleteInviteJSONBody
@@ -4743,6 +4774,59 @@ func (a WorkflowStatusRecord) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for WorkspaceDefaultScripts_DefaultScriptContent. Returns the specified
+// element and whether it was found
+func (a WorkspaceDefaultScripts_DefaultScriptContent) Get(fieldName string) (value string, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for WorkspaceDefaultScripts_DefaultScriptContent
+func (a *WorkspaceDefaultScripts_DefaultScriptContent) Set(fieldName string, value string) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]string)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for WorkspaceDefaultScripts_DefaultScriptContent to handle AdditionalProperties
+func (a *WorkspaceDefaultScripts_DefaultScriptContent) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]string)
+		for fieldName, fieldBuf := range object {
+			var fieldVal string
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for WorkspaceDefaultScripts_DefaultScriptContent to handle AdditionalProperties
+func (a WorkspaceDefaultScripts_DefaultScriptContent) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
@@ -5001,6 +5085,11 @@ type ClientInterface interface {
 	// RefreshUserToken request
 	RefreshUserToken(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GlobalUserRename request with any body
+	GlobalUserRenameWithBody(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GlobalUserRename(ctx context.Context, email string, body GlobalUserRenameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SetPassword request with any body
 	SetPasswordWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5037,6 +5126,9 @@ type ClientInterface interface {
 
 	// GetUsage request
 	GetUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GlobalUsernameInfo request
+	GlobalUsernameInfo(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GlobalWhoami request
 	GlobalWhoami(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5766,6 +5858,14 @@ type ClientInterface interface {
 
 	// GetWorkspaceDefaultApp request
 	GetWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDefaultScripts request
+	GetDefaultScripts(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EditDefaultScripts request with any body
+	EditDefaultScriptsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditDefaultScripts(ctx context.Context, workspace WorkspaceId, body EditDefaultScriptsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteInvite request with any body
 	DeleteInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6717,6 +6817,30 @@ func (c *Client) RefreshUserToken(ctx context.Context, reqEditors ...RequestEdit
 	return c.Client.Do(req)
 }
 
+func (c *Client) GlobalUserRenameWithBody(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGlobalUserRenameRequestWithBody(c.Server, email, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GlobalUserRename(ctx context.Context, email string, body GlobalUserRenameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGlobalUserRenameRequest(c.Server, email, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) SetPasswordWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetPasswordRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -6875,6 +6999,18 @@ func (c *Client) GlobalUserUpdate(ctx context.Context, email string, body Global
 
 func (c *Client) GetUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetUsageRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GlobalUsernameInfo(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGlobalUsernameInfoRequest(c.Server, email)
 	if err != nil {
 		return nil, err
 	}
@@ -10077,6 +10213,42 @@ func (c *Client) GetWorkspaceDefaultApp(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetDefaultScripts(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDefaultScriptsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditDefaultScriptsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditDefaultScriptsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditDefaultScripts(ctx context.Context, workspace WorkspaceId, body EditDefaultScriptsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditDefaultScriptsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) DeleteInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteInviteRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -12636,6 +12808,53 @@ func NewRefreshUserTokenRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGlobalUserRenameRequest calls the generic GlobalUserRename builder with application/json body
+func NewGlobalUserRenameRequest(server string, email string, body GlobalUserRenameJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGlobalUserRenameRequestWithBody(server, email, "application/json", bodyReader)
+}
+
+// NewGlobalUserRenameRequestWithBody generates requests for GlobalUserRename with any type of body
+func NewGlobalUserRenameRequestWithBody(server string, email string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "email", runtime.ParamLocationPath, email)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/rename/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewSetPasswordRequest calls the generic SetPassword builder with application/json body
 func NewSetPasswordRequest(server string, body SetPasswordJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -12961,6 +13180,40 @@ func NewGetUsageRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/users/usage")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGlobalUsernameInfoRequest generates requests for GlobalUsernameInfo
+func NewGlobalUsernameInfoRequest(server string, email string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "email", runtime.ParamLocationPath, email)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/username_info/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -25401,6 +25654,87 @@ func NewGetWorkspaceDefaultAppRequest(server string, workspace WorkspaceId) (*ht
 	return req, nil
 }
 
+// NewGetDefaultScriptsRequest generates requests for GetDefaultScripts
+func NewGetDefaultScriptsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/default_scripts", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewEditDefaultScriptsRequest calls the generic EditDefaultScripts builder with application/json body
+func NewEditDefaultScriptsRequest(server string, workspace WorkspaceId, body EditDefaultScriptsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditDefaultScriptsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditDefaultScriptsRequestWithBody generates requests for EditDefaultScripts with any type of body
+func NewEditDefaultScriptsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/default_scripts", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewDeleteInviteRequest calls the generic DeleteInvite builder with application/json body
 func NewDeleteInviteRequest(server string, workspace WorkspaceId, body DeleteInviteJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -27128,6 +27462,11 @@ type ClientWithResponsesInterface interface {
 	// RefreshUserToken request
 	RefreshUserTokenWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshUserTokenResponse, error)
 
+	// GlobalUserRename request with any body
+	GlobalUserRenameWithBodyWithResponse(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GlobalUserRenameResponse, error)
+
+	GlobalUserRenameWithResponse(ctx context.Context, email string, body GlobalUserRenameJSONRequestBody, reqEditors ...RequestEditorFn) (*GlobalUserRenameResponse, error)
+
 	// SetPassword request with any body
 	SetPasswordWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPasswordResponse, error)
 
@@ -27164,6 +27503,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetUsage request
 	GetUsageWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetUsageResponse, error)
+
+	// GlobalUsernameInfo request
+	GlobalUsernameInfoWithResponse(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*GlobalUsernameInfoResponse, error)
 
 	// GlobalWhoami request
 	GlobalWhoamiWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GlobalWhoamiResponse, error)
@@ -27893,6 +28235,14 @@ type ClientWithResponsesInterface interface {
 
 	// GetWorkspaceDefaultApp request
 	GetWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceDefaultAppResponse, error)
+
+	// GetDefaultScripts request
+	GetDefaultScriptsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDefaultScriptsResponse, error)
+
+	// EditDefaultScripts request with any body
+	EditDefaultScriptsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDefaultScriptsResponse, error)
+
+	EditDefaultScriptsWithResponse(ctx context.Context, workspace WorkspaceId, body EditDefaultScriptsJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDefaultScriptsResponse, error)
 
 	// DeleteInvite request with any body
 	DeleteInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error)
@@ -29201,6 +29551,27 @@ func (r RefreshUserTokenResponse) StatusCode() int {
 	return 0
 }
 
+type GlobalUserRenameResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GlobalUserRenameResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GlobalUserRenameResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type SetPasswordResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -29388,6 +29759,34 @@ func (r GetUsageResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetUsageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GlobalUsernameInfoResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Username           string `json:"username"`
+		WorkspaceUsernames []struct {
+			Username    string `json:"username"`
+			WorkspaceId string `json:"workspace_id"`
+		} `json:"workspace_usernames"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GlobalUsernameInfoResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GlobalUsernameInfoResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -33776,6 +34175,49 @@ func (r GetWorkspaceDefaultAppResponse) StatusCode() int {
 	return 0
 }
 
+type GetDefaultScriptsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *WorkspaceDefaultScripts
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDefaultScriptsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDefaultScriptsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type EditDefaultScriptsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditDefaultScriptsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditDefaultScriptsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DeleteInviteResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -35188,6 +35630,23 @@ func (c *ClientWithResponses) RefreshUserTokenWithResponse(ctx context.Context, 
 	return ParseRefreshUserTokenResponse(rsp)
 }
 
+// GlobalUserRenameWithBodyWithResponse request with arbitrary body returning *GlobalUserRenameResponse
+func (c *ClientWithResponses) GlobalUserRenameWithBodyWithResponse(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GlobalUserRenameResponse, error) {
+	rsp, err := c.GlobalUserRenameWithBody(ctx, email, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGlobalUserRenameResponse(rsp)
+}
+
+func (c *ClientWithResponses) GlobalUserRenameWithResponse(ctx context.Context, email string, body GlobalUserRenameJSONRequestBody, reqEditors ...RequestEditorFn) (*GlobalUserRenameResponse, error) {
+	rsp, err := c.GlobalUserRename(ctx, email, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGlobalUserRenameResponse(rsp)
+}
+
 // SetPasswordWithBodyWithResponse request with arbitrary body returning *SetPasswordResponse
 func (c *ClientWithResponses) SetPasswordWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPasswordResponse, error) {
 	rsp, err := c.SetPasswordWithBody(ctx, contentType, body, reqEditors...)
@@ -35307,6 +35766,15 @@ func (c *ClientWithResponses) GetUsageWithResponse(ctx context.Context, reqEdito
 		return nil, err
 	}
 	return ParseGetUsageResponse(rsp)
+}
+
+// GlobalUsernameInfoWithResponse request returning *GlobalUsernameInfoResponse
+func (c *ClientWithResponses) GlobalUsernameInfoWithResponse(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*GlobalUsernameInfoResponse, error) {
+	rsp, err := c.GlobalUsernameInfo(ctx, email, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGlobalUsernameInfoResponse(rsp)
 }
 
 // GlobalWhoamiWithResponse request returning *GlobalWhoamiResponse
@@ -37634,6 +38102,32 @@ func (c *ClientWithResponses) GetWorkspaceDefaultAppWithResponse(ctx context.Con
 	return ParseGetWorkspaceDefaultAppResponse(rsp)
 }
 
+// GetDefaultScriptsWithResponse request returning *GetDefaultScriptsResponse
+func (c *ClientWithResponses) GetDefaultScriptsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDefaultScriptsResponse, error) {
+	rsp, err := c.GetDefaultScripts(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDefaultScriptsResponse(rsp)
+}
+
+// EditDefaultScriptsWithBodyWithResponse request with arbitrary body returning *EditDefaultScriptsResponse
+func (c *ClientWithResponses) EditDefaultScriptsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDefaultScriptsResponse, error) {
+	rsp, err := c.EditDefaultScriptsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditDefaultScriptsResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditDefaultScriptsWithResponse(ctx context.Context, workspace WorkspaceId, body EditDefaultScriptsJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDefaultScriptsResponse, error) {
+	rsp, err := c.EditDefaultScripts(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditDefaultScriptsResponse(rsp)
+}
+
 // DeleteInviteWithBodyWithResponse request with arbitrary body returning *DeleteInviteResponse
 func (c *ClientWithResponses) DeleteInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error) {
 	rsp, err := c.DeleteInviteWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -39225,6 +39719,22 @@ func ParseRefreshUserTokenResponse(rsp *http.Response) (*RefreshUserTokenRespons
 	return response, nil
 }
 
+// ParseGlobalUserRenameResponse parses an HTTP response from a GlobalUserRenameWithResponse call
+func ParseGlobalUserRenameResponse(rsp *http.Response) (*GlobalUserRenameResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GlobalUserRenameResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseSetPasswordResponse parses an HTTP response from a SetPasswordWithResponse call
 func ParseSetPasswordResponse(rsp *http.Response) (*SetPasswordResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -39386,6 +39896,38 @@ func ParseGetUsageResponse(rsp *http.Response) (*GetUsageResponse, error) {
 	response := &GetUsageResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGlobalUsernameInfoResponse parses an HTTP response from a GlobalUsernameInfoWithResponse call
+func ParseGlobalUsernameInfoResponse(rsp *http.Response) (*GlobalUsernameInfoResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GlobalUsernameInfoResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Username           string `json:"username"`
+			WorkspaceUsernames []struct {
+				Username    string `json:"username"`
+				WorkspaceId string `json:"workspace_id"`
+			} `json:"workspace_usernames"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -43755,6 +44297,48 @@ func ParseGetWorkspaceDefaultAppResponse(rsp *http.Response) (*GetWorkspaceDefau
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetDefaultScriptsResponse parses an HTTP response from a GetDefaultScriptsWithResponse call
+func ParseGetDefaultScriptsResponse(rsp *http.Response) (*GetDefaultScriptsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDefaultScriptsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WorkspaceDefaultScripts
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseEditDefaultScriptsResponse parses an HTTP response from a EditDefaultScriptsWithResponse call
+func ParseEditDefaultScriptsResponse(rsp *http.Response) (*EditDefaultScriptsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditDefaultScriptsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
