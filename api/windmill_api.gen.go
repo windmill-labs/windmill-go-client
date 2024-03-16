@@ -34553,10 +34553,11 @@ type GetSettingsResponse struct {
 		CodeCompletionEnabled     bool                      `json:"code_completion_enabled"`
 		CustomerId                *string                   `json:"customer_id,omitempty"`
 		DefaultApp                *string                   `json:"default_app,omitempty"`
+		DefaultScripts            *WorkspaceDefaultScripts  `json:"default_scripts,omitempty"`
 		DeployTo                  *string                   `json:"deploy_to,omitempty"`
 		ErrorHandler              *string                   `json:"error_handler,omitempty"`
 		ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
-		ErrorHandlerMutedOnCancel *bool                     `json:"error_handler_muted_on_cancel,omitempty"`
+		ErrorHandlerMutedOnCancel bool                      `json:"error_handler_muted_on_cancel"`
 		GitSync                   *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
 		LargeFileStorage          *LargeFileStorage         `json:"large_file_storage,omitempty"`
 		OpenaiResourcePath        *string                   `json:"openai_resource_path,omitempty"`
@@ -44661,10 +44662,11 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			CodeCompletionEnabled     bool                      `json:"code_completion_enabled"`
 			CustomerId                *string                   `json:"customer_id,omitempty"`
 			DefaultApp                *string                   `json:"default_app,omitempty"`
+			DefaultScripts            *WorkspaceDefaultScripts  `json:"default_scripts,omitempty"`
 			DeployTo                  *string                   `json:"deploy_to,omitempty"`
 			ErrorHandler              *string                   `json:"error_handler,omitempty"`
 			ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
-			ErrorHandlerMutedOnCancel *bool                     `json:"error_handler_muted_on_cancel,omitempty"`
+			ErrorHandlerMutedOnCancel bool                      `json:"error_handler_muted_on_cancel"`
 			GitSync                   *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
 			LargeFileStorage          *LargeFileStorage         `json:"large_file_storage,omitempty"`
 			OpenaiResourcePath        *string                   `json:"openai_resource_path,omitempty"`
