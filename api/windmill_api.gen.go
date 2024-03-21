@@ -1985,6 +1985,15 @@ type TestLicenseKeyJSONBody struct {
 	LicenseKey string `json:"license_key"`
 }
 
+// TestS3ConfigJSONBody defines parameters for TestS3Config.
+type TestS3ConfigJSONBody struct {
+	AccessKey *string `json:"access_key,omitempty"`
+	Bucket    *string `json:"bucket,omitempty"`
+	Endpoint  *string `json:"endpoint,omitempty"`
+	Region    *string `json:"region,omitempty"`
+	SecretKey *string `json:"secret_key,omitempty"`
+}
+
 // TestSmtpJSONBody defines parameters for TestSmtp.
 type TestSmtpJSONBody struct {
 	Smtp struct {
@@ -3422,6 +3431,9 @@ type SetGlobalJSONRequestBody SetGlobalJSONBody
 
 // TestLicenseKeyJSONRequestBody defines body for TestLicenseKey for application/json ContentType.
 type TestLicenseKeyJSONRequestBody TestLicenseKeyJSONBody
+
+// TestS3ConfigJSONRequestBody defines body for TestS3Config for application/json ContentType.
+type TestS3ConfigJSONRequestBody TestS3ConfigJSONBody
 
 // TestSmtpJSONRequestBody defines body for TestSmtp for application/json ContentType.
 type TestSmtpJSONRequestBody TestSmtpJSONBody
@@ -5038,6 +5050,11 @@ type ClientInterface interface {
 
 	TestLicenseKey(ctx context.Context, body TestLicenseKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// TestS3Config request with any body
+	TestS3ConfigWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestS3Config(ctx context.Context, body TestS3ConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// TestSmtp request with any body
 	TestSmtpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6603,6 +6620,30 @@ func (c *Client) TestLicenseKeyWithBody(ctx context.Context, contentType string,
 
 func (c *Client) TestLicenseKey(ctx context.Context, body TestLicenseKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewTestLicenseKeyRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestS3ConfigWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestS3ConfigRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestS3Config(ctx context.Context, body TestS3ConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestS3ConfigRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -12336,6 +12377,46 @@ func NewTestLicenseKeyRequestWithBody(server string, contentType string, body io
 	}
 
 	operationPath := fmt.Sprintf("/settings/test_license_key")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestS3ConfigRequest calls the generic TestS3Config builder with application/json body
+func NewTestS3ConfigRequest(server string, body TestS3ConfigJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestS3ConfigRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewTestS3ConfigRequestWithBody generates requests for TestS3Config with any type of body
+func NewTestS3ConfigRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/test_s3_config")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -27415,6 +27496,11 @@ type ClientWithResponsesInterface interface {
 
 	TestLicenseKeyWithResponse(ctx context.Context, body TestLicenseKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*TestLicenseKeyResponse, error)
 
+	// TestS3Config request with any body
+	TestS3ConfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestS3ConfigResponse, error)
+
+	TestS3ConfigWithResponse(ctx context.Context, body TestS3ConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*TestS3ConfigResponse, error)
+
 	// TestSmtp request with any body
 	TestSmtpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error)
 
@@ -29260,6 +29346,27 @@ func (r TestLicenseKeyResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r TestLicenseKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestS3ConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestS3ConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestS3ConfigResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -35482,6 +35589,23 @@ func (c *ClientWithResponses) TestLicenseKeyWithResponse(ctx context.Context, bo
 	return ParseTestLicenseKeyResponse(rsp)
 }
 
+// TestS3ConfigWithBodyWithResponse request with arbitrary body returning *TestS3ConfigResponse
+func (c *ClientWithResponses) TestS3ConfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestS3ConfigResponse, error) {
+	rsp, err := c.TestS3ConfigWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestS3ConfigResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestS3ConfigWithResponse(ctx context.Context, body TestS3ConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*TestS3ConfigResponse, error) {
+	rsp, err := c.TestS3Config(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestS3ConfigResponse(rsp)
+}
+
 // TestSmtpWithBodyWithResponse request with arbitrary body returning *TestSmtpResponse
 func (c *ClientWithResponses) TestSmtpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error) {
 	rsp, err := c.TestSmtpWithBody(ctx, contentType, body, reqEditors...)
@@ -39457,6 +39581,22 @@ func ParseTestLicenseKeyResponse(rsp *http.Response) (*TestLicenseKeyResponse, e
 	}
 
 	response := &TestLicenseKeyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestS3ConfigResponse parses an HTTP response from a TestS3ConfigWithResponse call
+func ParseTestS3ConfigResponse(rsp *http.Response) (*TestS3ConfigResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestS3ConfigResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
