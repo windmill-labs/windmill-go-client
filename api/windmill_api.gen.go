@@ -3271,6 +3271,17 @@ type AddUserJSONBody struct {
 	Username *string `json:"username,omitempty"`
 }
 
+// ChangeWorkspaceIdJSONBody defines parameters for ChangeWorkspaceId.
+type ChangeWorkspaceIdJSONBody struct {
+	NewId   *string `json:"new_id,omitempty"`
+	NewName *string `json:"new_name,omitempty"`
+}
+
+// ChangeWorkspaceNameJSONBody defines parameters for ChangeWorkspaceName.
+type ChangeWorkspaceNameJSONBody struct {
+	NewName *string `json:"new_name,omitempty"`
+}
+
 // EditDefaultScriptsJSONBody defines parameters for EditDefaultScripts.
 type EditDefaultScriptsJSONBody = WorkspaceDefaultScripts
 
@@ -3671,6 +3682,12 @@ type UpdateVariableJSONRequestBody = UpdateVariableJSONBody
 
 // AddUserJSONRequestBody defines body for AddUser for application/json ContentType.
 type AddUserJSONRequestBody AddUserJSONBody
+
+// ChangeWorkspaceIdJSONRequestBody defines body for ChangeWorkspaceId for application/json ContentType.
+type ChangeWorkspaceIdJSONRequestBody ChangeWorkspaceIdJSONBody
+
+// ChangeWorkspaceNameJSONRequestBody defines body for ChangeWorkspaceName for application/json ContentType.
+type ChangeWorkspaceNameJSONRequestBody ChangeWorkspaceNameJSONBody
 
 // EditDefaultScriptsJSONRequestBody defines body for EditDefaultScripts for application/json ContentType.
 type EditDefaultScriptsJSONRequestBody = EditDefaultScriptsJSONBody
@@ -5873,6 +5890,16 @@ type ClientInterface interface {
 	// ArchiveWorkspace request
 	ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ChangeWorkspaceId request with any body
+	ChangeWorkspaceIdWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ChangeWorkspaceId(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ChangeWorkspaceName request with any body
+	ChangeWorkspaceNameWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ChangeWorkspaceName(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetWorkspaceDefaultApp request
 	GetWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5953,6 +5980,9 @@ type ClientInterface interface {
 
 	// GetSettings request
 	GetSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetWorkspaceName request
+	GetWorkspaceName(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// InviteUser request with any body
 	InviteUserWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10242,6 +10272,54 @@ func (c *Client) ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, re
 	return c.Client.Do(req)
 }
 
+func (c *Client) ChangeWorkspaceIdWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChangeWorkspaceIdRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChangeWorkspaceId(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChangeWorkspaceIdRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChangeWorkspaceNameWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChangeWorkspaceNameRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChangeWorkspaceName(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChangeWorkspaceNameRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetWorkspaceDefaultAppRequest(c.Server, workspace)
 	if err != nil {
@@ -10604,6 +10682,18 @@ func (c *Client) GetLargeFileStorageConfig(ctx context.Context, workspace Worksp
 
 func (c *Client) GetSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetSettingsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetWorkspaceName(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetWorkspaceNameRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -25701,6 +25791,100 @@ func NewArchiveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Req
 	return req, nil
 }
 
+// NewChangeWorkspaceIdRequest calls the generic ChangeWorkspaceId builder with application/json body
+func NewChangeWorkspaceIdRequest(server string, workspace WorkspaceId, body ChangeWorkspaceIdJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewChangeWorkspaceIdRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewChangeWorkspaceIdRequestWithBody generates requests for ChangeWorkspaceId with any type of body
+func NewChangeWorkspaceIdRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/change_workspace_id", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewChangeWorkspaceNameRequest calls the generic ChangeWorkspaceName builder with application/json body
+func NewChangeWorkspaceNameRequest(server string, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewChangeWorkspaceNameRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewChangeWorkspaceNameRequestWithBody generates requests for ChangeWorkspaceName with any type of body
+func NewChangeWorkspaceNameRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/change_workspace_name", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetWorkspaceDefaultAppRequest generates requests for GetWorkspaceDefaultApp
 func NewGetWorkspaceDefaultAppRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -26486,6 +26670,40 @@ func NewGetSettingsRequest(server string, workspace WorkspaceId) (*http.Request,
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/get_settings", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetWorkspaceNameRequest generates requests for GetWorkspaceName
+func NewGetWorkspaceNameRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_workspace_name", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -28319,6 +28537,16 @@ type ClientWithResponsesInterface interface {
 	// ArchiveWorkspace request
 	ArchiveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ArchiveWorkspaceResponse, error)
 
+	// ChangeWorkspaceId request with any body
+	ChangeWorkspaceIdWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceIdResponse, error)
+
+	ChangeWorkspaceIdWithResponse(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceIdJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeWorkspaceIdResponse, error)
+
+	// ChangeWorkspaceName request with any body
+	ChangeWorkspaceNameWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceNameResponse, error)
+
+	ChangeWorkspaceNameWithResponse(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeWorkspaceNameResponse, error)
+
 	// GetWorkspaceDefaultApp request
 	GetWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceDefaultAppResponse, error)
 
@@ -28399,6 +28627,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetSettings request
 	GetSettingsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSettingsResponse, error)
+
+	// GetWorkspaceName request
+	GetWorkspaceNameWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceNameResponse, error)
 
 	// InviteUser request with any body
 	InviteUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*InviteUserResponse, error)
@@ -34258,6 +34489,48 @@ func (r ArchiveWorkspaceResponse) StatusCode() int {
 	return 0
 }
 
+type ChangeWorkspaceIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ChangeWorkspaceIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ChangeWorkspaceIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ChangeWorkspaceNameResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ChangeWorkspaceNameResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ChangeWorkspaceNameResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetWorkspaceDefaultAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -34687,6 +34960,27 @@ func (r GetSettingsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetSettingsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetWorkspaceNameResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetWorkspaceNameResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetWorkspaceNameResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -38218,6 +38512,40 @@ func (c *ClientWithResponses) ArchiveWorkspaceWithResponse(ctx context.Context, 
 	return ParseArchiveWorkspaceResponse(rsp)
 }
 
+// ChangeWorkspaceIdWithBodyWithResponse request with arbitrary body returning *ChangeWorkspaceIdResponse
+func (c *ClientWithResponses) ChangeWorkspaceIdWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceIdResponse, error) {
+	rsp, err := c.ChangeWorkspaceIdWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChangeWorkspaceIdResponse(rsp)
+}
+
+func (c *ClientWithResponses) ChangeWorkspaceIdWithResponse(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceIdJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeWorkspaceIdResponse, error) {
+	rsp, err := c.ChangeWorkspaceId(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChangeWorkspaceIdResponse(rsp)
+}
+
+// ChangeWorkspaceNameWithBodyWithResponse request with arbitrary body returning *ChangeWorkspaceNameResponse
+func (c *ClientWithResponses) ChangeWorkspaceNameWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceNameResponse, error) {
+	rsp, err := c.ChangeWorkspaceNameWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChangeWorkspaceNameResponse(rsp)
+}
+
+func (c *ClientWithResponses) ChangeWorkspaceNameWithResponse(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeWorkspaceNameResponse, error) {
+	rsp, err := c.ChangeWorkspaceName(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChangeWorkspaceNameResponse(rsp)
+}
+
 // GetWorkspaceDefaultAppWithResponse request returning *GetWorkspaceDefaultAppResponse
 func (c *ClientWithResponses) GetWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceDefaultAppResponse, error) {
 	rsp, err := c.GetWorkspaceDefaultApp(ctx, workspace, reqEditors...)
@@ -38483,6 +38811,15 @@ func (c *ClientWithResponses) GetSettingsWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseGetSettingsResponse(rsp)
+}
+
+// GetWorkspaceNameWithResponse request returning *GetWorkspaceNameResponse
+func (c *ClientWithResponses) GetWorkspaceNameWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceNameResponse, error) {
+	rsp, err := c.GetWorkspaceName(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetWorkspaceNameResponse(rsp)
 }
 
 // InviteUserWithBodyWithResponse request with arbitrary body returning *InviteUserResponse
@@ -44415,6 +44752,38 @@ func ParseArchiveWorkspaceResponse(rsp *http.Response) (*ArchiveWorkspaceRespons
 	return response, nil
 }
 
+// ParseChangeWorkspaceIdResponse parses an HTTP response from a ChangeWorkspaceIdWithResponse call
+func ParseChangeWorkspaceIdResponse(rsp *http.Response) (*ChangeWorkspaceIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ChangeWorkspaceIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseChangeWorkspaceNameResponse parses an HTTP response from a ChangeWorkspaceNameWithResponse call
+func ParseChangeWorkspaceNameResponse(rsp *http.Response) (*ChangeWorkspaceNameResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ChangeWorkspaceNameResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetWorkspaceDefaultAppResponse parses an HTTP response from a GetWorkspaceDefaultAppWithResponse call
 func ParseGetWorkspaceDefaultAppResponse(rsp *http.Response) (*GetWorkspaceDefaultAppResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -44822,6 +45191,22 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetWorkspaceNameResponse parses an HTTP response from a GetWorkspaceNameWithResponse call
+func ParseGetWorkspaceNameResponse(rsp *http.Response) (*GetWorkspaceNameResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetWorkspaceNameResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
