@@ -643,6 +643,7 @@ type ConcurrencyGroup struct {
 // ContextualVariable defines model for ContextualVariable.
 type ContextualVariable struct {
 	Description string `json:"description"`
+	IsCustom    bool   `json:"is_custom"`
 	Name        string `json:"name"`
 	Value       string `json:"value"`
 }
@@ -2972,6 +2973,11 @@ type GetCompletedJobResultMaybeParams struct {
 	GetStarted *GetStarted `form:"get_started,omitempty" json:"get_started,omitempty"`
 }
 
+// GetJobParams defines parameters for GetJob.
+type GetJobParams struct {
+	NoLogs *bool `form:"no_logs,omitempty" json:"no_logs,omitempty"`
+}
+
 // GetSuspendedJobFlowParams defines parameters for GetSuspendedJobFlow.
 type GetSuspendedJobFlowParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
@@ -3367,6 +3373,12 @@ type SetAutomaticBillingJSONBody struct {
 	Seats            *float32 `json:"seats,omitempty"`
 }
 
+// SetEnvironmentVariableJSONBody defines parameters for SetEnvironmentVariable.
+type SetEnvironmentVariableJSONBody struct {
+	Name  string  `json:"name"`
+	Value *string `json:"value,omitempty"`
+}
+
 // ExistsWorkerWithTagParams defines parameters for ExistsWorkerWithTag.
 type ExistsWorkerWithTagParams struct {
 	Tag string `form:"tag" json:"tag"`
@@ -3733,6 +3745,9 @@ type RunSlackMessageTestJobJSONRequestBody RunSlackMessageTestJobJSONBody
 
 // SetAutomaticBillingJSONRequestBody defines body for SetAutomaticBilling for application/json ContentType.
 type SetAutomaticBillingJSONRequestBody SetAutomaticBillingJSONBody
+
+// SetEnvironmentVariableJSONRequestBody defines body for SetEnvironmentVariable for application/json ContentType.
+type SetEnvironmentVariableJSONRequestBody SetEnvironmentVariableJSONBody
 
 // CreateWorkspaceJSONRequestBody defines body for CreateWorkspace for application/json ContentType.
 type CreateWorkspaceJSONRequestBody = CreateWorkspaceJSONBody
@@ -5578,7 +5593,7 @@ type ClientInterface interface {
 	GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetJob request
-	GetJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetJob(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSuspendedJobFlow request
 	GetSuspendedJobFlow(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *GetSuspendedJobFlowParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6010,6 +6025,11 @@ type ClientInterface interface {
 	SetAutomaticBillingWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetAutomaticBilling(ctx context.Context, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetEnvironmentVariable request with any body
+	SetEnvironmentVariableWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetEnvironmentVariable(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCustomTags request
 	GetCustomTags(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8916,8 +8936,8 @@ func (c *Client) GetCompletedJobResultMaybe(ctx context.Context, workspace Works
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetJobRequest(c.Server, workspace, id)
+func (c *Client) GetJob(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetJobRequest(c.Server, workspace, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -10814,6 +10834,30 @@ func (c *Client) SetAutomaticBillingWithBody(ctx context.Context, workspace Work
 
 func (c *Client) SetAutomaticBilling(ctx context.Context, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetAutomaticBillingRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetEnvironmentVariableWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetEnvironmentVariableRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetEnvironmentVariable(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetEnvironmentVariableRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -21313,7 +21357,7 @@ func NewGetCompletedJobResultMaybeRequest(server string, workspace WorkspaceId, 
 }
 
 // NewGetJobRequest generates requests for GetJob
-func NewGetJobRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+func NewGetJobRequest(server string, workspace WorkspaceId, id JobId, params *GetJobParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -21344,6 +21388,26 @@ func NewGetJobRequest(server string, workspace WorkspaceId, id JobId) (*http.Req
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.NoLogs != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "no_logs", runtime.ParamLocationQuery, *params.NoLogs); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -26998,6 +27062,53 @@ func NewSetAutomaticBillingRequestWithBody(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewSetEnvironmentVariableRequest calls the generic SetEnvironmentVariable builder with application/json body
+func NewSetEnvironmentVariableRequest(server string, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetEnvironmentVariableRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetEnvironmentVariableRequestWithBody generates requests for SetEnvironmentVariable with any type of body
+func NewSetEnvironmentVariableRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/set_environment_variable", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetCustomTagsRequest generates requests for GetCustomTags
 func NewGetCustomTagsRequest(server string) (*http.Request, error) {
 	var err error
@@ -28225,7 +28336,7 @@ type ClientWithResponsesInterface interface {
 	GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error)
 
 	// GetJob request
-	GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobResponse, error)
+	GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*GetJobResponse, error)
 
 	// GetSuspendedJobFlow request
 	GetSuspendedJobFlowWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *GetSuspendedJobFlowParams, reqEditors ...RequestEditorFn) (*GetSuspendedJobFlowResponse, error)
@@ -28657,6 +28768,11 @@ type ClientWithResponsesInterface interface {
 	SetAutomaticBillingWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAutomaticBillingResponse, error)
 
 	SetAutomaticBillingWithResponse(ctx context.Context, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody, reqEditors ...RequestEditorFn) (*SetAutomaticBillingResponse, error)
+
+	// SetEnvironmentVariable request with any body
+	SetEnvironmentVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error)
+
+	SetEnvironmentVariableWithResponse(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error)
 
 	// GetCustomTags request
 	GetCustomTagsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error)
@@ -32714,6 +32830,7 @@ type GetJobUpdatesResponse struct {
 	JSON200      *struct {
 		Completed  *bool                 `json:"completed,omitempty"`
 		FlowStatus *WorkflowStatusRecord `json:"flow_status,omitempty"`
+		LogOffset  *int                  `json:"log_offset,omitempty"`
 		MemPeak    *int                  `json:"mem_peak,omitempty"`
 		NewLogs    *string               `json:"new_logs,omitempty"`
 		Running    *bool                 `json:"running,omitempty"`
@@ -35142,6 +35259,27 @@ func (r SetAutomaticBillingResponse) StatusCode() int {
 	return 0
 }
 
+type SetEnvironmentVariableResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetEnvironmentVariableResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetEnvironmentVariableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetCustomTagsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -37522,8 +37660,8 @@ func (c *ClientWithResponses) GetCompletedJobResultMaybeWithResponse(ctx context
 }
 
 // GetJobWithResponse request returning *GetJobResponse
-func (c *ClientWithResponses) GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobResponse, error) {
-	rsp, err := c.GetJob(ctx, workspace, id, reqEditors...)
+func (c *ClientWithResponses) GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*GetJobResponse, error) {
+	rsp, err := c.GetJob(ctx, workspace, id, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -38907,6 +39045,23 @@ func (c *ClientWithResponses) SetAutomaticBillingWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseSetAutomaticBillingResponse(rsp)
+}
+
+// SetEnvironmentVariableWithBodyWithResponse request with arbitrary body returning *SetEnvironmentVariableResponse
+func (c *ClientWithResponses) SetEnvironmentVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error) {
+	rsp, err := c.SetEnvironmentVariableWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetEnvironmentVariableResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetEnvironmentVariableWithResponse(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error) {
+	rsp, err := c.SetEnvironmentVariable(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetEnvironmentVariableResponse(rsp)
 }
 
 // GetCustomTagsWithResponse request returning *GetCustomTagsResponse
@@ -43030,6 +43185,7 @@ func ParseGetJobUpdatesResponse(rsp *http.Response) (*GetJobUpdatesResponse, err
 		var dest struct {
 			Completed  *bool                 `json:"completed,omitempty"`
 			FlowStatus *WorkflowStatusRecord `json:"flow_status,omitempty"`
+			LogOffset  *int                  `json:"log_offset,omitempty"`
 			MemPeak    *int                  `json:"mem_peak,omitempty"`
 			NewLogs    *string               `json:"new_logs,omitempty"`
 			Running    *bool                 `json:"running,omitempty"`
@@ -45352,6 +45508,22 @@ func ParseSetAutomaticBillingResponse(rsp *http.Response) (*SetAutomaticBillingR
 	}
 
 	response := &SetAutomaticBillingResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSetEnvironmentVariableResponse parses an HTTP response from a SetEnvironmentVariableWithResponse call
+func ParseSetEnvironmentVariableResponse(rsp *http.Response) (*SetEnvironmentVariableResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetEnvironmentVariableResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
