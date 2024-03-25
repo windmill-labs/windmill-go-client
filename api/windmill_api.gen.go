@@ -1986,13 +1986,9 @@ type TestLicenseKeyJSONBody struct {
 	LicenseKey string `json:"license_key"`
 }
 
-// TestS3ConfigJSONBody defines parameters for TestS3Config.
-type TestS3ConfigJSONBody struct {
-	AccessKey *string `json:"access_key,omitempty"`
-	Bucket    *string `json:"bucket,omitempty"`
-	Endpoint  *string `json:"endpoint,omitempty"`
-	Region    *string `json:"region,omitempty"`
-	SecretKey *string `json:"secret_key,omitempty"`
+// TestObjectStorageConfigJSONBody defines parameters for TestObjectStorageConfig.
+type TestObjectStorageConfigJSONBody struct {
+	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
 // TestSmtpJSONBody defines parameters for TestSmtp.
@@ -3455,8 +3451,8 @@ type SetGlobalJSONRequestBody SetGlobalJSONBody
 // TestLicenseKeyJSONRequestBody defines body for TestLicenseKey for application/json ContentType.
 type TestLicenseKeyJSONRequestBody TestLicenseKeyJSONBody
 
-// TestS3ConfigJSONRequestBody defines body for TestS3Config for application/json ContentType.
-type TestS3ConfigJSONRequestBody TestS3ConfigJSONBody
+// TestObjectStorageConfigJSONRequestBody defines body for TestObjectStorageConfig for application/json ContentType.
+type TestObjectStorageConfigJSONRequestBody TestObjectStorageConfigJSONBody
 
 // TestSmtpJSONRequestBody defines body for TestSmtp for application/json ContentType.
 type TestSmtpJSONRequestBody TestSmtpJSONBody
@@ -3757,6 +3753,59 @@ type ExistsWorkspaceJSONRequestBody ExistsWorkspaceJSONBody
 
 // ExistsUsernameJSONRequestBody defines body for ExistsUsername for application/json ContentType.
 type ExistsUsernameJSONRequestBody ExistsUsernameJSONBody
+
+// Getter for additional properties for TestObjectStorageConfigJSONBody. Returns the specified
+// element and whether it was found
+func (a TestObjectStorageConfigJSONBody) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for TestObjectStorageConfigJSONBody
+func (a *TestObjectStorageConfigJSONBody) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for TestObjectStorageConfigJSONBody to handle AdditionalProperties
+func (a *TestObjectStorageConfigJSONBody) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for TestObjectStorageConfigJSONBody to handle AdditionalProperties
+func (a TestObjectStorageConfigJSONBody) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
 
 // Getter for additional properties for CreateFolderJSONBody_ExtraPerms. Returns the specified
 // element and whether it was found
@@ -5082,10 +5131,10 @@ type ClientInterface interface {
 
 	TestLicenseKey(ctx context.Context, body TestLicenseKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// TestS3Config request with any body
-	TestS3ConfigWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// TestObjectStorageConfig request with any body
+	TestObjectStorageConfigWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	TestS3Config(ctx context.Context, body TestS3ConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	TestObjectStorageConfig(ctx context.Context, body TestObjectStorageConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestSmtp request with any body
 	TestSmtpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6680,8 +6729,8 @@ func (c *Client) TestLicenseKey(ctx context.Context, body TestLicenseKeyJSONRequ
 	return c.Client.Do(req)
 }
 
-func (c *Client) TestS3ConfigWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewTestS3ConfigRequestWithBody(c.Server, contentType, body)
+func (c *Client) TestObjectStorageConfigWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestObjectStorageConfigRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -6692,8 +6741,8 @@ func (c *Client) TestS3ConfigWithBody(ctx context.Context, contentType string, b
 	return c.Client.Do(req)
 }
 
-func (c *Client) TestS3Config(ctx context.Context, body TestS3ConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewTestS3ConfigRequest(c.Server, body)
+func (c *Client) TestObjectStorageConfig(ctx context.Context, body TestObjectStorageConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestObjectStorageConfigRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -12530,19 +12579,19 @@ func NewTestLicenseKeyRequestWithBody(server string, contentType string, body io
 	return req, nil
 }
 
-// NewTestS3ConfigRequest calls the generic TestS3Config builder with application/json body
-func NewTestS3ConfigRequest(server string, body TestS3ConfigJSONRequestBody) (*http.Request, error) {
+// NewTestObjectStorageConfigRequest calls the generic TestObjectStorageConfig builder with application/json body
+func NewTestObjectStorageConfigRequest(server string, body TestObjectStorageConfigJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewTestS3ConfigRequestWithBody(server, "application/json", bodyReader)
+	return NewTestObjectStorageConfigRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewTestS3ConfigRequestWithBody generates requests for TestS3Config with any type of body
-func NewTestS3ConfigRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewTestObjectStorageConfigRequestWithBody generates requests for TestObjectStorageConfig with any type of body
+func NewTestObjectStorageConfigRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -12550,7 +12599,7 @@ func NewTestS3ConfigRequestWithBody(server string, contentType string, body io.R
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/settings/test_s3_config")
+	operationPath := fmt.Sprintf("/settings/test_object_storage_config")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -27825,10 +27874,10 @@ type ClientWithResponsesInterface interface {
 
 	TestLicenseKeyWithResponse(ctx context.Context, body TestLicenseKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*TestLicenseKeyResponse, error)
 
-	// TestS3Config request with any body
-	TestS3ConfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestS3ConfigResponse, error)
+	// TestObjectStorageConfig request with any body
+	TestObjectStorageConfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestObjectStorageConfigResponse, error)
 
-	TestS3ConfigWithResponse(ctx context.Context, body TestS3ConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*TestS3ConfigResponse, error)
+	TestObjectStorageConfigWithResponse(ctx context.Context, body TestObjectStorageConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*TestObjectStorageConfigResponse, error)
 
 	// TestSmtp request with any body
 	TestSmtpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error)
@@ -29699,13 +29748,13 @@ func (r TestLicenseKeyResponse) StatusCode() int {
 	return 0
 }
 
-type TestS3ConfigResponse struct {
+type TestObjectStorageConfigResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r TestS3ConfigResponse) Status() string {
+func (r TestObjectStorageConfigResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -29713,7 +29762,7 @@ func (r TestS3ConfigResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r TestS3ConfigResponse) StatusCode() int {
+func (r TestObjectStorageConfigResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -36021,21 +36070,21 @@ func (c *ClientWithResponses) TestLicenseKeyWithResponse(ctx context.Context, bo
 	return ParseTestLicenseKeyResponse(rsp)
 }
 
-// TestS3ConfigWithBodyWithResponse request with arbitrary body returning *TestS3ConfigResponse
-func (c *ClientWithResponses) TestS3ConfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestS3ConfigResponse, error) {
-	rsp, err := c.TestS3ConfigWithBody(ctx, contentType, body, reqEditors...)
+// TestObjectStorageConfigWithBodyWithResponse request with arbitrary body returning *TestObjectStorageConfigResponse
+func (c *ClientWithResponses) TestObjectStorageConfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestObjectStorageConfigResponse, error) {
+	rsp, err := c.TestObjectStorageConfigWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseTestS3ConfigResponse(rsp)
+	return ParseTestObjectStorageConfigResponse(rsp)
 }
 
-func (c *ClientWithResponses) TestS3ConfigWithResponse(ctx context.Context, body TestS3ConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*TestS3ConfigResponse, error) {
-	rsp, err := c.TestS3Config(ctx, body, reqEditors...)
+func (c *ClientWithResponses) TestObjectStorageConfigWithResponse(ctx context.Context, body TestObjectStorageConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*TestObjectStorageConfigResponse, error) {
+	rsp, err := c.TestObjectStorageConfig(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseTestS3ConfigResponse(rsp)
+	return ParseTestObjectStorageConfigResponse(rsp)
 }
 
 // TestSmtpWithBodyWithResponse request with arbitrary body returning *TestSmtpResponse
@@ -40080,15 +40129,15 @@ func ParseTestLicenseKeyResponse(rsp *http.Response) (*TestLicenseKeyResponse, e
 	return response, nil
 }
 
-// ParseTestS3ConfigResponse parses an HTTP response from a TestS3ConfigWithResponse call
-func ParseTestS3ConfigResponse(rsp *http.Response) (*TestS3ConfigResponse, error) {
+// ParseTestObjectStorageConfigResponse parses an HTTP response from a TestObjectStorageConfigWithResponse call
+func ParseTestObjectStorageConfigResponse(rsp *http.Response) (*TestObjectStorageConfigResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &TestS3ConfigResponse{
+	response := &TestObjectStorageConfigResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
