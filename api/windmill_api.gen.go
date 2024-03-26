@@ -744,6 +744,7 @@ type Flow struct {
 	Tag                  *string                 `json:"tag,omitempty"`
 	Timeout              *float32                `json:"timeout,omitempty"`
 	Value                FlowValue               `json:"value"`
+	VisibleToRunnerOnly  *bool                   `json:"visible_to_runner_only,omitempty"`
 	WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 	WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
@@ -762,6 +763,7 @@ type FlowMetadata struct {
 	Starred              *bool                  `json:"starred,omitempty"`
 	Tag                  *string                `json:"tag,omitempty"`
 	Timeout              *float32               `json:"timeout,omitempty"`
+	VisibleToRunnerOnly  *bool                  `json:"visible_to_runner_only,omitempty"`
 	WorkspaceId          *string                `json:"workspace_id,omitempty"`
 	WsErrorHandlerMuted  *bool                  `json:"ws_error_handler_muted,omitempty"`
 }
@@ -1159,6 +1161,7 @@ type NewScript struct {
 	Summary                string                  `json:"summary"`
 	Tag                    *string                 `json:"tag,omitempty"`
 	Timeout                *int                    `json:"timeout,omitempty"`
+	VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
 	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
@@ -1195,6 +1198,7 @@ type NewScriptWithDraft struct {
 	Summary                string                     `json:"summary"`
 	Tag                    *string                    `json:"tag,omitempty"`
 	Timeout                *int                       `json:"timeout,omitempty"`
+	VisibleToRunnerOnly    *bool                      `json:"visible_to_runner_only,omitempty"`
 	WsErrorHandlerMuted    *bool                      `json:"ws_error_handler_muted,omitempty"`
 }
 
@@ -1237,6 +1241,7 @@ type OpenFlowWPath struct {
 	Tag                 *string                 `json:"tag,omitempty"`
 	Timeout             *float32                `json:"timeout,omitempty"`
 	Value               FlowValue               `json:"value"`
+	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
@@ -1556,6 +1561,7 @@ type Script struct {
 	Summary                string                  `json:"summary"`
 	Tag                    *string                 `json:"tag,omitempty"`
 	Timeout                *int                    `json:"timeout,omitempty"`
+	VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
 	WorkspaceId            *string                 `json:"workspace_id,omitempty"`
 	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
@@ -2235,6 +2241,7 @@ type CreateFlowJSONBody struct {
 	Tag                 *string                 `json:"tag,omitempty"`
 	Timeout             *float32                `json:"timeout,omitempty"`
 	Value               FlowValue               `json:"value"`
+	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
@@ -2295,6 +2302,7 @@ type UpdateFlowJSONBody struct {
 	Tag                 *string                 `json:"tag,omitempty"`
 	Timeout             *float32                `json:"timeout,omitempty"`
 	Value               FlowValue               `json:"value"`
+	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
@@ -31244,6 +31252,7 @@ type GetFlowByPathWithDraftResponse struct {
 		Tag                  *string                 `json:"tag,omitempty"`
 		Timeout              *float32                `json:"timeout,omitempty"`
 		Value                FlowValue               `json:"value"`
+		VisibleToRunnerOnly  *bool                   `json:"visible_to_runner_only,omitempty"`
 		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 		WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
 	}
@@ -31330,6 +31339,7 @@ type ListFlowsResponse struct {
 		Tag                  *string                 `json:"tag,omitempty"`
 		Timeout              *float32                `json:"timeout,omitempty"`
 		Value                FlowValue               `json:"value"`
+		VisibleToRunnerOnly  *bool                   `json:"visible_to_runner_only,omitempty"`
 		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 		WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
 	}
@@ -41613,6 +41623,7 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			Tag                  *string                 `json:"tag,omitempty"`
 			Timeout              *float32                `json:"timeout,omitempty"`
 			Value                FlowValue               `json:"value"`
+			VisibleToRunnerOnly  *bool                   `json:"visible_to_runner_only,omitempty"`
 			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 			WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
 		}
@@ -41711,6 +41722,7 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			Tag                  *string                 `json:"tag,omitempty"`
 			Timeout              *float32                `json:"timeout,omitempty"`
 			Value                FlowValue               `json:"value"`
+			VisibleToRunnerOnly  *bool                   `json:"visible_to_runner_only,omitempty"`
 			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
 			WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
 		}
