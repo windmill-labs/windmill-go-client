@@ -2567,6 +2567,9 @@ type ListCompletedJobsParams struct {
 // ResumeSuspendedFlowAsOwnerJSONBody defines parameters for ResumeSuspendedFlowAsOwner.
 type ResumeSuspendedFlowAsOwnerJSONBody = map[string]interface{}
 
+// SetFlowUserStateJSONBody defines parameters for SetFlowUserState.
+type SetFlowUserStateJSONBody = interface{}
+
 // CreateJobSignatureParams defines parameters for CreateJobSignature.
 type CreateJobSignatureParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
@@ -3573,6 +3576,9 @@ type GetJobMetricsJSONRequestBody GetJobMetricsJSONBody
 
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
+
+// SetFlowUserStateJSONRequestBody defines body for SetFlowUserState for application/json ContentType.
+type SetFlowUserStateJSONRequestBody = SetFlowUserStateJSONBody
 
 // OpenaiSyncFlowByPathJSONRequestBody defines body for OpenaiSyncFlowByPath for application/json ContentType.
 type OpenaiSyncFlowByPathJSONRequestBody = OpenaiSyncFlowByPathJSONBody
@@ -5539,6 +5545,14 @@ type ClientInterface interface {
 	ResumeSuspendedFlowAsOwnerWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ResumeSuspendedFlowAsOwner(ctx context.Context, workspace WorkspaceId, id JobId, body ResumeSuspendedFlowAsOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetFlowUserState request
+	GetFlowUserState(ctx context.Context, workspace WorkspaceId, id JobId, key string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetFlowUserState request with any body
+	SetFlowUserStateWithBody(ctx context.Context, workspace WorkspaceId, id JobId, key string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetFlowUserState(ctx context.Context, workspace WorkspaceId, id JobId, key string, body SetFlowUserStateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateJobSignature request
 	CreateJobSignature(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8519,6 +8533,42 @@ func (c *Client) ResumeSuspendedFlowAsOwnerWithBody(ctx context.Context, workspa
 
 func (c *Client) ResumeSuspendedFlowAsOwner(ctx context.Context, workspace WorkspaceId, id JobId, body ResumeSuspendedFlowAsOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResumeSuspendedFlowAsOwnerRequest(c.Server, workspace, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetFlowUserState(ctx context.Context, workspace WorkspaceId, id JobId, key string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowUserStateRequest(c.Server, workspace, id, key)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetFlowUserStateWithBody(ctx context.Context, workspace WorkspaceId, id JobId, key string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetFlowUserStateRequestWithBody(c.Server, workspace, id, key, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetFlowUserState(ctx context.Context, workspace WorkspaceId, id JobId, key string, body SetFlowUserStateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetFlowUserStateRequest(c.Server, workspace, id, key, body)
 	if err != nil {
 		return nil, err
 	}
@@ -18530,6 +18580,115 @@ func NewResumeSuspendedFlowAsOwnerRequestWithBody(server string, workspace Works
 	return req, nil
 }
 
+// NewGetFlowUserStateRequest generates requests for GetFlowUserState
+func NewGetFlowUserStateRequest(server string, workspace WorkspaceId, id JobId, key string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "key", runtime.ParamLocationPath, key)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/flow/user_states/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetFlowUserStateRequest calls the generic SetFlowUserState builder with application/json body
+func NewSetFlowUserStateRequest(server string, workspace WorkspaceId, id JobId, key string, body SetFlowUserStateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetFlowUserStateRequestWithBody(server, workspace, id, key, "application/json", bodyReader)
+}
+
+// NewSetFlowUserStateRequestWithBody generates requests for SetFlowUserState with any type of body
+func NewSetFlowUserStateRequestWithBody(server string, workspace WorkspaceId, id JobId, key string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "key", runtime.ParamLocationPath, key)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/flow/user_states/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateJobSignatureRequest generates requests for CreateJobSignature
 func NewCreateJobSignatureRequest(server string, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams) (*http.Request, error) {
 	var err error
@@ -28283,6 +28442,14 @@ type ClientWithResponsesInterface interface {
 
 	ResumeSuspendedFlowAsOwnerWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body ResumeSuspendedFlowAsOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedFlowAsOwnerResponse, error)
 
+	// GetFlowUserState request
+	GetFlowUserStateWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, key string, reqEditors ...RequestEditorFn) (*GetFlowUserStateResponse, error)
+
+	// SetFlowUserState request with any body
+	SetFlowUserStateWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, key string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetFlowUserStateResponse, error)
+
+	SetFlowUserStateWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, key string, body SetFlowUserStateJSONRequestBody, reqEditors ...RequestEditorFn) (*SetFlowUserStateResponse, error)
+
 	// CreateJobSignature request
 	CreateJobSignatureWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*CreateJobSignatureResponse, error)
 
@@ -32199,6 +32366,49 @@ func (r ResumeSuspendedFlowAsOwnerResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ResumeSuspendedFlowAsOwnerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetFlowUserStateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetFlowUserStateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFlowUserStateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetFlowUserStateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetFlowUserStateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetFlowUserStateResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -37379,6 +37589,32 @@ func (c *ClientWithResponses) ResumeSuspendedFlowAsOwnerWithResponse(ctx context
 	return ParseResumeSuspendedFlowAsOwnerResponse(rsp)
 }
 
+// GetFlowUserStateWithResponse request returning *GetFlowUserStateResponse
+func (c *ClientWithResponses) GetFlowUserStateWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, key string, reqEditors ...RequestEditorFn) (*GetFlowUserStateResponse, error) {
+	rsp, err := c.GetFlowUserState(ctx, workspace, id, key, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFlowUserStateResponse(rsp)
+}
+
+// SetFlowUserStateWithBodyWithResponse request with arbitrary body returning *SetFlowUserStateResponse
+func (c *ClientWithResponses) SetFlowUserStateWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, key string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetFlowUserStateResponse, error) {
+	rsp, err := c.SetFlowUserStateWithBody(ctx, workspace, id, key, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetFlowUserStateResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetFlowUserStateWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, key string, body SetFlowUserStateJSONRequestBody, reqEditors ...RequestEditorFn) (*SetFlowUserStateResponse, error) {
+	rsp, err := c.SetFlowUserState(ctx, workspace, id, key, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetFlowUserStateResponse(rsp)
+}
+
 // CreateJobSignatureWithResponse request returning *CreateJobSignatureResponse
 func (c *ClientWithResponses) CreateJobSignatureWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*CreateJobSignatureResponse, error) {
 	rsp, err := c.CreateJobSignature(ctx, workspace, id, resumeId, params, reqEditors...)
@@ -42520,6 +42756,48 @@ func ParseResumeSuspendedFlowAsOwnerResponse(rsp *http.Response) (*ResumeSuspend
 	}
 
 	response := &ResumeSuspendedFlowAsOwnerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetFlowUserStateResponse parses an HTTP response from a GetFlowUserStateWithResponse call
+func ParseGetFlowUserStateResponse(rsp *http.Response) (*GetFlowUserStateResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFlowUserStateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetFlowUserStateResponse parses an HTTP response from a SetFlowUserStateWithResponse call
+func ParseSetFlowUserStateResponse(rsp *http.Response) (*SetFlowUserStateResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetFlowUserStateResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
