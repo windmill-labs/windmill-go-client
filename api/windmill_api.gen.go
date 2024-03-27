@@ -786,7 +786,8 @@ type FlowModule struct {
 	} `json:"stop_after_if,omitempty"`
 	Summary *string `json:"summary,omitempty"`
 	Suspend *struct {
-		RequiredEvents *int `json:"required_events,omitempty"`
+		HideCancel     *bool `json:"hide_cancel,omitempty"`
+		RequiredEvents *int  `json:"required_events,omitempty"`
 		ResumeForm     *struct {
 			Schema *map[string]interface{} `json:"schema,omitempty"`
 		} `json:"resume_form,omitempty"`
