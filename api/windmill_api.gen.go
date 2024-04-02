@@ -770,10 +770,11 @@ type FlowMetadata struct {
 
 // FlowModule defines model for FlowModule.
 type FlowModule struct {
-	CacheTtl       *float32 `json:"cache_ttl,omitempty"`
-	DeleteAfterUse *bool    `json:"delete_after_use,omitempty"`
-	Id             string   `json:"id"`
-	Mock           *struct {
+	CacheTtl        *float32 `json:"cache_ttl,omitempty"`
+	ContinueOnError *bool    `json:"continue_on_error,omitempty"`
+	DeleteAfterUse  *bool    `json:"delete_after_use,omitempty"`
+	Id              string   `json:"id"`
+	Mock            *struct {
 		Enabled     *bool        `json:"enabled,omitempty"`
 		ReturnValue *interface{} `json:"return_value,omitempty"`
 	} `json:"mock,omitempty"`
