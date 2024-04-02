@@ -209,7 +209,7 @@ const (
 
 // Defines values for ForloopFlowType.
 const (
-	Forloopflow ForloopFlowType = "forloopflow"
+	ForloopFlowTypeForloopflow ForloopFlowType = "forloopflow"
 )
 
 // Defines values for GitRepositorySettingsExcludeTypesOverride.
@@ -458,6 +458,11 @@ const (
 // Defines values for StaticTransformType.
 const (
 	StaticTransformTypeJavascript StaticTransformType = "javascript"
+)
+
+// Defines values for WhileloopFlowType.
+const (
+	WhileloopFlowTypeForloopflow WhileloopFlowType = "forloopflow"
 )
 
 // Defines values for WindmillFilePreviewContentType.
@@ -1659,6 +1664,18 @@ type UserWorkspaceList struct {
 		Username string `json:"username"`
 	} `json:"workspaces"`
 }
+
+// WhileloopFlow defines model for WhileloopFlow.
+type WhileloopFlow struct {
+	Modules      []FlowModule      `json:"modules"`
+	Parallel     *bool             `json:"parallel,omitempty"`
+	Parallelism  *int              `json:"parallelism,omitempty"`
+	SkipFailures bool              `json:"skip_failures"`
+	Type         WhileloopFlowType `json:"type"`
+}
+
+// WhileloopFlowType defines model for WhileloopFlow.Type.
+type WhileloopFlowType string
 
 // WindmillFileMetadata defines model for WindmillFileMetadata.
 type WindmillFileMetadata struct {
