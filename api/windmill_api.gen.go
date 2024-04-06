@@ -850,7 +850,8 @@ type FlowStatus struct {
 		FailCount  *int                  `json:"fail_count,omitempty"`
 		FailedJobs *[]openapi_types.UUID `json:"failed_jobs,omitempty"`
 	} `json:"retry,omitempty"`
-	Step int `json:"step"`
+	Step       int                    `json:"step"`
+	UserStates *FlowStatus_UserStates `json:"user_states,omitempty"`
 }
 
 // FlowStatusFailureModuleBranchChosenType defines model for FlowStatus.FailureModule.BranchChosen.Type.
@@ -858,6 +859,11 @@ type FlowStatusFailureModuleBranchChosenType string
 
 // FlowStatusFailureModuleType defines model for FlowStatus.FailureModule.Type.
 type FlowStatusFailureModuleType string
+
+// FlowStatus_UserStates defines model for FlowStatus.UserStates.
+type FlowStatus_UserStates struct {
+	AdditionalProperties map[string]interface{} `json:"-"`
+}
 
 // FlowStatusModule defines model for FlowStatusModule.
 type FlowStatusModule struct {
@@ -933,6 +939,7 @@ type ForloopFlowType string
 type GitRepositorySettings struct {
 	ExcludeTypesOverride *[]GitRepositorySettingsExcludeTypesOverride `json:"exclude_types_override,omitempty"`
 	GitRepoResourcePath  string                                       `json:"git_repo_resource_path"`
+	GroupByFolder        *bool                                        `json:"group_by_folder,omitempty"`
 	ScriptPath           string                                       `json:"script_path"`
 	UseIndividualBranch  *bool                                        `json:"use_individual_branch,omitempty"`
 }
@@ -1784,6 +1791,9 @@ type ArgsFilter = string
 
 // Before defines model for Before.
 type Before = time.Time
+
+// CacheTtl defines model for CacheTtl.
+type CacheTtl = string
 
 // ClientName defines model for ClientName.
 type ClientName = string
@@ -2850,6 +2860,9 @@ type RunScriptByHashParams struct {
 	// Override the tag to use
 	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
 
+	// Override the cache time to live (in seconds). Can not be used to disable caching, only override with a new cache ttl
+	CacheTtl *CacheTtl `form:"cache_ttl,omitempty" json:"cache_ttl,omitempty"`
+
 	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 
@@ -2877,6 +2890,9 @@ type RunScriptByPathParams struct {
 
 	// Override the tag to use
 	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// Override the cache time to live (in seconds). Can not be used to disable caching, only override with a new cache ttl
+	CacheTtl *CacheTtl `form:"cache_ttl,omitempty" json:"cache_ttl,omitempty"`
 
 	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
@@ -2941,6 +2957,9 @@ type RunWaitResultScriptByPathGetParams struct {
 	// Override the tag to use
 	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
 
+	// Override the cache time to live (in seconds). Can not be used to disable caching, only override with a new cache ttl
+	CacheTtl *CacheTtl `form:"cache_ttl,omitempty" json:"cache_ttl,omitempty"`
+
 	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 
@@ -2966,6 +2985,9 @@ type RunWaitResultScriptByPathParams struct {
 
 	// Override the tag to use
 	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// Override the cache time to live (in seconds). Can not be used to disable caching, only override with a new cache ttl
+	CacheTtl *CacheTtl `form:"cache_ttl,omitempty" json:"cache_ttl,omitempty"`
 
 	// The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
@@ -3156,6 +3178,9 @@ type ListSchedulesParams struct {
 
 	// number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// filter on jobs containing those args as a json subset (@> in postgres)
+	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
 
 	// filter by path
 	Path   *string `form:"path,omitempty" json:"path,omitempty"`
@@ -4040,6 +4065,59 @@ func (a *AppWithLastVersionWDraft_ExtraPerms) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for AppWithLastVersionWDraft_ExtraPerms to handle AdditionalProperties
 func (a AppWithLastVersionWDraft_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for FlowStatus_UserStates. Returns the specified
+// element and whether it was found
+func (a FlowStatus_UserStates) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for FlowStatus_UserStates
+func (a *FlowStatus_UserStates) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for FlowStatus_UserStates to handle AdditionalProperties
+func (a *FlowStatus_UserStates) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for FlowStatus_UserStates to handle AdditionalProperties
+func (a FlowStatus_UserStates) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -20442,6 +20520,22 @@ func NewRunScriptByHashRequestWithBody(server string, workspace WorkspaceId, has
 
 	}
 
+	if params.CacheTtl != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cache_ttl", runtime.ParamLocationQuery, *params.CacheTtl); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.JobId != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
@@ -20599,6 +20693,22 @@ func NewRunScriptByPathRequestWithBody(server string, workspace WorkspaceId, pat
 	if params.Tag != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CacheTtl != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cache_ttl", runtime.ParamLocationQuery, *params.CacheTtl); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -21027,6 +21137,22 @@ func NewRunWaitResultScriptByPathGetRequest(server string, workspace WorkspaceId
 
 	}
 
+	if params.CacheTtl != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cache_ttl", runtime.ParamLocationQuery, *params.CacheTtl); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.JobId != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
@@ -21166,6 +21292,22 @@ func NewRunWaitResultScriptByPathRequestWithBody(server string, workspace Worksp
 	if params.Tag != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CacheTtl != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cache_ttl", runtime.ParamLocationQuery, *params.CacheTtl); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -23966,6 +24108,22 @@ func NewListSchedulesRequest(server string, workspace WorkspaceId, params *ListS
 	if params.PerPage != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Args != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "args", runtime.ParamLocationQuery, *params.Args); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
