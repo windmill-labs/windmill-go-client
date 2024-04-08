@@ -2591,6 +2591,12 @@ type ListCompletedJobsParams struct {
 	// filter on jobs with a given tag/worker group
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
 	// is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
 
@@ -2661,6 +2667,12 @@ type ListJobsParams struct {
 
 	// filter on jobs containing those result as a json subset (@> in postgres)
 	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
+
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
 	// is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
@@ -2771,6 +2783,12 @@ type ListQueueParams struct {
 
 	// filter on jobs with a given tag/worker group
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
 	// get jobs from all workspaces (only valid if request come from the `admins` workspace)
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
@@ -18588,6 +18606,38 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 
 	}
 
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.IsSkipped != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_skipped", runtime.ParamLocationQuery, *params.IsSkipped); err != nil {
@@ -19148,6 +19198,38 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	if params.Result != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "result", runtime.ParamLocationQuery, *params.Result); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -19854,6 +19936,38 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 	if params.Tag != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
