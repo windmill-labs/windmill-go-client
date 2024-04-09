@@ -900,6 +900,7 @@ type FlowStatusModuleType string
 // FlowValue defines model for FlowValue.
 type FlowValue struct {
 	CacheTtl               *float32     `json:"cache_ttl,omitempty"`
+	ConcurrencyKey         *string      `json:"concurrency_key,omitempty"`
 	ConcurrencyTimeWindowS *float32     `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *float32     `json:"concurrent_limit,omitempty"`
 	EarlyReturn            *string      `json:"early_return,omitempty"`
