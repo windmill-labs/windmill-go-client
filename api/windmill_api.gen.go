@@ -512,7 +512,7 @@ type AppWithLastVersion struct {
 	Path          string                          `json:"path"`
 	Policy        Policy                          `json:"policy"`
 	Summary       string                          `json:"summary"`
-	Value         interface{}                     `json:"value"`
+	Value         map[string]interface{}          `json:"value"`
 	Versions      []int                           `json:"versions"`
 	WorkspaceId   string                          `json:"workspace_id"`
 }
@@ -537,7 +537,7 @@ type AppWithLastVersionWDraft struct {
 	Path          string                                `json:"path"`
 	Policy        Policy                                `json:"policy"`
 	Summary       string                                `json:"summary"`
-	Value         interface{}                           `json:"value"`
+	Value         map[string]interface{}                `json:"value"`
 	Versions      []int                                 `json:"versions"`
 	WorkspaceId   string                                `json:"workspace_id"`
 }
@@ -731,46 +731,49 @@ type EditWorkspaceUser struct {
 	Operator *bool `json:"operator,omitempty"`
 }
 
+// ExtraPerms defines model for ExtraPerms.
+type ExtraPerms struct {
+	AdditionalProperties map[string]bool `json:"-"`
+}
+
 // Flow defines model for Flow.
 type Flow struct {
-	AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
-	Archived             bool                    `json:"archived"`
-	DedicatedWorker      *bool                   `json:"dedicated_worker,omitempty"`
-	Description          *string                 `json:"description,omitempty"`
-	DraftOnly            *bool                   `json:"draft_only,omitempty"`
-	EditedAt             time.Time               `json:"edited_at"`
-	EditedBy             string                  `json:"edited_by"`
-	ExtraPerms           map[string]interface{}  `json:"extra_perms"`
-	Path                 string                  `json:"path"`
-	Priority             *int                    `json:"priority,omitempty"`
-	Schema               *map[string]interface{} `json:"schema,omitempty"`
-	Starred              *bool                   `json:"starred,omitempty"`
-	Summary              string                  `json:"summary"`
-	Tag                  *string                 `json:"tag,omitempty"`
-	Timeout              *float32                `json:"timeout,omitempty"`
-	Value                FlowValue               `json:"value"`
-	VisibleToRunnerOnly  *bool                   `json:"visible_to_runner_only,omitempty"`
-	WorkspaceId          *string                 `json:"workspace_id,omitempty"`
-	WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
+	Archived            bool                    `json:"archived"`
+	DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
+	Description         *string                 `json:"description,omitempty"`
+	DraftOnly           *bool                   `json:"draft_only,omitempty"`
+	EditedAt            time.Time               `json:"edited_at"`
+	EditedBy            string                  `json:"edited_by"`
+	ExtraPerms          ExtraPerms              `json:"extra_perms"`
+	Path                string                  `json:"path"`
+	Priority            *int                    `json:"priority,omitempty"`
+	Schema              *map[string]interface{} `json:"schema,omitempty"`
+	Starred             *bool                   `json:"starred,omitempty"`
+	Summary             string                  `json:"summary"`
+	Tag                 *string                 `json:"tag,omitempty"`
+	Timeout             *float32                `json:"timeout,omitempty"`
+	Value               FlowValue               `json:"value"`
+	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
+	WorkspaceId         *string                 `json:"workspace_id,omitempty"`
+	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // FlowMetadata defines model for FlowMetadata.
 type FlowMetadata struct {
-	AdditionalProperties *bool                  `json:"additionalProperties,omitempty"`
-	Archived             bool                   `json:"archived"`
-	DedicatedWorker      *bool                  `json:"dedicated_worker,omitempty"`
-	DraftOnly            *bool                  `json:"draft_only,omitempty"`
-	EditedAt             time.Time              `json:"edited_at"`
-	EditedBy             string                 `json:"edited_by"`
-	ExtraPerms           map[string]interface{} `json:"extra_perms"`
-	Path                 string                 `json:"path"`
-	Priority             *int                   `json:"priority,omitempty"`
-	Starred              *bool                  `json:"starred,omitempty"`
-	Tag                  *string                `json:"tag,omitempty"`
-	Timeout              *float32               `json:"timeout,omitempty"`
-	VisibleToRunnerOnly  *bool                  `json:"visible_to_runner_only,omitempty"`
-	WorkspaceId          *string                `json:"workspace_id,omitempty"`
-	WsErrorHandlerMuted  *bool                  `json:"ws_error_handler_muted,omitempty"`
+	Archived            bool       `json:"archived"`
+	DedicatedWorker     *bool      `json:"dedicated_worker,omitempty"`
+	DraftOnly           *bool      `json:"draft_only,omitempty"`
+	EditedAt            time.Time  `json:"edited_at"`
+	EditedBy            string     `json:"edited_by"`
+	ExtraPerms          ExtraPerms `json:"extra_perms"`
+	Path                string     `json:"path"`
+	Priority            *int       `json:"priority,omitempty"`
+	Starred             *bool      `json:"starred,omitempty"`
+	Tag                 *string    `json:"tag,omitempty"`
+	Timeout             *float32   `json:"timeout,omitempty"`
+	VisibleToRunnerOnly *bool      `json:"visible_to_runner_only,omitempty"`
+	WorkspaceId         *string    `json:"workspace_id,omitempty"`
+	WsErrorHandlerMuted *bool      `json:"ws_error_handler_muted,omitempty"`
 }
 
 // FlowModule defines model for FlowModule.
@@ -4096,6 +4099,59 @@ func (a AppWithLastVersionWDraft_ExtraPerms) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for ExtraPerms. Returns the specified
+// element and whether it was found
+func (a ExtraPerms) Get(fieldName string) (value bool, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ExtraPerms
+func (a *ExtraPerms) Set(fieldName string, value bool) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]bool)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ExtraPerms to handle AdditionalProperties
+func (a *ExtraPerms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]bool)
+		for fieldName, fieldBuf := range object {
+			var fieldVal bool
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ExtraPerms to handle AdditionalProperties
+func (a ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // Getter for additional properties for FlowStatus_UserStates. Returns the specified
 // element and whether it was found
 func (a FlowStatus_UserStates) Get(fieldName string) (value interface{}, found bool) {
@@ -5787,6 +5843,9 @@ type ClientInterface interface {
 
 	// GetFlowDebugInfo request
 	GetFlowDebugInfo(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetLogFileFromStore request
+	GetLogFileFromStore(ctx context.Context, workspace WorkspaceId, path string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetJobLogs request
 	GetJobLogs(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9188,6 +9247,18 @@ func (c *Client) GetSuspendedJobFlow(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) GetFlowDebugInfo(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetFlowDebugInfoRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetLogFileFromStore(ctx context.Context, workspace WorkspaceId, path string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLogFileFromStoreRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -22040,6 +22111,47 @@ func NewGetFlowDebugInfoRequest(server string, workspace WorkspaceId, id JobId) 
 	return req, nil
 }
 
+// NewGetLogFileFromStoreRequest generates requests for GetLogFileFromStore
+func NewGetLogFileFromStoreRequest(server string, workspace WorkspaceId, path string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/get_log_file/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetJobLogsRequest generates requests for GetJobLogs
 func NewGetJobLogsRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
 	var err error
@@ -28909,6 +29021,9 @@ type ClientWithResponsesInterface interface {
 	// GetFlowDebugInfo request
 	GetFlowDebugInfoWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetFlowDebugInfoResponse, error)
 
+	// GetLogFileFromStore request
+	GetLogFileFromStoreWithResponse(ctx context.Context, workspace WorkspaceId, path string, reqEditors ...RequestEditorFn) (*GetLogFileFromStoreResponse, error)
+
 	// GetJobLogs request
 	GetJobLogsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobLogsResponse, error)
 
@@ -31579,26 +31694,25 @@ type GetFlowByPathWithDraftResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
-		Archived             bool                    `json:"archived"`
-		DedicatedWorker      *bool                   `json:"dedicated_worker,omitempty"`
-		Description          *string                 `json:"description,omitempty"`
-		Draft                *Flow                   `json:"draft,omitempty"`
-		DraftOnly            *bool                   `json:"draft_only,omitempty"`
-		EditedAt             time.Time               `json:"edited_at"`
-		EditedBy             string                  `json:"edited_by"`
-		ExtraPerms           map[string]interface{}  `json:"extra_perms"`
-		Path                 string                  `json:"path"`
-		Priority             *int                    `json:"priority,omitempty"`
-		Schema               *map[string]interface{} `json:"schema,omitempty"`
-		Starred              *bool                   `json:"starred,omitempty"`
-		Summary              string                  `json:"summary"`
-		Tag                  *string                 `json:"tag,omitempty"`
-		Timeout              *float32                `json:"timeout,omitempty"`
-		Value                FlowValue               `json:"value"`
-		VisibleToRunnerOnly  *bool                   `json:"visible_to_runner_only,omitempty"`
-		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
-		WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
+		Archived            bool                    `json:"archived"`
+		DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
+		Description         *string                 `json:"description,omitempty"`
+		Draft               *Flow                   `json:"draft,omitempty"`
+		DraftOnly           *bool                   `json:"draft_only,omitempty"`
+		EditedAt            time.Time               `json:"edited_at"`
+		EditedBy            string                  `json:"edited_by"`
+		ExtraPerms          ExtraPerms              `json:"extra_perms"`
+		Path                string                  `json:"path"`
+		Priority            *int                    `json:"priority,omitempty"`
+		Schema              *map[string]interface{} `json:"schema,omitempty"`
+		Starred             *bool                   `json:"starred,omitempty"`
+		Summary             string                  `json:"summary"`
+		Tag                 *string                 `json:"tag,omitempty"`
+		Timeout             *float32                `json:"timeout,omitempty"`
+		Value               FlowValue               `json:"value"`
+		VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
+		WorkspaceId         *string                 `json:"workspace_id,omitempty"`
+		WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 	}
 }
 
@@ -31666,26 +31780,25 @@ type ListFlowsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]struct {
-		AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
-		Archived             bool                    `json:"archived"`
-		DedicatedWorker      *bool                   `json:"dedicated_worker,omitempty"`
-		Description          *string                 `json:"description,omitempty"`
-		DraftOnly            *bool                   `json:"draft_only,omitempty"`
-		EditedAt             time.Time               `json:"edited_at"`
-		EditedBy             string                  `json:"edited_by"`
-		ExtraPerms           map[string]interface{}  `json:"extra_perms"`
-		HasDraft             *bool                   `json:"has_draft,omitempty"`
-		Path                 string                  `json:"path"`
-		Priority             *int                    `json:"priority,omitempty"`
-		Schema               *map[string]interface{} `json:"schema,omitempty"`
-		Starred              *bool                   `json:"starred,omitempty"`
-		Summary              string                  `json:"summary"`
-		Tag                  *string                 `json:"tag,omitempty"`
-		Timeout              *float32                `json:"timeout,omitempty"`
-		Value                FlowValue               `json:"value"`
-		VisibleToRunnerOnly  *bool                   `json:"visible_to_runner_only,omitempty"`
-		WorkspaceId          *string                 `json:"workspace_id,omitempty"`
-		WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
+		Archived            bool                    `json:"archived"`
+		DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
+		Description         *string                 `json:"description,omitempty"`
+		DraftOnly           *bool                   `json:"draft_only,omitempty"`
+		EditedAt            time.Time               `json:"edited_at"`
+		EditedBy            string                  `json:"edited_by"`
+		ExtraPerms          ExtraPerms              `json:"extra_perms"`
+		HasDraft            *bool                   `json:"has_draft,omitempty"`
+		Path                string                  `json:"path"`
+		Priority            *int                    `json:"priority,omitempty"`
+		Schema              *map[string]interface{} `json:"schema,omitempty"`
+		Starred             *bool                   `json:"starred,omitempty"`
+		Summary             string                  `json:"summary"`
+		Tag                 *string                 `json:"tag,omitempty"`
+		Timeout             *float32                `json:"timeout,omitempty"`
+		Value               FlowValue               `json:"value"`
+		VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
+		WorkspaceId         *string                 `json:"workspace_id,omitempty"`
+		WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 	}
 }
 
@@ -33388,6 +33501,27 @@ func (r GetFlowDebugInfoResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetFlowDebugInfoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetLogFileFromStoreResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetLogFileFromStoreResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetLogFileFromStoreResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -38346,6 +38480,15 @@ func (c *ClientWithResponses) GetFlowDebugInfoWithResponse(ctx context.Context, 
 	return ParseGetFlowDebugInfoResponse(rsp)
 }
 
+// GetLogFileFromStoreWithResponse request returning *GetLogFileFromStoreResponse
+func (c *ClientWithResponses) GetLogFileFromStoreWithResponse(ctx context.Context, workspace WorkspaceId, path string, reqEditors ...RequestEditorFn) (*GetLogFileFromStoreResponse, error) {
+	rsp, err := c.GetLogFileFromStore(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetLogFileFromStoreResponse(rsp)
+}
+
 // GetJobLogsWithResponse request returning *GetJobLogsResponse
 func (c *ClientWithResponses) GetJobLogsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobLogsResponse, error) {
 	rsp, err := c.GetJobLogs(ctx, workspace, id, reqEditors...)
@@ -41980,26 +42123,25 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
-			Archived             bool                    `json:"archived"`
-			DedicatedWorker      *bool                   `json:"dedicated_worker,omitempty"`
-			Description          *string                 `json:"description,omitempty"`
-			Draft                *Flow                   `json:"draft,omitempty"`
-			DraftOnly            *bool                   `json:"draft_only,omitempty"`
-			EditedAt             time.Time               `json:"edited_at"`
-			EditedBy             string                  `json:"edited_by"`
-			ExtraPerms           map[string]interface{}  `json:"extra_perms"`
-			Path                 string                  `json:"path"`
-			Priority             *int                    `json:"priority,omitempty"`
-			Schema               *map[string]interface{} `json:"schema,omitempty"`
-			Starred              *bool                   `json:"starred,omitempty"`
-			Summary              string                  `json:"summary"`
-			Tag                  *string                 `json:"tag,omitempty"`
-			Timeout              *float32                `json:"timeout,omitempty"`
-			Value                FlowValue               `json:"value"`
-			VisibleToRunnerOnly  *bool                   `json:"visible_to_runner_only,omitempty"`
-			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
-			WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
+			Archived            bool                    `json:"archived"`
+			DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
+			Description         *string                 `json:"description,omitempty"`
+			Draft               *Flow                   `json:"draft,omitempty"`
+			DraftOnly           *bool                   `json:"draft_only,omitempty"`
+			EditedAt            time.Time               `json:"edited_at"`
+			EditedBy            string                  `json:"edited_by"`
+			ExtraPerms          ExtraPerms              `json:"extra_perms"`
+			Path                string                  `json:"path"`
+			Priority            *int                    `json:"priority,omitempty"`
+			Schema              *map[string]interface{} `json:"schema,omitempty"`
+			Starred             *bool                   `json:"starred,omitempty"`
+			Summary             string                  `json:"summary"`
+			Tag                 *string                 `json:"tag,omitempty"`
+			Timeout             *float32                `json:"timeout,omitempty"`
+			Value               FlowValue               `json:"value"`
+			VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
+			WorkspaceId         *string                 `json:"workspace_id,omitempty"`
+			WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -42079,26 +42221,25 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
-			AdditionalProperties *bool                   `json:"additionalProperties,omitempty"`
-			Archived             bool                    `json:"archived"`
-			DedicatedWorker      *bool                   `json:"dedicated_worker,omitempty"`
-			Description          *string                 `json:"description,omitempty"`
-			DraftOnly            *bool                   `json:"draft_only,omitempty"`
-			EditedAt             time.Time               `json:"edited_at"`
-			EditedBy             string                  `json:"edited_by"`
-			ExtraPerms           map[string]interface{}  `json:"extra_perms"`
-			HasDraft             *bool                   `json:"has_draft,omitempty"`
-			Path                 string                  `json:"path"`
-			Priority             *int                    `json:"priority,omitempty"`
-			Schema               *map[string]interface{} `json:"schema,omitempty"`
-			Starred              *bool                   `json:"starred,omitempty"`
-			Summary              string                  `json:"summary"`
-			Tag                  *string                 `json:"tag,omitempty"`
-			Timeout              *float32                `json:"timeout,omitempty"`
-			Value                FlowValue               `json:"value"`
-			VisibleToRunnerOnly  *bool                   `json:"visible_to_runner_only,omitempty"`
-			WorkspaceId          *string                 `json:"workspace_id,omitempty"`
-			WsErrorHandlerMuted  *bool                   `json:"ws_error_handler_muted,omitempty"`
+			Archived            bool                    `json:"archived"`
+			DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
+			Description         *string                 `json:"description,omitempty"`
+			DraftOnly           *bool                   `json:"draft_only,omitempty"`
+			EditedAt            time.Time               `json:"edited_at"`
+			EditedBy            string                  `json:"edited_by"`
+			ExtraPerms          ExtraPerms              `json:"extra_perms"`
+			HasDraft            *bool                   `json:"has_draft,omitempty"`
+			Path                string                  `json:"path"`
+			Priority            *int                    `json:"priority,omitempty"`
+			Schema              *map[string]interface{} `json:"schema,omitempty"`
+			Starred             *bool                   `json:"starred,omitempty"`
+			Summary             string                  `json:"summary"`
+			Tag                 *string                 `json:"tag,omitempty"`
+			Timeout             *float32                `json:"timeout,omitempty"`
+			Value               FlowValue               `json:"value"`
+			VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
+			WorkspaceId         *string                 `json:"workspace_id,omitempty"`
+			WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -43833,6 +43974,22 @@ func ParseGetFlowDebugInfoResponse(rsp *http.Response) (*GetFlowDebugInfoRespons
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetLogFileFromStoreResponse parses an HTTP response from a GetLogFileFromStoreWithResponse call
+func ParseGetLogFileFromStoreResponse(rsp *http.Response) (*GetLogFileFromStoreResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetLogFileFromStoreResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
