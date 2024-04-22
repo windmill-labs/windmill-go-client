@@ -1171,6 +1171,7 @@ type NewScript struct {
 	Kind                   *NewScriptKind          `json:"kind,omitempty"`
 	Language               NewScriptLanguage       `json:"language"`
 	Lock                   *string                 `json:"lock,omitempty"`
+	NoMainFunc             *bool                   `json:"no_main_func,omitempty"`
 	ParentHash             *string                 `json:"parent_hash,omitempty"`
 	Path                   string                  `json:"path"`
 	Priority               *int                    `json:"priority,omitempty"`
@@ -1208,6 +1209,7 @@ type NewScriptWithDraft struct {
 	Kind                   *NewScriptWithDraftKind    `json:"kind,omitempty"`
 	Language               NewScriptWithDraftLanguage `json:"language"`
 	Lock                   *string                    `json:"lock,omitempty"`
+	NoMainFunc             *bool                      `json:"no_main_func,omitempty"`
 	ParentHash             *string                    `json:"parent_hash,omitempty"`
 	Path                   string                     `json:"path"`
 	Priority               *int                       `json:"priority,omitempty"`
@@ -1568,6 +1570,7 @@ type Script struct {
 	Language               ScriptLanguage    `json:"language"`
 	Lock                   *string           `json:"lock,omitempty"`
 	LockErrorLogs          *string           `json:"lock_error_logs,omitempty"`
+	NoMainFunc             bool              `json:"no_main_func"`
 
 	// The first element is the direct parent of the script, the second is the parent of the first, etc
 	ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
@@ -3289,6 +3292,10 @@ type ListScriptsParams struct {
 	// are
 	// ed.
 	ShowArchived *bool `form:"show_archived,omitempty" json:"show_archived,omitempty"`
+
+	// (default false)
+	// hide the scripts without an exported main function
+	HideWithoutMain *bool `form:"hide_without_main,omitempty" json:"hide_without_main,omitempty"`
 
 	// (default regardless)
 	// if true show only the templates
@@ -25324,6 +25331,22 @@ func NewListScriptsRequest(server string, workspace WorkspaceId, params *ListScr
 	if params.ShowArchived != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "show_archived", runtime.ParamLocationQuery, *params.ShowArchived); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.HideWithoutMain != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "hide_without_main", runtime.ParamLocationQuery, *params.HideWithoutMain); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
