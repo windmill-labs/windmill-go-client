@@ -1835,6 +1835,9 @@ type JobKinds = string
 // Key defines model for Key.
 type Key = string
 
+// Label defines model for Label.
+type Label = string
+
 // Name defines model for Name.
 type Name = string
 
@@ -2562,6 +2565,9 @@ type ListCompletedJobsParams struct {
 	// mask to filter exact matching user creator
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
+	// mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string at key 'wm_label')
+	Label *Label `form:"label,omitempty" json:"label,omitempty"`
+
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
@@ -2612,6 +2618,9 @@ type ListCompletedJobsParams struct {
 
 	// has null parent
 	HasNullParent *bool `form:"has_null_parent,omitempty" json:"has_null_parent,omitempty"`
+
+	// is not a scheduled job
+	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
 
 // ResumeSuspendedFlowAsOwnerJSONBody defines parameters for ResumeSuspendedFlowAsOwner.
@@ -2629,6 +2638,9 @@ type CreateJobSignatureParams struct {
 type ListJobsParams struct {
 	// mask to filter exact matching user creator
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
+
+	// mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string at key 'wm_label')
+	Label *Label `form:"label,omitempty" json:"label,omitempty"`
 
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
@@ -2695,6 +2707,9 @@ type ListJobsParams struct {
 
 	// get jobs from all workspaces (only valid if request come from the `admins` workspace)
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
+
+	// is not a scheduled job
+	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
 
 // OpenaiSyncFlowByPathJSONBody defines parameters for OpenaiSyncFlowByPath.
@@ -2799,6 +2814,9 @@ type ListQueueParams struct {
 
 	// get jobs from all workspaces (only valid if request come from the `admins` workspace)
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
+
+	// is not a scheduled job
+	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
 
 // RestartFlowAtStepJSONBody defines parameters for RestartFlowAtStep.
@@ -18493,6 +18511,22 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 
 	}
 
+	if params.Label != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.ParentJob != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
@@ -18752,6 +18786,22 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 	if params.HasNullParent != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "has_null_parent", runtime.ParamLocationQuery, *params.HasNullParent); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IsNotSchedule != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_not_schedule", runtime.ParamLocationQuery, *params.IsNotSchedule); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -19037,6 +19087,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	if params.CreatedBy != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_by", runtime.ParamLocationQuery, *params.CreatedBy); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Label != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -19389,6 +19455,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	if params.AllWorkspaces != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IsNotSchedule != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_not_schedule", runtime.ParamLocationQuery, *params.IsNotSchedule); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -20063,6 +20145,22 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 	if params.AllWorkspaces != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IsNotSchedule != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_not_schedule", runtime.ParamLocationQuery, *params.IsNotSchedule); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
