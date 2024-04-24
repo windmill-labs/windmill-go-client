@@ -611,6 +611,7 @@ type CompletedJob struct {
 	IsFlowStep     bool                  `json:"is_flow_step"`
 	IsSkipped      bool                  `json:"is_skipped"`
 	JobKind        CompletedJobJobKind   `json:"job_kind"`
+	Labels         *[]string             `json:"labels,omitempty"`
 	Language       *CompletedJobLanguage `json:"language,omitempty"`
 	Logs           *string               `json:"logs,omitempty"`
 	MemPeak        *int                  `json:"mem_peak,omitempty"`
@@ -2565,7 +2566,7 @@ type ListCompletedJobsParams struct {
 	// mask to filter exact matching user creator
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
-	// mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string at key 'wm_label')
+	// mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string in the array at key 'wm_labels')
 	Label *Label `form:"label,omitempty" json:"label,omitempty"`
 
 	// The parent job that is at the origin and responsible for the execution of this script if any
@@ -2639,7 +2640,7 @@ type ListJobsParams struct {
 	// mask to filter exact matching user creator
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
-	// mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string at key 'wm_label')
+	// mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string in the array at key 'wm_labels')
 	Label *Label `form:"label,omitempty" json:"label,omitempty"`
 
 	// The parent job that is at the origin and responsible for the execution of this script if any
