@@ -1304,10 +1304,11 @@ type PolarsClientKwargs struct {
 
 // Policy defines model for Policy.
 type Policy struct {
-	ExecutionMode   *PolicyExecutionMode `json:"execution_mode,omitempty"`
-	OnBehalfOf      *string              `json:"on_behalf_of,omitempty"`
-	OnBehalfOfEmail *string              `json:"on_behalf_of_email,omitempty"`
-	Triggerables    *Policy_Triggerables `json:"triggerables,omitempty"`
+	ExecutionMode   *PolicyExecutionMode   `json:"execution_mode,omitempty"`
+	OnBehalfOf      *string                `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail *string                `json:"on_behalf_of_email,omitempty"`
+	Triggerables    *Policy_Triggerables   `json:"triggerables,omitempty"`
+	TriggerablesV2  *Policy_TriggerablesV2 `json:"triggerables_v2,omitempty"`
 }
 
 // PolicyExecutionMode defines model for Policy.ExecutionMode.
@@ -1315,6 +1316,11 @@ type PolicyExecutionMode string
 
 // Policy_Triggerables defines model for Policy.Triggerables.
 type Policy_Triggerables struct {
+	AdditionalProperties map[string]map[string]interface{} `json:"-"`
+}
+
+// Policy_TriggerablesV2 defines model for Policy.TriggerablesV2.
+type Policy_TriggerablesV2 struct {
 	AdditionalProperties map[string]map[string]interface{} `json:"-"`
 }
 
@@ -2183,6 +2189,7 @@ type UpdateAppJSONBody struct {
 type ExecuteComponentJSONBody struct {
 	Args                    interface{}             `json:"args"`
 	Component               string                  `json:"component"`
+	ForceViewerOneOfFields  *map[string]interface{} `json:"force_viewer_one_of_fields,omitempty"`
 	ForceViewerStaticFields *map[string]interface{} `json:"force_viewer_static_fields,omitempty"`
 	Path                    *string                 `json:"path,omitempty"`
 	RawCode                 *struct {
@@ -4696,6 +4703,59 @@ func (a *Policy_Triggerables) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for Policy_Triggerables to handle AdditionalProperties
 func (a Policy_Triggerables) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for Policy_TriggerablesV2. Returns the specified
+// element and whether it was found
+func (a Policy_TriggerablesV2) Get(fieldName string) (value map[string]interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Policy_TriggerablesV2
+func (a *Policy_TriggerablesV2) Set(fieldName string, value map[string]interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Policy_TriggerablesV2 to handle AdditionalProperties
+func (a *Policy_TriggerablesV2) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal map[string]interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Policy_TriggerablesV2 to handle AdditionalProperties
+func (a Policy_TriggerablesV2) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
