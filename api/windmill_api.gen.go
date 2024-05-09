@@ -1158,6 +1158,7 @@ type NewSchedule struct {
 // NewScript defines model for NewScript.
 type NewScript struct {
 	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
+	Codebase               *string                 `json:"codebase,omitempty"`
 	ConcurrencyKey         *string                 `json:"concurrency_key,omitempty"`
 	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
@@ -1194,6 +1195,7 @@ type NewScriptLanguage string
 // NewScriptWithDraft defines model for NewScriptWithDraft.
 type NewScriptWithDraft struct {
 	CacheTtl               *float32                   `json:"cache_ttl,omitempty"`
+	Codebase               *string                    `json:"codebase,omitempty"`
 	ConcurrencyKey         *string                    `json:"concurrency_key,omitempty"`
 	ConcurrencyTimeWindowS *int                       `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *int                       `json:"concurrent_limit,omitempty"`
@@ -1558,6 +1560,7 @@ type ScheduleWJobs_ExtraPerms struct {
 type Script struct {
 	Archived               bool              `json:"archived"`
 	CacheTtl               *float32          `json:"cache_ttl,omitempty"`
+	Codebase               *string           `json:"codebase,omitempty"`
 	ConcurrencyTimeWindowS *int              `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *int              `json:"concurrent_limit,omitempty"`
 	Content                string            `json:"content"`
@@ -5741,6 +5744,9 @@ type ClientInterface interface {
 
 	UpdateInput(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetArgsFromHistoryOrSavedInput request
+	GetArgsFromHistoryOrSavedInput(ctx context.Context, workspace WorkspaceId, jobOrInputId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteS3File request
 	DeleteS3File(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8493,6 +8499,18 @@ func (c *Client) UpdateInputWithBody(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) UpdateInput(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateInputRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetArgsFromHistoryOrSavedInput(ctx context.Context, workspace WorkspaceId, jobOrInputId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetArgsFromHistoryOrSavedInputRequest(c.Server, workspace, jobOrInputId)
 	if err != nil {
 		return nil, err
 	}
@@ -17393,6 +17411,47 @@ func NewUpdateInputRequestWithBody(server string, workspace WorkspaceId, content
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetArgsFromHistoryOrSavedInputRequest generates requests for GetArgsFromHistoryOrSavedInput
+func NewGetArgsFromHistoryOrSavedInputRequest(server string, workspace WorkspaceId, jobOrInputId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "jobOrInputId", runtime.ParamLocationPath, jobOrInputId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/inputs/%s/args", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -29014,6 +29073,9 @@ type ClientWithResponsesInterface interface {
 
 	UpdateInputWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInputResponse, error)
 
+	// GetArgsFromHistoryOrSavedInput request
+	GetArgsFromHistoryOrSavedInputWithResponse(ctx context.Context, workspace WorkspaceId, jobOrInputId string, reqEditors ...RequestEditorFn) (*GetArgsFromHistoryOrSavedInputResponse, error)
+
 	// DeleteS3File request
 	DeleteS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*DeleteS3FileResponse, error)
 
@@ -32560,6 +32622,28 @@ func (r UpdateInputResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateInputResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetArgsFromHistoryOrSavedInputResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetArgsFromHistoryOrSavedInputResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetArgsFromHistoryOrSavedInputResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -38053,6 +38137,15 @@ func (c *ClientWithResponses) UpdateInputWithResponse(ctx context.Context, works
 	return ParseUpdateInputResponse(rsp)
 }
 
+// GetArgsFromHistoryOrSavedInputWithResponse request returning *GetArgsFromHistoryOrSavedInputResponse
+func (c *ClientWithResponses) GetArgsFromHistoryOrSavedInputWithResponse(ctx context.Context, workspace WorkspaceId, jobOrInputId string, reqEditors ...RequestEditorFn) (*GetArgsFromHistoryOrSavedInputResponse, error) {
+	rsp, err := c.GetArgsFromHistoryOrSavedInput(ctx, workspace, jobOrInputId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetArgsFromHistoryOrSavedInputResponse(rsp)
+}
+
 // DeleteS3FileWithResponse request returning *DeleteS3FileResponse
 func (c *ClientWithResponses) DeleteS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*DeleteS3FileResponse, error) {
 	rsp, err := c.DeleteS3File(ctx, workspace, params, reqEditors...)
@@ -42954,6 +43047,32 @@ func ParseUpdateInputResponse(rsp *http.Response) (*UpdateInputResponse, error) 
 	response := &UpdateInputResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetArgsFromHistoryOrSavedInputResponse parses an HTTP response from a GetArgsFromHistoryOrSavedInputWithResponse call
+func ParseGetArgsFromHistoryOrSavedInputResponse(rsp *http.Response) (*GetArgsFromHistoryOrSavedInputResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetArgsFromHistoryOrSavedInputResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
