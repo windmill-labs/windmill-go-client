@@ -1727,15 +1727,18 @@ type WindmillLargeFile struct {
 
 // WorkerPing defines model for WorkerPing.
 type WorkerPing struct {
-	CustomTags     *[]string `json:"custom_tags,omitempty"`
-	Ip             string    `json:"ip"`
-	JobsExecuted   int       `json:"jobs_executed"`
-	LastPing       *float32  `json:"last_ping,omitempty"`
-	StartedAt      time.Time `json:"started_at"`
-	WmVersion      string    `json:"wm_version"`
-	Worker         string    `json:"worker"`
-	WorkerGroup    string    `json:"worker_group"`
-	WorkerInstance string    `json:"worker_instance"`
+	CurrentJobId          *string   `json:"current_job_id,omitempty"`
+	CurrentJobWorkspaceId *string   `json:"current_job_workspace_id,omitempty"`
+	CustomTags            *[]string `json:"custom_tags,omitempty"`
+	Ip                    string    `json:"ip"`
+	JobsExecuted          int       `json:"jobs_executed"`
+	LastPing              *float32  `json:"last_ping,omitempty"`
+	OccupancyRate         *float32  `json:"occupancy_rate,omitempty"`
+	StartedAt             time.Time `json:"started_at"`
+	WmVersion             string    `json:"wm_version"`
+	Worker                string    `json:"worker"`
+	WorkerGroup           string    `json:"worker_group"`
+	WorkerInstance        string    `json:"worker_instance"`
 }
 
 // WorkflowStatus defines model for WorkflowStatus.
@@ -6386,6 +6389,9 @@ type ClientInterface interface {
 
 	// ListWorkers request
 	ListWorkers(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetQueueMetrics request
+	GetQueueMetrics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// IsDomainAllowed request
 	IsDomainAllowed(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11331,6 +11337,18 @@ func (c *Client) IsDefaultTagsPerWorkspace(ctx context.Context, reqEditors ...Re
 
 func (c *Client) ListWorkers(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListWorkersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetQueueMetrics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetQueueMetricsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -28222,6 +28240,33 @@ func NewListWorkersRequest(server string, params *ListWorkersParams) (*http.Requ
 	return req, nil
 }
 
+// NewGetQueueMetricsRequest generates requests for GetQueueMetrics
+func NewGetQueueMetricsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workers/queue_metrics")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewIsDomainAllowedRequest generates requests for IsDomainAllowed
 func NewIsDomainAllowedRequest(server string) (*http.Request, error) {
 	var err error
@@ -29715,6 +29760,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListWorkers request
 	ListWorkersWithResponse(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*ListWorkersResponse, error)
+
+	// GetQueueMetrics request
+	GetQueueMetricsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueMetricsResponse, error)
 
 	// IsDomainAllowed request
 	IsDomainAllowedWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsDomainAllowedResponse, error)
@@ -36424,6 +36472,34 @@ func (r ListWorkersResponse) StatusCode() int {
 	return 0
 }
 
+type GetQueueMetricsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Id     string `json:"id"`
+		Values []struct {
+			CreatedAt string  `json:"created_at"`
+			Value     float32 `json:"value"`
+		} `json:"values"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetQueueMetricsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetQueueMetricsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type IsDomainAllowedResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -40194,6 +40270,15 @@ func (c *ClientWithResponses) ListWorkersWithResponse(ctx context.Context, param
 		return nil, err
 	}
 	return ParseListWorkersResponse(rsp)
+}
+
+// GetQueueMetricsWithResponse request returning *GetQueueMetricsResponse
+func (c *ClientWithResponses) GetQueueMetricsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueMetricsResponse, error) {
+	rsp, err := c.GetQueueMetrics(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetQueueMetricsResponse(rsp)
 }
 
 // IsDomainAllowedWithResponse request returning *IsDomainAllowedResponse
@@ -46838,6 +46923,38 @@ func ParseListWorkersResponse(rsp *http.Response) (*ListWorkersResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []WorkerPing
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetQueueMetricsResponse parses an HTTP response from a GetQueueMetricsWithResponse call
+func ParseGetQueueMetricsResponse(rsp *http.Response) (*GetQueueMetricsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetQueueMetricsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Id     string `json:"id"`
+			Values []struct {
+				CreatedAt string  `json:"created_at"`
+				Value     float32 `json:"value"`
+			} `json:"values"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
