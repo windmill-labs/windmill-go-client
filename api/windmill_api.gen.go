@@ -399,6 +399,7 @@ const (
 	RawScriptLanguageMssql      RawScriptLanguage = "mssql"
 	RawScriptLanguageMysql      RawScriptLanguage = "mysql"
 	RawScriptLanguageNativets   RawScriptLanguage = "nativets"
+	RawScriptLanguagePhp        RawScriptLanguage = "php"
 	RawScriptLanguagePostgresql RawScriptLanguage = "postgresql"
 	RawScriptLanguagePowershell RawScriptLanguage = "powershell"
 	RawScriptLanguagePython3    RawScriptLanguage = "python3"
@@ -649,8 +650,24 @@ type CompletedJobLanguage string
 
 // ConcurrencyGroup defines model for ConcurrencyGroup.
 type ConcurrencyGroup struct {
-	ConcurrencyId string   `json:"concurrency_id"`
-	JobUuids      []string `json:"job_uuids"`
+	ConcurrencyKey string  `json:"concurrency_key"`
+	TotalRunning   float32 `json:"total_running"`
+}
+
+// ConcurrencyIntervals defines model for ConcurrencyIntervals.
+type ConcurrencyIntervals struct {
+	CompletedJobs []struct {
+		ConcurrencyKey *string    `json:"concurrency_key,omitempty"`
+		EndedAt        *time.Time `json:"ended_at,omitempty"`
+		JobId          *string    `json:"job_id,omitempty"`
+		StartedAt      *time.Time `json:"started_at,omitempty"`
+	} `json:"completed_jobs"`
+	ConcurrencyKey string `json:"concurrency_key"`
+	RunningJobs    []struct {
+		ConcurrencyKey *string    `json:"concurrency_key,omitempty"`
+		JobId          *string    `json:"job_id,omitempty"`
+		StartedAt      *time.Time `json:"started_at,omitempty"`
+	} `json:"running_jobs"`
 }
 
 // ContextualVariable defines model for ContextualVariable.
@@ -2242,6 +2259,87 @@ type ListAuditLogsParams struct {
 
 // ListAuditLogsParamsActionKind defines parameters for ListAuditLogs.
 type ListAuditLogsParamsActionKind string
+
+// GetConcurrencyIntervalsParams defines parameters for GetConcurrencyIntervals.
+type GetConcurrencyIntervalsParams struct {
+	ConcurrencyKey *string  `form:"concurrency_key,omitempty" json:"concurrency_key,omitempty"`
+	RowLimit       *float32 `form:"row_limit,omitempty" json:"row_limit,omitempty"`
+
+	// mask to filter exact matching user creator
+	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
+
+	// mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string in the array at key 'wm_labels')
+	Label *Label `form:"label,omitempty" json:"label,omitempty"`
+
+	// The parent job that is at the origin and responsible for the execution of this script if any
+	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// mask to filter exact matching path
+	ScriptPathExact *ScriptExactPath `form:"script_path_exact,omitempty" json:"script_path_exact,omitempty"`
+
+	// mask to filter matching starting path
+	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
+
+	// mask to filter by schedule path
+	SchedulePath *SchedulePath `form:"schedule_path,omitempty" json:"schedule_path,omitempty"`
+
+	// mask to filter exact matching path
+	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
+
+	// filter on started before (inclusive) timestamp
+	StartedBefore *StartedBefore `form:"started_before,omitempty" json:"started_before,omitempty"`
+
+	// filter on started after (exclusive) timestamp
+	StartedAfter *StartedAfter `form:"started_after,omitempty" json:"started_after,omitempty"`
+
+	// filter on created_at for non non started job and started_at otherwise before (inclusive) timestamp
+	CreatedOrStartedBefore *CreatedOrStartedBefore `form:"created_or_started_before,omitempty" json:"created_or_started_before,omitempty"`
+
+	// filter on running jobs
+	Running *Running `form:"running,omitempty" json:"running,omitempty"`
+
+	// filter on jobs scheduled_for before now (hence waitinf for a worker)
+	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
+
+	// filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp
+	CreatedOrStartedAfter *CreatedOrStartedAfter `form:"created_or_started_after,omitempty" json:"created_or_started_after,omitempty"`
+
+	// filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
+	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
+
+	// filter on jobs containing those args as a json subset (@> in postgres)
+	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
+
+	// filter on jobs with a given tag/worker group
+	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// filter on jobs containing those result as a json subset (@> in postgres)
+	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
+
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// is the job skipped
+	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
+
+	// is the job a flow step
+	IsFlowStep *bool `form:"is_flow_step,omitempty" json:"is_flow_step,omitempty"`
+
+	// has null parent
+	HasNullParent *bool `form:"has_null_parent,omitempty" json:"has_null_parent,omitempty"`
+
+	// filter on successful jobs
+	Success *bool `form:"success,omitempty" json:"success,omitempty"`
+
+	// get jobs from all workspaces (only valid if request come from the `admins` workspace)
+	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
+
+	// is not a scheduled job
+	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
+}
 
 // CreateDraftJSONBody defines parameters for CreateDraft.
 type CreateDraftJSONBody struct {
@@ -5298,6 +5396,9 @@ type ClientInterface interface {
 	// DeleteConcurrencyGroup request
 	DeleteConcurrencyGroup(ctx context.Context, concurrencyId ConcurrencyId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetConcurrencyKey request
+	GetConcurrencyKey(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetConfig request
 	GetConfig(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5602,6 +5703,9 @@ type ClientInterface interface {
 
 	// UpdateCapture request
 	UpdateCapture(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetConcurrencyIntervals request
+	GetConcurrencyIntervals(ctx context.Context, workspace WorkspaceId, params *GetConcurrencyIntervalsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateDraft request with any body
 	CreateDraftWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6508,6 +6612,18 @@ func (c *Client) ListConcurrencyGroups(ctx context.Context, reqEditors ...Reques
 
 func (c *Client) DeleteConcurrencyGroup(ctx context.Context, concurrencyId ConcurrencyId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteConcurrencyGroupRequest(c.Server, concurrencyId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetConcurrencyKey(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetConcurrencyKeyRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -7840,6 +7956,18 @@ func (c *Client) CreateCapture(ctx context.Context, workspace WorkspaceId, path 
 
 func (c *Client) UpdateCapture(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateCaptureRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetConcurrencyIntervals(ctx context.Context, workspace WorkspaceId, params *GetConcurrencyIntervalsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetConcurrencyIntervalsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -11681,7 +11809,7 @@ func NewDeleteConcurrencyGroupRequest(server string, concurrencyId ConcurrencyId
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/concurrency_groups/%s", pathParam0)
+	operationPath := fmt.Sprintf("/concurrency_groups/prune/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -11692,6 +11820,40 @@ func NewDeleteConcurrencyGroupRequest(server string, concurrencyId ConcurrencyId
 	}
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetConcurrencyKeyRequest generates requests for GetConcurrencyKey
+func NewGetConcurrencyKeyRequest(server string, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/concurrency_groups/%s/key", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -15248,6 +15410,476 @@ func NewUpdateCaptureRequest(server string, workspace WorkspaceId, path Path) (*
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetConcurrencyIntervalsRequest generates requests for GetConcurrencyIntervals
+func NewGetConcurrencyIntervalsRequest(server string, workspace WorkspaceId, params *GetConcurrencyIntervalsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/concurrency_groups/intervals", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.ConcurrencyKey != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "concurrency_key", runtime.ParamLocationQuery, *params.ConcurrencyKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.RowLimit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "row_limit", runtime.ParamLocationQuery, *params.RowLimit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CreatedBy != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_by", runtime.ParamLocationQuery, *params.CreatedBy); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Label != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ParentJob != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ScriptPathExact != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_path_exact", runtime.ParamLocationQuery, *params.ScriptPathExact); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ScriptPathStart != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_path_start", runtime.ParamLocationQuery, *params.ScriptPathStart); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SchedulePath != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "schedule_path", runtime.ParamLocationQuery, *params.SchedulePath); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ScriptHash != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_hash", runtime.ParamLocationQuery, *params.ScriptHash); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.StartedBefore != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_before", runtime.ParamLocationQuery, *params.StartedBefore); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.StartedAfter != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_after", runtime.ParamLocationQuery, *params.StartedAfter); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CreatedOrStartedBefore != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_before", runtime.ParamLocationQuery, *params.CreatedOrStartedBefore); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Running != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "running", runtime.ParamLocationQuery, *params.Running); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ScheduledForBeforeNow != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for_before_now", runtime.ParamLocationQuery, *params.ScheduledForBeforeNow); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CreatedOrStartedAfter != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after", runtime.ParamLocationQuery, *params.CreatedOrStartedAfter); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.JobKinds != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_kinds", runtime.ParamLocationQuery, *params.JobKinds); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Args != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "args", runtime.ParamLocationQuery, *params.Args); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Tag != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Result != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "result", runtime.ParamLocationQuery, *params.Result); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IsSkipped != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_skipped", runtime.ParamLocationQuery, *params.IsSkipped); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IsFlowStep != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow_step", runtime.ParamLocationQuery, *params.IsFlowStep); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.HasNullParent != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "has_null_parent", runtime.ParamLocationQuery, *params.HasNullParent); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Success != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "success", runtime.ParamLocationQuery, *params.Success); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.AllWorkspaces != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IsNotSchedule != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_not_schedule", runtime.ParamLocationQuery, *params.IsNotSchedule); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -28669,6 +29301,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteConcurrencyGroup request
 	DeleteConcurrencyGroupWithResponse(ctx context.Context, concurrencyId ConcurrencyId, reqEditors ...RequestEditorFn) (*DeleteConcurrencyGroupResponse, error)
 
+	// GetConcurrencyKey request
+	GetConcurrencyKeyWithResponse(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*GetConcurrencyKeyResponse, error)
+
 	// GetConfig request
 	GetConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetConfigResponse, error)
 
@@ -28973,6 +29608,9 @@ type ClientWithResponsesInterface interface {
 
 	// UpdateCapture request
 	UpdateCaptureWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*UpdateCaptureResponse, error)
+
+	// GetConcurrencyIntervals request
+	GetConcurrencyIntervalsWithResponse(ctx context.Context, workspace WorkspaceId, params *GetConcurrencyIntervalsParams, reqEditors ...RequestEditorFn) (*GetConcurrencyIntervalsResponse, error)
 
 	// CreateDraft request with any body
 	CreateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error)
@@ -29943,6 +30581,28 @@ func (r DeleteConcurrencyGroupResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteConcurrencyGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetConcurrencyKeyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetConcurrencyKeyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetConcurrencyKeyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -31788,6 +32448,28 @@ func (r UpdateCaptureResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateCaptureResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetConcurrencyIntervalsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ConcurrencyIntervals
+}
+
+// Status returns HTTPResponse.Status
+func (r GetConcurrencyIntervalsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetConcurrencyIntervalsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -36762,6 +37444,15 @@ func (c *ClientWithResponses) DeleteConcurrencyGroupWithResponse(ctx context.Con
 	return ParseDeleteConcurrencyGroupResponse(rsp)
 }
 
+// GetConcurrencyKeyWithResponse request returning *GetConcurrencyKeyResponse
+func (c *ClientWithResponses) GetConcurrencyKeyWithResponse(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*GetConcurrencyKeyResponse, error) {
+	rsp, err := c.GetConcurrencyKey(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetConcurrencyKeyResponse(rsp)
+}
+
 // GetConfigWithResponse request returning *GetConfigResponse
 func (c *ClientWithResponses) GetConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetConfigResponse, error) {
 	rsp, err := c.GetConfig(ctx, name, reqEditors...)
@@ -37731,6 +38422,15 @@ func (c *ClientWithResponses) UpdateCaptureWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseUpdateCaptureResponse(rsp)
+}
+
+// GetConcurrencyIntervalsWithResponse request returning *GetConcurrencyIntervalsResponse
+func (c *ClientWithResponses) GetConcurrencyIntervalsWithResponse(ctx context.Context, workspace WorkspaceId, params *GetConcurrencyIntervalsParams, reqEditors ...RequestEditorFn) (*GetConcurrencyIntervalsResponse, error) {
+	rsp, err := c.GetConcurrencyIntervals(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetConcurrencyIntervalsResponse(rsp)
 }
 
 // CreateDraftWithBodyWithResponse request with arbitrary body returning *CreateDraftResponse
@@ -40543,6 +41243,32 @@ func ParseDeleteConcurrencyGroupResponse(rsp *http.Response) (*DeleteConcurrency
 	return response, nil
 }
 
+// ParseGetConcurrencyKeyResponse parses an HTTP response from a GetConcurrencyKeyWithResponse call
+func ParseGetConcurrencyKeyResponse(rsp *http.Response) (*GetConcurrencyKeyResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetConcurrencyKeyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetConfigResponse parses an HTTP response from a GetConfigWithResponse call
 func ParseGetConfigResponse(rsp *http.Response) (*GetConfigResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -42301,6 +43027,32 @@ func ParseUpdateCaptureResponse(rsp *http.Response) (*UpdateCaptureResponse, err
 	response := &UpdateCaptureResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetConcurrencyIntervalsResponse parses an HTTP response from a GetConcurrencyIntervalsWithResponse call
+func ParseGetConcurrencyIntervalsResponse(rsp *http.Response) (*GetConcurrencyIntervalsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetConcurrencyIntervalsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ConcurrencyIntervals
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
