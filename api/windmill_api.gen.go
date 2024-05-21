@@ -654,22 +654,6 @@ type ConcurrencyGroup struct {
 	TotalRunning   float32 `json:"total_running"`
 }
 
-// ConcurrencyIntervals defines model for ConcurrencyIntervals.
-type ConcurrencyIntervals struct {
-	CompletedJobs []struct {
-		ConcurrencyKey *string    `json:"concurrency_key,omitempty"`
-		EndedAt        *time.Time `json:"ended_at,omitempty"`
-		JobId          *string    `json:"job_id,omitempty"`
-		StartedAt      *time.Time `json:"started_at,omitempty"`
-	} `json:"completed_jobs"`
-	ConcurrencyKey string `json:"concurrency_key"`
-	RunningJobs    []struct {
-		ConcurrencyKey *string    `json:"concurrency_key,omitempty"`
-		JobId          *string    `json:"job_id,omitempty"`
-		StartedAt      *time.Time `json:"started_at,omitempty"`
-	} `json:"running_jobs"`
-}
-
 // ContextualVariable defines model for ContextualVariable.
 type ContextualVariable struct {
 	Description string `json:"description"`
@@ -754,6 +738,15 @@ type EditWorkspaceUser struct {
 	Disabled *bool `json:"disabled,omitempty"`
 	IsAdmin  *bool `json:"is_admin,omitempty"`
 	Operator *bool `json:"operator,omitempty"`
+}
+
+// ExtendedJobs defines model for ExtendedJobs.
+type ExtendedJobs struct {
+	Jobs         []Job         `json:"jobs"`
+	ObscuredJobs []ObscuredJob `json:"obscured_jobs"`
+
+	// Obscured jobs omitted for security because of too specific filtering
+	OmittedObscuredJobs *bool `json:"omitted_obscured_jobs,omitempty"`
 }
 
 // ExtraPerms defines model for ExtraPerms.
@@ -1267,6 +1260,13 @@ type NewTokenImpersonate struct {
 	Expiration       *time.Time `json:"expiration,omitempty"`
 	ImpersonateEmail string     `json:"impersonate_email"`
 	Label            *string    `json:"label,omitempty"`
+}
+
+// ObscuredJob defines model for ObscuredJob.
+type ObscuredJob struct {
+	DurationMs *float32   `json:"duration_ms,omitempty"`
+	StartedAt  *time.Time `json:"started_at,omitempty"`
+	Typ        *string    `json:"typ,omitempty"`
 }
 
 // OpenFlow defines model for OpenFlow.
@@ -2260,8 +2260,8 @@ type ListAuditLogsParams struct {
 // ListAuditLogsParamsActionKind defines parameters for ListAuditLogs.
 type ListAuditLogsParamsActionKind string
 
-// GetConcurrencyIntervalsParams defines parameters for GetConcurrencyIntervals.
-type GetConcurrencyIntervalsParams struct {
+// ListExtendedJobsParams defines parameters for ListExtendedJobs.
+type ListExtendedJobsParams struct {
 	ConcurrencyKey *string  `form:"concurrency_key,omitempty" json:"concurrency_key,omitempty"`
 	RowLimit       *float32 `form:"row_limit,omitempty" json:"row_limit,omitempty"`
 
@@ -5704,8 +5704,8 @@ type ClientInterface interface {
 	// UpdateCapture request
 	UpdateCapture(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetConcurrencyIntervals request
-	GetConcurrencyIntervals(ctx context.Context, workspace WorkspaceId, params *GetConcurrencyIntervalsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListExtendedJobs request
+	ListExtendedJobs(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateDraft request with any body
 	CreateDraftWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7966,8 +7966,8 @@ func (c *Client) UpdateCapture(ctx context.Context, workspace WorkspaceId, path 
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetConcurrencyIntervals(ctx context.Context, workspace WorkspaceId, params *GetConcurrencyIntervalsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetConcurrencyIntervalsRequest(c.Server, workspace, params)
+func (c *Client) ListExtendedJobs(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListExtendedJobsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -15417,8 +15417,8 @@ func NewUpdateCaptureRequest(server string, workspace WorkspaceId, path Path) (*
 	return req, nil
 }
 
-// NewGetConcurrencyIntervalsRequest generates requests for GetConcurrencyIntervals
-func NewGetConcurrencyIntervalsRequest(server string, workspace WorkspaceId, params *GetConcurrencyIntervalsParams) (*http.Request, error) {
+// NewListExtendedJobsRequest generates requests for ListExtendedJobs
+func NewListExtendedJobsRequest(server string, workspace WorkspaceId, params *ListExtendedJobsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -15433,7 +15433,7 @@ func NewGetConcurrencyIntervalsRequest(server string, workspace WorkspaceId, par
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/concurrency_groups/intervals", pathParam0)
+	operationPath := fmt.Sprintf("/w/%s/concurrency_groups/list_jobs", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -29609,8 +29609,8 @@ type ClientWithResponsesInterface interface {
 	// UpdateCapture request
 	UpdateCaptureWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*UpdateCaptureResponse, error)
 
-	// GetConcurrencyIntervals request
-	GetConcurrencyIntervalsWithResponse(ctx context.Context, workspace WorkspaceId, params *GetConcurrencyIntervalsParams, reqEditors ...RequestEditorFn) (*GetConcurrencyIntervalsResponse, error)
+	// ListExtendedJobs request
+	ListExtendedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*ListExtendedJobsResponse, error)
 
 	// CreateDraft request with any body
 	CreateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error)
@@ -32454,14 +32454,14 @@ func (r UpdateCaptureResponse) StatusCode() int {
 	return 0
 }
 
-type GetConcurrencyIntervalsResponse struct {
+type ListExtendedJobsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *ConcurrencyIntervals
+	JSON200      *ExtendedJobs
 }
 
 // Status returns HTTPResponse.Status
-func (r GetConcurrencyIntervalsResponse) Status() string {
+func (r ListExtendedJobsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -32469,7 +32469,7 @@ func (r GetConcurrencyIntervalsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetConcurrencyIntervalsResponse) StatusCode() int {
+func (r ListExtendedJobsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -38424,13 +38424,13 @@ func (c *ClientWithResponses) UpdateCaptureWithResponse(ctx context.Context, wor
 	return ParseUpdateCaptureResponse(rsp)
 }
 
-// GetConcurrencyIntervalsWithResponse request returning *GetConcurrencyIntervalsResponse
-func (c *ClientWithResponses) GetConcurrencyIntervalsWithResponse(ctx context.Context, workspace WorkspaceId, params *GetConcurrencyIntervalsParams, reqEditors ...RequestEditorFn) (*GetConcurrencyIntervalsResponse, error) {
-	rsp, err := c.GetConcurrencyIntervals(ctx, workspace, params, reqEditors...)
+// ListExtendedJobsWithResponse request returning *ListExtendedJobsResponse
+func (c *ClientWithResponses) ListExtendedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*ListExtendedJobsResponse, error) {
+	rsp, err := c.ListExtendedJobs(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetConcurrencyIntervalsResponse(rsp)
+	return ParseListExtendedJobsResponse(rsp)
 }
 
 // CreateDraftWithBodyWithResponse request with arbitrary body returning *CreateDraftResponse
@@ -43032,22 +43032,22 @@ func ParseUpdateCaptureResponse(rsp *http.Response) (*UpdateCaptureResponse, err
 	return response, nil
 }
 
-// ParseGetConcurrencyIntervalsResponse parses an HTTP response from a GetConcurrencyIntervalsWithResponse call
-func ParseGetConcurrencyIntervalsResponse(rsp *http.Response) (*GetConcurrencyIntervalsResponse, error) {
+// ParseListExtendedJobsResponse parses an HTTP response from a ListExtendedJobsWithResponse call
+func ParseListExtendedJobsResponse(rsp *http.Response) (*ListExtendedJobsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetConcurrencyIntervalsResponse{
+	response := &ListExtendedJobsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ConcurrencyIntervals
+		var dest ExtendedJobs
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
