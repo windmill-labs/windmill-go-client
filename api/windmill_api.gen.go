@@ -1585,6 +1585,7 @@ type Script struct {
 	Archived               bool              `json:"archived"`
 	CacheTtl               *float32          `json:"cache_ttl,omitempty"`
 	Codebase               *string           `json:"codebase,omitempty"`
+	ConcurrencyKey         *string           `json:"concurrency_key,omitempty"`
 	ConcurrencyTimeWindowS *int              `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *int              `json:"concurrent_limit,omitempty"`
 	Content                string            `json:"content"`
