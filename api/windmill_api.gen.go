@@ -854,10 +854,11 @@ type FlowStatus struct {
 			Branch int `json:"branch"`
 			Len    int `json:"len"`
 		} `json:"branchall,omitempty"`
-		Count    *int      `json:"count,omitempty"`
-		FlowJobs *[]string `json:"flow_jobs,omitempty"`
-		Id       *string   `json:"id,omitempty"`
-		Iterator *struct {
+		Count         *int                  `json:"count,omitempty"`
+		FailedRetries *[]openapi_types.UUID `json:"failed_retries,omitempty"`
+		FlowJobs      *[]string             `json:"flow_jobs,omitempty"`
+		Id            *string               `json:"id,omitempty"`
+		Iterator      *struct {
 			Args   *interface{}   `json:"args,omitempty"`
 			Index  *int           `json:"index,omitempty"`
 			Itered *[]interface{} `json:"itered,omitempty"`
@@ -900,10 +901,11 @@ type FlowStatusModule struct {
 		Branch int `json:"branch"`
 		Len    int `json:"len"`
 	} `json:"branchall,omitempty"`
-	Count    *int      `json:"count,omitempty"`
-	FlowJobs *[]string `json:"flow_jobs,omitempty"`
-	Id       *string   `json:"id,omitempty"`
-	Iterator *struct {
+	Count         *int                  `json:"count,omitempty"`
+	FailedRetries *[]openapi_types.UUID `json:"failed_retries,omitempty"`
+	FlowJobs      *[]string             `json:"flow_jobs,omitempty"`
+	Id            *string               `json:"id,omitempty"`
+	Iterator      *struct {
 		Args   *interface{}   `json:"args,omitempty"`
 		Index  *int           `json:"index,omitempty"`
 		Itered *[]interface{} `json:"itered,omitempty"`
@@ -1415,6 +1417,7 @@ type RawScript struct {
 	ConcurrencyTimeWindowS *float32                  `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *float32                  `json:"concurrent_limit,omitempty"`
 	Content                string                    `json:"content"`
+	CustomConcurrencyKey   *string                   `json:"custom_concurrency_key,omitempty"`
 	InputTransforms        RawScript_InputTransforms `json:"input_transforms"`
 	Language               RawScriptLanguage         `json:"language"`
 	Lock                   *string                   `json:"lock,omitempty"`
@@ -6308,6 +6311,9 @@ type ClientInterface interface {
 
 	UpdateUser(ctx context.Context, workspace WorkspaceId, username string, body UpdateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UsernameToEmail request
+	UsernameToEmail(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// Whoami request
 	Whoami(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10609,6 +10615,18 @@ func (c *Client) UpdateUserWithBody(ctx context.Context, workspace WorkspaceId, 
 
 func (c *Client) UpdateUser(ctx context.Context, workspace WorkspaceId, username string, body UpdateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateUserRequest(c.Server, workspace, username, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UsernameToEmail(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUsernameToEmailRequest(c.Server, workspace, username)
 	if err != nil {
 		return nil, err
 	}
@@ -26736,6 +26754,47 @@ func NewUpdateUserRequestWithBody(server string, workspace WorkspaceId, username
 	return req, nil
 }
 
+// NewUsernameToEmailRequest generates requests for UsernameToEmail
+func NewUsernameToEmailRequest(server string, workspace WorkspaceId, username string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "username", runtime.ParamLocationPath, username)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/users/username_to_email/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewWhoamiRequest generates requests for Whoami
 func NewWhoamiRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -30212,6 +30271,9 @@ type ClientWithResponsesInterface interface {
 	UpdateUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, username string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateUserResponse, error)
 
 	UpdateUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, body UpdateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateUserResponse, error)
+
+	// UsernameToEmail request
+	UsernameToEmailWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*UsernameToEmailResponse, error)
 
 	// Whoami request
 	WhoamiWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*WhoamiResponse, error)
@@ -36055,6 +36117,27 @@ func (r UpdateUserResponse) StatusCode() int {
 	return 0
 }
 
+type UsernameToEmailResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UsernameToEmailResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UsernameToEmailResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type WhoamiResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -40352,6 +40435,15 @@ func (c *ClientWithResponses) UpdateUserWithResponse(ctx context.Context, worksp
 		return nil, err
 	}
 	return ParseUpdateUserResponse(rsp)
+}
+
+// UsernameToEmailWithResponse request returning *UsernameToEmailResponse
+func (c *ClientWithResponses) UsernameToEmailWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*UsernameToEmailResponse, error) {
+	rsp, err := c.UsernameToEmail(ctx, workspace, username, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUsernameToEmailResponse(rsp)
 }
 
 // WhoamiWithResponse request returning *WhoamiResponse
@@ -46613,6 +46705,22 @@ func ParseUpdateUserResponse(rsp *http.Response) (*UpdateUserResponse, error) {
 	}
 
 	response := &UpdateUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUsernameToEmailResponse parses an HTTP response from a UsernameToEmailWithResponse call
+func ParseUsernameToEmailResponse(rsp *http.Response) (*UsernameToEmailResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UsernameToEmailResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
