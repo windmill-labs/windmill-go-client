@@ -605,25 +605,26 @@ type BranchOneType string
 
 // CompletedJob defines model for CompletedJob.
 type CompletedJob struct {
-	Args           *ScriptArgs           `json:"args,omitempty"`
-	Canceled       bool                  `json:"canceled"`
-	CanceledBy     *string               `json:"canceled_by,omitempty"`
-	CanceledReason *string               `json:"canceled_reason,omitempty"`
-	CreatedAt      time.Time             `json:"created_at"`
-	CreatedBy      string                `json:"created_by"`
-	Deleted        *bool                 `json:"deleted,omitempty"`
-	DurationMs     int                   `json:"duration_ms"`
-	Email          string                `json:"email"`
-	FlowStatus     *FlowStatus           `json:"flow_status,omitempty"`
-	Id             openapi_types.UUID    `json:"id"`
-	IsFlowStep     bool                  `json:"is_flow_step"`
-	IsSkipped      bool                  `json:"is_skipped"`
-	JobKind        CompletedJobJobKind   `json:"job_kind"`
-	Labels         *[]string             `json:"labels,omitempty"`
-	Language       *CompletedJobLanguage `json:"language,omitempty"`
-	Logs           *string               `json:"logs,omitempty"`
-	MemPeak        *int                  `json:"mem_peak,omitempty"`
-	ParentJob      *openapi_types.UUID   `json:"parent_job,omitempty"`
+	AggregateWaitTimeMs *float32              `json:"aggregate_wait_time_ms,omitempty"`
+	Args                *ScriptArgs           `json:"args,omitempty"`
+	Canceled            bool                  `json:"canceled"`
+	CanceledBy          *string               `json:"canceled_by,omitempty"`
+	CanceledReason      *string               `json:"canceled_reason,omitempty"`
+	CreatedAt           time.Time             `json:"created_at"`
+	CreatedBy           string                `json:"created_by"`
+	Deleted             *bool                 `json:"deleted,omitempty"`
+	DurationMs          int                   `json:"duration_ms"`
+	Email               string                `json:"email"`
+	FlowStatus          *FlowStatus           `json:"flow_status,omitempty"`
+	Id                  openapi_types.UUID    `json:"id"`
+	IsFlowStep          bool                  `json:"is_flow_step"`
+	IsSkipped           bool                  `json:"is_skipped"`
+	JobKind             CompletedJobJobKind   `json:"job_kind"`
+	Labels              *[]string             `json:"labels,omitempty"`
+	Language            *CompletedJobLanguage `json:"language,omitempty"`
+	Logs                *string               `json:"logs,omitempty"`
+	MemPeak             *int                  `json:"mem_peak,omitempty"`
+	ParentJob           *openapi_types.UUID   `json:"parent_job,omitempty"`
 
 	// The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
@@ -635,6 +636,7 @@ type CompletedJob struct {
 	SchedulePath   *string      `json:"schedule_path,omitempty"`
 	ScriptHash     *string      `json:"script_hash,omitempty"`
 	ScriptPath     *string      `json:"script_path,omitempty"`
+	SelfWaitTimeMs *float32     `json:"self_wait_time_ms,omitempty"`
 	StartedAt      time.Time    `json:"started_at"`
 	Success        bool         `json:"success"`
 	Tag            string       `json:"tag"`
@@ -1045,10 +1047,21 @@ type Job interface{}
 
 // LargeFileStorage defines model for LargeFileStorage.
 type LargeFileStorage struct {
-	AzureBlobResourcePath *string               `json:"azure_blob_resource_path,omitempty"`
-	PublicResource        *bool                 `json:"public_resource,omitempty"`
-	S3ResourcePath        *string               `json:"s3_resource_path,omitempty"`
-	Type                  *LargeFileStorageType `json:"type,omitempty"`
+	AzureBlobResourcePath *string                            `json:"azure_blob_resource_path,omitempty"`
+	PublicResource        *bool                              `json:"public_resource,omitempty"`
+	S3ResourcePath        *string                            `json:"s3_resource_path,omitempty"`
+	SecondaryStorage      *LargeFileStorage_SecondaryStorage `json:"secondary_storage,omitempty"`
+	Type                  *LargeFileStorageType              `json:"type,omitempty"`
+}
+
+// LargeFileStorage_SecondaryStorage defines model for LargeFileStorage.SecondaryStorage.
+type LargeFileStorage_SecondaryStorage struct {
+	AdditionalProperties map[string]struct {
+		AzureBlobResourcePath *string `json:"azure_blob_resource_path,omitempty"`
+		PublicResource        *bool   `json:"public_resource,omitempty"`
+		S3ResourcePath        *string `json:"s3_resource_path,omitempty"`
+		Type                  *string `json:"type,omitempty"`
+	} `json:"-"`
 }
 
 // LargeFileStorageType defines model for LargeFileStorage.Type.
@@ -1372,22 +1385,23 @@ type PreviewLanguage string
 
 // QueuedJob defines model for QueuedJob.
 type QueuedJob struct {
-	Args           *ScriptArgs         `json:"args,omitempty"`
-	Canceled       bool                `json:"canceled"`
-	CanceledBy     *string             `json:"canceled_by,omitempty"`
-	CanceledReason *string             `json:"canceled_reason,omitempty"`
-	CreatedAt      *time.Time          `json:"created_at,omitempty"`
-	CreatedBy      *string             `json:"created_by,omitempty"`
-	Email          string              `json:"email"`
-	FlowStatus     *FlowStatus         `json:"flow_status,omitempty"`
-	Id             openapi_types.UUID  `json:"id"`
-	IsFlowStep     bool                `json:"is_flow_step"`
-	JobKind        QueuedJobJobKind    `json:"job_kind"`
-	Language       *QueuedJobLanguage  `json:"language,omitempty"`
-	LastPing       *time.Time          `json:"last_ping,omitempty"`
-	Logs           *string             `json:"logs,omitempty"`
-	MemPeak        *int                `json:"mem_peak,omitempty"`
-	ParentJob      *openapi_types.UUID `json:"parent_job,omitempty"`
+	AggregateWaitTimeMs *float32            `json:"aggregate_wait_time_ms,omitempty"`
+	Args                *ScriptArgs         `json:"args,omitempty"`
+	Canceled            bool                `json:"canceled"`
+	CanceledBy          *string             `json:"canceled_by,omitempty"`
+	CanceledReason      *string             `json:"canceled_reason,omitempty"`
+	CreatedAt           *time.Time          `json:"created_at,omitempty"`
+	CreatedBy           *string             `json:"created_by,omitempty"`
+	Email               string              `json:"email"`
+	FlowStatus          *FlowStatus         `json:"flow_status,omitempty"`
+	Id                  openapi_types.UUID  `json:"id"`
+	IsFlowStep          bool                `json:"is_flow_step"`
+	JobKind             QueuedJobJobKind    `json:"job_kind"`
+	Language            *QueuedJobLanguage  `json:"language,omitempty"`
+	LastPing            *time.Time          `json:"last_ping,omitempty"`
+	Logs                *string             `json:"logs,omitempty"`
+	MemPeak             *int                `json:"mem_peak,omitempty"`
+	ParentJob           *openapi_types.UUID `json:"parent_job,omitempty"`
 
 	// The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
@@ -1400,6 +1414,7 @@ type QueuedJob struct {
 	ScheduledFor   *time.Time `json:"scheduled_for,omitempty"`
 	ScriptHash     *string    `json:"script_hash,omitempty"`
 	ScriptPath     *string    `json:"script_path,omitempty"`
+	SelfWaitTimeMs *float32   `json:"self_wait_time_ms,omitempty"`
 	StartedAt      *time.Time `json:"started_at,omitempty"`
 	Tag            string     `json:"tag"`
 	VisibleToOwner bool       `json:"visible_to_owner"`
@@ -1761,8 +1776,12 @@ type WorkerPing struct {
 	Ip                    string    `json:"ip"`
 	JobsExecuted          int       `json:"jobs_executed"`
 	LastPing              *float32  `json:"last_ping,omitempty"`
+	Memory                *float32  `json:"memory,omitempty"`
+	MemoryUsage           *float32  `json:"memory_usage,omitempty"`
 	OccupancyRate         *float32  `json:"occupancy_rate,omitempty"`
 	StartedAt             time.Time `json:"started_at"`
+	Vcpus                 *float32  `json:"vcpus,omitempty"`
+	WmMemoryUsage         *float32  `json:"wm_memory_usage,omitempty"`
 	WmVersion             string    `json:"wm_version"`
 	Worker                string    `json:"worker"`
 	WorkerGroup           string    `json:"worker_group"`
@@ -2138,6 +2157,12 @@ type CreateTokenImpersonateJSONBody = NewTokenImpersonate
 // ListTokensParams defines parameters for ListTokens.
 type ListTokensParams struct {
 	ExcludeEphemeral *bool `form:"exclude_ephemeral,omitempty" json:"exclude_ephemeral,omitempty"`
+
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
 // UpdateTutorialProgressJSONBody defines parameters for UpdateTutorialProgress.
@@ -2221,15 +2246,17 @@ type UpdateAppJSONBody struct {
 
 // ExecuteComponentJSONBody defines parameters for ExecuteComponent.
 type ExecuteComponentJSONBody struct {
-	Args                    interface{}             `json:"args"`
-	Component               string                  `json:"component"`
-	ForceViewerOneOfFields  *map[string]interface{} `json:"force_viewer_one_of_fields,omitempty"`
-	ForceViewerStaticFields *map[string]interface{} `json:"force_viewer_static_fields,omitempty"`
-	Path                    *string                 `json:"path,omitempty"`
-	RawCode                 *struct {
+	Args                          interface{}             `json:"args"`
+	Component                     string                  `json:"component"`
+	ForceViewerAllowUserResources *[]string               `json:"force_viewer_allow_user_resources,omitempty"`
+	ForceViewerOneOfFields        *map[string]interface{} `json:"force_viewer_one_of_fields,omitempty"`
+	ForceViewerStaticFields       *map[string]interface{} `json:"force_viewer_static_fields,omitempty"`
+	Path                          *string                 `json:"path,omitempty"`
+	RawCode                       *struct {
 		CacheTtl *int    `json:"cache_ttl,omitempty"`
 		Content  string  `json:"content"`
 		Language string  `json:"language"`
+		Lock     *string `json:"lock,omitempty"`
 		Path     *string `json:"path,omitempty"`
 	} `json:"raw_code,omitempty"`
 }
@@ -2591,11 +2618,20 @@ type UpdateInputJSONBody = UpdateInput
 
 // DeleteS3FileParams defines parameters for DeleteS3File.
 type DeleteS3FileParams struct {
-	FileKey string `form:"file_key" json:"file_key"`
+	FileKey string  `form:"file_key" json:"file_key"`
+	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
 }
 
 // FileDownloadParams defines parameters for FileDownload.
 type FileDownloadParams struct {
+	FileKey        string  `form:"file_key" json:"file_key"`
+	S3ResourcePath *string `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
+	ResourceType   *string `form:"resource_type,omitempty" json:"resource_type,omitempty"`
+	Storage        *string `form:"storage,omitempty" json:"storage,omitempty"`
+}
+
+// FileDownloadParquetAsCsvParams defines parameters for FileDownloadParquetAsCsv.
+type FileDownloadParquetAsCsvParams struct {
 	FileKey        string  `form:"file_key" json:"file_key"`
 	S3ResourcePath *string `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
 	ResourceType   *string `form:"resource_type,omitempty" json:"resource_type,omitempty"`
@@ -2611,11 +2647,25 @@ type ListStoredFilesParams struct {
 	MaxKeys int     `form:"max_keys" json:"max_keys"`
 	Marker  *string `form:"marker,omitempty" json:"marker,omitempty"`
 	Prefix  *string `form:"prefix,omitempty" json:"prefix,omitempty"`
+	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
+}
+
+// LoadCsvPreviewParams defines parameters for LoadCsvPreview.
+type LoadCsvPreviewParams struct {
+	Offset       *float32 `form:"offset,omitempty" json:"offset,omitempty"`
+	Limit        *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+	SortCol      *string  `form:"sort_col,omitempty" json:"sort_col,omitempty"`
+	SortDesc     *bool    `form:"sort_desc,omitempty" json:"sort_desc,omitempty"`
+	SearchCol    *string  `form:"search_col,omitempty" json:"search_col,omitempty"`
+	SearchTerm   *string  `form:"search_term,omitempty" json:"search_term,omitempty"`
+	Storage      *string  `form:"storage,omitempty" json:"storage,omitempty"`
+	CsvSeparator *string  `form:"csv_separator,omitempty" json:"csv_separator,omitempty"`
 }
 
 // LoadFileMetadataParams defines parameters for LoadFileMetadata.
 type LoadFileMetadataParams struct {
-	FileKey string `form:"file_key" json:"file_key"`
+	FileKey string  `form:"file_key" json:"file_key"`
+	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
 }
 
 // LoadFilePreviewParams defines parameters for LoadFilePreview.
@@ -2627,6 +2677,7 @@ type LoadFilePreviewParams struct {
 	CsvHasHeader    *bool   `form:"csv_has_header,omitempty" json:"csv_has_header,omitempty"`
 	ReadBytesFrom   *int    `form:"read_bytes_from,omitempty" json:"read_bytes_from,omitempty"`
 	ReadBytesLength *int    `form:"read_bytes_length,omitempty" json:"read_bytes_length,omitempty"`
+	Storage         *string `form:"storage,omitempty" json:"storage,omitempty"`
 }
 
 // LoadParquetPreviewParams defines parameters for LoadParquetPreview.
@@ -2637,17 +2688,24 @@ type LoadParquetPreviewParams struct {
 	SortDesc   *bool    `form:"sort_desc,omitempty" json:"sort_desc,omitempty"`
 	SearchCol  *string  `form:"search_col,omitempty" json:"search_col,omitempty"`
 	SearchTerm *string  `form:"search_term,omitempty" json:"search_term,omitempty"`
+	Storage    *string  `form:"storage,omitempty" json:"storage,omitempty"`
 }
 
 // MoveS3FileParams defines parameters for MoveS3File.
 type MoveS3FileParams struct {
-	SrcFileKey  string `form:"src_file_key" json:"src_file_key"`
-	DestFileKey string `form:"dest_file_key" json:"dest_file_key"`
+	SrcFileKey  string  `form:"src_file_key" json:"src_file_key"`
+	DestFileKey string  `form:"dest_file_key" json:"dest_file_key"`
+	Storage     *string `form:"storage,omitempty" json:"storage,omitempty"`
 }
 
 // PolarsConnectionSettingsJSONBody defines parameters for PolarsConnectionSettings.
 type PolarsConnectionSettingsJSONBody struct {
 	S3Resource *S3Resource `json:"s3_resource,omitempty"`
+}
+
+// DatasetStorageTestConnectionParams defines parameters for DatasetStorageTestConnection.
+type DatasetStorageTestConnectionParams struct {
+	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
 }
 
 // FileUploadParams defines parameters for FileUpload.
@@ -2656,6 +2714,7 @@ type FileUploadParams struct {
 	FileExtension  *string `form:"file_extension,omitempty" json:"file_extension,omitempty"`
 	S3ResourcePath *string `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
 	ResourceType   *string `form:"resource_type,omitempty" json:"resource_type,omitempty"`
+	Storage        *string `form:"storage,omitempty" json:"storage,omitempty"`
 }
 
 // DuckdbConnectionSettingsV2JSONBody defines parameters for DuckdbConnectionSettingsV2.
@@ -2870,6 +2929,9 @@ type OpenaiSyncScriptByPathParams struct {
 	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
 }
 
+// CancelSelectionJSONBody defines parameters for CancelSelection.
+type CancelSelectionJSONBody = []string
+
 // GetQueueCountParams defines parameters for GetQueueCount.
 type GetQueueCountParams struct {
 	// get jobs from all workspaces (only valid if request come from the `admins` workspace)
@@ -2934,6 +2996,73 @@ type ListQueueParams struct {
 
 	// number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// get jobs from all workspaces (only valid if request come from the `admins` workspace)
+	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
+
+	// is not a scheduled job
+	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
+}
+
+// ListFilteredUuidsParams defines parameters for ListFilteredUuids.
+type ListFilteredUuidsParams struct {
+	// order by desc order (default true)
+	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
+
+	// mask to filter exact matching user creator
+	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
+
+	// The parent job that is at the origin and responsible for the execution of this script if any
+	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// mask to filter exact matching path
+	ScriptPathExact *ScriptExactPath `form:"script_path_exact,omitempty" json:"script_path_exact,omitempty"`
+
+	// mask to filter matching starting path
+	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
+
+	// mask to filter by schedule path
+	SchedulePath *SchedulePath `form:"schedule_path,omitempty" json:"schedule_path,omitempty"`
+
+	// mask to filter exact matching path
+	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
+
+	// filter on started before (inclusive) timestamp
+	StartedBefore *StartedBefore `form:"started_before,omitempty" json:"started_before,omitempty"`
+
+	// filter on started after (exclusive) timestamp
+	StartedAfter *StartedAfter `form:"started_after,omitempty" json:"started_after,omitempty"`
+
+	// filter on successful jobs
+	Success *Success `form:"success,omitempty" json:"success,omitempty"`
+
+	// filter on jobs scheduled_for before now (hence waitinf for a worker)
+	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
+
+	// filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
+	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
+
+	// filter on suspended jobs
+	Suspended *Suspended `form:"suspended,omitempty" json:"suspended,omitempty"`
+
+	// filter on running jobs
+	Running *Running `form:"running,omitempty" json:"running,omitempty"`
+
+	// filter on jobs containing those args as a json subset (@> in postgres)
+	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
+
+	// filter on jobs containing those result as a json subset (@> in postgres)
+	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
+
+	// filter on jobs with a given tag/worker group
+	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage        *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+	ConcurrencyKey *string  `form:"concurrency_key,omitempty" json:"concurrency_key,omitempty"`
 
 	// get jobs from all workspaces (only valid if request come from the `admins` workspace)
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
@@ -3180,6 +3309,14 @@ type CancelSuspendedJobPostJSONBody = map[string]interface{}
 // CancelSuspendedJobPostParams defines parameters for CancelSuspendedJobPost.
 type CancelSuspendedJobPostParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
+}
+
+// GetCompletedJobResultParams defines parameters for GetCompletedJobResult.
+type GetCompletedJobResultParams struct {
+	SuspendedJob *string `form:"suspended_job,omitempty" json:"suspended_job,omitempty"`
+	ResumeId     *int    `form:"resume_id,omitempty" json:"resume_id,omitempty"`
+	Secret       *string `form:"secret,omitempty" json:"secret,omitempty"`
+	Approver     *string `form:"approver,omitempty" json:"approver,omitempty"`
 }
 
 // GetCompletedJobResultMaybeParams defines parameters for GetCompletedJobResultMaybe.
@@ -3807,6 +3944,9 @@ type OpenaiSyncFlowByPathJSONRequestBody = OpenaiSyncFlowByPathJSONBody
 
 // OpenaiSyncScriptByPathJSONRequestBody defines body for OpenaiSyncScriptByPath for application/json ContentType.
 type OpenaiSyncScriptByPathJSONRequestBody = OpenaiSyncScriptByPathJSONBody
+
+// CancelSelectionJSONRequestBody defines body for CancelSelection for application/json ContentType.
+type CancelSelectionJSONRequestBody = CancelSelectionJSONBody
 
 // RestartFlowAtStepJSONRequestBody defines body for RestartFlowAtStep for application/json ContentType.
 type RestartFlowAtStepJSONRequestBody = RestartFlowAtStepJSONBody
@@ -4447,6 +4587,84 @@ func (a *Group_ExtraPerms) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for Group_ExtraPerms to handle AdditionalProperties
 func (a Group_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for LargeFileStorage_SecondaryStorage. Returns the specified
+// element and whether it was found
+func (a LargeFileStorage_SecondaryStorage) Get(fieldName string) (value struct {
+	AzureBlobResourcePath *string `json:"azure_blob_resource_path,omitempty"`
+	PublicResource        *bool   `json:"public_resource,omitempty"`
+	S3ResourcePath        *string `json:"s3_resource_path,omitempty"`
+	Type                  *string `json:"type,omitempty"`
+}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for LargeFileStorage_SecondaryStorage
+func (a *LargeFileStorage_SecondaryStorage) Set(fieldName string, value struct {
+	AzureBlobResourcePath *string `json:"azure_blob_resource_path,omitempty"`
+	PublicResource        *bool   `json:"public_resource,omitempty"`
+	S3ResourcePath        *string `json:"s3_resource_path,omitempty"`
+	Type                  *string `json:"type,omitempty"`
+}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]struct {
+			AzureBlobResourcePath *string `json:"azure_blob_resource_path,omitempty"`
+			PublicResource        *bool   `json:"public_resource,omitempty"`
+			S3ResourcePath        *string `json:"s3_resource_path,omitempty"`
+			Type                  *string `json:"type,omitempty"`
+		})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for LargeFileStorage_SecondaryStorage to handle AdditionalProperties
+func (a *LargeFileStorage_SecondaryStorage) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]struct {
+			AzureBlobResourcePath *string `json:"azure_blob_resource_path,omitempty"`
+			PublicResource        *bool   `json:"public_resource,omitempty"`
+			S3ResourcePath        *string `json:"s3_resource_path,omitempty"`
+			Type                  *string `json:"type,omitempty"`
+		})
+		for fieldName, fieldBuf := range object {
+			var fieldVal struct {
+				AzureBlobResourcePath *string `json:"azure_blob_resource_path,omitempty"`
+				PublicResource        *bool   `json:"public_resource,omitempty"`
+				S3ResourcePath        *string `json:"s3_resource_path,omitempty"`
+				Type                  *string `json:"type,omitempty"`
+			}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for LargeFileStorage_SecondaryStorage to handle AdditionalProperties
+func (a LargeFileStorage_SecondaryStorage) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -5469,6 +5687,9 @@ type ClientInterface interface {
 
 	ConnectCallback(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetOAuthConnect request
+	GetOAuthConnect(ctx context.Context, client string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListOAuthLogins request
 	ListOAuthLogins(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5502,6 +5723,9 @@ type ClientInterface interface {
 	// RawScriptByPathTokened request
 	RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateCustomerPortalSession request
+	CreateCustomerPortalSession(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetGlobal request
 	GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5510,8 +5734,14 @@ type ClientInterface interface {
 
 	SetGlobal(ctx context.Context, key Key, body SetGlobalJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetLatestKeyRenewalAttempt request
+	GetLatestKeyRenewalAttempt(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetLocal request
 	GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RenewLicenseKey request
+	RenewLicenseKey(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SendStats request
 	SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5871,6 +6101,9 @@ type ClientInterface interface {
 	// FileDownload request
 	FileDownload(ctx context.Context, workspace WorkspaceId, params *FileDownloadParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// FileDownloadParquetAsCsv request
+	FileDownloadParquetAsCsv(ctx context.Context, workspace WorkspaceId, params *FileDownloadParquetAsCsvParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DuckdbConnectionSettings request with any body
 	DuckdbConnectionSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5878,6 +6111,9 @@ type ClientInterface interface {
 
 	// ListStoredFiles request
 	ListStoredFiles(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LoadCsvPreview request
+	LoadCsvPreview(ctx context.Context, workspace WorkspaceId, path Path, params *LoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// LoadFileMetadata request
 	LoadFileMetadata(ctx context.Context, workspace WorkspaceId, params *LoadFileMetadataParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5897,7 +6133,7 @@ type ClientInterface interface {
 	PolarsConnectionSettings(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DatasetStorageTestConnection request
-	DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, params *DatasetStorageTestConnectionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// FileUpload request with any body
 	FileUploadWithBody(ctx context.Context, workspace WorkspaceId, params *FileUploadParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5960,14 +6196,19 @@ type ClientInterface interface {
 
 	OpenaiSyncScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// CancelAll request
-	CancelAll(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CancelSelection request with any body
+	CancelSelectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CancelSelection(ctx context.Context, workspace WorkspaceId, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetQueueCount request
 	GetQueueCount(ctx context.Context, workspace WorkspaceId, params *GetQueueCountParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListQueue request
 	ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListFilteredUuids request
+	ListFilteredUuids(ctx context.Context, workspace WorkspaceId, params *ListFilteredUuidsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RestartFlowAtStep request with any body
 	RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6040,7 +6281,7 @@ type ClientInterface interface {
 	GetCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCompletedJobResult request
-	GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCompletedJobResultMaybe request
 	GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6929,6 +7170,18 @@ func (c *Client) ConnectCallback(ctx context.Context, clientName ClientName, bod
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetOAuthConnect(ctx context.Context, client string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOAuthConnectRequest(c.Server, client)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListOAuthLogins(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListOAuthLoginsRequest(c.Server)
 	if err != nil {
@@ -7073,6 +7326,18 @@ func (c *Client) RawScriptByPathTokened(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreateCustomerPortalSession(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateCustomerPortalSessionRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetGlobalRequest(c.Server, key)
 	if err != nil {
@@ -7109,8 +7374,32 @@ func (c *Client) SetGlobal(ctx context.Context, key Key, body SetGlobalJSONReque
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetLatestKeyRenewalAttempt(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLatestKeyRenewalAttemptRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetLocalRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RenewLicenseKey(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRenewLicenseKeyRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -8693,6 +8982,18 @@ func (c *Client) FileDownload(ctx context.Context, workspace WorkspaceId, params
 	return c.Client.Do(req)
 }
 
+func (c *Client) FileDownloadParquetAsCsv(ctx context.Context, workspace WorkspaceId, params *FileDownloadParquetAsCsvParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFileDownloadParquetAsCsvRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) DuckdbConnectionSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDuckdbConnectionSettingsRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -8719,6 +9020,18 @@ func (c *Client) DuckdbConnectionSettings(ctx context.Context, workspace Workspa
 
 func (c *Client) ListStoredFiles(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListStoredFilesRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LoadCsvPreview(ctx context.Context, workspace WorkspaceId, path Path, params *LoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoadCsvPreviewRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -8801,8 +9114,8 @@ func (c *Client) PolarsConnectionSettings(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
-func (c *Client) DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDatasetStorageTestConnectionRequest(c.Server, workspace)
+func (c *Client) DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, params *DatasetStorageTestConnectionParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDatasetStorageTestConnectionRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -9089,8 +9402,20 @@ func (c *Client) OpenaiSyncScriptByPath(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) CancelAll(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCancelAllRequest(c.Server, workspace)
+func (c *Client) CancelSelectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelSelectionRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelSelection(ctx context.Context, workspace WorkspaceId, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelSelectionRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -9115,6 +9440,18 @@ func (c *Client) GetQueueCount(ctx context.Context, workspace WorkspaceId, param
 
 func (c *Client) ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListQueueRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListFilteredUuids(ctx context.Context, workspace WorkspaceId, params *ListFilteredUuidsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListFilteredUuidsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -9449,8 +9786,8 @@ func (c *Client) GetCompletedJob(ctx context.Context, workspace WorkspaceId, id 
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCompletedJobResultRequest(c.Server, workspace, id)
+func (c *Client) GetCompletedJobResult(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCompletedJobResultRequest(c.Server, workspace, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -12598,6 +12935,40 @@ func NewConnectCallbackRequestWithBody(server string, clientName ClientName, con
 	return req, nil
 }
 
+// NewGetOAuthConnectRequest generates requests for GetOAuthConnect
+func NewGetOAuthConnectRequest(server string, client string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "client", runtime.ParamLocationPath, client)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oauth/get_connect/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListOAuthLoginsRequest generates requests for ListOAuthLogins
 func NewListOAuthLoginsRequest(server string) (*http.Request, error) {
 	var err error
@@ -12974,6 +13345,33 @@ func NewRawScriptByPathTokenedRequest(server string, workspace WorkspaceId, toke
 	return req, nil
 }
 
+// NewCreateCustomerPortalSessionRequest generates requests for CreateCustomerPortalSession
+func NewCreateCustomerPortalSessionRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/customer_portal")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetGlobalRequest generates requests for GetGlobal
 func NewGetGlobalRequest(server string, key Key) (*http.Request, error) {
 	var err error
@@ -13055,6 +13453,33 @@ func NewSetGlobalRequestWithBody(server string, key Key, contentType string, bod
 	return req, nil
 }
 
+// NewGetLatestKeyRenewalAttemptRequest generates requests for GetLatestKeyRenewalAttempt
+func NewGetLatestKeyRenewalAttemptRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/latest_key_renewal_attempt")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetLocalRequest generates requests for GetLocal
 func NewGetLocalRequest(server string) (*http.Request, error) {
 	var err error
@@ -13075,6 +13500,33 @@ func NewGetLocalRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRenewLicenseKeyRequest generates requests for RenewLicenseKey
+func NewRenewLicenseKeyRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/renew_license_key")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -13867,6 +14319,38 @@ func NewListTokensRequest(server string, params *ListTokensParams) (*http.Reques
 	if params.ExcludeEphemeral != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "exclude_ephemeral", runtime.ParamLocationQuery, *params.ExcludeEphemeral); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -18172,6 +18656,22 @@ func NewDeleteS3FileRequest(server string, workspace WorkspaceId, params *Delete
 		}
 	}
 
+	if params.Storage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
@@ -18199,6 +18699,104 @@ func NewFileDownloadRequest(server string, workspace WorkspaceId, params *FileDo
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/job_helpers/download_s3_file", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.S3ResourcePath != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "s3_resource_path", runtime.ParamLocationQuery, *params.S3ResourcePath); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ResourceType != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resource_type", runtime.ParamLocationQuery, *params.ResourceType); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Storage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewFileDownloadParquetAsCsvRequest generates requests for FileDownloadParquetAsCsv
+func NewFileDownloadParquetAsCsvRequest(server string, workspace WorkspaceId, params *FileDownloadParquetAsCsvParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/download_s3_parquet_file_as_csv", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -18383,6 +18981,195 @@ func NewListStoredFilesRequest(server string, workspace WorkspaceId, params *Lis
 
 	}
 
+	if params.Storage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewLoadCsvPreviewRequest generates requests for LoadCsvPreview
+func NewLoadCsvPreviewRequest(server string, workspace WorkspaceId, path Path, params *LoadCsvPreviewParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/load_csv_preview/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Offset != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "offset", runtime.ParamLocationQuery, *params.Offset); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Limit != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SortCol != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort_col", runtime.ParamLocationQuery, *params.SortCol); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SortDesc != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort_desc", runtime.ParamLocationQuery, *params.SortDesc); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SearchCol != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_col", runtime.ParamLocationQuery, *params.SearchCol); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SearchTerm != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_term", runtime.ParamLocationQuery, *params.SearchTerm); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Storage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CsvSeparator != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_separator", runtime.ParamLocationQuery, *params.CsvSeparator); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -18431,6 +19218,22 @@ func NewLoadFileMetadataRequest(server string, workspace WorkspaceId, params *Lo
 				queryValues.Add(k, v2)
 			}
 		}
+	}
+
+	if params.Storage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
 	}
 
 	queryURL.RawQuery = queryValues.Encode()
@@ -18566,6 +19369,22 @@ func NewLoadFilePreviewRequest(server string, workspace WorkspaceId, params *Loa
 	if params.ReadBytesLength != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "read_bytes_length", runtime.ParamLocationQuery, *params.ReadBytesLength); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Storage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -18720,6 +19539,22 @@ func NewLoadParquetPreviewRequest(server string, workspace WorkspaceId, path Pat
 
 	}
 
+	if params.Storage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -18782,6 +19617,22 @@ func NewMoveS3FileRequest(server string, workspace WorkspaceId, params *MoveS3Fi
 		}
 	}
 
+	if params.Storage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -18840,7 +19691,7 @@ func NewPolarsConnectionSettingsRequestWithBody(server string, workspace Workspa
 }
 
 // NewDatasetStorageTestConnectionRequest generates requests for DatasetStorageTestConnection
-func NewDatasetStorageTestConnectionRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewDatasetStorageTestConnectionRequest(server string, workspace WorkspaceId, params *DatasetStorageTestConnectionParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -18864,6 +19715,26 @@ func NewDatasetStorageTestConnectionRequest(server string, workspace WorkspaceId
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.Storage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -18952,6 +19823,22 @@ func NewFileUploadRequestWithBody(server string, workspace WorkspaceId, params *
 	if params.ResourceType != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resource_type", runtime.ParamLocationQuery, *params.ResourceType); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Storage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -20518,8 +21405,19 @@ func NewOpenaiSyncScriptByPathRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
-// NewCancelAllRequest generates requests for CancelAll
-func NewCancelAllRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+// NewCancelSelectionRequest calls the generic CancelSelection builder with application/json body
+func NewCancelSelectionRequest(server string, workspace WorkspaceId, body CancelSelectionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCancelSelectionRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCancelSelectionRequestWithBody generates requests for CancelSelection with any type of body
+func NewCancelSelectionRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -20534,7 +21432,7 @@ func NewCancelAllRequest(server string, workspace WorkspaceId) (*http.Request, e
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/jobs/queue/cancel_all", pathParam0)
+	operationPath := fmt.Sprintf("/w/%s/jobs/queue/cancel_selection", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -20544,10 +21442,12 @@ func NewCancelAllRequest(server string, workspace WorkspaceId) (*http.Request, e
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -20925,6 +21825,396 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 	if params.PerPage != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.AllWorkspaces != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IsNotSchedule != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_not_schedule", runtime.ParamLocationQuery, *params.IsNotSchedule); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListFilteredUuidsRequest generates requests for ListFilteredUuids
+func NewListFilteredUuidsRequest(server string, workspace WorkspaceId, params *ListFilteredUuidsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/queue/list_filtered_uuids", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.OrderDesc != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order_desc", runtime.ParamLocationQuery, *params.OrderDesc); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CreatedBy != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_by", runtime.ParamLocationQuery, *params.CreatedBy); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ParentJob != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ScriptPathExact != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_path_exact", runtime.ParamLocationQuery, *params.ScriptPathExact); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ScriptPathStart != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_path_start", runtime.ParamLocationQuery, *params.ScriptPathStart); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SchedulePath != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "schedule_path", runtime.ParamLocationQuery, *params.SchedulePath); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ScriptHash != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_hash", runtime.ParamLocationQuery, *params.ScriptHash); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.StartedBefore != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_before", runtime.ParamLocationQuery, *params.StartedBefore); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.StartedAfter != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_after", runtime.ParamLocationQuery, *params.StartedAfter); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Success != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "success", runtime.ParamLocationQuery, *params.Success); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ScheduledForBeforeNow != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for_before_now", runtime.ParamLocationQuery, *params.ScheduledForBeforeNow); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.JobKinds != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_kinds", runtime.ParamLocationQuery, *params.JobKinds); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Suspended != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "suspended", runtime.ParamLocationQuery, *params.Suspended); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Running != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "running", runtime.ParamLocationQuery, *params.Running); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Args != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "args", runtime.ParamLocationQuery, *params.Args); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Result != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "result", runtime.ParamLocationQuery, *params.Result); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Tag != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ConcurrencyKey != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "concurrency_key", runtime.ParamLocationQuery, *params.ConcurrencyKey); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -22734,7 +24024,7 @@ func NewGetCompletedJobRequest(server string, workspace WorkspaceId, id JobId) (
 }
 
 // NewGetCompletedJobResultRequest generates requests for GetCompletedJobResult
-func NewGetCompletedJobResultRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+func NewGetCompletedJobResultRequest(server string, workspace WorkspaceId, id JobId, params *GetCompletedJobResultParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -22765,6 +24055,74 @@ func NewGetCompletedJobResultRequest(server string, workspace WorkspaceId, id Jo
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.SuspendedJob != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "suspended_job", runtime.ParamLocationQuery, *params.SuspendedJob); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ResumeId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resume_id", runtime.ParamLocationQuery, *params.ResumeId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Secret != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "secret", runtime.ParamLocationQuery, *params.Secret); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Approver != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approver", runtime.ParamLocationQuery, *params.Approver); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -29430,6 +30788,9 @@ type ClientWithResponsesInterface interface {
 
 	ConnectCallbackWithResponse(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error)
 
+	// GetOAuthConnect request
+	GetOAuthConnectWithResponse(ctx context.Context, client string, reqEditors ...RequestEditorFn) (*GetOAuthConnectResponse, error)
+
 	// ListOAuthLogins request
 	ListOAuthLoginsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListOAuthLoginsResponse, error)
 
@@ -29463,6 +30824,9 @@ type ClientWithResponsesInterface interface {
 	// RawScriptByPathTokened request
 	RawScriptByPathTokenedWithResponse(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathTokenedResponse, error)
 
+	// CreateCustomerPortalSession request
+	CreateCustomerPortalSessionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
+
 	// GetGlobal request
 	GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error)
 
@@ -29471,8 +30835,14 @@ type ClientWithResponsesInterface interface {
 
 	SetGlobalWithResponse(ctx context.Context, key Key, body SetGlobalJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGlobalResponse, error)
 
+	// GetLatestKeyRenewalAttempt request
+	GetLatestKeyRenewalAttemptWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLatestKeyRenewalAttemptResponse, error)
+
 	// GetLocal request
 	GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error)
+
+	// RenewLicenseKey request
+	RenewLicenseKeyWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RenewLicenseKeyResponse, error)
 
 	// SendStats request
 	SendStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SendStatsResponse, error)
@@ -29832,6 +31202,9 @@ type ClientWithResponsesInterface interface {
 	// FileDownload request
 	FileDownloadWithResponse(ctx context.Context, workspace WorkspaceId, params *FileDownloadParams, reqEditors ...RequestEditorFn) (*FileDownloadResponse, error)
 
+	// FileDownloadParquetAsCsv request
+	FileDownloadParquetAsCsvWithResponse(ctx context.Context, workspace WorkspaceId, params *FileDownloadParquetAsCsvParams, reqEditors ...RequestEditorFn) (*FileDownloadParquetAsCsvResponse, error)
+
 	// DuckdbConnectionSettings request with any body
 	DuckdbConnectionSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error)
 
@@ -29839,6 +31212,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListStoredFiles request
 	ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error)
+
+	// LoadCsvPreview request
+	LoadCsvPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *LoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*LoadCsvPreviewResponse, error)
 
 	// LoadFileMetadata request
 	LoadFileMetadataWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadFileMetadataParams, reqEditors ...RequestEditorFn) (*LoadFileMetadataResponse, error)
@@ -29858,7 +31234,7 @@ type ClientWithResponsesInterface interface {
 	PolarsConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error)
 
 	// DatasetStorageTestConnection request
-	DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error)
+	DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, params *DatasetStorageTestConnectionParams, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error)
 
 	// FileUpload request with any body
 	FileUploadWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *FileUploadParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FileUploadResponse, error)
@@ -29921,14 +31297,19 @@ type ClientWithResponsesInterface interface {
 
 	OpenaiSyncScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenaiSyncScriptByPathResponse, error)
 
-	// CancelAll request
-	CancelAllWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*CancelAllResponse, error)
+	// CancelSelection request with any body
+	CancelSelectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error)
+
+	CancelSelectionWithResponse(ctx context.Context, workspace WorkspaceId, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error)
 
 	// GetQueueCount request
 	GetQueueCountWithResponse(ctx context.Context, workspace WorkspaceId, params *GetQueueCountParams, reqEditors ...RequestEditorFn) (*GetQueueCountResponse, error)
 
 	// ListQueue request
 	ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error)
+
+	// ListFilteredUuids request
+	ListFilteredUuidsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFilteredUuidsParams, reqEditors ...RequestEditorFn) (*ListFilteredUuidsResponse, error)
 
 	// RestartFlowAtStep request with any body
 	RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
@@ -30001,7 +31382,7 @@ type ClientWithResponsesInterface interface {
 	GetCompletedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResponse, error)
 
 	// GetCompletedJobResult request
-	GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error)
+	GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultParams, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error)
 
 	// GetCompletedJobResultMaybe request
 	GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error)
@@ -31084,6 +32465,31 @@ func (r ConnectCallbackResponse) StatusCode() int {
 	return 0
 }
 
+type GetOAuthConnectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		ExtraParams *map[string]interface{} `json:"extra_params,omitempty"`
+		Scopes      *[]string               `json:"scopes,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetOAuthConnectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOAuthConnectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListOAuthLoginsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -31297,6 +32703,27 @@ func (r RawScriptByPathTokenedResponse) StatusCode() int {
 	return 0
 }
 
+type CreateCustomerPortalSessionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateCustomerPortalSessionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateCustomerPortalSessionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetGlobalResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -31340,6 +32767,31 @@ func (r SetGlobalResponse) StatusCode() int {
 	return 0
 }
 
+type GetLatestKeyRenewalAttemptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		AttemptedAt time.Time `json:"attempted_at"`
+		Result      string    `json:"result"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetLatestKeyRenewalAttemptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetLatestKeyRenewalAttemptResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetLocalResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -31356,6 +32808,27 @@ func (r GetLocalResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetLocalResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RenewLicenseKeyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RenewLicenseKeyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RenewLicenseKeyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -33493,6 +34966,27 @@ func (r FileDownloadResponse) StatusCode() int {
 	return 0
 }
 
+type FileDownloadParquetAsCsvResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r FileDownloadParquetAsCsvResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r FileDownloadParquetAsCsvResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DuckdbConnectionSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -33537,6 +35031,28 @@ func (r ListStoredFilesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListStoredFilesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LoadCsvPreviewResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r LoadCsvPreviewResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LoadCsvPreviewResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -34035,14 +35551,14 @@ func (r OpenaiSyncScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
-type CancelAllResponse struct {
+type CancelSelectionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]string
 }
 
 // Status returns HTTPResponse.Status
-func (r CancelAllResponse) Status() string {
+func (r CancelSelectionResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -34050,7 +35566,7 @@ func (r CancelAllResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r CancelAllResponse) StatusCode() int {
+func (r CancelSelectionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -34097,6 +35613,28 @@ func (r ListQueueResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListQueueResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListFilteredUuidsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListFilteredUuidsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListFilteredUuidsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -37747,6 +39285,15 @@ func (c *ClientWithResponses) ConnectCallbackWithResponse(ctx context.Context, c
 	return ParseConnectCallbackResponse(rsp)
 }
 
+// GetOAuthConnectWithResponse request returning *GetOAuthConnectResponse
+func (c *ClientWithResponses) GetOAuthConnectWithResponse(ctx context.Context, client string, reqEditors ...RequestEditorFn) (*GetOAuthConnectResponse, error) {
+	rsp, err := c.GetOAuthConnect(ctx, client, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOAuthConnectResponse(rsp)
+}
+
 // ListOAuthLoginsWithResponse request returning *ListOAuthLoginsResponse
 func (c *ClientWithResponses) ListOAuthLoginsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListOAuthLoginsResponse, error) {
 	rsp, err := c.ListOAuthLogins(ctx, reqEditors...)
@@ -37852,6 +39399,15 @@ func (c *ClientWithResponses) RawScriptByPathTokenedWithResponse(ctx context.Con
 	return ParseRawScriptByPathTokenedResponse(rsp)
 }
 
+// CreateCustomerPortalSessionWithResponse request returning *CreateCustomerPortalSessionResponse
+func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error) {
+	rsp, err := c.CreateCustomerPortalSession(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateCustomerPortalSessionResponse(rsp)
+}
+
 // GetGlobalWithResponse request returning *GetGlobalResponse
 func (c *ClientWithResponses) GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error) {
 	rsp, err := c.GetGlobal(ctx, key, reqEditors...)
@@ -37878,6 +39434,15 @@ func (c *ClientWithResponses) SetGlobalWithResponse(ctx context.Context, key Key
 	return ParseSetGlobalResponse(rsp)
 }
 
+// GetLatestKeyRenewalAttemptWithResponse request returning *GetLatestKeyRenewalAttemptResponse
+func (c *ClientWithResponses) GetLatestKeyRenewalAttemptWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLatestKeyRenewalAttemptResponse, error) {
+	rsp, err := c.GetLatestKeyRenewalAttempt(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetLatestKeyRenewalAttemptResponse(rsp)
+}
+
 // GetLocalWithResponse request returning *GetLocalResponse
 func (c *ClientWithResponses) GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error) {
 	rsp, err := c.GetLocal(ctx, reqEditors...)
@@ -37885,6 +39450,15 @@ func (c *ClientWithResponses) GetLocalWithResponse(ctx context.Context, reqEdito
 		return nil, err
 	}
 	return ParseGetLocalResponse(rsp)
+}
+
+// RenewLicenseKeyWithResponse request returning *RenewLicenseKeyResponse
+func (c *ClientWithResponses) RenewLicenseKeyWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RenewLicenseKeyResponse, error) {
+	rsp, err := c.RenewLicenseKey(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRenewLicenseKeyResponse(rsp)
 }
 
 // SendStatsWithResponse request returning *SendStatsResponse
@@ -39031,6 +40605,15 @@ func (c *ClientWithResponses) FileDownloadWithResponse(ctx context.Context, work
 	return ParseFileDownloadResponse(rsp)
 }
 
+// FileDownloadParquetAsCsvWithResponse request returning *FileDownloadParquetAsCsvResponse
+func (c *ClientWithResponses) FileDownloadParquetAsCsvWithResponse(ctx context.Context, workspace WorkspaceId, params *FileDownloadParquetAsCsvParams, reqEditors ...RequestEditorFn) (*FileDownloadParquetAsCsvResponse, error) {
+	rsp, err := c.FileDownloadParquetAsCsv(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFileDownloadParquetAsCsvResponse(rsp)
+}
+
 // DuckdbConnectionSettingsWithBodyWithResponse request with arbitrary body returning *DuckdbConnectionSettingsResponse
 func (c *ClientWithResponses) DuckdbConnectionSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error) {
 	rsp, err := c.DuckdbConnectionSettingsWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -39055,6 +40638,15 @@ func (c *ClientWithResponses) ListStoredFilesWithResponse(ctx context.Context, w
 		return nil, err
 	}
 	return ParseListStoredFilesResponse(rsp)
+}
+
+// LoadCsvPreviewWithResponse request returning *LoadCsvPreviewResponse
+func (c *ClientWithResponses) LoadCsvPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *LoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*LoadCsvPreviewResponse, error) {
+	rsp, err := c.LoadCsvPreview(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoadCsvPreviewResponse(rsp)
 }
 
 // LoadFileMetadataWithResponse request returning *LoadFileMetadataResponse
@@ -39111,8 +40703,8 @@ func (c *ClientWithResponses) PolarsConnectionSettingsWithResponse(ctx context.C
 }
 
 // DatasetStorageTestConnectionWithResponse request returning *DatasetStorageTestConnectionResponse
-func (c *ClientWithResponses) DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error) {
-	rsp, err := c.DatasetStorageTestConnection(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, params *DatasetStorageTestConnectionParams, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error) {
+	rsp, err := c.DatasetStorageTestConnection(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -39318,13 +40910,21 @@ func (c *ClientWithResponses) OpenaiSyncScriptByPathWithResponse(ctx context.Con
 	return ParseOpenaiSyncScriptByPathResponse(rsp)
 }
 
-// CancelAllWithResponse request returning *CancelAllResponse
-func (c *ClientWithResponses) CancelAllWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*CancelAllResponse, error) {
-	rsp, err := c.CancelAll(ctx, workspace, reqEditors...)
+// CancelSelectionWithBodyWithResponse request with arbitrary body returning *CancelSelectionResponse
+func (c *ClientWithResponses) CancelSelectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error) {
+	rsp, err := c.CancelSelectionWithBody(ctx, workspace, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseCancelAllResponse(rsp)
+	return ParseCancelSelectionResponse(rsp)
+}
+
+func (c *ClientWithResponses) CancelSelectionWithResponse(ctx context.Context, workspace WorkspaceId, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error) {
+	rsp, err := c.CancelSelection(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelSelectionResponse(rsp)
 }
 
 // GetQueueCountWithResponse request returning *GetQueueCountResponse
@@ -39343,6 +40943,15 @@ func (c *ClientWithResponses) ListQueueWithResponse(ctx context.Context, workspa
 		return nil, err
 	}
 	return ParseListQueueResponse(rsp)
+}
+
+// ListFilteredUuidsWithResponse request returning *ListFilteredUuidsResponse
+func (c *ClientWithResponses) ListFilteredUuidsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFilteredUuidsParams, reqEditors ...RequestEditorFn) (*ListFilteredUuidsResponse, error) {
+	rsp, err := c.ListFilteredUuids(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListFilteredUuidsResponse(rsp)
 }
 
 // RestartFlowAtStepWithBodyWithResponse request with arbitrary body returning *RestartFlowAtStepResponse
@@ -39578,8 +41187,8 @@ func (c *ClientWithResponses) GetCompletedJobWithResponse(ctx context.Context, w
 }
 
 // GetCompletedJobResultWithResponse request returning *GetCompletedJobResultResponse
-func (c *ClientWithResponses) GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error) {
-	rsp, err := c.GetCompletedJobResult(ctx, workspace, id, reqEditors...)
+func (c *ClientWithResponses) GetCompletedJobResultWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultParams, reqEditors ...RequestEditorFn) (*GetCompletedJobResultResponse, error) {
+	rsp, err := c.GetCompletedJobResult(ctx, workspace, id, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -41774,6 +43383,35 @@ func ParseConnectCallbackResponse(rsp *http.Response) (*ConnectCallbackResponse,
 	return response, nil
 }
 
+// ParseGetOAuthConnectResponse parses an HTTP response from a GetOAuthConnectWithResponse call
+func ParseGetOAuthConnectResponse(rsp *http.Response) (*GetOAuthConnectResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetOAuthConnectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			ExtraParams *map[string]interface{} `json:"extra_params,omitempty"`
+			Scopes      *[]string               `json:"scopes,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListOAuthLoginsResponse parses an HTTP response from a ListOAuthLoginsWithResponse call
 func ParseListOAuthLoginsResponse(rsp *http.Response) (*ListOAuthLoginsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -41978,6 +43616,22 @@ func ParseRawScriptByPathTokenedResponse(rsp *http.Response) (*RawScriptByPathTo
 	return response, nil
 }
 
+// ParseCreateCustomerPortalSessionResponse parses an HTTP response from a CreateCustomerPortalSessionWithResponse call
+func ParseCreateCustomerPortalSessionResponse(rsp *http.Response) (*CreateCustomerPortalSessionResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateCustomerPortalSessionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetGlobalResponse parses an HTTP response from a GetGlobalWithResponse call
 func ParseGetGlobalResponse(rsp *http.Response) (*GetGlobalResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -42020,6 +43674,35 @@ func ParseSetGlobalResponse(rsp *http.Response) (*SetGlobalResponse, error) {
 	return response, nil
 }
 
+// ParseGetLatestKeyRenewalAttemptResponse parses an HTTP response from a GetLatestKeyRenewalAttemptWithResponse call
+func ParseGetLatestKeyRenewalAttemptResponse(rsp *http.Response) (*GetLatestKeyRenewalAttemptResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetLatestKeyRenewalAttemptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			AttemptedAt time.Time `json:"attempted_at"`
+			Result      string    `json:"result"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetLocalResponse parses an HTTP response from a GetLocalWithResponse call
 func ParseGetLocalResponse(rsp *http.Response) (*GetLocalResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -42041,6 +43724,22 @@ func ParseGetLocalResponse(rsp *http.Response) (*GetLocalResponse, error) {
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseRenewLicenseKeyResponse parses an HTTP response from a RenewLicenseKeyWithResponse call
+func ParseRenewLicenseKeyResponse(rsp *http.Response) (*RenewLicenseKeyResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RenewLicenseKeyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -44057,6 +45756,22 @@ func ParseFileDownloadResponse(rsp *http.Response) (*FileDownloadResponse, error
 	return response, nil
 }
 
+// ParseFileDownloadParquetAsCsvResponse parses an HTTP response from a FileDownloadParquetAsCsvWithResponse call
+func ParseFileDownloadParquetAsCsvResponse(rsp *http.Response) (*FileDownloadParquetAsCsvResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &FileDownloadParquetAsCsvResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseDuckdbConnectionSettingsResponse parses an HTTP response from a DuckdbConnectionSettingsWithResponse call
 func ParseDuckdbConnectionSettingsResponse(rsp *http.Response) (*DuckdbConnectionSettingsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -44105,6 +45820,32 @@ func ParseListStoredFilesResponse(rsp *http.Response) (*ListStoredFilesResponse,
 			RestrictedAccess   *bool               `json:"restricted_access,omitempty"`
 			WindmillLargeFiles []WindmillLargeFile `json:"windmill_large_files"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseLoadCsvPreviewResponse parses an HTTP response from a LoadCsvPreviewWithResponse call
+func ParseLoadCsvPreviewResponse(rsp *http.Response) (*LoadCsvPreviewResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LoadCsvPreviewResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -44664,15 +46405,15 @@ func ParseOpenaiSyncScriptByPathResponse(rsp *http.Response) (*OpenaiSyncScriptB
 	return response, nil
 }
 
-// ParseCancelAllResponse parses an HTTP response from a CancelAllWithResponse call
-func ParseCancelAllResponse(rsp *http.Response) (*CancelAllResponse, error) {
+// ParseCancelSelectionResponse parses an HTTP response from a CancelSelectionWithResponse call
+func ParseCancelSelectionResponse(rsp *http.Response) (*CancelSelectionResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &CancelAllResponse{
+	response := &CancelSelectionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -44734,6 +46475,32 @@ func ParseListQueueResponse(rsp *http.Response) (*ListQueueResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []QueuedJob
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListFilteredUuidsResponse parses an HTTP response from a ListFilteredUuidsWithResponse call
+func ParseListFilteredUuidsResponse(rsp *http.Response) (*ListFilteredUuidsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListFilteredUuidsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
