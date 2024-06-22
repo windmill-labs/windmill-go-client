@@ -938,9 +938,12 @@ type FlowValue struct {
 
 // Folder defines model for Folder.
 type Folder struct {
+	CreatedBy  *string           `json:"created_by,omitempty"`
+	EditedAt   *time.Time        `json:"edited_at,omitempty"`
 	ExtraPerms Folder_ExtraPerms `json:"extra_perms"`
 	Name       string            `json:"name"`
 	Owners     []string          `json:"owners"`
+	Summary    *string           `json:"summary,omitempty"`
 }
 
 // Folder_ExtraPerms defines model for Folder.ExtraPerms.
@@ -1107,7 +1110,9 @@ type ListableRawApp_ExtraPerms struct {
 // ListableResource defines model for ListableResource.
 type ListableResource struct {
 	Account      *float32                     `json:"account,omitempty"`
+	CreatedBy    *string                      `json:"created_by,omitempty"`
 	Description  *string                      `json:"description,omitempty"`
+	EditedAt     *time.Time                   `json:"edited_at,omitempty"`
 	ExtraPerms   *ListableResource_ExtraPerms `json:"extra_perms,omitempty"`
 	IsExpired    *bool                        `json:"is_expired,omitempty"`
 	IsLinked     bool                         `json:"is_linked"`
@@ -1464,7 +1469,9 @@ type RawScriptForDependenciesLanguage string
 
 // Resource defines model for Resource.
 type Resource struct {
+	CreatedBy    *string              `json:"created_by,omitempty"`
 	Description  *string              `json:"description,omitempty"`
+	EditedAt     *time.Time           `json:"edited_at,omitempty"`
 	ExtraPerms   *Resource_ExtraPerms `json:"extra_perms,omitempty"`
 	IsOauth      bool                 `json:"is_oauth"`
 	Path         string               `json:"path"`
@@ -1480,7 +1487,9 @@ type Resource_ExtraPerms struct {
 
 // ResourceType defines model for ResourceType.
 type ResourceType struct {
+	CreatedBy   *string      `json:"created_by,omitempty"`
 	Description *string      `json:"description,omitempty"`
+	EditedAt    *time.Time   `json:"edited_at,omitempty"`
 	Name        string       `json:"name"`
 	Schema      *interface{} `json:"schema,omitempty"`
 	WorkspaceId *string      `json:"workspace_id,omitempty"`
@@ -2505,6 +2514,7 @@ type CreateFolderJSONBody struct {
 	ExtraPerms *CreateFolderJSONBody_ExtraPerms `json:"extra_perms,omitempty"`
 	Name       string                           `json:"name"`
 	Owners     *[]string                        `json:"owners,omitempty"`
+	Summary    *string                          `json:"summary,omitempty"`
 }
 
 // CreateFolderJSONBody_ExtraPerms defines parameters for CreateFolder.
@@ -2537,6 +2547,7 @@ type RemoveOwnerToFolderJSONBody struct {
 type UpdateFolderJSONBody struct {
 	ExtraPerms *UpdateFolderJSONBody_ExtraPerms `json:"extra_perms,omitempty"`
 	Owners     *[]string                        `json:"owners,omitempty"`
+	Summary    *string                          `json:"summary,omitempty"`
 }
 
 // UpdateFolderJSONBody_ExtraPerms defines parameters for UpdateFolder.
@@ -3455,6 +3466,7 @@ type ListResourceParams struct {
 
 	// resource_types to not list from, separated by ',',
 	ResourceTypeExclude *string `form:"resource_type_exclude,omitempty" json:"resource_type_exclude,omitempty"`
+	PathStart           *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
 // CreateResourceTypeJSONBody defines parameters for CreateResourceType.
@@ -3486,8 +3498,9 @@ type ListSchedulesParams struct {
 	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
 
 	// filter by path
-	Path   *string `form:"path,omitempty" json:"path,omitempty"`
-	IsFlow *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	Path      *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
 // ListSchedulesWithJobsParams defines parameters for ListSchedulesWithJobs.
@@ -3617,6 +3630,11 @@ type GetVariableParams struct {
 
 	// ask to include the encrypted value if secret and decrypt secret is not true (default: false)
 	IncludeEncrypted *bool `form:"include_encrypted,omitempty" json:"include_encrypted,omitempty"`
+}
+
+// ListVariableParams defines parameters for ListVariable.
+type ListVariableParams struct {
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
 // UpdateVariableJSONBody defines parameters for UpdateVariable.
@@ -6587,7 +6605,7 @@ type ClientInterface interface {
 	GetVariableValue(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListVariable request
-	ListVariable(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListVariable(ctx context.Context, workspace WorkspaceId, params *ListVariableParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListContextualVariables request
 	ListContextualVariables(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11106,8 +11124,8 @@ func (c *Client) GetVariableValue(ctx context.Context, workspace WorkspaceId, pa
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListVariable(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListVariableRequest(c.Server, workspace)
+func (c *Client) ListVariable(ctx context.Context, workspace WorkspaceId, params *ListVariableParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListVariableRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -25892,6 +25910,22 @@ func NewListResourceRequest(server string, workspace WorkspaceId, params *ListRe
 
 	}
 
+	if params.PathStart != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -26642,6 +26676,22 @@ func NewListSchedulesRequest(server string, workspace WorkspaceId, params *ListS
 	if params.IsFlow != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PathStart != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -28584,7 +28634,7 @@ func NewGetVariableValueRequest(server string, workspace WorkspaceId, path Path)
 }
 
 // NewListVariableRequest generates requests for ListVariable
-func NewListVariableRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewListVariableRequest(server string, workspace WorkspaceId, params *ListVariableParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -28608,6 +28658,26 @@ func NewListVariableRequest(server string, workspace WorkspaceId) (*http.Request
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.PathStart != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -31688,7 +31758,7 @@ type ClientWithResponsesInterface interface {
 	GetVariableValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetVariableValueResponse, error)
 
 	// ListVariable request
-	ListVariableWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListVariableResponse, error)
+	ListVariableWithResponse(ctx context.Context, workspace WorkspaceId, params *ListVariableParams, reqEditors ...RequestEditorFn) (*ListVariableResponse, error)
 
 	// ListContextualVariables request
 	ListContextualVariablesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListContextualVariablesResponse, error)
@@ -42153,8 +42223,8 @@ func (c *ClientWithResponses) GetVariableValueWithResponse(ctx context.Context, 
 }
 
 // ListVariableWithResponse request returning *ListVariableResponse
-func (c *ClientWithResponses) ListVariableWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListVariableResponse, error) {
-	rsp, err := c.ListVariable(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListVariableWithResponse(ctx context.Context, workspace WorkspaceId, params *ListVariableParams, reqEditors ...RequestEditorFn) (*ListVariableResponse, error) {
+	rsp, err := c.ListVariable(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
