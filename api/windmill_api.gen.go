@@ -719,6 +719,7 @@ type EditSchedule struct {
 	OnRecovery          *string     `json:"on_recovery,omitempty"`
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
+	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
 	Retry               *Retry      `json:"retry,omitempty"`
 	Schedule            string      `json:"schedule"`
 	Summary             *string     `json:"summary,omitempty"`
@@ -1183,6 +1184,7 @@ type NewSchedule struct {
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
 	Path                string      `json:"path"`
+	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
 	Retry               *Retry      `json:"retry,omitempty"`
 	Schedule            string      `json:"schedule"`
 	ScriptPath          string      `json:"script_path"`
@@ -1555,6 +1557,7 @@ type Schedule struct {
 	OnRecoveryExtraArgs *ScriptArgs         `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32            `json:"on_recovery_times,omitempty"`
 	Path                string              `json:"path"`
+	PausedUntil         *time.Time          `json:"paused_until,omitempty"`
 	Retry               *Retry              `json:"retry,omitempty"`
 	Schedule            string              `json:"schedule"`
 	ScriptPath          string              `json:"script_path"`
@@ -1593,6 +1596,7 @@ type ScheduleWJobs struct {
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
 	Path                string      `json:"path"`
+	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
 	Retry               *Retry      `json:"retry,omitempty"`
 	Schedule            string      `json:"schedule"`
 	ScriptPath          string      `json:"script_path"`
