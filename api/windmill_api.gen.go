@@ -2246,6 +2246,10 @@ type ListAppsParams struct {
 	// (default false)
 	// show only the starred items
 	StarredOnly *bool `form:"starred_only,omitempty" json:"starred_only,omitempty"`
+
+	// (default false)
+	// include items that have no deployed version
+	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // UpdateAppJSONBody defines parameters for UpdateApp.
@@ -2477,7 +2481,7 @@ type ListFlowsParams struct {
 	PathExact *string `form:"path_exact,omitempty" json:"path_exact,omitempty"`
 
 	// (default false)
-	// show also the archived files.
+	// show only the archived files.
 	// when multiple archived hash share the same path, only the ones with the latest create_at
 	// are displayed.
 	ShowArchived *bool `form:"show_archived,omitempty" json:"show_archived,omitempty"`
@@ -2485,6 +2489,10 @@ type ListFlowsParams struct {
 	// (default false)
 	// show only the starred items
 	StarredOnly *bool `form:"starred_only,omitempty" json:"starred_only,omitempty"`
+
+	// (default false)
+	// include items that have no deployed version
+	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // ToggleWorkspaceErrorHandlerForFlowJSONBody defines parameters for ToggleWorkspaceErrorHandlerForFlow.
@@ -3582,15 +3590,19 @@ type ListScriptsParams struct {
 	ParentHash *string `form:"parent_hash,omitempty" json:"parent_hash,omitempty"`
 
 	// (default false)
-	// show also the archived files.
+	// show only the archived files.
 	// when multiple archived hash share the same path, only the ones with the latest create_at
 	// are
 	// ed.
 	ShowArchived *bool `form:"show_archived,omitempty" json:"show_archived,omitempty"`
 
 	// (default false)
-	// hide the scripts without an exported main function
-	HideWithoutMain *bool `form:"hide_without_main,omitempty" json:"hide_without_main,omitempty"`
+	// include scripts without an exported main function
+	IncludeWithoutMain *bool `form:"include_without_main,omitempty" json:"include_without_main,omitempty"`
+
+	// (default false)
+	// include scripts that have no deployed version
+	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 
 	// (default regardless)
 	// if true show only the templates
@@ -15337,6 +15349,22 @@ func NewListAppsRequest(server string, workspace WorkspaceId, params *ListAppsPa
 
 	}
 
+	if params.IncludeDraftOnly != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -17152,6 +17180,22 @@ func NewListFlowsRequest(server string, workspace WorkspaceId, params *ListFlows
 	if params.StarredOnly != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "starred_only", runtime.ParamLocationQuery, *params.StarredOnly); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IncludeDraftOnly != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -27650,9 +27694,25 @@ func NewListScriptsRequest(server string, workspace WorkspaceId, params *ListScr
 
 	}
 
-	if params.HideWithoutMain != nil {
+	if params.IncludeWithoutMain != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "hide_without_main", runtime.ParamLocationQuery, *params.HideWithoutMain); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_without_main", runtime.ParamLocationQuery, *params.IncludeWithoutMain); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IncludeDraftOnly != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
