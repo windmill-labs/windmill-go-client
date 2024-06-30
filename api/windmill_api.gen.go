@@ -1887,6 +1887,9 @@ type CreatedBy = string
 // CreatedOrStartedAfter defines model for CreatedOrStartedAfter.
 type CreatedOrStartedAfter = time.Time
 
+// CreatedOrStartedAfterCompletedJob defines model for CreatedOrStartedAfterCompletedJob.
+type CreatedOrStartedAfterCompletedJob = time.Time
+
 // CreatedOrStartedBefore defines model for CreatedOrStartedBefore.
 type CreatedOrStartedBefore = time.Time
 
@@ -2351,6 +2354,9 @@ type ListExtendedJobsParams struct {
 
 	// filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp
 	CreatedOrStartedAfter *CreatedOrStartedAfter `form:"created_or_started_after,omitempty" json:"created_or_started_after,omitempty"`
+
+	// filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp but only for the completed jobs
+	CreatedOrStartedAfterCompletedJobs *CreatedOrStartedAfterCompletedJob `form:"created_or_started_after_completed_jobs,omitempty" json:"created_or_started_after_completed_jobs,omitempty"`
 
 	// filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
@@ -2879,6 +2885,9 @@ type ListJobsParams struct {
 
 	// filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp
 	CreatedOrStartedAfter *CreatedOrStartedAfter `form:"created_or_started_after,omitempty" json:"created_or_started_after,omitempty"`
+
+	// filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp but only for the completed jobs
+	CreatedOrStartedAfterCompletedJobs *CreatedOrStartedAfterCompletedJob `form:"created_or_started_after_completed_jobs,omitempty" json:"created_or_started_after_completed_jobs,omitempty"`
 
 	// filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
@@ -16238,6 +16247,22 @@ func NewListExtendedJobsRequest(server string, workspace WorkspaceId, params *Li
 
 	}
 
+	if params.CreatedOrStartedAfterCompletedJobs != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after_completed_jobs", runtime.ParamLocationQuery, *params.CreatedOrStartedAfterCompletedJobs); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.JobKinds != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_kinds", runtime.ParamLocationQuery, *params.JobKinds); err != nil {
@@ -21028,6 +21053,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	if params.CreatedOrStartedAfter != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after", runtime.ParamLocationQuery, *params.CreatedOrStartedAfter); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CreatedOrStartedAfterCompletedJobs != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after_completed_jobs", runtime.ParamLocationQuery, *params.CreatedOrStartedAfterCompletedJobs); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
