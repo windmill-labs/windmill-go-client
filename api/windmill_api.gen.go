@@ -6332,6 +6332,9 @@ type ClientInterface interface {
 	// GetJob request
 	GetJob(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetJobArgs request
+	GetJobArgs(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetSuspendedJobFlow request
 	GetSuspendedJobFlow(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *GetSuspendedJobFlowParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9855,6 +9858,18 @@ func (c *Client) GetCompletedJobResultMaybe(ctx context.Context, workspace Works
 
 func (c *Client) GetJob(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetJobRequest(c.Server, workspace, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetJobArgs(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetJobArgsRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -24361,6 +24376,47 @@ func NewGetJobRequest(server string, workspace WorkspaceId, id JobId, params *Ge
 	return req, nil
 }
 
+// NewGetJobArgsRequest generates requests for GetJobArgs
+func NewGetJobArgsRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/get_args/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetSuspendedJobFlowRequest generates requests for GetSuspendedJobFlow
 func NewGetSuspendedJobFlowRequest(server string, workspace WorkspaceId, id JobId, resumeId int, signature string, params *GetSuspendedJobFlowParams) (*http.Request, error) {
 	var err error
@@ -31565,6 +31621,9 @@ type ClientWithResponsesInterface interface {
 	// GetJob request
 	GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*GetJobResponse, error)
 
+	// GetJobArgs request
+	GetJobArgsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobArgsResponse, error)
+
 	// GetSuspendedJobFlow request
 	GetSuspendedJobFlowWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *GetSuspendedJobFlowParams, reqEditors ...RequestEditorFn) (*GetSuspendedJobFlowResponse, error)
 
@@ -36230,6 +36289,28 @@ func (r GetJobResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetJobArgsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetJobArgsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetJobArgsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -41386,6 +41467,15 @@ func (c *ClientWithResponses) GetJobWithResponse(ctx context.Context, workspace 
 		return nil, err
 	}
 	return ParseGetJobResponse(rsp)
+}
+
+// GetJobArgsWithResponse request returning *GetJobArgsResponse
+func (c *ClientWithResponses) GetJobArgsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobArgsResponse, error) {
+	rsp, err := c.GetJobArgs(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetJobArgsResponse(rsp)
 }
 
 // GetSuspendedJobFlowWithResponse request returning *GetSuspendedJobFlowResponse
@@ -47091,6 +47181,32 @@ func ParseGetJobResponse(rsp *http.Response) (*GetJobResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Job
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetJobArgsResponse parses an HTTP response from a GetJobArgsWithResponse call
+func ParseGetJobArgsResponse(rsp *http.Response) (*GetJobArgsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetJobArgsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
