@@ -937,6 +937,13 @@ type FlowValue struct {
 	SkipExpr               *string      `json:"skip_expr,omitempty"`
 }
 
+// FlowVersion defines model for FlowVersion.
+type FlowVersion struct {
+	CreatedAt     time.Time `json:"created_at"`
+	DeploymentMsg *string   `json:"deployment_msg,omitempty"`
+	Id            int       `json:"id"`
+}
+
 // Folder defines model for Folder.
 type Folder struct {
 	CreatedBy  *string           `json:"created_by,omitempty"`
@@ -2253,6 +2260,10 @@ type ListAppsParams struct {
 	// (default false)
 	// include items that have no deployed version
 	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
+
+	// (default false)
+	// include deployment message
+	WithDeploymentMsg *bool `form:"with_deployment_msg,omitempty" json:"with_deployment_msg,omitempty"`
 }
 
 // UpdateAppJSONBody defines parameters for UpdateApp.
@@ -2457,6 +2468,11 @@ type CreateFlowJSONBody struct {
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
+// UpdateFlowHistoryJSONBody defines parameters for UpdateFlowHistory.
+type UpdateFlowHistoryJSONBody struct {
+	DeploymentMsg string `json:"deployment_msg"`
+}
+
 // GetFlowInputHistoryByPathParams defines parameters for GetFlowInputHistoryByPath.
 type GetFlowInputHistoryByPathParams struct {
 	// which page to return (start at 1, default 1)
@@ -2499,6 +2515,10 @@ type ListFlowsParams struct {
 	// (default false)
 	// include items that have no deployed version
 	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
+
+	// (default false)
+	// include deployment message
+	WithDeploymentMsg *bool `form:"with_deployment_msg,omitempty" json:"with_deployment_msg,omitempty"`
 }
 
 // ToggleWorkspaceErrorHandlerForFlowJSONBody defines parameters for ToggleWorkspaceErrorHandlerForFlow.
@@ -3626,6 +3646,10 @@ type ListScriptsParams struct {
 	// (default false)
 	// show only the starred items
 	StarredOnly *bool `form:"starred_only,omitempty" json:"starred_only,omitempty"`
+
+	// (default false)
+	// include deployment message
+	WithDeploymentMsg *bool `form:"with_deployment_msg,omitempty" json:"with_deployment_msg,omitempty"`
 }
 
 // ToggleWorkspaceErrorHandlerForScriptJSONBody defines parameters for ToggleWorkspaceErrorHandlerForScript.
@@ -3921,6 +3945,9 @@ type ArchiveFlowByPathJSONRequestBody ArchiveFlowByPathJSONBody
 
 // CreateFlowJSONRequestBody defines body for CreateFlow for application/json ContentType.
 type CreateFlowJSONRequestBody CreateFlowJSONBody
+
+// UpdateFlowHistoryJSONRequestBody defines body for UpdateFlowHistory for application/json ContentType.
+type UpdateFlowHistoryJSONRequestBody UpdateFlowHistoryJSONBody
 
 // ToggleWorkspaceErrorHandlerForFlowJSONRequestBody defines body for ToggleWorkspaceErrorHandlerForFlow for application/json ContentType.
 type ToggleWorkspaceErrorHandlerForFlowJSONRequestBody ToggleWorkspaceErrorHandlerForFlowJSONBody
@@ -6024,8 +6051,19 @@ type ClientInterface interface {
 	// GetFlowByPathWithDraft request
 	GetFlowByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetFlowVersion request
+	GetFlowVersion(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetFlowByPath request
 	GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetFlowHistory request
+	GetFlowHistory(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateFlowHistory request with any body
+	UpdateFlowHistoryWithBody(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateFlowHistory(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFlowInputHistoryByPath request
 	GetFlowInputHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8500,8 +8538,56 @@ func (c *Client) GetFlowByPathWithDraft(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetFlowVersion(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowVersionRequest(c.Server, workspace, version, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetFlowByPathRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetFlowHistory(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowHistoryRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateFlowHistoryWithBody(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateFlowHistoryRequestWithBody(c.Server, workspace, version, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateFlowHistory(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateFlowHistoryRequest(c.Server, workspace, version, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15389,6 +15475,22 @@ func NewListAppsRequest(server string, workspace WorkspaceId, params *ListAppsPa
 
 	}
 
+	if params.WithDeploymentMsg != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_deployment_msg", runtime.ParamLocationQuery, *params.WithDeploymentMsg); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -16959,6 +17061,54 @@ func NewGetFlowByPathWithDraftRequest(server string, workspace WorkspaceId, path
 	return req, nil
 }
 
+// NewGetFlowVersionRequest generates requests for GetFlowVersion
+func NewGetFlowVersionRequest(server string, workspace WorkspaceId, version float32, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/get/v/%s/p/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetFlowByPathRequest generates requests for GetFlowByPath
 func NewGetFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
 	var err error
@@ -16996,6 +17146,108 @@ func NewGetFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPa
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGetFlowHistoryRequest generates requests for GetFlowHistory
+func NewGetFlowHistoryRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/history/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateFlowHistoryRequest calls the generic UpdateFlowHistory builder with application/json body
+func NewUpdateFlowHistoryRequest(server string, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateFlowHistoryRequestWithBody(server, workspace, version, path, "application/json", bodyReader)
+}
+
+// NewUpdateFlowHistoryRequestWithBody generates requests for UpdateFlowHistory with any type of body
+func NewUpdateFlowHistoryRequestWithBody(server string, workspace WorkspaceId, version float32, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/history_update/v/%s/p/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -17236,6 +17488,22 @@ func NewListFlowsRequest(server string, workspace WorkspaceId, params *ListFlows
 	if params.IncludeDraftOnly != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.WithDeploymentMsg != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_deployment_msg", runtime.ParamLocationQuery, *params.WithDeploymentMsg); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -27871,6 +28139,22 @@ func NewListScriptsRequest(server string, workspace WorkspaceId, params *ListScr
 
 	}
 
+	if params.WithDeploymentMsg != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_deployment_msg", runtime.ParamLocationQuery, *params.WithDeploymentMsg); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -31313,8 +31597,19 @@ type ClientWithResponsesInterface interface {
 	// GetFlowByPathWithDraft request
 	GetFlowByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathWithDraftResponse, error)
 
+	// GetFlowVersion request
+	GetFlowVersionWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowVersionResponse, error)
+
 	// GetFlowByPath request
 	GetFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathResponse, error)
+
+	// GetFlowHistory request
+	GetFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowHistoryResponse, error)
+
+	// UpdateFlowHistory request with any body
+	UpdateFlowHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error)
+
+	UpdateFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error)
 
 	// GetFlowInputHistoryByPath request
 	GetFlowInputHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams, reqEditors ...RequestEditorFn) (*GetFlowInputHistoryByPathResponse, error)
@@ -34483,6 +34778,28 @@ func (r GetFlowByPathWithDraftResponse) StatusCode() int {
 	return 0
 }
 
+type GetFlowVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Flow
+}
+
+// Status returns HTTPResponse.Status
+func (r GetFlowVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFlowVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetFlowByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -34499,6 +34816,49 @@ func (r GetFlowByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetFlowByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetFlowHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]FlowVersion
+}
+
+// Status returns HTTPResponse.Status
+func (r GetFlowHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFlowHistoryResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateFlowHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateFlowHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateFlowHistoryResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -40477,6 +40837,15 @@ func (c *ClientWithResponses) GetFlowByPathWithDraftWithResponse(ctx context.Con
 	return ParseGetFlowByPathWithDraftResponse(rsp)
 }
 
+// GetFlowVersionWithResponse request returning *GetFlowVersionResponse
+func (c *ClientWithResponses) GetFlowVersionWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowVersionResponse, error) {
+	rsp, err := c.GetFlowVersion(ctx, workspace, version, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFlowVersionResponse(rsp)
+}
+
 // GetFlowByPathWithResponse request returning *GetFlowByPathResponse
 func (c *ClientWithResponses) GetFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathResponse, error) {
 	rsp, err := c.GetFlowByPath(ctx, workspace, path, reqEditors...)
@@ -40484,6 +40853,32 @@ func (c *ClientWithResponses) GetFlowByPathWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseGetFlowByPathResponse(rsp)
+}
+
+// GetFlowHistoryWithResponse request returning *GetFlowHistoryResponse
+func (c *ClientWithResponses) GetFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowHistoryResponse, error) {
+	rsp, err := c.GetFlowHistory(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFlowHistoryResponse(rsp)
+}
+
+// UpdateFlowHistoryWithBodyWithResponse request with arbitrary body returning *UpdateFlowHistoryResponse
+func (c *ClientWithResponses) UpdateFlowHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error) {
+	rsp, err := c.UpdateFlowHistoryWithBody(ctx, workspace, version, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateFlowHistoryResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error) {
+	rsp, err := c.UpdateFlowHistory(ctx, workspace, version, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateFlowHistoryResponse(rsp)
 }
 
 // GetFlowInputHistoryByPathWithResponse request returning *GetFlowInputHistoryByPathResponse
@@ -45329,6 +45724,32 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 	return response, nil
 }
 
+// ParseGetFlowVersionResponse parses an HTTP response from a GetFlowVersionWithResponse call
+func ParseGetFlowVersionResponse(rsp *http.Response) (*GetFlowVersionResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFlowVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Flow
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetFlowByPathResponse parses an HTTP response from a GetFlowByPathWithResponse call
 func ParseGetFlowByPathResponse(rsp *http.Response) (*GetFlowByPathResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -45350,6 +45771,48 @@ func ParseGetFlowByPathResponse(rsp *http.Response) (*GetFlowByPathResponse, err
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetFlowHistoryResponse parses an HTTP response from a GetFlowHistoryWithResponse call
+func ParseGetFlowHistoryResponse(rsp *http.Response) (*GetFlowHistoryResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFlowHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []FlowVersion
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateFlowHistoryResponse parses an HTTP response from a UpdateFlowHistoryWithResponse call
+func ParseUpdateFlowHistoryResponse(rsp *http.Response) (*UpdateFlowHistoryResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateFlowHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
