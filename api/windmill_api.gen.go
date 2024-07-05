@@ -2312,6 +2312,12 @@ type ListAuditLogsParams struct {
 	// filter on exact or prefix name of operation
 	Operation *Operation `form:"operation,omitempty" json:"operation,omitempty"`
 
+	// comma separated list of exact operations to include
+	Operations *string `form:"operations,omitempty" json:"operations,omitempty"`
+
+	// comma separated list of operations to exclude
+	ExcludeOperations *string `form:"exclude_operations,omitempty" json:"exclude_operations,omitempty"`
+
 	// filter on exact or prefix name of resource
 	Resource *ResourceName `form:"resource,omitempty" json:"resource,omitempty"`
 
@@ -15918,6 +15924,38 @@ func NewListAuditLogsRequest(server string, workspace WorkspaceId, params *ListA
 	if params.Operation != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "operation", runtime.ParamLocationQuery, *params.Operation); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Operations != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "operations", runtime.ParamLocationQuery, *params.Operations); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.ExcludeOperations != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "exclude_operations", runtime.ParamLocationQuery, *params.ExcludeOperations); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
