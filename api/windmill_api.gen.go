@@ -1025,13 +1025,12 @@ type IdentityType string
 
 // Input defines model for Input.
 type Input struct {
-	Args      map[string]interface{} `json:"args"`
-	CreatedAt time.Time              `json:"created_at"`
-	CreatedBy string                 `json:"created_by"`
-	Id        string                 `json:"id"`
-	IsPublic  bool                   `json:"is_public"`
-	Name      string                 `json:"name"`
-	Success   *bool                  `json:"success,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by"`
+	Id        string    `json:"id"`
+	IsPublic  bool      `json:"is_public"`
+	Name      string    `json:"name"`
+	Success   *bool     `json:"success,omitempty"`
 }
 
 // InputTransform defines model for InputTransform.
@@ -2670,6 +2669,12 @@ type ListInputsParams struct {
 
 // UpdateInputJSONBody defines parameters for UpdateInput.
 type UpdateInputJSONBody = UpdateInput
+
+// GetArgsFromHistoryOrSavedInputParams defines parameters for GetArgsFromHistoryOrSavedInput.
+type GetArgsFromHistoryOrSavedInputParams struct {
+	Input      *bool `form:"input,omitempty" json:"input,omitempty"`
+	AllowLarge *bool `form:"allow_large,omitempty" json:"allow_large,omitempty"`
+}
 
 // DeleteS3FileParams defines parameters for DeleteS3File.
 type DeleteS3FileParams struct {
@@ -6180,7 +6185,7 @@ type ClientInterface interface {
 	UpdateInput(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetArgsFromHistoryOrSavedInput request
-	GetArgsFromHistoryOrSavedInput(ctx context.Context, workspace WorkspaceId, jobOrInputId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetArgsFromHistoryOrSavedInput(ctx context.Context, workspace WorkspaceId, jobOrInputId string, params *GetArgsFromHistoryOrSavedInputParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteS3File request
 	DeleteS3File(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9084,8 +9089,8 @@ func (c *Client) UpdateInput(ctx context.Context, workspace WorkspaceId, body Up
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetArgsFromHistoryOrSavedInput(ctx context.Context, workspace WorkspaceId, jobOrInputId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetArgsFromHistoryOrSavedInputRequest(c.Server, workspace, jobOrInputId)
+func (c *Client) GetArgsFromHistoryOrSavedInput(ctx context.Context, workspace WorkspaceId, jobOrInputId string, params *GetArgsFromHistoryOrSavedInputParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetArgsFromHistoryOrSavedInputRequest(c.Server, workspace, jobOrInputId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -18988,7 +18993,7 @@ func NewUpdateInputRequestWithBody(server string, workspace WorkspaceId, content
 }
 
 // NewGetArgsFromHistoryOrSavedInputRequest generates requests for GetArgsFromHistoryOrSavedInput
-func NewGetArgsFromHistoryOrSavedInputRequest(server string, workspace WorkspaceId, jobOrInputId string) (*http.Request, error) {
+func NewGetArgsFromHistoryOrSavedInputRequest(server string, workspace WorkspaceId, jobOrInputId string, params *GetArgsFromHistoryOrSavedInputParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -19019,6 +19024,42 @@ func NewGetArgsFromHistoryOrSavedInputRequest(server string, workspace Workspace
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.Input != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "input", runtime.ParamLocationQuery, *params.Input); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.AllowLarge != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "allow_large", runtime.ParamLocationQuery, *params.AllowLarge); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -31758,7 +31799,7 @@ type ClientWithResponsesInterface interface {
 	UpdateInputWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateInputJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInputResponse, error)
 
 	// GetArgsFromHistoryOrSavedInput request
-	GetArgsFromHistoryOrSavedInputWithResponse(ctx context.Context, workspace WorkspaceId, jobOrInputId string, reqEditors ...RequestEditorFn) (*GetArgsFromHistoryOrSavedInputResponse, error)
+	GetArgsFromHistoryOrSavedInputWithResponse(ctx context.Context, workspace WorkspaceId, jobOrInputId string, params *GetArgsFromHistoryOrSavedInputParams, reqEditors ...RequestEditorFn) (*GetArgsFromHistoryOrSavedInputResponse, error)
 
 	// DeleteS3File request
 	DeleteS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*DeleteS3FileResponse, error)
@@ -41268,8 +41309,8 @@ func (c *ClientWithResponses) UpdateInputWithResponse(ctx context.Context, works
 }
 
 // GetArgsFromHistoryOrSavedInputWithResponse request returning *GetArgsFromHistoryOrSavedInputResponse
-func (c *ClientWithResponses) GetArgsFromHistoryOrSavedInputWithResponse(ctx context.Context, workspace WorkspaceId, jobOrInputId string, reqEditors ...RequestEditorFn) (*GetArgsFromHistoryOrSavedInputResponse, error) {
-	rsp, err := c.GetArgsFromHistoryOrSavedInput(ctx, workspace, jobOrInputId, reqEditors...)
+func (c *ClientWithResponses) GetArgsFromHistoryOrSavedInputWithResponse(ctx context.Context, workspace WorkspaceId, jobOrInputId string, params *GetArgsFromHistoryOrSavedInputParams, reqEditors ...RequestEditorFn) (*GetArgsFromHistoryOrSavedInputResponse, error) {
+	rsp, err := c.GetArgsFromHistoryOrSavedInput(ctx, workspace, jobOrInputId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
