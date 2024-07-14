@@ -857,11 +857,12 @@ type FlowStatus struct {
 			Branch int `json:"branch"`
 			Len    int `json:"len"`
 		} `json:"branchall,omitempty"`
-		Count         *int                  `json:"count,omitempty"`
-		FailedRetries *[]openapi_types.UUID `json:"failed_retries,omitempty"`
-		FlowJobs      *[]string             `json:"flow_jobs,omitempty"`
-		Id            *string               `json:"id,omitempty"`
-		Iterator      *struct {
+		Count           *int                  `json:"count,omitempty"`
+		FailedRetries   *[]openapi_types.UUID `json:"failed_retries,omitempty"`
+		FlowJobs        *[]string             `json:"flow_jobs,omitempty"`
+		FlowJobsSuccess *[]bool               `json:"flow_jobs_success,omitempty"`
+		Id              *string               `json:"id,omitempty"`
+		Iterator        *struct {
 			Args   *interface{}   `json:"args,omitempty"`
 			Index  *int           `json:"index,omitempty"`
 			Itered *[]interface{} `json:"itered,omitempty"`
@@ -904,11 +905,12 @@ type FlowStatusModule struct {
 		Branch int `json:"branch"`
 		Len    int `json:"len"`
 	} `json:"branchall,omitempty"`
-	Count         *int                  `json:"count,omitempty"`
-	FailedRetries *[]openapi_types.UUID `json:"failed_retries,omitempty"`
-	FlowJobs      *[]string             `json:"flow_jobs,omitempty"`
-	Id            *string               `json:"id,omitempty"`
-	Iterator      *struct {
+	Count           *int                  `json:"count,omitempty"`
+	FailedRetries   *[]openapi_types.UUID `json:"failed_retries,omitempty"`
+	FlowJobs        *[]string             `json:"flow_jobs,omitempty"`
+	FlowJobsSuccess *[]bool               `json:"flow_jobs_success,omitempty"`
+	Id              *string               `json:"id,omitempty"`
+	Iterator        *struct {
 		Args   *interface{}   `json:"args,omitempty"`
 		Index  *int           `json:"index,omitempty"`
 		Itered *[]interface{} `json:"itered,omitempty"`
@@ -1054,6 +1056,11 @@ type JavascriptTransformType string
 
 // Job defines model for Job.
 type Job interface{}
+
+// JobSearchHit defines model for JobSearchHit.
+type JobSearchHit struct {
+	Dancer *string `json:"dancer,omitempty"`
+}
 
 // LargeFileStorage defines model for LargeFileStorage.
 type LargeFileStorage struct {
@@ -2129,6 +2136,11 @@ type TestSmtpJSONBody struct {
 		Username    string `json:"username"`
 	} `json:"smtp"`
 	To string `json:"to"`
+}
+
+// SearchJobsIndexParams defines parameters for SearchJobsIndex.
+type SearchJobsIndexParams struct {
+	SearchQuery string `form:"search_query" json:"search_query"`
 }
 
 // AcceptInviteJSONBody defines parameters for AcceptInvite.
@@ -5842,6 +5854,9 @@ type ClientInterface interface {
 
 	TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SearchJobsIndex request
+	SearchJobsIndex(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// BackendUptodate request
 	BackendUptodate(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7579,6 +7594,18 @@ func (c *Client) TestSmtpWithBody(ctx context.Context, contentType string, body 
 
 func (c *Client) TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewTestSmtpRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SearchJobsIndex(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSearchJobsIndexRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -13832,6 +13859,56 @@ func NewTestSmtpRequestWithBody(server string, contentType string, body io.Reade
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSearchJobsIndexRequest generates requests for SearchJobsIndex
+func NewSearchJobsIndexRequest(server string, workspace WorkspaceId, params *SearchJobsIndexParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/srch/w/%s/index/search/job", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_query", runtime.ParamLocationQuery, params.SearchQuery); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -31456,6 +31533,9 @@ type ClientWithResponsesInterface interface {
 
 	TestSmtpWithResponse(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error)
 
+	// SearchJobsIndex request
+	SearchJobsIndexWithResponse(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*SearchJobsIndexResponse, error)
+
 	// BackendUptodate request
 	BackendUptodateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*BackendUptodateResponse, error)
 
@@ -33521,6 +33601,36 @@ func (r TestSmtpResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r TestSmtpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SearchJobsIndexResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// the jobs that matched the query
+		Hits *[]JobSearchHit `json:"hits,omitempty"`
+
+		// a list of the terms that couldn't be parsed (and thus ignored)
+		QueryParseErrors *[]struct {
+			Dancer *string `json:"dancer,omitempty"`
+		} `json:"query_parse_errors,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r SearchJobsIndexResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SearchJobsIndexResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -40216,6 +40326,15 @@ func (c *ClientWithResponses) TestSmtpWithResponse(ctx context.Context, body Tes
 	return ParseTestSmtpResponse(rsp)
 }
 
+// SearchJobsIndexWithResponse request returning *SearchJobsIndexResponse
+func (c *ClientWithResponses) SearchJobsIndexWithResponse(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*SearchJobsIndexResponse, error) {
+	rsp, err := c.SearchJobsIndex(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSearchJobsIndexResponse(rsp)
+}
+
 // BackendUptodateWithResponse request returning *BackendUptodateResponse
 func (c *ClientWithResponses) BackendUptodateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*BackendUptodateResponse, error) {
 	rsp, err := c.BackendUptodate(ctx, reqEditors...)
@@ -44543,6 +44662,40 @@ func ParseTestSmtpResponse(rsp *http.Response) (*TestSmtpResponse, error) {
 	response := &TestSmtpResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSearchJobsIndexResponse parses an HTTP response from a SearchJobsIndexWithResponse call
+func ParseSearchJobsIndexResponse(rsp *http.Response) (*SearchJobsIndexResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SearchJobsIndexResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// the jobs that matched the query
+			Hits *[]JobSearchHit `json:"hits,omitempty"`
+
+			// a list of the terms that couldn't be parsed (and thus ignored)
+			QueryParseErrors *[]struct {
+				Dancer *string `json:"dancer,omitempty"`
+			} `json:"query_parse_errors,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
