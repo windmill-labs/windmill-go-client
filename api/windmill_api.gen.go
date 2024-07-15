@@ -656,6 +656,12 @@ type ConcurrencyGroup struct {
 	TotalRunning   float32 `json:"total_running"`
 }
 
+// Config defines model for Config.
+type Config struct {
+	Config *map[string]interface{} `json:"config,omitempty"`
+	Name   string                  `json:"name"`
+}
+
 // ContextualVariable defines model for ContextualVariable.
 type ContextualVariable struct {
 	Description string `json:"description"`
@@ -741,6 +747,28 @@ type EditWorkspaceUser struct {
 	Disabled *bool `json:"disabled,omitempty"`
 	IsAdmin  *bool `json:"is_admin,omitempty"`
 	Operator *bool `json:"operator,omitempty"`
+}
+
+// ExportedInstanceGroup defines model for ExportedInstanceGroup.
+type ExportedInstanceGroup struct {
+	Emails          *[]string `json:"emails,omitempty"`
+	ExternalId      *string   `json:"external_id,omitempty"`
+	Id              *string   `json:"id,omitempty"`
+	Name            string    `json:"name"`
+	ScimDisplayName *string   `json:"scim_display_name,omitempty"`
+	Summary         *string   `json:"summary,omitempty"`
+}
+
+// ExportedUser defines model for ExportedUser.
+type ExportedUser struct {
+	Company       *string `json:"company,omitempty"`
+	Email         string  `json:"email"`
+	FirstTimeUser bool    `json:"first_time_user"`
+	Name          *string `json:"name,omitempty"`
+	PasswordHash  *string `json:"password_hash,omitempty"`
+	SuperAdmin    bool    `json:"super_admin"`
+	Username      *string `json:"username,omitempty"`
+	Verified      bool    `json:"verified"`
 }
 
 // ExtendedJobs defines model for ExtendedJobs.
@@ -985,6 +1013,12 @@ type GitRepositorySettings struct {
 
 // GitRepositorySettingsExcludeTypesOverride defines model for GitRepositorySettings.ExcludeTypesOverride.
 type GitRepositorySettingsExcludeTypesOverride string
+
+// GlobalSetting defines model for GlobalSetting.
+type GlobalSetting struct {
+	Name  string                 `json:"name"`
+	Value map[string]interface{} `json:"value"`
+}
 
 // GlobalUserInfo defines model for GlobalUserInfo.
 type GlobalUserInfo struct {
@@ -2061,6 +2095,9 @@ type CreateInstanceGroupJSONBody struct {
 	Summary *string `json:"summary,omitempty"`
 }
 
+// OverwriteInstanceGroupsJSONBody defines parameters for OverwriteInstanceGroups.
+type OverwriteInstanceGroupsJSONBody = []ExportedInstanceGroup
+
 // RemoveUserFromInstanceGroupJSONBody defines parameters for RemoveUserFromInstanceGroup.
 type RemoveUserFromInstanceGroupJSONBody struct {
 	Email string `json:"email"`
@@ -2171,6 +2208,9 @@ type ListUsersAsSuperAdminParams struct {
 	// number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
+
+// GlobalUsersOverwriteJSONBody defines parameters for GlobalUsersOverwrite.
+type GlobalUsersOverwriteJSONBody = []ExportedUser
 
 // GlobalUserRenameJSONBody defines parameters for GlobalUserRename.
 type GlobalUserRenameJSONBody struct {
@@ -3798,7 +3838,8 @@ type EditWebhookJSONBody struct {
 
 // SetWorkspaceEncryptionKeyJSONBody defines parameters for SetWorkspaceEncryptionKey.
 type SetWorkspaceEncryptionKeyJSONBody struct {
-	NewKey string `json:"new_key"`
+	NewKey        string `json:"new_key"`
+	SkipReencrypt *bool  `json:"skip_reencrypt,omitempty"`
 }
 
 // InviteUserJSONBody defines parameters for InviteUser.
@@ -3879,6 +3920,9 @@ type AddUserToInstanceGroupJSONRequestBody AddUserToInstanceGroupJSONBody
 // CreateInstanceGroupJSONRequestBody defines body for CreateInstanceGroup for application/json ContentType.
 type CreateInstanceGroupJSONRequestBody CreateInstanceGroupJSONBody
 
+// OverwriteInstanceGroupsJSONRequestBody defines body for OverwriteInstanceGroups for application/json ContentType.
+type OverwriteInstanceGroupsJSONRequestBody = OverwriteInstanceGroupsJSONBody
+
 // RemoveUserFromInstanceGroupJSONRequestBody defines body for RemoveUserFromInstanceGroup for application/json ContentType.
 type RemoveUserFromInstanceGroupJSONRequestBody RemoveUserFromInstanceGroupJSONBody
 
@@ -3917,6 +3961,9 @@ type CreateUserGloballyJSONRequestBody CreateUserGloballyJSONBody
 
 // DeclineInviteJSONRequestBody defines body for DeclineInvite for application/json ContentType.
 type DeclineInviteJSONRequestBody DeclineInviteJSONBody
+
+// GlobalUsersOverwriteJSONRequestBody defines body for GlobalUsersOverwrite for application/json ContentType.
+type GlobalUsersOverwriteJSONRequestBody = GlobalUsersOverwriteJSONBody
 
 // GlobalUserRenameJSONRequestBody defines body for GlobalUserRename for application/json ContentType.
 type GlobalUserRenameJSONRequestBody GlobalUserRenameJSONBody
@@ -5717,6 +5764,9 @@ type ClientInterface interface {
 	// GetConfig request
 	GetConfig(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListConfigs request
+	ListConfigs(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListWorkerGroups request
 	ListWorkerGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5753,11 +5803,19 @@ type ClientInterface interface {
 	// DeleteInstanceGroup request
 	DeleteInstanceGroup(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ExportInstanceGroups request
+	ExportInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetInstanceGroup request
 	GetInstanceGroup(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListInstanceGroups request
 	ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// OverwriteInstanceGroups request with any body
+	OverwriteInstanceGroupsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	OverwriteInstanceGroups(ctx context.Context, body OverwriteInstanceGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RemoveUserFromInstanceGroup request with any body
 	RemoveUserFromInstanceGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5830,6 +5888,9 @@ type ClientInterface interface {
 	// GetLatestKeyRenewalAttempt request
 	GetLatestKeyRenewalAttempt(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListGlobalSettings request
+	ListGlobalSettings(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetLocal request
 	GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5887,6 +5948,9 @@ type ClientInterface interface {
 	// ExistsEmail request
 	ExistsEmail(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GlobalUsersExport request
+	GlobalUsersExport(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// LeaveInstance request
 	LeaveInstance(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5895,6 +5959,11 @@ type ClientInterface interface {
 
 	// ListWorkspaceInvites request
 	ListWorkspaceInvites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GlobalUsersOverwrite request with any body
+	GlobalUsersOverwriteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GlobalUsersOverwrite(ctx context.Context, body GlobalUsersOverwriteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RefreshUserToken request
 	RefreshUserToken(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7004,6 +7073,18 @@ func (c *Client) GetConfig(ctx context.Context, name Name, reqEditors ...Request
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListConfigs(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListConfigsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListWorkerGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListWorkerGroupsRequest(c.Server)
 	if err != nil {
@@ -7160,6 +7241,18 @@ func (c *Client) DeleteInstanceGroup(ctx context.Context, name Name, reqEditors 
 	return c.Client.Do(req)
 }
 
+func (c *Client) ExportInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExportInstanceGroupsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetInstanceGroup(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetInstanceGroupRequest(c.Server, name)
 	if err != nil {
@@ -7174,6 +7267,30 @@ func (c *Client) GetInstanceGroup(ctx context.Context, name Name, reqEditors ...
 
 func (c *Client) ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListInstanceGroupsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OverwriteInstanceGroupsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOverwriteInstanceGroupsRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OverwriteInstanceGroups(ctx context.Context, body OverwriteInstanceGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOverwriteInstanceGroupsRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -7496,6 +7613,18 @@ func (c *Client) GetLatestKeyRenewalAttempt(ctx context.Context, reqEditors ...R
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListGlobalSettings(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGlobalSettingsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetLocalRequest(c.Server)
 	if err != nil {
@@ -7748,6 +7877,18 @@ func (c *Client) ExistsEmail(ctx context.Context, email string, reqEditors ...Re
 	return c.Client.Do(req)
 }
 
+func (c *Client) GlobalUsersExport(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGlobalUsersExportRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) LeaveInstance(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLeaveInstanceRequest(c.Server)
 	if err != nil {
@@ -7774,6 +7915,30 @@ func (c *Client) ListUsersAsSuperAdmin(ctx context.Context, params *ListUsersAsS
 
 func (c *Client) ListWorkspaceInvites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListWorkspaceInvitesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GlobalUsersOverwriteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGlobalUsersOverwriteRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GlobalUsersOverwrite(ctx context.Context, body GlobalUsersOverwriteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGlobalUsersOverwriteRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -12433,6 +12598,33 @@ func NewGetConfigRequest(server string, name Name) (*http.Request, error) {
 	return req, nil
 }
 
+// NewListConfigsRequest generates requests for ListConfigs
+func NewListConfigsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/list")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListWorkerGroupsRequest generates requests for ListWorkerGroups
 func NewListWorkerGroupsRequest(server string) (*http.Request, error) {
 	var err error
@@ -12841,6 +13033,33 @@ func NewDeleteInstanceGroupRequest(server string, name Name) (*http.Request, err
 	return req, nil
 }
 
+// NewExportInstanceGroupsRequest generates requests for ExportInstanceGroups
+func NewExportInstanceGroupsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/export")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetInstanceGroupRequest generates requests for GetInstanceGroup
 func NewGetInstanceGroupRequest(server string, name Name) (*http.Request, error) {
 	var err error
@@ -12898,6 +13117,46 @@ func NewListInstanceGroupsRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewOverwriteInstanceGroupsRequest calls the generic OverwriteInstanceGroups builder with application/json body
+func NewOverwriteInstanceGroupsRequest(server string, body OverwriteInstanceGroupsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewOverwriteInstanceGroupsRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewOverwriteInstanceGroupsRequestWithBody generates requests for OverwriteInstanceGroups with any type of body
+func NewOverwriteInstanceGroupsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/overwrite")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -13662,6 +13921,33 @@ func NewGetLatestKeyRenewalAttemptRequest(server string) (*http.Request, error) 
 	return req, nil
 }
 
+// NewListGlobalSettingsRequest generates requests for ListGlobalSettings
+func NewListGlobalSettingsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/list_global")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetLocalRequest generates requests for GetLocal
 func NewGetLocalRequest(server string) (*http.Request, error) {
 	var err error
@@ -14182,6 +14468,33 @@ func NewExistsEmailRequest(server string, email string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGlobalUsersExportRequest generates requests for GlobalUsersExport
+func NewGlobalUsersExportRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/export")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewLeaveInstanceRequest generates requests for LeaveInstance
 func NewLeaveInstanceRequest(server string) (*http.Request, error) {
 	var err error
@@ -14295,6 +14608,46 @@ func NewListWorkspaceInvitesRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGlobalUsersOverwriteRequest calls the generic GlobalUsersOverwrite builder with application/json body
+func NewGlobalUsersOverwriteRequest(server string, body GlobalUsersOverwriteJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGlobalUsersOverwriteRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewGlobalUsersOverwriteRequestWithBody generates requests for GlobalUsersOverwrite with any type of body
+func NewGlobalUsersOverwriteRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/overwrite")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -31396,6 +31749,9 @@ type ClientWithResponsesInterface interface {
 	// GetConfig request
 	GetConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetConfigResponse, error)
 
+	// ListConfigs request
+	ListConfigsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListConfigsResponse, error)
+
 	// ListWorkerGroups request
 	ListWorkerGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkerGroupsResponse, error)
 
@@ -31432,11 +31788,19 @@ type ClientWithResponsesInterface interface {
 	// DeleteInstanceGroup request
 	DeleteInstanceGroupWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*DeleteInstanceGroupResponse, error)
 
+	// ExportInstanceGroups request
+	ExportInstanceGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ExportInstanceGroupsResponse, error)
+
 	// GetInstanceGroup request
 	GetInstanceGroupWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetInstanceGroupResponse, error)
 
 	// ListInstanceGroups request
 	ListInstanceGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceGroupsResponse, error)
+
+	// OverwriteInstanceGroups request with any body
+	OverwriteInstanceGroupsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OverwriteInstanceGroupsResponse, error)
+
+	OverwriteInstanceGroupsWithResponse(ctx context.Context, body OverwriteInstanceGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*OverwriteInstanceGroupsResponse, error)
 
 	// RemoveUserFromInstanceGroup request with any body
 	RemoveUserFromInstanceGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RemoveUserFromInstanceGroupResponse, error)
@@ -31509,6 +31873,9 @@ type ClientWithResponsesInterface interface {
 	// GetLatestKeyRenewalAttempt request
 	GetLatestKeyRenewalAttemptWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLatestKeyRenewalAttemptResponse, error)
 
+	// ListGlobalSettings request
+	ListGlobalSettingsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListGlobalSettingsResponse, error)
+
 	// GetLocal request
 	GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error)
 
@@ -31566,6 +31933,9 @@ type ClientWithResponsesInterface interface {
 	// ExistsEmail request
 	ExistsEmailWithResponse(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*ExistsEmailResponse, error)
 
+	// GlobalUsersExport request
+	GlobalUsersExportWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GlobalUsersExportResponse, error)
+
 	// LeaveInstance request
 	LeaveInstanceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LeaveInstanceResponse, error)
 
@@ -31574,6 +31944,11 @@ type ClientWithResponsesInterface interface {
 
 	// ListWorkspaceInvites request
 	ListWorkspaceInvitesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkspaceInvitesResponse, error)
+
+	// GlobalUsersOverwrite request with any body
+	GlobalUsersOverwriteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GlobalUsersOverwriteResponse, error)
+
+	GlobalUsersOverwriteWithResponse(ctx context.Context, body GlobalUsersOverwriteJSONRequestBody, reqEditors ...RequestEditorFn) (*GlobalUsersOverwriteResponse, error)
 
 	// RefreshUserToken request
 	RefreshUserTokenWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshUserTokenResponse, error)
@@ -32763,6 +33138,28 @@ func (r GetConfigResponse) StatusCode() int {
 	return 0
 }
 
+type ListConfigsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]Config
+}
+
+// Status returns HTTPResponse.Status
+func (r ListConfigsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListConfigsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListWorkerGroupsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -32999,6 +33396,28 @@ func (r DeleteInstanceGroupResponse) StatusCode() int {
 	return 0
 }
 
+type ExportInstanceGroupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]ExportedInstanceGroup
+}
+
+// Status returns HTTPResponse.Status
+func (r ExportInstanceGroupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExportInstanceGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetInstanceGroupResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -33037,6 +33456,27 @@ func (r ListInstanceGroupsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListInstanceGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type OverwriteInstanceGroupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r OverwriteInstanceGroupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r OverwriteInstanceGroupsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -33480,6 +33920,28 @@ func (r GetLatestKeyRenewalAttemptResponse) StatusCode() int {
 	return 0
 }
 
+type ListGlobalSettingsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]GlobalSetting
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGlobalSettingsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGlobalSettingsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetLocalResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -33815,6 +34277,28 @@ func (r ExistsEmailResponse) StatusCode() int {
 	return 0
 }
 
+type GlobalUsersExportResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]ExportedUser
+}
+
+// Status returns HTTPResponse.Status
+func (r GlobalUsersExportResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GlobalUsersExportResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type LeaveInstanceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -33874,6 +34358,27 @@ func (r ListWorkspaceInvitesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListWorkspaceInvitesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GlobalUsersOverwriteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GlobalUsersOverwriteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GlobalUsersOverwriteResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -39889,6 +40394,15 @@ func (c *ClientWithResponses) GetConfigWithResponse(ctx context.Context, name Na
 	return ParseGetConfigResponse(rsp)
 }
 
+// ListConfigsWithResponse request returning *ListConfigsResponse
+func (c *ClientWithResponses) ListConfigsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListConfigsResponse, error) {
+	rsp, err := c.ListConfigs(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListConfigsResponse(rsp)
+}
+
 // ListWorkerGroupsWithResponse request returning *ListWorkerGroupsResponse
 func (c *ClientWithResponses) ListWorkerGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkerGroupsResponse, error) {
 	rsp, err := c.ListWorkerGroups(ctx, reqEditors...)
@@ -40003,6 +40517,15 @@ func (c *ClientWithResponses) DeleteInstanceGroupWithResponse(ctx context.Contex
 	return ParseDeleteInstanceGroupResponse(rsp)
 }
 
+// ExportInstanceGroupsWithResponse request returning *ExportInstanceGroupsResponse
+func (c *ClientWithResponses) ExportInstanceGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ExportInstanceGroupsResponse, error) {
+	rsp, err := c.ExportInstanceGroups(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExportInstanceGroupsResponse(rsp)
+}
+
 // GetInstanceGroupWithResponse request returning *GetInstanceGroupResponse
 func (c *ClientWithResponses) GetInstanceGroupWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetInstanceGroupResponse, error) {
 	rsp, err := c.GetInstanceGroup(ctx, name, reqEditors...)
@@ -40019,6 +40542,23 @@ func (c *ClientWithResponses) ListInstanceGroupsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListInstanceGroupsResponse(rsp)
+}
+
+// OverwriteInstanceGroupsWithBodyWithResponse request with arbitrary body returning *OverwriteInstanceGroupsResponse
+func (c *ClientWithResponses) OverwriteInstanceGroupsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OverwriteInstanceGroupsResponse, error) {
+	rsp, err := c.OverwriteInstanceGroupsWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOverwriteInstanceGroupsResponse(rsp)
+}
+
+func (c *ClientWithResponses) OverwriteInstanceGroupsWithResponse(ctx context.Context, body OverwriteInstanceGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*OverwriteInstanceGroupsResponse, error) {
+	rsp, err := c.OverwriteInstanceGroups(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOverwriteInstanceGroupsResponse(rsp)
 }
 
 // RemoveUserFromInstanceGroupWithBodyWithResponse request with arbitrary body returning *RemoveUserFromInstanceGroupResponse
@@ -40248,6 +40788,15 @@ func (c *ClientWithResponses) GetLatestKeyRenewalAttemptWithResponse(ctx context
 	return ParseGetLatestKeyRenewalAttemptResponse(rsp)
 }
 
+// ListGlobalSettingsWithResponse request returning *ListGlobalSettingsResponse
+func (c *ClientWithResponses) ListGlobalSettingsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListGlobalSettingsResponse, error) {
+	rsp, err := c.ListGlobalSettings(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGlobalSettingsResponse(rsp)
+}
+
 // GetLocalWithResponse request returning *GetLocalResponse
 func (c *ClientWithResponses) GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error) {
 	rsp, err := c.GetLocal(ctx, reqEditors...)
@@ -40431,6 +40980,15 @@ func (c *ClientWithResponses) ExistsEmailWithResponse(ctx context.Context, email
 	return ParseExistsEmailResponse(rsp)
 }
 
+// GlobalUsersExportWithResponse request returning *GlobalUsersExportResponse
+func (c *ClientWithResponses) GlobalUsersExportWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GlobalUsersExportResponse, error) {
+	rsp, err := c.GlobalUsersExport(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGlobalUsersExportResponse(rsp)
+}
+
 // LeaveInstanceWithResponse request returning *LeaveInstanceResponse
 func (c *ClientWithResponses) LeaveInstanceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LeaveInstanceResponse, error) {
 	rsp, err := c.LeaveInstance(ctx, reqEditors...)
@@ -40456,6 +41014,23 @@ func (c *ClientWithResponses) ListWorkspaceInvitesWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseListWorkspaceInvitesResponse(rsp)
+}
+
+// GlobalUsersOverwriteWithBodyWithResponse request with arbitrary body returning *GlobalUsersOverwriteResponse
+func (c *ClientWithResponses) GlobalUsersOverwriteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GlobalUsersOverwriteResponse, error) {
+	rsp, err := c.GlobalUsersOverwriteWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGlobalUsersOverwriteResponse(rsp)
+}
+
+func (c *ClientWithResponses) GlobalUsersOverwriteWithResponse(ctx context.Context, body GlobalUsersOverwriteJSONRequestBody, reqEditors ...RequestEditorFn) (*GlobalUsersOverwriteResponse, error) {
+	rsp, err := c.GlobalUsersOverwrite(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGlobalUsersOverwriteResponse(rsp)
 }
 
 // RefreshUserTokenWithResponse request returning *RefreshUserTokenResponse
@@ -43855,6 +44430,32 @@ func ParseGetConfigResponse(rsp *http.Response) (*GetConfigResponse, error) {
 	return response, nil
 }
 
+// ParseListConfigsResponse parses an HTTP response from a ListConfigsWithResponse call
+func ParseListConfigsResponse(rsp *http.Response) (*ListConfigsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListConfigsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []Config
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListWorkerGroupsResponse parses an HTTP response from a ListWorkerGroupsWithResponse call
 func ParseListWorkerGroupsResponse(rsp *http.Response) (*ListWorkerGroupsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -44077,6 +44678,32 @@ func ParseDeleteInstanceGroupResponse(rsp *http.Response) (*DeleteInstanceGroupR
 	return response, nil
 }
 
+// ParseExportInstanceGroupsResponse parses an HTTP response from a ExportInstanceGroupsWithResponse call
+func ParseExportInstanceGroupsResponse(rsp *http.Response) (*ExportInstanceGroupsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExportInstanceGroupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ExportedInstanceGroup
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetInstanceGroupResponse parses an HTTP response from a GetInstanceGroupWithResponse call
 func ParseGetInstanceGroupResponse(rsp *http.Response) (*GetInstanceGroupResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -44124,6 +44751,22 @@ func ParseListInstanceGroupsResponse(rsp *http.Response) (*ListInstanceGroupsRes
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseOverwriteInstanceGroupsResponse parses an HTTP response from a OverwriteInstanceGroupsWithResponse call
+func ParseOverwriteInstanceGroupsResponse(rsp *http.Response) (*OverwriteInstanceGroupsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &OverwriteInstanceGroupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -44561,6 +45204,32 @@ func ParseGetLatestKeyRenewalAttemptResponse(rsp *http.Response) (*GetLatestKeyR
 	return response, nil
 }
 
+// ParseListGlobalSettingsResponse parses an HTTP response from a ListGlobalSettingsWithResponse call
+func ParseListGlobalSettingsResponse(rsp *http.Response) (*ListGlobalSettingsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGlobalSettingsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []GlobalSetting
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetLocalResponse parses an HTTP response from a GetLocalWithResponse call
 func ParseGetLocalResponse(rsp *http.Response) (*GetLocalResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -44857,6 +45526,32 @@ func ParseExistsEmailResponse(rsp *http.Response) (*ExistsEmailResponse, error) 
 	return response, nil
 }
 
+// ParseGlobalUsersExportResponse parses an HTTP response from a GlobalUsersExportWithResponse call
+func ParseGlobalUsersExportResponse(rsp *http.Response) (*GlobalUsersExportResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GlobalUsersExportResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ExportedUser
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseLeaveInstanceResponse parses an HTTP response from a LeaveInstanceWithResponse call
 func ParseLeaveInstanceResponse(rsp *http.Response) (*LeaveInstanceResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -44920,6 +45615,22 @@ func ParseListWorkspaceInvitesResponse(rsp *http.Response) (*ListWorkspaceInvite
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGlobalUsersOverwriteResponse parses an HTTP response from a GlobalUsersOverwriteWithResponse call
+func ParseGlobalUsersOverwriteResponse(rsp *http.Response) (*GlobalUsersOverwriteResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GlobalUsersOverwriteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
