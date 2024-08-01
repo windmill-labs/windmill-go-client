@@ -686,12 +686,13 @@ type CreateResource struct {
 
 // CreateVariable defines model for CreateVariable.
 type CreateVariable struct {
-	Account     *int   `json:"account,omitempty"`
-	Description string `json:"description"`
-	IsOauth     *bool  `json:"is_oauth,omitempty"`
-	IsSecret    bool   `json:"is_secret"`
-	Path        string `json:"path"`
-	Value       string `json:"value"`
+	Account     *int       `json:"account,omitempty"`
+	Description string     `json:"description"`
+	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
+	IsOauth     *bool      `json:"is_oauth,omitempty"`
+	IsSecret    bool       `json:"is_secret"`
+	Path        string     `json:"path"`
+	Value       string     `json:"value"`
 }
 
 // CreateWorkspace defines model for CreateWorkspace.
@@ -1182,6 +1183,7 @@ type ListableResource_ExtraPerms struct {
 type ListableVariable struct {
 	Account      *int                        `json:"account,omitempty"`
 	Description  *string                     `json:"description,omitempty"`
+	ExpiresAt    *time.Time                  `json:"expires_at,omitempty"`
 	ExtraPerms   ListableVariable_ExtraPerms `json:"extra_perms"`
 	IsExpired    *bool                       `json:"is_expired,omitempty"`
 	IsLinked     *bool                       `json:"is_linked,omitempty"`
