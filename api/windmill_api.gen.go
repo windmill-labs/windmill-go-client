@@ -481,6 +481,16 @@ const (
 	Unknown WindmillFilePreviewContentType = "Unknown"
 )
 
+// Defines values for WorkspaceDeployUISettingsIncludeType.
+const (
+	WorkspaceDeployUISettingsIncludeTypeApp      WorkspaceDeployUISettingsIncludeType = "app"
+	WorkspaceDeployUISettingsIncludeTypeFlow     WorkspaceDeployUISettingsIncludeType = "flow"
+	WorkspaceDeployUISettingsIncludeTypeResource WorkspaceDeployUISettingsIncludeType = "resource"
+	WorkspaceDeployUISettingsIncludeTypeScript   WorkspaceDeployUISettingsIncludeType = "script"
+	WorkspaceDeployUISettingsIncludeTypeSecret   WorkspaceDeployUISettingsIncludeType = "secret"
+	WorkspaceDeployUISettingsIncludeTypeVariable WorkspaceDeployUISettingsIncludeType = "variable"
+)
+
 // Defines values for WorkspaceGitSyncSettingsIncludeType.
 const (
 	WorkspaceGitSyncSettingsIncludeTypeApp          WorkspaceGitSyncSettingsIncludeType = "app"
@@ -1887,6 +1897,15 @@ type WorkspaceDefaultScripts struct {
 type WorkspaceDefaultScripts_DefaultScriptContent struct {
 	AdditionalProperties map[string]string `json:"-"`
 }
+
+// WorkspaceDeployUISettings defines model for WorkspaceDeployUISettings.
+type WorkspaceDeployUISettings struct {
+	IncludePath *[]string                               `json:"include_path,omitempty"`
+	IncludeType *[]WorkspaceDeployUISettingsIncludeType `json:"include_type,omitempty"`
+}
+
+// WorkspaceDeployUISettingsIncludeType defines model for WorkspaceDeployUISettings.IncludeType.
+type WorkspaceDeployUISettingsIncludeType string
 
 // WorkspaceGitSyncSettings defines model for WorkspaceGitSyncSettings.
 type WorkspaceGitSyncSettings struct {
@@ -3817,6 +3836,11 @@ type EditDeployToJSONBody struct {
 	DeployTo *string `json:"deploy_to,omitempty"`
 }
 
+// EditWorkspaceDeployUISettingsJSONBody defines parameters for EditWorkspaceDeployUISettings.
+type EditWorkspaceDeployUISettingsJSONBody struct {
+	DeployUiSettings *WorkspaceDeployUISettings `json:"deploy_ui_settings,omitempty"`
+}
+
 // EditErrorHandlerJSONBody defines parameters for EditErrorHandler.
 type EditErrorHandlerJSONBody struct {
 	ErrorHandler              *string     `json:"error_handler,omitempty"`
@@ -4230,6 +4254,9 @@ type EditWorkspaceDefaultAppJSONRequestBody EditWorkspaceDefaultAppJSONBody
 
 // EditDeployToJSONRequestBody defines body for EditDeployTo for application/json ContentType.
 type EditDeployToJSONRequestBody EditDeployToJSONBody
+
+// EditWorkspaceDeployUISettingsJSONRequestBody defines body for EditWorkspaceDeployUISettings for application/json ContentType.
+type EditWorkspaceDeployUISettingsJSONRequestBody EditWorkspaceDeployUISettingsJSONBody
 
 // EditErrorHandlerJSONRequestBody defines body for EditErrorHandler for application/json ContentType.
 type EditErrorHandlerJSONRequestBody EditErrorHandlerJSONBody
@@ -6837,6 +6864,11 @@ type ClientInterface interface {
 	EditDeployToWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditDeployTo(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EditWorkspaceDeployUISettings request with any body
+	EditWorkspaceDeployUISettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditWorkspaceDeployUISettings(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDeployUISettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditErrorHandler request with any body
 	EditErrorHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11751,6 +11783,30 @@ func (c *Client) EditDeployToWithBody(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) EditDeployTo(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditDeployToRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditWorkspaceDeployUISettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditWorkspaceDeployUISettingsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditWorkspaceDeployUISettings(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDeployUISettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditWorkspaceDeployUISettingsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -30314,6 +30370,53 @@ func NewEditDeployToRequestWithBody(server string, workspace WorkspaceId, conten
 	return req, nil
 }
 
+// NewEditWorkspaceDeployUISettingsRequest calls the generic EditWorkspaceDeployUISettings builder with application/json body
+func NewEditWorkspaceDeployUISettingsRequest(server string, workspace WorkspaceId, body EditWorkspaceDeployUISettingsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditWorkspaceDeployUISettingsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditWorkspaceDeployUISettingsRequestWithBody generates requests for EditWorkspaceDeployUISettings with any type of body
+func NewEditWorkspaceDeployUISettingsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_deploy_ui_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditErrorHandlerRequest calls the generic EditErrorHandler builder with application/json body
 func NewEditErrorHandlerRequest(server string, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -32854,6 +32957,11 @@ type ClientWithResponsesInterface interface {
 	EditDeployToWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error)
 
 	EditDeployToWithResponse(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error)
+
+	// EditWorkspaceDeployUISettings request with any body
+	EditWorkspaceDeployUISettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceDeployUISettingsResponse, error)
+
+	EditWorkspaceDeployUISettingsWithResponse(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDeployUISettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWorkspaceDeployUISettingsResponse, error)
 
 	// EditErrorHandler request with any body
 	EditErrorHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error)
@@ -39542,6 +39650,28 @@ func (r EditDeployToResponse) StatusCode() int {
 	return 0
 }
 
+type EditWorkspaceDeployUISettingsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r EditWorkspaceDeployUISettingsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditWorkspaceDeployUISettingsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditErrorHandlerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -39765,27 +39895,28 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AutoAdd                   *bool                     `json:"auto_add,omitempty"`
-		AutoInviteDomain          *string                   `json:"auto_invite_domain,omitempty"`
-		AutoInviteOperator        *bool                     `json:"auto_invite_operator,omitempty"`
-		AutomaticBilling          bool                      `json:"automatic_billing"`
-		CodeCompletionEnabled     bool                      `json:"code_completion_enabled"`
-		CustomerId                *string                   `json:"customer_id,omitempty"`
-		DefaultApp                *string                   `json:"default_app,omitempty"`
-		DefaultScripts            *WorkspaceDefaultScripts  `json:"default_scripts,omitempty"`
-		DeployTo                  *string                   `json:"deploy_to,omitempty"`
-		ErrorHandler              *string                   `json:"error_handler,omitempty"`
-		ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
-		ErrorHandlerMutedOnCancel bool                      `json:"error_handler_muted_on_cancel"`
-		GitSync                   *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
-		LargeFileStorage          *LargeFileStorage         `json:"large_file_storage,omitempty"`
-		OpenaiResourcePath        *string                   `json:"openai_resource_path,omitempty"`
-		Plan                      *string                   `json:"plan,omitempty"`
-		SlackCommandScript        *string                   `json:"slack_command_script,omitempty"`
-		SlackName                 *string                   `json:"slack_name,omitempty"`
-		SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
-		Webhook                   *string                   `json:"webhook,omitempty"`
-		WorkspaceId               *string                   `json:"workspace_id,omitempty"`
+		AutoAdd                   *bool                      `json:"auto_add,omitempty"`
+		AutoInviteDomain          *string                    `json:"auto_invite_domain,omitempty"`
+		AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
+		AutomaticBilling          bool                       `json:"automatic_billing"`
+		CodeCompletionEnabled     bool                       `json:"code_completion_enabled"`
+		CustomerId                *string                    `json:"customer_id,omitempty"`
+		DefaultApp                *string                    `json:"default_app,omitempty"`
+		DefaultScripts            *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
+		DeployTo                  *string                    `json:"deploy_to,omitempty"`
+		DeployUi                  *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+		ErrorHandler              *string                    `json:"error_handler,omitempty"`
+		ErrorHandlerExtraArgs     *ScriptArgs                `json:"error_handler_extra_args,omitempty"`
+		ErrorHandlerMutedOnCancel bool                       `json:"error_handler_muted_on_cancel"`
+		GitSync                   *WorkspaceGitSyncSettings  `json:"git_sync,omitempty"`
+		LargeFileStorage          *LargeFileStorage          `json:"large_file_storage,omitempty"`
+		OpenaiResourcePath        *string                    `json:"openai_resource_path,omitempty"`
+		Plan                      *string                    `json:"plan,omitempty"`
+		SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
+		SlackName                 *string                    `json:"slack_name,omitempty"`
+		SlackTeamId               *string                    `json:"slack_team_id,omitempty"`
+		Webhook                   *string                    `json:"webhook,omitempty"`
+		WorkspaceId               *string                    `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -43838,6 +43969,23 @@ func (c *ClientWithResponses) EditDeployToWithResponse(ctx context.Context, work
 		return nil, err
 	}
 	return ParseEditDeployToResponse(rsp)
+}
+
+// EditWorkspaceDeployUISettingsWithBodyWithResponse request with arbitrary body returning *EditWorkspaceDeployUISettingsResponse
+func (c *ClientWithResponses) EditWorkspaceDeployUISettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceDeployUISettingsResponse, error) {
+	rsp, err := c.EditWorkspaceDeployUISettingsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditWorkspaceDeployUISettingsResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditWorkspaceDeployUISettingsWithResponse(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDeployUISettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWorkspaceDeployUISettingsResponse, error) {
+	rsp, err := c.EditWorkspaceDeployUISettings(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditWorkspaceDeployUISettingsResponse(rsp)
 }
 
 // EditErrorHandlerWithBodyWithResponse request with arbitrary body returning *EditErrorHandlerResponse
@@ -50718,6 +50866,32 @@ func ParseEditDeployToResponse(rsp *http.Response) (*EditDeployToResponse, error
 	return response, nil
 }
 
+// ParseEditWorkspaceDeployUISettingsResponse parses an HTTP response from a EditWorkspaceDeployUISettingsWithResponse call
+func ParseEditWorkspaceDeployUISettingsResponse(rsp *http.Response) (*EditWorkspaceDeployUISettingsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditWorkspaceDeployUISettingsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseEditErrorHandlerResponse parses an HTTP response from a EditErrorHandlerWithResponse call
 func ParseEditErrorHandlerResponse(rsp *http.Response) (*EditErrorHandlerResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -50948,27 +51122,28 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AutoAdd                   *bool                     `json:"auto_add,omitempty"`
-			AutoInviteDomain          *string                   `json:"auto_invite_domain,omitempty"`
-			AutoInviteOperator        *bool                     `json:"auto_invite_operator,omitempty"`
-			AutomaticBilling          bool                      `json:"automatic_billing"`
-			CodeCompletionEnabled     bool                      `json:"code_completion_enabled"`
-			CustomerId                *string                   `json:"customer_id,omitempty"`
-			DefaultApp                *string                   `json:"default_app,omitempty"`
-			DefaultScripts            *WorkspaceDefaultScripts  `json:"default_scripts,omitempty"`
-			DeployTo                  *string                   `json:"deploy_to,omitempty"`
-			ErrorHandler              *string                   `json:"error_handler,omitempty"`
-			ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
-			ErrorHandlerMutedOnCancel bool                      `json:"error_handler_muted_on_cancel"`
-			GitSync                   *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
-			LargeFileStorage          *LargeFileStorage         `json:"large_file_storage,omitempty"`
-			OpenaiResourcePath        *string                   `json:"openai_resource_path,omitempty"`
-			Plan                      *string                   `json:"plan,omitempty"`
-			SlackCommandScript        *string                   `json:"slack_command_script,omitempty"`
-			SlackName                 *string                   `json:"slack_name,omitempty"`
-			SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
-			Webhook                   *string                   `json:"webhook,omitempty"`
-			WorkspaceId               *string                   `json:"workspace_id,omitempty"`
+			AutoAdd                   *bool                      `json:"auto_add,omitempty"`
+			AutoInviteDomain          *string                    `json:"auto_invite_domain,omitempty"`
+			AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
+			AutomaticBilling          bool                       `json:"automatic_billing"`
+			CodeCompletionEnabled     bool                       `json:"code_completion_enabled"`
+			CustomerId                *string                    `json:"customer_id,omitempty"`
+			DefaultApp                *string                    `json:"default_app,omitempty"`
+			DefaultScripts            *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
+			DeployTo                  *string                    `json:"deploy_to,omitempty"`
+			DeployUi                  *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+			ErrorHandler              *string                    `json:"error_handler,omitempty"`
+			ErrorHandlerExtraArgs     *ScriptArgs                `json:"error_handler_extra_args,omitempty"`
+			ErrorHandlerMutedOnCancel bool                       `json:"error_handler_muted_on_cancel"`
+			GitSync                   *WorkspaceGitSyncSettings  `json:"git_sync,omitempty"`
+			LargeFileStorage          *LargeFileStorage          `json:"large_file_storage,omitempty"`
+			OpenaiResourcePath        *string                    `json:"openai_resource_path,omitempty"`
+			Plan                      *string                    `json:"plan,omitempty"`
+			SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
+			SlackName                 *string                    `json:"slack_name,omitempty"`
+			SlackTeamId               *string                    `json:"slack_team_id,omitempty"`
+			Webhook                   *string                    `json:"webhook,omitempty"`
+			WorkspaceId               *string                    `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
