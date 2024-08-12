@@ -2168,9 +2168,19 @@ type GetTopHubScriptsParams struct {
 	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
 }
 
+// CreateCustomerPortalSessionParams defines parameters for CreateCustomerPortalSession.
+type CreateCustomerPortalSessionParams struct {
+	LicenseKey *string `form:"license_key,omitempty" json:"license_key,omitempty"`
+}
+
 // SetGlobalJSONBody defines parameters for SetGlobal.
 type SetGlobalJSONBody struct {
 	Value *interface{} `json:"value,omitempty"`
+}
+
+// RenewLicenseKeyParams defines parameters for RenewLicenseKey.
+type RenewLicenseKeyParams struct {
+	LicenseKey *string `form:"license_key,omitempty" json:"license_key,omitempty"`
 }
 
 // TestLicenseKeyJSONBody defines parameters for TestLicenseKey.
@@ -5910,7 +5920,7 @@ type ClientInterface interface {
 	RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateCustomerPortalSession request
-	CreateCustomerPortalSession(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetGlobal request
 	GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5930,7 +5940,7 @@ type ClientInterface interface {
 	GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RenewLicenseKey request
-	RenewLicenseKey(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RenewLicenseKey(ctx context.Context, params *RenewLicenseKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SendStats request
 	SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7593,8 +7603,8 @@ func (c *Client) RawScriptByPathTokened(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateCustomerPortalSession(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateCustomerPortalSessionRequest(c.Server)
+func (c *Client) CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateCustomerPortalSessionRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -7677,8 +7687,8 @@ func (c *Client) GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*
 	return c.Client.Do(req)
 }
 
-func (c *Client) RenewLicenseKey(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRenewLicenseKeyRequest(c.Server)
+func (c *Client) RenewLicenseKey(ctx context.Context, params *RenewLicenseKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRenewLicenseKeyRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -13851,7 +13861,7 @@ func NewRawScriptByPathTokenedRequest(server string, workspace WorkspaceId, toke
 }
 
 // NewCreateCustomerPortalSessionRequest generates requests for CreateCustomerPortalSession
-func NewCreateCustomerPortalSessionRequest(server string) (*http.Request, error) {
+func NewCreateCustomerPortalSessionRequest(server string, params *CreateCustomerPortalSessionParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -13868,6 +13878,26 @@ func NewCreateCustomerPortalSessionRequest(server string) (*http.Request, error)
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.LicenseKey != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "license_key", runtime.ParamLocationQuery, *params.LicenseKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
@@ -14040,7 +14070,7 @@ func NewGetLocalRequest(server string) (*http.Request, error) {
 }
 
 // NewRenewLicenseKeyRequest generates requests for RenewLicenseKey
-func NewRenewLicenseKeyRequest(server string) (*http.Request, error) {
+func NewRenewLicenseKeyRequest(server string, params *RenewLicenseKeyParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -14057,6 +14087,26 @@ func NewRenewLicenseKeyRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.LicenseKey != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "license_key", runtime.ParamLocationQuery, *params.LicenseKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
@@ -32003,7 +32053,7 @@ type ClientWithResponsesInterface interface {
 	RawScriptByPathTokenedWithResponse(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathTokenedResponse, error)
 
 	// CreateCustomerPortalSession request
-	CreateCustomerPortalSessionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
+	CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
 
 	// GetGlobal request
 	GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error)
@@ -32023,7 +32073,7 @@ type ClientWithResponsesInterface interface {
 	GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error)
 
 	// RenewLicenseKey request
-	RenewLicenseKeyWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RenewLicenseKeyResponse, error)
+	RenewLicenseKeyWithResponse(ctx context.Context, params *RenewLicenseKeyParams, reqEditors ...RequestEditorFn) (*RenewLicenseKeyResponse, error)
 
 	// SendStats request
 	SendStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SendStatsResponse, error)
@@ -40916,8 +40966,8 @@ func (c *ClientWithResponses) RawScriptByPathTokenedWithResponse(ctx context.Con
 }
 
 // CreateCustomerPortalSessionWithResponse request returning *CreateCustomerPortalSessionResponse
-func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error) {
-	rsp, err := c.CreateCustomerPortalSession(ctx, reqEditors...)
+func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error) {
+	rsp, err := c.CreateCustomerPortalSession(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -40978,8 +41028,8 @@ func (c *ClientWithResponses) GetLocalWithResponse(ctx context.Context, reqEdito
 }
 
 // RenewLicenseKeyWithResponse request returning *RenewLicenseKeyResponse
-func (c *ClientWithResponses) RenewLicenseKeyWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RenewLicenseKeyResponse, error) {
-	rsp, err := c.RenewLicenseKey(ctx, reqEditors...)
+func (c *ClientWithResponses) RenewLicenseKeyWithResponse(ctx context.Context, params *RenewLicenseKeyParams, reqEditors ...RequestEditorFn) (*RenewLicenseKeyResponse, error) {
+	rsp, err := c.RenewLicenseKey(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
