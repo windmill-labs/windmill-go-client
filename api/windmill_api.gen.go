@@ -3006,6 +3006,9 @@ type ListJobsParams struct {
 	// filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
 
+	// filter on suspended jobs
+	Suspended *Suspended `form:"suspended,omitempty" json:"suspended,omitempty"`
+
 	// filter on jobs containing those args as a json subset (@> in postgres)
 	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
 
@@ -22004,6 +22007,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 	}
 
+	if params.Suspended != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "suspended", runtime.ParamLocationQuery, *params.Suspended); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.Args != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "args", runtime.ParamLocationQuery, *params.Args); err != nil {
@@ -37063,7 +37082,8 @@ type GetQueueCountResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		DatabaseLength int `json:"database_length"`
+		DatabaseLength int  `json:"database_length"`
+		Suspended      *int `json:"suspended,omitempty"`
 	}
 }
 
@@ -48356,7 +48376,8 @@ func ParseGetQueueCountResponse(rsp *http.Response) (*GetQueueCountResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			DatabaseLength int `json:"database_length"`
+			DatabaseLength int  `json:"database_length"`
+			Suspended      *int `json:"suspended,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
