@@ -855,9 +855,10 @@ type FlowModule struct {
 	} `json:"stop_after_if,omitempty"`
 	Summary *string `json:"summary,omitempty"`
 	Suspend *struct {
-		HideCancel     *bool `json:"hide_cancel,omitempty"`
-		RequiredEvents *int  `json:"required_events,omitempty"`
-		ResumeForm     *struct {
+		ContinueOnDisapproveTimeout *bool `json:"continue_on_disapprove_timeout,omitempty"`
+		HideCancel                  *bool `json:"hide_cancel,omitempty"`
+		RequiredEvents              *int  `json:"required_events,omitempty"`
+		ResumeForm                  *struct {
 			Schema *map[string]interface{} `json:"schema,omitempty"`
 		} `json:"resume_form,omitempty"`
 		SelfApprovalDisabled *bool           `json:"self_approval_disabled,omitempty"`
