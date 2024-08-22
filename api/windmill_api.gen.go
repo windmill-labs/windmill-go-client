@@ -846,9 +846,13 @@ type FlowModule struct {
 		Enabled     *bool        `json:"enabled,omitempty"`
 		ReturnValue *interface{} `json:"return_value,omitempty"`
 	} `json:"mock,omitempty"`
-	Priority    *float32        `json:"priority,omitempty"`
-	Retry       *Retry          `json:"retry,omitempty"`
-	Sleep       *InputTransform `json:"sleep,omitempty"`
+	Priority            *float32        `json:"priority,omitempty"`
+	Retry               *Retry          `json:"retry,omitempty"`
+	Sleep               *InputTransform `json:"sleep,omitempty"`
+	StopAfterAllItersIf *struct {
+		Expr          string `json:"expr"`
+		SkipIfStopped *bool  `json:"skip_if_stopped,omitempty"`
+	} `json:"stop_after_all_iters_if,omitempty"`
 	StopAfterIf *struct {
 		Expr          string `json:"expr"`
 		SkipIfStopped *bool  `json:"skip_if_stopped,omitempty"`
