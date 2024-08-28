@@ -1847,22 +1847,22 @@ type WindmillLargeFile struct {
 
 // WorkerPing defines model for WorkerPing.
 type WorkerPing struct {
-	CurrentJobId          *string   `json:"current_job_id,omitempty"`
-	CurrentJobWorkspaceId *string   `json:"current_job_workspace_id,omitempty"`
-	CustomTags            *[]string `json:"custom_tags,omitempty"`
-	Ip                    string    `json:"ip"`
-	JobsExecuted          int       `json:"jobs_executed"`
-	LastPing              *float32  `json:"last_ping,omitempty"`
-	Memory                *float32  `json:"memory,omitempty"`
-	MemoryUsage           *float32  `json:"memory_usage,omitempty"`
-	OccupancyRate         *float32  `json:"occupancy_rate,omitempty"`
-	StartedAt             time.Time `json:"started_at"`
-	Vcpus                 *float32  `json:"vcpus,omitempty"`
-	WmMemoryUsage         *float32  `json:"wm_memory_usage,omitempty"`
-	WmVersion             string    `json:"wm_version"`
-	Worker                string    `json:"worker"`
-	WorkerGroup           string    `json:"worker_group"`
-	WorkerInstance        string    `json:"worker_instance"`
+	CustomTags         *[]string `json:"custom_tags,omitempty"`
+	Ip                 string    `json:"ip"`
+	JobsExecuted       int       `json:"jobs_executed"`
+	LastJobId          *string   `json:"last_job_id,omitempty"`
+	LastJobWorkspaceId *string   `json:"last_job_workspace_id,omitempty"`
+	LastPing           *float32  `json:"last_ping,omitempty"`
+	Memory             *float32  `json:"memory,omitempty"`
+	MemoryUsage        *float32  `json:"memory_usage,omitempty"`
+	OccupancyRate      *float32  `json:"occupancy_rate,omitempty"`
+	StartedAt          time.Time `json:"started_at"`
+	Vcpus              *float32  `json:"vcpus,omitempty"`
+	WmMemoryUsage      *float32  `json:"wm_memory_usage,omitempty"`
+	WmVersion          string    `json:"wm_version"`
+	Worker             string    `json:"worker"`
+	WorkerGroup        string    `json:"worker_group"`
+	WorkerInstance     string    `json:"worker_instance"`
 }
 
 // WorkflowStatus defines model for WorkflowStatus.
@@ -2282,7 +2282,8 @@ type UpdateTutorialProgressJSONBody struct {
 
 // GlobalUserUpdateJSONBody defines parameters for GlobalUserUpdate.
 type GlobalUserUpdateJSONBody struct {
-	IsSuperAdmin *bool `json:"is_super_admin,omitempty"`
+	IsSuperAdmin *bool   `json:"is_super_admin,omitempty"`
+	Name         *string `json:"name,omitempty"`
 }
 
 // AddGranularAclsJSONBody defines parameters for AddGranularAcls.
@@ -2313,6 +2314,11 @@ type CreateAppJSONBody struct {
 	Policy            Policy      `json:"policy"`
 	Summary           string      `json:"summary"`
 	Value             interface{} `json:"value"`
+}
+
+// GetAppByPathParams defines parameters for GetAppByPath.
+type GetAppByPathParams struct {
+	WithStarredInfo *bool `form:"with_starred_info,omitempty" json:"with_starred_info,omitempty"`
 }
 
 // UpdateAppHistoryJSONBody defines parameters for UpdateAppHistory.
@@ -2559,6 +2565,11 @@ type CreateFlowJSONBody struct {
 	Value               FlowValue               `json:"value"`
 	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+}
+
+// GetFlowByPathParams defines parameters for GetFlowByPath.
+type GetFlowByPathParams struct {
+	WithStarredInfo *bool `form:"with_starred_info,omitempty" json:"with_starred_info,omitempty"`
 }
 
 // UpdateFlowHistoryJSONBody defines parameters for UpdateFlowHistory.
@@ -3679,6 +3690,16 @@ type UpdateScheduleJSONBody = EditSchedule
 
 // CreateScriptJSONBody defines parameters for CreateScript.
 type CreateScriptJSONBody = NewScript
+
+// GetScriptByHashParams defines parameters for GetScriptByHash.
+type GetScriptByHashParams struct {
+	WithStarredInfo *bool `form:"with_starred_info,omitempty" json:"with_starred_info,omitempty"`
+}
+
+// GetScriptByPathParams defines parameters for GetScriptByPath.
+type GetScriptByPathParams struct {
+	WithStarredInfo *bool `form:"with_starred_info,omitempty" json:"with_starred_info,omitempty"`
+}
 
 // UpdateScriptHistoryJSONBody defines parameters for UpdateScriptHistory.
 type UpdateScriptHistoryJSONBody struct {
@@ -6100,7 +6121,7 @@ type ClientInterface interface {
 	GetAppByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAppByPath request
-	GetAppByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetAppByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAppByVersion request
 	GetAppByVersion(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6203,7 +6224,7 @@ type ClientInterface interface {
 	GetFlowVersion(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFlowByPath request
-	GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFlowHistory request
 	GetFlowHistory(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6731,10 +6752,10 @@ type ClientInterface interface {
 	GetScriptByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetScriptByHash request
-	GetScriptByHash(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetScriptByHash(ctx context.Context, workspace WorkspaceId, hash ScriptHash, params *GetScriptByHashParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetScriptByPath request
-	GetScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetScriptHistoryByPath request
 	GetScriptHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8367,8 +8388,8 @@ func (c *Client) GetAppByPathWithDraft(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetAppByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAppByPathRequest(c.Server, workspace, path)
+func (c *Client) GetAppByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppByPathRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -8811,8 +8832,8 @@ func (c *Client) GetFlowVersion(ctx context.Context, workspace WorkspaceId, vers
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetFlowByPathRequest(c.Server, workspace, path)
+func (c *Client) GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowByPathRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -11139,8 +11160,8 @@ func (c *Client) GetScriptByPathWithDraft(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetScriptByHash(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetScriptByHashRequest(c.Server, workspace, hash)
+func (c *Client) GetScriptByHash(ctx context.Context, workspace WorkspaceId, hash ScriptHash, params *GetScriptByHashParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetScriptByHashRequest(c.Server, workspace, hash, params)
 	if err != nil {
 		return nil, err
 	}
@@ -11151,8 +11172,8 @@ func (c *Client) GetScriptByHash(ctx context.Context, workspace WorkspaceId, has
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetScriptByPathRequest(c.Server, workspace, path)
+func (c *Client) GetScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetScriptByPathRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -15651,7 +15672,7 @@ func NewGetAppByPathWithDraftRequest(server string, workspace WorkspaceId, path 
 }
 
 // NewGetAppByPathRequest generates requests for GetAppByPath
-func NewGetAppByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+func NewGetAppByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *GetAppByPathParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -15682,6 +15703,26 @@ func NewGetAppByPathRequest(server string, workspace WorkspaceId, path ScriptPat
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.WithStarredInfo != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_starred_info", runtime.ParamLocationQuery, *params.WithStarredInfo); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -17705,7 +17746,7 @@ func NewGetFlowVersionRequest(server string, workspace WorkspaceId, version floa
 }
 
 // NewGetFlowByPathRequest generates requests for GetFlowByPath
-func NewGetFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+func NewGetFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -17736,6 +17777,26 @@ func NewGetFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPa
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.WithStarredInfo != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_starred_info", runtime.ParamLocationQuery, *params.WithStarredInfo); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -28335,7 +28396,7 @@ func NewGetScriptByPathWithDraftRequest(server string, workspace WorkspaceId, pa
 }
 
 // NewGetScriptByHashRequest generates requests for GetScriptByHash
-func NewGetScriptByHashRequest(server string, workspace WorkspaceId, hash ScriptHash) (*http.Request, error) {
+func NewGetScriptByHashRequest(server string, workspace WorkspaceId, hash ScriptHash, params *GetScriptByHashParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -28367,6 +28428,26 @@ func NewGetScriptByHashRequest(server string, workspace WorkspaceId, hash Script
 		return nil, err
 	}
 
+	queryValues := queryURL.Query()
+
+	if params.WithStarredInfo != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_starred_info", runtime.ParamLocationQuery, *params.WithStarredInfo); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
@@ -28376,7 +28457,7 @@ func NewGetScriptByHashRequest(server string, workspace WorkspaceId, hash Script
 }
 
 // NewGetScriptByPathRequest generates requests for GetScriptByPath
-func NewGetScriptByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+func NewGetScriptByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *GetScriptByPathParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -28407,6 +28488,26 @@ func NewGetScriptByPathRequest(server string, workspace WorkspaceId, path Script
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.WithStarredInfo != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_starred_info", runtime.ParamLocationQuery, *params.WithStarredInfo); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -32249,7 +32350,7 @@ type ClientWithResponsesInterface interface {
 	GetAppByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathWithDraftResponse, error)
 
 	// GetAppByPath request
-	GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error)
+	GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppByPathParams, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error)
 
 	// GetAppByVersion request
 	GetAppByVersionWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAppByVersionResponse, error)
@@ -32352,7 +32453,7 @@ type ClientWithResponsesInterface interface {
 	GetFlowVersionWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowVersionResponse, error)
 
 	// GetFlowByPath request
-	GetFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathResponse, error)
+	GetFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams, reqEditors ...RequestEditorFn) (*GetFlowByPathResponse, error)
 
 	// GetFlowHistory request
 	GetFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowHistoryResponse, error)
@@ -32880,10 +32981,10 @@ type ClientWithResponsesInterface interface {
 	GetScriptByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptByPathWithDraftResponse, error)
 
 	// GetScriptByHash request
-	GetScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*GetScriptByHashResponse, error)
+	GetScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, params *GetScriptByHashParams, reqEditors ...RequestEditorFn) (*GetScriptByHashResponse, error)
 
 	// GetScriptByPath request
-	GetScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptByPathResponse, error)
+	GetScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptByPathParams, reqEditors ...RequestEditorFn) (*GetScriptByPathResponse, error)
 
 	// GetScriptHistoryByPath request
 	GetScriptHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptHistoryByPathResponse, error)
@@ -41541,8 +41642,8 @@ func (c *ClientWithResponses) GetAppByPathWithDraftWithResponse(ctx context.Cont
 }
 
 // GetAppByPathWithResponse request returning *GetAppByPathResponse
-func (c *ClientWithResponses) GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error) {
-	rsp, err := c.GetAppByPath(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppByPathParams, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error) {
+	rsp, err := c.GetAppByPath(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -41866,8 +41967,8 @@ func (c *ClientWithResponses) GetFlowVersionWithResponse(ctx context.Context, wo
 }
 
 // GetFlowByPathWithResponse request returning *GetFlowByPathResponse
-func (c *ClientWithResponses) GetFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathResponse, error) {
-	rsp, err := c.GetFlowByPath(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams, reqEditors ...RequestEditorFn) (*GetFlowByPathResponse, error) {
+	rsp, err := c.GetFlowByPath(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -43558,8 +43659,8 @@ func (c *ClientWithResponses) GetScriptByPathWithDraftWithResponse(ctx context.C
 }
 
 // GetScriptByHashWithResponse request returning *GetScriptByHashResponse
-func (c *ClientWithResponses) GetScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*GetScriptByHashResponse, error) {
-	rsp, err := c.GetScriptByHash(ctx, workspace, hash, reqEditors...)
+func (c *ClientWithResponses) GetScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, params *GetScriptByHashParams, reqEditors ...RequestEditorFn) (*GetScriptByHashResponse, error) {
+	rsp, err := c.GetScriptByHash(ctx, workspace, hash, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -43567,8 +43668,8 @@ func (c *ClientWithResponses) GetScriptByHashWithResponse(ctx context.Context, w
 }
 
 // GetScriptByPathWithResponse request returning *GetScriptByPathResponse
-func (c *ClientWithResponses) GetScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptByPathResponse, error) {
-	rsp, err := c.GetScriptByPath(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptByPathParams, reqEditors ...RequestEditorFn) (*GetScriptByPathResponse, error) {
+	rsp, err := c.GetScriptByPath(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
