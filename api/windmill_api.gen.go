@@ -173,6 +173,7 @@ const (
 	CompletedJobLanguagePostgresql CompletedJobLanguage = "postgresql"
 	CompletedJobLanguagePowershell CompletedJobLanguage = "powershell"
 	CompletedJobLanguagePython3    CompletedJobLanguage = "python3"
+	CompletedJobLanguageRust       CompletedJobLanguage = "rust"
 	CompletedJobLanguageSnowflake  CompletedJobLanguage = "snowflake"
 )
 
@@ -283,6 +284,7 @@ const (
 	NewScriptLanguagePostgresql NewScriptLanguage = "postgresql"
 	NewScriptLanguagePowershell NewScriptLanguage = "powershell"
 	NewScriptLanguagePython3    NewScriptLanguage = "python3"
+	NewScriptLanguageRust       NewScriptLanguage = "rust"
 	NewScriptLanguageSnowflake  NewScriptLanguage = "snowflake"
 )
 
@@ -310,6 +312,7 @@ const (
 	NewScriptWithDraftLanguagePostgresql NewScriptWithDraftLanguage = "postgresql"
 	NewScriptWithDraftLanguagePowershell NewScriptWithDraftLanguage = "powershell"
 	NewScriptWithDraftLanguagePython3    NewScriptWithDraftLanguage = "python3"
+	NewScriptWithDraftLanguageRust       NewScriptWithDraftLanguage = "rust"
 	NewScriptWithDraftLanguageSnowflake  NewScriptWithDraftLanguage = "snowflake"
 )
 
@@ -352,6 +355,7 @@ const (
 	PreviewLanguagePostgresql PreviewLanguage = "postgresql"
 	PreviewLanguagePowershell PreviewLanguage = "powershell"
 	PreviewLanguagePython3    PreviewLanguage = "python3"
+	PreviewLanguageRust       PreviewLanguage = "rust"
 	PreviewLanguageSnowflake  PreviewLanguage = "snowflake"
 )
 
@@ -385,6 +389,7 @@ const (
 	QueuedJobLanguagePostgresql QueuedJobLanguage = "postgresql"
 	QueuedJobLanguagePowershell QueuedJobLanguage = "powershell"
 	QueuedJobLanguagePython3    QueuedJobLanguage = "python3"
+	QueuedJobLanguageRust       QueuedJobLanguage = "rust"
 	QueuedJobLanguageSnowflake  QueuedJobLanguage = "snowflake"
 )
 
@@ -426,6 +431,7 @@ const (
 	RawScriptForDependenciesLanguagePostgresql RawScriptForDependenciesLanguage = "postgresql"
 	RawScriptForDependenciesLanguagePowershell RawScriptForDependenciesLanguage = "powershell"
 	RawScriptForDependenciesLanguagePython3    RawScriptForDependenciesLanguage = "python3"
+	RawScriptForDependenciesLanguageRust       RawScriptForDependenciesLanguage = "rust"
 	RawScriptForDependenciesLanguageSnowflake  RawScriptForDependenciesLanguage = "snowflake"
 )
 
@@ -460,6 +466,7 @@ const (
 	ScriptLanguagePostgresql ScriptLanguage = "postgresql"
 	ScriptLanguagePowershell ScriptLanguage = "powershell"
 	ScriptLanguagePython3    ScriptLanguage = "python3"
+	ScriptLanguageRust       ScriptLanguage = "rust"
 	ScriptLanguageSnowflake  ScriptLanguage = "snowflake"
 )
 
