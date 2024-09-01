@@ -2180,6 +2180,16 @@ type GetTopHubScriptsParams struct {
 	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
 }
 
+// ListLogFilesParams defines parameters for ListLogFiles.
+type ListLogFilesParams struct {
+	// filter on started before (inclusive) timestamp
+	Before *Before `form:"before,omitempty" json:"before,omitempty"`
+
+	// filter on created after (exclusive) timestamp
+	After     *After `form:"after,omitempty" json:"after,omitempty"`
+	WithError *bool  `form:"with_error,omitempty" json:"with_error,omitempty"`
+}
+
 // CreateCustomerPortalSessionParams defines parameters for CreateCustomerPortalSession.
 type CreateCustomerPortalSessionParams struct {
 	LicenseKey *string `form:"license_key,omitempty" json:"license_key,omitempty"`
@@ -2400,7 +2410,7 @@ type ListAuditLogsParams struct {
 	// number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
-	// filter on created before (exclusive) timestamp
+	// filter on started before (inclusive) timestamp
 	Before *Before `form:"before,omitempty" json:"before,omitempty"`
 
 	// filter on created after (exclusive) timestamp
@@ -5955,6 +5965,12 @@ type ClientInterface interface {
 	// RawScriptByPathTokened request
 	RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetLogFile request
+	GetLogFile(ctx context.Context, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListLogFiles request
+	ListLogFiles(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateCustomerPortalSession request
 	CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7629,6 +7645,30 @@ func (c *Client) GetTopHubScripts(ctx context.Context, params *GetTopHubScriptsP
 
 func (c *Client) RawScriptByPathTokened(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRawScriptByPathTokenedRequest(c.Server, workspace, token, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetLogFile(ctx context.Context, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLogFileRequest(c.Server, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListLogFiles(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListLogFilesRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -13887,6 +13927,119 @@ func NewRawScriptByPathTokenedRequest(server string, workspace WorkspaceId, toke
 	if err != nil {
 		return nil, err
 	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetLogFileRequest generates requests for GetLogFile
+func NewGetLogFileRequest(server string, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/service_logs/get_log_file/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListLogFilesRequest generates requests for ListLogFiles
+func NewListLogFilesRequest(server string, params *ListLogFilesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/service_logs/list_files")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Before != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "before", runtime.ParamLocationQuery, *params.Before); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.After != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "after", runtime.ParamLocationQuery, *params.After); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.WithError != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_error", runtime.ParamLocationQuery, *params.WithError); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -32184,6 +32337,12 @@ type ClientWithResponsesInterface interface {
 	// RawScriptByPathTokened request
 	RawScriptByPathTokenedWithResponse(ctx context.Context, workspace WorkspaceId, token Token, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByPathTokenedResponse, error)
 
+	// GetLogFile request
+	GetLogFileWithResponse(ctx context.Context, path Path, reqEditors ...RequestEditorFn) (*GetLogFileResponse, error)
+
+	// ListLogFiles request
+	ListLogFilesWithResponse(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*ListLogFilesResponse, error)
+
 	// CreateCustomerPortalSession request
 	CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
 
@@ -34155,6 +34314,58 @@ func (r RawScriptByPathTokenedResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RawScriptByPathTokenedResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetLogFileResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetLogFileResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetLogFileResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListLogFilesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		ErrLines    *int      `json:"err_lines,omitempty"`
+		FilePath    string    `json:"file_path"`
+		Hostname    string    `json:"hostname"`
+		JsonFmt     bool      `json:"json_fmt"`
+		LogTs       time.Time `json:"log_ts"`
+		Mode        string    `json:"mode"`
+		OkLines     *int      `json:"ok_lines,omitempty"`
+		WorkerGroup *string   `json:"worker_group,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListLogFilesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListLogFilesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -41098,6 +41309,24 @@ func (c *ClientWithResponses) RawScriptByPathTokenedWithResponse(ctx context.Con
 	return ParseRawScriptByPathTokenedResponse(rsp)
 }
 
+// GetLogFileWithResponse request returning *GetLogFileResponse
+func (c *ClientWithResponses) GetLogFileWithResponse(ctx context.Context, path Path, reqEditors ...RequestEditorFn) (*GetLogFileResponse, error) {
+	rsp, err := c.GetLogFile(ctx, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetLogFileResponse(rsp)
+}
+
+// ListLogFilesWithResponse request returning *ListLogFilesResponse
+func (c *ClientWithResponses) ListLogFilesWithResponse(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*ListLogFilesResponse, error) {
+	rsp, err := c.ListLogFiles(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListLogFilesResponse(rsp)
+}
+
 // CreateCustomerPortalSessionWithResponse request returning *CreateCustomerPortalSessionResponse
 func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error) {
 	rsp, err := c.CreateCustomerPortalSession(ctx, params, reqEditors...)
@@ -45483,6 +45712,57 @@ func ParseRawScriptByPathTokenedResponse(rsp *http.Response) (*RawScriptByPathTo
 	response := &RawScriptByPathTokenedResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetLogFileResponse parses an HTTP response from a GetLogFileWithResponse call
+func ParseGetLogFileResponse(rsp *http.Response) (*GetLogFileResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetLogFileResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListLogFilesResponse parses an HTTP response from a ListLogFilesWithResponse call
+func ParseListLogFilesResponse(rsp *http.Response) (*ListLogFilesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListLogFilesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			ErrLines    *int      `json:"err_lines,omitempty"`
+			FilePath    string    `json:"file_path"`
+			Hostname    string    `json:"hostname"`
+			JsonFmt     bool      `json:"json_fmt"`
+			LogTs       time.Time `json:"log_ts"`
+			Mode        string    `json:"mode"`
+			OkLines     *int      `json:"ok_lines,omitempty"`
+			WorkerGroup *string   `json:"worker_group,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
