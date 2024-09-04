@@ -2153,6 +2153,12 @@ type ConnectCallbackJSONBody struct {
 	State string `json:"state"`
 }
 
+// ConnectSlackCallbackInstanceJSONBody defines parameters for ConnectSlackCallbackInstance.
+type ConnectSlackCallbackInstanceJSONBody struct {
+	Code  string `json:"code"`
+	State string `json:"state"`
+}
+
 // LoginWithOauthJSONBody defines parameters for LoginWithOauth.
 type LoginWithOauthJSONBody struct {
 	Code  *string `json:"code,omitempty"`
@@ -4019,6 +4025,9 @@ type UpdateInstanceGroupJSONRequestBody UpdateInstanceGroupJSONBody
 
 // ConnectCallbackJSONRequestBody defines body for ConnectCallback for application/json ContentType.
 type ConnectCallbackJSONRequestBody ConnectCallbackJSONBody
+
+// ConnectSlackCallbackInstanceJSONRequestBody defines body for ConnectSlackCallbackInstance for application/json ContentType.
+type ConnectSlackCallbackInstanceJSONRequestBody ConnectSlackCallbackInstanceJSONBody
 
 // LoginWithOauthJSONRequestBody defines body for LoginWithOauth for application/json ContentType.
 type LoginWithOauthJSONRequestBody LoginWithOauthJSONBody
@@ -5929,6 +5938,11 @@ type ClientInterface interface {
 
 	ConnectCallback(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ConnectSlackCallbackInstance request with any body
+	ConnectSlackCallbackInstanceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ConnectSlackCallbackInstance(ctx context.Context, body ConnectSlackCallbackInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetOAuthConnect request
 	GetOAuthConnect(ctx context.Context, client string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7489,6 +7503,30 @@ func (c *Client) ConnectCallbackWithBody(ctx context.Context, clientName ClientN
 
 func (c *Client) ConnectCallback(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConnectCallbackRequest(c.Server, clientName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectSlackCallbackInstanceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectSlackCallbackInstanceRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectSlackCallbackInstance(ctx context.Context, body ConnectSlackCallbackInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectSlackCallbackInstanceRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -13507,6 +13545,46 @@ func NewConnectCallbackRequestWithBody(server string, clientName ClientName, con
 	}
 
 	operationPath := fmt.Sprintf("/oauth/connect_callback/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewConnectSlackCallbackInstanceRequest calls the generic ConnectSlackCallbackInstance builder with application/json body
+func NewConnectSlackCallbackInstanceRequest(server string, body ConnectSlackCallbackInstanceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewConnectSlackCallbackInstanceRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewConnectSlackCallbackInstanceRequestWithBody generates requests for ConnectSlackCallbackInstance with any type of body
+func NewConnectSlackCallbackInstanceRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oauth/connect_slack_callback")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -32301,6 +32379,11 @@ type ClientWithResponsesInterface interface {
 
 	ConnectCallbackWithResponse(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error)
 
+	// ConnectSlackCallbackInstance request with any body
+	ConnectSlackCallbackInstanceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackInstanceResponse, error)
+
+	ConnectSlackCallbackInstanceWithResponse(ctx context.Context, body ConnectSlackCallbackInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackInstanceResponse, error)
+
 	// GetOAuthConnect request
 	GetOAuthConnectWithResponse(ctx context.Context, client string, reqEditors ...RequestEditorFn) (*GetOAuthConnectResponse, error)
 
@@ -34076,6 +34159,27 @@ func (r ConnectCallbackResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ConnectCallbackResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ConnectSlackCallbackInstanceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ConnectSlackCallbackInstanceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ConnectSlackCallbackInstanceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -41195,6 +41299,23 @@ func (c *ClientWithResponses) ConnectCallbackWithResponse(ctx context.Context, c
 	return ParseConnectCallbackResponse(rsp)
 }
 
+// ConnectSlackCallbackInstanceWithBodyWithResponse request with arbitrary body returning *ConnectSlackCallbackInstanceResponse
+func (c *ClientWithResponses) ConnectSlackCallbackInstanceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackInstanceResponse, error) {
+	rsp, err := c.ConnectSlackCallbackInstanceWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectSlackCallbackInstanceResponse(rsp)
+}
+
+func (c *ClientWithResponses) ConnectSlackCallbackInstanceWithResponse(ctx context.Context, body ConnectSlackCallbackInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackInstanceResponse, error) {
+	rsp, err := c.ConnectSlackCallbackInstance(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectSlackCallbackInstanceResponse(rsp)
+}
+
 // GetOAuthConnectWithResponse request returning *GetOAuthConnectResponse
 func (c *ClientWithResponses) GetOAuthConnectWithResponse(ctx context.Context, client string, reqEditors ...RequestEditorFn) (*GetOAuthConnectResponse, error) {
 	rsp, err := c.GetOAuthConnect(ctx, client, reqEditors...)
@@ -45479,6 +45600,22 @@ func ParseConnectCallbackResponse(rsp *http.Response) (*ConnectCallbackResponse,
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseConnectSlackCallbackInstanceResponse parses an HTTP response from a ConnectSlackCallbackInstanceWithResponse call
+func ParseConnectSlackCallbackInstanceResponse(rsp *http.Response) (*ConnectSlackCallbackInstanceResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ConnectSlackCallbackInstanceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
