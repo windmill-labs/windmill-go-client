@@ -743,6 +743,8 @@ type EditSchedule struct {
 	OnRecovery          *string     `json:"on_recovery,omitempty"`
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
+	OnSuccess           *string     `json:"on_success,omitempty"`
+	OnSuccessExtraArgs  *ScriptArgs `json:"on_success_extra_args,omitempty"`
 	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
 	Retry               *Retry      `json:"retry,omitempty"`
 	Schedule            string      `json:"schedule"`
@@ -1254,6 +1256,8 @@ type NewSchedule struct {
 	OnRecovery          *string     `json:"on_recovery,omitempty"`
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
+	OnSuccess           *string     `json:"on_success,omitempty"`
+	OnSuccessExtraArgs  *ScriptArgs `json:"on_success_extra_args,omitempty"`
 	Path                string      `json:"path"`
 	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
 	Retry               *Retry      `json:"retry,omitempty"`
@@ -1627,6 +1631,8 @@ type Schedule struct {
 	OnRecovery          *string             `json:"on_recovery,omitempty"`
 	OnRecoveryExtraArgs *ScriptArgs         `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32            `json:"on_recovery_times,omitempty"`
+	OnSuccess           *string             `json:"on_success,omitempty"`
+	OnSuccessExtraArgs  *ScriptArgs         `json:"on_success_extra_args,omitempty"`
 	Path                string              `json:"path"`
 	PausedUntil         *time.Time          `json:"paused_until,omitempty"`
 	Retry               *Retry              `json:"retry,omitempty"`
@@ -1666,6 +1672,8 @@ type ScheduleWJobs struct {
 	OnRecovery          *string     `json:"on_recovery,omitempty"`
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
+	OnSuccess           *string     `json:"on_success,omitempty"`
+	OnSuccessExtraArgs  *ScriptArgs `json:"on_success_extra_args,omitempty"`
 	Path                string      `json:"path"`
 	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
 	Retry               *Retry      `json:"retry,omitempty"`
@@ -1960,6 +1968,12 @@ type ClientName = string
 
 // ConcurrencyId defines model for ConcurrencyId.
 type ConcurrencyId = string
+
+// CreatedAfter defines model for CreatedAfter.
+type CreatedAfter = time.Time
+
+// CreatedBefore defines model for CreatedBefore.
+type CreatedBefore = time.Time
 
 // CreatedBy defines model for CreatedBy.
 type CreatedBy = string
@@ -3026,6 +3040,12 @@ type ListJobsParams struct {
 
 	// filter on started after (exclusive) timestamp
 	StartedAfter *StartedAfter `form:"started_after,omitempty" json:"started_after,omitempty"`
+
+	// filter on created before (inclusive) timestamp
+	CreatedBefore *CreatedBefore `form:"created_before,omitempty" json:"created_before,omitempty"`
+
+	// filter on created after (exclusive) timestamp
+	CreatedAfter *CreatedAfter `form:"created_after,omitempty" json:"created_after,omitempty"`
 
 	// filter on created_at for non non started job and started_at otherwise before (inclusive) timestamp
 	CreatedOrStartedBefore *CreatedOrStartedBefore `form:"created_or_started_before,omitempty" json:"created_or_started_before,omitempty"`
@@ -22202,6 +22222,38 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	if params.StartedAfter != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_after", runtime.ParamLocationQuery, *params.StartedAfter); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CreatedBefore != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_before", runtime.ParamLocationQuery, *params.CreatedBefore); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.CreatedAfter != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_after", runtime.ParamLocationQuery, *params.CreatedAfter); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
