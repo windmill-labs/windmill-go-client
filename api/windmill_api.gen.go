@@ -2614,15 +2614,6 @@ type UpdateFlowHistoryJSONBody struct {
 	DeploymentMsg string `json:"deployment_msg"`
 }
 
-// GetFlowInputHistoryByPathParams defines parameters for GetFlowInputHistoryByPath.
-type GetFlowInputHistoryByPathParams struct {
-	// which page to return (start at 1, default 1)
-	Page *Page `form:"page,omitempty" json:"page,omitempty"`
-
-	// number of items to return for a given page (default 30, max 100)
-	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
-}
-
 // ListFlowsParams defines parameters for ListFlows.
 type ListFlowsParams struct {
 	// which page to return (start at 1, default 1)
@@ -6291,9 +6282,6 @@ type ClientInterface interface {
 
 	UpdateFlowHistory(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetFlowInputHistoryByPath request
-	GetFlowInputHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ListFlows request
 	ListFlows(ctx context.Context, workspace WorkspaceId, params *ListFlowsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8975,18 +8963,6 @@ func (c *Client) UpdateFlowHistoryWithBody(ctx context.Context, workspace Worksp
 
 func (c *Client) UpdateFlowHistory(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateFlowHistoryRequest(c.Server, workspace, version, path, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetFlowInputHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetFlowInputHistoryByPathRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -18162,83 +18138,6 @@ func NewUpdateFlowHistoryRequestWithBody(server string, workspace WorkspaceId, v
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetFlowInputHistoryByPathRequest generates requests for GetFlowInputHistoryByPath
-func NewGetFlowInputHistoryByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/flows/input_history/p/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	queryValues := queryURL.Query()
-
-	if params.Page != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
-	if params.PerPage != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
-	queryURL.RawQuery = queryValues.Encode()
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -32764,9 +32663,6 @@ type ClientWithResponsesInterface interface {
 
 	UpdateFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error)
 
-	// GetFlowInputHistoryByPath request
-	GetFlowInputHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams, reqEditors ...RequestEditorFn) (*GetFlowInputHistoryByPathResponse, error)
-
 	// ListFlows request
 	ListFlowsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFlowsParams, reqEditors ...RequestEditorFn) (*ListFlowsResponse, error)
 
@@ -36250,28 +36146,6 @@ func (r UpdateFlowHistoryResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateFlowHistoryResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetFlowInputHistoryByPathResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *[]Input
-}
-
-// Status returns HTTPResponse.Status
-func (r GetFlowInputHistoryByPathResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetFlowInputHistoryByPathResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -42410,15 +42284,6 @@ func (c *ClientWithResponses) UpdateFlowHistoryWithResponse(ctx context.Context,
 	return ParseUpdateFlowHistoryResponse(rsp)
 }
 
-// GetFlowInputHistoryByPathWithResponse request returning *GetFlowInputHistoryByPathResponse
-func (c *ClientWithResponses) GetFlowInputHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowInputHistoryByPathParams, reqEditors ...RequestEditorFn) (*GetFlowInputHistoryByPathResponse, error) {
-	rsp, err := c.GetFlowInputHistoryByPath(ctx, workspace, path, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetFlowInputHistoryByPathResponse(rsp)
-}
-
 // ListFlowsWithResponse request returning *ListFlowsResponse
 func (c *ClientWithResponses) ListFlowsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFlowsParams, reqEditors ...RequestEditorFn) (*ListFlowsResponse, error) {
 	rsp, err := c.ListFlows(ctx, workspace, params, reqEditors...)
@@ -47596,32 +47461,6 @@ func ParseUpdateFlowHistoryResponse(rsp *http.Response) (*UpdateFlowHistoryRespo
 	response := &UpdateFlowHistoryResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseGetFlowInputHistoryByPathResponse parses an HTTP response from a GetFlowInputHistoryByPathWithResponse call
-func ParseGetFlowInputHistoryByPathResponse(rsp *http.Response) (*GetFlowInputHistoryByPathResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetFlowInputHistoryByPathResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []Input
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
 	}
 
 	return response, nil
