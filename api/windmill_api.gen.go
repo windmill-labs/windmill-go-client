@@ -1409,6 +1409,7 @@ type PathScript struct {
 	Hash            *string                    `json:"hash,omitempty"`
 	InputTransforms PathScript_InputTransforms `json:"input_transforms"`
 	Path            string                     `json:"path"`
+	TagOverride     *string                    `json:"tag_override,omitempty"`
 	Type            PathScriptType             `json:"type"`
 }
 
