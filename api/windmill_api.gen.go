@@ -2879,6 +2879,13 @@ type LoadParquetPreviewParams struct {
 	Storage    *string  `form:"storage,omitempty" json:"storage,omitempty"`
 }
 
+// LoadTableRowCountParams defines parameters for LoadTableRowCount.
+type LoadTableRowCountParams struct {
+	SearchCol  *string `form:"search_col,omitempty" json:"search_col,omitempty"`
+	SearchTerm *string `form:"search_term,omitempty" json:"search_term,omitempty"`
+	Storage    *string `form:"storage,omitempty" json:"storage,omitempty"`
+}
+
 // MoveS3FileParams defines parameters for MoveS3File.
 type MoveS3FileParams struct {
 	SrcFileKey  string  `form:"src_file_key" json:"src_file_key"`
@@ -6420,6 +6427,9 @@ type ClientInterface interface {
 	// LoadParquetPreview request
 	LoadParquetPreview(ctx context.Context, workspace WorkspaceId, path Path, params *LoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// LoadTableRowCount request
+	LoadTableRowCount(ctx context.Context, workspace WorkspaceId, path Path, params *LoadTableRowCountParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// MoveS3File request
 	MoveS3File(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9564,6 +9574,18 @@ func (c *Client) LoadFilePreview(ctx context.Context, workspace WorkspaceId, par
 
 func (c *Client) LoadParquetPreview(ctx context.Context, workspace WorkspaceId, path Path, params *LoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLoadParquetPreviewRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LoadTableRowCount(ctx context.Context, workspace WorkspaceId, path Path, params *LoadTableRowCountParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoadTableRowCountRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -20730,6 +20752,99 @@ func NewLoadParquetPreviewRequest(server string, workspace WorkspaceId, path Pat
 		}
 
 	}
+
+	if params.SearchCol != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_col", runtime.ParamLocationQuery, *params.SearchCol); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SearchTerm != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_term", runtime.ParamLocationQuery, *params.SearchTerm); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Storage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewLoadTableRowCountRequest generates requests for LoadTableRowCount
+func NewLoadTableRowCountRequest(server string, workspace WorkspaceId, path Path, params *LoadTableRowCountParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/load_table_count/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
 
 	if params.SearchCol != nil {
 
@@ -32801,6 +32916,9 @@ type ClientWithResponsesInterface interface {
 	// LoadParquetPreview request
 	LoadParquetPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *LoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*LoadParquetPreviewResponse, error)
 
+	// LoadTableRowCount request
+	LoadTableRowCountWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *LoadTableRowCountParams, reqEditors ...RequestEditorFn) (*LoadTableRowCountResponse, error)
+
 	// MoveS3File request
 	MoveS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*MoveS3FileResponse, error)
 
@@ -36979,6 +37097,30 @@ func (r LoadParquetPreviewResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LoadParquetPreviewResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LoadTableRowCountResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Count *float32 `json:"count,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r LoadTableRowCountResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LoadTableRowCountResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -42722,6 +42864,15 @@ func (c *ClientWithResponses) LoadParquetPreviewWithResponse(ctx context.Context
 	return ParseLoadParquetPreviewResponse(rsp)
 }
 
+// LoadTableRowCountWithResponse request returning *LoadTableRowCountResponse
+func (c *ClientWithResponses) LoadTableRowCountWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *LoadTableRowCountParams, reqEditors ...RequestEditorFn) (*LoadTableRowCountResponse, error) {
+	rsp, err := c.LoadTableRowCount(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoadTableRowCountResponse(rsp)
+}
+
 // MoveS3FileWithResponse request returning *MoveS3FileResponse
 func (c *ClientWithResponses) MoveS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *MoveS3FileParams, reqEditors ...RequestEditorFn) (*MoveS3FileResponse, error) {
 	rsp, err := c.MoveS3File(ctx, workspace, params, reqEditors...)
@@ -48275,6 +48426,34 @@ func ParseLoadParquetPreviewResponse(rsp *http.Response) (*LoadParquetPreviewRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseLoadTableRowCountResponse parses an HTTP response from a LoadTableRowCountWithResponse call
+func ParseLoadTableRowCountResponse(rsp *http.Response) (*LoadTableRowCountResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LoadTableRowCountResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Count *float32 `json:"count,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
