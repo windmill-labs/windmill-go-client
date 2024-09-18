@@ -922,6 +922,7 @@ type FlowStatus struct {
 		} `json:"iterator,omitempty"`
 		Job          *openapi_types.UUID         `json:"job,omitempty"`
 		ParentModule *string                     `json:"parent_module,omitempty"`
+		Progress     *int                        `json:"progress,omitempty"`
 		Type         FlowStatusFailureModuleType `json:"type"`
 	} `json:"failure_module"`
 	Modules []FlowStatusModule `json:"modules"`
@@ -968,8 +969,9 @@ type FlowStatusModule struct {
 		Index  *int           `json:"index,omitempty"`
 		Itered *[]interface{} `json:"itered,omitempty"`
 	} `json:"iterator,omitempty"`
-	Job  *openapi_types.UUID  `json:"job,omitempty"`
-	Type FlowStatusModuleType `json:"type"`
+	Job      *openapi_types.UUID  `json:"job,omitempty"`
+	Progress *int                 `json:"progress,omitempty"`
+	Type     FlowStatusModuleType `json:"type"`
 }
 
 // FlowStatusModuleBranchChosenType defines model for FlowStatusModule.BranchChosen.Type.
@@ -2934,6 +2936,12 @@ type GetJobMetricsJSONBody struct {
 	ToTimestamp             *time.Time `json:"to_timestamp,omitempty"`
 }
 
+// SetJobProgressJSONBody defines parameters for SetJobProgress.
+type SetJobProgressJSONBody struct {
+	FlowJobId *openapi_types.UUID `json:"flow_job_id,omitempty"`
+	Percent   *int                `json:"percent,omitempty"`
+}
+
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
 type ListCompletedJobsParams struct {
 	// order by desc order (default true)
@@ -3543,8 +3551,9 @@ type GetSuspendedJobFlowParams struct {
 
 // GetJobUpdatesParams defines parameters for GetJobUpdates.
 type GetJobUpdatesParams struct {
-	Running   *bool `form:"running,omitempty" json:"running,omitempty"`
-	LogOffset *int  `form:"log_offset,omitempty" json:"log_offset,omitempty"`
+	Running     *bool `form:"running,omitempty" json:"running,omitempty"`
+	LogOffset   *int  `form:"log_offset,omitempty" json:"log_offset,omitempty"`
+	GetProgress *bool `form:"get_progress,omitempty" json:"get_progress,omitempty"`
 }
 
 // CancelQueuedJobJSONBody defines parameters for CancelQueuedJob.
@@ -4188,6 +4197,9 @@ type S3ResourceInfoJSONRequestBody S3ResourceInfoJSONBody
 
 // GetJobMetricsJSONRequestBody defines body for GetJobMetrics for application/json ContentType.
 type GetJobMetricsJSONRequestBody GetJobMetricsJSONBody
+
+// SetJobProgressJSONRequestBody defines body for SetJobProgress for application/json ContentType.
+type SetJobProgressJSONRequestBody SetJobProgressJSONBody
 
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
@@ -6463,6 +6475,14 @@ type ClientInterface interface {
 	GetJobMetricsWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	GetJobMetrics(ctx context.Context, workspace WorkspaceId, id JobId, body GetJobMetricsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetJobProgress request
+	GetJobProgress(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetJobProgress request with any body
+	SetJobProgressWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetJobProgress(ctx context.Context, workspace WorkspaceId, id JobId, body SetJobProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCompletedCount request
 	GetCompletedCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9742,6 +9762,42 @@ func (c *Client) GetJobMetricsWithBody(ctx context.Context, workspace WorkspaceI
 
 func (c *Client) GetJobMetrics(ctx context.Context, workspace WorkspaceId, id JobId, body GetJobMetricsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetJobMetricsRequest(c.Server, workspace, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetJobProgress(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetJobProgressRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetJobProgressWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetJobProgressRequestWithBody(c.Server, workspace, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetJobProgress(ctx context.Context, workspace WorkspaceId, id JobId, body SetJobProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetJobProgressRequest(c.Server, workspace, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -21398,6 +21454,101 @@ func NewGetJobMetricsRequestWithBody(server string, workspace WorkspaceId, id Jo
 	return req, nil
 }
 
+// NewGetJobProgressRequest generates requests for GetJobProgress
+func NewGetJobProgressRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_metrics/get_progress/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetJobProgressRequest calls the generic SetJobProgress builder with application/json body
+func NewSetJobProgressRequest(server string, workspace WorkspaceId, id JobId, body SetJobProgressJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetJobProgressRequestWithBody(server, workspace, id, "application/json", bodyReader)
+}
+
+// NewSetJobProgressRequestWithBody generates requests for SetJobProgress with any type of body
+func NewSetJobProgressRequestWithBody(server string, workspace WorkspaceId, id JobId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_metrics/set_progress/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetCompletedCountRequest generates requests for GetCompletedCount
 func NewGetCompletedCountRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -25991,6 +26142,22 @@ func NewGetJobUpdatesRequest(server string, workspace WorkspaceId, id JobId, par
 	if params.LogOffset != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "log_offset", runtime.ParamLocationQuery, *params.LogOffset); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.GetProgress != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_progress", runtime.ParamLocationQuery, *params.GetProgress); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -32953,6 +33120,14 @@ type ClientWithResponsesInterface interface {
 
 	GetJobMetricsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body GetJobMetricsJSONRequestBody, reqEditors ...RequestEditorFn) (*GetJobMetricsResponse, error)
 
+	// GetJobProgress request
+	GetJobProgressWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobProgressResponse, error)
+
+	// SetJobProgress request with any body
+	SetJobProgressWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetJobProgressResponse, error)
+
+	SetJobProgressWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body SetJobProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*SetJobProgressResponse, error)
+
 	// GetCompletedCount request
 	GetCompletedCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCompletedCountResponse, error)
 
@@ -37334,6 +37509,50 @@ func (r GetJobMetricsResponse) StatusCode() int {
 	return 0
 }
 
+type GetJobProgressResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *int
+}
+
+// Status returns HTTPResponse.Status
+func (r GetJobProgressResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetJobProgressResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetJobProgressResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r SetJobProgressResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetJobProgressResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetCompletedCountResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -38209,6 +38428,7 @@ type GetJobUpdatesResponse struct {
 		LogOffset  *int                  `json:"log_offset,omitempty"`
 		MemPeak    *int                  `json:"mem_peak,omitempty"`
 		NewLogs    *string               `json:"new_logs,omitempty"`
+		Progress   *int                  `json:"progress,omitempty"`
 		Running    *bool                 `json:"running,omitempty"`
 	}
 }
@@ -42983,6 +43203,32 @@ func (c *ClientWithResponses) GetJobMetricsWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseGetJobMetricsResponse(rsp)
+}
+
+// GetJobProgressWithResponse request returning *GetJobProgressResponse
+func (c *ClientWithResponses) GetJobProgressWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobProgressResponse, error) {
+	rsp, err := c.GetJobProgress(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetJobProgressResponse(rsp)
+}
+
+// SetJobProgressWithBodyWithResponse request with arbitrary body returning *SetJobProgressResponse
+func (c *ClientWithResponses) SetJobProgressWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetJobProgressResponse, error) {
+	rsp, err := c.SetJobProgressWithBody(ctx, workspace, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetJobProgressResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetJobProgressWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body SetJobProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*SetJobProgressResponse, error) {
+	rsp, err := c.SetJobProgress(ctx, workspace, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetJobProgressResponse(rsp)
 }
 
 // GetCompletedCountWithResponse request returning *GetCompletedCountResponse
@@ -48703,6 +48949,58 @@ func ParseGetJobMetricsResponse(rsp *http.Response) (*GetJobMetricsResponse, err
 	return response, nil
 }
 
+// ParseGetJobProgressResponse parses an HTTP response from a GetJobProgressWithResponse call
+func ParseGetJobProgressResponse(rsp *http.Response) (*GetJobProgressResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetJobProgressResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest int
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetJobProgressResponse parses an HTTP response from a SetJobProgressWithResponse call
+func ParseSetJobProgressResponse(rsp *http.Response) (*SetJobProgressResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetJobProgressResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetCompletedCountResponse parses an HTTP response from a GetCompletedCountWithResponse call
 func ParseGetCompletedCountResponse(rsp *http.Response) (*GetCompletedCountResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -49620,6 +49918,7 @@ func ParseGetJobUpdatesResponse(rsp *http.Response) (*GetJobUpdatesResponse, err
 			LogOffset  *int                  `json:"log_offset,omitempty"`
 			MemPeak    *int                  `json:"mem_peak,omitempty"`
 			NewLogs    *string               `json:"new_logs,omitempty"`
+			Progress   *int                  `json:"progress,omitempty"`
 			Running    *bool                 `json:"running,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
