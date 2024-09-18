@@ -160,6 +160,7 @@ const (
 
 // Defines values for CompletedJobLanguage.
 const (
+	CompletedJobLanguageAnsible    CompletedJobLanguage = "ansible"
 	CompletedJobLanguageBash       CompletedJobLanguage = "bash"
 	CompletedJobLanguageBigquery   CompletedJobLanguage = "bigquery"
 	CompletedJobLanguageBun        CompletedJobLanguage = "bun"
@@ -271,6 +272,7 @@ const (
 
 // Defines values for NewScriptLanguage.
 const (
+	NewScriptLanguageAnsible    NewScriptLanguage = "ansible"
 	NewScriptLanguageBash       NewScriptLanguage = "bash"
 	NewScriptLanguageBigquery   NewScriptLanguage = "bigquery"
 	NewScriptLanguageBun        NewScriptLanguage = "bun"
@@ -299,6 +301,7 @@ const (
 
 // Defines values for NewScriptWithDraftLanguage.
 const (
+	NewScriptWithDraftLanguageAnsible    NewScriptWithDraftLanguage = "ansible"
 	NewScriptWithDraftLanguageBash       NewScriptWithDraftLanguage = "bash"
 	NewScriptWithDraftLanguageBigquery   NewScriptWithDraftLanguage = "bigquery"
 	NewScriptWithDraftLanguageBun        NewScriptWithDraftLanguage = "bun"
@@ -342,6 +345,7 @@ const (
 
 // Defines values for PreviewLanguage.
 const (
+	PreviewLanguageAnsible    PreviewLanguage = "ansible"
 	PreviewLanguageBash       PreviewLanguage = "bash"
 	PreviewLanguageBigquery   PreviewLanguage = "bigquery"
 	PreviewLanguageBun        PreviewLanguage = "bun"
@@ -376,6 +380,7 @@ const (
 
 // Defines values for QueuedJobLanguage.
 const (
+	QueuedJobLanguageAnsible    QueuedJobLanguage = "ansible"
 	QueuedJobLanguageBash       QueuedJobLanguage = "bash"
 	QueuedJobLanguageBigquery   QueuedJobLanguage = "bigquery"
 	QueuedJobLanguageBun        QueuedJobLanguage = "bun"
@@ -418,6 +423,7 @@ const (
 
 // Defines values for RawScriptForDependenciesLanguage.
 const (
+	RawScriptForDependenciesLanguageAnsible    RawScriptForDependenciesLanguage = "ansible"
 	RawScriptForDependenciesLanguageBash       RawScriptForDependenciesLanguage = "bash"
 	RawScriptForDependenciesLanguageBigquery   RawScriptForDependenciesLanguage = "bigquery"
 	RawScriptForDependenciesLanguageBun        RawScriptForDependenciesLanguage = "bun"
@@ -453,6 +459,7 @@ const (
 
 // Defines values for ScriptLanguage.
 const (
+	ScriptLanguageAnsible    ScriptLanguage = "ansible"
 	ScriptLanguageBash       ScriptLanguage = "bash"
 	ScriptLanguageBigquery   ScriptLanguage = "bigquery"
 	ScriptLanguageBun        ScriptLanguage = "bun"
@@ -1567,12 +1574,13 @@ type Resource_ExtraPerms struct {
 
 // ResourceType defines model for ResourceType.
 type ResourceType struct {
-	CreatedBy   *string      `json:"created_by,omitempty"`
-	Description *string      `json:"description,omitempty"`
-	EditedAt    *time.Time   `json:"edited_at,omitempty"`
-	Name        string       `json:"name"`
-	Schema      *interface{} `json:"schema,omitempty"`
-	WorkspaceId *string      `json:"workspace_id,omitempty"`
+	CreatedBy       *string      `json:"created_by,omitempty"`
+	Description     *string      `json:"description,omitempty"`
+	EditedAt        *time.Time   `json:"edited_at,omitempty"`
+	FormatExtension *string      `json:"format_extension,omitempty"`
+	Name            string       `json:"name"`
+	Schema          *interface{} `json:"schema,omitempty"`
+	WorkspaceId     *string      `json:"workspace_id,omitempty"`
 }
 
 // RestartedFrom defines model for RestartedFrom.
@@ -6713,6 +6721,9 @@ type ClientInterface interface {
 	// ExistsResource request
 	ExistsResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// FileResourceTypeToFileExtMap request
+	FileResourceTypeToFileExtMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetResource request
 	GetResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10818,6 +10829,18 @@ func (c *Client) DeleteResource(ctx context.Context, workspace WorkspaceId, path
 
 func (c *Client) ExistsResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsResourceRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) FileResourceTypeToFileExtMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFileResourceTypeToFileExtMapRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -27268,6 +27291,40 @@ func NewExistsResourceRequest(server string, workspace WorkspaceId, path Path) (
 	return req, nil
 }
 
+// NewFileResourceTypeToFileExtMapRequest generates requests for FileResourceTypeToFileExtMap
+func NewFileResourceTypeToFileExtMapRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/file_resource_type_to_file_ext_map", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetResourceRequest generates requests for GetResource
 func NewGetResourceRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
 	var err error
@@ -33357,6 +33414,9 @@ type ClientWithResponsesInterface interface {
 	// ExistsResource request
 	ExistsResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsResourceResponse, error)
 
+	// FileResourceTypeToFileExtMap request
+	FileResourceTypeToFileExtMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*FileResourceTypeToFileExtMapResponse, error)
+
 	// GetResource request
 	GetResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceResponse, error)
 
@@ -38851,6 +38911,28 @@ func (r ExistsResourceResponse) StatusCode() int {
 	return 0
 }
 
+type FileResourceTypeToFileExtMapResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r FileResourceTypeToFileExtMapResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r FileResourceTypeToFileExtMapResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetResourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -43968,6 +44050,15 @@ func (c *ClientWithResponses) ExistsResourceWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseExistsResourceResponse(rsp)
+}
+
+// FileResourceTypeToFileExtMapWithResponse request returning *FileResourceTypeToFileExtMapResponse
+func (c *ClientWithResponses) FileResourceTypeToFileExtMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*FileResourceTypeToFileExtMapResponse, error) {
+	rsp, err := c.FileResourceTypeToFileExtMap(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFileResourceTypeToFileExtMapResponse(rsp)
 }
 
 // GetResourceWithResponse request returning *GetResourceResponse
@@ -50255,6 +50346,32 @@ func ParseExistsResourceResponse(rsp *http.Response) (*ExistsResourceResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseFileResourceTypeToFileExtMapResponse parses an HTTP response from a FileResourceTypeToFileExtMapWithResponse call
+func ParseFileResourceTypeToFileExtMapResponse(rsp *http.Response) (*FileResourceTypeToFileExtMapResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &FileResourceTypeToFileExtMapResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
