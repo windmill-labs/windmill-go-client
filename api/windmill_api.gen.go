@@ -178,6 +178,15 @@ const (
 	CompletedJobLanguageSnowflake  CompletedJobLanguage = "snowflake"
 )
 
+// Defines values for EditHttpTriggerHttpMethod.
+const (
+	EditHttpTriggerHttpMethodDelete EditHttpTriggerHttpMethod = "delete"
+	EditHttpTriggerHttpMethodGet    EditHttpTriggerHttpMethod = "get"
+	EditHttpTriggerHttpMethodPatch  EditHttpTriggerHttpMethod = "patch"
+	EditHttpTriggerHttpMethodPost   EditHttpTriggerHttpMethod = "post"
+	EditHttpTriggerHttpMethodPut    EditHttpTriggerHttpMethod = "put"
+)
+
 // Defines values for FlowStatusFailureModuleBranchChosenType.
 const (
 	FlowStatusFailureModuleBranchChosenTypeBranch  FlowStatusFailureModuleBranchChosenType = "branch"
@@ -194,10 +203,26 @@ const (
 	FlowStatusFailureModuleTypeWaitingForPriorSteps FlowStatusFailureModuleType = "WaitingForPriorSteps"
 )
 
+// Defines values for FlowStatusPreprocessorModuleBranchChosenType.
+const (
+	FlowStatusPreprocessorModuleBranchChosenTypeBranch  FlowStatusPreprocessorModuleBranchChosenType = "branch"
+	FlowStatusPreprocessorModuleBranchChosenTypeDefault FlowStatusPreprocessorModuleBranchChosenType = "default"
+)
+
+// Defines values for FlowStatusPreprocessorModuleType.
+const (
+	FlowStatusPreprocessorModuleTypeFailure              FlowStatusPreprocessorModuleType = "Failure"
+	FlowStatusPreprocessorModuleTypeInProgress           FlowStatusPreprocessorModuleType = "InProgress"
+	FlowStatusPreprocessorModuleTypeSuccess              FlowStatusPreprocessorModuleType = "Success"
+	FlowStatusPreprocessorModuleTypeWaitingForEvents     FlowStatusPreprocessorModuleType = "WaitingForEvents"
+	FlowStatusPreprocessorModuleTypeWaitingForExecutor   FlowStatusPreprocessorModuleType = "WaitingForExecutor"
+	FlowStatusPreprocessorModuleTypeWaitingForPriorSteps FlowStatusPreprocessorModuleType = "WaitingForPriorSteps"
+)
+
 // Defines values for FlowStatusModuleBranchChosenType.
 const (
-	FlowStatusModuleBranchChosenTypeBranch  FlowStatusModuleBranchChosenType = "branch"
-	FlowStatusModuleBranchChosenTypeDefault FlowStatusModuleBranchChosenType = "default"
+	Branch  FlowStatusModuleBranchChosenType = "branch"
+	Default FlowStatusModuleBranchChosenType = "default"
 )
 
 // Defines values for FlowStatusModuleType.
@@ -236,6 +261,15 @@ const (
 	Password GlobalUserInfoLoginType = "password"
 )
 
+// Defines values for HttpTriggerHttpMethod.
+const (
+	HttpTriggerHttpMethodDelete HttpTriggerHttpMethod = "delete"
+	HttpTriggerHttpMethodGet    HttpTriggerHttpMethod = "get"
+	HttpTriggerHttpMethodPatch  HttpTriggerHttpMethod = "patch"
+	HttpTriggerHttpMethodPost   HttpTriggerHttpMethod = "post"
+	HttpTriggerHttpMethodPut    HttpTriggerHttpMethod = "put"
+)
+
 // Defines values for IdentityType.
 const (
 	IdentityTypeIdentity IdentityType = "identity"
@@ -259,6 +293,15 @@ const (
 	ListableAppExecutionModeAnonymous ListableAppExecutionMode = "anonymous"
 	ListableAppExecutionModePublisher ListableAppExecutionMode = "publisher"
 	ListableAppExecutionModeViewer    ListableAppExecutionMode = "viewer"
+)
+
+// Defines values for NewHttpTriggerHttpMethod.
+const (
+	NewHttpTriggerHttpMethodDelete NewHttpTriggerHttpMethod = "delete"
+	NewHttpTriggerHttpMethodGet    NewHttpTriggerHttpMethod = "get"
+	NewHttpTriggerHttpMethodPatch  NewHttpTriggerHttpMethod = "patch"
+	NewHttpTriggerHttpMethodPost   NewHttpTriggerHttpMethod = "post"
+	NewHttpTriggerHttpMethodPut    NewHttpTriggerHttpMethod = "put"
 )
 
 // Defines values for NewScriptKind.
@@ -522,10 +565,10 @@ const (
 
 // Defines values for ActionKind.
 const (
-	ActionKindCreate  ActionKind = "Create"
-	ActionKindDelete  ActionKind = "Delete"
-	ActionKindExecute ActionKind = "Execute"
-	ActionKindUpdate  ActionKind = "Update"
+	Create  ActionKind = "Create"
+	Delete  ActionKind = "Delete"
+	Execute ActionKind = "Execute"
+	Update  ActionKind = "Update"
 )
 
 // AppHistory defines model for AppHistory.
@@ -725,6 +768,20 @@ type CreateWorkspace struct {
 	Name     string  `json:"name"`
 	Username *string `json:"username,omitempty"`
 }
+
+// EditHttpTrigger defines model for EditHttpTrigger.
+type EditHttpTrigger struct {
+	HttpMethod   EditHttpTriggerHttpMethod `json:"http_method"`
+	IsAsync      bool                      `json:"is_async"`
+	IsFlow       bool                      `json:"is_flow"`
+	Path         string                    `json:"path"`
+	RequiresAuth bool                      `json:"requires_auth"`
+	RoutePath    *string                   `json:"route_path,omitempty"`
+	ScriptPath   string                    `json:"script_path"`
+}
+
+// EditHttpTriggerHttpMethod defines model for EditHttpTrigger.HttpMethod.
+type EditHttpTriggerHttpMethod string
 
 // EditResource defines model for EditResource.
 type EditResource struct {
@@ -932,8 +989,35 @@ type FlowStatus struct {
 		Progress     *int                        `json:"progress,omitempty"`
 		Type         FlowStatusFailureModuleType `json:"type"`
 	} `json:"failure_module"`
-	Modules []FlowStatusModule `json:"modules"`
-	Retry   *struct {
+	Modules            []FlowStatusModule `json:"modules"`
+	PreprocessorModule *struct {
+		Approvers *[]struct {
+			Approver string `json:"approver"`
+			ResumeId int    `json:"resume_id"`
+		} `json:"approvers,omitempty"`
+		BranchChosen *struct {
+			Branch *int                                         `json:"branch,omitempty"`
+			Type   FlowStatusPreprocessorModuleBranchChosenType `json:"type"`
+		} `json:"branch_chosen,omitempty"`
+		Branchall *struct {
+			Branch int `json:"branch"`
+			Len    int `json:"len"`
+		} `json:"branchall,omitempty"`
+		Count           *int                  `json:"count,omitempty"`
+		FailedRetries   *[]openapi_types.UUID `json:"failed_retries,omitempty"`
+		FlowJobs        *[]string             `json:"flow_jobs,omitempty"`
+		FlowJobsSuccess *[]bool               `json:"flow_jobs_success,omitempty"`
+		Id              *string               `json:"id,omitempty"`
+		Iterator        *struct {
+			Args   *interface{}   `json:"args,omitempty"`
+			Index  *int           `json:"index,omitempty"`
+			Itered *[]interface{} `json:"itered,omitempty"`
+		} `json:"iterator,omitempty"`
+		Job      *openapi_types.UUID              `json:"job,omitempty"`
+		Progress *int                             `json:"progress,omitempty"`
+		Type     FlowStatusPreprocessorModuleType `json:"type"`
+	} `json:"preprocessor_module,omitempty"`
+	Retry *struct {
 		FailCount  *int                  `json:"fail_count,omitempty"`
 		FailedJobs *[]openapi_types.UUID `json:"failed_jobs,omitempty"`
 	} `json:"retry,omitempty"`
@@ -946,6 +1030,12 @@ type FlowStatusFailureModuleBranchChosenType string
 
 // FlowStatusFailureModuleType defines model for FlowStatus.FailureModule.Type.
 type FlowStatusFailureModuleType string
+
+// FlowStatusPreprocessorModuleBranchChosenType defines model for FlowStatus.PreprocessorModule.BranchChosen.Type.
+type FlowStatusPreprocessorModuleBranchChosenType string
+
+// FlowStatusPreprocessorModuleType defines model for FlowStatus.PreprocessorModule.Type.
+type FlowStatusPreprocessorModuleType string
 
 // FlowStatus_UserStates defines model for FlowStatus.UserStates.
 type FlowStatus_UserStates struct {
@@ -996,6 +1086,7 @@ type FlowValue struct {
 	EarlyReturn            *string      `json:"early_return,omitempty"`
 	FailureModule          *FlowModule  `json:"failure_module,omitempty"`
 	Modules                []FlowModule `json:"modules"`
+	PreprocessorModule     *FlowModule  `json:"preprocessor_module,omitempty"`
 	Priority               *float32     `json:"priority,omitempty"`
 	SameWorker             *bool        `json:"same_worker,omitempty"`
 	SkipExpr               *string      `json:"skip_expr,omitempty"`
@@ -1080,6 +1171,30 @@ type Group struct {
 type Group_ExtraPerms struct {
 	AdditionalProperties map[string]bool `json:"-"`
 }
+
+// HttpTrigger defines model for HttpTrigger.
+type HttpTrigger struct {
+	EditedAt     time.Time              `json:"edited_at"`
+	EditedBy     string                 `json:"edited_by"`
+	Email        string                 `json:"email"`
+	ExtraPerms   HttpTrigger_ExtraPerms `json:"extra_perms"`
+	HttpMethod   HttpTriggerHttpMethod  `json:"http_method"`
+	IsAsync      bool                   `json:"is_async"`
+	IsFlow       bool                   `json:"is_flow"`
+	Path         string                 `json:"path"`
+	RequiresAuth bool                   `json:"requires_auth"`
+	RoutePath    string                 `json:"route_path"`
+	ScriptPath   string                 `json:"script_path"`
+	WorkspaceId  string                 `json:"workspace_id"`
+}
+
+// HttpTrigger_ExtraPerms defines model for HttpTrigger.ExtraPerms.
+type HttpTrigger_ExtraPerms struct {
+	AdditionalProperties map[string]bool `json:"-"`
+}
+
+// HttpTriggerHttpMethod defines model for HttpTrigger.HttpMethod.
+type HttpTriggerHttpMethod string
 
 // HubScriptKind defines model for HubScriptKind.
 type HubScriptKind = interface{}
@@ -1252,6 +1367,20 @@ type MetricMetadata struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// NewHttpTrigger defines model for NewHttpTrigger.
+type NewHttpTrigger struct {
+	HttpMethod   NewHttpTriggerHttpMethod `json:"http_method"`
+	IsAsync      bool                     `json:"is_async"`
+	IsFlow       bool                     `json:"is_flow"`
+	Path         string                   `json:"path"`
+	RequiresAuth bool                     `json:"requires_auth"`
+	RoutePath    string                   `json:"route_path"`
+	ScriptPath   string                   `json:"script_path"`
+}
+
+// NewHttpTriggerHttpMethod defines model for NewHttpTrigger.HttpMethod.
+type NewHttpTriggerHttpMethod string
+
 // NewSchedule defines model for NewSchedule.
 type NewSchedule struct {
 	Args                ScriptArgs  `json:"args"`
@@ -1292,6 +1421,7 @@ type NewScript struct {
 	Description            string                  `json:"description"`
 	DraftOnly              *bool                   `json:"draft_only,omitempty"`
 	Envs                   *[]string               `json:"envs,omitempty"`
+	HasPreprocessor        *bool                   `json:"has_preprocessor,omitempty"`
 	IsTemplate             *bool                   `json:"is_template,omitempty"`
 	Kind                   *NewScriptKind          `json:"kind,omitempty"`
 	Language               NewScriptLanguage       `json:"language"`
@@ -1330,6 +1460,7 @@ type NewScriptWithDraft struct {
 	Draft                  *NewScript                 `json:"draft,omitempty"`
 	DraftOnly              *bool                      `json:"draft_only,omitempty"`
 	Envs                   *[]string                  `json:"envs,omitempty"`
+	HasPreprocessor        *bool                      `json:"has_preprocessor,omitempty"`
 	Hash                   string                     `json:"hash"`
 	IsTemplate             *bool                      `json:"is_template,omitempty"`
 	Kind                   *NewScriptWithDraftKind    `json:"kind,omitempty"`
@@ -1720,6 +1851,7 @@ type Script struct {
 	Envs                   *[]string         `json:"envs,omitempty"`
 	ExtraPerms             Script_ExtraPerms `json:"extra_perms"`
 	HasDraft               *bool             `json:"has_draft,omitempty"`
+	HasPreprocessor        bool              `json:"has_preprocessor"`
 	Hash                   string            `json:"hash"`
 	IsTemplate             bool              `json:"is_template"`
 	Kind                   ScriptKind        `json:"kind"`
@@ -2234,6 +2366,12 @@ type SetGlobalJSONBody struct {
 // RenewLicenseKeyParams defines parameters for RenewLicenseKey.
 type RenewLicenseKeyParams struct {
 	LicenseKey *string `form:"license_key,omitempty" json:"license_key,omitempty"`
+}
+
+// TestCriticalChannelsJSONBody defines parameters for TestCriticalChannels.
+type TestCriticalChannelsJSONBody = []struct {
+	Email        *string `json:"email,omitempty"`
+	SlackChannel *string `json:"slack_channel,omitempty"`
 }
 
 // TestLicenseKeyJSONBody defines parameters for TestLicenseKey.
@@ -2771,6 +2909,35 @@ type RemoveUserToGroupJSONBody struct {
 type UpdateGroupJSONBody struct {
 	Summary *string `json:"summary,omitempty"`
 }
+
+// CreateHttpTriggerJSONBody defines parameters for CreateHttpTrigger.
+type CreateHttpTriggerJSONBody = NewHttpTrigger
+
+// ListHttpTriggersParams defines parameters for ListHttpTriggers.
+type ListHttpTriggersParams struct {
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// filter by path
+	Path      *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+}
+
+// ExistsRouteJSONBody defines parameters for ExistsRoute.
+type ExistsRouteJSONBody struct {
+	HttpMethod ExistsRouteJSONBodyHttpMethod `json:"http_method"`
+	RoutePath  string                        `json:"route_path"`
+}
+
+// ExistsRouteJSONBodyHttpMethod defines parameters for ExistsRoute.
+type ExistsRouteJSONBodyHttpMethod string
+
+// UpdateHttpTriggerJSONBody defines parameters for UpdateHttpTrigger.
+type UpdateHttpTriggerJSONBody = EditHttpTrigger
 
 // CreateInputJSONBody defines parameters for CreateInput.
 type CreateInputJSONBody = CreateInput
@@ -3344,6 +3511,9 @@ type RunFlowByPathParams struct {
 	// schedule the script to execute in the number of seconds starting now
 	ScheduledInSecs *int `form:"scheduled_in_secs,omitempty" json:"scheduled_in_secs,omitempty"`
 
+	// skip the preprocessor
+	SkipPreprocessor *bool `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
@@ -3371,6 +3541,9 @@ type RunScriptByHashParams struct {
 
 	// schedule the script to execute in the number of seconds starting now
 	ScheduledInSecs *int `form:"scheduled_in_secs,omitempty" json:"scheduled_in_secs,omitempty"`
+
+	// skip the preprocessor
+	SkipPreprocessor *bool `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
@@ -3402,6 +3575,9 @@ type RunScriptByPathParams struct {
 
 	// schedule the script to execute in the number of seconds starting now
 	ScheduledInSecs *int `form:"scheduled_in_secs,omitempty" json:"scheduled_in_secs,omitempty"`
+
+	// skip the preprocessor
+	SkipPreprocessor *bool `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 
 	// The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
@@ -4077,6 +4253,9 @@ type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
 // SetGlobalJSONRequestBody defines body for SetGlobal for application/json ContentType.
 type SetGlobalJSONRequestBody SetGlobalJSONBody
 
+// TestCriticalChannelsJSONRequestBody defines body for TestCriticalChannels for application/json ContentType.
+type TestCriticalChannelsJSONRequestBody = TestCriticalChannelsJSONBody
+
 // TestLicenseKeyJSONRequestBody defines body for TestLicenseKey for application/json ContentType.
 type TestLicenseKeyJSONRequestBody TestLicenseKeyJSONBody
 
@@ -4181,6 +4360,15 @@ type RemoveUserToGroupJSONRequestBody RemoveUserToGroupJSONBody
 
 // UpdateGroupJSONRequestBody defines body for UpdateGroup for application/json ContentType.
 type UpdateGroupJSONRequestBody UpdateGroupJSONBody
+
+// CreateHttpTriggerJSONRequestBody defines body for CreateHttpTrigger for application/json ContentType.
+type CreateHttpTriggerJSONRequestBody = CreateHttpTriggerJSONBody
+
+// ExistsRouteJSONRequestBody defines body for ExistsRoute for application/json ContentType.
+type ExistsRouteJSONRequestBody ExistsRouteJSONBody
+
+// UpdateHttpTriggerJSONRequestBody defines body for UpdateHttpTrigger for application/json ContentType.
+type UpdateHttpTriggerJSONRequestBody = UpdateHttpTriggerJSONBody
 
 // CreateInputJSONRequestBody defines body for CreateInput for application/json ContentType.
 type CreateInputJSONRequestBody = CreateInputJSONBody
@@ -4866,6 +5054,59 @@ func (a *Group_ExtraPerms) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for Group_ExtraPerms to handle AdditionalProperties
 func (a Group_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for HttpTrigger_ExtraPerms. Returns the specified
+// element and whether it was found
+func (a HttpTrigger_ExtraPerms) Get(fieldName string) (value bool, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for HttpTrigger_ExtraPerms
+func (a *HttpTrigger_ExtraPerms) Set(fieldName string, value bool) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]bool)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for HttpTrigger_ExtraPerms to handle AdditionalProperties
+func (a *HttpTrigger_ExtraPerms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]bool)
+		for fieldName, fieldBuf := range object {
+			var fieldVal bool
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for HttpTrigger_ExtraPerms to handle AdditionalProperties
+func (a HttpTrigger_ExtraPerms) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -6050,6 +6291,11 @@ type ClientInterface interface {
 	// SendStats request
 	SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// TestCriticalChannels request with any body
+	TestCriticalChannelsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestCriticalChannels(ctx context.Context, body TestCriticalChannelsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// TestLicenseKey request with any body
 	TestLicenseKeyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6395,6 +6641,36 @@ type ClientInterface interface {
 	UpdateGroupWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateGroup(ctx context.Context, workspace WorkspaceId, name Name, body UpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateHttpTrigger request with any body
+	CreateHttpTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateHttpTrigger(ctx context.Context, workspace WorkspaceId, body CreateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteHttpTrigger request
+	DeleteHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsHttpTrigger request
+	ExistsHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetHttpTrigger request
+	GetHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListHttpTriggers request
+	ListHttpTriggers(ctx context.Context, workspace WorkspaceId, params *ListHttpTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsRoute request with any body
+	ExistsRouteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ExistsRoute(ctx context.Context, workspace WorkspaceId, body ExistsRouteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateHttpTrigger request with any body
+	UpdateHttpTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// Used request
+	Used(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateInput request with any body
 	CreateInputWithBody(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7865,6 +8141,30 @@ func (c *Client) RenewLicenseKey(ctx context.Context, params *RenewLicenseKeyPar
 
 func (c *Client) SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSendStatsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestCriticalChannelsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestCriticalChannelsRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestCriticalChannels(ctx context.Context, body TestCriticalChannelsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestCriticalChannelsRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -9389,6 +9689,138 @@ func (c *Client) UpdateGroupWithBody(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) UpdateGroup(ctx context.Context, workspace WorkspaceId, name Name, body UpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateGroupRequest(c.Server, workspace, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateHttpTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateHttpTriggerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateHttpTrigger(ctx context.Context, workspace WorkspaceId, body CreateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateHttpTriggerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteHttpTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsHttpTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetHttpTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListHttpTriggers(ctx context.Context, workspace WorkspaceId, params *ListHttpTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListHttpTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsRouteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsRouteRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsRoute(ctx context.Context, workspace WorkspaceId, body ExistsRouteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsRouteRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateHttpTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateHttpTriggerRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateHttpTriggerRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) Used(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUsedRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -14508,6 +14940,46 @@ func NewSendStatsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewTestCriticalChannelsRequest calls the generic TestCriticalChannels builder with application/json body
+func NewTestCriticalChannelsRequest(server string, body TestCriticalChannelsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestCriticalChannelsRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewTestCriticalChannelsRequestWithBody generates requests for TestCriticalChannels with any type of body
+func NewTestCriticalChannelsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/test_critical_channels")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewTestLicenseKeyRequest calls the generic TestLicenseKey builder with application/json body
 func NewTestLicenseKeyRequest(server string, body TestLicenseKeyJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -19489,6 +19961,429 @@ func NewUpdateGroupRequestWithBody(server string, workspace WorkspaceId, name Na
 	return req, nil
 }
 
+// NewCreateHttpTriggerRequest calls the generic CreateHttpTrigger builder with application/json body
+func NewCreateHttpTriggerRequest(server string, workspace WorkspaceId, body CreateHttpTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateHttpTriggerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateHttpTriggerRequestWithBody generates requests for CreateHttpTrigger with any type of body
+func NewCreateHttpTriggerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/http_triggers/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteHttpTriggerRequest generates requests for DeleteHttpTrigger
+func NewDeleteHttpTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/http_triggers/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsHttpTriggerRequest generates requests for ExistsHttpTrigger
+func NewExistsHttpTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/http_triggers/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetHttpTriggerRequest generates requests for GetHttpTrigger
+func NewGetHttpTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/http_triggers/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListHttpTriggersRequest generates requests for ListHttpTriggers
+func NewListHttpTriggersRequest(server string, workspace WorkspaceId, params *ListHttpTriggersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/http_triggers/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Path != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IsFlow != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PathStart != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsRouteRequest calls the generic ExistsRoute builder with application/json body
+func NewExistsRouteRequest(server string, workspace WorkspaceId, body ExistsRouteJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewExistsRouteRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewExistsRouteRequestWithBody generates requests for ExistsRoute with any type of body
+func NewExistsRouteRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/http_triggers/route_exists", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateHttpTriggerRequest calls the generic UpdateHttpTrigger builder with application/json body
+func NewUpdateHttpTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdateHttpTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateHttpTriggerRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateHttpTriggerRequestWithBody generates requests for UpdateHttpTrigger with any type of body
+func NewUpdateHttpTriggerRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/http_triggers/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUsedRequest generates requests for Used
+func NewUsedRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/http_triggers/used", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateInputRequest calls the generic CreateInput builder with application/json body
 func NewCreateInputRequest(server string, workspace WorkspaceId, params *CreateInputParams, body CreateInputJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -24272,6 +25167,22 @@ func NewRunFlowByPathRequestWithBody(server string, workspace WorkspaceId, path 
 
 	}
 
+	if params.SkipPreprocessor != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	if params.ParentJob != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
@@ -24429,6 +25340,22 @@ func NewRunScriptByHashRequestWithBody(server string, workspace WorkspaceId, has
 	if params.ScheduledInSecs != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_in_secs", runtime.ParamLocationQuery, *params.ScheduledInSecs); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SkipPreprocessor != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -24615,6 +25542,22 @@ func NewRunScriptByPathRequestWithBody(server string, workspace WorkspaceId, pat
 	if params.ScheduledInSecs != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_in_secs", runtime.ParamLocationQuery, *params.ScheduledInSecs); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.SkipPreprocessor != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -32743,6 +33686,11 @@ type ClientWithResponsesInterface interface {
 	// SendStats request
 	SendStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SendStatsResponse, error)
 
+	// TestCriticalChannels request with any body
+	TestCriticalChannelsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestCriticalChannelsResponse, error)
+
+	TestCriticalChannelsWithResponse(ctx context.Context, body TestCriticalChannelsJSONRequestBody, reqEditors ...RequestEditorFn) (*TestCriticalChannelsResponse, error)
+
 	// TestLicenseKey request with any body
 	TestLicenseKeyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestLicenseKeyResponse, error)
 
@@ -33088,6 +34036,36 @@ type ClientWithResponsesInterface interface {
 	UpdateGroupWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateGroupResponse, error)
 
 	UpdateGroupWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body UpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateGroupResponse, error)
+
+	// CreateHttpTrigger request with any body
+	CreateHttpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateHttpTriggerResponse, error)
+
+	CreateHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateHttpTriggerResponse, error)
+
+	// DeleteHttpTrigger request
+	DeleteHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteHttpTriggerResponse, error)
+
+	// ExistsHttpTrigger request
+	ExistsHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsHttpTriggerResponse, error)
+
+	// GetHttpTrigger request
+	GetHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetHttpTriggerResponse, error)
+
+	// ListHttpTriggers request
+	ListHttpTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListHttpTriggersParams, reqEditors ...RequestEditorFn) (*ListHttpTriggersResponse, error)
+
+	// ExistsRoute request with any body
+	ExistsRouteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExistsRouteResponse, error)
+
+	ExistsRouteWithResponse(ctx context.Context, workspace WorkspaceId, body ExistsRouteJSONRequestBody, reqEditors ...RequestEditorFn) (*ExistsRouteResponse, error)
+
+	// UpdateHttpTrigger request with any body
+	UpdateHttpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateHttpTriggerResponse, error)
+
+	UpdateHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateHttpTriggerResponse, error)
+
+	// Used request
+	UsedWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*UsedResponse, error)
 
 	// CreateInput request with any body
 	CreateInputWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateInputResponse, error)
@@ -34947,6 +35925,27 @@ func (r SendStatsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SendStatsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestCriticalChannelsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestCriticalChannelsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestCriticalChannelsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -37001,6 +38000,179 @@ func (r UpdateGroupResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateHttpTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateHttpTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateHttpTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteHttpTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteHttpTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteHttpTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsHttpTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsHttpTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsHttpTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetHttpTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *HttpTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r GetHttpTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetHttpTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListHttpTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]HttpTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r ListHttpTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListHttpTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsRouteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsRouteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsRouteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateHttpTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateHttpTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateHttpTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UsedResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r UsedResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UsedResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -41899,6 +43071,23 @@ func (c *ClientWithResponses) SendStatsWithResponse(ctx context.Context, reqEdit
 	return ParseSendStatsResponse(rsp)
 }
 
+// TestCriticalChannelsWithBodyWithResponse request with arbitrary body returning *TestCriticalChannelsResponse
+func (c *ClientWithResponses) TestCriticalChannelsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestCriticalChannelsResponse, error) {
+	rsp, err := c.TestCriticalChannelsWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestCriticalChannelsResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestCriticalChannelsWithResponse(ctx context.Context, body TestCriticalChannelsJSONRequestBody, reqEditors ...RequestEditorFn) (*TestCriticalChannelsResponse, error) {
+	rsp, err := c.TestCriticalChannels(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestCriticalChannelsResponse(rsp)
+}
+
 // TestLicenseKeyWithBodyWithResponse request with arbitrary body returning *TestLicenseKeyResponse
 func (c *ClientWithResponses) TestLicenseKeyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestLicenseKeyResponse, error) {
 	rsp, err := c.TestLicenseKeyWithBody(ctx, contentType, body, reqEditors...)
@@ -43005,6 +44194,102 @@ func (c *ClientWithResponses) UpdateGroupWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseUpdateGroupResponse(rsp)
+}
+
+// CreateHttpTriggerWithBodyWithResponse request with arbitrary body returning *CreateHttpTriggerResponse
+func (c *ClientWithResponses) CreateHttpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateHttpTriggerResponse, error) {
+	rsp, err := c.CreateHttpTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateHttpTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateHttpTriggerResponse, error) {
+	rsp, err := c.CreateHttpTrigger(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateHttpTriggerResponse(rsp)
+}
+
+// DeleteHttpTriggerWithResponse request returning *DeleteHttpTriggerResponse
+func (c *ClientWithResponses) DeleteHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteHttpTriggerResponse, error) {
+	rsp, err := c.DeleteHttpTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteHttpTriggerResponse(rsp)
+}
+
+// ExistsHttpTriggerWithResponse request returning *ExistsHttpTriggerResponse
+func (c *ClientWithResponses) ExistsHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsHttpTriggerResponse, error) {
+	rsp, err := c.ExistsHttpTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsHttpTriggerResponse(rsp)
+}
+
+// GetHttpTriggerWithResponse request returning *GetHttpTriggerResponse
+func (c *ClientWithResponses) GetHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetHttpTriggerResponse, error) {
+	rsp, err := c.GetHttpTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetHttpTriggerResponse(rsp)
+}
+
+// ListHttpTriggersWithResponse request returning *ListHttpTriggersResponse
+func (c *ClientWithResponses) ListHttpTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListHttpTriggersParams, reqEditors ...RequestEditorFn) (*ListHttpTriggersResponse, error) {
+	rsp, err := c.ListHttpTriggers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListHttpTriggersResponse(rsp)
+}
+
+// ExistsRouteWithBodyWithResponse request with arbitrary body returning *ExistsRouteResponse
+func (c *ClientWithResponses) ExistsRouteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExistsRouteResponse, error) {
+	rsp, err := c.ExistsRouteWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsRouteResponse(rsp)
+}
+
+func (c *ClientWithResponses) ExistsRouteWithResponse(ctx context.Context, workspace WorkspaceId, body ExistsRouteJSONRequestBody, reqEditors ...RequestEditorFn) (*ExistsRouteResponse, error) {
+	rsp, err := c.ExistsRoute(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsRouteResponse(rsp)
+}
+
+// UpdateHttpTriggerWithBodyWithResponse request with arbitrary body returning *UpdateHttpTriggerResponse
+func (c *ClientWithResponses) UpdateHttpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateHttpTriggerResponse, error) {
+	rsp, err := c.UpdateHttpTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateHttpTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateHttpTriggerResponse, error) {
+	rsp, err := c.UpdateHttpTrigger(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateHttpTriggerResponse(rsp)
+}
+
+// UsedWithResponse request returning *UsedResponse
+func (c *ClientWithResponses) UsedWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*UsedResponse, error) {
+	rsp, err := c.Used(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUsedResponse(rsp)
 }
 
 // CreateInputWithBodyWithResponse request with arbitrary body returning *CreateInputResponse
@@ -46482,6 +47767,22 @@ func ParseSendStatsResponse(rsp *http.Response) (*SendStatsResponse, error) {
 	return response, nil
 }
 
+// ParseTestCriticalChannelsResponse parses an HTTP response from a TestCriticalChannelsWithResponse call
+func ParseTestCriticalChannelsResponse(rsp *http.Response) (*TestCriticalChannelsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestCriticalChannelsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseTestLicenseKeyResponse parses an HTTP response from a TestLicenseKeyWithResponse call
 func ParseTestLicenseKeyResponse(rsp *http.Response) (*TestLicenseKeyResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -48422,6 +49723,184 @@ func ParseUpdateGroupResponse(rsp *http.Response) (*UpdateGroupResponse, error) 
 	response := &UpdateGroupResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateHttpTriggerResponse parses an HTTP response from a CreateHttpTriggerWithResponse call
+func ParseCreateHttpTriggerResponse(rsp *http.Response) (*CreateHttpTriggerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateHttpTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteHttpTriggerResponse parses an HTTP response from a DeleteHttpTriggerWithResponse call
+func ParseDeleteHttpTriggerResponse(rsp *http.Response) (*DeleteHttpTriggerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteHttpTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsHttpTriggerResponse parses an HTTP response from a ExistsHttpTriggerWithResponse call
+func ParseExistsHttpTriggerResponse(rsp *http.Response) (*ExistsHttpTriggerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsHttpTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetHttpTriggerResponse parses an HTTP response from a GetHttpTriggerWithResponse call
+func ParseGetHttpTriggerResponse(rsp *http.Response) (*GetHttpTriggerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetHttpTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest HttpTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListHttpTriggersResponse parses an HTTP response from a ListHttpTriggersWithResponse call
+func ParseListHttpTriggersResponse(rsp *http.Response) (*ListHttpTriggersResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListHttpTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []HttpTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseExistsRouteResponse parses an HTTP response from a ExistsRouteWithResponse call
+func ParseExistsRouteResponse(rsp *http.Response) (*ExistsRouteResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsRouteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateHttpTriggerResponse parses an HTTP response from a UpdateHttpTriggerWithResponse call
+func ParseUpdateHttpTriggerResponse(rsp *http.Response) (*UpdateHttpTriggerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateHttpTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUsedResponse parses an HTTP response from a UsedWithResponse call
+func ParseUsedResponse(rsp *http.Response) (*UsedResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UsedResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
