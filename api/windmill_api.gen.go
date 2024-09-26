@@ -1639,6 +1639,7 @@ type QueuedJob struct {
 	ScriptPath     *string    `json:"script_path,omitempty"`
 	SelfWaitTimeMs *float32   `json:"self_wait_time_ms,omitempty"`
 	StartedAt      *time.Time `json:"started_at,omitempty"`
+	Suspend        *float32   `json:"suspend,omitempty"`
 	Tag            string     `json:"tag"`
 	VisibleToOwner bool       `json:"visible_to_owner"`
 	WorkspaceId    *string    `json:"workspace_id,omitempty"`
@@ -2014,6 +2015,9 @@ type WorkerPing struct {
 	Memory             *float32  `json:"memory,omitempty"`
 	MemoryUsage        *float32  `json:"memory_usage,omitempty"`
 	OccupancyRate      *float32  `json:"occupancy_rate,omitempty"`
+	OccupancyRate15s   *float32  `json:"occupancy_rate_15s,omitempty"`
+	OccupancyRate30m   *float32  `json:"occupancy_rate_30m,omitempty"`
+	OccupancyRate5m    *float32  `json:"occupancy_rate_5m,omitempty"`
 	StartedAt          time.Time `json:"started_at"`
 	Vcpus              *float32  `json:"vcpus,omitempty"`
 	WmMemoryUsage      *float32  `json:"wm_memory_usage,omitempty"`
@@ -2302,6 +2306,15 @@ type UpdateInstanceGroupJSONBody struct {
 type ListHubIntegrationsParams struct {
 	// query integrations kind
 	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
+}
+
+// CountJobsByTagParams defines parameters for CountJobsByTag.
+type CountJobsByTagParams struct {
+	// Past Time horizon in seconds (when to start the count = now - horizon) (default is 3600)
+	HorizonSecs *int `form:"horizon_secs,omitempty" json:"horizon_secs,omitempty"`
+
+	// Specific workspace ID to filter results (optional)
+	WorkspaceId *string `form:"workspace_id,omitempty" json:"workspace_id,omitempty"`
 }
 
 // ConnectCallbackJSONBody defines parameters for ConnectCallback.
@@ -6210,6 +6223,9 @@ type ClientInterface interface {
 	// ListHubIntegrations request
 	ListHubIntegrations(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CountJobsByTag request
+	CountJobsByTag(ctx context.Context, params *CountJobsByTagParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetDbClock request
 	GetDbClock(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7793,6 +7809,18 @@ func (c *Client) UpdateInstanceGroup(ctx context.Context, name Name, body Update
 
 func (c *Client) ListHubIntegrations(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListHubIntegrationsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CountJobsByTag(ctx context.Context, params *CountJobsByTagParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCountJobsByTagRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -13997,6 +14025,69 @@ func NewListHubIntegrationsRequest(server string, params *ListHubIntegrationsPar
 	if params.Kind != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCountJobsByTagRequest generates requests for CountJobsByTag
+func NewCountJobsByTagRequest(server string, params *CountJobsByTagParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/jobs/completed/count_by_tag")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.HorizonSecs != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "horizon_secs", runtime.ParamLocationQuery, *params.HorizonSecs); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.WorkspaceId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "workspace_id", runtime.ParamLocationQuery, *params.WorkspaceId); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -33605,6 +33696,9 @@ type ClientWithResponsesInterface interface {
 	// ListHubIntegrations request
 	ListHubIntegrationsWithResponse(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*ListHubIntegrationsResponse, error)
 
+	// CountJobsByTag request
+	CountJobsByTagWithResponse(ctx context.Context, params *CountJobsByTagParams, reqEditors ...RequestEditorFn) (*CountJobsByTagResponse, error)
+
 	// GetDbClock request
 	GetDbClockWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDbClockResponse, error)
 
@@ -35395,6 +35489,31 @@ func (r ListHubIntegrationsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListHubIntegrationsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CountJobsByTagResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Count int    `json:"count"`
+		Tag   string `json:"tag"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CountJobsByTagResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CountJobsByTagResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -42816,6 +42935,15 @@ func (c *ClientWithResponses) ListHubIntegrationsWithResponse(ctx context.Contex
 	return ParseListHubIntegrationsResponse(rsp)
 }
 
+// CountJobsByTagWithResponse request returning *CountJobsByTagResponse
+func (c *ClientWithResponses) CountJobsByTagWithResponse(ctx context.Context, params *CountJobsByTagParams, reqEditors ...RequestEditorFn) (*CountJobsByTagResponse, error) {
+	rsp, err := c.CountJobsByTag(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCountJobsByTagResponse(rsp)
+}
+
 // GetDbClockWithResponse request returning *GetDbClockResponse
 func (c *ClientWithResponses) GetDbClockWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDbClockResponse, error) {
 	rsp, err := c.GetDbClock(ctx, reqEditors...)
@@ -47233,6 +47361,35 @@ func ParseListHubIntegrationsResponse(rsp *http.Response) (*ListHubIntegrationsR
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
 			Name string `json:"name"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCountJobsByTagResponse parses an HTTP response from a CountJobsByTagWithResponse call
+func ParseCountJobsByTagResponse(rsp *http.Response) (*CountJobsByTagResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CountJobsByTagResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Count int    `json:"count"`
+			Tag   string `json:"tag"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
