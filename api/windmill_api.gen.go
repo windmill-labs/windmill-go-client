@@ -919,8 +919,11 @@ type FlowModule struct {
 		Enabled     *bool        `json:"enabled,omitempty"`
 		ReturnValue *interface{} `json:"return_value,omitempty"`
 	} `json:"mock,omitempty"`
-	Priority            *float32        `json:"priority,omitempty"`
-	Retry               *Retry          `json:"retry,omitempty"`
+	Priority *float32 `json:"priority,omitempty"`
+	Retry    *Retry   `json:"retry,omitempty"`
+	SkipIf   *struct {
+		Expr string `json:"expr"`
+	} `json:"skip_if,omitempty"`
 	Sleep               *InputTransform `json:"sleep,omitempty"`
 	StopAfterAllItersIf *struct {
 		Expr          string `json:"expr"`
@@ -987,6 +990,7 @@ type FlowStatus struct {
 		Job          *openapi_types.UUID         `json:"job,omitempty"`
 		ParentModule *string                     `json:"parent_module,omitempty"`
 		Progress     *int                        `json:"progress,omitempty"`
+		Skipped      *bool                       `json:"skipped,omitempty"`
 		Type         FlowStatusFailureModuleType `json:"type"`
 	} `json:"failure_module"`
 	Modules            []FlowStatusModule `json:"modules"`
@@ -1015,6 +1019,7 @@ type FlowStatus struct {
 		} `json:"iterator,omitempty"`
 		Job      *openapi_types.UUID              `json:"job,omitempty"`
 		Progress *int                             `json:"progress,omitempty"`
+		Skipped  *bool                            `json:"skipped,omitempty"`
 		Type     FlowStatusPreprocessorModuleType `json:"type"`
 	} `json:"preprocessor_module,omitempty"`
 	Retry *struct {
@@ -1068,6 +1073,7 @@ type FlowStatusModule struct {
 	} `json:"iterator,omitempty"`
 	Job      *openapi_types.UUID  `json:"job,omitempty"`
 	Progress *int                 `json:"progress,omitempty"`
+	Skipped  *bool                `json:"skipped,omitempty"`
 	Type     FlowStatusModuleType `json:"type"`
 }
 
