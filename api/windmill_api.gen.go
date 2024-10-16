@@ -1493,9 +1493,10 @@ type NewScriptWithDraftLanguage string
 
 // NewToken defines model for NewToken.
 type NewToken struct {
-	Expiration *time.Time `json:"expiration,omitempty"`
-	Label      *string    `json:"label,omitempty"`
-	Scopes     *[]string  `json:"scopes,omitempty"`
+	Expiration  *time.Time `json:"expiration,omitempty"`
+	Label       *string    `json:"label,omitempty"`
+	Scopes      *[]string  `json:"scopes,omitempty"`
+	WorkspaceId *string    `json:"workspace_id,omitempty"`
 }
 
 // NewTokenImpersonate defines model for NewTokenImpersonate.
@@ -1503,6 +1504,7 @@ type NewTokenImpersonate struct {
 	Expiration       *time.Time `json:"expiration,omitempty"`
 	ImpersonateEmail string     `json:"impersonate_email"`
 	Label            *string    `json:"label,omitempty"`
+	WorkspaceId      *string    `json:"workspace_id,omitempty"`
 }
 
 // ObscuredJob defines model for ObscuredJob.
@@ -1927,9 +1929,21 @@ type TokenResponse struct {
 	Scope        *[]string `json:"scope,omitempty"`
 }
 
+// TriggersCount defines model for TriggersCount.
+type TriggersCount struct {
+	EmailCount      *float32 `json:"email_count,omitempty"`
+	HttpRoutesCount *float32 `json:"http_routes_count,omitempty"`
+	PrimarySchedule *struct {
+		Schedule *string `json:"schedule,omitempty"`
+	} `json:"primary_schedule,omitempty"`
+	ScheduleCount *float32 `json:"schedule_count,omitempty"`
+	WebhookCount  *float32 `json:"webhook_count,omitempty"`
+}
+
 // TruncatedToken defines model for TruncatedToken.
 type TruncatedToken struct {
 	CreatedAt   time.Time  `json:"created_at"`
+	Email       *string    `json:"email,omitempty"`
 	Expiration  *time.Time `json:"expiration,omitempty"`
 	Label       *string    `json:"label,omitempty"`
 	LastUsedAt  time.Time  `json:"last_used_at"`
@@ -6570,6 +6584,9 @@ type ClientInterface interface {
 	// GetFlowByPath request
 	GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetTriggersCountOfFlow request
+	GetTriggersCountOfFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetFlowHistory request
 	GetFlowHistory(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6586,6 +6603,9 @@ type ClientInterface interface {
 
 	// ListSearchFlow request
 	ListSearchFlow(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListTokensOfFlow request
+	ListTokensOfFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ToggleWorkspaceErrorHandlerForFlow request with any body
 	ToggleWorkspaceErrorHandlerForFlowWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7142,6 +7162,9 @@ type ClientInterface interface {
 	// GetScriptByPath request
 	GetScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetTriggersCountOfScript request
+	GetTriggersCountOfScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetScriptHistoryByPath request
 	GetScriptHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7158,6 +7181,9 @@ type ClientInterface interface {
 
 	// ListSearchScript request
 	ListSearchScript(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListTokensOfScript request
+	ListTokensOfScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RawScriptByHash request
 	RawScriptByHash(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9313,6 +9339,18 @@ func (c *Client) GetFlowByPath(ctx context.Context, workspace WorkspaceId, path 
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetTriggersCountOfFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTriggersCountOfFlowRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetFlowHistory(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetFlowHistoryRequest(c.Server, workspace, path)
 	if err != nil {
@@ -9375,6 +9413,18 @@ func (c *Client) ListFlowPaths(ctx context.Context, workspace WorkspaceId, reqEd
 
 func (c *Client) ListSearchFlow(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListSearchFlowRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListTokensOfFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListTokensOfFlowRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -11833,6 +11883,18 @@ func (c *Client) GetScriptByPath(ctx context.Context, workspace WorkspaceId, pat
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetTriggersCountOfScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTriggersCountOfScriptRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetScriptHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetScriptHistoryByPathRequest(c.Server, workspace, path)
 	if err != nil {
@@ -11895,6 +11957,18 @@ func (c *Client) ListScriptPaths(ctx context.Context, workspace WorkspaceId, req
 
 func (c *Client) ListSearchScript(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListSearchScriptRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListTokensOfScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListTokensOfScriptRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -18711,6 +18785,47 @@ func NewGetFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPa
 	return req, nil
 }
 
+// NewGetTriggersCountOfFlowRequest generates requests for GetTriggersCountOfFlow
+func NewGetTriggersCountOfFlowRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/get_triggers_count/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetFlowHistoryRequest generates requests for GetFlowHistory
 func NewGetFlowHistoryRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
 	var err error
@@ -19062,6 +19177,47 @@ func NewListSearchFlowRequest(server string, workspace WorkspaceId) (*http.Reque
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/flows/list_search", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListTokensOfFlowRequest generates requests for ListTokensOfFlow
+func NewListTokensOfFlowRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/list_tokens/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -30086,6 +30242,47 @@ func NewGetScriptByPathRequest(server string, workspace WorkspaceId, path Script
 	return req, nil
 }
 
+// NewGetTriggersCountOfScriptRequest generates requests for GetTriggersCountOfScript
+func NewGetTriggersCountOfScriptRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/get_triggers_count/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetScriptHistoryByPathRequest generates requests for GetScriptHistoryByPath
 func NewGetScriptHistoryByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
 	var err error
@@ -30533,6 +30730,47 @@ func NewListSearchScriptRequest(server string, workspace WorkspaceId) (*http.Req
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/scripts/list_search", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListTokensOfScriptRequest generates requests for ListTokensOfScript
+func NewListTokensOfScriptRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/list_tokens/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -34043,6 +34281,9 @@ type ClientWithResponsesInterface interface {
 	// GetFlowByPath request
 	GetFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams, reqEditors ...RequestEditorFn) (*GetFlowByPathResponse, error)
 
+	// GetTriggersCountOfFlow request
+	GetTriggersCountOfFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetTriggersCountOfFlowResponse, error)
+
 	// GetFlowHistory request
 	GetFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowHistoryResponse, error)
 
@@ -34059,6 +34300,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListSearchFlow request
 	ListSearchFlowWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchFlowResponse, error)
+
+	// ListTokensOfFlow request
+	ListTokensOfFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ListTokensOfFlowResponse, error)
 
 	// ToggleWorkspaceErrorHandlerForFlow request with any body
 	ToggleWorkspaceErrorHandlerForFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForFlowResponse, error)
@@ -34615,6 +34859,9 @@ type ClientWithResponsesInterface interface {
 	// GetScriptByPath request
 	GetScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptByPathParams, reqEditors ...RequestEditorFn) (*GetScriptByPathResponse, error)
 
+	// GetTriggersCountOfScript request
+	GetTriggersCountOfScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetTriggersCountOfScriptResponse, error)
+
 	// GetScriptHistoryByPath request
 	GetScriptHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptHistoryByPathResponse, error)
 
@@ -34631,6 +34878,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListSearchScript request
 	ListSearchScriptWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchScriptResponse, error)
+
+	// ListTokensOfScript request
+	ListTokensOfScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ListTokensOfScriptResponse, error)
 
 	// RawScriptByHash request
 	RawScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*RawScriptByHashResponse, error)
@@ -35620,8 +35870,11 @@ type ListOAuthLoginsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Oauth []string `json:"oauth"`
-		Saml  *string  `json:"saml,omitempty"`
+		Oauth []struct {
+			DisplayName *string `json:"display_name,omitempty"`
+			Type        string  `json:"type"`
+		} `json:"oauth"`
+		Saml *string `json:"saml,omitempty"`
 	}
 }
 
@@ -37587,6 +37840,28 @@ func (r GetFlowByPathResponse) StatusCode() int {
 	return 0
 }
 
+type GetTriggersCountOfFlowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TriggersCount
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTriggersCountOfFlowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTriggersCountOfFlowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetFlowHistoryResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -37712,6 +37987,28 @@ func (r ListSearchFlowResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListSearchFlowResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListTokensOfFlowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]TruncatedToken
+}
+
+// Status returns HTTPResponse.Status
+func (r ListTokensOfFlowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListTokensOfFlowResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -40975,6 +41272,28 @@ func (r GetScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
+type GetTriggersCountOfScriptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TriggersCount
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTriggersCountOfScriptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTriggersCountOfScriptResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetScriptHistoryByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -41080,6 +41399,28 @@ func (r ListSearchScriptResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListSearchScriptResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListTokensOfScriptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]TruncatedToken
+}
+
+// Status returns HTTPResponse.Status
+func (r ListTokensOfScriptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListTokensOfScriptResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -44026,6 +44367,15 @@ func (c *ClientWithResponses) GetFlowByPathWithResponse(ctx context.Context, wor
 	return ParseGetFlowByPathResponse(rsp)
 }
 
+// GetTriggersCountOfFlowWithResponse request returning *GetTriggersCountOfFlowResponse
+func (c *ClientWithResponses) GetTriggersCountOfFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetTriggersCountOfFlowResponse, error) {
+	rsp, err := c.GetTriggersCountOfFlow(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTriggersCountOfFlowResponse(rsp)
+}
+
 // GetFlowHistoryWithResponse request returning *GetFlowHistoryResponse
 func (c *ClientWithResponses) GetFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowHistoryResponse, error) {
 	rsp, err := c.GetFlowHistory(ctx, workspace, path, reqEditors...)
@@ -44077,6 +44427,15 @@ func (c *ClientWithResponses) ListSearchFlowWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseListSearchFlowResponse(rsp)
+}
+
+// ListTokensOfFlowWithResponse request returning *ListTokensOfFlowResponse
+func (c *ClientWithResponses) ListTokensOfFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ListTokensOfFlowResponse, error) {
+	rsp, err := c.ListTokensOfFlow(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListTokensOfFlowResponse(rsp)
 }
 
 // ToggleWorkspaceErrorHandlerForFlowWithBodyWithResponse request with arbitrary body returning *ToggleWorkspaceErrorHandlerForFlowResponse
@@ -45858,6 +46217,15 @@ func (c *ClientWithResponses) GetScriptByPathWithResponse(ctx context.Context, w
 	return ParseGetScriptByPathResponse(rsp)
 }
 
+// GetTriggersCountOfScriptWithResponse request returning *GetTriggersCountOfScriptResponse
+func (c *ClientWithResponses) GetTriggersCountOfScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetTriggersCountOfScriptResponse, error) {
+	rsp, err := c.GetTriggersCountOfScript(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTriggersCountOfScriptResponse(rsp)
+}
+
 // GetScriptHistoryByPathWithResponse request returning *GetScriptHistoryByPathResponse
 func (c *ClientWithResponses) GetScriptHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptHistoryByPathResponse, error) {
 	rsp, err := c.GetScriptHistoryByPath(ctx, workspace, path, reqEditors...)
@@ -45909,6 +46277,15 @@ func (c *ClientWithResponses) ListSearchScriptWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseListSearchScriptResponse(rsp)
+}
+
+// ListTokensOfScriptWithResponse request returning *ListTokensOfScriptResponse
+func (c *ClientWithResponses) ListTokensOfScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ListTokensOfScriptResponse, error) {
+	rsp, err := c.ListTokensOfScript(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListTokensOfScriptResponse(rsp)
 }
 
 // RawScriptByHashWithResponse request returning *RawScriptByHashResponse
@@ -47520,8 +47897,11 @@ func ParseListOAuthLoginsResponse(rsp *http.Response) (*ListOAuthLoginsResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Oauth []string `json:"oauth"`
-			Saml  *string  `json:"saml,omitempty"`
+			Oauth []struct {
+				DisplayName *string `json:"display_name,omitempty"`
+				Type        string  `json:"type"`
+			} `json:"oauth"`
+			Saml *string `json:"saml,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -49377,6 +49757,32 @@ func ParseGetFlowByPathResponse(rsp *http.Response) (*GetFlowByPathResponse, err
 	return response, nil
 }
 
+// ParseGetTriggersCountOfFlowResponse parses an HTTP response from a GetTriggersCountOfFlowWithResponse call
+func ParseGetTriggersCountOfFlowResponse(rsp *http.Response) (*GetTriggersCountOfFlowResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTriggersCountOfFlowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TriggersCount
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetFlowHistoryResponse parses an HTTP response from a GetFlowHistoryWithResponse call
 func ParseGetFlowHistoryResponse(rsp *http.Response) (*GetFlowHistoryResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -49500,6 +49906,32 @@ func ParseListSearchFlowResponse(rsp *http.Response) (*ListSearchFlowResponse, e
 			Path  string      `json:"path"`
 			Value interface{} `json:"value"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListTokensOfFlowResponse parses an HTTP response from a ListTokensOfFlowWithResponse call
+func ParseListTokensOfFlowResponse(rsp *http.Response) (*ListTokensOfFlowResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListTokensOfFlowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []TruncatedToken
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -52797,6 +53229,32 @@ func ParseGetScriptByPathResponse(rsp *http.Response) (*GetScriptByPathResponse,
 	return response, nil
 }
 
+// ParseGetTriggersCountOfScriptResponse parses an HTTP response from a GetTriggersCountOfScriptWithResponse call
+func ParseGetTriggersCountOfScriptResponse(rsp *http.Response) (*GetTriggersCountOfScriptResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTriggersCountOfScriptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TriggersCount
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetScriptHistoryByPathResponse parses an HTTP response from a GetScriptHistoryByPathWithResponse call
 func ParseGetScriptHistoryByPathResponse(rsp *http.Response) (*GetScriptHistoryByPathResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -52900,6 +53358,32 @@ func ParseListSearchScriptResponse(rsp *http.Response) (*ListSearchScriptRespons
 			Content string `json:"content"`
 			Path    string `json:"path"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListTokensOfScriptResponse parses an HTTP response from a ListTokensOfScriptWithResponse call
+func ParseListTokensOfScriptResponse(rsp *http.Response) (*ListTokensOfScriptResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListTokensOfScriptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []TruncatedToken
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
