@@ -826,6 +826,18 @@ type EditVariable struct {
 	Value       *string `json:"value,omitempty"`
 }
 
+// EditWebsocketTrigger defines model for EditWebsocketTrigger.
+type EditWebsocketTrigger struct {
+	Filters []struct {
+		Key   string      `json:"key"`
+		Value interface{} `json:"value"`
+	} `json:"filters"`
+	IsFlow     bool   `json:"is_flow"`
+	Path       string `json:"path"`
+	ScriptPath string `json:"script_path"`
+	Url        string `json:"url"`
+}
+
 // EditWorkspaceUser defines model for EditWorkspaceUser.
 type EditWorkspaceUser struct {
 	Disabled *bool `json:"disabled,omitempty"`
@@ -1507,6 +1519,19 @@ type NewTokenImpersonate struct {
 	WorkspaceId      *string    `json:"workspace_id,omitempty"`
 }
 
+// NewWebsocketTrigger defines model for NewWebsocketTrigger.
+type NewWebsocketTrigger struct {
+	Enabled *bool `json:"enabled,omitempty"`
+	Filters []struct {
+		Key   string      `json:"key"`
+		Value interface{} `json:"value"`
+	} `json:"filters"`
+	IsFlow     bool   `json:"is_flow"`
+	Path       string `json:"path"`
+	ScriptPath string `json:"script_path"`
+	Url        string `json:"url"`
+}
+
 // ObscuredJob defines model for ObscuredJob.
 type ObscuredJob struct {
 	DurationMs *float32   `json:"duration_ms,omitempty"`
@@ -1936,8 +1961,9 @@ type TriggersCount struct {
 	PrimarySchedule *struct {
 		Schedule *string `json:"schedule,omitempty"`
 	} `json:"primary_schedule,omitempty"`
-	ScheduleCount *float32 `json:"schedule_count,omitempty"`
-	WebhookCount  *float32 `json:"webhook_count,omitempty"`
+	ScheduleCount  *float32 `json:"schedule_count,omitempty"`
+	WebhookCount   *float32 `json:"webhook_count,omitempty"`
+	WebsocketCount *float32 `json:"websocket_count,omitempty"`
 }
 
 // TruncatedToken defines model for TruncatedToken.
@@ -1986,6 +2012,32 @@ type UserWorkspaceList struct {
 		Name     string `json:"name"`
 		Username string `json:"username"`
 	} `json:"workspaces"`
+}
+
+// WebsocketTrigger defines model for WebsocketTrigger.
+type WebsocketTrigger struct {
+	EditedAt   time.Time                   `json:"edited_at"`
+	EditedBy   string                      `json:"edited_by"`
+	Email      string                      `json:"email"`
+	Enabled    bool                        `json:"enabled"`
+	Error      *string                     `json:"error,omitempty"`
+	ExtraPerms WebsocketTrigger_ExtraPerms `json:"extra_perms"`
+	Filters    []struct {
+		Key   string      `json:"key"`
+		Value interface{} `json:"value"`
+	} `json:"filters"`
+	IsFlow         bool       `json:"is_flow"`
+	LastServerPing *time.Time `json:"last_server_ping,omitempty"`
+	Path           string     `json:"path"`
+	ScriptPath     string     `json:"script_path"`
+	ServerId       *string    `json:"server_id,omitempty"`
+	Url            string     `json:"url"`
+	WorkspaceId    string     `json:"workspace_id"`
+}
+
+// WebsocketTrigger_ExtraPerms defines model for WebsocketTrigger.ExtraPerms.
+type WebsocketTrigger_ExtraPerms struct {
+	AdditionalProperties map[string]bool `json:"-"`
 }
 
 // WhileloopFlow defines model for WhileloopFlow.
@@ -4091,6 +4143,31 @@ type UpdateVariableParams struct {
 	AlreadyEncrypted *bool `form:"already_encrypted,omitempty" json:"already_encrypted,omitempty"`
 }
 
+// CreateWebsocketTriggerJSONBody defines parameters for CreateWebsocketTrigger.
+type CreateWebsocketTriggerJSONBody = NewWebsocketTrigger
+
+// ListWebsocketTriggersParams defines parameters for ListWebsocketTriggers.
+type ListWebsocketTriggersParams struct {
+	// which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// filter by path
+	Path      *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+}
+
+// SetWebsocketTriggerEnabledJSONBody defines parameters for SetWebsocketTriggerEnabled.
+type SetWebsocketTriggerEnabledJSONBody struct {
+	Enabled bool `json:"enabled"`
+}
+
+// UpdateWebsocketTriggerJSONBody defines parameters for UpdateWebsocketTrigger.
+type UpdateWebsocketTriggerJSONBody = EditWebsocketTrigger
+
 // AddUserJSONBody defines parameters for AddUser.
 type AddUserJSONBody struct {
 	Email    string  `json:"email"`
@@ -4552,6 +4629,15 @@ type EncryptValueJSONRequestBody = EncryptValueJSONBody
 
 // UpdateVariableJSONRequestBody defines body for UpdateVariable for application/json ContentType.
 type UpdateVariableJSONRequestBody = UpdateVariableJSONBody
+
+// CreateWebsocketTriggerJSONRequestBody defines body for CreateWebsocketTrigger for application/json ContentType.
+type CreateWebsocketTriggerJSONRequestBody = CreateWebsocketTriggerJSONBody
+
+// SetWebsocketTriggerEnabledJSONRequestBody defines body for SetWebsocketTriggerEnabled for application/json ContentType.
+type SetWebsocketTriggerEnabledJSONRequestBody SetWebsocketTriggerEnabledJSONBody
+
+// UpdateWebsocketTriggerJSONRequestBody defines body for UpdateWebsocketTrigger for application/json ContentType.
+type UpdateWebsocketTriggerJSONRequestBody = UpdateWebsocketTriggerJSONBody
 
 // AddUserJSONRequestBody defines body for AddUser for application/json ContentType.
 type AddUserJSONRequestBody AddUserJSONBody
@@ -5972,6 +6058,59 @@ func (a ScriptArgs) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for WebsocketTrigger_ExtraPerms. Returns the specified
+// element and whether it was found
+func (a WebsocketTrigger_ExtraPerms) Get(fieldName string) (value bool, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for WebsocketTrigger_ExtraPerms
+func (a *WebsocketTrigger_ExtraPerms) Set(fieldName string, value bool) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]bool)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for WebsocketTrigger_ExtraPerms to handle AdditionalProperties
+func (a *WebsocketTrigger_ExtraPerms) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]bool)
+		for fieldName, fieldBuf := range object {
+			var fieldVal bool
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for WebsocketTrigger_ExtraPerms to handle AdditionalProperties
+func (a WebsocketTrigger_ExtraPerms) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // Getter for additional properties for WorkflowStatusRecord. Returns the specified
 // element and whether it was found
 func (a WorkflowStatusRecord) Get(fieldName string) (value WorkflowStatus, found bool) {
@@ -6487,6 +6626,9 @@ type ClientInterface interface {
 	// GetRawAppData request
 	GetRawAppData(ctx context.Context, workspace WorkspaceId, version VersionId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetAppLatestVersion request
+	GetAppLatestVersion(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAppHistoryByPath request
 	GetAppHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6583,6 +6725,9 @@ type ClientInterface interface {
 
 	// GetFlowByPath request
 	GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetFlowLatestVersion request
+	GetFlowLatestVersion(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetTriggersCountOfFlow request
 	GetTriggersCountOfFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6710,9 +6855,6 @@ type ClientInterface interface {
 	UpdateHttpTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// Used request
-	Used(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateInput request with any body
 	CreateInputWithBody(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7162,6 +7304,9 @@ type ClientInterface interface {
 	// GetScriptByPath request
 	GetScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetScriptLatestVersion request
+	GetScriptLatestVersion(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetTriggersCountOfScript request
 	GetTriggersCountOfScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7260,6 +7405,33 @@ type ClientInterface interface {
 	UpdateVariableWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateVariable(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateWebsocketTrigger request with any body
+	CreateWebsocketTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateWebsocketTrigger(ctx context.Context, workspace WorkspaceId, body CreateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteWebsocketTrigger request
+	DeleteWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsWebsocketTrigger request
+	ExistsWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetWebsocketTrigger request
+	GetWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListWebsocketTriggers request
+	ListWebsocketTriggers(ctx context.Context, workspace WorkspaceId, params *ListWebsocketTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetWebsocketTriggerEnabled request with any body
+	SetWebsocketTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetWebsocketTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateWebsocketTrigger request with any body
+	UpdateWebsocketTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AddUser request with any body
 	AddUserWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7402,6 +7574,9 @@ type ClientInterface interface {
 
 	// GetWorkspaceUsage request
 	GetWorkspaceUsage(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetUsedTriggers request
+	GetUsedTriggers(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCustomTags request
 	GetCustomTags(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8919,6 +9094,18 @@ func (c *Client) GetRawAppData(ctx context.Context, workspace WorkspaceId, versi
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetAppLatestVersion(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppLatestVersionRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetAppHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAppHistoryByPathRequest(c.Server, workspace, path)
 	if err != nil {
@@ -9329,6 +9516,18 @@ func (c *Client) GetFlowVersion(ctx context.Context, workspace WorkspaceId, vers
 
 func (c *Client) GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetFlowByPathRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetFlowLatestVersion(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowLatestVersionRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -9893,18 +10092,6 @@ func (c *Client) UpdateHttpTriggerWithBody(ctx context.Context, workspace Worksp
 
 func (c *Client) UpdateHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateHttpTriggerRequest(c.Server, workspace, path, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) Used(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUsedRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -11883,6 +12070,18 @@ func (c *Client) GetScriptByPath(ctx context.Context, workspace WorkspaceId, pat
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetScriptLatestVersion(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetScriptLatestVersionRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetTriggersCountOfScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetTriggersCountOfScriptRequest(c.Server, workspace, path)
 	if err != nil {
@@ -12293,6 +12492,126 @@ func (c *Client) UpdateVariableWithBody(ctx context.Context, workspace Workspace
 
 func (c *Client) UpdateVariable(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateVariableRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateWebsocketTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateWebsocketTriggerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateWebsocketTrigger(ctx context.Context, workspace WorkspaceId, body CreateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateWebsocketTriggerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteWebsocketTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsWebsocketTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetWebsocketTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListWebsocketTriggers(ctx context.Context, workspace WorkspaceId, params *ListWebsocketTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListWebsocketTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetWebsocketTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWebsocketTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetWebsocketTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWebsocketTriggerEnabledRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateWebsocketTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateWebsocketTriggerRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateWebsocketTriggerRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -12941,6 +13260,18 @@ func (c *Client) SetEnvironmentVariable(ctx context.Context, workspace Workspace
 
 func (c *Client) GetWorkspaceUsage(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetWorkspaceUsageRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetUsedTriggers(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUsedTriggersRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -16800,6 +17131,47 @@ func NewGetRawAppDataRequest(server string, workspace WorkspaceId, version Versi
 	return req, nil
 }
 
+// NewGetAppLatestVersionRequest generates requests for GetAppLatestVersion
+func NewGetAppLatestVersionRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/get_latest_version/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetAppHistoryByPathRequest generates requests for GetAppHistoryByPath
 func NewGetAppHistoryByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
 	var err error
@@ -18785,6 +19157,47 @@ func NewGetFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPa
 	return req, nil
 }
 
+// NewGetFlowLatestVersionRequest generates requests for GetFlowLatestVersion
+func NewGetFlowLatestVersionRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/get_latest_version/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetTriggersCountOfFlowRequest generates requests for GetTriggersCountOfFlow
 func NewGetTriggersCountOfFlowRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
 	var err error
@@ -20599,40 +21012,6 @@ func NewUpdateHttpTriggerRequestWithBody(server string, workspace WorkspaceId, p
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewUsedRequest generates requests for Used
-func NewUsedRequest(server string, workspace WorkspaceId) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/http_triggers/used", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -30242,6 +30621,47 @@ func NewGetScriptByPathRequest(server string, workspace WorkspaceId, path Script
 	return req, nil
 }
 
+// NewGetScriptLatestVersionRequest generates requests for GetScriptLatestVersion
+func NewGetScriptLatestVersionRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/get_latest_version/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetTriggersCountOfScriptRequest generates requests for GetTriggersCountOfScript
 func NewGetTriggersCountOfScriptRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
 	var err error
@@ -31827,6 +32247,402 @@ func NewUpdateVariableRequestWithBody(server string, workspace WorkspaceId, path
 	return req, nil
 }
 
+// NewCreateWebsocketTriggerRequest calls the generic CreateWebsocketTrigger builder with application/json body
+func NewCreateWebsocketTriggerRequest(server string, workspace WorkspaceId, body CreateWebsocketTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateWebsocketTriggerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateWebsocketTriggerRequestWithBody generates requests for CreateWebsocketTrigger with any type of body
+func NewCreateWebsocketTriggerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/websocket_triggers/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteWebsocketTriggerRequest generates requests for DeleteWebsocketTrigger
+func NewDeleteWebsocketTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/websocket_triggers/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsWebsocketTriggerRequest generates requests for ExistsWebsocketTrigger
+func NewExistsWebsocketTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/websocket_triggers/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetWebsocketTriggerRequest generates requests for GetWebsocketTrigger
+func NewGetWebsocketTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/websocket_triggers/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListWebsocketTriggersRequest generates requests for ListWebsocketTriggers
+func NewListWebsocketTriggersRequest(server string, workspace WorkspaceId, params *ListWebsocketTriggersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/websocket_triggers/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Page != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Path != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.IsFlow != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PathStart != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetWebsocketTriggerEnabledRequest calls the generic SetWebsocketTriggerEnabled builder with application/json body
+func NewSetWebsocketTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetWebsocketTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewSetWebsocketTriggerEnabledRequestWithBody generates requests for SetWebsocketTriggerEnabled with any type of body
+func NewSetWebsocketTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/websocket_triggers/setenabled/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateWebsocketTriggerRequest calls the generic UpdateWebsocketTrigger builder with application/json body
+func NewUpdateWebsocketTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdateWebsocketTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateWebsocketTriggerRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateWebsocketTriggerRequestWithBody generates requests for UpdateWebsocketTrigger with any type of body
+func NewUpdateWebsocketTriggerRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/websocket_triggers/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewAddUserRequest calls the generic AddUser builder with application/json body
 func NewAddUserRequest(server string, workspace WorkspaceId, body AddUserJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -33243,6 +34059,40 @@ func NewGetWorkspaceUsageRequest(server string, workspace WorkspaceId) (*http.Re
 	return req, nil
 }
 
+// NewGetUsedTriggersRequest generates requests for GetUsedTriggers
+func NewGetUsedTriggersRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/used_triggers", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetCustomTagsRequest generates requests for GetCustomTags
 func NewGetCustomTagsRequest(server string) (*http.Request, error) {
 	var err error
@@ -34184,6 +35034,9 @@ type ClientWithResponsesInterface interface {
 	// GetRawAppData request
 	GetRawAppDataWithResponse(ctx context.Context, workspace WorkspaceId, version VersionId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetRawAppDataResponse, error)
 
+	// GetAppLatestVersion request
+	GetAppLatestVersionWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppLatestVersionResponse, error)
+
 	// GetAppHistoryByPath request
 	GetAppHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppHistoryByPathResponse, error)
 
@@ -34280,6 +35133,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetFlowByPath request
 	GetFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams, reqEditors ...RequestEditorFn) (*GetFlowByPathResponse, error)
+
+	// GetFlowLatestVersion request
+	GetFlowLatestVersionWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowLatestVersionResponse, error)
 
 	// GetTriggersCountOfFlow request
 	GetTriggersCountOfFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetTriggersCountOfFlowResponse, error)
@@ -34407,9 +35263,6 @@ type ClientWithResponsesInterface interface {
 	UpdateHttpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateHttpTriggerResponse, error)
 
 	UpdateHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateHttpTriggerResponse, error)
-
-	// Used request
-	UsedWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*UsedResponse, error)
 
 	// CreateInput request with any body
 	CreateInputWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateInputParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateInputResponse, error)
@@ -34859,6 +35712,9 @@ type ClientWithResponsesInterface interface {
 	// GetScriptByPath request
 	GetScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptByPathParams, reqEditors ...RequestEditorFn) (*GetScriptByPathResponse, error)
 
+	// GetScriptLatestVersion request
+	GetScriptLatestVersionWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptLatestVersionResponse, error)
+
 	// GetTriggersCountOfScript request
 	GetTriggersCountOfScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetTriggersCountOfScriptResponse, error)
 
@@ -34957,6 +35813,33 @@ type ClientWithResponsesInterface interface {
 	UpdateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error)
 
 	UpdateVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error)
+
+	// CreateWebsocketTrigger request with any body
+	CreateWebsocketTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWebsocketTriggerResponse, error)
+
+	CreateWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWebsocketTriggerResponse, error)
+
+	// DeleteWebsocketTrigger request
+	DeleteWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteWebsocketTriggerResponse, error)
+
+	// ExistsWebsocketTrigger request
+	ExistsWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsWebsocketTriggerResponse, error)
+
+	// GetWebsocketTrigger request
+	GetWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetWebsocketTriggerResponse, error)
+
+	// ListWebsocketTriggers request
+	ListWebsocketTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListWebsocketTriggersParams, reqEditors ...RequestEditorFn) (*ListWebsocketTriggersResponse, error)
+
+	// SetWebsocketTriggerEnabled request with any body
+	SetWebsocketTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerEnabledResponse, error)
+
+	SetWebsocketTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerEnabledResponse, error)
+
+	// UpdateWebsocketTrigger request with any body
+	UpdateWebsocketTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateWebsocketTriggerResponse, error)
+
+	UpdateWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateWebsocketTriggerResponse, error)
 
 	// AddUser request with any body
 	AddUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserResponse, error)
@@ -35099,6 +35982,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetWorkspaceUsage request
 	GetWorkspaceUsageWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceUsageResponse, error)
+
+	// GetUsedTriggers request
+	GetUsedTriggersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetUsedTriggersResponse, error)
 
 	// GetCustomTags request
 	GetCustomTagsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error)
@@ -37232,6 +38118,28 @@ func (r GetRawAppDataResponse) StatusCode() int {
 	return 0
 }
 
+type GetAppLatestVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AppHistory
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAppLatestVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAppLatestVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetAppHistoryByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -37834,6 +38742,28 @@ func (r GetFlowByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetFlowByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetFlowLatestVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *FlowVersion
+}
+
+// Status returns HTTPResponse.Status
+func (r GetFlowLatestVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFlowLatestVersionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -38573,28 +39503,6 @@ func (r UpdateHttpTriggerResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateHttpTriggerResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UsedResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *bool
-}
-
-// Status returns HTTPResponse.Status
-func (r UsedResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UsedResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -41272,6 +42180,28 @@ func (r GetScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
+type GetScriptLatestVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ScriptHistory
+}
+
+// Status returns HTTPResponse.Status
+func (r GetScriptLatestVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetScriptLatestVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetTriggersCountOfScriptResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -41895,6 +42825,156 @@ func (r UpdateVariableResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateVariableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateWebsocketTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateWebsocketTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateWebsocketTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteWebsocketTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteWebsocketTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteWebsocketTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsWebsocketTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsWebsocketTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsWebsocketTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetWebsocketTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *WebsocketTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r GetWebsocketTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetWebsocketTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListWebsocketTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]WebsocketTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r ListWebsocketTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListWebsocketTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetWebsocketTriggerEnabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetWebsocketTriggerEnabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetWebsocketTriggerEnabledResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateWebsocketTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateWebsocketTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateWebsocketTriggerResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -42655,6 +43735,31 @@ func (r GetWorkspaceUsageResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetWorkspaceUsageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetUsedTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		HttpRoutesUsed bool `json:"http_routes_used"`
+		WebsocketUsed  bool `json:"websocket_used"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUsedTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUsedTriggersResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -44060,6 +45165,15 @@ func (c *ClientWithResponses) GetRawAppDataWithResponse(ctx context.Context, wor
 	return ParseGetRawAppDataResponse(rsp)
 }
 
+// GetAppLatestVersionWithResponse request returning *GetAppLatestVersionResponse
+func (c *ClientWithResponses) GetAppLatestVersionWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppLatestVersionResponse, error) {
+	rsp, err := c.GetAppLatestVersion(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAppLatestVersionResponse(rsp)
+}
+
 // GetAppHistoryByPathWithResponse request returning *GetAppHistoryByPathResponse
 func (c *ClientWithResponses) GetAppHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppHistoryByPathResponse, error) {
 	rsp, err := c.GetAppHistoryByPath(ctx, workspace, path, reqEditors...)
@@ -44365,6 +45479,15 @@ func (c *ClientWithResponses) GetFlowByPathWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseGetFlowByPathResponse(rsp)
+}
+
+// GetFlowLatestVersionWithResponse request returning *GetFlowLatestVersionResponse
+func (c *ClientWithResponses) GetFlowLatestVersionWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowLatestVersionResponse, error) {
+	rsp, err := c.GetFlowLatestVersion(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFlowLatestVersionResponse(rsp)
 }
 
 // GetTriggersCountOfFlowWithResponse request returning *GetTriggersCountOfFlowResponse
@@ -44774,15 +45897,6 @@ func (c *ClientWithResponses) UpdateHttpTriggerWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseUpdateHttpTriggerResponse(rsp)
-}
-
-// UsedWithResponse request returning *UsedResponse
-func (c *ClientWithResponses) UsedWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*UsedResponse, error) {
-	rsp, err := c.Used(ctx, workspace, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUsedResponse(rsp)
 }
 
 // CreateInputWithBodyWithResponse request with arbitrary body returning *CreateInputResponse
@@ -46217,6 +47331,15 @@ func (c *ClientWithResponses) GetScriptByPathWithResponse(ctx context.Context, w
 	return ParseGetScriptByPathResponse(rsp)
 }
 
+// GetScriptLatestVersionWithResponse request returning *GetScriptLatestVersionResponse
+func (c *ClientWithResponses) GetScriptLatestVersionWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptLatestVersionResponse, error) {
+	rsp, err := c.GetScriptLatestVersion(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetScriptLatestVersionResponse(rsp)
+}
+
 // GetTriggersCountOfScriptWithResponse request returning *GetTriggersCountOfScriptResponse
 func (c *ClientWithResponses) GetTriggersCountOfScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetTriggersCountOfScriptResponse, error) {
 	rsp, err := c.GetTriggersCountOfScript(ctx, workspace, path, reqEditors...)
@@ -46524,6 +47647,93 @@ func (c *ClientWithResponses) UpdateVariableWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseUpdateVariableResponse(rsp)
+}
+
+// CreateWebsocketTriggerWithBodyWithResponse request with arbitrary body returning *CreateWebsocketTriggerResponse
+func (c *ClientWithResponses) CreateWebsocketTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWebsocketTriggerResponse, error) {
+	rsp, err := c.CreateWebsocketTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateWebsocketTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWebsocketTriggerResponse, error) {
+	rsp, err := c.CreateWebsocketTrigger(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateWebsocketTriggerResponse(rsp)
+}
+
+// DeleteWebsocketTriggerWithResponse request returning *DeleteWebsocketTriggerResponse
+func (c *ClientWithResponses) DeleteWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteWebsocketTriggerResponse, error) {
+	rsp, err := c.DeleteWebsocketTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteWebsocketTriggerResponse(rsp)
+}
+
+// ExistsWebsocketTriggerWithResponse request returning *ExistsWebsocketTriggerResponse
+func (c *ClientWithResponses) ExistsWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsWebsocketTriggerResponse, error) {
+	rsp, err := c.ExistsWebsocketTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsWebsocketTriggerResponse(rsp)
+}
+
+// GetWebsocketTriggerWithResponse request returning *GetWebsocketTriggerResponse
+func (c *ClientWithResponses) GetWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetWebsocketTriggerResponse, error) {
+	rsp, err := c.GetWebsocketTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetWebsocketTriggerResponse(rsp)
+}
+
+// ListWebsocketTriggersWithResponse request returning *ListWebsocketTriggersResponse
+func (c *ClientWithResponses) ListWebsocketTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListWebsocketTriggersParams, reqEditors ...RequestEditorFn) (*ListWebsocketTriggersResponse, error) {
+	rsp, err := c.ListWebsocketTriggers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListWebsocketTriggersResponse(rsp)
+}
+
+// SetWebsocketTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetWebsocketTriggerEnabledResponse
+func (c *ClientWithResponses) SetWebsocketTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerEnabledResponse, error) {
+	rsp, err := c.SetWebsocketTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetWebsocketTriggerEnabledResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetWebsocketTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerEnabledResponse, error) {
+	rsp, err := c.SetWebsocketTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetWebsocketTriggerEnabledResponse(rsp)
+}
+
+// UpdateWebsocketTriggerWithBodyWithResponse request with arbitrary body returning *UpdateWebsocketTriggerResponse
+func (c *ClientWithResponses) UpdateWebsocketTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateWebsocketTriggerResponse, error) {
+	rsp, err := c.UpdateWebsocketTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateWebsocketTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateWebsocketTriggerResponse, error) {
+	rsp, err := c.UpdateWebsocketTrigger(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateWebsocketTriggerResponse(rsp)
 }
 
 // AddUserWithBodyWithResponse request with arbitrary body returning *AddUserResponse
@@ -46990,6 +48200,15 @@ func (c *ClientWithResponses) GetWorkspaceUsageWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseGetWorkspaceUsageResponse(rsp)
+}
+
+// GetUsedTriggersWithResponse request returning *GetUsedTriggersResponse
+func (c *ClientWithResponses) GetUsedTriggersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetUsedTriggersResponse, error) {
+	rsp, err := c.GetUsedTriggers(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUsedTriggersResponse(rsp)
 }
 
 // GetCustomTagsWithResponse request returning *GetCustomTagsResponse
@@ -49158,6 +50377,32 @@ func ParseGetRawAppDataResponse(rsp *http.Response) (*GetRawAppDataResponse, err
 	return response, nil
 }
 
+// ParseGetAppLatestVersionResponse parses an HTTP response from a GetAppLatestVersionWithResponse call
+func ParseGetAppLatestVersionResponse(rsp *http.Response) (*GetAppLatestVersionResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAppLatestVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AppHistory
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetAppHistoryByPathResponse parses an HTTP response from a GetAppHistoryByPathWithResponse call
 func ParseGetAppHistoryByPathResponse(rsp *http.Response) (*GetAppHistoryByPathResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -49747,6 +50992,32 @@ func ParseGetFlowByPathResponse(rsp *http.Response) (*GetFlowByPathResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Flow
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetFlowLatestVersionResponse parses an HTTP response from a GetFlowLatestVersionWithResponse call
+func ParseGetFlowLatestVersionResponse(rsp *http.Response) (*GetFlowLatestVersionResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFlowLatestVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest FlowVersion
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -50470,32 +51741,6 @@ func ParseUpdateHttpTriggerResponse(rsp *http.Response) (*UpdateHttpTriggerRespo
 	response := &UpdateHttpTriggerResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseUsedResponse parses an HTTP response from a UsedWithResponse call
-func ParseUsedResponse(rsp *http.Response) (*UsedResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UsedResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest bool
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
 	}
 
 	return response, nil
@@ -53229,6 +54474,32 @@ func ParseGetScriptByPathResponse(rsp *http.Response) (*GetScriptByPathResponse,
 	return response, nil
 }
 
+// ParseGetScriptLatestVersionResponse parses an HTTP response from a GetScriptLatestVersionWithResponse call
+func ParseGetScriptLatestVersionResponse(rsp *http.Response) (*GetScriptLatestVersionResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetScriptLatestVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ScriptHistory
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetTriggersCountOfScriptResponse parses an HTTP response from a GetTriggersCountOfScriptWithResponse call
 func ParseGetTriggersCountOfScriptResponse(rsp *http.Response) (*GetTriggersCountOfScriptResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -53859,6 +55130,148 @@ func ParseUpdateVariableResponse(rsp *http.Response) (*UpdateVariableResponse, e
 	}
 
 	response := &UpdateVariableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateWebsocketTriggerResponse parses an HTTP response from a CreateWebsocketTriggerWithResponse call
+func ParseCreateWebsocketTriggerResponse(rsp *http.Response) (*CreateWebsocketTriggerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateWebsocketTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteWebsocketTriggerResponse parses an HTTP response from a DeleteWebsocketTriggerWithResponse call
+func ParseDeleteWebsocketTriggerResponse(rsp *http.Response) (*DeleteWebsocketTriggerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteWebsocketTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsWebsocketTriggerResponse parses an HTTP response from a ExistsWebsocketTriggerWithResponse call
+func ParseExistsWebsocketTriggerResponse(rsp *http.Response) (*ExistsWebsocketTriggerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsWebsocketTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetWebsocketTriggerResponse parses an HTTP response from a GetWebsocketTriggerWithResponse call
+func ParseGetWebsocketTriggerResponse(rsp *http.Response) (*GetWebsocketTriggerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetWebsocketTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WebsocketTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListWebsocketTriggersResponse parses an HTTP response from a ListWebsocketTriggersWithResponse call
+func ParseListWebsocketTriggersResponse(rsp *http.Response) (*ListWebsocketTriggersResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListWebsocketTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []WebsocketTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetWebsocketTriggerEnabledResponse parses an HTTP response from a SetWebsocketTriggerEnabledWithResponse call
+func ParseSetWebsocketTriggerEnabledResponse(rsp *http.Response) (*SetWebsocketTriggerEnabledResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetWebsocketTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateWebsocketTriggerResponse parses an HTTP response from a UpdateWebsocketTriggerWithResponse call
+func ParseUpdateWebsocketTriggerResponse(rsp *http.Response) (*UpdateWebsocketTriggerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateWebsocketTriggerResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -54559,6 +55972,35 @@ func ParseGetWorkspaceUsageResponse(rsp *http.Response) (*GetWorkspaceUsageRespo
 	response := &GetWorkspaceUsageResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetUsedTriggersResponse parses an HTTP response from a GetUsedTriggersWithResponse call
+func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUsedTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			HttpRoutesUsed bool `json:"http_routes_used"`
+			WebsocketUsed  bool `json:"websocket_used"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
