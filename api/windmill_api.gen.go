@@ -111,6 +111,7 @@ const (
 	UsersImpersonate               AuditLogOperation = "users.impersonate"
 	UsersLeaveWorkspace            AuditLogOperation = "users.leave_workspace"
 	UsersLogin                     AuditLogOperation = "users.login"
+	UsersLoginFailure              AuditLogOperation = "users.login_failure"
 	UsersLogout                    AuditLogOperation = "users.logout"
 	UsersSetpassword               AuditLogOperation = "users.setpassword"
 	UsersTokenCreate               AuditLogOperation = "users.token.create"
