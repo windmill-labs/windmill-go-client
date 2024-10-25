@@ -86,6 +86,7 @@ const (
 	JobsRunScript                  AuditLogOperation = "jobs.run.script"
 	JobsRunScriptHub               AuditLogOperation = "jobs.run.script_hub"
 	OauthLogin                     AuditLogOperation = "oauth.login"
+	OauthLoginFailure              AuditLogOperation = "oauth.login_failure"
 	OauthSignup                    AuditLogOperation = "oauth.signup"
 	OpenaiRequest                  AuditLogOperation = "openai.request"
 	ResourceTypesCreate            AuditLogOperation = "resource_types.create"
