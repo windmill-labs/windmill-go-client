@@ -805,6 +805,16 @@ type AuditLogActionKind string
 // AuditLogOperation defines model for AuditLog.Operation.
 type AuditLogOperation string
 
+// AutoscalingEvent defines model for AutoscalingEvent.
+type AutoscalingEvent struct {
+	AppliedAt      *time.Time `json:"applied_at,omitempty"`
+	DesiredWorkers *int       `json:"desired_workers,omitempty"`
+	EventType      *string    `json:"event_type,omitempty"`
+	Id             *int64     `json:"id,omitempty"`
+	Reason         *string    `json:"reason,omitempty"`
+	WorkerGroup    *string    `json:"worker_group,omitempty"`
+}
+
 // BranchAll defines model for BranchAll.
 type BranchAll struct {
 	Branches []struct {
@@ -5258,6 +5268,9 @@ type ClientInterface interface {
 	// ListConfigs request
 	ListConfigs(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAutoscalingEvents request
+	ListAutoscalingEvents(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListWorkerGroups request
 	ListWorkerGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6679,6 +6692,18 @@ func (c *Client) GetConfig(ctx context.Context, name Name, reqEditors ...Request
 
 func (c *Client) ListConfigs(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListConfigsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAutoscalingEvents(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAutoscalingEventsRequest(c.Server, workerGroup)
 	if err != nil {
 		return nil, err
 	}
@@ -12704,6 +12729,40 @@ func NewListConfigsRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/configs/list")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAutoscalingEventsRequest generates requests for ListAutoscalingEvents
+func NewListAutoscalingEventsRequest(server string, workerGroup string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "worker_group", runtime.ParamLocationPath, workerGroup)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/list_autoscaling_events/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -33830,6 +33889,9 @@ type ClientWithResponsesInterface interface {
 	// ListConfigsWithResponse request
 	ListConfigsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListConfigsResponse, error)
 
+	// ListAutoscalingEventsWithResponse request
+	ListAutoscalingEventsWithResponse(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*ListAutoscalingEventsResponse, error)
+
 	// ListWorkerGroupsWithResponse request
 	ListWorkerGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkerGroupsResponse, error)
 
@@ -35345,6 +35407,28 @@ func (r ListConfigsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListConfigsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAutoscalingEventsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]AutoscalingEvent
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAutoscalingEventsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAutoscalingEventsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -43287,6 +43371,15 @@ func (c *ClientWithResponses) ListConfigsWithResponse(ctx context.Context, reqEd
 	return ParseListConfigsResponse(rsp)
 }
 
+// ListAutoscalingEventsWithResponse request returning *ListAutoscalingEventsResponse
+func (c *ClientWithResponses) ListAutoscalingEventsWithResponse(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*ListAutoscalingEventsResponse, error) {
+	rsp, err := c.ListAutoscalingEvents(ctx, workerGroup, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAutoscalingEventsResponse(rsp)
+}
+
 // ListWorkerGroupsWithResponse request returning *ListWorkerGroupsResponse
 func (c *ClientWithResponses) ListWorkerGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkerGroupsResponse, error) {
 	rsp, err := c.ListWorkerGroups(ctx, reqEditors...)
@@ -47689,6 +47782,32 @@ func ParseListConfigsResponse(rsp *http.Response) (*ListConfigsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []Config
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAutoscalingEventsResponse parses an HTTP response from a ListAutoscalingEventsWithResponse call
+func ParseListAutoscalingEventsResponse(rsp *http.Response) (*ListAutoscalingEventsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAutoscalingEventsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []AutoscalingEvent
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
