@@ -1295,13 +1295,14 @@ type GlobalSetting struct {
 
 // GlobalUserInfo defines model for GlobalUserInfo.
 type GlobalUserInfo struct {
-	Company    *string                 `json:"company,omitempty"`
-	Email      string                  `json:"email"`
-	LoginType  GlobalUserInfoLoginType `json:"login_type"`
-	Name       *string                 `json:"name,omitempty"`
-	SuperAdmin bool                    `json:"super_admin"`
-	Username   *string                 `json:"username,omitempty"`
-	Verified   bool                    `json:"verified"`
+	Company      *string                 `json:"company,omitempty"`
+	Email        string                  `json:"email"`
+	LoginType    GlobalUserInfoLoginType `json:"login_type"`
+	Name         *string                 `json:"name,omitempty"`
+	OperatorOnly *bool                   `json:"operator_only,omitempty"`
+	SuperAdmin   bool                    `json:"super_admin"`
+	Username     *string                 `json:"username,omitempty"`
+	Verified     bool                    `json:"verified"`
 }
 
 // GlobalUserInfoLoginType defines model for GlobalUserInfo.LoginType.
@@ -2652,6 +2653,9 @@ type ListUsersAsSuperAdminParams struct {
 
 	// PerPage number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// ActiveOnly filter only active users
+	ActiveOnly *bool `form:"active_only,omitempty" json:"active_only,omitempty"`
 }
 
 // GlobalUsersOverwriteJSONBody defines parameters for GlobalUsersOverwrite.
@@ -15030,6 +15034,22 @@ func NewListUsersAsSuperAdminRequest(server string, params *ListUsersAsSuperAdmi
 		if params.PerPage != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ActiveOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "active_only", runtime.ParamLocationQuery, *params.ActiveOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
