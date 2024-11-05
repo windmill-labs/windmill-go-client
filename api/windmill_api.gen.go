@@ -1779,6 +1779,7 @@ type PathFlowType string
 type PathScript struct {
 	Hash            *string                   `json:"hash,omitempty"`
 	InputTransforms map[string]InputTransform `json:"input_transforms"`
+	IsTrigger       *bool                     `json:"is_trigger,omitempty"`
 	Path            string                    `json:"path"`
 	TagOverride     *string                   `json:"tag_override,omitempty"`
 	Type            PathScriptType            `json:"type"`
@@ -1874,6 +1875,7 @@ type RawScript struct {
 	Content                string                    `json:"content"`
 	CustomConcurrencyKey   *string                   `json:"custom_concurrency_key,omitempty"`
 	InputTransforms        map[string]InputTransform `json:"input_transforms"`
+	IsTrigger              *bool                     `json:"is_trigger,omitempty"`
 	Language               RawScriptLanguage         `json:"language"`
 	Lock                   *string                   `json:"lock,omitempty"`
 	Path                   *string                   `json:"path,omitempty"`
