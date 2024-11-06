@@ -1005,10 +1005,12 @@ type EditWebsocketTrigger struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
-	IsFlow     bool   `json:"is_flow"`
-	Path       string `json:"path"`
-	ScriptPath string `json:"script_path"`
-	Url        string `json:"url"`
+	InitialMessages []WebsocketTriggerInitialMessage `json:"initial_messages"`
+	IsFlow          bool                             `json:"is_flow"`
+	Path            string                           `json:"path"`
+	ScriptPath      string                           `json:"script_path"`
+	Url             string                           `json:"url"`
+	UrlRunnableArgs ScriptArgs                       `json:"url_runnable_args"`
 }
 
 // EditWorkspaceUser defines model for EditWorkspaceUser.
@@ -1570,6 +1572,11 @@ type ListableVariable struct {
 	WorkspaceId  string          `json:"workspace_id"`
 }
 
+// LogSearchHit defines model for LogSearchHit.
+type LogSearchHit struct {
+	Dancer *string `json:"dancer,omitempty"`
+}
+
 // Login defines model for Login.
 type Login struct {
 	Email    string `json:"email"`
@@ -1729,10 +1736,12 @@ type NewWebsocketTrigger struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
-	IsFlow     bool   `json:"is_flow"`
-	Path       string `json:"path"`
-	ScriptPath string `json:"script_path"`
-	Url        string `json:"url"`
+	InitialMessages []WebsocketTriggerInitialMessage `json:"initial_messages"`
+	IsFlow          bool                             `json:"is_flow"`
+	Path            string                           `json:"path"`
+	ScriptPath      string                           `json:"script_path"`
+	Url             string                           `json:"url"`
+	UrlRunnableArgs ScriptArgs                       `json:"url_runnable_args"`
 }
 
 // ObscuredJob defines model for ObscuredJob.
@@ -2184,13 +2193,34 @@ type WebsocketTrigger struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
-	IsFlow         bool       `json:"is_flow"`
-	LastServerPing *time.Time `json:"last_server_ping,omitempty"`
-	Path           string     `json:"path"`
-	ScriptPath     string     `json:"script_path"`
-	ServerId       *string    `json:"server_id,omitempty"`
-	Url            string     `json:"url"`
-	WorkspaceId    string     `json:"workspace_id"`
+	InitialMessages []WebsocketTriggerInitialMessage `json:"initial_messages"`
+	IsFlow          bool                             `json:"is_flow"`
+	LastServerPing  *time.Time                       `json:"last_server_ping,omitempty"`
+	Path            string                           `json:"path"`
+	ScriptPath      string                           `json:"script_path"`
+	ServerId        *string                          `json:"server_id,omitempty"`
+	Url             string                           `json:"url"`
+	UrlRunnableArgs ScriptArgs                       `json:"url_runnable_args"`
+	WorkspaceId     string                           `json:"workspace_id"`
+}
+
+// WebsocketTriggerInitialMessage defines model for WebsocketTriggerInitialMessage.
+type WebsocketTriggerInitialMessage struct {
+	union json.RawMessage
+}
+
+// WebsocketTriggerInitialMessage0 defines model for .
+type WebsocketTriggerInitialMessage0 struct {
+	RawMessage string `json:"raw_message"`
+}
+
+// WebsocketTriggerInitialMessage1 defines model for .
+type WebsocketTriggerInitialMessage1 struct {
+	RunnableResult struct {
+		Args   ScriptArgs `json:"args"`
+		IsFlow bool       `json:"is_flow"`
+		Path   string     `json:"path"`
+	} `json:"runnable_result"`
 }
 
 // WhileloopFlow defines model for WhileloopFlow.
@@ -2613,6 +2643,7 @@ type TestObjectStorageConfigJSONBody map[string]interface{}
 // TestSmtpJSONBody defines parameters for TestSmtp.
 type TestSmtpJSONBody struct {
 	Smtp struct {
+		DisableTls  bool   `json:"disable_tls"`
 		From        string `json:"from"`
 		Host        string `json:"host"`
 		Password    string `json:"password"`
@@ -2621,6 +2652,24 @@ type TestSmtpJSONBody struct {
 		Username    string `json:"username"`
 	} `json:"smtp"`
 	To string `json:"to"`
+}
+
+// CountSearchLogsIndexParams defines parameters for CountSearchLogsIndex.
+type CountSearchLogsIndexParams struct {
+	SearchQuery string     `form:"search_query" json:"search_query"`
+	Hosts       string     `form:"hosts" json:"hosts"`
+	MinTs       *time.Time `form:"min_ts,omitempty" json:"min_ts,omitempty"`
+	MaxTs       *time.Time `form:"max_ts,omitempty" json:"max_ts,omitempty"`
+}
+
+// SearchLogsIndexParams defines parameters for SearchLogsIndex.
+type SearchLogsIndexParams struct {
+	SearchQuery string     `form:"search_query" json:"search_query"`
+	Mode        string     `form:"mode" json:"mode"`
+	WorkerGroup *string    `form:"worker_group,omitempty" json:"worker_group,omitempty"`
+	Hostname    string     `form:"hostname" json:"hostname"`
+	MinTs       *time.Time `form:"min_ts,omitempty" json:"min_ts,omitempty"`
+	MaxTs       *time.Time `form:"max_ts,omitempty" json:"max_ts,omitempty"`
 }
 
 // SearchJobsIndexParams defines parameters for SearchJobsIndex.
@@ -5172,6 +5221,68 @@ func (t *Job) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsWebsocketTriggerInitialMessage0 returns the union data inside the WebsocketTriggerInitialMessage as a WebsocketTriggerInitialMessage0
+func (t WebsocketTriggerInitialMessage) AsWebsocketTriggerInitialMessage0() (WebsocketTriggerInitialMessage0, error) {
+	var body WebsocketTriggerInitialMessage0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromWebsocketTriggerInitialMessage0 overwrites any union data inside the WebsocketTriggerInitialMessage as the provided WebsocketTriggerInitialMessage0
+func (t *WebsocketTriggerInitialMessage) FromWebsocketTriggerInitialMessage0(v WebsocketTriggerInitialMessage0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeWebsocketTriggerInitialMessage0 performs a merge with any union data inside the WebsocketTriggerInitialMessage, using the provided WebsocketTriggerInitialMessage0
+func (t *WebsocketTriggerInitialMessage) MergeWebsocketTriggerInitialMessage0(v WebsocketTriggerInitialMessage0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsWebsocketTriggerInitialMessage1 returns the union data inside the WebsocketTriggerInitialMessage as a WebsocketTriggerInitialMessage1
+func (t WebsocketTriggerInitialMessage) AsWebsocketTriggerInitialMessage1() (WebsocketTriggerInitialMessage1, error) {
+	var body WebsocketTriggerInitialMessage1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromWebsocketTriggerInitialMessage1 overwrites any union data inside the WebsocketTriggerInitialMessage as the provided WebsocketTriggerInitialMessage1
+func (t *WebsocketTriggerInitialMessage) FromWebsocketTriggerInitialMessage1(v WebsocketTriggerInitialMessage1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeWebsocketTriggerInitialMessage1 performs a merge with any union data inside the WebsocketTriggerInitialMessage, using the provided WebsocketTriggerInitialMessage1
+func (t *WebsocketTriggerInitialMessage) MergeWebsocketTriggerInitialMessage1(v WebsocketTriggerInitialMessage1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t WebsocketTriggerInitialMessage) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *WebsocketTriggerInitialMessage) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
@@ -5443,6 +5554,12 @@ type ClientInterface interface {
 	TestSmtpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CountSearchLogsIndex request
+	CountSearchLogsIndex(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SearchLogsIndex request
+	SearchLogsIndex(ctx context.Context, params *SearchLogsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SearchJobsIndex request
 	SearchJobsIndex(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7442,6 +7559,30 @@ func (c *Client) TestSmtpWithBody(ctx context.Context, contentType string, body 
 
 func (c *Client) TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewTestSmtpRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CountSearchLogsIndex(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCountSearchLogsIndexRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SearchLogsIndex(ctx context.Context, params *SearchLogsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSearchLogsIndexRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -14616,6 +14757,212 @@ func NewTestSmtpRequestWithBody(server string, contentType string, body io.Reade
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCountSearchLogsIndexRequest generates requests for CountSearchLogsIndex
+func NewCountSearchLogsIndexRequest(server string, params *CountSearchLogsIndexParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/srch/index/search/count_service_logs")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_query", runtime.ParamLocationQuery, params.SearchQuery); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "hosts", runtime.ParamLocationQuery, params.Hosts); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.MinTs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "min_ts", runtime.ParamLocationQuery, *params.MinTs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MaxTs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_ts", runtime.ParamLocationQuery, *params.MaxTs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSearchLogsIndexRequest generates requests for SearchLogsIndex
+func NewSearchLogsIndexRequest(server string, params *SearchLogsIndexParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/srch/index/search/service_logs")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_query", runtime.ParamLocationQuery, params.SearchQuery); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "mode", runtime.ParamLocationQuery, params.Mode); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.WorkerGroup != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "worker_group", runtime.ParamLocationQuery, *params.WorkerGroup); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "hostname", runtime.ParamLocationQuery, params.Hostname); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.MinTs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "min_ts", runtime.ParamLocationQuery, *params.MinTs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MaxTs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_ts", runtime.ParamLocationQuery, *params.MaxTs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -34081,6 +34428,12 @@ type ClientWithResponsesInterface interface {
 
 	TestSmtpWithResponse(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error)
 
+	// CountSearchLogsIndexWithResponse request
+	CountSearchLogsIndexWithResponse(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*CountSearchLogsIndexResponse, error)
+
+	// SearchLogsIndexWithResponse request
+	SearchLogsIndexWithResponse(ctx context.Context, params *SearchLogsIndexParams, reqEditors ...RequestEditorFn) (*SearchLogsIndexResponse, error)
+
 	// SearchJobsIndexWithResponse request
 	SearchJobsIndexWithResponse(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*SearchJobsIndexResponse, error)
 
@@ -36482,6 +36835,62 @@ func (r TestSmtpResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r TestSmtpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CountSearchLogsIndexResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// CountPerHost count of log lines that matched the query per hostname
+		CountPerHost *map[string]interface{} `json:"count_per_host,omitempty"`
+
+		// QueryParseErrors a list of the terms that couldn't be parsed (and thus ignored)
+		QueryParseErrors *[]string `json:"query_parse_errors,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CountSearchLogsIndexResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CountSearchLogsIndexResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SearchLogsIndexResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Hits log files that matched the query
+		Hits *[]LogSearchHit `json:"hits,omitempty"`
+
+		// QueryParseErrors a list of the terms that couldn't be parsed (and thus ignored)
+		QueryParseErrors *[]string `json:"query_parse_errors,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r SearchLogsIndexResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SearchLogsIndexResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -43935,6 +44344,24 @@ func (c *ClientWithResponses) TestSmtpWithResponse(ctx context.Context, body Tes
 	return ParseTestSmtpResponse(rsp)
 }
 
+// CountSearchLogsIndexWithResponse request returning *CountSearchLogsIndexResponse
+func (c *ClientWithResponses) CountSearchLogsIndexWithResponse(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*CountSearchLogsIndexResponse, error) {
+	rsp, err := c.CountSearchLogsIndex(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCountSearchLogsIndexResponse(rsp)
+}
+
+// SearchLogsIndexWithResponse request returning *SearchLogsIndexResponse
+func (c *ClientWithResponses) SearchLogsIndexWithResponse(ctx context.Context, params *SearchLogsIndexParams, reqEditors ...RequestEditorFn) (*SearchLogsIndexResponse, error) {
+	rsp, err := c.SearchLogsIndex(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSearchLogsIndexResponse(rsp)
+}
+
 // SearchJobsIndexWithResponse request returning *SearchJobsIndexResponse
 func (c *ClientWithResponses) SearchJobsIndexWithResponse(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*SearchJobsIndexResponse, error) {
 	rsp, err := c.SearchJobsIndex(ctx, workspace, params, reqEditors...)
@@ -48830,6 +49257,70 @@ func ParseTestSmtpResponse(rsp *http.Response) (*TestSmtpResponse, error) {
 	response := &TestSmtpResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCountSearchLogsIndexResponse parses an HTTP response from a CountSearchLogsIndexWithResponse call
+func ParseCountSearchLogsIndexResponse(rsp *http.Response) (*CountSearchLogsIndexResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CountSearchLogsIndexResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// CountPerHost count of log lines that matched the query per hostname
+			CountPerHost *map[string]interface{} `json:"count_per_host,omitempty"`
+
+			// QueryParseErrors a list of the terms that couldn't be parsed (and thus ignored)
+			QueryParseErrors *[]string `json:"query_parse_errors,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSearchLogsIndexResponse parses an HTTP response from a SearchLogsIndexWithResponse call
+func ParseSearchLogsIndexResponse(rsp *http.Response) (*SearchLogsIndexResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SearchLogsIndexResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Hits log files that matched the query
+			Hits *[]LogSearchHit `json:"hits,omitempty"`
+
+			// QueryParseErrors a list of the terms that couldn't be parsed (and thus ignored)
+			QueryParseErrors *[]string `json:"query_parse_errors,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
