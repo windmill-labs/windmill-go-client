@@ -944,13 +944,18 @@ type CreateWorkspace struct {
 
 // EditHttpTrigger defines model for EditHttpTrigger.
 type EditHttpTrigger struct {
-	HttpMethod   EditHttpTriggerHttpMethod `json:"http_method"`
-	IsAsync      bool                      `json:"is_async"`
-	IsFlow       bool                      `json:"is_flow"`
-	Path         string                    `json:"path"`
-	RequiresAuth bool                      `json:"requires_auth"`
-	RoutePath    *string                   `json:"route_path,omitempty"`
-	ScriptPath   string                    `json:"script_path"`
+	HttpMethod        EditHttpTriggerHttpMethod `json:"http_method"`
+	IsAsync           bool                      `json:"is_async"`
+	IsFlow            bool                      `json:"is_flow"`
+	Path              string                    `json:"path"`
+	RequiresAuth      bool                      `json:"requires_auth"`
+	RoutePath         *string                   `json:"route_path,omitempty"`
+	ScriptPath        string                    `json:"script_path"`
+	StaticAssetConfig *struct {
+		Filename *string `json:"filename,omitempty"`
+		S3       string  `json:"s3"`
+		Storage  *string `json:"storage,omitempty"`
+	} `json:"static_asset_config,omitempty"`
 }
 
 // EditHttpTriggerHttpMethod defines model for EditHttpTrigger.HttpMethod.
@@ -1320,18 +1325,23 @@ type Group struct {
 
 // HttpTrigger defines model for HttpTrigger.
 type HttpTrigger struct {
-	EditedAt     time.Time             `json:"edited_at"`
-	EditedBy     string                `json:"edited_by"`
-	Email        string                `json:"email"`
-	ExtraPerms   map[string]bool       `json:"extra_perms"`
-	HttpMethod   HttpTriggerHttpMethod `json:"http_method"`
-	IsAsync      bool                  `json:"is_async"`
-	IsFlow       bool                  `json:"is_flow"`
-	Path         string                `json:"path"`
-	RequiresAuth bool                  `json:"requires_auth"`
-	RoutePath    string                `json:"route_path"`
-	ScriptPath   string                `json:"script_path"`
-	WorkspaceId  string                `json:"workspace_id"`
+	EditedAt          time.Time             `json:"edited_at"`
+	EditedBy          string                `json:"edited_by"`
+	Email             string                `json:"email"`
+	ExtraPerms        map[string]bool       `json:"extra_perms"`
+	HttpMethod        HttpTriggerHttpMethod `json:"http_method"`
+	IsAsync           bool                  `json:"is_async"`
+	IsFlow            bool                  `json:"is_flow"`
+	Path              string                `json:"path"`
+	RequiresAuth      bool                  `json:"requires_auth"`
+	RoutePath         string                `json:"route_path"`
+	ScriptPath        string                `json:"script_path"`
+	StaticAssetConfig *struct {
+		Filename *string `json:"filename,omitempty"`
+		S3       string  `json:"s3"`
+		Storage  *string `json:"storage,omitempty"`
+	} `json:"static_asset_config,omitempty"`
+	WorkspaceId string `json:"workspace_id"`
 }
 
 // HttpTriggerHttpMethod defines model for HttpTrigger.HttpMethod.
@@ -1597,13 +1607,18 @@ type MetricMetadata struct {
 
 // NewHttpTrigger defines model for NewHttpTrigger.
 type NewHttpTrigger struct {
-	HttpMethod   NewHttpTriggerHttpMethod `json:"http_method"`
-	IsAsync      bool                     `json:"is_async"`
-	IsFlow       bool                     `json:"is_flow"`
-	Path         string                   `json:"path"`
-	RequiresAuth bool                     `json:"requires_auth"`
-	RoutePath    string                   `json:"route_path"`
-	ScriptPath   string                   `json:"script_path"`
+	HttpMethod        NewHttpTriggerHttpMethod `json:"http_method"`
+	IsAsync           bool                     `json:"is_async"`
+	IsFlow            bool                     `json:"is_flow"`
+	Path              string                   `json:"path"`
+	RequiresAuth      bool                     `json:"requires_auth"`
+	RoutePath         string                   `json:"route_path"`
+	ScriptPath        string                   `json:"script_path"`
+	StaticAssetConfig *struct {
+		Filename *string `json:"filename,omitempty"`
+		S3       string  `json:"s3"`
+		Storage  *string `json:"storage,omitempty"`
+	} `json:"static_asset_config,omitempty"`
 }
 
 // NewHttpTriggerHttpMethod defines model for NewHttpTrigger.HttpMethod.
@@ -3332,11 +3347,13 @@ type DatasetStorageTestConnectionParams struct {
 
 // FileUploadParams defines parameters for FileUpload.
 type FileUploadParams struct {
-	FileKey        *string `form:"file_key,omitempty" json:"file_key,omitempty"`
-	FileExtension  *string `form:"file_extension,omitempty" json:"file_extension,omitempty"`
-	S3ResourcePath *string `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
-	ResourceType   *string `form:"resource_type,omitempty" json:"resource_type,omitempty"`
-	Storage        *string `form:"storage,omitempty" json:"storage,omitempty"`
+	FileKey            *string `form:"file_key,omitempty" json:"file_key,omitempty"`
+	FileExtension      *string `form:"file_extension,omitempty" json:"file_extension,omitempty"`
+	S3ResourcePath     *string `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
+	ResourceType       *string `form:"resource_type,omitempty" json:"resource_type,omitempty"`
+	Storage            *string `form:"storage,omitempty" json:"storage,omitempty"`
+	ContentType        *string `form:"content_type,omitempty" json:"content_type,omitempty"`
+	ContentDisposition *string `form:"content_disposition,omitempty" json:"content_disposition,omitempty"`
 }
 
 // DuckdbConnectionSettingsV2JSONBody defines parameters for DuckdbConnectionSettingsV2.
@@ -22226,6 +22243,38 @@ func NewFileUploadRequestWithBody(server string, workspace WorkspaceId, params *
 		if params.Storage != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ContentType != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "content_type", runtime.ParamLocationQuery, *params.ContentType); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ContentDisposition != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "content_disposition", runtime.ParamLocationQuery, *params.ContentDisposition); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
