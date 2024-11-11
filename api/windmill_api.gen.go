@@ -942,6 +942,24 @@ type CreateWorkspace struct {
 	Username *string `json:"username,omitempty"`
 }
 
+// CriticalAlert defines model for CriticalAlert.
+type CriticalAlert struct {
+	// Acknowledged Acknowledgment status of the alert, can be true, false, or null if not set
+	Acknowledged *bool `json:"acknowledged"`
+
+	// AlertType Type of alert (e.g., critical_error)
+	AlertType *string `json:"alert_type,omitempty"`
+
+	// CreatedAt Time when the alert was created
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// Id Unique identifier for the alert
+	Id *int `json:"id,omitempty"`
+
+	// Message The message content of the alert
+	Message *string `json:"message,omitempty"`
+}
+
 // EditHttpTrigger defines model for EditHttpTrigger.
 type EditHttpTrigger struct {
 	HttpMethod        EditHttpTriggerHttpMethod `json:"http_method"`
@@ -2624,6 +2642,13 @@ type ListLogFilesParams struct {
 	// After filter on created after (exclusive) timestamp
 	After     *After `form:"after,omitempty" json:"after,omitempty"`
 	WithError *bool  `form:"with_error,omitempty" json:"with_error,omitempty"`
+}
+
+// GetCriticalAlertsParams defines parameters for GetCriticalAlerts.
+type GetCriticalAlertsParams struct {
+	Page         *int  `form:"page,omitempty" json:"page,omitempty"`
+	PageSize     *int  `form:"page_size,omitempty" json:"page_size,omitempty"`
+	Acknowledged *bool `form:"acknowledged,omitempty" json:"acknowledged,omitempty"`
 }
 
 // CreateCustomerPortalSessionParams defines parameters for CreateCustomerPortalSession.
@@ -5526,6 +5551,15 @@ type ClientInterface interface {
 	// ListLogFiles request
 	ListLogFiles(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetCriticalAlerts request
+	GetCriticalAlerts(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AcknowledgeAllCriticalAlerts request
+	AcknowledgeAllCriticalAlerts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AcknowledgeCriticalAlert request
+	AcknowledgeCriticalAlert(ctx context.Context, id int, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateCustomerPortalSession request
 	CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7372,6 +7406,42 @@ func (c *Client) GetLogFile(ctx context.Context, path Path, reqEditors ...Reques
 
 func (c *Client) ListLogFiles(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListLogFilesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCriticalAlerts(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCriticalAlertsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AcknowledgeAllCriticalAlerts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAcknowledgeAllCriticalAlertsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AcknowledgeCriticalAlert(ctx context.Context, id int, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAcknowledgeCriticalAlertRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -14324,6 +14394,148 @@ func NewListLogFilesRequest(server string, params *ListLogFilesParams) (*http.Re
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetCriticalAlertsRequest generates requests for GetCriticalAlerts
+func NewGetCriticalAlertsRequest(server string, params *GetCriticalAlertsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/critical_alerts")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PageSize != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page_size", runtime.ParamLocationQuery, *params.PageSize); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Acknowledged != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "acknowledged", runtime.ParamLocationQuery, *params.Acknowledged); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAcknowledgeAllCriticalAlertsRequest generates requests for AcknowledgeAllCriticalAlerts
+func NewAcknowledgeAllCriticalAlertsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/critical_alerts/acknowledge_all")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAcknowledgeCriticalAlertRequest generates requests for AcknowledgeCriticalAlert
+func NewAcknowledgeCriticalAlertRequest(server string, id int) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/critical_alerts/%s/acknowledge", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -34431,6 +34643,15 @@ type ClientWithResponsesInterface interface {
 	// ListLogFilesWithResponse request
 	ListLogFilesWithResponse(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*ListLogFilesResponse, error)
 
+	// GetCriticalAlertsWithResponse request
+	GetCriticalAlertsWithResponse(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*GetCriticalAlertsResponse, error)
+
+	// AcknowledgeAllCriticalAlertsWithResponse request
+	AcknowledgeAllCriticalAlertsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AcknowledgeAllCriticalAlertsResponse, error)
+
+	// AcknowledgeCriticalAlertWithResponse request
+	AcknowledgeCriticalAlertWithResponse(ctx context.Context, id int, reqEditors ...RequestEditorFn) (*AcknowledgeCriticalAlertResponse, error)
+
 	// CreateCustomerPortalSessionWithResponse request
 	CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
 
@@ -36625,6 +36846,72 @@ func (r ListLogFilesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListLogFilesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCriticalAlertsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]CriticalAlert
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCriticalAlertsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCriticalAlertsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AcknowledgeAllCriticalAlertsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r AcknowledgeAllCriticalAlertsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AcknowledgeAllCriticalAlertsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AcknowledgeCriticalAlertResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r AcknowledgeCriticalAlertResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AcknowledgeCriticalAlertResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -44245,6 +44532,33 @@ func (c *ClientWithResponses) ListLogFilesWithResponse(ctx context.Context, para
 	return ParseListLogFilesResponse(rsp)
 }
 
+// GetCriticalAlertsWithResponse request returning *GetCriticalAlertsResponse
+func (c *ClientWithResponses) GetCriticalAlertsWithResponse(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*GetCriticalAlertsResponse, error) {
+	rsp, err := c.GetCriticalAlerts(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCriticalAlertsResponse(rsp)
+}
+
+// AcknowledgeAllCriticalAlertsWithResponse request returning *AcknowledgeAllCriticalAlertsResponse
+func (c *ClientWithResponses) AcknowledgeAllCriticalAlertsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AcknowledgeAllCriticalAlertsResponse, error) {
+	rsp, err := c.AcknowledgeAllCriticalAlerts(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAcknowledgeAllCriticalAlertsResponse(rsp)
+}
+
+// AcknowledgeCriticalAlertWithResponse request returning *AcknowledgeCriticalAlertResponse
+func (c *ClientWithResponses) AcknowledgeCriticalAlertWithResponse(ctx context.Context, id int, reqEditors ...RequestEditorFn) (*AcknowledgeCriticalAlertResponse, error) {
+	rsp, err := c.AcknowledgeCriticalAlert(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAcknowledgeCriticalAlertResponse(rsp)
+}
+
 // CreateCustomerPortalSessionWithResponse request returning *CreateCustomerPortalSessionResponse
 func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error) {
 	rsp, err := c.CreateCustomerPortalSession(ctx, params, reqEditors...)
@@ -49066,6 +49380,84 @@ func ParseListLogFilesResponse(rsp *http.Response) (*ListLogFilesResponse, error
 			OkLines     *int      `json:"ok_lines,omitempty"`
 			WorkerGroup *string   `json:"worker_group,omitempty"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCriticalAlertsResponse parses an HTTP response from a GetCriticalAlertsWithResponse call
+func ParseGetCriticalAlertsResponse(rsp *http.Response) (*GetCriticalAlertsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCriticalAlertsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []CriticalAlert
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAcknowledgeAllCriticalAlertsResponse parses an HTTP response from a AcknowledgeAllCriticalAlertsWithResponse call
+func ParseAcknowledgeAllCriticalAlertsResponse(rsp *http.Response) (*AcknowledgeAllCriticalAlertsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AcknowledgeAllCriticalAlertsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAcknowledgeCriticalAlertResponse parses an HTTP response from a AcknowledgeCriticalAlertWithResponse call
+func ParseAcknowledgeCriticalAlertResponse(rsp *http.Response) (*AcknowledgeCriticalAlertResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AcknowledgeCriticalAlertResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
