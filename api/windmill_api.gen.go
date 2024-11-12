@@ -1840,6 +1840,7 @@ type Policy struct {
 	ExecutionMode   *PolicyExecutionMode               `json:"execution_mode,omitempty"`
 	OnBehalfOf      *string                            `json:"on_behalf_of,omitempty"`
 	OnBehalfOfEmail *string                            `json:"on_behalf_of_email,omitempty"`
+	S3Inputs        *[]map[string]interface{}          `json:"s3_inputs,omitempty"`
 	Triggerables    *map[string]map[string]interface{} `json:"triggerables,omitempty"`
 	TriggerablesV2  *map[string]map[string]interface{} `json:"triggerables_v2,omitempty"`
 }
