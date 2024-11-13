@@ -6471,6 +6471,9 @@ type ClientInterface interface {
 	// DeleteUser request
 	DeleteUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetUser request
+	GetUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// IsOwnerOfPath request
 	IsOwnerOfPath(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6496,9 +6499,6 @@ type ClientInterface interface {
 
 	// Whois request
 	Whois(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetUser request
-	GetUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateVariableWithBody request with any body
 	CreateVariableWithBody(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11437,6 +11437,18 @@ func (c *Client) DeleteUser(ctx context.Context, workspace WorkspaceId, username
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUserRequest(c.Server, workspace, username)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) IsOwnerOfPath(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewIsOwnerOfPathRequest(c.Server, workspace, path)
 	if err != nil {
@@ -11535,18 +11547,6 @@ func (c *Client) Whoami(ctx context.Context, workspace WorkspaceId, reqEditors .
 
 func (c *Client) Whois(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewWhoisRequest(c.Server, workspace, username)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetUserRequest(c.Server, workspace, username)
 	if err != nil {
 		return nil, err
 	}
@@ -31162,6 +31162,47 @@ func NewDeleteUserRequest(server string, workspace WorkspaceId, username string)
 	return req, nil
 }
 
+// NewGetUserRequest generates requests for GetUser
+func NewGetUserRequest(server string, workspace WorkspaceId, username string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "username", runtime.ParamLocationPath, username)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/users/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewIsOwnerOfPathRequest generates requests for IsOwnerOfPath
 func NewIsOwnerOfPathRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
 	var err error
@@ -31458,47 +31499,6 @@ func NewWhoisRequest(server string, workspace WorkspaceId, username string) (*ht
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/users/whois/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetUserRequest generates requests for GetUser
-func NewGetUserRequest(server string, workspace WorkspaceId, username string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "username", runtime.ParamLocationPath, username)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/users/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -35563,6 +35563,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteUserWithResponse request
 	DeleteUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*DeleteUserResponse, error)
 
+	// GetUserWithResponse request
+	GetUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*GetUserResponse, error)
+
 	// IsOwnerOfPathWithResponse request
 	IsOwnerOfPathWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*IsOwnerOfPathResponse, error)
 
@@ -35588,9 +35591,6 @@ type ClientWithResponsesInterface interface {
 
 	// WhoisWithResponse request
 	WhoisWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*WhoisResponse, error)
-
-	// GetUserWithResponse request
-	GetUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*GetUserResponse, error)
 
 	// CreateVariableWithBodyWithResponse request with any body
 	CreateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateVariableResponse, error)
@@ -42394,6 +42394,28 @@ func (r DeleteUserResponse) StatusCode() int {
 	return 0
 }
 
+type GetUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *User
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUserResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type IsOwnerOfPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -42562,28 +42584,6 @@ func (r WhoisResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r WhoisResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetUserResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *User
-}
-
-// Status returns HTTPResponse.Status
-func (r GetUserResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetUserResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -47462,6 +47462,15 @@ func (c *ClientWithResponses) DeleteUserWithResponse(ctx context.Context, worksp
 	return ParseDeleteUserResponse(rsp)
 }
 
+// GetUserWithResponse request returning *GetUserResponse
+func (c *ClientWithResponses) GetUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*GetUserResponse, error) {
+	rsp, err := c.GetUser(ctx, workspace, username, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUserResponse(rsp)
+}
+
 // IsOwnerOfPathWithResponse request returning *IsOwnerOfPathResponse
 func (c *ClientWithResponses) IsOwnerOfPathWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*IsOwnerOfPathResponse, error) {
 	rsp, err := c.IsOwnerOfPath(ctx, workspace, path, reqEditors...)
@@ -47540,15 +47549,6 @@ func (c *ClientWithResponses) WhoisWithResponse(ctx context.Context, workspace W
 		return nil, err
 	}
 	return ParseWhoisResponse(rsp)
-}
-
-// GetUserWithResponse request returning *GetUserResponse
-func (c *ClientWithResponses) GetUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*GetUserResponse, error) {
-	rsp, err := c.GetUser(ctx, workspace, username, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetUserResponse(rsp)
 }
 
 // CreateVariableWithBodyWithResponse request with arbitrary body returning *CreateVariableResponse
@@ -54902,6 +54902,32 @@ func ParseDeleteUserResponse(rsp *http.Response) (*DeleteUserResponse, error) {
 	return response, nil
 }
 
+// ParseGetUserResponse parses an HTTP response from a GetUserWithResponse call
+func ParseGetUserResponse(rsp *http.Response) (*GetUserResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest User
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseIsOwnerOfPathResponse parses an HTTP response from a IsOwnerOfPathWithResponse call
 func ParseIsOwnerOfPathResponse(rsp *http.Response) (*IsOwnerOfPathResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -55073,32 +55099,6 @@ func ParseWhoisResponse(rsp *http.Response) (*WhoisResponse, error) {
 	}
 
 	response := &WhoisResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest User
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetUserResponse parses an HTTP response from a GetUserWithResponse call
-func ParseGetUserResponse(rsp *http.Response) (*GetUserResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetUserResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
