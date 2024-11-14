@@ -49,6 +49,7 @@ const (
 // Defines values for AuditLogOperation.
 const (
 	AccountDelete                  AuditLogOperation = "account.delete"
+	AiRequest                      AuditLogOperation = "ai.request"
 	AppsCreate                     AuditLogOperation = "apps.create"
 	AppsDelete                     AuditLogOperation = "apps.delete"
 	AppsUpdate                     AuditLogOperation = "apps.update"
@@ -88,7 +89,6 @@ const (
 	OauthLogin                     AuditLogOperation = "oauth.login"
 	OauthLoginFailure              AuditLogOperation = "oauth.login_failure"
 	OauthSignup                    AuditLogOperation = "oauth.signup"
-	OpenaiRequest                  AuditLogOperation = "openai.request"
 	ResourceTypesCreate            AuditLogOperation = "resource_types.create"
 	ResourceTypesDelete            AuditLogOperation = "resource_types.delete"
 	ResourceTypesUpdate            AuditLogOperation = "resource_types.update"
@@ -743,6 +743,12 @@ const (
 	SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerTypeRecovery SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType = "recovery"
 	SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerTypeSuccess  SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType = "success"
 )
+
+// AiResource defines model for AiResource.
+type AiResource struct {
+	Path     string `json:"path"`
+	Provider string `json:"provider"`
+}
 
 // AppHistory defines model for AppHistory.
 type AppHistory struct {
@@ -2758,6 +2764,16 @@ type GlobalUserRenameJSONBody struct {
 	NewUsername string `json:"new_username"`
 }
 
+// SetLoginTypeForUserJSONBody defines parameters for SetLoginTypeForUser.
+type SetLoginTypeForUserJSONBody struct {
+	LoginType string `json:"login_type"`
+}
+
+// SetPasswordForUserJSONBody defines parameters for SetPasswordForUser.
+type SetPasswordForUserJSONBody struct {
+	Password string `json:"password"`
+}
+
 // SetPasswordJSONBody defines parameters for SetPassword.
 type SetPasswordJSONBody struct {
 	Password string `json:"password"`
@@ -3408,6 +3424,14 @@ type GetJobMetricsJSONBody struct {
 type SetJobProgressJSONBody struct {
 	FlowJobId *openapi_types.UUID `json:"flow_job_id,omitempty"`
 	Percent   *int                `json:"percent,omitempty"`
+}
+
+// CountCompletedJobsParams defines parameters for CountCompletedJobs.
+type CountCompletedJobsParams struct {
+	CompletedAfterSAgo *int    `form:"completed_after_s_ago,omitempty" json:"completed_after_s_ago,omitempty"`
+	Success            *bool   `form:"success,omitempty" json:"success,omitempty"`
+	Tags               *string `form:"tags,omitempty" json:"tags,omitempty"`
+	AllWorkspaces      *bool   `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 }
 
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
@@ -4345,8 +4369,8 @@ type EditAutoInviteJSONBody struct {
 
 // EditCopilotConfigJSONBody defines parameters for EditCopilotConfig.
 type EditCopilotConfigJSONBody struct {
-	CodeCompletionEnabled bool    `json:"code_completion_enabled"`
-	OpenaiResourcePath    *string `json:"openai_resource_path,omitempty"`
+	AiResource            *AiResource `json:"ai_resource,omitempty"`
+	CodeCompletionEnabled bool        `json:"code_completion_enabled"`
 }
 
 // EditWorkspaceDefaultAppJSONBody defines parameters for EditWorkspaceDefaultApp.
@@ -4525,6 +4549,12 @@ type GlobalUsersOverwriteJSONRequestBody = GlobalUsersOverwriteJSONBody
 
 // GlobalUserRenameJSONRequestBody defines body for GlobalUserRename for application/json ContentType.
 type GlobalUserRenameJSONRequestBody GlobalUserRenameJSONBody
+
+// SetLoginTypeForUserJSONRequestBody defines body for SetLoginTypeForUser for application/json ContentType.
+type SetLoginTypeForUserJSONRequestBody SetLoginTypeForUserJSONBody
+
+// SetPasswordForUserJSONRequestBody defines body for SetPasswordForUser for application/json ContentType.
+type SetPasswordForUserJSONRequestBody SetPasswordForUserJSONBody
 
 // SetPasswordJSONRequestBody defines body for SetPassword for application/json ContentType.
 type SetPasswordJSONRequestBody SetPasswordJSONBody
@@ -5671,6 +5701,16 @@ type ClientInterface interface {
 
 	GlobalUserRename(ctx context.Context, email string, body GlobalUserRenameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SetLoginTypeForUserWithBody request with any body
+	SetLoginTypeForUserWithBody(ctx context.Context, user string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetLoginTypeForUser(ctx context.Context, user string, body SetLoginTypeForUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetPasswordForUserWithBody request with any body
+	SetPasswordForUserWithBody(ctx context.Context, user string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetPasswordForUser(ctx context.Context, user string, body SetPasswordForUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SetPasswordWithBody request with any body
 	SetPasswordWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6081,6 +6121,9 @@ type ClientInterface interface {
 
 	// GetCompletedCount request
 	GetCompletedCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CountCompletedJobs request
+	CountCompletedJobs(ctx context.Context, workspace WorkspaceId, params *CountCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteCompletedJob request
 	DeleteCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6719,6 +6762,9 @@ type ClientInterface interface {
 
 	// ListWorkers request
 	ListWorkers(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCountsOfJobsWaitingPerTag request
+	GetCountsOfJobsWaitingPerTag(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetQueueMetrics request
 	GetQueueMetrics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7923,6 +7969,54 @@ func (c *Client) GlobalUserRenameWithBody(ctx context.Context, email string, con
 
 func (c *Client) GlobalUserRename(ctx context.Context, email string, body GlobalUserRenameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGlobalUserRenameRequest(c.Server, email, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetLoginTypeForUserWithBody(ctx context.Context, user string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetLoginTypeForUserRequestWithBody(c.Server, user, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetLoginTypeForUser(ctx context.Context, user string, body SetLoginTypeForUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetLoginTypeForUserRequest(c.Server, user, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetPasswordForUserWithBody(ctx context.Context, user string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetPasswordForUserRequestWithBody(c.Server, user, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetPasswordForUser(ctx context.Context, user string, body SetPasswordForUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetPasswordForUserRequest(c.Server, user, body)
 	if err != nil {
 		return nil, err
 	}
@@ -9723,6 +9817,18 @@ func (c *Client) SetJobProgress(ctx context.Context, workspace WorkspaceId, id J
 
 func (c *Client) GetCompletedCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCompletedCountRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CountCompletedJobs(ctx context.Context, workspace WorkspaceId, params *CountCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCountCompletedJobsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -12531,6 +12637,18 @@ func (c *Client) IsDefaultTagsPerWorkspace(ctx context.Context, reqEditors ...Re
 
 func (c *Client) ListWorkers(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListWorkersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCountsOfJobsWaitingPerTag(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCountsOfJobsWaitingPerTagRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -15775,6 +15893,100 @@ func NewGlobalUserRenameRequestWithBody(server string, email string, contentType
 	}
 
 	operationPath := fmt.Sprintf("/users/rename/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSetLoginTypeForUserRequest calls the generic SetLoginTypeForUser builder with application/json body
+func NewSetLoginTypeForUserRequest(server string, user string, body SetLoginTypeForUserJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetLoginTypeForUserRequestWithBody(server, user, "application/json", bodyReader)
+}
+
+// NewSetLoginTypeForUserRequestWithBody generates requests for SetLoginTypeForUser with any type of body
+func NewSetLoginTypeForUserRequestWithBody(server string, user string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "user", runtime.ParamLocationPath, user)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/set_login_type/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSetPasswordForUserRequest calls the generic SetPasswordForUser builder with application/json body
+func NewSetPasswordForUserRequest(server string, user string, body SetPasswordForUserJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetPasswordForUserRequestWithBody(server, user, "application/json", bodyReader)
+}
+
+// NewSetPasswordForUserRequestWithBody generates requests for SetPasswordForUser with any type of body
+func NewSetPasswordForUserRequestWithBody(server string, user string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "user", runtime.ParamLocationPath, user)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/set_password_of/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -22828,6 +23040,110 @@ func NewGetCompletedCountRequest(server string, workspace WorkspaceId) (*http.Re
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCountCompletedJobsRequest generates requests for CountCompletedJobs
+func NewCountCompletedJobsRequest(server string, workspace WorkspaceId, params *CountCompletedJobsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/completed/count_jobs", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.CompletedAfterSAgo != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "completed_after_s_ago", runtime.ParamLocationQuery, *params.CompletedAfterSAgo); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Success != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "success", runtime.ParamLocationQuery, *params.Success); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tags != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tags", runtime.ParamLocationQuery, *params.Tags); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.AllWorkspaces != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -34087,6 +34403,33 @@ func NewListWorkersRequest(server string, params *ListWorkersParams) (*http.Requ
 	return req, nil
 }
 
+// NewGetCountsOfJobsWaitingPerTagRequest generates requests for GetCountsOfJobsWaitingPerTag
+func NewGetCountsOfJobsWaitingPerTagRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workers/queue_counts")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetQueueMetricsRequest generates requests for GetQueueMetrics
 func NewGetQueueMetricsRequest(server string) (*http.Request, error) {
 	var err error
@@ -34763,6 +35106,16 @@ type ClientWithResponsesInterface interface {
 
 	GlobalUserRenameWithResponse(ctx context.Context, email string, body GlobalUserRenameJSONRequestBody, reqEditors ...RequestEditorFn) (*GlobalUserRenameResponse, error)
 
+	// SetLoginTypeForUserWithBodyWithResponse request with any body
+	SetLoginTypeForUserWithBodyWithResponse(ctx context.Context, user string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetLoginTypeForUserResponse, error)
+
+	SetLoginTypeForUserWithResponse(ctx context.Context, user string, body SetLoginTypeForUserJSONRequestBody, reqEditors ...RequestEditorFn) (*SetLoginTypeForUserResponse, error)
+
+	// SetPasswordForUserWithBodyWithResponse request with any body
+	SetPasswordForUserWithBodyWithResponse(ctx context.Context, user string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPasswordForUserResponse, error)
+
+	SetPasswordForUserWithResponse(ctx context.Context, user string, body SetPasswordForUserJSONRequestBody, reqEditors ...RequestEditorFn) (*SetPasswordForUserResponse, error)
+
 	// SetPasswordWithBodyWithResponse request with any body
 	SetPasswordWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPasswordResponse, error)
 
@@ -35173,6 +35526,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetCompletedCountWithResponse request
 	GetCompletedCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCompletedCountResponse, error)
+
+	// CountCompletedJobsWithResponse request
+	CountCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *CountCompletedJobsParams, reqEditors ...RequestEditorFn) (*CountCompletedJobsResponse, error)
 
 	// DeleteCompletedJobWithResponse request
 	DeleteCompletedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*DeleteCompletedJobResponse, error)
@@ -35811,6 +36167,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListWorkersWithResponse request
 	ListWorkersWithResponse(ctx context.Context, params *ListWorkersParams, reqEditors ...RequestEditorFn) (*ListWorkersResponse, error)
+
+	// GetCountsOfJobsWaitingPerTagWithResponse request
+	GetCountsOfJobsWaitingPerTagWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCountsOfJobsWaitingPerTagResponse, error)
 
 	// GetQueueMetricsWithResponse request
 	GetQueueMetricsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueMetricsResponse, error)
@@ -37586,6 +37945,48 @@ func (r GlobalUserRenameResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GlobalUserRenameResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetLoginTypeForUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetLoginTypeForUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetLoginTypeForUserResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetPasswordForUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetPasswordForUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetPasswordForUserResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -40086,6 +40487,28 @@ func (r GetCompletedCountResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetCompletedCountResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CountCompletedJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *int
+}
+
+// Status returns HTTPResponse.Status
+func (r CountCompletedJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CountCompletedJobsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -43435,6 +43858,7 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
+		AiResource                *AiResource                `json:"ai_resource,omitempty"`
 		AutoAdd                   *bool                      `json:"auto_add,omitempty"`
 		AutoInviteDomain          *string                    `json:"auto_invite_domain,omitempty"`
 		AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
@@ -43450,7 +43874,6 @@ type GetSettingsResponse struct {
 		ErrorHandlerMutedOnCancel bool                       `json:"error_handler_muted_on_cancel"`
 		GitSync                   *WorkspaceGitSyncSettings  `json:"git_sync,omitempty"`
 		LargeFileStorage          *LargeFileStorage          `json:"large_file_storage,omitempty"`
-		OpenaiResourcePath        *string                    `json:"openai_resource_path,omitempty"`
 		Plan                      *string                    `json:"plan,omitempty"`
 		SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
 		SlackName                 *string                    `json:"slack_name,omitempty"`
@@ -43823,6 +44246,28 @@ func (r ListWorkersResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListWorkersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCountsOfJobsWaitingPerTagResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]int
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCountsOfJobsWaitingPerTagResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCountsOfJobsWaitingPerTagResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -44908,6 +45353,40 @@ func (c *ClientWithResponses) GlobalUserRenameWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseGlobalUserRenameResponse(rsp)
+}
+
+// SetLoginTypeForUserWithBodyWithResponse request with arbitrary body returning *SetLoginTypeForUserResponse
+func (c *ClientWithResponses) SetLoginTypeForUserWithBodyWithResponse(ctx context.Context, user string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetLoginTypeForUserResponse, error) {
+	rsp, err := c.SetLoginTypeForUserWithBody(ctx, user, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetLoginTypeForUserResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetLoginTypeForUserWithResponse(ctx context.Context, user string, body SetLoginTypeForUserJSONRequestBody, reqEditors ...RequestEditorFn) (*SetLoginTypeForUserResponse, error) {
+	rsp, err := c.SetLoginTypeForUser(ctx, user, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetLoginTypeForUserResponse(rsp)
+}
+
+// SetPasswordForUserWithBodyWithResponse request with arbitrary body returning *SetPasswordForUserResponse
+func (c *ClientWithResponses) SetPasswordForUserWithBodyWithResponse(ctx context.Context, user string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPasswordForUserResponse, error) {
+	rsp, err := c.SetPasswordForUserWithBody(ctx, user, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetPasswordForUserResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetPasswordForUserWithResponse(ctx context.Context, user string, body SetPasswordForUserJSONRequestBody, reqEditors ...RequestEditorFn) (*SetPasswordForUserResponse, error) {
+	rsp, err := c.SetPasswordForUser(ctx, user, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetPasswordForUserResponse(rsp)
 }
 
 // SetPasswordWithBodyWithResponse request with arbitrary body returning *SetPasswordResponse
@@ -46219,6 +46698,15 @@ func (c *ClientWithResponses) GetCompletedCountWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseGetCompletedCountResponse(rsp)
+}
+
+// CountCompletedJobsWithResponse request returning *CountCompletedJobsResponse
+func (c *ClientWithResponses) CountCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *CountCompletedJobsParams, reqEditors ...RequestEditorFn) (*CountCompletedJobsResponse, error) {
+	rsp, err := c.CountCompletedJobs(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCountCompletedJobsResponse(rsp)
 }
 
 // DeleteCompletedJobWithResponse request returning *DeleteCompletedJobResponse
@@ -48263,6 +48751,15 @@ func (c *ClientWithResponses) ListWorkersWithResponse(ctx context.Context, param
 	return ParseListWorkersResponse(rsp)
 }
 
+// GetCountsOfJobsWaitingPerTagWithResponse request returning *GetCountsOfJobsWaitingPerTagResponse
+func (c *ClientWithResponses) GetCountsOfJobsWaitingPerTagWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCountsOfJobsWaitingPerTagResponse, error) {
+	rsp, err := c.GetCountsOfJobsWaitingPerTag(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCountsOfJobsWaitingPerTagResponse(rsp)
+}
+
 // GetQueueMetricsWithResponse request returning *GetQueueMetricsResponse
 func (c *ClientWithResponses) GetQueueMetricsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueMetricsResponse, error) {
 	rsp, err := c.GetQueueMetrics(ctx, reqEditors...)
@@ -50093,6 +50590,38 @@ func ParseGlobalUserRenameResponse(rsp *http.Response) (*GlobalUserRenameRespons
 	}
 
 	response := &GlobalUserRenameResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSetLoginTypeForUserResponse parses an HTTP response from a SetLoginTypeForUserWithResponse call
+func ParseSetLoginTypeForUserResponse(rsp *http.Response) (*SetLoginTypeForUserResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetLoginTypeForUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSetPasswordForUserResponse parses an HTTP response from a SetPasswordForUserWithResponse call
+func ParseSetPasswordForUserResponse(rsp *http.Response) (*SetPasswordForUserResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetPasswordForUserResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -52602,6 +53131,32 @@ func ParseGetCompletedCountResponse(rsp *http.Response) (*GetCompletedCountRespo
 		var dest struct {
 			DatabaseLength int `json:"database_length"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCountCompletedJobsResponse parses an HTTP response from a CountCompletedJobsWithResponse call
+func ParseCountCompletedJobsResponse(rsp *http.Response) (*CountCompletedJobsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CountCompletedJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest int
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -55922,6 +56477,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
+			AiResource                *AiResource                `json:"ai_resource,omitempty"`
 			AutoAdd                   *bool                      `json:"auto_add,omitempty"`
 			AutoInviteDomain          *string                    `json:"auto_invite_domain,omitempty"`
 			AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
@@ -55937,7 +56493,6 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			ErrorHandlerMutedOnCancel bool                       `json:"error_handler_muted_on_cancel"`
 			GitSync                   *WorkspaceGitSyncSettings  `json:"git_sync,omitempty"`
 			LargeFileStorage          *LargeFileStorage          `json:"large_file_storage,omitempty"`
-			OpenaiResourcePath        *string                    `json:"openai_resource_path,omitempty"`
 			Plan                      *string                    `json:"plan,omitempty"`
 			SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
 			SlackName                 *string                    `json:"slack_name,omitempty"`
@@ -56299,6 +56854,32 @@ func ParseListWorkersResponse(rsp *http.Response) (*ListWorkersResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []WorkerPing
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCountsOfJobsWaitingPerTagResponse parses an HTTP response from a GetCountsOfJobsWaitingPerTagWithResponse call
+func ParseGetCountsOfJobsWaitingPerTagResponse(rsp *http.Response) (*GetCountsOfJobsWaitingPerTagResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCountsOfJobsWaitingPerTagResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]int
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
