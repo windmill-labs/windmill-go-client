@@ -964,6 +964,9 @@ type CriticalAlert struct {
 
 	// Message The message content of the alert
 	Message *string `json:"message,omitempty"`
+
+	// WorkspaceId Workspace id if the alert is in the scope of a workspace
+	WorkspaceId *string `json:"workspace_id"`
 }
 
 // EditHttpTrigger defines model for EditHttpTrigger.
@@ -4353,6 +4356,19 @@ type ChangeWorkspaceNameJSONBody struct {
 	NewName *string `json:"new_name,omitempty"`
 }
 
+// WorkspaceGetCriticalAlertsParams defines parameters for WorkspaceGetCriticalAlerts.
+type WorkspaceGetCriticalAlertsParams struct {
+	Page         *int  `form:"page,omitempty" json:"page,omitempty"`
+	PageSize     *int  `form:"page_size,omitempty" json:"page_size,omitempty"`
+	Acknowledged *bool `form:"acknowledged,omitempty" json:"acknowledged,omitempty"`
+}
+
+// WorkspaceMuteCriticalAlertsUIJSONBody defines parameters for WorkspaceMuteCriticalAlertsUI.
+type WorkspaceMuteCriticalAlertsUIJSONBody struct {
+	// MuteCriticalAlerts Whether critical alerts should be muted.
+	MuteCriticalAlerts *bool `json:"mute_critical_alerts,omitempty"`
+}
+
 // DeleteInviteJSONBody defines parameters for DeleteInvite.
 type DeleteInviteJSONBody struct {
 	Email    string `json:"email"`
@@ -4813,6 +4829,9 @@ type ChangeWorkspaceIdJSONRequestBody ChangeWorkspaceIdJSONBody
 
 // ChangeWorkspaceNameJSONRequestBody defines body for ChangeWorkspaceName for application/json ContentType.
 type ChangeWorkspaceNameJSONRequestBody ChangeWorkspaceNameJSONBody
+
+// WorkspaceMuteCriticalAlertsUIJSONRequestBody defines body for WorkspaceMuteCriticalAlertsUI for application/json ContentType.
+type WorkspaceMuteCriticalAlertsUIJSONRequestBody WorkspaceMuteCriticalAlertsUIJSONBody
 
 // EditDefaultScriptsJSONRequestBody defines body for EditDefaultScripts for application/json ContentType.
 type EditDefaultScriptsJSONRequestBody = WorkspaceDefaultScripts
@@ -6620,6 +6639,20 @@ type ClientInterface interface {
 	ChangeWorkspaceNameWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ChangeWorkspaceName(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// WorkspaceGetCriticalAlerts request
+	WorkspaceGetCriticalAlerts(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// WorkspaceAcknowledgeAllCriticalAlerts request
+	WorkspaceAcknowledgeAllCriticalAlerts(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// WorkspaceMuteCriticalAlertsUIWithBody request with any body
+	WorkspaceMuteCriticalAlertsUIWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	WorkspaceMuteCriticalAlertsUI(ctx context.Context, workspace WorkspaceId, body WorkspaceMuteCriticalAlertsUIJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// WorkspaceAcknowledgeCriticalAlert request
+	WorkspaceAcknowledgeCriticalAlert(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetWorkspaceDefaultApp request
 	GetWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12001,6 +12034,66 @@ func (c *Client) ChangeWorkspaceNameWithBody(ctx context.Context, workspace Work
 
 func (c *Client) ChangeWorkspaceName(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewChangeWorkspaceNameRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) WorkspaceGetCriticalAlerts(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewWorkspaceGetCriticalAlertsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) WorkspaceAcknowledgeAllCriticalAlerts(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewWorkspaceAcknowledgeAllCriticalAlertsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) WorkspaceMuteCriticalAlertsUIWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewWorkspaceMuteCriticalAlertsUIRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) WorkspaceMuteCriticalAlertsUI(ctx context.Context, workspace WorkspaceId, body WorkspaceMuteCriticalAlertsUIJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewWorkspaceMuteCriticalAlertsUIRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) WorkspaceAcknowledgeCriticalAlert(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewWorkspaceAcknowledgeCriticalAlertRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -32921,6 +33014,216 @@ func NewChangeWorkspaceNameRequestWithBody(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewWorkspaceGetCriticalAlertsRequest generates requests for WorkspaceGetCriticalAlerts
+func NewWorkspaceGetCriticalAlertsRequest(server string, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/critical_alerts", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PageSize != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page_size", runtime.ParamLocationQuery, *params.PageSize); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Acknowledged != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "acknowledged", runtime.ParamLocationQuery, *params.Acknowledged); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewWorkspaceAcknowledgeAllCriticalAlertsRequest generates requests for WorkspaceAcknowledgeAllCriticalAlerts
+func NewWorkspaceAcknowledgeAllCriticalAlertsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/critical_alerts/acknowledge_all", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewWorkspaceMuteCriticalAlertsUIRequest calls the generic WorkspaceMuteCriticalAlertsUI builder with application/json body
+func NewWorkspaceMuteCriticalAlertsUIRequest(server string, workspace WorkspaceId, body WorkspaceMuteCriticalAlertsUIJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewWorkspaceMuteCriticalAlertsUIRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewWorkspaceMuteCriticalAlertsUIRequestWithBody generates requests for WorkspaceMuteCriticalAlertsUI with any type of body
+func NewWorkspaceMuteCriticalAlertsUIRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/critical_alerts/mute", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewWorkspaceAcknowledgeCriticalAlertRequest generates requests for WorkspaceAcknowledgeCriticalAlert
+func NewWorkspaceAcknowledgeCriticalAlertRequest(server string, workspace WorkspaceId, id int) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/critical_alerts/%s/acknowledge", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetWorkspaceDefaultAppRequest generates requests for GetWorkspaceDefaultApp
 func NewGetWorkspaceDefaultAppRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -36025,6 +36328,20 @@ type ClientWithResponsesInterface interface {
 	ChangeWorkspaceNameWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceNameResponse, error)
 
 	ChangeWorkspaceNameWithResponse(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeWorkspaceNameResponse, error)
+
+	// WorkspaceGetCriticalAlertsWithResponse request
+	WorkspaceGetCriticalAlertsWithResponse(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*WorkspaceGetCriticalAlertsResponse, error)
+
+	// WorkspaceAcknowledgeAllCriticalAlertsWithResponse request
+	WorkspaceAcknowledgeAllCriticalAlertsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*WorkspaceAcknowledgeAllCriticalAlertsResponse, error)
+
+	// WorkspaceMuteCriticalAlertsUIWithBodyWithResponse request with any body
+	WorkspaceMuteCriticalAlertsUIWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*WorkspaceMuteCriticalAlertsUIResponse, error)
+
+	WorkspaceMuteCriticalAlertsUIWithResponse(ctx context.Context, workspace WorkspaceId, body WorkspaceMuteCriticalAlertsUIJSONRequestBody, reqEditors ...RequestEditorFn) (*WorkspaceMuteCriticalAlertsUIResponse, error)
+
+	// WorkspaceAcknowledgeCriticalAlertWithResponse request
+	WorkspaceAcknowledgeCriticalAlertWithResponse(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*WorkspaceAcknowledgeCriticalAlertResponse, error)
 
 	// GetWorkspaceDefaultAppWithResponse request
 	GetWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceDefaultAppResponse, error)
@@ -43441,6 +43758,94 @@ func (r ChangeWorkspaceNameResponse) StatusCode() int {
 	return 0
 }
 
+type WorkspaceGetCriticalAlertsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]CriticalAlert
+}
+
+// Status returns HTTPResponse.Status
+func (r WorkspaceGetCriticalAlertsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r WorkspaceGetCriticalAlertsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type WorkspaceAcknowledgeAllCriticalAlertsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r WorkspaceAcknowledgeAllCriticalAlertsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r WorkspaceAcknowledgeAllCriticalAlertsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type WorkspaceMuteCriticalAlertsUIResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r WorkspaceMuteCriticalAlertsUIResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r WorkspaceMuteCriticalAlertsUIResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type WorkspaceAcknowledgeCriticalAlertResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r WorkspaceAcknowledgeCriticalAlertResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r WorkspaceAcknowledgeCriticalAlertResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetWorkspaceDefaultAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -43874,6 +44279,7 @@ type GetSettingsResponse struct {
 		ErrorHandlerMutedOnCancel bool                       `json:"error_handler_muted_on_cancel"`
 		GitSync                   *WorkspaceGitSyncSettings  `json:"git_sync,omitempty"`
 		LargeFileStorage          *LargeFileStorage          `json:"large_file_storage,omitempty"`
+		MuteCriticalAlerts        *bool                      `json:"mute_critical_alerts,omitempty"`
 		Plan                      *string                    `json:"plan,omitempty"`
 		SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
 		SlackName                 *string                    `json:"slack_name,omitempty"`
@@ -48289,6 +48695,50 @@ func (c *ClientWithResponses) ChangeWorkspaceNameWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseChangeWorkspaceNameResponse(rsp)
+}
+
+// WorkspaceGetCriticalAlertsWithResponse request returning *WorkspaceGetCriticalAlertsResponse
+func (c *ClientWithResponses) WorkspaceGetCriticalAlertsWithResponse(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*WorkspaceGetCriticalAlertsResponse, error) {
+	rsp, err := c.WorkspaceGetCriticalAlerts(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseWorkspaceGetCriticalAlertsResponse(rsp)
+}
+
+// WorkspaceAcknowledgeAllCriticalAlertsWithResponse request returning *WorkspaceAcknowledgeAllCriticalAlertsResponse
+func (c *ClientWithResponses) WorkspaceAcknowledgeAllCriticalAlertsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*WorkspaceAcknowledgeAllCriticalAlertsResponse, error) {
+	rsp, err := c.WorkspaceAcknowledgeAllCriticalAlerts(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseWorkspaceAcknowledgeAllCriticalAlertsResponse(rsp)
+}
+
+// WorkspaceMuteCriticalAlertsUIWithBodyWithResponse request with arbitrary body returning *WorkspaceMuteCriticalAlertsUIResponse
+func (c *ClientWithResponses) WorkspaceMuteCriticalAlertsUIWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*WorkspaceMuteCriticalAlertsUIResponse, error) {
+	rsp, err := c.WorkspaceMuteCriticalAlertsUIWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseWorkspaceMuteCriticalAlertsUIResponse(rsp)
+}
+
+func (c *ClientWithResponses) WorkspaceMuteCriticalAlertsUIWithResponse(ctx context.Context, workspace WorkspaceId, body WorkspaceMuteCriticalAlertsUIJSONRequestBody, reqEditors ...RequestEditorFn) (*WorkspaceMuteCriticalAlertsUIResponse, error) {
+	rsp, err := c.WorkspaceMuteCriticalAlertsUI(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseWorkspaceMuteCriticalAlertsUIResponse(rsp)
+}
+
+// WorkspaceAcknowledgeCriticalAlertWithResponse request returning *WorkspaceAcknowledgeCriticalAlertResponse
+func (c *ClientWithResponses) WorkspaceAcknowledgeCriticalAlertWithResponse(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*WorkspaceAcknowledgeCriticalAlertResponse, error) {
+	rsp, err := c.WorkspaceAcknowledgeCriticalAlert(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseWorkspaceAcknowledgeCriticalAlertResponse(rsp)
 }
 
 // GetWorkspaceDefaultAppWithResponse request returning *GetWorkspaceDefaultAppResponse
@@ -56071,6 +56521,110 @@ func ParseChangeWorkspaceNameResponse(rsp *http.Response) (*ChangeWorkspaceNameR
 	return response, nil
 }
 
+// ParseWorkspaceGetCriticalAlertsResponse parses an HTTP response from a WorkspaceGetCriticalAlertsWithResponse call
+func ParseWorkspaceGetCriticalAlertsResponse(rsp *http.Response) (*WorkspaceGetCriticalAlertsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &WorkspaceGetCriticalAlertsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []CriticalAlert
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseWorkspaceAcknowledgeAllCriticalAlertsResponse parses an HTTP response from a WorkspaceAcknowledgeAllCriticalAlertsWithResponse call
+func ParseWorkspaceAcknowledgeAllCriticalAlertsResponse(rsp *http.Response) (*WorkspaceAcknowledgeAllCriticalAlertsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &WorkspaceAcknowledgeAllCriticalAlertsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseWorkspaceMuteCriticalAlertsUIResponse parses an HTTP response from a WorkspaceMuteCriticalAlertsUIWithResponse call
+func ParseWorkspaceMuteCriticalAlertsUIResponse(rsp *http.Response) (*WorkspaceMuteCriticalAlertsUIResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &WorkspaceMuteCriticalAlertsUIResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseWorkspaceAcknowledgeCriticalAlertResponse parses an HTTP response from a WorkspaceAcknowledgeCriticalAlertWithResponse call
+func ParseWorkspaceAcknowledgeCriticalAlertResponse(rsp *http.Response) (*WorkspaceAcknowledgeCriticalAlertResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &WorkspaceAcknowledgeCriticalAlertResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetWorkspaceDefaultAppResponse parses an HTTP response from a GetWorkspaceDefaultAppWithResponse call
 func ParseGetWorkspaceDefaultAppResponse(rsp *http.Response) (*GetWorkspaceDefaultAppResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -56493,6 +57047,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			ErrorHandlerMutedOnCancel bool                       `json:"error_handler_muted_on_cancel"`
 			GitSync                   *WorkspaceGitSyncSettings  `json:"git_sync,omitempty"`
 			LargeFileStorage          *LargeFileStorage          `json:"large_file_storage,omitempty"`
+			MuteCriticalAlerts        *bool                      `json:"mute_critical_alerts,omitempty"`
 			Plan                      *string                    `json:"plan,omitempty"`
 			SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
 			SlackName                 *string                    `json:"slack_name,omitempty"`
