@@ -652,6 +652,7 @@ const (
 	AddGranularAclsParamsKindFolder           AddGranularAclsParamsKind = "folder"
 	AddGranularAclsParamsKindGroup            AddGranularAclsParamsKind = "group_"
 	AddGranularAclsParamsKindHttpTrigger      AddGranularAclsParamsKind = "http_trigger"
+	AddGranularAclsParamsKindKafkaTrigger     AddGranularAclsParamsKind = "kafka_trigger"
 	AddGranularAclsParamsKindRawApp           AddGranularAclsParamsKind = "raw_app"
 	AddGranularAclsParamsKindResource         AddGranularAclsParamsKind = "resource"
 	AddGranularAclsParamsKindSchedule         AddGranularAclsParamsKind = "schedule"
@@ -667,6 +668,7 @@ const (
 	GetGranularAclsParamsKindFolder           GetGranularAclsParamsKind = "folder"
 	GetGranularAclsParamsKindGroup            GetGranularAclsParamsKind = "group_"
 	GetGranularAclsParamsKindHttpTrigger      GetGranularAclsParamsKind = "http_trigger"
+	GetGranularAclsParamsKindKafkaTrigger     GetGranularAclsParamsKind = "kafka_trigger"
 	GetGranularAclsParamsKindRawApp           GetGranularAclsParamsKind = "raw_app"
 	GetGranularAclsParamsKindResource         GetGranularAclsParamsKind = "resource"
 	GetGranularAclsParamsKindSchedule         GetGranularAclsParamsKind = "schedule"
@@ -682,6 +684,7 @@ const (
 	RemoveGranularAclsParamsKindFolder           RemoveGranularAclsParamsKind = "folder"
 	RemoveGranularAclsParamsKindGroup            RemoveGranularAclsParamsKind = "group_"
 	RemoveGranularAclsParamsKindHttpTrigger      RemoveGranularAclsParamsKind = "http_trigger"
+	RemoveGranularAclsParamsKindKafkaTrigger     RemoveGranularAclsParamsKind = "kafka_trigger"
 	RemoveGranularAclsParamsKindRawApp           RemoveGranularAclsParamsKind = "raw_app"
 	RemoveGranularAclsParamsKindResource         RemoveGranularAclsParamsKind = "resource"
 	RemoveGranularAclsParamsKindSchedule         RemoveGranularAclsParamsKind = "schedule"
@@ -987,6 +990,16 @@ type EditHttpTrigger struct {
 
 // EditHttpTriggerHttpMethod defines model for EditHttpTrigger.HttpMethod.
 type EditHttpTriggerHttpMethod string
+
+// EditKafkaTrigger defines model for EditKafkaTrigger.
+type EditKafkaTrigger struct {
+	GroupId           string   `json:"group_id"`
+	IsFlow            bool     `json:"is_flow"`
+	KafkaResourcePath string   `json:"kafka_resource_path"`
+	Path              string   `json:"path"`
+	ScriptPath        string   `json:"script_path"`
+	Topics            []string `json:"topics"`
+}
 
 // EditResource defines model for EditResource.
 type EditResource struct {
@@ -1527,6 +1540,25 @@ type JobSearchHit struct {
 	Dancer *string `json:"dancer,omitempty"`
 }
 
+// KafkaTrigger defines model for KafkaTrigger.
+type KafkaTrigger struct {
+	EditedAt          time.Time       `json:"edited_at"`
+	EditedBy          string          `json:"edited_by"`
+	Email             string          `json:"email"`
+	Enabled           bool            `json:"enabled"`
+	Error             *string         `json:"error,omitempty"`
+	ExtraPerms        map[string]bool `json:"extra_perms"`
+	GroupId           string          `json:"group_id"`
+	IsFlow            bool            `json:"is_flow"`
+	KafkaResourcePath string          `json:"kafka_resource_path"`
+	LastServerPing    *time.Time      `json:"last_server_ping,omitempty"`
+	Path              string          `json:"path"`
+	ScriptPath        string          `json:"script_path"`
+	ServerId          *string         `json:"server_id,omitempty"`
+	Topics            []string        `json:"topics"`
+	WorkspaceId       string          `json:"workspace_id"`
+}
+
 // LargeFileStorage defines model for LargeFileStorage.
 type LargeFileStorage struct {
 	AzureBlobResourcePath *string `json:"azure_blob_resource_path,omitempty"`
@@ -1650,6 +1682,17 @@ type NewHttpTrigger struct {
 
 // NewHttpTriggerHttpMethod defines model for NewHttpTrigger.HttpMethod.
 type NewHttpTriggerHttpMethod string
+
+// NewKafkaTrigger defines model for NewKafkaTrigger.
+type NewKafkaTrigger struct {
+	Enabled           *bool    `json:"enabled,omitempty"`
+	GroupId           string   `json:"group_id"`
+	IsFlow            bool     `json:"is_flow"`
+	KafkaResourcePath string   `json:"kafka_resource_path"`
+	Path              string   `json:"path"`
+	ScriptPath        string   `json:"script_path"`
+	Topics            []string `json:"topics"`
+}
 
 // NewSchedule defines model for NewSchedule.
 type NewSchedule struct {
@@ -2168,6 +2211,7 @@ type TokenResponse struct {
 type TriggersCount struct {
 	EmailCount      *float32 `json:"email_count,omitempty"`
 	HttpRoutesCount *float32 `json:"http_routes_count,omitempty"`
+	KafkaCount      *float32 `json:"kafka_count,omitempty"`
 	PrimarySchedule *struct {
 		Schedule *string `json:"schedule,omitempty"`
 	} `json:"primary_schedule,omitempty"`
@@ -4061,6 +4105,25 @@ type ResumeSuspendedJobPostParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
 }
 
+// ListKafkaTriggersParams defines parameters for ListKafkaTriggers.
+type ListKafkaTriggersParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// Path filter by path
+	Path      *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+}
+
+// SetKafkaTriggerEnabledJSONBody defines parameters for SetKafkaTriggerEnabled.
+type SetKafkaTriggerEnabledJSONBody struct {
+	Enabled bool `json:"enabled"`
+}
+
 // ConnectSlackCallbackJSONBody defines parameters for ConnectSlackCallback.
 type ConnectSlackCallbackJSONBody struct {
 	Code  string `json:"code"`
@@ -4748,6 +4811,15 @@ type ForceCancelQueuedJobJSONRequestBody ForceCancelQueuedJobJSONBody
 
 // ResumeSuspendedJobPostJSONRequestBody defines body for ResumeSuspendedJobPost for application/json ContentType.
 type ResumeSuspendedJobPostJSONRequestBody = ResumeSuspendedJobPostJSONBody
+
+// CreateKafkaTriggerJSONRequestBody defines body for CreateKafkaTrigger for application/json ContentType.
+type CreateKafkaTriggerJSONRequestBody = NewKafkaTrigger
+
+// SetKafkaTriggerEnabledJSONRequestBody defines body for SetKafkaTriggerEnabled for application/json ContentType.
+type SetKafkaTriggerEnabledJSONRequestBody SetKafkaTriggerEnabledJSONBody
+
+// UpdateKafkaTriggerJSONRequestBody defines body for UpdateKafkaTrigger for application/json ContentType.
+type UpdateKafkaTriggerJSONRequestBody = EditKafkaTrigger
 
 // ConnectSlackCallbackJSONRequestBody defines body for ConnectSlackCallback for application/json ContentType.
 type ConnectSlackCallbackJSONRequestBody ConnectSlackCallbackJSONBody
@@ -6315,6 +6387,33 @@ type ClientInterface interface {
 	ResumeSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ResumeSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateKafkaTriggerWithBody request with any body
+	CreateKafkaTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateKafkaTrigger(ctx context.Context, workspace WorkspaceId, body CreateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteKafkaTrigger request
+	DeleteKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsKafkaTrigger request
+	ExistsKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetKafkaTrigger request
+	GetKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListKafkaTriggers request
+	ListKafkaTriggers(ctx context.Context, workspace WorkspaceId, params *ListKafkaTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetKafkaTriggerEnabledWithBody request with any body
+	SetKafkaTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetKafkaTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateKafkaTriggerWithBody request with any body
+	UpdateKafkaTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ConnectSlackCallbackWithBody request with any body
 	ConnectSlackCallbackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10630,6 +10729,126 @@ func (c *Client) ResumeSuspendedJobPostWithBody(ctx context.Context, workspace W
 
 func (c *Client) ResumeSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResumeSuspendedJobPostRequest(c.Server, workspace, id, resumeId, signature, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateKafkaTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateKafkaTriggerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateKafkaTrigger(ctx context.Context, workspace WorkspaceId, body CreateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateKafkaTriggerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteKafkaTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsKafkaTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetKafkaTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListKafkaTriggers(ctx context.Context, workspace WorkspaceId, params *ListKafkaTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListKafkaTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetKafkaTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetKafkaTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetKafkaTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetKafkaTriggerEnabledRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateKafkaTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateKafkaTriggerRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateKafkaTriggerRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -28288,6 +28507,404 @@ func NewResumeSuspendedJobPostRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewCreateKafkaTriggerRequest calls the generic CreateKafkaTrigger builder with application/json body
+func NewCreateKafkaTriggerRequest(server string, workspace WorkspaceId, body CreateKafkaTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateKafkaTriggerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateKafkaTriggerRequestWithBody generates requests for CreateKafkaTrigger with any type of body
+func NewCreateKafkaTriggerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteKafkaTriggerRequest generates requests for DeleteKafkaTrigger
+func NewDeleteKafkaTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsKafkaTriggerRequest generates requests for ExistsKafkaTrigger
+func NewExistsKafkaTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetKafkaTriggerRequest generates requests for GetKafkaTrigger
+func NewGetKafkaTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListKafkaTriggersRequest generates requests for ListKafkaTriggers
+func NewListKafkaTriggersRequest(server string, workspace WorkspaceId, params *ListKafkaTriggersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsFlow != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PathStart != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetKafkaTriggerEnabledRequest calls the generic SetKafkaTriggerEnabled builder with application/json body
+func NewSetKafkaTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetKafkaTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewSetKafkaTriggerEnabledRequestWithBody generates requests for SetKafkaTriggerEnabled with any type of body
+func NewSetKafkaTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/setenabled/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateKafkaTriggerRequest calls the generic UpdateKafkaTrigger builder with application/json body
+func NewUpdateKafkaTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdateKafkaTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateKafkaTriggerRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateKafkaTriggerRequestWithBody generates requests for UpdateKafkaTrigger with any type of body
+func NewUpdateKafkaTriggerRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewConnectSlackCallbackRequest calls the generic ConnectSlackCallback builder with application/json body
 func NewConnectSlackCallbackRequest(server string, workspace WorkspaceId, body ConnectSlackCallbackJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -36005,6 +36622,33 @@ type ClientWithResponsesInterface interface {
 
 	ResumeSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error)
 
+	// CreateKafkaTriggerWithBodyWithResponse request with any body
+	CreateKafkaTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateKafkaTriggerResponse, error)
+
+	CreateKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateKafkaTriggerResponse, error)
+
+	// DeleteKafkaTriggerWithResponse request
+	DeleteKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteKafkaTriggerResponse, error)
+
+	// ExistsKafkaTriggerWithResponse request
+	ExistsKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsKafkaTriggerResponse, error)
+
+	// GetKafkaTriggerWithResponse request
+	GetKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetKafkaTriggerResponse, error)
+
+	// ListKafkaTriggersWithResponse request
+	ListKafkaTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListKafkaTriggersParams, reqEditors ...RequestEditorFn) (*ListKafkaTriggersResponse, error)
+
+	// SetKafkaTriggerEnabledWithBodyWithResponse request with any body
+	SetKafkaTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetKafkaTriggerEnabledResponse, error)
+
+	SetKafkaTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetKafkaTriggerEnabledResponse, error)
+
+	// UpdateKafkaTriggerWithBodyWithResponse request with any body
+	UpdateKafkaTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateKafkaTriggerResponse, error)
+
+	UpdateKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateKafkaTriggerResponse, error)
+
 	// ConnectSlackCallbackWithBodyWithResponse request with any body
 	ConnectSlackCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error)
 
@@ -41809,6 +42453,156 @@ func (r ResumeSuspendedJobPostResponse) StatusCode() int {
 	return 0
 }
 
+type CreateKafkaTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateKafkaTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateKafkaTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteKafkaTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteKafkaTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteKafkaTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsKafkaTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsKafkaTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsKafkaTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetKafkaTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *KafkaTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r GetKafkaTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetKafkaTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListKafkaTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]KafkaTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r ListKafkaTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListKafkaTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetKafkaTriggerEnabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetKafkaTriggerEnabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetKafkaTriggerEnabledResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateKafkaTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateKafkaTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateKafkaTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ConnectSlackCallbackResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -44528,6 +45322,7 @@ type GetUsedTriggersResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		HttpRoutesUsed bool `json:"http_routes_used"`
+		KafkaUsed      bool `json:"kafka_used"`
 		WebsocketUsed  bool `json:"websocket_used"`
 	}
 }
@@ -47669,6 +48464,93 @@ func (c *ClientWithResponses) ResumeSuspendedJobPostWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseResumeSuspendedJobPostResponse(rsp)
+}
+
+// CreateKafkaTriggerWithBodyWithResponse request with arbitrary body returning *CreateKafkaTriggerResponse
+func (c *ClientWithResponses) CreateKafkaTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateKafkaTriggerResponse, error) {
+	rsp, err := c.CreateKafkaTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateKafkaTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateKafkaTriggerResponse, error) {
+	rsp, err := c.CreateKafkaTrigger(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateKafkaTriggerResponse(rsp)
+}
+
+// DeleteKafkaTriggerWithResponse request returning *DeleteKafkaTriggerResponse
+func (c *ClientWithResponses) DeleteKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteKafkaTriggerResponse, error) {
+	rsp, err := c.DeleteKafkaTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteKafkaTriggerResponse(rsp)
+}
+
+// ExistsKafkaTriggerWithResponse request returning *ExistsKafkaTriggerResponse
+func (c *ClientWithResponses) ExistsKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsKafkaTriggerResponse, error) {
+	rsp, err := c.ExistsKafkaTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsKafkaTriggerResponse(rsp)
+}
+
+// GetKafkaTriggerWithResponse request returning *GetKafkaTriggerResponse
+func (c *ClientWithResponses) GetKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetKafkaTriggerResponse, error) {
+	rsp, err := c.GetKafkaTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetKafkaTriggerResponse(rsp)
+}
+
+// ListKafkaTriggersWithResponse request returning *ListKafkaTriggersResponse
+func (c *ClientWithResponses) ListKafkaTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListKafkaTriggersParams, reqEditors ...RequestEditorFn) (*ListKafkaTriggersResponse, error) {
+	rsp, err := c.ListKafkaTriggers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListKafkaTriggersResponse(rsp)
+}
+
+// SetKafkaTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetKafkaTriggerEnabledResponse
+func (c *ClientWithResponses) SetKafkaTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetKafkaTriggerEnabledResponse, error) {
+	rsp, err := c.SetKafkaTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetKafkaTriggerEnabledResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetKafkaTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetKafkaTriggerEnabledResponse, error) {
+	rsp, err := c.SetKafkaTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetKafkaTriggerEnabledResponse(rsp)
+}
+
+// UpdateKafkaTriggerWithBodyWithResponse request with arbitrary body returning *UpdateKafkaTriggerResponse
+func (c *ClientWithResponses) UpdateKafkaTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateKafkaTriggerResponse, error) {
+	rsp, err := c.UpdateKafkaTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateKafkaTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateKafkaTriggerResponse, error) {
+	rsp, err := c.UpdateKafkaTrigger(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateKafkaTriggerResponse(rsp)
 }
 
 // ConnectSlackCallbackWithBodyWithResponse request with arbitrary body returning *ConnectSlackCallbackResponse
@@ -54599,6 +55481,148 @@ func ParseResumeSuspendedJobPostResponse(rsp *http.Response) (*ResumeSuspendedJo
 	return response, nil
 }
 
+// ParseCreateKafkaTriggerResponse parses an HTTP response from a CreateKafkaTriggerWithResponse call
+func ParseCreateKafkaTriggerResponse(rsp *http.Response) (*CreateKafkaTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateKafkaTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteKafkaTriggerResponse parses an HTTP response from a DeleteKafkaTriggerWithResponse call
+func ParseDeleteKafkaTriggerResponse(rsp *http.Response) (*DeleteKafkaTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteKafkaTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsKafkaTriggerResponse parses an HTTP response from a ExistsKafkaTriggerWithResponse call
+func ParseExistsKafkaTriggerResponse(rsp *http.Response) (*ExistsKafkaTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsKafkaTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetKafkaTriggerResponse parses an HTTP response from a GetKafkaTriggerWithResponse call
+func ParseGetKafkaTriggerResponse(rsp *http.Response) (*GetKafkaTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetKafkaTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest KafkaTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListKafkaTriggersResponse parses an HTTP response from a ListKafkaTriggersWithResponse call
+func ParseListKafkaTriggersResponse(rsp *http.Response) (*ListKafkaTriggersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListKafkaTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []KafkaTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetKafkaTriggerEnabledResponse parses an HTTP response from a SetKafkaTriggerEnabledWithResponse call
+func ParseSetKafkaTriggerEnabledResponse(rsp *http.Response) (*SetKafkaTriggerEnabledResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetKafkaTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateKafkaTriggerResponse parses an HTTP response from a UpdateKafkaTriggerWithResponse call
+func ParseUpdateKafkaTriggerResponse(rsp *http.Response) (*UpdateKafkaTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateKafkaTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseConnectSlackCallbackResponse parses an HTTP response from a ConnectSlackCallbackWithResponse call
 func ParseConnectSlackCallbackResponse(rsp *http.Response) (*ConnectSlackCallbackResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -57277,6 +58301,7 @@ func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse,
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			HttpRoutesUsed bool `json:"http_routes_used"`
+			KafkaUsed      bool `json:"kafka_used"`
 			WebsocketUsed  bool `json:"websocket_used"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
