@@ -1017,6 +1017,7 @@ type EditResourceType struct {
 // EditSchedule defines model for EditSchedule.
 type EditSchedule struct {
 	Args                ScriptArgs  `json:"args"`
+	CronVersion         *string     `json:"cron_version,omitempty"`
 	NoFlowOverlap       *bool       `json:"no_flow_overlap,omitempty"`
 	OnFailure           *string     `json:"on_failure,omitempty"`
 	OnFailureExact      *bool       `json:"on_failure_exact,omitempty"`
@@ -1343,6 +1344,7 @@ type GlobalSetting struct {
 // GlobalUserInfo defines model for GlobalUserInfo.
 type GlobalUserInfo struct {
 	Company      *string                 `json:"company,omitempty"`
+	Devops       *bool                   `json:"devops,omitempty"`
 	Email        string                  `json:"email"`
 	LoginType    GlobalUserInfoLoginType `json:"login_type"`
 	Name         *string                 `json:"name,omitempty"`
@@ -1697,6 +1699,7 @@ type NewKafkaTrigger struct {
 // NewSchedule defines model for NewSchedule.
 type NewSchedule struct {
 	Args                ScriptArgs  `json:"args"`
+	CronVersion         *string     `json:"cron_version,omitempty"`
 	Enabled             *bool       `json:"enabled,omitempty"`
 	IsFlow              bool        `json:"is_flow"`
 	NoFlowOverlap       *bool       `json:"no_flow_overlap,omitempty"`
@@ -2062,6 +2065,7 @@ type ScalarMetric struct {
 // Schedule defines model for Schedule.
 type Schedule struct {
 	Args                *ScriptArgs     `json:"args,omitempty"`
+	CronVersion         *string         `json:"cron_version,omitempty"`
 	EditedAt            time.Time       `json:"edited_at"`
 	EditedBy            string          `json:"edited_by"`
 	Email               string          `json:"email"`
@@ -2092,15 +2096,16 @@ type Schedule struct {
 
 // ScheduleWJobs defines model for ScheduleWJobs.
 type ScheduleWJobs struct {
-	Args       *ScriptArgs     `json:"args,omitempty"`
-	EditedAt   time.Time       `json:"edited_at"`
-	EditedBy   string          `json:"edited_by"`
-	Email      string          `json:"email"`
-	Enabled    bool            `json:"enabled"`
-	Error      *string         `json:"error,omitempty"`
-	ExtraPerms map[string]bool `json:"extra_perms"`
-	IsFlow     bool            `json:"is_flow"`
-	Jobs       *[]struct {
+	Args        *ScriptArgs     `json:"args,omitempty"`
+	CronVersion *string         `json:"cron_version,omitempty"`
+	EditedAt    time.Time       `json:"edited_at"`
+	EditedBy    string          `json:"edited_by"`
+	Email       string          `json:"email"`
+	Enabled     bool            `json:"enabled"`
+	Error       *string         `json:"error,omitempty"`
+	ExtraPerms  map[string]bool `json:"extra_perms"`
+	IsFlow      bool            `json:"is_flow"`
+	Jobs        *[]struct {
 		DurationMs float32 `json:"duration_ms"`
 		Id         string  `json:"id"`
 		Success    bool    `json:"success"`
@@ -2672,8 +2677,9 @@ type TestMetadataJSONBody = string
 
 // PreviewScheduleJSONBody defines parameters for PreviewSchedule.
 type PreviewScheduleJSONBody struct {
-	Schedule string `json:"schedule"`
-	Timezone string `json:"timezone"`
+	CronVersion *string `json:"cron_version,omitempty"`
+	Schedule    string  `json:"schedule"`
+	Timezone    string  `json:"timezone"`
 }
 
 // GetTopHubScriptsParams defines parameters for GetTopHubScripts.
@@ -2844,6 +2850,7 @@ type UpdateTutorialProgressJSONBody struct {
 
 // GlobalUserUpdateJSONBody defines parameters for GlobalUserUpdate.
 type GlobalUserUpdateJSONBody struct {
+	IsDevops     *bool   `json:"is_devops,omitempty"`
 	IsSuperAdmin *bool   `json:"is_super_admin,omitempty"`
 	Name         *string `json:"name,omitempty"`
 }
