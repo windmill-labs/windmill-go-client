@@ -153,6 +153,7 @@ const (
 	CompletedJobJobKindFlow               CompletedJobJobKind = "flow"
 	CompletedJobJobKindFlowdependencies   CompletedJobJobKind = "flowdependencies"
 	CompletedJobJobKindFlowpreview        CompletedJobJobKind = "flowpreview"
+	CompletedJobJobKindFlowscript         CompletedJobJobKind = "flowscript"
 	CompletedJobJobKindIdentity           CompletedJobJobKind = "identity"
 	CompletedJobJobKindPreview            CompletedJobJobKind = "preview"
 	CompletedJobJobKindScript             CompletedJobJobKind = "script"
@@ -274,6 +275,7 @@ const (
 	Job0JobKindFlow               Job0JobKind = "flow"
 	Job0JobKindFlowdependencies   Job0JobKind = "flowdependencies"
 	Job0JobKindFlowpreview        Job0JobKind = "flowpreview"
+	Job0JobKindFlowscript         Job0JobKind = "flowscript"
 	Job0JobKindIdentity           Job0JobKind = "identity"
 	Job0JobKindPreview            Job0JobKind = "preview"
 	Job0JobKindScript             Job0JobKind = "script"
@@ -314,6 +316,7 @@ const (
 	Job1JobKindFlow               Job1JobKind = "flow"
 	Job1JobKindFlowdependencies   Job1JobKind = "flowdependencies"
 	Job1JobKindFlowpreview        Job1JobKind = "flowpreview"
+	Job1JobKindFlowscript         Job1JobKind = "flowscript"
 	Job1JobKindIdentity           Job1JobKind = "identity"
 	Job1JobKindPreview            Job1JobKind = "preview"
 	Job1JobKindScript             Job1JobKind = "script"
@@ -488,6 +491,7 @@ const (
 	QueuedJobJobKindFlow               QueuedJobJobKind = "flow"
 	QueuedJobJobKindFlowdependencies   QueuedJobJobKind = "flowdependencies"
 	QueuedJobJobKindFlowpreview        QueuedJobJobKind = "flowpreview"
+	QueuedJobJobKindFlowscript         QueuedJobJobKind = "flowscript"
 	QueuedJobJobKindIdentity           QueuedJobJobKind = "identity"
 	QueuedJobJobKindPreview            QueuedJobJobKind = "preview"
 	QueuedJobJobKindScript             QueuedJobJobKind = "script"
@@ -2757,7 +2761,6 @@ type TestSmtpJSONBody struct {
 // CountSearchLogsIndexParams defines parameters for CountSearchLogsIndex.
 type CountSearchLogsIndexParams struct {
 	SearchQuery string     `form:"search_query" json:"search_query"`
-	Hosts       string     `form:"hosts" json:"hosts"`
 	MinTs       *time.Time `form:"min_ts,omitempty" json:"min_ts,omitempty"`
 	MaxTs       *time.Time `form:"max_ts,omitempty" json:"max_ts,omitempty"`
 }
@@ -15451,18 +15454,6 @@ func NewCountSearchLogsIndexRequest(server string, params *CountSearchLogsIndexP
 		queryValues := queryURL.Query()
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_query", runtime.ParamLocationQuery, params.SearchQuery); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "hosts", runtime.ParamLocationQuery, params.Hosts); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
