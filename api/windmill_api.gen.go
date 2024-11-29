@@ -649,6 +649,12 @@ const (
 	ActionKindUpdate  ActionKind = "Update"
 )
 
+// Defines values for ClearIndexParamsIdxName.
+const (
+	JobIndex        ClearIndexParamsIdxName = "JobIndex"
+	ServiceLogIndex ClearIndexParamsIdxName = "ServiceLogIndex"
+)
+
 // Defines values for AddGranularAclsParamsKind.
 const (
 	AddGranularAclsParamsKindApp              AddGranularAclsParamsKind = "app"
@@ -2757,6 +2763,9 @@ type TestSmtpJSONBody struct {
 	} `json:"smtp"`
 	To string `json:"to"`
 }
+
+// ClearIndexParamsIdxName defines parameters for ClearIndex.
+type ClearIndexParamsIdxName string
 
 // CountSearchLogsIndexParams defines parameters for CountSearchLogsIndex.
 type CountSearchLogsIndexParams struct {
@@ -5738,6 +5747,9 @@ type ClientInterface interface {
 
 	TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ClearIndex request
+	ClearIndex(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CountSearchLogsIndex request
 	CountSearchLogsIndex(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7835,6 +7847,18 @@ func (c *Client) TestSmtpWithBody(ctx context.Context, contentType string, body 
 
 func (c *Client) TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewTestSmtpRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ClearIndex(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewClearIndexRequest(c.Server, idxName)
 	if err != nil {
 		return nil, err
 	}
@@ -15427,6 +15451,40 @@ func NewTestSmtpRequestWithBody(server string, contentType string, body io.Reade
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewClearIndexRequest generates requests for ClearIndex
+func NewClearIndexRequest(server string, idxName ClearIndexParamsIdxName) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "idx_name", runtime.ParamLocationPath, idxName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/srch/index/delete/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -35960,6 +36018,9 @@ type ClientWithResponsesInterface interface {
 
 	TestSmtpWithResponse(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error)
 
+	// ClearIndexWithResponse request
+	ClearIndexWithResponse(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*ClearIndexResponse, error)
+
 	// CountSearchLogsIndexWithResponse request
 	CountSearchLogsIndexWithResponse(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*CountSearchLogsIndexResponse, error)
 
@@ -38490,6 +38551,27 @@ func (r TestSmtpResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r TestSmtpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ClearIndexResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ClearIndexResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ClearIndexResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -46352,6 +46434,15 @@ func (c *ClientWithResponses) TestSmtpWithResponse(ctx context.Context, body Tes
 	return ParseTestSmtpResponse(rsp)
 }
 
+// ClearIndexWithResponse request returning *ClearIndexResponse
+func (c *ClientWithResponses) ClearIndexWithResponse(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*ClearIndexResponse, error) {
+	rsp, err := c.ClearIndex(ctx, idxName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseClearIndexResponse(rsp)
+}
+
 // CountSearchLogsIndexWithResponse request returning *CountSearchLogsIndexResponse
 func (c *ClientWithResponses) CountSearchLogsIndexWithResponse(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*CountSearchLogsIndexResponse, error) {
 	rsp, err := c.CountSearchLogsIndex(ctx, params, reqEditors...)
@@ -51524,6 +51615,22 @@ func ParseTestSmtpResponse(rsp *http.Response) (*TestSmtpResponse, error) {
 	}
 
 	response := &TestSmtpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseClearIndexResponse parses an HTTP response from a ClearIndexWithResponse call
+func ParseClearIndexResponse(rsp *http.Response) (*ClearIndexResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ClearIndexResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
