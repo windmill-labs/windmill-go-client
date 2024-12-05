@@ -791,6 +791,7 @@ type AppWithLastVersionExecutionMode string
 type AppWithLastVersionWDraft struct {
 	CreatedAt     time.Time                             `json:"created_at"`
 	CreatedBy     string                                `json:"created_by"`
+	CustomPath    *string                               `json:"custom_path,omitempty"`
 	Draft         *interface{}                          `json:"draft,omitempty"`
 	DraftOnly     *bool                                 `json:"draft_only,omitempty"`
 	ExecutionMode AppWithLastVersionWDraftExecutionMode `json:"execution_mode"`
@@ -2484,6 +2485,9 @@ type CreatedOrStartedAfterCompletedJob = time.Time
 // CreatedOrStartedBefore defines model for CreatedOrStartedBefore.
 type CreatedOrStartedBefore = time.Time
 
+// CustomPath defines model for CustomPath.
+type CustomPath = string
+
 // GetStarted defines model for GetStarted.
 type GetStarted = bool
 
@@ -2889,6 +2893,7 @@ type RemoveGranularAclsParamsKind string
 
 // CreateAppJSONBody defines parameters for CreateApp.
 type CreateAppJSONBody struct {
+	CustomPath        *string     `json:"custom_path,omitempty"`
 	DeploymentMessage *string     `json:"deployment_message,omitempty"`
 	DraftOnly         *bool       `json:"draft_only,omitempty"`
 	Path              string      `json:"path"`
@@ -2942,6 +2947,7 @@ type ListAppsParams struct {
 
 // UpdateAppJSONBody defines parameters for UpdateApp.
 type UpdateAppJSONBody struct {
+	CustomPath        *string      `json:"custom_path,omitempty"`
 	DeploymentMessage *string      `json:"deployment_message,omitempty"`
 	Path              *string      `json:"path,omitempty"`
 	Policy            *Policy      `json:"policy,omitempty"`
@@ -5545,6 +5551,9 @@ type ClientInterface interface {
 	// ListHubApps request
 	ListHubApps(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetPublicAppByCustomPath request
+	GetPublicAppByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// LoginWithBody request with any body
 	LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5887,6 +5896,9 @@ type ClientInterface interface {
 	CreateAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CreateApp(ctx context.Context, workspace WorkspaceId, body CreateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CustomPathExists request
+	CustomPathExists(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteApp request
 	DeleteApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6971,6 +6983,18 @@ func (c *Client) GetHubAppById(ctx context.Context, id PathId, reqEditors ...Req
 
 func (c *Client) ListHubApps(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListHubAppsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPublicAppByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPublicAppByCustomPathRequest(c.Server, customPath)
 	if err != nil {
 		return nil, err
 	}
@@ -8471,6 +8495,18 @@ func (c *Client) CreateAppWithBody(ctx context.Context, workspace WorkspaceId, c
 
 func (c *Client) CreateApp(ctx context.Context, workspace WorkspaceId, body CreateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateAppRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CustomPathExists(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCustomPathExistsRequest(c.Server, workspace, customPath)
 	if err != nil {
 		return nil, err
 	}
@@ -13222,6 +13258,40 @@ func NewListHubAppsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGetPublicAppByCustomPathRequest generates requests for GetPublicAppByCustomPath
+func NewGetPublicAppByCustomPathRequest(server string, customPath CustomPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "custom_path", runtime.ParamLocationPath, customPath)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/apps_u/public_app_by_custom_path/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewLoginRequest calls the generic Login builder with application/json body
 func NewLoginRequest(server string, body LoginJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -17051,6 +17121,47 @@ func NewCreateAppRequestWithBody(server string, workspace WorkspaceId, contentTy
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCustomPathExistsRequest generates requests for CustomPathExists
+func NewCustomPathExistsRequest(server string, workspace WorkspaceId, customPath CustomPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "custom_path", runtime.ParamLocationPath, customPath)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/custom_path_exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -35816,6 +35927,9 @@ type ClientWithResponsesInterface interface {
 	// ListHubAppsWithResponse request
 	ListHubAppsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubAppsResponse, error)
 
+	// GetPublicAppByCustomPathWithResponse request
+	GetPublicAppByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetPublicAppByCustomPathResponse, error)
+
 	// LoginWithBodyWithResponse request with any body
 	LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginResponse, error)
 
@@ -36158,6 +36272,9 @@ type ClientWithResponsesInterface interface {
 	CreateAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAppResponse, error)
 
 	CreateAppWithResponse(ctx context.Context, workspace WorkspaceId, body CreateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAppResponse, error)
+
+	// CustomPathExistsWithResponse request
+	CustomPathExistsWithResponse(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*CustomPathExistsResponse, error)
 
 	// DeleteAppWithResponse request
 	DeleteAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteAppResponse, error)
@@ -37286,6 +37403,41 @@ func (r ListHubAppsResponse) StatusCode() int {
 	return 0
 }
 
+type GetPublicAppByCustomPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		CreatedAt     time.Time                                `json:"created_at"`
+		CreatedBy     string                                   `json:"created_by"`
+		ExecutionMode GetPublicAppByCustomPath200ExecutionMode `json:"execution_mode"`
+		ExtraPerms    map[string]bool                          `json:"extra_perms"`
+		Id            int                                      `json:"id"`
+		Path          string                                   `json:"path"`
+		Policy        Policy                                   `json:"policy"`
+		Summary       string                                   `json:"summary"`
+		Value         map[string]interface{}                   `json:"value"`
+		Versions      []int                                    `json:"versions"`
+		WorkspaceId   string                                   `json:"workspace_id"`
+	}
+}
+type GetPublicAppByCustomPath200ExecutionMode string
+
+// Status returns HTTPResponse.Status
+func (r GetPublicAppByCustomPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPublicAppByCustomPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type LoginResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -38235,7 +38387,15 @@ func (r ListLogFilesResponse) StatusCode() int {
 type GetCriticalAlertsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]CriticalAlert
+	JSON200      *struct {
+		Alerts *[]CriticalAlert `json:"alerts,omitempty"`
+
+		// TotalPages Total number of pages based on the page size.
+		TotalPages *int `json:"total_pages,omitempty"`
+
+		// TotalRows Total number of rows matching the query.
+		TotalRows *int `json:"total_rows,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -39377,6 +39537,28 @@ func (r CreateAppResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateAppResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CustomPathExistsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r CustomPathExistsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CustomPathExistsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -44635,7 +44817,15 @@ func (r ChangeWorkspaceNameResponse) StatusCode() int {
 type WorkspaceGetCriticalAlertsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]CriticalAlert
+	JSON200      *struct {
+		Alerts *[]CriticalAlert `json:"alerts,omitempty"`
+
+		// TotalPages Total number of pages based on the page size.
+		TotalPages *int `json:"total_pages,omitempty"`
+
+		// TotalRows Total number of rows matching the query.
+		TotalRows *int `json:"total_rows,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -45794,6 +45984,15 @@ func (c *ClientWithResponses) ListHubAppsWithResponse(ctx context.Context, reqEd
 	return ParseListHubAppsResponse(rsp)
 }
 
+// GetPublicAppByCustomPathWithResponse request returning *GetPublicAppByCustomPathResponse
+func (c *ClientWithResponses) GetPublicAppByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetPublicAppByCustomPathResponse, error) {
+	rsp, err := c.GetPublicAppByCustomPath(ctx, customPath, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPublicAppByCustomPathResponse(rsp)
+}
+
 // LoginWithBodyWithResponse request with arbitrary body returning *LoginResponse
 func (c *ClientWithResponses) LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginResponse, error) {
 	rsp, err := c.LoginWithBody(ctx, contentType, body, reqEditors...)
@@ -46885,6 +47084,15 @@ func (c *ClientWithResponses) CreateAppWithResponse(ctx context.Context, workspa
 		return nil, err
 	}
 	return ParseCreateAppResponse(rsp)
+}
+
+// CustomPathExistsWithResponse request returning *CustomPathExistsResponse
+func (c *ClientWithResponses) CustomPathExistsWithResponse(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*CustomPathExistsResponse, error) {
+	rsp, err := c.CustomPathExists(ctx, workspace, customPath, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCustomPathExistsResponse(rsp)
 }
 
 // DeleteAppWithResponse request returning *DeleteAppResponse
@@ -50361,6 +50569,44 @@ func ParseListHubAppsResponse(rsp *http.Response) (*ListHubAppsResponse, error) 
 	return response, nil
 }
 
+// ParseGetPublicAppByCustomPathResponse parses an HTTP response from a GetPublicAppByCustomPathWithResponse call
+func ParseGetPublicAppByCustomPathResponse(rsp *http.Response) (*GetPublicAppByCustomPathResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPublicAppByCustomPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CreatedAt     time.Time                                `json:"created_at"`
+			CreatedBy     string                                   `json:"created_by"`
+			ExecutionMode GetPublicAppByCustomPath200ExecutionMode `json:"execution_mode"`
+			ExtraPerms    map[string]bool                          `json:"extra_perms"`
+			Id            int                                      `json:"id"`
+			Path          string                                   `json:"path"`
+			Policy        Policy                                   `json:"policy"`
+			Summary       string                                   `json:"summary"`
+			Value         map[string]interface{}                   `json:"value"`
+			Versions      []int                                    `json:"versions"`
+			WorkspaceId   string                                   `json:"workspace_id"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseLoginResponse parses an HTTP response from a LoginWithResponse call
 func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -51324,7 +51570,15 @@ func ParseGetCriticalAlertsResponse(rsp *http.Response) (*GetCriticalAlertsRespo
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []CriticalAlert
+		var dest struct {
+			Alerts *[]CriticalAlert `json:"alerts,omitempty"`
+
+			// TotalPages Total number of pages based on the page size.
+			TotalPages *int `json:"total_pages,omitempty"`
+
+			// TotalRows Total number of rows matching the query.
+			TotalRows *int `json:"total_rows,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -52375,6 +52629,32 @@ func ParseCreateAppResponse(rsp *http.Response) (*CreateAppResponse, error) {
 	response := &CreateAppResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCustomPathExistsResponse parses an HTTP response from a CustomPathExistsWithResponse call
+func ParseCustomPathExistsResponse(rsp *http.Response) (*CustomPathExistsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CustomPathExistsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -57665,7 +57945,15 @@ func ParseWorkspaceGetCriticalAlertsResponse(rsp *http.Response) (*WorkspaceGetC
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []CriticalAlert
+		var dest struct {
+			Alerts *[]CriticalAlert `json:"alerts,omitempty"`
+
+			// TotalPages Total number of pages based on the page size.
+			TotalPages *int `json:"total_pages,omitempty"`
+
+			// TotalRows Total number of rows matching the query.
+			TotalRows *int `json:"total_rows,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
