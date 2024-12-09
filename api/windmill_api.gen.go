@@ -148,10 +148,12 @@ const (
 // Defines values for CompletedJobJobKind.
 const (
 	CompletedJobJobKindAppdependencies    CompletedJobJobKind = "appdependencies"
+	CompletedJobJobKindAppscript          CompletedJobJobKind = "appscript"
 	CompletedJobJobKindDependencies       CompletedJobJobKind = "dependencies"
 	CompletedJobJobKindDeploymentcallback CompletedJobJobKind = "deploymentcallback"
 	CompletedJobJobKindFlow               CompletedJobJobKind = "flow"
 	CompletedJobJobKindFlowdependencies   CompletedJobJobKind = "flowdependencies"
+	CompletedJobJobKindFlownode           CompletedJobJobKind = "flownode"
 	CompletedJobJobKindFlowpreview        CompletedJobJobKind = "flowpreview"
 	CompletedJobJobKindFlowscript         CompletedJobJobKind = "flowscript"
 	CompletedJobJobKindIdentity           CompletedJobJobKind = "identity"
@@ -270,10 +272,12 @@ const (
 // Defines values for Job0JobKind.
 const (
 	Job0JobKindAppdependencies    Job0JobKind = "appdependencies"
+	Job0JobKindAppscript          Job0JobKind = "appscript"
 	Job0JobKindDependencies       Job0JobKind = "dependencies"
 	Job0JobKindDeploymentcallback Job0JobKind = "deploymentcallback"
 	Job0JobKindFlow               Job0JobKind = "flow"
 	Job0JobKindFlowdependencies   Job0JobKind = "flowdependencies"
+	Job0JobKindFlownode           Job0JobKind = "flownode"
 	Job0JobKindFlowpreview        Job0JobKind = "flowpreview"
 	Job0JobKindFlowscript         Job0JobKind = "flowscript"
 	Job0JobKindIdentity           Job0JobKind = "identity"
@@ -311,10 +315,12 @@ const (
 // Defines values for Job1JobKind.
 const (
 	Job1JobKindAppdependencies    Job1JobKind = "appdependencies"
+	Job1JobKindAppscript          Job1JobKind = "appscript"
 	Job1JobKindDependencies       Job1JobKind = "dependencies"
 	Job1JobKindDeploymentcallback Job1JobKind = "deploymentcallback"
 	Job1JobKindFlow               Job1JobKind = "flow"
 	Job1JobKindFlowdependencies   Job1JobKind = "flowdependencies"
+	Job1JobKindFlownode           Job1JobKind = "flownode"
 	Job1JobKindFlowpreview        Job1JobKind = "flowpreview"
 	Job1JobKindFlowscript         Job1JobKind = "flowscript"
 	Job1JobKindIdentity           Job1JobKind = "identity"
@@ -486,10 +492,12 @@ const (
 // Defines values for QueuedJobJobKind.
 const (
 	QueuedJobJobKindAppdependencies    QueuedJobJobKind = "appdependencies"
+	QueuedJobJobKindAppscript          QueuedJobJobKind = "appscript"
 	QueuedJobJobKindDependencies       QueuedJobJobKind = "dependencies"
 	QueuedJobJobKindDeploymentcallback QueuedJobJobKind = "deploymentcallback"
 	QueuedJobJobKindFlow               QueuedJobJobKind = "flow"
 	QueuedJobJobKindFlowdependencies   QueuedJobJobKind = "flowdependencies"
+	QueuedJobJobKindFlownode           QueuedJobJobKind = "flownode"
 	QueuedJobJobKindFlowpreview        QueuedJobJobKind = "flowpreview"
 	QueuedJobJobKindFlowscript         QueuedJobJobKind = "flowscript"
 	QueuedJobJobKindIdentity           QueuedJobJobKind = "identity"
@@ -2962,6 +2970,7 @@ type ExecuteComponentJSONBody struct {
 	ForceViewerAllowUserResources *[]string               `json:"force_viewer_allow_user_resources,omitempty"`
 	ForceViewerOneOfFields        *map[string]interface{} `json:"force_viewer_one_of_fields,omitempty"`
 	ForceViewerStaticFields       *map[string]interface{} `json:"force_viewer_static_fields,omitempty"`
+	Id                            *int                    `json:"id,omitempty"`
 	Path                          *string                 `json:"path,omitempty"`
 	RawCode                       *struct {
 		CacheTtl *int    `json:"cache_ttl,omitempty"`
@@ -2970,6 +2979,7 @@ type ExecuteComponentJSONBody struct {
 		Lock     *string `json:"lock,omitempty"`
 		Path     *string `json:"path,omitempty"`
 	} `json:"raw_code,omitempty"`
+	Version *int `json:"version,omitempty"`
 }
 
 // ListAuditLogsParams defines parameters for ListAuditLogs.
@@ -5909,6 +5919,9 @@ type ClientInterface interface {
 	// GetAppByPathWithDraft request
 	GetAppByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetAppLiteByPath request
+	GetAppLiteByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAppByPath request
 	GetAppByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8543,6 +8556,18 @@ func (c *Client) ExistsApp(ctx context.Context, workspace WorkspaceId, path Path
 
 func (c *Client) GetAppByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAppByPathWithDraftRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAppLiteByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppLiteByPathRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -17272,6 +17297,47 @@ func NewGetAppByPathWithDraftRequest(server string, workspace WorkspaceId, path 
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/apps/get/draft/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetAppLiteByPathRequest generates requests for GetAppLiteByPath
+func NewGetAppLiteByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/get/lite/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -36285,6 +36351,9 @@ type ClientWithResponsesInterface interface {
 	// GetAppByPathWithDraftWithResponse request
 	GetAppByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathWithDraftResponse, error)
 
+	// GetAppLiteByPathWithResponse request
+	GetAppLiteByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppLiteByPathResponse, error)
+
 	// GetAppByPathWithResponse request
 	GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppByPathParams, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error)
 
@@ -39624,6 +39693,28 @@ func (r GetAppByPathWithDraftResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetAppByPathWithDraftResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAppLiteByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AppWithLastVersion
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAppLiteByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAppLiteByPathResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -47122,6 +47213,15 @@ func (c *ClientWithResponses) GetAppByPathWithDraftWithResponse(ctx context.Cont
 	return ParseGetAppByPathWithDraftResponse(rsp)
 }
 
+// GetAppLiteByPathWithResponse request returning *GetAppLiteByPathResponse
+func (c *ClientWithResponses) GetAppLiteByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppLiteByPathResponse, error) {
+	rsp, err := c.GetAppLiteByPath(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAppLiteByPathResponse(rsp)
+}
+
 // GetAppByPathWithResponse request returning *GetAppByPathResponse
 func (c *ClientWithResponses) GetAppByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppByPathParams, reqEditors ...RequestEditorFn) (*GetAppByPathResponse, error) {
 	rsp, err := c.GetAppByPath(ctx, workspace, path, params, reqEditors...)
@@ -52718,6 +52818,32 @@ func ParseGetAppByPathWithDraftResponse(rsp *http.Response) (*GetAppByPathWithDr
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest AppWithLastVersionWDraft
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetAppLiteByPathResponse parses an HTTP response from a GetAppLiteByPathWithResponse call
+func ParseGetAppLiteByPathResponse(rsp *http.Response) (*GetAppLiteByPathResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAppLiteByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AppWithLastVersion
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
