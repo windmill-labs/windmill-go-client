@@ -2272,6 +2272,7 @@ type User struct {
 	Groups        *[]string `json:"groups,omitempty"`
 	IsAdmin       bool      `json:"is_admin"`
 	IsSuperAdmin  bool      `json:"is_super_admin"`
+	Name          *string   `json:"name,omitempty"`
 	Operator      bool      `json:"operator"`
 	Username      string    `json:"username"`
 }
