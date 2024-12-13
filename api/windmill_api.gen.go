@@ -169,6 +169,7 @@ const (
 	CompletedJobLanguageBash       CompletedJobLanguage = "bash"
 	CompletedJobLanguageBigquery   CompletedJobLanguage = "bigquery"
 	CompletedJobLanguageBun        CompletedJobLanguage = "bun"
+	CompletedJobLanguageCsharp     CompletedJobLanguage = "csharp"
 	CompletedJobLanguageDeno       CompletedJobLanguage = "deno"
 	CompletedJobLanguageGo         CompletedJobLanguage = "go"
 	CompletedJobLanguageGraphql    CompletedJobLanguage = "graphql"
@@ -293,6 +294,7 @@ const (
 	Job0LanguageBash       Job0Language = "bash"
 	Job0LanguageBigquery   Job0Language = "bigquery"
 	Job0LanguageBun        Job0Language = "bun"
+	Job0LanguageCsharp     Job0Language = "csharp"
 	Job0LanguageDeno       Job0Language = "deno"
 	Job0LanguageGo         Job0Language = "go"
 	Job0LanguageGraphql    Job0Language = "graphql"
@@ -336,6 +338,7 @@ const (
 	Job1LanguageBash       Job1Language = "bash"
 	Job1LanguageBigquery   Job1Language = "bigquery"
 	Job1LanguageBun        Job1Language = "bun"
+	Job1LanguageCsharp     Job1Language = "csharp"
 	Job1LanguageDeno       Job1Language = "deno"
 	Job1LanguageGo         Job1Language = "go"
 	Job1LanguageGraphql    Job1Language = "graphql"
@@ -402,6 +405,7 @@ const (
 	NewScriptLanguageBash       NewScriptLanguage = "bash"
 	NewScriptLanguageBigquery   NewScriptLanguage = "bigquery"
 	NewScriptLanguageBun        NewScriptLanguage = "bun"
+	NewScriptLanguageCsharp     NewScriptLanguage = "csharp"
 	NewScriptLanguageDeno       NewScriptLanguage = "deno"
 	NewScriptLanguageGo         NewScriptLanguage = "go"
 	NewScriptLanguageGraphql    NewScriptLanguage = "graphql"
@@ -431,6 +435,7 @@ const (
 	NewScriptWithDraftLanguageBash       NewScriptWithDraftLanguage = "bash"
 	NewScriptWithDraftLanguageBigquery   NewScriptWithDraftLanguage = "bigquery"
 	NewScriptWithDraftLanguageBun        NewScriptWithDraftLanguage = "bun"
+	NewScriptWithDraftLanguageCsharp     NewScriptWithDraftLanguage = "csharp"
 	NewScriptWithDraftLanguageDeno       NewScriptWithDraftLanguage = "deno"
 	NewScriptWithDraftLanguageGo         NewScriptWithDraftLanguage = "go"
 	NewScriptWithDraftLanguageGraphql    NewScriptWithDraftLanguage = "graphql"
@@ -475,6 +480,7 @@ const (
 	PreviewLanguageBash       PreviewLanguage = "bash"
 	PreviewLanguageBigquery   PreviewLanguage = "bigquery"
 	PreviewLanguageBun        PreviewLanguage = "bun"
+	PreviewLanguageCsharp     PreviewLanguage = "csharp"
 	PreviewLanguageDeno       PreviewLanguage = "deno"
 	PreviewLanguageGo         PreviewLanguage = "go"
 	PreviewLanguageGraphql    PreviewLanguage = "graphql"
@@ -513,6 +519,7 @@ const (
 	QueuedJobLanguageBash       QueuedJobLanguage = "bash"
 	QueuedJobLanguageBigquery   QueuedJobLanguage = "bigquery"
 	QueuedJobLanguageBun        QueuedJobLanguage = "bun"
+	QueuedJobLanguageCsharp     QueuedJobLanguage = "csharp"
 	QueuedJobLanguageDeno       QueuedJobLanguage = "deno"
 	QueuedJobLanguageGo         QueuedJobLanguage = "go"
 	QueuedJobLanguageGraphql    QueuedJobLanguage = "graphql"
@@ -556,6 +563,7 @@ const (
 	RawScriptForDependenciesLanguageBash       RawScriptForDependenciesLanguage = "bash"
 	RawScriptForDependenciesLanguageBigquery   RawScriptForDependenciesLanguage = "bigquery"
 	RawScriptForDependenciesLanguageBun        RawScriptForDependenciesLanguage = "bun"
+	RawScriptForDependenciesLanguageCsharp     RawScriptForDependenciesLanguage = "csharp"
 	RawScriptForDependenciesLanguageDeno       RawScriptForDependenciesLanguage = "deno"
 	RawScriptForDependenciesLanguageGo         RawScriptForDependenciesLanguage = "go"
 	RawScriptForDependenciesLanguageGraphql    RawScriptForDependenciesLanguage = "graphql"
@@ -592,6 +600,7 @@ const (
 	ScriptLanguageBash       ScriptLanguage = "bash"
 	ScriptLanguageBigquery   ScriptLanguage = "bigquery"
 	ScriptLanguageBun        ScriptLanguage = "bun"
+	ScriptLanguageCsharp     ScriptLanguage = "csharp"
 	ScriptLanguageDeno       ScriptLanguage = "deno"
 	ScriptLanguageGo         ScriptLanguage = "go"
 	ScriptLanguageGraphql    ScriptLanguage = "graphql"
@@ -781,6 +790,7 @@ type AppHistory struct {
 type AppWithLastVersion struct {
 	CreatedAt     time.Time                       `json:"created_at"`
 	CreatedBy     string                          `json:"created_by"`
+	CustomPath    *string                         `json:"custom_path,omitempty"`
 	ExecutionMode AppWithLastVersionExecutionMode `json:"execution_mode"`
 	ExtraPerms    map[string]bool                 `json:"extra_perms"`
 	Id            int                             `json:"id"`
@@ -37479,6 +37489,7 @@ type GetPublicAppByCustomPathResponse struct {
 	JSON200      *struct {
 		CreatedAt     time.Time                                `json:"created_at"`
 		CreatedBy     string                                   `json:"created_by"`
+		CustomPath    *string                                  `json:"custom_path,omitempty"`
 		ExecutionMode GetPublicAppByCustomPath200ExecutionMode `json:"execution_mode"`
 		ExtraPerms    map[string]bool                          `json:"extra_perms"`
 		Id            int                                      `json:"id"`
@@ -50688,6 +50699,7 @@ func ParseGetPublicAppByCustomPathResponse(rsp *http.Response) (*GetPublicAppByC
 		var dest struct {
 			CreatedAt     time.Time                                `json:"created_at"`
 			CreatedBy     string                                   `json:"created_by"`
+			CustomPath    *string                                  `json:"custom_path,omitempty"`
 			ExecutionMode GetPublicAppByCustomPath200ExecutionMode `json:"execution_mode"`
 			ExtraPerms    map[string]bool                          `json:"extra_perms"`
 			Id            int                                      `json:"id"`
