@@ -2847,6 +2847,11 @@ type ListUsersAsSuperAdminParams struct {
 // GlobalUsersOverwriteJSONBody defines parameters for GlobalUsersOverwrite.
 type GlobalUsersOverwriteJSONBody = []ExportedUser
 
+// RefreshUserTokenParams defines parameters for RefreshUserToken.
+type RefreshUserTokenParams struct {
+	IfExpiringInLessThanS *int `form:"if_expiring_in_less_than_s,omitempty" json:"if_expiring_in_less_than_s,omitempty"`
+}
+
 // GlobalUserRenameJSONBody defines parameters for GlobalUserRename.
 type GlobalUserRenameJSONBody struct {
 	NewUsername string `json:"new_username"`
@@ -5837,7 +5842,7 @@ type ClientInterface interface {
 	GlobalUsersOverwrite(ctx context.Context, body GlobalUsersOverwriteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RefreshUserToken request
-	RefreshUserToken(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RefreshUserToken(ctx context.Context, params *RefreshUserTokenParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GlobalUserRenameWithBody request with any body
 	GlobalUserRenameWithBody(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8157,8 +8162,8 @@ func (c *Client) GlobalUsersOverwrite(ctx context.Context, body GlobalUsersOverw
 	return c.Client.Do(req)
 }
 
-func (c *Client) RefreshUserToken(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRefreshUserTokenRequest(c.Server)
+func (c *Client) RefreshUserToken(ctx context.Context, params *RefreshUserTokenParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRefreshUserTokenRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -16313,7 +16318,7 @@ func NewGlobalUsersOverwriteRequestWithBody(server string, contentType string, b
 }
 
 // NewRefreshUserTokenRequest generates requests for RefreshUserToken
-func NewRefreshUserTokenRequest(server string) (*http.Request, error) {
+func NewRefreshUserTokenRequest(server string, params *RefreshUserTokenParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -16329,6 +16334,28 @@ func NewRefreshUserTokenRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IfExpiringInLessThanS != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "if_expiring_in_less_than_s", runtime.ParamLocationQuery, *params.IfExpiringInLessThanS); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -36269,7 +36296,7 @@ type ClientWithResponsesInterface interface {
 	GlobalUsersOverwriteWithResponse(ctx context.Context, body GlobalUsersOverwriteJSONRequestBody, reqEditors ...RequestEditorFn) (*GlobalUsersOverwriteResponse, error)
 
 	// RefreshUserTokenWithResponse request
-	RefreshUserTokenWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshUserTokenResponse, error)
+	RefreshUserTokenWithResponse(ctx context.Context, params *RefreshUserTokenParams, reqEditors ...RequestEditorFn) (*RefreshUserTokenResponse, error)
 
 	// GlobalUserRenameWithBodyWithResponse request with any body
 	GlobalUserRenameWithBodyWithResponse(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GlobalUserRenameResponse, error)
@@ -46922,8 +46949,8 @@ func (c *ClientWithResponses) GlobalUsersOverwriteWithResponse(ctx context.Conte
 }
 
 // RefreshUserTokenWithResponse request returning *RefreshUserTokenResponse
-func (c *ClientWithResponses) RefreshUserTokenWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshUserTokenResponse, error) {
-	rsp, err := c.RefreshUserToken(ctx, reqEditors...)
+func (c *ClientWithResponses) RefreshUserTokenWithResponse(ctx context.Context, params *RefreshUserTokenParams, reqEditors ...RequestEditorFn) (*RefreshUserTokenResponse, error) {
+	rsp, err := c.RefreshUserToken(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
