@@ -4082,6 +4082,15 @@ type RunWaitResultScriptByPathParams struct {
 	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
 }
 
+// GetSlackApprovalPayloadParams defines parameters for GetSlackApprovalPayload.
+type GetSlackApprovalPayloadParams struct {
+	Approver          *string `form:"approver,omitempty" json:"approver,omitempty"`
+	Message           *string `form:"message,omitempty" json:"message,omitempty"`
+	SlackResourcePath string  `form:"slack_resource_path" json:"slack_resource_path"`
+	ChannelId         string  `form:"channel_id" json:"channel_id"`
+	FlowStepId        string  `form:"flow_step_id" json:"flow_step_id"`
+}
+
 // CancelSuspendedJobGetParams defines parameters for CancelSuspendedJobGet.
 type CancelSuspendedJobGetParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
@@ -6381,6 +6390,9 @@ type ClientInterface interface {
 	RunWaitResultScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunWaitResultScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSlackApprovalPayload request
+	GetSlackApprovalPayload(ctx context.Context, workspace WorkspaceId, id JobId, params *GetSlackApprovalPayloadParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunCodeWorkflowTaskWithBody request with any body
 	RunCodeWorkflowTaskWithBody(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10540,6 +10552,18 @@ func (c *Client) RunWaitResultScriptByPathWithBody(ctx context.Context, workspac
 
 func (c *Client) RunWaitResultScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunWaitResultScriptByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSlackApprovalPayload(ctx context.Context, workspace WorkspaceId, id JobId, params *GetSlackApprovalPayloadParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSlackApprovalPayloadRequest(c.Server, workspace, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -27550,6 +27574,121 @@ func NewRunWaitResultScriptByPathRequestWithBody(server string, workspace Worksp
 	return req, nil
 }
 
+// NewGetSlackApprovalPayloadRequest generates requests for GetSlackApprovalPayload
+func NewGetSlackApprovalPayloadRequest(server string, workspace WorkspaceId, id JobId, params *GetSlackApprovalPayloadParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/slack_approval/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Approver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approver", runtime.ParamLocationQuery, *params.Approver); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Message != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "message", runtime.ParamLocationQuery, *params.Message); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "slack_resource_path", runtime.ParamLocationQuery, params.SlackResourcePath); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "channel_id", runtime.ParamLocationQuery, params.ChannelId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "flow_step_id", runtime.ParamLocationQuery, params.FlowStepId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewRunCodeWorkflowTaskRequest calls the generic RunCodeWorkflowTask builder with application/json body
 func NewRunCodeWorkflowTaskRequest(server string, workspace WorkspaceId, jobId string, entrypoint string, body RunCodeWorkflowTaskJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -36836,6 +36975,9 @@ type ClientWithResponsesInterface interface {
 
 	RunWaitResultScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunWaitResultScriptByPathResponse, error)
 
+	// GetSlackApprovalPayloadWithResponse request
+	GetSlackApprovalPayloadWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetSlackApprovalPayloadParams, reqEditors ...RequestEditorFn) (*GetSlackApprovalPayloadResponse, error)
+
 	// RunCodeWorkflowTaskWithBodyWithResponse request with any body
 	RunCodeWorkflowTaskWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunCodeWorkflowTaskResponse, error)
 
@@ -42412,6 +42554,27 @@ func (r RunWaitResultScriptByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunWaitResultScriptByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetSlackApprovalPayloadResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSlackApprovalPayloadResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSlackApprovalPayloadResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -48681,6 +48844,15 @@ func (c *ClientWithResponses) RunWaitResultScriptByPathWithResponse(ctx context.
 		return nil, err
 	}
 	return ParseRunWaitResultScriptByPathResponse(rsp)
+}
+
+// GetSlackApprovalPayloadWithResponse request returning *GetSlackApprovalPayloadResponse
+func (c *ClientWithResponses) GetSlackApprovalPayloadWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetSlackApprovalPayloadParams, reqEditors ...RequestEditorFn) (*GetSlackApprovalPayloadResponse, error) {
+	rsp, err := c.GetSlackApprovalPayload(ctx, workspace, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSlackApprovalPayloadResponse(rsp)
 }
 
 // RunCodeWorkflowTaskWithBodyWithResponse request with arbitrary body returning *RunCodeWorkflowTaskResponse
@@ -55614,6 +55786,22 @@ func ParseRunWaitResultScriptByPathResponse(rsp *http.Response) (*RunWaitResultS
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetSlackApprovalPayloadResponse parses an HTTP response from a GetSlackApprovalPayloadWithResponse call
+func ParseGetSlackApprovalPayloadResponse(rsp *http.Response) (*GetSlackApprovalPayloadResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSlackApprovalPayloadResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
