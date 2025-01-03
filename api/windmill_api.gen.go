@@ -4089,6 +4089,8 @@ type GetSlackApprovalPayloadParams struct {
 	SlackResourcePath string  `form:"slack_resource_path" json:"slack_resource_path"`
 	ChannelId         string  `form:"channel_id" json:"channel_id"`
 	FlowStepId        string  `form:"flow_step_id" json:"flow_step_id"`
+	DefaultArgsJson   *string `form:"default_args_json,omitempty" json:"default_args_json,omitempty"`
+	DynamicEnumJson   *string `form:"dynamic_enum_json,omitempty" json:"dynamic_enum_json,omitempty"`
 }
 
 // CancelSuspendedJobGetParams defines parameters for CancelSuspendedJobGet.
@@ -27676,6 +27678,38 @@ func NewGetSlackApprovalPayloadRequest(server string, workspace WorkspaceId, id 
 					queryValues.Add(k, v2)
 				}
 			}
+		}
+
+		if params.DefaultArgsJson != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "default_args_json", runtime.ParamLocationQuery, *params.DefaultArgsJson); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.DynamicEnumJson != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dynamic_enum_json", runtime.ParamLocationQuery, *params.DynamicEnumJson); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
