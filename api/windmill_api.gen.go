@@ -4090,7 +4090,7 @@ type GetSlackApprovalPayloadParams struct {
 	ChannelId         string  `form:"channel_id" json:"channel_id"`
 	FlowStepId        string  `form:"flow_step_id" json:"flow_step_id"`
 	DefaultArgsJson   *string `form:"default_args_json,omitempty" json:"default_args_json,omitempty"`
-	DynamicEnumJson   *string `form:"dynamic_enum_json,omitempty" json:"dynamic_enum_json,omitempty"`
+	DynamicEnumsJson  *string `form:"dynamic_enums_json,omitempty" json:"dynamic_enums_json,omitempty"`
 }
 
 // CancelSuspendedJobGetParams defines parameters for CancelSuspendedJobGet.
@@ -27696,9 +27696,9 @@ func NewGetSlackApprovalPayloadRequest(server string, workspace WorkspaceId, id 
 
 		}
 
-		if params.DynamicEnumJson != nil {
+		if params.DynamicEnumsJson != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dynamic_enum_json", runtime.ParamLocationQuery, *params.DynamicEnumJson); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dynamic_enums_json", runtime.ParamLocationQuery, *params.DynamicEnumsJson); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
