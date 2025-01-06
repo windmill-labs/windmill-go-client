@@ -145,6 +145,15 @@ const (
 	Branchone BranchOneType = "branchone"
 )
 
+// Defines values for CaptureTriggerKind.
+const (
+	CaptureTriggerKindEmail     CaptureTriggerKind = "email"
+	CaptureTriggerKindHttp      CaptureTriggerKind = "http"
+	CaptureTriggerKindKafka     CaptureTriggerKind = "kafka"
+	CaptureTriggerKindWebhook   CaptureTriggerKind = "webhook"
+	CaptureTriggerKindWebsocket CaptureTriggerKind = "websocket"
+)
+
 // Defines values for CompletedJobJobKind.
 const (
 	CompletedJobJobKindAppdependencies    CompletedJobJobKind = "appdependencies"
@@ -666,6 +675,12 @@ const (
 	ActionKindUpdate  ActionKind = "Update"
 )
 
+// Defines values for RunnableKind.
+const (
+	RunnableKindFlow   RunnableKind = "flow"
+	RunnableKindScript RunnableKind = "script"
+)
+
 // Defines values for ClearIndexParamsIdxName.
 const (
 	JobIndex        ClearIndexParamsIdxName = "JobIndex"
@@ -726,6 +741,24 @@ const (
 	ListAuditLogsParamsActionKindDelete  ListAuditLogsParamsActionKind = "Delete"
 	ListAuditLogsParamsActionKindExecute ListAuditLogsParamsActionKind = "Execute"
 	ListAuditLogsParamsActionKindUpdate  ListAuditLogsParamsActionKind = "Update"
+)
+
+// Defines values for GetCaptureConfigsParamsRunnableKind.
+const (
+	GetCaptureConfigsParamsRunnableKindFlow   GetCaptureConfigsParamsRunnableKind = "flow"
+	GetCaptureConfigsParamsRunnableKindScript GetCaptureConfigsParamsRunnableKind = "script"
+)
+
+// Defines values for ListCapturesParamsRunnableKind.
+const (
+	ListCapturesParamsRunnableKindFlow   ListCapturesParamsRunnableKind = "flow"
+	ListCapturesParamsRunnableKindScript ListCapturesParamsRunnableKind = "script"
+)
+
+// Defines values for PingCaptureConfigParamsRunnableKind.
+const (
+	PingCaptureConfigParamsRunnableKindFlow   PingCaptureConfigParamsRunnableKind = "flow"
+	PingCaptureConfigParamsRunnableKindScript PingCaptureConfigParamsRunnableKind = "script"
 )
 
 // Defines values for CreateDraftJSONBodyTyp.
@@ -880,6 +913,26 @@ type BranchOne struct {
 
 // BranchOneType defines model for BranchOne.Type.
 type BranchOneType string
+
+// Capture defines model for Capture.
+type Capture struct {
+	CreatedAt    time.Time          `json:"created_at"`
+	Id           int                `json:"id"`
+	Payload      interface{}        `json:"payload"`
+	TriggerExtra *interface{}       `json:"trigger_extra,omitempty"`
+	TriggerKind  CaptureTriggerKind `json:"trigger_kind"`
+}
+
+// CaptureConfig defines model for CaptureConfig.
+type CaptureConfig struct {
+	Error          *string            `json:"error,omitempty"`
+	LastServerPing *time.Time         `json:"last_server_ping,omitempty"`
+	TriggerConfig  *interface{}       `json:"trigger_config,omitempty"`
+	TriggerKind    CaptureTriggerKind `json:"trigger_kind"`
+}
+
+// CaptureTriggerKind defines model for CaptureTriggerKind.
+type CaptureTriggerKind string
 
 // CompletedJob defines model for CompletedJob.
 type CompletedJob struct {
@@ -1080,12 +1133,12 @@ type EditWebsocketTrigger struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
-	InitialMessages []WebsocketTriggerInitialMessage `json:"initial_messages"`
-	IsFlow          bool                             `json:"is_flow"`
-	Path            string                           `json:"path"`
-	ScriptPath      string                           `json:"script_path"`
-	Url             string                           `json:"url"`
-	UrlRunnableArgs ScriptArgs                       `json:"url_runnable_args"`
+	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
+	IsFlow          bool                              `json:"is_flow"`
+	Path            string                            `json:"path"`
+	ScriptPath      string                            `json:"script_path"`
+	Url             string                            `json:"url"`
+	UrlRunnableArgs *ScriptArgs                       `json:"url_runnable_args,omitempty"`
 }
 
 // EditWorkspaceUser defines model for EditWorkspaceUser.
@@ -1853,12 +1906,12 @@ type NewWebsocketTrigger struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
-	InitialMessages []WebsocketTriggerInitialMessage `json:"initial_messages"`
-	IsFlow          bool                             `json:"is_flow"`
-	Path            string                           `json:"path"`
-	ScriptPath      string                           `json:"script_path"`
-	Url             string                           `json:"url"`
-	UrlRunnableArgs ScriptArgs                       `json:"url_runnable_args"`
+	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
+	IsFlow          bool                              `json:"is_flow"`
+	Path            string                            `json:"path"`
+	ScriptPath      string                            `json:"script_path"`
+	Url             string                            `json:"url"`
+	UrlRunnableArgs *ScriptArgs                       `json:"url_runnable_args,omitempty"`
 }
 
 // ObscuredJob defines model for ObscuredJob.
@@ -2315,15 +2368,15 @@ type WebsocketTrigger struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
-	InitialMessages []WebsocketTriggerInitialMessage `json:"initial_messages"`
-	IsFlow          bool                             `json:"is_flow"`
-	LastServerPing  *time.Time                       `json:"last_server_ping,omitempty"`
-	Path            string                           `json:"path"`
-	ScriptPath      string                           `json:"script_path"`
-	ServerId        *string                          `json:"server_id,omitempty"`
-	Url             string                           `json:"url"`
-	UrlRunnableArgs ScriptArgs                       `json:"url_runnable_args"`
-	WorkspaceId     string                           `json:"workspace_id"`
+	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
+	IsFlow          bool                              `json:"is_flow"`
+	LastServerPing  *time.Time                        `json:"last_server_ping,omitempty"`
+	Path            string                            `json:"path"`
+	ScriptPath      string                            `json:"script_path"`
+	ServerId        *string                           `json:"server_id,omitempty"`
+	Url             string                            `json:"url"`
+	UrlRunnableArgs *ScriptArgs                       `json:"url_runnable_args,omitempty"`
+	WorkspaceId     string                            `json:"workspace_id"`
 }
 
 // WebsocketTriggerInitialMessage defines model for WebsocketTriggerInitialMessage.
@@ -2572,6 +2625,9 @@ type ResultFilter = string
 
 // RunnableId defines model for RunnableId.
 type RunnableId = string
+
+// RunnableKind defines model for RunnableKind.
+type RunnableKind string
 
 // RunnableTypeQuery defines model for RunnableTypeQuery.
 type RunnableTypeQuery = RunnableType
@@ -3033,6 +3089,28 @@ type ListAuditLogsParams struct {
 
 // ListAuditLogsParamsActionKind defines parameters for ListAuditLogs.
 type ListAuditLogsParamsActionKind string
+
+// GetCaptureConfigsParamsRunnableKind defines parameters for GetCaptureConfigs.
+type GetCaptureConfigsParamsRunnableKind string
+
+// ListCapturesParams defines parameters for ListCaptures.
+type ListCapturesParams struct {
+	TriggerKind *CaptureTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
+}
+
+// ListCapturesParamsRunnableKind defines parameters for ListCaptures.
+type ListCapturesParamsRunnableKind string
+
+// PingCaptureConfigParamsRunnableKind defines parameters for PingCaptureConfig.
+type PingCaptureConfigParamsRunnableKind string
+
+// SetCaptureConfigJSONBody defines parameters for SetCaptureConfig.
+type SetCaptureConfigJSONBody struct {
+	IsFlow        bool                    `json:"is_flow"`
+	Path          string                  `json:"path"`
+	TriggerConfig *map[string]interface{} `json:"trigger_config,omitempty"`
+	TriggerKind   CaptureTriggerKind      `json:"trigger_kind"`
+}
 
 // ListExtendedJobsParams defines parameters for ListExtendedJobs.
 type ListExtendedJobsParams struct {
@@ -4730,6 +4808,9 @@ type UpdateAppJSONRequestBody UpdateAppJSONBody
 // ExecuteComponentJSONRequestBody defines body for ExecuteComponent for application/json ContentType.
 type ExecuteComponentJSONRequestBody ExecuteComponentJSONBody
 
+// SetCaptureConfigJSONRequestBody defines body for SetCaptureConfig for application/json ContentType.
+type SetCaptureConfigJSONRequestBody SetCaptureConfigJSONBody
+
 // CreateDraftJSONRequestBody defines body for CreateDraft for application/json ContentType.
 type CreateDraftJSONRequestBody CreateDraftJSONBody
 
@@ -6000,14 +6081,22 @@ type ClientInterface interface {
 	// ListAuditLogs request
 	ListAuditLogs(ctx context.Context, workspace WorkspaceId, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetCapture request
-	GetCapture(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetCaptureConfigs request
+	GetCaptureConfigs(ctx context.Context, workspace WorkspaceId, runnableKind GetCaptureConfigsParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// CreateCapture request
-	CreateCapture(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListCaptures request
+	ListCaptures(ctx context.Context, workspace WorkspaceId, runnableKind ListCapturesParamsRunnableKind, path Path, params *ListCapturesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// UpdateCapture request
-	UpdateCapture(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PingCaptureConfig request
+	PingCaptureConfig(ctx context.Context, workspace WorkspaceId, triggerKind CaptureTriggerKind, runnableKind PingCaptureConfigParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetCaptureConfigWithBody request with any body
+	SetCaptureConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetCaptureConfig(ctx context.Context, workspace WorkspaceId, body SetCaptureConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteCapture request
+	DeleteCapture(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListExtendedJobs request
 	ListExtendedJobs(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8824,8 +8913,8 @@ func (c *Client) ListAuditLogs(ctx context.Context, workspace WorkspaceId, param
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetCapture(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCaptureRequest(c.Server, workspace, path)
+func (c *Client) GetCaptureConfigs(ctx context.Context, workspace WorkspaceId, runnableKind GetCaptureConfigsParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCaptureConfigsRequest(c.Server, workspace, runnableKind, path)
 	if err != nil {
 		return nil, err
 	}
@@ -8836,8 +8925,8 @@ func (c *Client) GetCapture(ctx context.Context, workspace WorkspaceId, path Pat
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateCapture(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateCaptureRequest(c.Server, workspace, path)
+func (c *Client) ListCaptures(ctx context.Context, workspace WorkspaceId, runnableKind ListCapturesParamsRunnableKind, path Path, params *ListCapturesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListCapturesRequest(c.Server, workspace, runnableKind, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -8848,8 +8937,44 @@ func (c *Client) CreateCapture(ctx context.Context, workspace WorkspaceId, path 
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateCapture(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateCaptureRequest(c.Server, workspace, path)
+func (c *Client) PingCaptureConfig(ctx context.Context, workspace WorkspaceId, triggerKind CaptureTriggerKind, runnableKind PingCaptureConfigParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPingCaptureConfigRequest(c.Server, workspace, triggerKind, runnableKind, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetCaptureConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetCaptureConfigRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetCaptureConfig(ctx context.Context, workspace WorkspaceId, body SetCaptureConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetCaptureConfigRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteCapture(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteCaptureRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -18404,8 +18529,8 @@ func NewListAuditLogsRequest(server string, workspace WorkspaceId, params *ListA
 	return req, nil
 }
 
-// NewGetCaptureRequest generates requests for GetCapture
-func NewGetCaptureRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+// NewGetCaptureConfigsRequest generates requests for GetCaptureConfigs
+func NewGetCaptureConfigsRequest(server string, workspace WorkspaceId, runnableKind GetCaptureConfigsParamsRunnableKind, path Path) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -18417,7 +18542,14 @@ func NewGetCaptureRequest(server string, workspace WorkspaceId, path Path) (*htt
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "runnable_kind", runtime.ParamLocationPath, runnableKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
 	if err != nil {
 		return nil, err
 	}
@@ -18427,7 +18559,7 @@ func NewGetCaptureRequest(server string, workspace WorkspaceId, path Path) (*htt
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/capture/%s", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/w/%s/capture/get_configs/%s/%s", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -18445,8 +18577,8 @@ func NewGetCaptureRequest(server string, workspace WorkspaceId, path Path) (*htt
 	return req, nil
 }
 
-// NewCreateCaptureRequest generates requests for CreateCapture
-func NewCreateCaptureRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+// NewListCapturesRequest generates requests for ListCaptures
+func NewListCapturesRequest(server string, workspace WorkspaceId, runnableKind ListCapturesParamsRunnableKind, path Path, params *ListCapturesParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -18458,7 +18590,179 @@ func NewCreateCaptureRequest(server string, workspace WorkspaceId, path Path) (*
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "runnable_kind", runtime.ParamLocationPath, runnableKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/capture/list/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.TriggerKind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_kind", runtime.ParamLocationQuery, *params.TriggerKind); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPingCaptureConfigRequest generates requests for PingCaptureConfig
+func NewPingCaptureConfigRequest(server string, workspace WorkspaceId, triggerKind CaptureTriggerKind, runnableKind PingCaptureConfigParamsRunnableKind, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "trigger_kind", runtime.ParamLocationPath, triggerKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "runnable_kind", runtime.ParamLocationPath, runnableKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam3 string
+
+	pathParam3, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/capture/ping_config/%s/%s/%s", pathParam0, pathParam1, pathParam2, pathParam3)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetCaptureConfigRequest calls the generic SetCaptureConfig builder with application/json body
+func NewSetCaptureConfigRequest(server string, workspace WorkspaceId, body SetCaptureConfigJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetCaptureConfigRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetCaptureConfigRequestWithBody generates requests for SetCaptureConfig with any type of body
+func NewSetCaptureConfigRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/capture/set_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteCaptureRequest generates requests for DeleteCapture
+func NewDeleteCaptureRequest(server string, workspace WorkspaceId, id int) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
 	if err != nil {
 		return nil, err
 	}
@@ -18478,48 +18782,7 @@ func NewCreateCaptureRequest(server string, workspace WorkspaceId, path Path) (*
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUpdateCaptureRequest generates requests for UpdateCapture
-func NewUpdateCaptureRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/capture_u/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -36616,14 +36879,22 @@ type ClientWithResponsesInterface interface {
 	// ListAuditLogsWithResponse request
 	ListAuditLogsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*ListAuditLogsResponse, error)
 
-	// GetCaptureWithResponse request
-	GetCaptureWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetCaptureResponse, error)
+	// GetCaptureConfigsWithResponse request
+	GetCaptureConfigsWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind GetCaptureConfigsParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*GetCaptureConfigsResponse, error)
 
-	// CreateCaptureWithResponse request
-	CreateCaptureWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*CreateCaptureResponse, error)
+	// ListCapturesWithResponse request
+	ListCapturesWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListCapturesParamsRunnableKind, path Path, params *ListCapturesParams, reqEditors ...RequestEditorFn) (*ListCapturesResponse, error)
 
-	// UpdateCaptureWithResponse request
-	UpdateCaptureWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*UpdateCaptureResponse, error)
+	// PingCaptureConfigWithResponse request
+	PingCaptureConfigWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind CaptureTriggerKind, runnableKind PingCaptureConfigParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*PingCaptureConfigResponse, error)
+
+	// SetCaptureConfigWithBodyWithResponse request with any body
+	SetCaptureConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetCaptureConfigResponse, error)
+
+	SetCaptureConfigWithResponse(ctx context.Context, workspace WorkspaceId, body SetCaptureConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*SetCaptureConfigResponse, error)
+
+	// DeleteCaptureWithResponse request
+	DeleteCaptureWithResponse(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*DeleteCaptureResponse, error)
 
 	// ListExtendedJobsWithResponse request
 	ListExtendedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*ListExtendedJobsResponse, error)
@@ -40264,14 +40535,14 @@ func (r ListAuditLogsResponse) StatusCode() int {
 	return 0
 }
 
-type GetCaptureResponse struct {
+type GetCaptureConfigsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *interface{}
+	JSON200      *[]CaptureConfig
 }
 
 // Status returns HTTPResponse.Status
-func (r GetCaptureResponse) Status() string {
+func (r GetCaptureConfigsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -40279,20 +40550,21 @@ func (r GetCaptureResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetCaptureResponse) StatusCode() int {
+func (r GetCaptureConfigsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type CreateCaptureResponse struct {
+type ListCapturesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *[]Capture
 }
 
 // Status returns HTTPResponse.Status
-func (r CreateCaptureResponse) Status() string {
+func (r ListCapturesResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -40300,20 +40572,20 @@ func (r CreateCaptureResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r CreateCaptureResponse) StatusCode() int {
+func (r ListCapturesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type UpdateCaptureResponse struct {
+type PingCaptureConfigResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r UpdateCaptureResponse) Status() string {
+func (r PingCaptureConfigResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -40321,7 +40593,49 @@ func (r UpdateCaptureResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r UpdateCaptureResponse) StatusCode() int {
+func (r PingCaptureConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetCaptureConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetCaptureConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetCaptureConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteCaptureResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteCaptureResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteCaptureResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -47617,31 +47931,57 @@ func (c *ClientWithResponses) ListAuditLogsWithResponse(ctx context.Context, wor
 	return ParseListAuditLogsResponse(rsp)
 }
 
-// GetCaptureWithResponse request returning *GetCaptureResponse
-func (c *ClientWithResponses) GetCaptureWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetCaptureResponse, error) {
-	rsp, err := c.GetCapture(ctx, workspace, path, reqEditors...)
+// GetCaptureConfigsWithResponse request returning *GetCaptureConfigsResponse
+func (c *ClientWithResponses) GetCaptureConfigsWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind GetCaptureConfigsParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*GetCaptureConfigsResponse, error) {
+	rsp, err := c.GetCaptureConfigs(ctx, workspace, runnableKind, path, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetCaptureResponse(rsp)
+	return ParseGetCaptureConfigsResponse(rsp)
 }
 
-// CreateCaptureWithResponse request returning *CreateCaptureResponse
-func (c *ClientWithResponses) CreateCaptureWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*CreateCaptureResponse, error) {
-	rsp, err := c.CreateCapture(ctx, workspace, path, reqEditors...)
+// ListCapturesWithResponse request returning *ListCapturesResponse
+func (c *ClientWithResponses) ListCapturesWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListCapturesParamsRunnableKind, path Path, params *ListCapturesParams, reqEditors ...RequestEditorFn) (*ListCapturesResponse, error) {
+	rsp, err := c.ListCaptures(ctx, workspace, runnableKind, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseCreateCaptureResponse(rsp)
+	return ParseListCapturesResponse(rsp)
 }
 
-// UpdateCaptureWithResponse request returning *UpdateCaptureResponse
-func (c *ClientWithResponses) UpdateCaptureWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*UpdateCaptureResponse, error) {
-	rsp, err := c.UpdateCapture(ctx, workspace, path, reqEditors...)
+// PingCaptureConfigWithResponse request returning *PingCaptureConfigResponse
+func (c *ClientWithResponses) PingCaptureConfigWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind CaptureTriggerKind, runnableKind PingCaptureConfigParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*PingCaptureConfigResponse, error) {
+	rsp, err := c.PingCaptureConfig(ctx, workspace, triggerKind, runnableKind, path, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseUpdateCaptureResponse(rsp)
+	return ParsePingCaptureConfigResponse(rsp)
+}
+
+// SetCaptureConfigWithBodyWithResponse request with arbitrary body returning *SetCaptureConfigResponse
+func (c *ClientWithResponses) SetCaptureConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetCaptureConfigResponse, error) {
+	rsp, err := c.SetCaptureConfigWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetCaptureConfigResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetCaptureConfigWithResponse(ctx context.Context, workspace WorkspaceId, body SetCaptureConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*SetCaptureConfigResponse, error) {
+	rsp, err := c.SetCaptureConfig(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetCaptureConfigResponse(rsp)
+}
+
+// DeleteCaptureWithResponse request returning *DeleteCaptureResponse
+func (c *ClientWithResponses) DeleteCaptureWithResponse(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*DeleteCaptureResponse, error) {
+	rsp, err := c.DeleteCapture(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteCaptureResponse(rsp)
 }
 
 // ListExtendedJobsWithResponse request returning *ListExtendedJobsResponse
@@ -53443,22 +53783,22 @@ func ParseListAuditLogsResponse(rsp *http.Response) (*ListAuditLogsResponse, err
 	return response, nil
 }
 
-// ParseGetCaptureResponse parses an HTTP response from a GetCaptureWithResponse call
-func ParseGetCaptureResponse(rsp *http.Response) (*GetCaptureResponse, error) {
+// ParseGetCaptureConfigsResponse parses an HTTP response from a GetCaptureConfigsWithResponse call
+func ParseGetCaptureConfigsResponse(rsp *http.Response) (*GetCaptureConfigsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetCaptureResponse{
+	response := &GetCaptureConfigsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
+		var dest []CaptureConfig
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -53469,15 +53809,41 @@ func ParseGetCaptureResponse(rsp *http.Response) (*GetCaptureResponse, error) {
 	return response, nil
 }
 
-// ParseCreateCaptureResponse parses an HTTP response from a CreateCaptureWithResponse call
-func ParseCreateCaptureResponse(rsp *http.Response) (*CreateCaptureResponse, error) {
+// ParseListCapturesResponse parses an HTTP response from a ListCapturesWithResponse call
+func ParseListCapturesResponse(rsp *http.Response) (*ListCapturesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &CreateCaptureResponse{
+	response := &ListCapturesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []Capture
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePingCaptureConfigResponse parses an HTTP response from a PingCaptureConfigWithResponse call
+func ParsePingCaptureConfigResponse(rsp *http.Response) (*PingCaptureConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PingCaptureConfigResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -53485,15 +53851,31 @@ func ParseCreateCaptureResponse(rsp *http.Response) (*CreateCaptureResponse, err
 	return response, nil
 }
 
-// ParseUpdateCaptureResponse parses an HTTP response from a UpdateCaptureWithResponse call
-func ParseUpdateCaptureResponse(rsp *http.Response) (*UpdateCaptureResponse, error) {
+// ParseSetCaptureConfigResponse parses an HTTP response from a SetCaptureConfigWithResponse call
+func ParseSetCaptureConfigResponse(rsp *http.Response) (*SetCaptureConfigResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &UpdateCaptureResponse{
+	response := &SetCaptureConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteCaptureResponse parses an HTTP response from a DeleteCaptureWithResponse call
+func ParseDeleteCaptureResponse(rsp *http.Response) (*DeleteCaptureResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteCaptureResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
