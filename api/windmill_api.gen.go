@@ -150,6 +150,7 @@ const (
 	CaptureTriggerKindEmail     CaptureTriggerKind = "email"
 	CaptureTriggerKindHttp      CaptureTriggerKind = "http"
 	CaptureTriggerKindKafka     CaptureTriggerKind = "kafka"
+	CaptureTriggerKindNats      CaptureTriggerKind = "nats"
 	CaptureTriggerKindWebhook   CaptureTriggerKind = "webhook"
 	CaptureTriggerKindWebsocket CaptureTriggerKind = "websocket"
 )
@@ -695,6 +696,7 @@ const (
 	AddGranularAclsParamsKindGroup            AddGranularAclsParamsKind = "group_"
 	AddGranularAclsParamsKindHttpTrigger      AddGranularAclsParamsKind = "http_trigger"
 	AddGranularAclsParamsKindKafkaTrigger     AddGranularAclsParamsKind = "kafka_trigger"
+	AddGranularAclsParamsKindNatsTrigger      AddGranularAclsParamsKind = "nats_trigger"
 	AddGranularAclsParamsKindRawApp           AddGranularAclsParamsKind = "raw_app"
 	AddGranularAclsParamsKindResource         AddGranularAclsParamsKind = "resource"
 	AddGranularAclsParamsKindSchedule         AddGranularAclsParamsKind = "schedule"
@@ -711,6 +713,7 @@ const (
 	GetGranularAclsParamsKindGroup            GetGranularAclsParamsKind = "group_"
 	GetGranularAclsParamsKindHttpTrigger      GetGranularAclsParamsKind = "http_trigger"
 	GetGranularAclsParamsKindKafkaTrigger     GetGranularAclsParamsKind = "kafka_trigger"
+	GetGranularAclsParamsKindNatsTrigger      GetGranularAclsParamsKind = "nats_trigger"
 	GetGranularAclsParamsKindRawApp           GetGranularAclsParamsKind = "raw_app"
 	GetGranularAclsParamsKindResource         GetGranularAclsParamsKind = "resource"
 	GetGranularAclsParamsKindSchedule         GetGranularAclsParamsKind = "schedule"
@@ -727,6 +730,7 @@ const (
 	RemoveGranularAclsParamsKindGroup            RemoveGranularAclsParamsKind = "group_"
 	RemoveGranularAclsParamsKindHttpTrigger      RemoveGranularAclsParamsKind = "http_trigger"
 	RemoveGranularAclsParamsKindKafkaTrigger     RemoveGranularAclsParamsKind = "kafka_trigger"
+	RemoveGranularAclsParamsKindNatsTrigger      RemoveGranularAclsParamsKind = "nats_trigger"
 	RemoveGranularAclsParamsKindRawApp           RemoveGranularAclsParamsKind = "raw_app"
 	RemoveGranularAclsParamsKindResource         RemoveGranularAclsParamsKind = "resource"
 	RemoveGranularAclsParamsKindSchedule         RemoveGranularAclsParamsKind = "schedule"
@@ -1028,6 +1032,7 @@ type CreateVariable struct {
 
 // CreateWorkspace defines model for CreateWorkspace.
 type CreateWorkspace struct {
+	Color    *string `json:"color,omitempty"`
 	Id       string  `json:"id"`
 	Name     string  `json:"name"`
 	Username *string `json:"username,omitempty"`
@@ -1081,6 +1086,18 @@ type EditKafkaTrigger struct {
 	Path              string   `json:"path"`
 	ScriptPath        string   `json:"script_path"`
 	Topics            []string `json:"topics"`
+}
+
+// EditNatsTrigger defines model for EditNatsTrigger.
+type EditNatsTrigger struct {
+	ConsumerName     *string  `json:"consumer_name,omitempty"`
+	IsFlow           bool     `json:"is_flow"`
+	NatsResourcePath string   `json:"nats_resource_path"`
+	Path             string   `json:"path"`
+	ScriptPath       string   `json:"script_path"`
+	StreamName       *string  `json:"stream_name,omitempty"`
+	Subjects         []string `json:"subjects"`
+	UseJetstream     bool     `json:"use_jetstream"`
 }
 
 // EditResource defines model for EditResource.
@@ -1748,6 +1765,27 @@ type MetricMetadata struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// NatsTrigger defines model for NatsTrigger.
+type NatsTrigger struct {
+	ConsumerName     *string         `json:"consumer_name,omitempty"`
+	EditedAt         time.Time       `json:"edited_at"`
+	EditedBy         string          `json:"edited_by"`
+	Email            string          `json:"email"`
+	Enabled          bool            `json:"enabled"`
+	Error            *string         `json:"error,omitempty"`
+	ExtraPerms       map[string]bool `json:"extra_perms"`
+	IsFlow           bool            `json:"is_flow"`
+	LastServerPing   *time.Time      `json:"last_server_ping,omitempty"`
+	NatsResourcePath string          `json:"nats_resource_path"`
+	Path             string          `json:"path"`
+	ScriptPath       string          `json:"script_path"`
+	ServerId         *string         `json:"server_id,omitempty"`
+	StreamName       *string         `json:"stream_name,omitempty"`
+	Subjects         []string        `json:"subjects"`
+	UseJetstream     bool            `json:"use_jetstream"`
+	WorkspaceId      string          `json:"workspace_id"`
+}
+
 // NewHttpTrigger defines model for NewHttpTrigger.
 type NewHttpTrigger struct {
 	HttpMethod        NewHttpTriggerHttpMethod `json:"http_method"`
@@ -1776,6 +1814,19 @@ type NewKafkaTrigger struct {
 	Path              string   `json:"path"`
 	ScriptPath        string   `json:"script_path"`
 	Topics            []string `json:"topics"`
+}
+
+// NewNatsTrigger defines model for NewNatsTrigger.
+type NewNatsTrigger struct {
+	ConsumerName     *string  `json:"consumer_name,omitempty"`
+	Enabled          *bool    `json:"enabled,omitempty"`
+	IsFlow           bool     `json:"is_flow"`
+	NatsResourcePath string   `json:"nats_resource_path"`
+	Path             string   `json:"path"`
+	ScriptPath       string   `json:"script_path"`
+	StreamName       *string  `json:"stream_name,omitempty"`
+	Subjects         []string `json:"subjects"`
+	UseJetstream     bool     `json:"use_jetstream"`
 }
 
 // NewSchedule defines model for NewSchedule.
@@ -2299,6 +2350,7 @@ type TriggersCount struct {
 	EmailCount      *float32 `json:"email_count,omitempty"`
 	HttpRoutesCount *float32 `json:"http_routes_count,omitempty"`
 	KafkaCount      *float32 `json:"kafka_count,omitempty"`
+	NatsCount       *float32 `json:"nats_count,omitempty"`
 	PrimarySchedule *struct {
 		Schedule *string `json:"schedule,omitempty"`
 	} `json:"primary_schedule,omitempty"`
@@ -2350,6 +2402,7 @@ type UserUsage struct {
 type UserWorkspaceList struct {
 	Email      string `json:"email"`
 	Workspaces []struct {
+		Color    string `json:"color"`
 		Id       string `json:"id"`
 		Name     string `json:"name"`
 		Username string `json:"username"`
@@ -2475,6 +2528,7 @@ type WorkflowTask struct {
 
 // Workspace defines model for Workspace.
 type Workspace struct {
+	Color  *string `json:"color,omitempty"`
 	Domain *string `json:"domain,omitempty"`
 	Id     string  `json:"id"`
 	Name   string  `json:"name"`
@@ -4264,6 +4318,25 @@ type SetKafkaTriggerEnabledJSONBody struct {
 	Enabled bool `json:"enabled"`
 }
 
+// ListNatsTriggersParams defines parameters for ListNatsTriggers.
+type ListNatsTriggersParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// Path filter by path
+	Path      *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+}
+
+// SetNatsTriggerEnabledJSONBody defines parameters for SetNatsTriggerEnabled.
+type SetNatsTriggerEnabledJSONBody struct {
+	Enabled bool `json:"enabled"`
+}
+
 // ConnectSlackCallbackJSONBody defines parameters for ConnectSlackCallback.
 type ConnectSlackCallbackJSONBody struct {
 	Code  string `json:"code"`
@@ -4546,6 +4619,11 @@ type AddUserJSONBody struct {
 	IsAdmin  bool    `json:"is_admin"`
 	Operator bool    `json:"operator"`
 	Username *string `json:"username,omitempty"`
+}
+
+// ChangeWorkspaceColorJSONBody defines parameters for ChangeWorkspaceColor.
+type ChangeWorkspaceColorJSONBody struct {
+	Color *string `json:"color,omitempty"`
 }
 
 // ChangeWorkspaceIdJSONBody defines parameters for ChangeWorkspaceId.
@@ -4964,6 +5042,15 @@ type SetKafkaTriggerEnabledJSONRequestBody SetKafkaTriggerEnabledJSONBody
 // UpdateKafkaTriggerJSONRequestBody defines body for UpdateKafkaTrigger for application/json ContentType.
 type UpdateKafkaTriggerJSONRequestBody = EditKafkaTrigger
 
+// CreateNatsTriggerJSONRequestBody defines body for CreateNatsTrigger for application/json ContentType.
+type CreateNatsTriggerJSONRequestBody = NewNatsTrigger
+
+// SetNatsTriggerEnabledJSONRequestBody defines body for SetNatsTriggerEnabled for application/json ContentType.
+type SetNatsTriggerEnabledJSONRequestBody SetNatsTriggerEnabledJSONBody
+
+// UpdateNatsTriggerJSONRequestBody defines body for UpdateNatsTrigger for application/json ContentType.
+type UpdateNatsTriggerJSONRequestBody = EditNatsTrigger
+
 // ConnectSlackCallbackJSONRequestBody defines body for ConnectSlackCallback for application/json ContentType.
 type ConnectSlackCallbackJSONRequestBody ConnectSlackCallbackJSONBody
 
@@ -5038,6 +5125,9 @@ type UpdateWebsocketTriggerJSONRequestBody = EditWebsocketTrigger
 
 // AddUserJSONRequestBody defines body for AddUser for application/json ContentType.
 type AddUserJSONRequestBody AddUserJSONBody
+
+// ChangeWorkspaceColorJSONRequestBody defines body for ChangeWorkspaceColor for application/json ContentType.
+type ChangeWorkspaceColorJSONRequestBody ChangeWorkspaceColorJSONBody
 
 // ChangeWorkspaceIdJSONRequestBody defines body for ChangeWorkspaceId for application/json ContentType.
 type ChangeWorkspaceIdJSONRequestBody ChangeWorkspaceIdJSONBody
@@ -6581,6 +6671,33 @@ type ClientInterface interface {
 
 	UpdateKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateNatsTriggerWithBody request with any body
+	CreateNatsTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateNatsTrigger(ctx context.Context, workspace WorkspaceId, body CreateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteNatsTrigger request
+	DeleteNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsNatsTrigger request
+	ExistsNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetNatsTrigger request
+	GetNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListNatsTriggers request
+	ListNatsTriggers(ctx context.Context, workspace WorkspaceId, params *ListNatsTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetNatsTriggerEnabledWithBody request with any body
+	SetNatsTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetNatsTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateNatsTriggerWithBody request with any body
+	UpdateNatsTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ConnectSlackCallbackWithBody request with any body
 	ConnectSlackCallbackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6894,6 +7011,11 @@ type ClientInterface interface {
 
 	// ArchiveWorkspace request
 	ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ChangeWorkspaceColorWithBody request with any body
+	ChangeWorkspaceColorWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ChangeWorkspaceColor(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceColorJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ChangeWorkspaceIdWithBody request with any body
 	ChangeWorkspaceIdWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11121,6 +11243,126 @@ func (c *Client) UpdateKafkaTrigger(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreateNatsTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateNatsTriggerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateNatsTrigger(ctx context.Context, workspace WorkspaceId, body CreateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateNatsTriggerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteNatsTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsNatsTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNatsTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListNatsTriggers(ctx context.Context, workspace WorkspaceId, params *ListNatsTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNatsTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetNatsTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetNatsTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetNatsTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetNatsTriggerEnabledRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateNatsTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateNatsTriggerRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateNatsTriggerRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ConnectSlackCallbackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConnectSlackCallbackRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -12467,6 +12709,30 @@ func (c *Client) AddUser(ctx context.Context, workspace WorkspaceId, body AddUse
 
 func (c *Client) ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewArchiveWorkspaceRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChangeWorkspaceColorWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChangeWorkspaceColorRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChangeWorkspaceColor(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceColorJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChangeWorkspaceColorRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -29612,6 +29878,404 @@ func NewUpdateKafkaTriggerRequestWithBody(server string, workspace WorkspaceId, 
 	return req, nil
 }
 
+// NewCreateNatsTriggerRequest calls the generic CreateNatsTrigger builder with application/json body
+func NewCreateNatsTriggerRequest(server string, workspace WorkspaceId, body CreateNatsTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateNatsTriggerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateNatsTriggerRequestWithBody generates requests for CreateNatsTrigger with any type of body
+func NewCreateNatsTriggerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/nats_triggers/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteNatsTriggerRequest generates requests for DeleteNatsTrigger
+func NewDeleteNatsTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/nats_triggers/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsNatsTriggerRequest generates requests for ExistsNatsTrigger
+func NewExistsNatsTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/nats_triggers/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetNatsTriggerRequest generates requests for GetNatsTrigger
+func NewGetNatsTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/nats_triggers/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListNatsTriggersRequest generates requests for ListNatsTriggers
+func NewListNatsTriggersRequest(server string, workspace WorkspaceId, params *ListNatsTriggersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/nats_triggers/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsFlow != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PathStart != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetNatsTriggerEnabledRequest calls the generic SetNatsTriggerEnabled builder with application/json body
+func NewSetNatsTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetNatsTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewSetNatsTriggerEnabledRequestWithBody generates requests for SetNatsTriggerEnabled with any type of body
+func NewSetNatsTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/nats_triggers/setenabled/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateNatsTriggerRequest calls the generic UpdateNatsTrigger builder with application/json body
+func NewUpdateNatsTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdateNatsTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateNatsTriggerRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateNatsTriggerRequestWithBody generates requests for UpdateNatsTrigger with any type of body
+func NewUpdateNatsTriggerRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/nats_triggers/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewConnectSlackCallbackRequest calls the generic ConnectSlackCallback builder with application/json body
 func NewConnectSlackCallbackRequest(server string, workspace WorkspaceId, body ConnectSlackCallbackJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -34244,6 +34908,53 @@ func NewArchiveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Req
 	return req, nil
 }
 
+// NewChangeWorkspaceColorRequest calls the generic ChangeWorkspaceColor builder with application/json body
+func NewChangeWorkspaceColorRequest(server string, workspace WorkspaceId, body ChangeWorkspaceColorJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewChangeWorkspaceColorRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewChangeWorkspaceColorRequestWithBody generates requests for ChangeWorkspaceColor with any type of body
+func NewChangeWorkspaceColorRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/change_workspace_color", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewChangeWorkspaceIdRequest calls the generic ChangeWorkspaceId builder with application/json body
 func NewChangeWorkspaceIdRequest(server string, workspace WorkspaceId, body ChangeWorkspaceIdJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -37379,6 +38090,33 @@ type ClientWithResponsesInterface interface {
 
 	UpdateKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateKafkaTriggerResponse, error)
 
+	// CreateNatsTriggerWithBodyWithResponse request with any body
+	CreateNatsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNatsTriggerResponse, error)
+
+	CreateNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNatsTriggerResponse, error)
+
+	// DeleteNatsTriggerWithResponse request
+	DeleteNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteNatsTriggerResponse, error)
+
+	// ExistsNatsTriggerWithResponse request
+	ExistsNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsNatsTriggerResponse, error)
+
+	// GetNatsTriggerWithResponse request
+	GetNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetNatsTriggerResponse, error)
+
+	// ListNatsTriggersWithResponse request
+	ListNatsTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListNatsTriggersParams, reqEditors ...RequestEditorFn) (*ListNatsTriggersResponse, error)
+
+	// SetNatsTriggerEnabledWithBodyWithResponse request with any body
+	SetNatsTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNatsTriggerEnabledResponse, error)
+
+	SetNatsTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetNatsTriggerEnabledResponse, error)
+
+	// UpdateNatsTriggerWithBodyWithResponse request with any body
+	UpdateNatsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateNatsTriggerResponse, error)
+
+	UpdateNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateNatsTriggerResponse, error)
+
 	// ConnectSlackCallbackWithBodyWithResponse request with any body
 	ConnectSlackCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error)
 
@@ -37692,6 +38430,11 @@ type ClientWithResponsesInterface interface {
 
 	// ArchiveWorkspaceWithResponse request
 	ArchiveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ArchiveWorkspaceResponse, error)
+
+	// ChangeWorkspaceColorWithBodyWithResponse request with any body
+	ChangeWorkspaceColorWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceColorResponse, error)
+
+	ChangeWorkspaceColorWithResponse(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceColorJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeWorkspaceColorResponse, error)
 
 	// ChangeWorkspaceIdWithBodyWithResponse request with any body
 	ChangeWorkspaceIdWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceIdResponse, error)
@@ -43506,6 +44249,156 @@ func (r UpdateKafkaTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type CreateNatsTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateNatsTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateNatsTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteNatsTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteNatsTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteNatsTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsNatsTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsNatsTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsNatsTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetNatsTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *NatsTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNatsTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNatsTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListNatsTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]NatsTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r ListNatsTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListNatsTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetNatsTriggerEnabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetNatsTriggerEnabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetNatsTriggerEnabledResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateNatsTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateNatsTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateNatsTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ConnectSlackCallbackResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -45413,6 +46306,27 @@ func (r ArchiveWorkspaceResponse) StatusCode() int {
 	return 0
 }
 
+type ChangeWorkspaceColorResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ChangeWorkspaceColorResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ChangeWorkspaceColorResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ChangeWorkspaceIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -45974,6 +46888,7 @@ type GetSettingsResponse struct {
 		AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
 		AutomaticBilling          bool                       `json:"automatic_billing"`
 		CodeCompletionEnabled     bool                       `json:"code_completion_enabled"`
+		Color                     *string                    `json:"color,omitempty"`
 		CustomerId                *string                    `json:"customer_id,omitempty"`
 		DefaultApp                *string                    `json:"default_app,omitempty"`
 		DefaultScripts            *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
@@ -46234,6 +47149,7 @@ type GetUsedTriggersResponse struct {
 	JSON200      *struct {
 		HttpRoutesUsed bool `json:"http_routes_used"`
 		KafkaUsed      bool `json:"kafka_used"`
+		NatsUsed       bool `json:"nats_used"`
 		WebsocketUsed  bool `json:"websocket_used"`
 	}
 }
@@ -49535,6 +50451,93 @@ func (c *ClientWithResponses) UpdateKafkaTriggerWithResponse(ctx context.Context
 	return ParseUpdateKafkaTriggerResponse(rsp)
 }
 
+// CreateNatsTriggerWithBodyWithResponse request with arbitrary body returning *CreateNatsTriggerResponse
+func (c *ClientWithResponses) CreateNatsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNatsTriggerResponse, error) {
+	rsp, err := c.CreateNatsTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateNatsTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNatsTriggerResponse, error) {
+	rsp, err := c.CreateNatsTrigger(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateNatsTriggerResponse(rsp)
+}
+
+// DeleteNatsTriggerWithResponse request returning *DeleteNatsTriggerResponse
+func (c *ClientWithResponses) DeleteNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteNatsTriggerResponse, error) {
+	rsp, err := c.DeleteNatsTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteNatsTriggerResponse(rsp)
+}
+
+// ExistsNatsTriggerWithResponse request returning *ExistsNatsTriggerResponse
+func (c *ClientWithResponses) ExistsNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsNatsTriggerResponse, error) {
+	rsp, err := c.ExistsNatsTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsNatsTriggerResponse(rsp)
+}
+
+// GetNatsTriggerWithResponse request returning *GetNatsTriggerResponse
+func (c *ClientWithResponses) GetNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetNatsTriggerResponse, error) {
+	rsp, err := c.GetNatsTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNatsTriggerResponse(rsp)
+}
+
+// ListNatsTriggersWithResponse request returning *ListNatsTriggersResponse
+func (c *ClientWithResponses) ListNatsTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListNatsTriggersParams, reqEditors ...RequestEditorFn) (*ListNatsTriggersResponse, error) {
+	rsp, err := c.ListNatsTriggers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListNatsTriggersResponse(rsp)
+}
+
+// SetNatsTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetNatsTriggerEnabledResponse
+func (c *ClientWithResponses) SetNatsTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNatsTriggerEnabledResponse, error) {
+	rsp, err := c.SetNatsTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetNatsTriggerEnabledResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetNatsTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetNatsTriggerEnabledResponse, error) {
+	rsp, err := c.SetNatsTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetNatsTriggerEnabledResponse(rsp)
+}
+
+// UpdateNatsTriggerWithBodyWithResponse request with arbitrary body returning *UpdateNatsTriggerResponse
+func (c *ClientWithResponses) UpdateNatsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateNatsTriggerResponse, error) {
+	rsp, err := c.UpdateNatsTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateNatsTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateNatsTriggerResponse, error) {
+	rsp, err := c.UpdateNatsTrigger(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateNatsTriggerResponse(rsp)
+}
+
 // ConnectSlackCallbackWithBodyWithResponse request with arbitrary body returning *ConnectSlackCallbackResponse
 func (c *ClientWithResponses) ConnectSlackCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error) {
 	rsp, err := c.ConnectSlackCallbackWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -50525,6 +51528,23 @@ func (c *ClientWithResponses) ArchiveWorkspaceWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseArchiveWorkspaceResponse(rsp)
+}
+
+// ChangeWorkspaceColorWithBodyWithResponse request with arbitrary body returning *ChangeWorkspaceColorResponse
+func (c *ClientWithResponses) ChangeWorkspaceColorWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceColorResponse, error) {
+	rsp, err := c.ChangeWorkspaceColorWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChangeWorkspaceColorResponse(rsp)
+}
+
+func (c *ClientWithResponses) ChangeWorkspaceColorWithResponse(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceColorJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeWorkspaceColorResponse, error) {
+	rsp, err := c.ChangeWorkspaceColor(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChangeWorkspaceColorResponse(rsp)
 }
 
 // ChangeWorkspaceIdWithBodyWithResponse request with arbitrary body returning *ChangeWorkspaceIdResponse
@@ -56778,6 +57798,148 @@ func ParseUpdateKafkaTriggerResponse(rsp *http.Response) (*UpdateKafkaTriggerRes
 	return response, nil
 }
 
+// ParseCreateNatsTriggerResponse parses an HTTP response from a CreateNatsTriggerWithResponse call
+func ParseCreateNatsTriggerResponse(rsp *http.Response) (*CreateNatsTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateNatsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteNatsTriggerResponse parses an HTTP response from a DeleteNatsTriggerWithResponse call
+func ParseDeleteNatsTriggerResponse(rsp *http.Response) (*DeleteNatsTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteNatsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsNatsTriggerResponse parses an HTTP response from a ExistsNatsTriggerWithResponse call
+func ParseExistsNatsTriggerResponse(rsp *http.Response) (*ExistsNatsTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsNatsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetNatsTriggerResponse parses an HTTP response from a GetNatsTriggerWithResponse call
+func ParseGetNatsTriggerResponse(rsp *http.Response) (*GetNatsTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNatsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest NatsTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListNatsTriggersResponse parses an HTTP response from a ListNatsTriggersWithResponse call
+func ParseListNatsTriggersResponse(rsp *http.Response) (*ListNatsTriggersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListNatsTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []NatsTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetNatsTriggerEnabledResponse parses an HTTP response from a SetNatsTriggerEnabledWithResponse call
+func ParseSetNatsTriggerEnabledResponse(rsp *http.Response) (*SetNatsTriggerEnabledResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetNatsTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateNatsTriggerResponse parses an HTTP response from a UpdateNatsTriggerWithResponse call
+func ParseUpdateNatsTriggerResponse(rsp *http.Response) (*UpdateNatsTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateNatsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseConnectSlackCallbackResponse parses an HTTP response from a ConnectSlackCallbackWithResponse call
 func ParseConnectSlackCallbackResponse(rsp *http.Response) (*ConnectSlackCallbackResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -58668,6 +59830,22 @@ func ParseArchiveWorkspaceResponse(rsp *http.Response) (*ArchiveWorkspaceRespons
 	return response, nil
 }
 
+// ParseChangeWorkspaceColorResponse parses an HTTP response from a ChangeWorkspaceColorWithResponse call
+func ParseChangeWorkspaceColorResponse(rsp *http.Response) (*ChangeWorkspaceColorResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ChangeWorkspaceColorResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseChangeWorkspaceIdResponse parses an HTTP response from a ChangeWorkspaceIdWithResponse call
 func ParseChangeWorkspaceIdResponse(rsp *http.Response) (*ChangeWorkspaceIdResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -59224,6 +60402,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
 			AutomaticBilling          bool                       `json:"automatic_billing"`
 			CodeCompletionEnabled     bool                       `json:"code_completion_enabled"`
+			Color                     *string                    `json:"color,omitempty"`
 			CustomerId                *string                    `json:"customer_id,omitempty"`
 			DefaultApp                *string                    `json:"default_app,omitempty"`
 			DefaultScripts            *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
@@ -59465,6 +60644,7 @@ func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse,
 		var dest struct {
 			HttpRoutesUsed bool `json:"http_routes_used"`
 			KafkaUsed      bool `json:"kafka_used"`
+			NatsUsed       bool `json:"nats_used"`
 			WebsocketUsed  bool `json:"websocket_used"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
