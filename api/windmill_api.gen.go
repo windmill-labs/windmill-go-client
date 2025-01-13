@@ -3150,6 +3150,12 @@ type GetCaptureConfigsParamsRunnableKind string
 // ListCapturesParams defines parameters for ListCaptures.
 type ListCapturesParams struct {
 	TriggerKind *CaptureTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
+
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
 // ListCapturesParamsRunnableKind defines parameters for ListCaptures.
@@ -3497,7 +3503,8 @@ type GetInputHistoryParams struct {
 	Page *Page `form:"page,omitempty" json:"page,omitempty"`
 
 	// PerPage number of items to return for a given page (default 30, max 100)
-	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+	PerPage        *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+	IncludePreview *bool    `form:"include_preview,omitempty" json:"include_preview,omitempty"`
 }
 
 // ListInputsParams defines parameters for ListInputs.
@@ -18902,6 +18909,38 @@ func NewListCapturesRequest(server string, workspace WorkspaceId, runnableKind L
 
 		}
 
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -22213,6 +22252,22 @@ func NewGetInputHistoryRequest(server string, workspace WorkspaceId, params *Get
 		if params.PerPage != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludePreview != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_preview", runtime.ParamLocationQuery, *params.IncludePreview); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
