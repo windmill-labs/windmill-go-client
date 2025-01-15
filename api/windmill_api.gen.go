@@ -186,6 +186,7 @@ const (
 	CompletedJobLanguageMssql      CompletedJobLanguage = "mssql"
 	CompletedJobLanguageMysql      CompletedJobLanguage = "mysql"
 	CompletedJobLanguageNativets   CompletedJobLanguage = "nativets"
+	CompletedJobLanguageOracledb   CompletedJobLanguage = "oracledb"
 	CompletedJobLanguagePhp        CompletedJobLanguage = "php"
 	CompletedJobLanguagePostgresql CompletedJobLanguage = "postgresql"
 	CompletedJobLanguagePowershell CompletedJobLanguage = "powershell"
@@ -311,6 +312,7 @@ const (
 	Job0LanguageMssql      Job0Language = "mssql"
 	Job0LanguageMysql      Job0Language = "mysql"
 	Job0LanguageNativets   Job0Language = "nativets"
+	Job0LanguageOracledb   Job0Language = "oracledb"
 	Job0LanguagePhp        Job0Language = "php"
 	Job0LanguagePostgresql Job0Language = "postgresql"
 	Job0LanguagePowershell Job0Language = "powershell"
@@ -355,6 +357,7 @@ const (
 	Job1LanguageMssql      Job1Language = "mssql"
 	Job1LanguageMysql      Job1Language = "mysql"
 	Job1LanguageNativets   Job1Language = "nativets"
+	Job1LanguageOracledb   Job1Language = "oracledb"
 	Job1LanguagePhp        Job1Language = "php"
 	Job1LanguagePostgresql Job1Language = "postgresql"
 	Job1LanguagePowershell Job1Language = "powershell"
@@ -422,6 +425,7 @@ const (
 	NewScriptLanguageMssql      NewScriptLanguage = "mssql"
 	NewScriptLanguageMysql      NewScriptLanguage = "mysql"
 	NewScriptLanguageNativets   NewScriptLanguage = "nativets"
+	NewScriptLanguageOracledb   NewScriptLanguage = "oracledb"
 	NewScriptLanguagePhp        NewScriptLanguage = "php"
 	NewScriptLanguagePostgresql NewScriptLanguage = "postgresql"
 	NewScriptLanguagePowershell NewScriptLanguage = "powershell"
@@ -452,6 +456,7 @@ const (
 	NewScriptWithDraftLanguageMssql      NewScriptWithDraftLanguage = "mssql"
 	NewScriptWithDraftLanguageMysql      NewScriptWithDraftLanguage = "mysql"
 	NewScriptWithDraftLanguageNativets   NewScriptWithDraftLanguage = "nativets"
+	NewScriptWithDraftLanguageOracledb   NewScriptWithDraftLanguage = "oracledb"
 	NewScriptWithDraftLanguagePhp        NewScriptWithDraftLanguage = "php"
 	NewScriptWithDraftLanguagePostgresql NewScriptWithDraftLanguage = "postgresql"
 	NewScriptWithDraftLanguagePowershell NewScriptWithDraftLanguage = "powershell"
@@ -497,6 +502,7 @@ const (
 	PreviewLanguageMssql      PreviewLanguage = "mssql"
 	PreviewLanguageMysql      PreviewLanguage = "mysql"
 	PreviewLanguageNativets   PreviewLanguage = "nativets"
+	PreviewLanguageOracledb   PreviewLanguage = "oracledb"
 	PreviewLanguagePhp        PreviewLanguage = "php"
 	PreviewLanguagePostgresql PreviewLanguage = "postgresql"
 	PreviewLanguagePowershell PreviewLanguage = "powershell"
@@ -536,6 +542,7 @@ const (
 	QueuedJobLanguageMssql      QueuedJobLanguage = "mssql"
 	QueuedJobLanguageMysql      QueuedJobLanguage = "mysql"
 	QueuedJobLanguageNativets   QueuedJobLanguage = "nativets"
+	QueuedJobLanguageOracledb   QueuedJobLanguage = "oracledb"
 	QueuedJobLanguagePhp        QueuedJobLanguage = "php"
 	QueuedJobLanguagePostgresql QueuedJobLanguage = "postgresql"
 	QueuedJobLanguagePowershell QueuedJobLanguage = "powershell"
@@ -580,6 +587,7 @@ const (
 	RawScriptForDependenciesLanguageMssql      RawScriptForDependenciesLanguage = "mssql"
 	RawScriptForDependenciesLanguageMysql      RawScriptForDependenciesLanguage = "mysql"
 	RawScriptForDependenciesLanguageNativets   RawScriptForDependenciesLanguage = "nativets"
+	RawScriptForDependenciesLanguageOracledb   RawScriptForDependenciesLanguage = "oracledb"
 	RawScriptForDependenciesLanguagePhp        RawScriptForDependenciesLanguage = "php"
 	RawScriptForDependenciesLanguagePostgresql RawScriptForDependenciesLanguage = "postgresql"
 	RawScriptForDependenciesLanguagePowershell RawScriptForDependenciesLanguage = "powershell"
@@ -617,6 +625,7 @@ const (
 	ScriptLanguageMssql      ScriptLanguage = "mssql"
 	ScriptLanguageMysql      ScriptLanguage = "mysql"
 	ScriptLanguageNativets   ScriptLanguage = "nativets"
+	ScriptLanguageOracledb   ScriptLanguage = "oracledb"
 	ScriptLanguagePhp        ScriptLanguage = "php"
 	ScriptLanguagePostgresql ScriptLanguage = "postgresql"
 	ScriptLanguagePowershell ScriptLanguage = "powershell"
@@ -1208,6 +1217,7 @@ type Flow struct {
 	EditedAt            time.Time               `json:"edited_at"`
 	EditedBy            string                  `json:"edited_by"`
 	ExtraPerms          ExtraPerms              `json:"extra_perms"`
+	OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 	Path                string                  `json:"path"`
 	Priority            *int                    `json:"priority,omitempty"`
 	Schema              *map[string]interface{} `json:"schema,omitempty"`
@@ -1229,6 +1239,7 @@ type FlowMetadata struct {
 	EditedAt            time.Time  `json:"edited_at"`
 	EditedBy            string     `json:"edited_by"`
 	ExtraPerms          ExtraPerms `json:"extra_perms"`
+	OnBehalfOfEmail     *string    `json:"on_behalf_of_email,omitempty"`
 	Path                string     `json:"path"`
 	Priority            *int       `json:"priority,omitempty"`
 	Starred             *bool      `json:"starred,omitempty"`
@@ -1876,6 +1887,7 @@ type NewScript struct {
 	Language               NewScriptLanguage       `json:"language"`
 	Lock                   *string                 `json:"lock,omitempty"`
 	NoMainFunc             *bool                   `json:"no_main_func,omitempty"`
+	OnBehalfOfEmail        *string                 `json:"on_behalf_of_email,omitempty"`
 	ParentHash             *string                 `json:"parent_hash,omitempty"`
 	Path                   string                  `json:"path"`
 	Priority               *int                    `json:"priority,omitempty"`
@@ -1916,6 +1928,7 @@ type NewScriptWithDraft struct {
 	Language               NewScriptWithDraftLanguage `json:"language"`
 	Lock                   *string                    `json:"lock,omitempty"`
 	NoMainFunc             *bool                      `json:"no_main_func,omitempty"`
+	OnBehalfOfEmail        *string                    `json:"on_behalf_of_email,omitempty"`
 	ParentHash             *string                    `json:"parent_hash,omitempty"`
 	Path                   string                     `json:"path"`
 	Priority               *int                       `json:"priority,omitempty"`
@@ -1984,6 +1997,7 @@ type OpenFlow struct {
 type OpenFlowWPath struct {
 	DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
 	Description         *string                 `json:"description,omitempty"`
+	OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 	Path                string                  `json:"path"`
 	Priority            *int                    `json:"priority,omitempty"`
 	Schema              *map[string]interface{} `json:"schema,omitempty"`
@@ -2291,6 +2305,7 @@ type Script struct {
 	Lock                   *string         `json:"lock,omitempty"`
 	LockErrorLogs          *string         `json:"lock_error_logs,omitempty"`
 	NoMainFunc             bool            `json:"no_main_func"`
+	OnBehalfOfEmail        *string         `json:"on_behalf_of_email,omitempty"`
 
 	// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
 	ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
@@ -3307,6 +3322,7 @@ type CreateFlowJSONBody struct {
 	DeploymentMessage   *string                 `json:"deployment_message,omitempty"`
 	Description         *string                 `json:"description,omitempty"`
 	DraftOnly           *bool                   `json:"draft_only,omitempty"`
+	OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 	Path                string                  `json:"path"`
 	Priority            *int                    `json:"priority,omitempty"`
 	Schema              *map[string]interface{} `json:"schema,omitempty"`
@@ -3377,6 +3393,7 @@ type UpdateFlowJSONBody struct {
 	DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
 	DeploymentMessage   *string                 `json:"deployment_message,omitempty"`
 	Description         *string                 `json:"description,omitempty"`
+	OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 	Path                string                  `json:"path"`
 	Priority            *int                    `json:"priority,omitempty"`
 	Schema              *map[string]interface{} `json:"schema,omitempty"`
@@ -41669,6 +41686,7 @@ type GetFlowByPathWithDraftResponse struct {
 		EditedAt            time.Time               `json:"edited_at"`
 		EditedBy            string                  `json:"edited_by"`
 		ExtraPerms          ExtraPerms              `json:"extra_perms"`
+		OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 		Path                string                  `json:"path"`
 		Priority            *int                    `json:"priority,omitempty"`
 		Schema              *map[string]interface{} `json:"schema,omitempty"`
@@ -41842,6 +41860,7 @@ type ListFlowsResponse struct {
 		EditedBy            string                  `json:"edited_by"`
 		ExtraPerms          ExtraPerms              `json:"extra_perms"`
 		HasDraft            *bool                   `json:"has_draft,omitempty"`
+		OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 		Path                string                  `json:"path"`
 		Priority            *int                    `json:"priority,omitempty"`
 		Schema              *map[string]interface{} `json:"schema,omitempty"`
@@ -55176,6 +55195,7 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			EditedAt            time.Time               `json:"edited_at"`
 			EditedBy            string                  `json:"edited_by"`
 			ExtraPerms          ExtraPerms              `json:"extra_perms"`
+			OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 			Path                string                  `json:"path"`
 			Priority            *int                    `json:"priority,omitempty"`
 			Schema              *map[string]interface{} `json:"schema,omitempty"`
@@ -55368,6 +55388,7 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			EditedBy            string                  `json:"edited_by"`
 			ExtraPerms          ExtraPerms              `json:"extra_perms"`
 			HasDraft            *bool                   `json:"has_draft,omitempty"`
+			OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 			Path                string                  `json:"path"`
 			Priority            *int                    `json:"priority,omitempty"`
 			Schema              *map[string]interface{} `json:"schema,omitempty"`
