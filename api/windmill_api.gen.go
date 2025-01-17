@@ -405,11 +405,12 @@ const (
 
 // Defines values for NewScriptKind.
 const (
-	NewScriptKindApproval NewScriptKind = "approval"
-	NewScriptKindCommand  NewScriptKind = "command"
-	NewScriptKindFailure  NewScriptKind = "failure"
-	NewScriptKindScript   NewScriptKind = "script"
-	NewScriptKindTrigger  NewScriptKind = "trigger"
+	NewScriptKindApproval     NewScriptKind = "approval"
+	NewScriptKindCommand      NewScriptKind = "command"
+	NewScriptKindFailure      NewScriptKind = "failure"
+	NewScriptKindPreprocessor NewScriptKind = "preprocessor"
+	NewScriptKindScript       NewScriptKind = "script"
+	NewScriptKindTrigger      NewScriptKind = "trigger"
 )
 
 // Defines values for NewScriptLanguage.
@@ -436,11 +437,12 @@ const (
 
 // Defines values for NewScriptWithDraftKind.
 const (
-	NewScriptWithDraftKindApproval NewScriptWithDraftKind = "approval"
-	NewScriptWithDraftKindCommand  NewScriptWithDraftKind = "command"
-	NewScriptWithDraftKindFailure  NewScriptWithDraftKind = "failure"
-	NewScriptWithDraftKindScript   NewScriptWithDraftKind = "script"
-	NewScriptWithDraftKindTrigger  NewScriptWithDraftKind = "trigger"
+	NewScriptWithDraftKindApproval     NewScriptWithDraftKind = "approval"
+	NewScriptWithDraftKindCommand      NewScriptWithDraftKind = "command"
+	NewScriptWithDraftKindFailure      NewScriptWithDraftKind = "failure"
+	NewScriptWithDraftKindPreprocessor NewScriptWithDraftKind = "preprocessor"
+	NewScriptWithDraftKindScript       NewScriptWithDraftKind = "script"
+	NewScriptWithDraftKindTrigger      NewScriptWithDraftKind = "trigger"
 )
 
 // Defines values for NewScriptWithDraftLanguage.
@@ -605,11 +607,12 @@ const (
 
 // Defines values for ScriptKind.
 const (
-	ScriptKindApproval ScriptKind = "approval"
-	ScriptKindCommand  ScriptKind = "command"
-	ScriptKindFailure  ScriptKind = "failure"
-	ScriptKindScript   ScriptKind = "script"
-	ScriptKindTrigger  ScriptKind = "trigger"
+	ScriptKindApproval     ScriptKind = "approval"
+	ScriptKindCommand      ScriptKind = "command"
+	ScriptKindFailure      ScriptKind = "failure"
+	ScriptKindPreprocessor ScriptKind = "preprocessor"
+	ScriptKindScript       ScriptKind = "script"
+	ScriptKindTrigger      ScriptKind = "trigger"
 )
 
 // Defines values for ScriptLanguage.
@@ -4768,6 +4771,17 @@ type SetEnvironmentVariableJSONBody struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// SetThresholdAlertJSONBody defines parameters for SetThresholdAlert.
+type SetThresholdAlertJSONBody struct {
+	ThresholdAlertAmount *float32 `json:"threshold_alert_amount,omitempty"`
+}
+
+// GetCustomTagsParams defines parameters for GetCustomTags.
+type GetCustomTagsParams struct {
+	Workspace                *string `form:"workspace,omitempty" json:"workspace,omitempty"`
+	ShowWorkspaceRestriction *bool   `form:"show_workspace_restriction,omitempty" json:"show_workspace_restriction,omitempty"`
+}
+
 // ExistsWorkerWithTagParams defines parameters for ExistsWorkerWithTag.
 type ExistsWorkerWithTagParams struct {
 	Tag string `form:"tag" json:"tag"`
@@ -5212,6 +5226,9 @@ type SetAutomaticBillingJSONRequestBody SetAutomaticBillingJSONBody
 
 // SetEnvironmentVariableJSONRequestBody defines body for SetEnvironmentVariable for application/json ContentType.
 type SetEnvironmentVariableJSONRequestBody SetEnvironmentVariableJSONBody
+
+// SetThresholdAlertJSONRequestBody defines body for SetThresholdAlert for application/json ContentType.
+type SetThresholdAlertJSONRequestBody SetThresholdAlertJSONBody
 
 // CreateWorkspaceJSONRequestBody defines body for CreateWorkspace for application/json ContentType.
 type CreateWorkspaceJSONRequestBody = CreateWorkspace
@@ -7186,6 +7203,14 @@ type ClientInterface interface {
 
 	SetEnvironmentVariable(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetThresholdAlert request
+	GetThresholdAlert(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetThresholdAlertWithBody request with any body
+	SetThresholdAlertWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetThresholdAlert(ctx context.Context, workspace WorkspaceId, body SetThresholdAlertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetWorkspaceUsage request
 	GetWorkspaceUsage(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7193,7 +7218,7 @@ type ClientInterface interface {
 	GetUsedTriggers(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCustomTags request
-	GetCustomTags(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetCustomTags(ctx context.Context, params *GetCustomTagsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ExistsWorkerWithTag request
 	ExistsWorkerWithTag(ctx context.Context, params *ExistsWorkerWithTagParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -13427,6 +13452,42 @@ func (c *Client) SetEnvironmentVariable(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetThresholdAlert(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetThresholdAlertRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetThresholdAlertWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetThresholdAlertRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetThresholdAlert(ctx context.Context, workspace WorkspaceId, body SetThresholdAlertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetThresholdAlertRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetWorkspaceUsage(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetWorkspaceUsageRequest(c.Server, workspace)
 	if err != nil {
@@ -13451,8 +13512,8 @@ func (c *Client) GetUsedTriggers(ctx context.Context, workspace WorkspaceId, req
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetCustomTags(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetCustomTagsRequest(c.Server)
+func (c *Client) GetCustomTags(ctx context.Context, params *GetCustomTagsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCustomTagsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -36538,6 +36599,87 @@ func NewSetEnvironmentVariableRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewGetThresholdAlertRequest generates requests for GetThresholdAlert
+func NewGetThresholdAlertRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/threshold_alert", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetThresholdAlertRequest calls the generic SetThresholdAlert builder with application/json body
+func NewSetThresholdAlertRequest(server string, workspace WorkspaceId, body SetThresholdAlertJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetThresholdAlertRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetThresholdAlertRequestWithBody generates requests for SetThresholdAlert with any type of body
+func NewSetThresholdAlertRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/threshold_alert", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetWorkspaceUsageRequest generates requests for GetWorkspaceUsage
 func NewGetWorkspaceUsageRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -36607,7 +36749,7 @@ func NewGetUsedTriggersRequest(server string, workspace WorkspaceId) (*http.Requ
 }
 
 // NewGetCustomTagsRequest generates requests for GetCustomTags
-func NewGetCustomTagsRequest(server string) (*http.Request, error) {
+func NewGetCustomTagsRequest(server string, params *GetCustomTagsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -36623,6 +36765,44 @@ func NewGetCustomTagsRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Workspace != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "workspace", runtime.ParamLocationQuery, *params.Workspace); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ShowWorkspaceRestriction != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "show_workspace_restriction", runtime.ParamLocationQuery, *params.ShowWorkspaceRestriction); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -38653,6 +38833,14 @@ type ClientWithResponsesInterface interface {
 
 	SetEnvironmentVariableWithResponse(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error)
 
+	// GetThresholdAlertWithResponse request
+	GetThresholdAlertWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetThresholdAlertResponse, error)
+
+	// SetThresholdAlertWithBodyWithResponse request with any body
+	SetThresholdAlertWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetThresholdAlertResponse, error)
+
+	SetThresholdAlertWithResponse(ctx context.Context, workspace WorkspaceId, body SetThresholdAlertJSONRequestBody, reqEditors ...RequestEditorFn) (*SetThresholdAlertResponse, error)
+
 	// GetWorkspaceUsageWithResponse request
 	GetWorkspaceUsageWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceUsageResponse, error)
 
@@ -38660,7 +38848,7 @@ type ClientWithResponsesInterface interface {
 	GetUsedTriggersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetUsedTriggersResponse, error)
 
 	// GetCustomTagsWithResponse request
-	GetCustomTagsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error)
+	GetCustomTagsWithResponse(ctx context.Context, params *GetCustomTagsParams, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error)
 
 	// ExistsWorkerWithTagWithResponse request
 	ExistsWorkerWithTagWithResponse(ctx context.Context, params *ExistsWorkerWithTagParams, reqEditors ...RequestEditorFn) (*ExistsWorkerWithTagResponse, error)
@@ -47111,6 +47299,7 @@ type GetPremiumInfoResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		AutomaticBilling bool     `json:"automatic_billing"`
+		Owner            string   `json:"owner"`
 		Premium          bool     `json:"premium"`
 		Seats            *float32 `json:"seats,omitempty"`
 		Usage            *float32 `json:"usage,omitempty"`
@@ -47190,6 +47379,52 @@ func (r SetEnvironmentVariableResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SetEnvironmentVariableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetThresholdAlertResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		LastAlertSent        *time.Time `json:"last_alert_sent,omitempty"`
+		ThresholdAlertAmount *float32   `json:"threshold_alert_amount,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetThresholdAlertResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetThresholdAlertResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetThresholdAlertResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetThresholdAlertResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetThresholdAlertResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -52096,6 +52331,32 @@ func (c *ClientWithResponses) SetEnvironmentVariableWithResponse(ctx context.Con
 	return ParseSetEnvironmentVariableResponse(rsp)
 }
 
+// GetThresholdAlertWithResponse request returning *GetThresholdAlertResponse
+func (c *ClientWithResponses) GetThresholdAlertWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetThresholdAlertResponse, error) {
+	rsp, err := c.GetThresholdAlert(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetThresholdAlertResponse(rsp)
+}
+
+// SetThresholdAlertWithBodyWithResponse request with arbitrary body returning *SetThresholdAlertResponse
+func (c *ClientWithResponses) SetThresholdAlertWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetThresholdAlertResponse, error) {
+	rsp, err := c.SetThresholdAlertWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetThresholdAlertResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetThresholdAlertWithResponse(ctx context.Context, workspace WorkspaceId, body SetThresholdAlertJSONRequestBody, reqEditors ...RequestEditorFn) (*SetThresholdAlertResponse, error) {
+	rsp, err := c.SetThresholdAlert(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetThresholdAlertResponse(rsp)
+}
+
 // GetWorkspaceUsageWithResponse request returning *GetWorkspaceUsageResponse
 func (c *ClientWithResponses) GetWorkspaceUsageWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceUsageResponse, error) {
 	rsp, err := c.GetWorkspaceUsage(ctx, workspace, reqEditors...)
@@ -52115,8 +52376,8 @@ func (c *ClientWithResponses) GetUsedTriggersWithResponse(ctx context.Context, w
 }
 
 // GetCustomTagsWithResponse request returning *GetCustomTagsResponse
-func (c *ClientWithResponses) GetCustomTagsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error) {
-	rsp, err := c.GetCustomTags(ctx, reqEditors...)
+func (c *ClientWithResponses) GetCustomTagsWithResponse(ctx context.Context, params *GetCustomTagsParams, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error) {
+	rsp, err := c.GetCustomTags(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -60624,6 +60885,7 @@ func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, e
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			AutomaticBilling bool     `json:"automatic_billing"`
+			Owner            string   `json:"owner"`
 			Premium          bool     `json:"premium"`
 			Seats            *float32 `json:"seats,omitempty"`
 			Usage            *float32 `json:"usage,omitempty"`
@@ -60679,6 +60941,51 @@ func ParseSetEnvironmentVariableResponse(rsp *http.Response) (*SetEnvironmentVar
 	}
 
 	response := &SetEnvironmentVariableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetThresholdAlertResponse parses an HTTP response from a GetThresholdAlertWithResponse call
+func ParseGetThresholdAlertResponse(rsp *http.Response) (*GetThresholdAlertResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetThresholdAlertResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			LastAlertSent        *time.Time `json:"last_alert_sent,omitempty"`
+			ThresholdAlertAmount *float32   `json:"threshold_alert_amount,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetThresholdAlertResponse parses an HTTP response from a SetThresholdAlertWithResponse call
+func ParseSetThresholdAlertResponse(rsp *http.Response) (*SetThresholdAlertResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetThresholdAlertResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
