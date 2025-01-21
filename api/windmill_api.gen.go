@@ -564,6 +564,7 @@ const (
 	RawScriptLanguageMssql      RawScriptLanguage = "mssql"
 	RawScriptLanguageMysql      RawScriptLanguage = "mysql"
 	RawScriptLanguageNativets   RawScriptLanguage = "nativets"
+	RawScriptLanguageOracledb   RawScriptLanguage = "oracledb"
 	RawScriptLanguagePhp        RawScriptLanguage = "php"
 	RawScriptLanguagePostgresql RawScriptLanguage = "postgresql"
 	RawScriptLanguagePowershell RawScriptLanguage = "powershell"
