@@ -173,28 +173,6 @@ const (
 	CompletedJobJobKindSinglescriptflow   CompletedJobJobKind = "singlescriptflow"
 )
 
-// Defines values for CompletedJobLanguage.
-const (
-	CompletedJobLanguageAnsible    CompletedJobLanguage = "ansible"
-	CompletedJobLanguageBash       CompletedJobLanguage = "bash"
-	CompletedJobLanguageBigquery   CompletedJobLanguage = "bigquery"
-	CompletedJobLanguageBun        CompletedJobLanguage = "bun"
-	CompletedJobLanguageCsharp     CompletedJobLanguage = "csharp"
-	CompletedJobLanguageDeno       CompletedJobLanguage = "deno"
-	CompletedJobLanguageGo         CompletedJobLanguage = "go"
-	CompletedJobLanguageGraphql    CompletedJobLanguage = "graphql"
-	CompletedJobLanguageMssql      CompletedJobLanguage = "mssql"
-	CompletedJobLanguageMysql      CompletedJobLanguage = "mysql"
-	CompletedJobLanguageNativets   CompletedJobLanguage = "nativets"
-	CompletedJobLanguageOracledb   CompletedJobLanguage = "oracledb"
-	CompletedJobLanguagePhp        CompletedJobLanguage = "php"
-	CompletedJobLanguagePostgresql CompletedJobLanguage = "postgresql"
-	CompletedJobLanguagePowershell CompletedJobLanguage = "powershell"
-	CompletedJobLanguagePython3    CompletedJobLanguage = "python3"
-	CompletedJobLanguageRust       CompletedJobLanguage = "rust"
-	CompletedJobLanguageSnowflake  CompletedJobLanguage = "snowflake"
-)
-
 // Defines values for EditHttpTriggerHttpMethod.
 const (
 	EditHttpTriggerHttpMethodDelete EditHttpTriggerHttpMethod = "delete"
@@ -262,15 +240,6 @@ const (
 	Password GlobalUserInfoLoginType = "password"
 )
 
-// Defines values for HttpTriggerHttpMethod.
-const (
-	HttpTriggerHttpMethodDelete HttpTriggerHttpMethod = "delete"
-	HttpTriggerHttpMethodGet    HttpTriggerHttpMethod = "get"
-	HttpTriggerHttpMethodPatch  HttpTriggerHttpMethod = "patch"
-	HttpTriggerHttpMethodPost   HttpTriggerHttpMethod = "post"
-	HttpTriggerHttpMethodPut    HttpTriggerHttpMethod = "put"
-)
-
 // Defines values for IdentityType.
 const (
 	IdentityTypeIdentity IdentityType = "identity"
@@ -299,28 +268,6 @@ const (
 	Job0JobKindSinglescriptflow   Job0JobKind = "singlescriptflow"
 )
 
-// Defines values for Job0Language.
-const (
-	Job0LanguageAnsible    Job0Language = "ansible"
-	Job0LanguageBash       Job0Language = "bash"
-	Job0LanguageBigquery   Job0Language = "bigquery"
-	Job0LanguageBun        Job0Language = "bun"
-	Job0LanguageCsharp     Job0Language = "csharp"
-	Job0LanguageDeno       Job0Language = "deno"
-	Job0LanguageGo         Job0Language = "go"
-	Job0LanguageGraphql    Job0Language = "graphql"
-	Job0LanguageMssql      Job0Language = "mssql"
-	Job0LanguageMysql      Job0Language = "mysql"
-	Job0LanguageNativets   Job0Language = "nativets"
-	Job0LanguageOracledb   Job0Language = "oracledb"
-	Job0LanguagePhp        Job0Language = "php"
-	Job0LanguagePostgresql Job0Language = "postgresql"
-	Job0LanguagePowershell Job0Language = "powershell"
-	Job0LanguagePython3    Job0Language = "python3"
-	Job0LanguageRust       Job0Language = "rust"
-	Job0LanguageSnowflake  Job0Language = "snowflake"
-)
-
 // Defines values for Job0Type.
 const (
 	Job0TypeCompletedJob Job0Type = "CompletedJob"
@@ -344,31 +291,14 @@ const (
 	Job1JobKindSinglescriptflow   Job1JobKind = "singlescriptflow"
 )
 
-// Defines values for Job1Language.
-const (
-	Job1LanguageAnsible    Job1Language = "ansible"
-	Job1LanguageBash       Job1Language = "bash"
-	Job1LanguageBigquery   Job1Language = "bigquery"
-	Job1LanguageBun        Job1Language = "bun"
-	Job1LanguageCsharp     Job1Language = "csharp"
-	Job1LanguageDeno       Job1Language = "deno"
-	Job1LanguageGo         Job1Language = "go"
-	Job1LanguageGraphql    Job1Language = "graphql"
-	Job1LanguageMssql      Job1Language = "mssql"
-	Job1LanguageMysql      Job1Language = "mysql"
-	Job1LanguageNativets   Job1Language = "nativets"
-	Job1LanguageOracledb   Job1Language = "oracledb"
-	Job1LanguagePhp        Job1Language = "php"
-	Job1LanguagePostgresql Job1Language = "postgresql"
-	Job1LanguagePowershell Job1Language = "powershell"
-	Job1LanguagePython3    Job1Language = "python3"
-	Job1LanguageRust       Job1Language = "rust"
-	Job1LanguageSnowflake  Job1Language = "snowflake"
-)
-
 // Defines values for Job1Type.
 const (
 	Job1TypeQueuedJob Job1Type = "QueuedJob"
+)
+
+// Defines values for Language.
+const (
+	Typescript Language = "Typescript"
 )
 
 // Defines values for LargeFileStorageSecondaryStorageType.
@@ -413,28 +343,6 @@ const (
 	NewScriptKindTrigger      NewScriptKind = "trigger"
 )
 
-// Defines values for NewScriptLanguage.
-const (
-	NewScriptLanguageAnsible    NewScriptLanguage = "ansible"
-	NewScriptLanguageBash       NewScriptLanguage = "bash"
-	NewScriptLanguageBigquery   NewScriptLanguage = "bigquery"
-	NewScriptLanguageBun        NewScriptLanguage = "bun"
-	NewScriptLanguageCsharp     NewScriptLanguage = "csharp"
-	NewScriptLanguageDeno       NewScriptLanguage = "deno"
-	NewScriptLanguageGo         NewScriptLanguage = "go"
-	NewScriptLanguageGraphql    NewScriptLanguage = "graphql"
-	NewScriptLanguageMssql      NewScriptLanguage = "mssql"
-	NewScriptLanguageMysql      NewScriptLanguage = "mysql"
-	NewScriptLanguageNativets   NewScriptLanguage = "nativets"
-	NewScriptLanguageOracledb   NewScriptLanguage = "oracledb"
-	NewScriptLanguagePhp        NewScriptLanguage = "php"
-	NewScriptLanguagePostgresql NewScriptLanguage = "postgresql"
-	NewScriptLanguagePowershell NewScriptLanguage = "powershell"
-	NewScriptLanguagePython3    NewScriptLanguage = "python3"
-	NewScriptLanguageRust       NewScriptLanguage = "rust"
-	NewScriptLanguageSnowflake  NewScriptLanguage = "snowflake"
-)
-
 // Defines values for NewScriptWithDraftKind.
 const (
 	NewScriptWithDraftKindApproval     NewScriptWithDraftKind = "approval"
@@ -443,28 +351,6 @@ const (
 	NewScriptWithDraftKindPreprocessor NewScriptWithDraftKind = "preprocessor"
 	NewScriptWithDraftKindScript       NewScriptWithDraftKind = "script"
 	NewScriptWithDraftKindTrigger      NewScriptWithDraftKind = "trigger"
-)
-
-// Defines values for NewScriptWithDraftLanguage.
-const (
-	NewScriptWithDraftLanguageAnsible    NewScriptWithDraftLanguage = "ansible"
-	NewScriptWithDraftLanguageBash       NewScriptWithDraftLanguage = "bash"
-	NewScriptWithDraftLanguageBigquery   NewScriptWithDraftLanguage = "bigquery"
-	NewScriptWithDraftLanguageBun        NewScriptWithDraftLanguage = "bun"
-	NewScriptWithDraftLanguageCsharp     NewScriptWithDraftLanguage = "csharp"
-	NewScriptWithDraftLanguageDeno       NewScriptWithDraftLanguage = "deno"
-	NewScriptWithDraftLanguageGo         NewScriptWithDraftLanguage = "go"
-	NewScriptWithDraftLanguageGraphql    NewScriptWithDraftLanguage = "graphql"
-	NewScriptWithDraftLanguageMssql      NewScriptWithDraftLanguage = "mssql"
-	NewScriptWithDraftLanguageMysql      NewScriptWithDraftLanguage = "mysql"
-	NewScriptWithDraftLanguageNativets   NewScriptWithDraftLanguage = "nativets"
-	NewScriptWithDraftLanguageOracledb   NewScriptWithDraftLanguage = "oracledb"
-	NewScriptWithDraftLanguagePhp        NewScriptWithDraftLanguage = "php"
-	NewScriptWithDraftLanguagePostgresql NewScriptWithDraftLanguage = "postgresql"
-	NewScriptWithDraftLanguagePowershell NewScriptWithDraftLanguage = "powershell"
-	NewScriptWithDraftLanguagePython3    NewScriptWithDraftLanguage = "python3"
-	NewScriptWithDraftLanguageRust       NewScriptWithDraftLanguage = "rust"
-	NewScriptWithDraftLanguageSnowflake  NewScriptWithDraftLanguage = "snowflake"
 )
 
 // Defines values for PathFlowType.
@@ -491,28 +377,6 @@ const (
 	PreviewKindIdentity PreviewKind = "identity"
 )
 
-// Defines values for PreviewLanguage.
-const (
-	PreviewLanguageAnsible    PreviewLanguage = "ansible"
-	PreviewLanguageBash       PreviewLanguage = "bash"
-	PreviewLanguageBigquery   PreviewLanguage = "bigquery"
-	PreviewLanguageBun        PreviewLanguage = "bun"
-	PreviewLanguageCsharp     PreviewLanguage = "csharp"
-	PreviewLanguageDeno       PreviewLanguage = "deno"
-	PreviewLanguageGo         PreviewLanguage = "go"
-	PreviewLanguageGraphql    PreviewLanguage = "graphql"
-	PreviewLanguageMssql      PreviewLanguage = "mssql"
-	PreviewLanguageMysql      PreviewLanguage = "mysql"
-	PreviewLanguageNativets   PreviewLanguage = "nativets"
-	PreviewLanguageOracledb   PreviewLanguage = "oracledb"
-	PreviewLanguagePhp        PreviewLanguage = "php"
-	PreviewLanguagePostgresql PreviewLanguage = "postgresql"
-	PreviewLanguagePowershell PreviewLanguage = "powershell"
-	PreviewLanguagePython3    PreviewLanguage = "python3"
-	PreviewLanguageRust       PreviewLanguage = "rust"
-	PreviewLanguageSnowflake  PreviewLanguage = "snowflake"
-)
-
 // Defines values for QueuedJobJobKind.
 const (
 	QueuedJobJobKindAppdependencies    QueuedJobJobKind = "appdependencies"
@@ -529,28 +393,6 @@ const (
 	QueuedJobJobKindScript             QueuedJobJobKind = "script"
 	QueuedJobJobKindScriptHub          QueuedJobJobKind = "script_hub"
 	QueuedJobJobKindSinglescriptflow   QueuedJobJobKind = "singlescriptflow"
-)
-
-// Defines values for QueuedJobLanguage.
-const (
-	QueuedJobLanguageAnsible    QueuedJobLanguage = "ansible"
-	QueuedJobLanguageBash       QueuedJobLanguage = "bash"
-	QueuedJobLanguageBigquery   QueuedJobLanguage = "bigquery"
-	QueuedJobLanguageBun        QueuedJobLanguage = "bun"
-	QueuedJobLanguageCsharp     QueuedJobLanguage = "csharp"
-	QueuedJobLanguageDeno       QueuedJobLanguage = "deno"
-	QueuedJobLanguageGo         QueuedJobLanguage = "go"
-	QueuedJobLanguageGraphql    QueuedJobLanguage = "graphql"
-	QueuedJobLanguageMssql      QueuedJobLanguage = "mssql"
-	QueuedJobLanguageMysql      QueuedJobLanguage = "mysql"
-	QueuedJobLanguageNativets   QueuedJobLanguage = "nativets"
-	QueuedJobLanguageOracledb   QueuedJobLanguage = "oracledb"
-	QueuedJobLanguagePhp        QueuedJobLanguage = "php"
-	QueuedJobLanguagePostgresql QueuedJobLanguage = "postgresql"
-	QueuedJobLanguagePowershell QueuedJobLanguage = "powershell"
-	QueuedJobLanguagePython3    QueuedJobLanguage = "python3"
-	QueuedJobLanguageRust       QueuedJobLanguage = "rust"
-	QueuedJobLanguageSnowflake  QueuedJobLanguage = "snowflake"
 )
 
 // Defines values for RawScriptLanguage.
@@ -577,28 +419,6 @@ const (
 	Rawscript RawScriptType = "rawscript"
 )
 
-// Defines values for RawScriptForDependenciesLanguage.
-const (
-	RawScriptForDependenciesLanguageAnsible    RawScriptForDependenciesLanguage = "ansible"
-	RawScriptForDependenciesLanguageBash       RawScriptForDependenciesLanguage = "bash"
-	RawScriptForDependenciesLanguageBigquery   RawScriptForDependenciesLanguage = "bigquery"
-	RawScriptForDependenciesLanguageBun        RawScriptForDependenciesLanguage = "bun"
-	RawScriptForDependenciesLanguageCsharp     RawScriptForDependenciesLanguage = "csharp"
-	RawScriptForDependenciesLanguageDeno       RawScriptForDependenciesLanguage = "deno"
-	RawScriptForDependenciesLanguageGo         RawScriptForDependenciesLanguage = "go"
-	RawScriptForDependenciesLanguageGraphql    RawScriptForDependenciesLanguage = "graphql"
-	RawScriptForDependenciesLanguageMssql      RawScriptForDependenciesLanguage = "mssql"
-	RawScriptForDependenciesLanguageMysql      RawScriptForDependenciesLanguage = "mysql"
-	RawScriptForDependenciesLanguageNativets   RawScriptForDependenciesLanguage = "nativets"
-	RawScriptForDependenciesLanguageOracledb   RawScriptForDependenciesLanguage = "oracledb"
-	RawScriptForDependenciesLanguagePhp        RawScriptForDependenciesLanguage = "php"
-	RawScriptForDependenciesLanguagePostgresql RawScriptForDependenciesLanguage = "postgresql"
-	RawScriptForDependenciesLanguagePowershell RawScriptForDependenciesLanguage = "powershell"
-	RawScriptForDependenciesLanguagePython3    RawScriptForDependenciesLanguage = "python3"
-	RawScriptForDependenciesLanguageRust       RawScriptForDependenciesLanguage = "rust"
-	RawScriptForDependenciesLanguageSnowflake  RawScriptForDependenciesLanguage = "snowflake"
-)
-
 // Defines values for RunnableType.
 const (
 	RunnableTypeFlowPath   RunnableType = "FlowPath"
@@ -616,26 +436,26 @@ const (
 	ScriptKindTrigger      ScriptKind = "trigger"
 )
 
-// Defines values for ScriptLanguage.
+// Defines values for ScriptLang.
 const (
-	ScriptLanguageAnsible    ScriptLanguage = "ansible"
-	ScriptLanguageBash       ScriptLanguage = "bash"
-	ScriptLanguageBigquery   ScriptLanguage = "bigquery"
-	ScriptLanguageBun        ScriptLanguage = "bun"
-	ScriptLanguageCsharp     ScriptLanguage = "csharp"
-	ScriptLanguageDeno       ScriptLanguage = "deno"
-	ScriptLanguageGo         ScriptLanguage = "go"
-	ScriptLanguageGraphql    ScriptLanguage = "graphql"
-	ScriptLanguageMssql      ScriptLanguage = "mssql"
-	ScriptLanguageMysql      ScriptLanguage = "mysql"
-	ScriptLanguageNativets   ScriptLanguage = "nativets"
-	ScriptLanguageOracledb   ScriptLanguage = "oracledb"
-	ScriptLanguagePhp        ScriptLanguage = "php"
-	ScriptLanguagePostgresql ScriptLanguage = "postgresql"
-	ScriptLanguagePowershell ScriptLanguage = "powershell"
-	ScriptLanguagePython3    ScriptLanguage = "python3"
-	ScriptLanguageRust       ScriptLanguage = "rust"
-	ScriptLanguageSnowflake  ScriptLanguage = "snowflake"
+	ScriptLangAnsible    ScriptLang = "ansible"
+	ScriptLangBash       ScriptLang = "bash"
+	ScriptLangBigquery   ScriptLang = "bigquery"
+	ScriptLangBun        ScriptLang = "bun"
+	ScriptLangCsharp     ScriptLang = "csharp"
+	ScriptLangDeno       ScriptLang = "deno"
+	ScriptLangGo         ScriptLang = "go"
+	ScriptLangGraphql    ScriptLang = "graphql"
+	ScriptLangMssql      ScriptLang = "mssql"
+	ScriptLangMysql      ScriptLang = "mysql"
+	ScriptLangNativets   ScriptLang = "nativets"
+	ScriptLangOracledb   ScriptLang = "oracledb"
+	ScriptLangPhp        ScriptLang = "php"
+	ScriptLangPostgresql ScriptLang = "postgresql"
+	ScriptLangPowershell ScriptLang = "powershell"
+	ScriptLangPython3    ScriptLang = "python3"
+	ScriptLangRust       ScriptLang = "rust"
+	ScriptLangSnowflake  ScriptLang = "snowflake"
 )
 
 // Defines values for StaticTransformType.
@@ -710,6 +530,7 @@ const (
 	AddGranularAclsParamsKindHttpTrigger      AddGranularAclsParamsKind = "http_trigger"
 	AddGranularAclsParamsKindKafkaTrigger     AddGranularAclsParamsKind = "kafka_trigger"
 	AddGranularAclsParamsKindNatsTrigger      AddGranularAclsParamsKind = "nats_trigger"
+	AddGranularAclsParamsKindPostgresTrigger  AddGranularAclsParamsKind = "postgres_trigger"
 	AddGranularAclsParamsKindRawApp           AddGranularAclsParamsKind = "raw_app"
 	AddGranularAclsParamsKindResource         AddGranularAclsParamsKind = "resource"
 	AddGranularAclsParamsKindSchedule         AddGranularAclsParamsKind = "schedule"
@@ -727,6 +548,7 @@ const (
 	GetGranularAclsParamsKindHttpTrigger      GetGranularAclsParamsKind = "http_trigger"
 	GetGranularAclsParamsKindKafkaTrigger     GetGranularAclsParamsKind = "kafka_trigger"
 	GetGranularAclsParamsKindNatsTrigger      GetGranularAclsParamsKind = "nats_trigger"
+	GetGranularAclsParamsKindPostgresTrigger  GetGranularAclsParamsKind = "postgres_trigger"
 	GetGranularAclsParamsKindRawApp           GetGranularAclsParamsKind = "raw_app"
 	GetGranularAclsParamsKindResource         GetGranularAclsParamsKind = "resource"
 	GetGranularAclsParamsKindSchedule         GetGranularAclsParamsKind = "schedule"
@@ -744,6 +566,7 @@ const (
 	RemoveGranularAclsParamsKindHttpTrigger      RemoveGranularAclsParamsKind = "http_trigger"
 	RemoveGranularAclsParamsKindKafkaTrigger     RemoveGranularAclsParamsKind = "kafka_trigger"
 	RemoveGranularAclsParamsKindNatsTrigger      RemoveGranularAclsParamsKind = "nats_trigger"
+	RemoveGranularAclsParamsKindPostgresTrigger  RemoveGranularAclsParamsKind = "postgres_trigger"
 	RemoveGranularAclsParamsKindRawApp           RemoveGranularAclsParamsKind = "raw_app"
 	RemoveGranularAclsParamsKindResource         RemoveGranularAclsParamsKind = "resource"
 	RemoveGranularAclsParamsKindSchedule         RemoveGranularAclsParamsKind = "schedule"
@@ -810,11 +633,11 @@ const (
 
 // Defines values for ExistsRouteJSONBodyHttpMethod.
 const (
-	Delete ExistsRouteJSONBodyHttpMethod = "delete"
-	Get    ExistsRouteJSONBodyHttpMethod = "get"
-	Patch  ExistsRouteJSONBodyHttpMethod = "patch"
-	Post   ExistsRouteJSONBodyHttpMethod = "post"
-	Put    ExistsRouteJSONBodyHttpMethod = "put"
+	ExistsRouteJSONBodyHttpMethodDelete ExistsRouteJSONBodyHttpMethod = "delete"
+	ExistsRouteJSONBodyHttpMethodGet    ExistsRouteJSONBodyHttpMethod = "get"
+	ExistsRouteJSONBodyHttpMethodPatch  ExistsRouteJSONBodyHttpMethod = "patch"
+	ExistsRouteJSONBodyHttpMethodPost   ExistsRouteJSONBodyHttpMethod = "post"
+	ExistsRouteJSONBodyHttpMethodPut    ExistsRouteJSONBodyHttpMethod = "put"
 )
 
 // Defines values for SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType.
@@ -951,28 +774,43 @@ type CaptureConfig struct {
 // CaptureTriggerKind defines model for CaptureTriggerKind.
 type CaptureTriggerKind string
 
+// ChannelInfo defines model for ChannelInfo.
+type ChannelInfo struct {
+	// ChannelId The unique identifier of the channel
+	ChannelId string `json:"channel_id"`
+
+	// ChannelName The display name of the channel
+	ChannelName string `json:"channel_name"`
+
+	// ServiceUrl The service URL for the channel
+	ServiceUrl string `json:"service_url"`
+
+	// TenantId The Microsoft Teams tenant identifier
+	TenantId string `json:"tenant_id"`
+}
+
 // CompletedJob defines model for CompletedJob.
 type CompletedJob struct {
-	AggregateWaitTimeMs *float32              `json:"aggregate_wait_time_ms,omitempty"`
-	Args                *ScriptArgs           `json:"args,omitempty"`
-	Canceled            bool                  `json:"canceled"`
-	CanceledBy          *string               `json:"canceled_by,omitempty"`
-	CanceledReason      *string               `json:"canceled_reason,omitempty"`
-	CreatedAt           time.Time             `json:"created_at"`
-	CreatedBy           string                `json:"created_by"`
-	Deleted             *bool                 `json:"deleted,omitempty"`
-	DurationMs          int                   `json:"duration_ms"`
-	Email               string                `json:"email"`
-	FlowStatus          *FlowStatus           `json:"flow_status,omitempty"`
-	Id                  openapi_types.UUID    `json:"id"`
-	IsFlowStep          bool                  `json:"is_flow_step"`
-	IsSkipped           bool                  `json:"is_skipped"`
-	JobKind             CompletedJobJobKind   `json:"job_kind"`
-	Labels              *[]string             `json:"labels,omitempty"`
-	Language            *CompletedJobLanguage `json:"language,omitempty"`
-	Logs                *string               `json:"logs,omitempty"`
-	MemPeak             *int                  `json:"mem_peak,omitempty"`
-	ParentJob           *openapi_types.UUID   `json:"parent_job,omitempty"`
+	AggregateWaitTimeMs *float32            `json:"aggregate_wait_time_ms,omitempty"`
+	Args                *ScriptArgs         `json:"args,omitempty"`
+	Canceled            bool                `json:"canceled"`
+	CanceledBy          *string             `json:"canceled_by,omitempty"`
+	CanceledReason      *string             `json:"canceled_reason,omitempty"`
+	CreatedAt           time.Time           `json:"created_at"`
+	CreatedBy           string              `json:"created_by"`
+	Deleted             *bool               `json:"deleted,omitempty"`
+	DurationMs          int                 `json:"duration_ms"`
+	Email               string              `json:"email"`
+	FlowStatus          *FlowStatus         `json:"flow_status,omitempty"`
+	Id                  openapi_types.UUID  `json:"id"`
+	IsFlowStep          bool                `json:"is_flow_step"`
+	IsSkipped           bool                `json:"is_skipped"`
+	JobKind             CompletedJobJobKind `json:"job_kind"`
+	Labels              *[]string           `json:"labels,omitempty"`
+	Language            *ScriptLang         `json:"language,omitempty"`
+	Logs                *string             `json:"logs,omitempty"`
+	MemPeak             *int                `json:"mem_peak,omitempty"`
+	ParentJob           *openapi_types.UUID `json:"parent_job,omitempty"`
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
@@ -994,9 +832,6 @@ type CompletedJob struct {
 
 // CompletedJobJobKind defines model for CompletedJob.JobKind.
 type CompletedJobJobKind string
-
-// CompletedJobLanguage defines model for CompletedJob.Language.
-type CompletedJobLanguage string
 
 // ConcurrencyGroup defines model for ConcurrencyGroup.
 type ConcurrencyGroup struct {
@@ -1111,6 +946,18 @@ type EditNatsTrigger struct {
 	StreamName       *string  `json:"stream_name,omitempty"`
 	Subjects         []string `json:"subjects"`
 	UseJetstream     bool     `json:"use_jetstream"`
+}
+
+// EditPostgresTrigger defines model for EditPostgresTrigger.
+type EditPostgresTrigger struct {
+	Enabled              bool             `json:"enabled"`
+	IsFlow               bool             `json:"is_flow"`
+	Path                 string           `json:"path"`
+	PostgresResourcePath string           `json:"postgres_resource_path"`
+	Publication          *PublicationData `json:"publication,omitempty"`
+	PublicationName      string           `json:"publication_name"`
+	ReplicationSlotName  string           `json:"replication_slot_name"`
+	ScriptPath           string           `json:"script_path"`
 }
 
 // EditResource defines model for EditResource.
@@ -1480,28 +1327,7 @@ type Group struct {
 }
 
 // HttpTrigger defines model for HttpTrigger.
-type HttpTrigger struct {
-	EditedAt          time.Time             `json:"edited_at"`
-	EditedBy          string                `json:"edited_by"`
-	Email             string                `json:"email"`
-	ExtraPerms        map[string]bool       `json:"extra_perms"`
-	HttpMethod        HttpTriggerHttpMethod `json:"http_method"`
-	IsAsync           bool                  `json:"is_async"`
-	IsFlow            bool                  `json:"is_flow"`
-	Path              string                `json:"path"`
-	RequiresAuth      bool                  `json:"requires_auth"`
-	RoutePath         string                `json:"route_path"`
-	ScriptPath        string                `json:"script_path"`
-	StaticAssetConfig *struct {
-		Filename *string `json:"filename,omitempty"`
-		S3       string  `json:"s3"`
-		Storage  *string `json:"storage,omitempty"`
-	} `json:"static_asset_config,omitempty"`
-	WorkspaceId string `json:"workspace_id"`
-}
-
-// HttpTriggerHttpMethod defines model for HttpTrigger.HttpMethod.
-type HttpTriggerHttpMethod string
+type HttpTrigger = TriggerExtraProperty
 
 // HubScriptKind defines model for HubScriptKind.
 type HubScriptKind = interface{}
@@ -1569,7 +1395,7 @@ type Job0 struct {
 	IsSkipped           bool                `json:"is_skipped"`
 	JobKind             Job0JobKind         `json:"job_kind"`
 	Labels              *[]string           `json:"labels,omitempty"`
-	Language            *Job0Language       `json:"language,omitempty"`
+	Language            *ScriptLang         `json:"language,omitempty"`
 	Logs                *string             `json:"logs,omitempty"`
 	MemPeak             *int                `json:"mem_peak,omitempty"`
 	ParentJob           *openapi_types.UUID `json:"parent_job,omitempty"`
@@ -1596,9 +1422,6 @@ type Job0 struct {
 // Job0JobKind defines model for Job.0.JobKind.
 type Job0JobKind string
 
-// Job0Language defines model for Job.0.Language.
-type Job0Language string
-
 // Job0Type defines model for Job.0.Type.
 type Job0Type string
 
@@ -1616,7 +1439,7 @@ type Job1 struct {
 	Id                  openapi_types.UUID  `json:"id"`
 	IsFlowStep          bool                `json:"is_flow_step"`
 	JobKind             Job1JobKind         `json:"job_kind"`
-	Language            *Job1Language       `json:"language,omitempty"`
+	Language            *ScriptLang         `json:"language,omitempty"`
 	LastPing            *time.Time          `json:"last_ping,omitempty"`
 	Logs                *string             `json:"logs,omitempty"`
 	MemPeak             *int                `json:"mem_peak,omitempty"`
@@ -1645,9 +1468,6 @@ type Job1 struct {
 // Job1JobKind defines model for Job.1.JobKind.
 type Job1JobKind string
 
-// Job1Language defines model for Job.1.Language.
-type Job1Language string
-
 // Job1Type defines model for Job.1.Type.
 type Job1Type string
 
@@ -1674,6 +1494,9 @@ type KafkaTrigger struct {
 	Topics            []string        `json:"topics"`
 	WorkspaceId       string          `json:"workspace_id"`
 }
+
+// Language defines model for Language.
+type Language string
 
 // LargeFileStorage defines model for LargeFileStorage.
 type LargeFileStorage struct {
@@ -1844,6 +1667,18 @@ type NewNatsTrigger struct {
 	UseJetstream     bool     `json:"use_jetstream"`
 }
 
+// NewPostgresTrigger defines model for NewPostgresTrigger.
+type NewPostgresTrigger struct {
+	Enabled              bool             `json:"enabled"`
+	IsFlow               bool             `json:"is_flow"`
+	Path                 string           `json:"path"`
+	PostgresResourcePath string           `json:"postgres_resource_path"`
+	Publication          *PublicationData `json:"publication,omitempty"`
+	PublicationName      *string          `json:"publication_name,omitempty"`
+	ReplicationSlotName  *string          `json:"replication_slot_name,omitempty"`
+	ScriptPath           string           `json:"script_path"`
+}
+
 // NewSchedule defines model for NewSchedule.
 type NewSchedule struct {
 	Args                ScriptArgs  `json:"args"`
@@ -1888,7 +1723,7 @@ type NewScript struct {
 	HasPreprocessor        *bool                   `json:"has_preprocessor,omitempty"`
 	IsTemplate             *bool                   `json:"is_template,omitempty"`
 	Kind                   *NewScriptKind          `json:"kind,omitempty"`
-	Language               NewScriptLanguage       `json:"language"`
+	Language               ScriptLang              `json:"language"`
 	Lock                   *string                 `json:"lock,omitempty"`
 	NoMainFunc             *bool                   `json:"no_main_func,omitempty"`
 	OnBehalfOfEmail        *string                 `json:"on_behalf_of_email,omitempty"`
@@ -1907,49 +1742,43 @@ type NewScript struct {
 // NewScriptKind defines model for NewScript.Kind.
 type NewScriptKind string
 
-// NewScriptLanguage defines model for NewScript.Language.
-type NewScriptLanguage string
-
 // NewScriptWithDraft defines model for NewScriptWithDraft.
 type NewScriptWithDraft struct {
-	CacheTtl               *float32                   `json:"cache_ttl,omitempty"`
-	Codebase               *string                    `json:"codebase,omitempty"`
-	ConcurrencyKey         *string                    `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS *int                       `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *int                       `json:"concurrent_limit,omitempty"`
-	Content                string                     `json:"content"`
-	DedicatedWorker        *bool                      `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse         *bool                      `json:"delete_after_use,omitempty"`
-	DeploymentMessage      *string                    `json:"deployment_message,omitempty"`
-	Description            string                     `json:"description"`
-	Draft                  *NewScript                 `json:"draft,omitempty"`
-	DraftOnly              *bool                      `json:"draft_only,omitempty"`
-	Envs                   *[]string                  `json:"envs,omitempty"`
-	HasPreprocessor        *bool                      `json:"has_preprocessor,omitempty"`
-	Hash                   string                     `json:"hash"`
-	IsTemplate             *bool                      `json:"is_template,omitempty"`
-	Kind                   *NewScriptWithDraftKind    `json:"kind,omitempty"`
-	Language               NewScriptWithDraftLanguage `json:"language"`
-	Lock                   *string                    `json:"lock,omitempty"`
-	NoMainFunc             *bool                      `json:"no_main_func,omitempty"`
-	OnBehalfOfEmail        *string                    `json:"on_behalf_of_email,omitempty"`
-	ParentHash             *string                    `json:"parent_hash,omitempty"`
-	Path                   string                     `json:"path"`
-	Priority               *int                       `json:"priority,omitempty"`
-	RestartUnlessCancelled *bool                      `json:"restart_unless_cancelled,omitempty"`
-	Schema                 *map[string]interface{}    `json:"schema,omitempty"`
-	Summary                string                     `json:"summary"`
-	Tag                    *string                    `json:"tag,omitempty"`
-	Timeout                *int                       `json:"timeout,omitempty"`
-	VisibleToRunnerOnly    *bool                      `json:"visible_to_runner_only,omitempty"`
-	WsErrorHandlerMuted    *bool                      `json:"ws_error_handler_muted,omitempty"`
+	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
+	Codebase               *string                 `json:"codebase,omitempty"`
+	ConcurrencyKey         *string                 `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
+	Content                string                  `json:"content"`
+	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse         *bool                   `json:"delete_after_use,omitempty"`
+	DeploymentMessage      *string                 `json:"deployment_message,omitempty"`
+	Description            string                  `json:"description"`
+	Draft                  *NewScript              `json:"draft,omitempty"`
+	DraftOnly              *bool                   `json:"draft_only,omitempty"`
+	Envs                   *[]string               `json:"envs,omitempty"`
+	HasPreprocessor        *bool                   `json:"has_preprocessor,omitempty"`
+	Hash                   string                  `json:"hash"`
+	IsTemplate             *bool                   `json:"is_template,omitempty"`
+	Kind                   *NewScriptWithDraftKind `json:"kind,omitempty"`
+	Language               ScriptLang              `json:"language"`
+	Lock                   *string                 `json:"lock,omitempty"`
+	NoMainFunc             *bool                   `json:"no_main_func,omitempty"`
+	OnBehalfOfEmail        *string                 `json:"on_behalf_of_email,omitempty"`
+	ParentHash             *string                 `json:"parent_hash,omitempty"`
+	Path                   string                  `json:"path"`
+	Priority               *int                    `json:"priority,omitempty"`
+	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
+	Schema                 *map[string]interface{} `json:"schema,omitempty"`
+	Summary                string                  `json:"summary"`
+	Tag                    *string                 `json:"tag,omitempty"`
+	Timeout                *int                    `json:"timeout,omitempty"`
+	VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
+	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // NewScriptWithDraftKind defines model for NewScriptWithDraft.Kind.
 type NewScriptWithDraftKind string
-
-// NewScriptWithDraftLanguage defines model for NewScriptWithDraft.Language.
-type NewScriptWithDraftLanguage string
 
 // NewToken defines model for NewToken.
 type NewToken struct {
@@ -2013,6 +1842,36 @@ type OpenFlowWPath struct {
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
+// OperatorSettings defines model for OperatorSettings.
+type OperatorSettings struct {
+	// AuditLogs Whether operators can view audit logs
+	AuditLogs bool `json:"audit_logs"`
+
+	// Folders Whether operators can view folders page
+	Folders bool `json:"folders"`
+
+	// Groups Whether operators can view groups page
+	Groups bool `json:"groups"`
+
+	// Resources Whether operators can view resources
+	Resources bool `json:"resources"`
+
+	// Runs Whether operators can view runs
+	Runs bool `json:"runs"`
+
+	// Schedules Whether operators can view schedules
+	Schedules bool `json:"schedules"`
+
+	// Triggers Whether operators can view triggers
+	Triggers bool `json:"triggers"`
+
+	// Variables Whether operators can view variables
+	Variables bool `json:"variables"`
+
+	// Workers Whether operators can view workers page
+	Workers bool `json:"workers"`
+}
+
 // PathFlow defines model for PathFlow.
 type PathFlow struct {
 	InputTransforms map[string]InputTransform `json:"input_transforms"`
@@ -2054,23 +1913,29 @@ type Policy struct {
 // PolicyExecutionMode defines model for Policy.ExecutionMode.
 type PolicyExecutionMode string
 
+// PostgresTrigger defines model for PostgresTrigger.
+type PostgresTrigger = TriggerExtraProperty
+
 // Preview defines model for Preview.
 type Preview struct {
-	Args            ScriptArgs       `json:"args"`
-	Content         *string          `json:"content,omitempty"`
-	DedicatedWorker *bool            `json:"dedicated_worker,omitempty"`
-	Kind            *PreviewKind     `json:"kind,omitempty"`
-	Language        *PreviewLanguage `json:"language,omitempty"`
-	Lock            *string          `json:"lock,omitempty"`
-	Path            *string          `json:"path,omitempty"`
-	Tag             *string          `json:"tag,omitempty"`
+	Args            ScriptArgs   `json:"args"`
+	Content         *string      `json:"content,omitempty"`
+	DedicatedWorker *bool        `json:"dedicated_worker,omitempty"`
+	Kind            *PreviewKind `json:"kind,omitempty"`
+	Language        *ScriptLang  `json:"language,omitempty"`
+	Lock            *string      `json:"lock,omitempty"`
+	Path            *string      `json:"path,omitempty"`
+	Tag             *string      `json:"tag,omitempty"`
 }
 
 // PreviewKind defines model for Preview.Kind.
 type PreviewKind string
 
-// PreviewLanguage defines model for Preview.Language.
-type PreviewLanguage string
+// PublicationData defines model for PublicationData.
+type PublicationData struct {
+	TableToTrack       *[]Relations `json:"table_to_track,omitempty"`
+	TransactionToTrack []string     `json:"transaction_to_track"`
+}
 
 // QueuedJob defines model for QueuedJob.
 type QueuedJob struct {
@@ -2086,7 +1951,7 @@ type QueuedJob struct {
 	Id                  openapi_types.UUID  `json:"id"`
 	IsFlowStep          bool                `json:"is_flow_step"`
 	JobKind             QueuedJobJobKind    `json:"job_kind"`
-	Language            *QueuedJobLanguage  `json:"language,omitempty"`
+	Language            *ScriptLang         `json:"language,omitempty"`
 	LastPing            *time.Time          `json:"last_ping,omitempty"`
 	Logs                *string             `json:"logs,omitempty"`
 	MemPeak             *int                `json:"mem_peak,omitempty"`
@@ -2114,9 +1979,6 @@ type QueuedJob struct {
 // QueuedJobJobKind defines model for QueuedJob.JobKind.
 type QueuedJobJobKind string
 
-// QueuedJobLanguage defines model for QueuedJob.Language.
-type QueuedJobLanguage string
-
 // RawScript defines model for RawScript.
 type RawScript struct {
 	ConcurrencyTimeWindowS *float32                  `json:"concurrency_time_window_s,omitempty"`
@@ -2140,13 +2002,16 @@ type RawScriptType string
 
 // RawScriptForDependencies defines model for RawScriptForDependencies.
 type RawScriptForDependencies struct {
-	Language RawScriptForDependenciesLanguage `json:"language"`
-	Path     string                           `json:"path"`
-	RawCode  string                           `json:"raw_code"`
+	Language ScriptLang `json:"language"`
+	Path     string     `json:"path"`
+	RawCode  string     `json:"raw_code"`
 }
 
-// RawScriptForDependenciesLanguage defines model for RawScriptForDependencies.Language.
-type RawScriptForDependenciesLanguage string
+// Relations defines model for Relations.
+type Relations struct {
+	SchemaName   string       `json:"schema_name"`
+	TableToTrack TableToTrack `json:"table_to_track"`
+}
 
 // Resource defines model for Resource.
 type Resource struct {
@@ -2305,7 +2170,7 @@ type Script struct {
 	Hash                   string          `json:"hash"`
 	IsTemplate             bool            `json:"is_template"`
 	Kind                   ScriptKind      `json:"kind"`
-	Language               ScriptLanguage  `json:"language"`
+	Language               ScriptLang      `json:"language"`
 	Lock                   *string         `json:"lock,omitempty"`
 	LockErrorLogs          *string         `json:"lock_error_logs,omitempty"`
 	NoMainFunc             bool            `json:"no_main_func"`
@@ -2329,9 +2194,6 @@ type Script struct {
 // ScriptKind defines model for Script.Kind.
 type ScriptKind string
 
-// ScriptLanguage defines model for Script.Language.
-type ScriptLanguage string
-
 // ScriptArgs defines model for ScriptArgs.
 type ScriptArgs map[string]interface{}
 
@@ -2339,6 +2201,20 @@ type ScriptArgs map[string]interface{}
 type ScriptHistory struct {
 	DeploymentMsg *string `json:"deployment_msg,omitempty"`
 	ScriptHash    string  `json:"script_hash"`
+}
+
+// ScriptLang defines model for ScriptLang.
+type ScriptLang string
+
+// Slot defines model for Slot.
+type Slot struct {
+	Name *string `json:"name,omitempty"`
+}
+
+// SlotList defines model for SlotList.
+type SlotList struct {
+	Active   *bool   `json:"active,omitempty"`
+	SlotName *string `json:"slot_name,omitempty"`
 }
 
 // StaticTransform defines model for StaticTransform.
@@ -2349,6 +2225,32 @@ type StaticTransform struct {
 
 // StaticTransformType defines model for StaticTransform.Type.
 type StaticTransformType string
+
+// TableToTrack defines model for TableToTrack.
+type TableToTrack = []struct {
+	ColumnsName *[]string `json:"columns_name,omitempty"`
+	TableName   string    `json:"table_name"`
+	WhereClause *string   `json:"where_clause,omitempty"`
+}
+
+// TeamInfo defines model for TeamInfo.
+type TeamInfo struct {
+	// Channels List of channels within the team
+	Channels []ChannelInfo `json:"channels"`
+
+	// TeamId The unique identifier of the Microsoft Teams team
+	TeamId string `json:"team_id"`
+
+	// TeamName The display name of the Microsoft Teams team
+	TeamName string `json:"team_name"`
+}
+
+// TemplateScript defines model for TemplateScript.
+type TemplateScript struct {
+	Language             Language    `json:"language"`
+	PostgresResourcePath string      `json:"postgres_resource_path"`
+	Relations            []Relations `json:"relations"`
+}
 
 // TimeseriesMetric defines model for TimeseriesMetric.
 type TimeseriesMetric struct {
@@ -2364,12 +2266,22 @@ type TokenResponse struct {
 	Scope        *[]string `json:"scope,omitempty"`
 }
 
+// TriggerExtraProperty defines model for TriggerExtraProperty.
+type TriggerExtraProperty struct {
+	EditedAt    time.Time       `json:"edited_at"`
+	EditedBy    string          `json:"edited_by"`
+	Email       string          `json:"email"`
+	ExtraPerms  map[string]bool `json:"extra_perms"`
+	WorkspaceId string          `json:"workspace_id"`
+}
+
 // TriggersCount defines model for TriggersCount.
 type TriggersCount struct {
 	EmailCount      *float32 `json:"email_count,omitempty"`
 	HttpRoutesCount *float32 `json:"http_routes_count,omitempty"`
 	KafkaCount      *float32 `json:"kafka_count,omitempty"`
 	NatsCount       *float32 `json:"nats_count,omitempty"`
+	PostgresCount   *float32 `json:"postgres_count,omitempty"`
 	PrimarySchedule *struct {
 		Schedule *string `json:"schedule,omitempty"`
 	} `json:"primary_schedule,omitempty"`
@@ -2421,35 +2333,16 @@ type UserUsage struct {
 type UserWorkspaceList struct {
 	Email      string `json:"email"`
 	Workspaces []struct {
-		Color    string `json:"color"`
-		Id       string `json:"id"`
-		Name     string `json:"name"`
-		Username string `json:"username"`
+		Color            string            `json:"color"`
+		Id               string            `json:"id"`
+		Name             string            `json:"name"`
+		OperatorSettings *OperatorSettings `json:"operator_settings"`
+		Username         string            `json:"username"`
 	} `json:"workspaces"`
 }
 
 // WebsocketTrigger defines model for WebsocketTrigger.
-type WebsocketTrigger struct {
-	EditedAt   time.Time       `json:"edited_at"`
-	EditedBy   string          `json:"edited_by"`
-	Email      string          `json:"email"`
-	Enabled    bool            `json:"enabled"`
-	Error      *string         `json:"error,omitempty"`
-	ExtraPerms map[string]bool `json:"extra_perms"`
-	Filters    []struct {
-		Key   string      `json:"key"`
-		Value interface{} `json:"value"`
-	} `json:"filters"`
-	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
-	IsFlow          bool                              `json:"is_flow"`
-	LastServerPing  *time.Time                        `json:"last_server_ping,omitempty"`
-	Path            string                            `json:"path"`
-	ScriptPath      string                            `json:"script_path"`
-	ServerId        *string                           `json:"server_id,omitempty"`
-	Url             string                            `json:"url"`
-	UrlRunnableArgs *ScriptArgs                       `json:"url_runnable_args,omitempty"`
-	WorkspaceId     string                            `json:"workspace_id"`
-}
+type WebsocketTrigger = TriggerExtraProperty
 
 // WebsocketTriggerInitialMessage defines model for WebsocketTriggerInitialMessage.
 type WebsocketTriggerInitialMessage struct {
@@ -2636,6 +2529,9 @@ type CustomPath = string
 // GetStarted defines model for GetStarted.
 type GetStarted = bool
 
+// Id defines model for Id.
+type Id = string
+
 // IncludeHeader defines model for IncludeHeader.
 type IncludeHeader = string
 
@@ -2686,6 +2582,9 @@ type Payload = string
 
 // PerPage defines model for PerPage.
 type PerPage = int
+
+// PublicationName defines model for PublicationName.
+type PublicationName = string
 
 // QueueLimit defines model for QueueLimit.
 type QueueLimit = string
@@ -4383,6 +4282,25 @@ type RefreshTokenJSONBody struct {
 	Path string `json:"path"`
 }
 
+// ListPostgresTriggersParams defines parameters for ListPostgresTriggers.
+type ListPostgresTriggersParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// Path filter by path
+	Path      *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+}
+
+// SetPostgresTriggerEnabledJSONBody defines parameters for SetPostgresTriggerEnabled.
+type SetPostgresTriggerEnabledJSONBody struct {
+	Enabled bool `json:"enabled"`
+}
+
 // CreateRawAppJSONBody defines parameters for CreateRawApp.
 type CreateRawAppJSONBody struct {
 	Path    string `json:"path"`
@@ -5099,6 +5017,30 @@ type CreateAccountJSONRequestBody CreateAccountJSONBody
 // RefreshTokenJSONRequestBody defines body for RefreshToken for application/json ContentType.
 type RefreshTokenJSONRequestBody RefreshTokenJSONBody
 
+// CreatePostgresTriggerJSONRequestBody defines body for CreatePostgresTrigger for application/json ContentType.
+type CreatePostgresTriggerJSONRequestBody = NewPostgresTrigger
+
+// CreateTemplateScriptJSONRequestBody defines body for CreateTemplateScript for application/json ContentType.
+type CreateTemplateScriptJSONRequestBody = TemplateScript
+
+// CreatePostgresPublicationJSONRequestBody defines body for CreatePostgresPublication for application/json ContentType.
+type CreatePostgresPublicationJSONRequestBody = PublicationData
+
+// UpdatePostgresPublicationJSONRequestBody defines body for UpdatePostgresPublication for application/json ContentType.
+type UpdatePostgresPublicationJSONRequestBody = PublicationData
+
+// SetPostgresTriggerEnabledJSONRequestBody defines body for SetPostgresTriggerEnabled for application/json ContentType.
+type SetPostgresTriggerEnabledJSONRequestBody SetPostgresTriggerEnabledJSONBody
+
+// CreatePostgresReplicationSlotJSONRequestBody defines body for CreatePostgresReplicationSlot for application/json ContentType.
+type CreatePostgresReplicationSlotJSONRequestBody = Slot
+
+// DeletePostgresReplicationSlotJSONRequestBody defines body for DeletePostgresReplicationSlot for application/json ContentType.
+type DeletePostgresReplicationSlotJSONRequestBody = Slot
+
+// UpdatePostgresTriggerJSONRequestBody defines body for UpdatePostgresTrigger for application/json ContentType.
+type UpdatePostgresTriggerJSONRequestBody = EditPostgresTrigger
+
 // CreateRawAppJSONRequestBody defines body for CreateRawApp for application/json ContentType.
 type CreateRawAppJSONRequestBody CreateRawAppJSONBody
 
@@ -5218,6 +5160,9 @@ type SetWorkspaceEncryptionKeyJSONRequestBody SetWorkspaceEncryptionKeyJSONBody
 
 // InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
 type InviteUserJSONRequestBody InviteUserJSONBody
+
+// UpdateOperatorSettingsJSONRequestBody defines body for UpdateOperatorSettings for application/json ContentType.
+type UpdateOperatorSettingsJSONRequestBody = OperatorSettings
 
 // RunSlackMessageTestJobJSONRequestBody defines body for RunSlackMessageTestJob for application/json ContentType.
 type RunSlackMessageTestJobJSONRequestBody RunSlackMessageTestJobJSONBody
@@ -6018,6 +5963,9 @@ type ClientInterface interface {
 	// SearchJobsIndex request
 	SearchJobsIndex(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SyncTeams request
+	SyncTeams(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// BackendUptodate request
 	BackendUptodate(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6764,6 +6712,76 @@ type ClientInterface interface {
 	// GetOidcToken request
 	GetOidcToken(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreatePostgresTriggerWithBody request with any body
+	CreatePostgresTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreatePostgresTrigger(ctx context.Context, workspace WorkspaceId, body CreatePostgresTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateTemplateScriptWithBody request with any body
+	CreateTemplateScriptWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateTemplateScript(ctx context.Context, workspace WorkspaceId, body CreateTemplateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeletePostgresTrigger request
+	DeletePostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsPostgresTrigger request
+	ExistsPostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetPostgresTrigger request
+	GetPostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTemplateScript request
+	GetTemplateScript(ctx context.Context, workspace WorkspaceId, id Id, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// IsValidPostgresConfiguration request
+	IsValidPostgresConfiguration(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListPostgresTriggers request
+	ListPostgresTriggers(ctx context.Context, workspace WorkspaceId, params *ListPostgresTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreatePostgresPublicationWithBody request with any body
+	CreatePostgresPublicationWithBody(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreatePostgresPublication(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, body CreatePostgresPublicationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeletePostgresPublication request
+	DeletePostgresPublication(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetPostgresPublication request
+	GetPostgresPublication(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListPostgresPublication request
+	ListPostgresPublication(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdatePostgresPublicationWithBody request with any body
+	UpdatePostgresPublicationWithBody(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdatePostgresPublication(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, body UpdatePostgresPublicationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetPostgresTriggerEnabledWithBody request with any body
+	SetPostgresTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetPostgresTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreatePostgresReplicationSlotWithBody request with any body
+	CreatePostgresReplicationSlotWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreatePostgresReplicationSlot(ctx context.Context, workspace WorkspaceId, path Path, body CreatePostgresReplicationSlotJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeletePostgresReplicationSlotWithBody request with any body
+	DeletePostgresReplicationSlotWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DeletePostgresReplicationSlot(ctx context.Context, workspace WorkspaceId, path Path, body DeletePostgresReplicationSlotJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListPostgresReplicationSlot request
+	ListPostgresReplicationSlot(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdatePostgresTriggerWithBody request with any body
+	UpdatePostgresTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdatePostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdatePostgresTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateRawAppWithBody request with any body
 	CreateRawAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7185,6 +7203,11 @@ type ClientInterface interface {
 
 	// ListPendingInvites request
 	ListPendingInvites(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateOperatorSettingsWithBody request with any body
+	UpdateOperatorSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateOperatorSettings(ctx context.Context, workspace WorkspaceId, body UpdateOperatorSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetPremiumInfo request
 	GetPremiumInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8223,6 +8246,18 @@ func (c *Client) SearchLogsIndex(ctx context.Context, params *SearchLogsIndexPar
 
 func (c *Client) SearchJobsIndex(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSearchJobsIndexRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SyncTeams(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSyncTeamsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -11521,6 +11556,318 @@ func (c *Client) GetOidcToken(ctx context.Context, workspace WorkspaceId, audien
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreatePostgresTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreatePostgresTriggerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreatePostgresTrigger(ctx context.Context, workspace WorkspaceId, body CreatePostgresTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreatePostgresTriggerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateTemplateScriptWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateTemplateScriptRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateTemplateScript(ctx context.Context, workspace WorkspaceId, body CreateTemplateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateTemplateScriptRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeletePostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeletePostgresTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsPostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsPostgresTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPostgresTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTemplateScript(ctx context.Context, workspace WorkspaceId, id Id, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTemplateScriptRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) IsValidPostgresConfiguration(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewIsValidPostgresConfigurationRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListPostgresTriggers(ctx context.Context, workspace WorkspaceId, params *ListPostgresTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPostgresTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreatePostgresPublicationWithBody(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreatePostgresPublicationRequestWithBody(c.Server, workspace, publication, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreatePostgresPublication(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, body CreatePostgresPublicationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreatePostgresPublicationRequest(c.Server, workspace, publication, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeletePostgresPublication(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeletePostgresPublicationRequest(c.Server, workspace, publication, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPostgresPublication(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPostgresPublicationRequest(c.Server, workspace, publication, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListPostgresPublication(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPostgresPublicationRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdatePostgresPublicationWithBody(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatePostgresPublicationRequestWithBody(c.Server, workspace, publication, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdatePostgresPublication(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, body UpdatePostgresPublicationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatePostgresPublicationRequest(c.Server, workspace, publication, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetPostgresTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetPostgresTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetPostgresTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetPostgresTriggerEnabledRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreatePostgresReplicationSlotWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreatePostgresReplicationSlotRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreatePostgresReplicationSlot(ctx context.Context, workspace WorkspaceId, path Path, body CreatePostgresReplicationSlotJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreatePostgresReplicationSlotRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeletePostgresReplicationSlotWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeletePostgresReplicationSlotRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeletePostgresReplicationSlot(ctx context.Context, workspace WorkspaceId, path Path, body DeletePostgresReplicationSlotJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeletePostgresReplicationSlotRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListPostgresReplicationSlot(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPostgresReplicationSlotRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdatePostgresTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatePostgresTriggerRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdatePostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdatePostgresTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatePostgresTriggerRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateRawAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateRawAppRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -13359,6 +13706,30 @@ func (c *Client) LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqE
 
 func (c *Client) ListPendingInvites(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListPendingInvitesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateOperatorSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateOperatorSettingsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateOperatorSettings(ctx context.Context, workspace WorkspaceId, body UpdateOperatorSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateOperatorSettingsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16342,6 +16713,33 @@ func NewSearchJobsIndexRequest(server string, workspace WorkspaceId, params *Sea
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSyncTeamsRequest generates requests for SyncTeams
+func NewSyncTeamsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/teams/sync")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -30674,6 +31072,941 @@ func NewGetOidcTokenRequest(server string, workspace WorkspaceId, audience strin
 	return req, nil
 }
 
+// NewCreatePostgresTriggerRequest calls the generic CreatePostgresTrigger builder with application/json body
+func NewCreatePostgresTriggerRequest(server string, workspace WorkspaceId, body CreatePostgresTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreatePostgresTriggerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreatePostgresTriggerRequestWithBody generates requests for CreatePostgresTrigger with any type of body
+func NewCreatePostgresTriggerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateTemplateScriptRequest calls the generic CreateTemplateScript builder with application/json body
+func NewCreateTemplateScriptRequest(server string, workspace WorkspaceId, body CreateTemplateScriptJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateTemplateScriptRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateTemplateScriptRequestWithBody generates requests for CreateTemplateScript with any type of body
+func NewCreateTemplateScriptRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/create_template_script", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeletePostgresTriggerRequest generates requests for DeletePostgresTrigger
+func NewDeletePostgresTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsPostgresTriggerRequest generates requests for ExistsPostgresTrigger
+func NewExistsPostgresTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetPostgresTriggerRequest generates requests for GetPostgresTrigger
+func NewGetPostgresTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetTemplateScriptRequest generates requests for GetTemplateScript
+func NewGetTemplateScriptRequest(server string, workspace WorkspaceId, id Id) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/get_template_script/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewIsValidPostgresConfigurationRequest generates requests for IsValidPostgresConfiguration
+func NewIsValidPostgresConfigurationRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/is_valid_postgres_configuration/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListPostgresTriggersRequest generates requests for ListPostgresTriggers
+func NewListPostgresTriggersRequest(server string, workspace WorkspaceId, params *ListPostgresTriggersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsFlow != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PathStart != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreatePostgresPublicationRequest calls the generic CreatePostgresPublication builder with application/json body
+func NewCreatePostgresPublicationRequest(server string, workspace WorkspaceId, publication PublicationName, path Path, body CreatePostgresPublicationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreatePostgresPublicationRequestWithBody(server, workspace, publication, path, "application/json", bodyReader)
+}
+
+// NewCreatePostgresPublicationRequestWithBody generates requests for CreatePostgresPublication with any type of body
+func NewCreatePostgresPublicationRequestWithBody(server string, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "publication", runtime.ParamLocationPath, publication)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/publication/create/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeletePostgresPublicationRequest generates requests for DeletePostgresPublication
+func NewDeletePostgresPublicationRequest(server string, workspace WorkspaceId, publication PublicationName, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "publication", runtime.ParamLocationPath, publication)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/publication/delete/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetPostgresPublicationRequest generates requests for GetPostgresPublication
+func NewGetPostgresPublicationRequest(server string, workspace WorkspaceId, publication PublicationName, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "publication", runtime.ParamLocationPath, publication)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/publication/get/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListPostgresPublicationRequest generates requests for ListPostgresPublication
+func NewListPostgresPublicationRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/publication/list/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdatePostgresPublicationRequest calls the generic UpdatePostgresPublication builder with application/json body
+func NewUpdatePostgresPublicationRequest(server string, workspace WorkspaceId, publication PublicationName, path Path, body UpdatePostgresPublicationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdatePostgresPublicationRequestWithBody(server, workspace, publication, path, "application/json", bodyReader)
+}
+
+// NewUpdatePostgresPublicationRequestWithBody generates requests for UpdatePostgresPublication with any type of body
+func NewUpdatePostgresPublicationRequestWithBody(server string, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "publication", runtime.ParamLocationPath, publication)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/publication/update/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSetPostgresTriggerEnabledRequest calls the generic SetPostgresTriggerEnabled builder with application/json body
+func NewSetPostgresTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetPostgresTriggerEnabledJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetPostgresTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewSetPostgresTriggerEnabledRequestWithBody generates requests for SetPostgresTriggerEnabled with any type of body
+func NewSetPostgresTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/setenabled/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreatePostgresReplicationSlotRequest calls the generic CreatePostgresReplicationSlot builder with application/json body
+func NewCreatePostgresReplicationSlotRequest(server string, workspace WorkspaceId, path Path, body CreatePostgresReplicationSlotJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreatePostgresReplicationSlotRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewCreatePostgresReplicationSlotRequestWithBody generates requests for CreatePostgresReplicationSlot with any type of body
+func NewCreatePostgresReplicationSlotRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/slot/create/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeletePostgresReplicationSlotRequest calls the generic DeletePostgresReplicationSlot builder with application/json body
+func NewDeletePostgresReplicationSlotRequest(server string, workspace WorkspaceId, path Path, body DeletePostgresReplicationSlotJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDeletePostgresReplicationSlotRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewDeletePostgresReplicationSlotRequestWithBody generates requests for DeletePostgresReplicationSlot with any type of body
+func NewDeletePostgresReplicationSlotRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/slot/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListPostgresReplicationSlotRequest generates requests for ListPostgresReplicationSlot
+func NewListPostgresReplicationSlotRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/slot/list/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdatePostgresTriggerRequest calls the generic UpdatePostgresTrigger builder with application/json body
+func NewUpdatePostgresTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdatePostgresTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdatePostgresTriggerRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdatePostgresTriggerRequestWithBody generates requests for UpdatePostgresTrigger with any type of body
+func NewUpdatePostgresTriggerRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateRawAppRequest calls the generic CreateRawApp builder with application/json body
 func NewCreateRawAppRequest(server string, workspace WorkspaceId, body CreateRawAppJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -36425,6 +37758,53 @@ func NewListPendingInvitesRequest(server string, workspace WorkspaceId) (*http.R
 	return req, nil
 }
 
+// NewUpdateOperatorSettingsRequest calls the generic UpdateOperatorSettings builder with application/json body
+func NewUpdateOperatorSettingsRequest(server string, workspace WorkspaceId, body UpdateOperatorSettingsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateOperatorSettingsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewUpdateOperatorSettingsRequestWithBody generates requests for UpdateOperatorSettings with any type of body
+func NewUpdateOperatorSettingsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/operator_settings", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetPremiumInfoRequest generates requests for GetPremiumInfo
 func NewGetPremiumInfoRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -37648,6 +39028,9 @@ type ClientWithResponsesInterface interface {
 	// SearchJobsIndexWithResponse request
 	SearchJobsIndexWithResponse(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*SearchJobsIndexResponse, error)
 
+	// SyncTeamsWithResponse request
+	SyncTeamsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SyncTeamsResponse, error)
+
 	// BackendUptodateWithResponse request
 	BackendUptodateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*BackendUptodateResponse, error)
 
@@ -38394,6 +39777,76 @@ type ClientWithResponsesInterface interface {
 	// GetOidcTokenWithResponse request
 	GetOidcTokenWithResponse(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*GetOidcTokenResponse, error)
 
+	// CreatePostgresTriggerWithBodyWithResponse request with any body
+	CreatePostgresTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePostgresTriggerResponse, error)
+
+	CreatePostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreatePostgresTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreatePostgresTriggerResponse, error)
+
+	// CreateTemplateScriptWithBodyWithResponse request with any body
+	CreateTemplateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateTemplateScriptResponse, error)
+
+	CreateTemplateScriptWithResponse(ctx context.Context, workspace WorkspaceId, body CreateTemplateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateTemplateScriptResponse, error)
+
+	// DeletePostgresTriggerWithResponse request
+	DeletePostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeletePostgresTriggerResponse, error)
+
+	// ExistsPostgresTriggerWithResponse request
+	ExistsPostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsPostgresTriggerResponse, error)
+
+	// GetPostgresTriggerWithResponse request
+	GetPostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPostgresTriggerResponse, error)
+
+	// GetTemplateScriptWithResponse request
+	GetTemplateScriptWithResponse(ctx context.Context, workspace WorkspaceId, id Id, reqEditors ...RequestEditorFn) (*GetTemplateScriptResponse, error)
+
+	// IsValidPostgresConfigurationWithResponse request
+	IsValidPostgresConfigurationWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*IsValidPostgresConfigurationResponse, error)
+
+	// ListPostgresTriggersWithResponse request
+	ListPostgresTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListPostgresTriggersParams, reqEditors ...RequestEditorFn) (*ListPostgresTriggersResponse, error)
+
+	// CreatePostgresPublicationWithBodyWithResponse request with any body
+	CreatePostgresPublicationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePostgresPublicationResponse, error)
+
+	CreatePostgresPublicationWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, body CreatePostgresPublicationJSONRequestBody, reqEditors ...RequestEditorFn) (*CreatePostgresPublicationResponse, error)
+
+	// DeletePostgresPublicationWithResponse request
+	DeletePostgresPublicationWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, reqEditors ...RequestEditorFn) (*DeletePostgresPublicationResponse, error)
+
+	// GetPostgresPublicationWithResponse request
+	GetPostgresPublicationWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, reqEditors ...RequestEditorFn) (*GetPostgresPublicationResponse, error)
+
+	// ListPostgresPublicationWithResponse request
+	ListPostgresPublicationWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListPostgresPublicationResponse, error)
+
+	// UpdatePostgresPublicationWithBodyWithResponse request with any body
+	UpdatePostgresPublicationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePostgresPublicationResponse, error)
+
+	UpdatePostgresPublicationWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, body UpdatePostgresPublicationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePostgresPublicationResponse, error)
+
+	// SetPostgresTriggerEnabledWithBodyWithResponse request with any body
+	SetPostgresTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPostgresTriggerEnabledResponse, error)
+
+	SetPostgresTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetPostgresTriggerEnabledResponse, error)
+
+	// CreatePostgresReplicationSlotWithBodyWithResponse request with any body
+	CreatePostgresReplicationSlotWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePostgresReplicationSlotResponse, error)
+
+	CreatePostgresReplicationSlotWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body CreatePostgresReplicationSlotJSONRequestBody, reqEditors ...RequestEditorFn) (*CreatePostgresReplicationSlotResponse, error)
+
+	// DeletePostgresReplicationSlotWithBodyWithResponse request with any body
+	DeletePostgresReplicationSlotWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeletePostgresReplicationSlotResponse, error)
+
+	DeletePostgresReplicationSlotWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body DeletePostgresReplicationSlotJSONRequestBody, reqEditors ...RequestEditorFn) (*DeletePostgresReplicationSlotResponse, error)
+
+	// ListPostgresReplicationSlotWithResponse request
+	ListPostgresReplicationSlotWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListPostgresReplicationSlotResponse, error)
+
+	// UpdatePostgresTriggerWithBodyWithResponse request with any body
+	UpdatePostgresTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePostgresTriggerResponse, error)
+
+	UpdatePostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdatePostgresTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePostgresTriggerResponse, error)
+
 	// CreateRawAppWithBodyWithResponse request with any body
 	CreateRawAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateRawAppResponse, error)
 
@@ -38815,6 +40268,11 @@ type ClientWithResponsesInterface interface {
 
 	// ListPendingInvitesWithResponse request
 	ListPendingInvitesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPendingInvitesResponse, error)
+
+	// UpdateOperatorSettingsWithBodyWithResponse request with any body
+	UpdateOperatorSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateOperatorSettingsResponse, error)
+
+	UpdateOperatorSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateOperatorSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateOperatorSettingsResponse, error)
 
 	// GetPremiumInfoWithResponse request
 	GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error)
@@ -40377,6 +41835,28 @@ func (r SearchJobsIndexResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SearchJobsIndexResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SyncTeamsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]TeamInfo
+}
+
+// Status returns HTTPResponse.Status
+func (r SyncTeamsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SyncTeamsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -44788,6 +46268,391 @@ func (r GetOidcTokenResponse) StatusCode() int {
 	return 0
 }
 
+type CreatePostgresTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreatePostgresTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreatePostgresTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateTemplateScriptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateTemplateScriptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateTemplateScriptResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeletePostgresTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeletePostgresTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeletePostgresTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsPostgresTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsPostgresTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsPostgresTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetPostgresTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PostgresTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPostgresTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPostgresTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTemplateScriptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTemplateScriptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTemplateScriptResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type IsValidPostgresConfigurationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r IsValidPostgresConfigurationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r IsValidPostgresConfigurationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListPostgresTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]PostgresTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r ListPostgresTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListPostgresTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreatePostgresPublicationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreatePostgresPublicationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreatePostgresPublicationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeletePostgresPublicationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeletePostgresPublicationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeletePostgresPublicationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetPostgresPublicationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PublicationData
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPostgresPublicationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPostgresPublicationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListPostgresPublicationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListPostgresPublicationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListPostgresPublicationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdatePostgresPublicationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdatePostgresPublicationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdatePostgresPublicationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetPostgresTriggerEnabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetPostgresTriggerEnabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetPostgresTriggerEnabledResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreatePostgresReplicationSlotResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreatePostgresReplicationSlotResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreatePostgresReplicationSlotResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeletePostgresReplicationSlotResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeletePostgresReplicationSlotResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeletePostgresReplicationSlotResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListPostgresReplicationSlotResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]SlotList
+}
+
+// Status returns HTTPResponse.Status
+func (r ListPostgresReplicationSlotResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListPostgresReplicationSlotResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdatePostgresTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdatePostgresTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdatePostgresTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateRawAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -47163,6 +49028,7 @@ type GetSettingsResponse struct {
 		GitSync                   *WorkspaceGitSyncSettings  `json:"git_sync,omitempty"`
 		LargeFileStorage          *LargeFileStorage          `json:"large_file_storage,omitempty"`
 		MuteCriticalAlerts        *bool                      `json:"mute_critical_alerts,omitempty"`
+		OperatorSettings          *OperatorSettings          `json:"operator_settings"`
 		Plan                      *string                    `json:"plan,omitempty"`
 		SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
 		SlackName                 *string                    `json:"slack_name,omitempty"`
@@ -47289,6 +49155,27 @@ func (r ListPendingInvitesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListPendingInvitesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateOperatorSettingsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateOperatorSettingsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateOperatorSettingsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -47460,6 +49347,7 @@ type GetUsedTriggersResponse struct {
 		HttpRoutesUsed bool `json:"http_routes_used"`
 		KafkaUsed      bool `json:"kafka_used"`
 		NatsUsed       bool `json:"nats_used"`
+		PostgresUsed   bool `json:"postgres_used"`
 		WebsocketUsed  bool `json:"websocket_used"`
 	}
 }
@@ -48534,6 +50422,15 @@ func (c *ClientWithResponses) SearchJobsIndexWithResponse(ctx context.Context, w
 		return nil, err
 	}
 	return ParseSearchJobsIndexResponse(rsp)
+}
+
+// SyncTeamsWithResponse request returning *SyncTeamsResponse
+func (c *ClientWithResponses) SyncTeamsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SyncTeamsResponse, error) {
+	rsp, err := c.SyncTeams(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSyncTeamsResponse(rsp)
 }
 
 // BackendUptodateWithResponse request returning *BackendUptodateResponse
@@ -50926,6 +52823,232 @@ func (c *ClientWithResponses) GetOidcTokenWithResponse(ctx context.Context, work
 	return ParseGetOidcTokenResponse(rsp)
 }
 
+// CreatePostgresTriggerWithBodyWithResponse request with arbitrary body returning *CreatePostgresTriggerResponse
+func (c *ClientWithResponses) CreatePostgresTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePostgresTriggerResponse, error) {
+	rsp, err := c.CreatePostgresTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreatePostgresTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreatePostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreatePostgresTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreatePostgresTriggerResponse, error) {
+	rsp, err := c.CreatePostgresTrigger(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreatePostgresTriggerResponse(rsp)
+}
+
+// CreateTemplateScriptWithBodyWithResponse request with arbitrary body returning *CreateTemplateScriptResponse
+func (c *ClientWithResponses) CreateTemplateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateTemplateScriptResponse, error) {
+	rsp, err := c.CreateTemplateScriptWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateTemplateScriptResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateTemplateScriptWithResponse(ctx context.Context, workspace WorkspaceId, body CreateTemplateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateTemplateScriptResponse, error) {
+	rsp, err := c.CreateTemplateScript(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateTemplateScriptResponse(rsp)
+}
+
+// DeletePostgresTriggerWithResponse request returning *DeletePostgresTriggerResponse
+func (c *ClientWithResponses) DeletePostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeletePostgresTriggerResponse, error) {
+	rsp, err := c.DeletePostgresTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeletePostgresTriggerResponse(rsp)
+}
+
+// ExistsPostgresTriggerWithResponse request returning *ExistsPostgresTriggerResponse
+func (c *ClientWithResponses) ExistsPostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsPostgresTriggerResponse, error) {
+	rsp, err := c.ExistsPostgresTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsPostgresTriggerResponse(rsp)
+}
+
+// GetPostgresTriggerWithResponse request returning *GetPostgresTriggerResponse
+func (c *ClientWithResponses) GetPostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPostgresTriggerResponse, error) {
+	rsp, err := c.GetPostgresTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPostgresTriggerResponse(rsp)
+}
+
+// GetTemplateScriptWithResponse request returning *GetTemplateScriptResponse
+func (c *ClientWithResponses) GetTemplateScriptWithResponse(ctx context.Context, workspace WorkspaceId, id Id, reqEditors ...RequestEditorFn) (*GetTemplateScriptResponse, error) {
+	rsp, err := c.GetTemplateScript(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTemplateScriptResponse(rsp)
+}
+
+// IsValidPostgresConfigurationWithResponse request returning *IsValidPostgresConfigurationResponse
+func (c *ClientWithResponses) IsValidPostgresConfigurationWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*IsValidPostgresConfigurationResponse, error) {
+	rsp, err := c.IsValidPostgresConfiguration(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseIsValidPostgresConfigurationResponse(rsp)
+}
+
+// ListPostgresTriggersWithResponse request returning *ListPostgresTriggersResponse
+func (c *ClientWithResponses) ListPostgresTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListPostgresTriggersParams, reqEditors ...RequestEditorFn) (*ListPostgresTriggersResponse, error) {
+	rsp, err := c.ListPostgresTriggers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListPostgresTriggersResponse(rsp)
+}
+
+// CreatePostgresPublicationWithBodyWithResponse request with arbitrary body returning *CreatePostgresPublicationResponse
+func (c *ClientWithResponses) CreatePostgresPublicationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePostgresPublicationResponse, error) {
+	rsp, err := c.CreatePostgresPublicationWithBody(ctx, workspace, publication, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreatePostgresPublicationResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreatePostgresPublicationWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, body CreatePostgresPublicationJSONRequestBody, reqEditors ...RequestEditorFn) (*CreatePostgresPublicationResponse, error) {
+	rsp, err := c.CreatePostgresPublication(ctx, workspace, publication, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreatePostgresPublicationResponse(rsp)
+}
+
+// DeletePostgresPublicationWithResponse request returning *DeletePostgresPublicationResponse
+func (c *ClientWithResponses) DeletePostgresPublicationWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, reqEditors ...RequestEditorFn) (*DeletePostgresPublicationResponse, error) {
+	rsp, err := c.DeletePostgresPublication(ctx, workspace, publication, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeletePostgresPublicationResponse(rsp)
+}
+
+// GetPostgresPublicationWithResponse request returning *GetPostgresPublicationResponse
+func (c *ClientWithResponses) GetPostgresPublicationWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, reqEditors ...RequestEditorFn) (*GetPostgresPublicationResponse, error) {
+	rsp, err := c.GetPostgresPublication(ctx, workspace, publication, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPostgresPublicationResponse(rsp)
+}
+
+// ListPostgresPublicationWithResponse request returning *ListPostgresPublicationResponse
+func (c *ClientWithResponses) ListPostgresPublicationWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListPostgresPublicationResponse, error) {
+	rsp, err := c.ListPostgresPublication(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListPostgresPublicationResponse(rsp)
+}
+
+// UpdatePostgresPublicationWithBodyWithResponse request with arbitrary body returning *UpdatePostgresPublicationResponse
+func (c *ClientWithResponses) UpdatePostgresPublicationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePostgresPublicationResponse, error) {
+	rsp, err := c.UpdatePostgresPublicationWithBody(ctx, workspace, publication, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatePostgresPublicationResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdatePostgresPublicationWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, body UpdatePostgresPublicationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePostgresPublicationResponse, error) {
+	rsp, err := c.UpdatePostgresPublication(ctx, workspace, publication, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatePostgresPublicationResponse(rsp)
+}
+
+// SetPostgresTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetPostgresTriggerEnabledResponse
+func (c *ClientWithResponses) SetPostgresTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPostgresTriggerEnabledResponse, error) {
+	rsp, err := c.SetPostgresTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetPostgresTriggerEnabledResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetPostgresTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetPostgresTriggerEnabledResponse, error) {
+	rsp, err := c.SetPostgresTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetPostgresTriggerEnabledResponse(rsp)
+}
+
+// CreatePostgresReplicationSlotWithBodyWithResponse request with arbitrary body returning *CreatePostgresReplicationSlotResponse
+func (c *ClientWithResponses) CreatePostgresReplicationSlotWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePostgresReplicationSlotResponse, error) {
+	rsp, err := c.CreatePostgresReplicationSlotWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreatePostgresReplicationSlotResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreatePostgresReplicationSlotWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body CreatePostgresReplicationSlotJSONRequestBody, reqEditors ...RequestEditorFn) (*CreatePostgresReplicationSlotResponse, error) {
+	rsp, err := c.CreatePostgresReplicationSlot(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreatePostgresReplicationSlotResponse(rsp)
+}
+
+// DeletePostgresReplicationSlotWithBodyWithResponse request with arbitrary body returning *DeletePostgresReplicationSlotResponse
+func (c *ClientWithResponses) DeletePostgresReplicationSlotWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeletePostgresReplicationSlotResponse, error) {
+	rsp, err := c.DeletePostgresReplicationSlotWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeletePostgresReplicationSlotResponse(rsp)
+}
+
+func (c *ClientWithResponses) DeletePostgresReplicationSlotWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body DeletePostgresReplicationSlotJSONRequestBody, reqEditors ...RequestEditorFn) (*DeletePostgresReplicationSlotResponse, error) {
+	rsp, err := c.DeletePostgresReplicationSlot(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeletePostgresReplicationSlotResponse(rsp)
+}
+
+// ListPostgresReplicationSlotWithResponse request returning *ListPostgresReplicationSlotResponse
+func (c *ClientWithResponses) ListPostgresReplicationSlotWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListPostgresReplicationSlotResponse, error) {
+	rsp, err := c.ListPostgresReplicationSlot(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListPostgresReplicationSlotResponse(rsp)
+}
+
+// UpdatePostgresTriggerWithBodyWithResponse request with arbitrary body returning *UpdatePostgresTriggerResponse
+func (c *ClientWithResponses) UpdatePostgresTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePostgresTriggerResponse, error) {
+	rsp, err := c.UpdatePostgresTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatePostgresTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdatePostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdatePostgresTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePostgresTriggerResponse, error) {
+	rsp, err := c.UpdatePostgresTrigger(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatePostgresTriggerResponse(rsp)
+}
+
 // CreateRawAppWithBodyWithResponse request with arbitrary body returning *CreateRawAppResponse
 func (c *ClientWithResponses) CreateRawAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateRawAppResponse, error) {
 	rsp, err := c.CreateRawAppWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -52270,6 +54393,23 @@ func (c *ClientWithResponses) ListPendingInvitesWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListPendingInvitesResponse(rsp)
+}
+
+// UpdateOperatorSettingsWithBodyWithResponse request with arbitrary body returning *UpdateOperatorSettingsResponse
+func (c *ClientWithResponses) UpdateOperatorSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateOperatorSettingsResponse, error) {
+	rsp, err := c.UpdateOperatorSettingsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateOperatorSettingsResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateOperatorSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateOperatorSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateOperatorSettingsResponse, error) {
+	rsp, err := c.UpdateOperatorSettings(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateOperatorSettingsResponse(rsp)
 }
 
 // GetPremiumInfoWithResponse request returning *GetPremiumInfoResponse
@@ -54022,6 +56162,32 @@ func ParseSearchJobsIndexResponse(rsp *http.Response) (*SearchJobsIndexResponse,
 				Dancer *string `json:"dancer,omitempty"`
 			} `json:"query_parse_errors,omitempty"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSyncTeamsResponse parses an HTTP response from a SyncTeamsWithResponse call
+func ParseSyncTeamsResponse(rsp *http.Response) (*SyncTeamsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SyncTeamsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []TeamInfo
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -58374,6 +60540,364 @@ func ParseGetOidcTokenResponse(rsp *http.Response) (*GetOidcTokenResponse, error
 	return response, nil
 }
 
+// ParseCreatePostgresTriggerResponse parses an HTTP response from a CreatePostgresTriggerWithResponse call
+func ParseCreatePostgresTriggerResponse(rsp *http.Response) (*CreatePostgresTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreatePostgresTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateTemplateScriptResponse parses an HTTP response from a CreateTemplateScriptWithResponse call
+func ParseCreateTemplateScriptResponse(rsp *http.Response) (*CreateTemplateScriptResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateTemplateScriptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeletePostgresTriggerResponse parses an HTTP response from a DeletePostgresTriggerWithResponse call
+func ParseDeletePostgresTriggerResponse(rsp *http.Response) (*DeletePostgresTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeletePostgresTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsPostgresTriggerResponse parses an HTTP response from a ExistsPostgresTriggerWithResponse call
+func ParseExistsPostgresTriggerResponse(rsp *http.Response) (*ExistsPostgresTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsPostgresTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetPostgresTriggerResponse parses an HTTP response from a GetPostgresTriggerWithResponse call
+func ParseGetPostgresTriggerResponse(rsp *http.Response) (*GetPostgresTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPostgresTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PostgresTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetTemplateScriptResponse parses an HTTP response from a GetTemplateScriptWithResponse call
+func ParseGetTemplateScriptResponse(rsp *http.Response) (*GetTemplateScriptResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTemplateScriptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseIsValidPostgresConfigurationResponse parses an HTTP response from a IsValidPostgresConfigurationWithResponse call
+func ParseIsValidPostgresConfigurationResponse(rsp *http.Response) (*IsValidPostgresConfigurationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &IsValidPostgresConfigurationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListPostgresTriggersResponse parses an HTTP response from a ListPostgresTriggersWithResponse call
+func ParseListPostgresTriggersResponse(rsp *http.Response) (*ListPostgresTriggersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListPostgresTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []PostgresTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreatePostgresPublicationResponse parses an HTTP response from a CreatePostgresPublicationWithResponse call
+func ParseCreatePostgresPublicationResponse(rsp *http.Response) (*CreatePostgresPublicationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreatePostgresPublicationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeletePostgresPublicationResponse parses an HTTP response from a DeletePostgresPublicationWithResponse call
+func ParseDeletePostgresPublicationResponse(rsp *http.Response) (*DeletePostgresPublicationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeletePostgresPublicationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetPostgresPublicationResponse parses an HTTP response from a GetPostgresPublicationWithResponse call
+func ParseGetPostgresPublicationResponse(rsp *http.Response) (*GetPostgresPublicationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPostgresPublicationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PublicationData
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListPostgresPublicationResponse parses an HTTP response from a ListPostgresPublicationWithResponse call
+func ParseListPostgresPublicationResponse(rsp *http.Response) (*ListPostgresPublicationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListPostgresPublicationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdatePostgresPublicationResponse parses an HTTP response from a UpdatePostgresPublicationWithResponse call
+func ParseUpdatePostgresPublicationResponse(rsp *http.Response) (*UpdatePostgresPublicationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdatePostgresPublicationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSetPostgresTriggerEnabledResponse parses an HTTP response from a SetPostgresTriggerEnabledWithResponse call
+func ParseSetPostgresTriggerEnabledResponse(rsp *http.Response) (*SetPostgresTriggerEnabledResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetPostgresTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreatePostgresReplicationSlotResponse parses an HTTP response from a CreatePostgresReplicationSlotWithResponse call
+func ParseCreatePostgresReplicationSlotResponse(rsp *http.Response) (*CreatePostgresReplicationSlotResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreatePostgresReplicationSlotResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeletePostgresReplicationSlotResponse parses an HTTP response from a DeletePostgresReplicationSlotWithResponse call
+func ParseDeletePostgresReplicationSlotResponse(rsp *http.Response) (*DeletePostgresReplicationSlotResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeletePostgresReplicationSlotResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListPostgresReplicationSlotResponse parses an HTTP response from a ListPostgresReplicationSlotWithResponse call
+func ParseListPostgresReplicationSlotResponse(rsp *http.Response) (*ListPostgresReplicationSlotResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListPostgresReplicationSlotResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []SlotList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdatePostgresTriggerResponse parses an HTTP response from a UpdatePostgresTriggerWithResponse call
+func ParseUpdatePostgresTriggerResponse(rsp *http.Response) (*UpdatePostgresTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdatePostgresTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCreateRawAppResponse parses an HTTP response from a CreateRawAppWithResponse call
 func ParseCreateRawAppResponse(rsp *http.Response) (*CreateRawAppResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -60752,6 +63276,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			GitSync                   *WorkspaceGitSyncSettings  `json:"git_sync,omitempty"`
 			LargeFileStorage          *LargeFileStorage          `json:"large_file_storage,omitempty"`
 			MuteCriticalAlerts        *bool                      `json:"mute_critical_alerts,omitempty"`
+			OperatorSettings          *OperatorSettings          `json:"operator_settings"`
 			Plan                      *string                    `json:"plan,omitempty"`
 			SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
 			SlackName                 *string                    `json:"slack_name,omitempty"`
@@ -60864,6 +63389,22 @@ func ParseListPendingInvitesResponse(rsp *http.Response) (*ListPendingInvitesRes
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseUpdateOperatorSettingsResponse parses an HTTP response from a UpdateOperatorSettingsWithResponse call
+func ParseUpdateOperatorSettingsResponse(rsp *http.Response) (*UpdateOperatorSettingsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateOperatorSettingsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -61029,6 +63570,7 @@ func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse,
 			HttpRoutesUsed bool `json:"http_routes_used"`
 			KafkaUsed      bool `json:"kafka_used"`
 			NatsUsed       bool `json:"nats_used"`
+			PostgresUsed   bool `json:"postgres_used"`
 			WebsocketUsed  bool `json:"websocket_used"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
