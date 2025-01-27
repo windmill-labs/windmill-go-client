@@ -4245,6 +4245,11 @@ type SetKafkaTriggerEnabledJSONBody struct {
 	Enabled bool `json:"enabled"`
 }
 
+// TestKafkaConnectionJSONBody defines parameters for TestKafkaConnection.
+type TestKafkaConnectionJSONBody struct {
+	Connection map[string]interface{} `json:"connection"`
+}
+
 // ListNatsTriggersParams defines parameters for ListNatsTriggers.
 type ListNatsTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -4262,6 +4267,11 @@ type ListNatsTriggersParams struct {
 // SetNatsTriggerEnabledJSONBody defines parameters for SetNatsTriggerEnabled.
 type SetNatsTriggerEnabledJSONBody struct {
 	Enabled bool `json:"enabled"`
+}
+
+// TestNatsConnectionJSONBody defines parameters for TestNatsConnection.
+type TestNatsConnectionJSONBody struct {
+	Connection map[string]interface{} `json:"connection"`
 }
 
 // ConnectSlackCallbackJSONBody defines parameters for ConnectSlackCallback.
@@ -4557,6 +4567,12 @@ type ListWebsocketTriggersParams struct {
 // SetWebsocketTriggerEnabledJSONBody defines parameters for SetWebsocketTriggerEnabled.
 type SetWebsocketTriggerEnabledJSONBody struct {
 	Enabled bool `json:"enabled"`
+}
+
+// TestWebsocketConnectionJSONBody defines parameters for TestWebsocketConnection.
+type TestWebsocketConnectionJSONBody struct {
+	Url             string      `json:"url"`
+	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
 }
 
 // AddUserJSONBody defines parameters for AddUser.
@@ -4996,6 +5012,9 @@ type CreateKafkaTriggerJSONRequestBody = NewKafkaTrigger
 // SetKafkaTriggerEnabledJSONRequestBody defines body for SetKafkaTriggerEnabled for application/json ContentType.
 type SetKafkaTriggerEnabledJSONRequestBody SetKafkaTriggerEnabledJSONBody
 
+// TestKafkaConnectionJSONRequestBody defines body for TestKafkaConnection for application/json ContentType.
+type TestKafkaConnectionJSONRequestBody TestKafkaConnectionJSONBody
+
 // UpdateKafkaTriggerJSONRequestBody defines body for UpdateKafkaTrigger for application/json ContentType.
 type UpdateKafkaTriggerJSONRequestBody = EditKafkaTrigger
 
@@ -5004,6 +5023,9 @@ type CreateNatsTriggerJSONRequestBody = NewNatsTrigger
 
 // SetNatsTriggerEnabledJSONRequestBody defines body for SetNatsTriggerEnabled for application/json ContentType.
 type SetNatsTriggerEnabledJSONRequestBody SetNatsTriggerEnabledJSONBody
+
+// TestNatsConnectionJSONRequestBody defines body for TestNatsConnection for application/json ContentType.
+type TestNatsConnectionJSONRequestBody TestNatsConnectionJSONBody
 
 // UpdateNatsTriggerJSONRequestBody defines body for UpdateNatsTrigger for application/json ContentType.
 type UpdateNatsTriggerJSONRequestBody = EditNatsTrigger
@@ -5100,6 +5122,9 @@ type CreateWebsocketTriggerJSONRequestBody = NewWebsocketTrigger
 
 // SetWebsocketTriggerEnabledJSONRequestBody defines body for SetWebsocketTriggerEnabled for application/json ContentType.
 type SetWebsocketTriggerEnabledJSONRequestBody SetWebsocketTriggerEnabledJSONBody
+
+// TestWebsocketConnectionJSONRequestBody defines body for TestWebsocketConnection for application/json ContentType.
+type TestWebsocketConnectionJSONRequestBody TestWebsocketConnectionJSONBody
 
 // UpdateWebsocketTriggerJSONRequestBody defines body for UpdateWebsocketTrigger for application/json ContentType.
 type UpdateWebsocketTriggerJSONRequestBody = EditWebsocketTrigger
@@ -6656,6 +6681,11 @@ type ClientInterface interface {
 
 	SetKafkaTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// TestKafkaConnectionWithBody request with any body
+	TestKafkaConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestKafkaConnection(ctx context.Context, workspace WorkspaceId, body TestKafkaConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UpdateKafkaTriggerWithBody request with any body
 	UpdateKafkaTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6682,6 +6712,11 @@ type ClientInterface interface {
 	SetNatsTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetNatsTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestNatsConnectionWithBody request with any body
+	TestNatsConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestNatsConnection(ctx context.Context, workspace WorkspaceId, body TestNatsConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateNatsTriggerWithBody request with any body
 	UpdateNatsTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7058,6 +7093,11 @@ type ClientInterface interface {
 	SetWebsocketTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetWebsocketTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestWebsocketConnectionWithBody request with any body
+	TestWebsocketConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestWebsocketConnection(ctx context.Context, workspace WorkspaceId, body TestWebsocketConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateWebsocketTriggerWithBody request with any body
 	UpdateWebsocketTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11304,6 +11344,30 @@ func (c *Client) SetKafkaTriggerEnabled(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
+func (c *Client) TestKafkaConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestKafkaConnectionRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestKafkaConnection(ctx context.Context, workspace WorkspaceId, body TestKafkaConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestKafkaConnectionRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) UpdateKafkaTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateKafkaTriggerRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
@@ -11414,6 +11478,30 @@ func (c *Client) SetNatsTriggerEnabledWithBody(ctx context.Context, workspace Wo
 
 func (c *Client) SetNatsTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetNatsTriggerEnabledRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestNatsConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestNatsConnectionRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestNatsConnection(ctx context.Context, workspace WorkspaceId, body TestNatsConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestNatsConnectionRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -13046,6 +13134,30 @@ func (c *Client) SetWebsocketTriggerEnabledWithBody(ctx context.Context, workspa
 
 func (c *Client) SetWebsocketTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetWebsocketTriggerEnabledRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestWebsocketConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestWebsocketConnectionRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestWebsocketConnection(ctx context.Context, workspace WorkspaceId, body TestWebsocketConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestWebsocketConnectionRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -30356,6 +30468,53 @@ func NewSetKafkaTriggerEnabledRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewTestKafkaConnectionRequest calls the generic TestKafkaConnection builder with application/json body
+func NewTestKafkaConnectionRequest(server string, workspace WorkspaceId, body TestKafkaConnectionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestKafkaConnectionRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewTestKafkaConnectionRequestWithBody generates requests for TestKafkaConnection with any type of body
+func NewTestKafkaConnectionRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/test", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUpdateKafkaTriggerRequest calls the generic UpdateKafkaTrigger builder with application/json body
 func NewUpdateKafkaTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdateKafkaTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -30735,6 +30894,53 @@ func NewSetNatsTriggerEnabledRequestWithBody(server string, workspace WorkspaceI
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/nats_triggers/setenabled/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestNatsConnectionRequest calls the generic TestNatsConnection builder with application/json body
+func NewTestNatsConnectionRequest(server string, workspace WorkspaceId, body TestNatsConnectionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestNatsConnectionRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewTestNatsConnectionRequestWithBody generates requests for TestNatsConnection with any type of body
+func NewTestNatsConnectionRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/nats_triggers/test", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -36240,6 +36446,53 @@ func NewSetWebsocketTriggerEnabledRequestWithBody(server string, workspace Works
 	return req, nil
 }
 
+// NewTestWebsocketConnectionRequest calls the generic TestWebsocketConnection builder with application/json body
+func NewTestWebsocketConnectionRequest(server string, workspace WorkspaceId, body TestWebsocketConnectionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestWebsocketConnectionRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewTestWebsocketConnectionRequestWithBody generates requests for TestWebsocketConnection with any type of body
+func NewTestWebsocketConnectionRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/websocket_triggers/test", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUpdateWebsocketTriggerRequest calls the generic UpdateWebsocketTrigger builder with application/json body
 func NewUpdateWebsocketTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdateWebsocketTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -39721,6 +39974,11 @@ type ClientWithResponsesInterface interface {
 
 	SetKafkaTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetKafkaTriggerEnabledResponse, error)
 
+	// TestKafkaConnectionWithBodyWithResponse request with any body
+	TestKafkaConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestKafkaConnectionResponse, error)
+
+	TestKafkaConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestKafkaConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestKafkaConnectionResponse, error)
+
 	// UpdateKafkaTriggerWithBodyWithResponse request with any body
 	UpdateKafkaTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateKafkaTriggerResponse, error)
 
@@ -39747,6 +40005,11 @@ type ClientWithResponsesInterface interface {
 	SetNatsTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNatsTriggerEnabledResponse, error)
 
 	SetNatsTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetNatsTriggerEnabledResponse, error)
+
+	// TestNatsConnectionWithBodyWithResponse request with any body
+	TestNatsConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestNatsConnectionResponse, error)
+
+	TestNatsConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestNatsConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestNatsConnectionResponse, error)
 
 	// UpdateNatsTriggerWithBodyWithResponse request with any body
 	UpdateNatsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateNatsTriggerResponse, error)
@@ -40123,6 +40386,11 @@ type ClientWithResponsesInterface interface {
 	SetWebsocketTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerEnabledResponse, error)
 
 	SetWebsocketTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerEnabledResponse, error)
+
+	// TestWebsocketConnectionWithBodyWithResponse request with any body
+	TestWebsocketConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestWebsocketConnectionResponse, error)
+
+	TestWebsocketConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestWebsocketConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestWebsocketConnectionResponse, error)
 
 	// UpdateWebsocketTriggerWithBodyWithResponse request with any body
 	UpdateWebsocketTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateWebsocketTriggerResponse, error)
@@ -45971,6 +46239,27 @@ func (r SetKafkaTriggerEnabledResponse) StatusCode() int {
 	return 0
 }
 
+type TestKafkaConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestKafkaConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestKafkaConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UpdateKafkaTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -46115,6 +46404,27 @@ func (r SetNatsTriggerEnabledResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SetNatsTriggerEnabledResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestNatsConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestNatsConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestNatsConnectionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -48365,6 +48675,27 @@ func (r SetWebsocketTriggerEnabledResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SetWebsocketTriggerEnabledResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestWebsocketConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestWebsocketConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestWebsocketConnectionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -52641,6 +52972,23 @@ func (c *ClientWithResponses) SetKafkaTriggerEnabledWithResponse(ctx context.Con
 	return ParseSetKafkaTriggerEnabledResponse(rsp)
 }
 
+// TestKafkaConnectionWithBodyWithResponse request with arbitrary body returning *TestKafkaConnectionResponse
+func (c *ClientWithResponses) TestKafkaConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestKafkaConnectionResponse, error) {
+	rsp, err := c.TestKafkaConnectionWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestKafkaConnectionResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestKafkaConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestKafkaConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestKafkaConnectionResponse, error) {
+	rsp, err := c.TestKafkaConnection(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestKafkaConnectionResponse(rsp)
+}
+
 // UpdateKafkaTriggerWithBodyWithResponse request with arbitrary body returning *UpdateKafkaTriggerResponse
 func (c *ClientWithResponses) UpdateKafkaTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateKafkaTriggerResponse, error) {
 	rsp, err := c.UpdateKafkaTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
@@ -52726,6 +53074,23 @@ func (c *ClientWithResponses) SetNatsTriggerEnabledWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseSetNatsTriggerEnabledResponse(rsp)
+}
+
+// TestNatsConnectionWithBodyWithResponse request with arbitrary body returning *TestNatsConnectionResponse
+func (c *ClientWithResponses) TestNatsConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestNatsConnectionResponse, error) {
+	rsp, err := c.TestNatsConnectionWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestNatsConnectionResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestNatsConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestNatsConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestNatsConnectionResponse, error) {
+	rsp, err := c.TestNatsConnection(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestNatsConnectionResponse(rsp)
 }
 
 // UpdateNatsTriggerWithBodyWithResponse request with arbitrary body returning *UpdateNatsTriggerResponse
@@ -53918,6 +54283,23 @@ func (c *ClientWithResponses) SetWebsocketTriggerEnabledWithResponse(ctx context
 		return nil, err
 	}
 	return ParseSetWebsocketTriggerEnabledResponse(rsp)
+}
+
+// TestWebsocketConnectionWithBodyWithResponse request with arbitrary body returning *TestWebsocketConnectionResponse
+func (c *ClientWithResponses) TestWebsocketConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestWebsocketConnectionResponse, error) {
+	rsp, err := c.TestWebsocketConnectionWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestWebsocketConnectionResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestWebsocketConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestWebsocketConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestWebsocketConnectionResponse, error) {
+	rsp, err := c.TestWebsocketConnection(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestWebsocketConnectionResponse(rsp)
 }
 
 // UpdateWebsocketTriggerWithBodyWithResponse request with arbitrary body returning *UpdateWebsocketTriggerResponse
@@ -60286,6 +60668,22 @@ func ParseSetKafkaTriggerEnabledResponse(rsp *http.Response) (*SetKafkaTriggerEn
 	return response, nil
 }
 
+// ParseTestKafkaConnectionResponse parses an HTTP response from a TestKafkaConnectionWithResponse call
+func ParseTestKafkaConnectionResponse(rsp *http.Response) (*TestKafkaConnectionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestKafkaConnectionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseUpdateKafkaTriggerResponse parses an HTTP response from a UpdateKafkaTriggerWithResponse call
 func ParseUpdateKafkaTriggerResponse(rsp *http.Response) (*UpdateKafkaTriggerResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -60421,6 +60819,22 @@ func ParseSetNatsTriggerEnabledResponse(rsp *http.Response) (*SetNatsTriggerEnab
 	}
 
 	response := &SetNatsTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestNatsConnectionResponse parses an HTTP response from a TestNatsConnectionWithResponse call
+func ParseTestNatsConnectionResponse(rsp *http.Response) (*TestNatsConnectionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestNatsConnectionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -62637,6 +63051,22 @@ func ParseSetWebsocketTriggerEnabledResponse(rsp *http.Response) (*SetWebsocketT
 	}
 
 	response := &SetWebsocketTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestWebsocketConnectionResponse parses an HTTP response from a TestWebsocketConnectionWithResponse call
+func ParseTestWebsocketConnectionResponse(rsp *http.Response) (*TestWebsocketConnectionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestWebsocketConnectionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
