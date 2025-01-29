@@ -1006,7 +1006,8 @@ type EditVariable struct {
 
 // EditWebsocketTrigger defines model for EditWebsocketTrigger.
 type EditWebsocketTrigger struct {
-	Filters []struct {
+	CanReturnMessage bool `json:"can_return_message"`
+	Filters          []struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
@@ -1798,8 +1799,9 @@ type NewTokenImpersonate struct {
 
 // NewWebsocketTrigger defines model for NewWebsocketTrigger.
 type NewWebsocketTrigger struct {
-	Enabled *bool `json:"enabled,omitempty"`
-	Filters []struct {
+	CanReturnMessage bool  `json:"can_return_message"`
+	Enabled          *bool `json:"enabled,omitempty"`
+	Filters          []struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
@@ -4571,8 +4573,9 @@ type SetWebsocketTriggerEnabledJSONBody struct {
 
 // TestWebsocketConnectionJSONBody defines parameters for TestWebsocketConnection.
 type TestWebsocketConnectionJSONBody struct {
-	Url             string      `json:"url"`
-	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
+	CanReturnMessage bool        `json:"can_return_message"`
+	Url              string      `json:"url"`
+	UrlRunnableArgs  *ScriptArgs `json:"url_runnable_args,omitempty"`
 }
 
 // AddUserJSONBody defines parameters for AddUser.
@@ -6202,6 +6205,9 @@ type ClientInterface interface {
 
 	// DeleteCapture request
 	DeleteCapture(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCapture request
+	GetCapture(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListExtendedJobs request
 	ListExtendedJobs(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9222,6 +9228,18 @@ func (c *Client) SetCaptureConfig(ctx context.Context, workspace WorkspaceId, bo
 
 func (c *Client) DeleteCapture(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteCaptureRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCapture(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCaptureRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -19677,6 +19695,47 @@ func NewDeleteCaptureRequest(server string, workspace WorkspaceId, id int) (*htt
 	}
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetCaptureRequest generates requests for GetCapture
+func NewGetCaptureRequest(server string, workspace WorkspaceId, id int) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/capture/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -39496,6 +39555,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteCaptureWithResponse request
 	DeleteCaptureWithResponse(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*DeleteCaptureResponse, error)
 
+	// GetCaptureWithResponse request
+	GetCaptureWithResponse(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*GetCaptureResponse, error)
+
 	// ListExtendedJobsWithResponse request
 	ListExtendedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*ListExtendedJobsResponse, error)
 
@@ -43388,6 +43450,28 @@ func (r DeleteCaptureResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteCaptureResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCaptureResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Capture
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCaptureResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCaptureResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -51438,6 +51522,15 @@ func (c *ClientWithResponses) DeleteCaptureWithResponse(ctx context.Context, wor
 	return ParseDeleteCaptureResponse(rsp)
 }
 
+// GetCaptureWithResponse request returning *GetCaptureResponse
+func (c *ClientWithResponses) GetCaptureWithResponse(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*GetCaptureResponse, error) {
+	rsp, err := c.GetCapture(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCaptureResponse(rsp)
+}
+
 // ListExtendedJobsWithResponse request returning *ListExtendedJobsResponse
 func (c *ClientWithResponses) ListExtendedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*ListExtendedJobsResponse, error) {
 	rsp, err := c.ListExtendedJobs(ctx, workspace, params, reqEditors...)
@@ -57782,6 +57875,32 @@ func ParseDeleteCaptureResponse(rsp *http.Response) (*DeleteCaptureResponse, err
 	response := &DeleteCaptureResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetCaptureResponse parses an HTTP response from a GetCaptureWithResponse call
+func ParseGetCaptureResponse(rsp *http.Response) (*GetCaptureResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCaptureResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Capture
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
