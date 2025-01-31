@@ -45000,7 +45000,8 @@ type DuckdbConnectionSettingsV2Response struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		ConnectionSettingsStr string `json:"connection_settings_str"`
+		AzureContainerPath    *string `json:"azure_container_path,omitempty"`
+		ConnectionSettingsStr string  `json:"connection_settings_str"`
 	}
 }
 
@@ -59447,7 +59448,8 @@ func ParseDuckdbConnectionSettingsV2Response(rsp *http.Response) (*DuckdbConnect
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			ConnectionSettingsStr string `json:"connection_settings_str"`
+			AzureContainerPath    *string `json:"azure_container_path,omitempty"`
+			ConnectionSettingsStr string  `json:"connection_settings_str"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
