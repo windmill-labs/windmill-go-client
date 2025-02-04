@@ -24,6 +24,17 @@ const (
 	CookieAuthScopes = "cookieAuth.Scopes"
 )
 
+// Defines values for AIProvider.
+const (
+	Anthropic  AIProvider = "anthropic"
+	Customai   AIProvider = "customai"
+	Deepseek   AIProvider = "deepseek"
+	Groq       AIProvider = "groq"
+	Mistral    AIProvider = "mistral"
+	Openai     AIProvider = "openai"
+	Openrouter AIProvider = "openrouter"
+)
+
 // Defines values for AppWithLastVersionExecutionMode.
 const (
 	AppWithLastVersionExecutionModeAnonymous AppWithLastVersionExecutionMode = "anonymous"
@@ -647,10 +658,13 @@ const (
 	SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerTypeSuccess  SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType = "success"
 )
 
-// AiResource defines model for AiResource.
-type AiResource struct {
-	Path     string `json:"path"`
-	Provider string `json:"provider"`
+// AIProvider defines model for AIProvider.
+type AIProvider string
+
+// AIResource defines model for AIResource.
+type AIResource struct {
+	Path     string     `json:"path"`
+	Provider AIProvider `json:"provider"`
 }
 
 // AppHistory defines model for AppHistory.
@@ -4631,8 +4645,9 @@ type EditAutoInviteJSONBody struct {
 
 // EditCopilotConfigJSONBody defines parameters for EditCopilotConfig.
 type EditCopilotConfigJSONBody struct {
-	AiResource            *AiResource `json:"ai_resource,omitempty"`
-	CodeCompletionEnabled bool        `json:"code_completion_enabled"`
+	AiModels            []string    `json:"ai_models"`
+	AiResource          *AIResource `json:"ai_resource,omitempty"`
+	CodeCompletionModel *string     `json:"code_completion_model,omitempty"`
 }
 
 // EditWorkspaceDefaultAppJSONBody defines parameters for EditWorkspaceDefaultApp.
@@ -49426,12 +49441,13 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AiResource                *AiResource                `json:"ai_resource,omitempty"`
+		AiModels                  []string                   `json:"ai_models"`
+		AiResource                *AIResource                `json:"ai_resource,omitempty"`
 		AutoAdd                   *bool                      `json:"auto_add,omitempty"`
 		AutoInviteDomain          *string                    `json:"auto_invite_domain,omitempty"`
 		AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
 		AutomaticBilling          bool                       `json:"automatic_billing"`
-		CodeCompletionEnabled     bool                       `json:"code_completion_enabled"`
+		CodeCompletionModel       *string                    `json:"code_completion_model,omitempty"`
 		Color                     *string                    `json:"color,omitempty"`
 		CustomerId                *string                    `json:"customer_id,omitempty"`
 		DefaultApp                *string                    `json:"default_app,omitempty"`
@@ -63809,12 +63825,13 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AiResource                *AiResource                `json:"ai_resource,omitempty"`
+			AiModels                  []string                   `json:"ai_models"`
+			AiResource                *AIResource                `json:"ai_resource,omitempty"`
 			AutoAdd                   *bool                      `json:"auto_add,omitempty"`
 			AutoInviteDomain          *string                    `json:"auto_invite_domain,omitempty"`
 			AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
 			AutomaticBilling          bool                       `json:"automatic_billing"`
-			CodeCompletionEnabled     bool                       `json:"code_completion_enabled"`
+			CodeCompletionModel       *string                    `json:"code_completion_model,omitempty"`
 			Color                     *string                    `json:"color,omitempty"`
 			CustomerId                *string                    `json:"customer_id,omitempty"`
 			DefaultApp                *string                    `json:"default_app,omitempty"`
