@@ -829,6 +829,7 @@ type CompletedJob struct {
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
 	PermissionedAs string       `json:"permissioned_as"`
+	Preprocessed   *bool        `json:"preprocessed,omitempty"`
 	Priority       *int         `json:"priority,omitempty"`
 	RawCode        *string      `json:"raw_code,omitempty"`
 	RawFlow        *FlowValue   `json:"raw_flow,omitempty"`
@@ -926,6 +927,7 @@ type EditHttpTrigger struct {
 	HttpMethod        EditHttpTriggerHttpMethod `json:"http_method"`
 	IsAsync           bool                      `json:"is_async"`
 	IsFlow            bool                      `json:"is_flow"`
+	IsStaticWebsite   bool                      `json:"is_static_website"`
 	Path              string                    `json:"path"`
 	RequiresAuth      bool                      `json:"requires_auth"`
 	RoutePath         *string                   `json:"route_path,omitempty"`
@@ -1418,6 +1420,7 @@ type Job0 struct {
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
 	PermissionedAs string       `json:"permissioned_as"`
+	Preprocessed   *bool        `json:"preprocessed,omitempty"`
 	Priority       *int         `json:"priority,omitempty"`
 	RawCode        *string      `json:"raw_code,omitempty"`
 	RawFlow        *FlowValue   `json:"raw_flow,omitempty"`
@@ -1463,6 +1466,7 @@ type Job1 struct {
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
 	PermissionedAs string     `json:"permissioned_as"`
+	Preprocessed   *bool      `json:"preprocessed,omitempty"`
 	Priority       *int       `json:"priority,omitempty"`
 	RawCode        *string    `json:"raw_code,omitempty"`
 	RawFlow        *FlowValue `json:"raw_flow,omitempty"`
@@ -1644,6 +1648,7 @@ type NewHttpTrigger struct {
 	HttpMethod        NewHttpTriggerHttpMethod `json:"http_method"`
 	IsAsync           bool                     `json:"is_async"`
 	IsFlow            bool                     `json:"is_flow"`
+	IsStaticWebsite   bool                     `json:"is_static_website"`
 	Path              string                   `json:"path"`
 	RequiresAuth      bool                     `json:"requires_auth"`
 	RoutePath         string                   `json:"route_path"`
@@ -1976,6 +1981,7 @@ type QueuedJob struct {
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
 	PermissionedAs string     `json:"permissioned_as"`
+	Preprocessed   *bool      `json:"preprocessed,omitempty"`
 	Priority       *int       `json:"priority,omitempty"`
 	RawCode        *string    `json:"raw_code,omitempty"`
 	RawFlow        *FlowValue `json:"raw_flow,omitempty"`
@@ -3417,8 +3423,9 @@ type ListHttpTriggersParams struct {
 
 // ExistsRouteJSONBody defines parameters for ExistsRoute.
 type ExistsRouteJSONBody struct {
-	HttpMethod ExistsRouteJSONBodyHttpMethod `json:"http_method"`
-	RoutePath  string                        `json:"route_path"`
+	HttpMethod  ExistsRouteJSONBodyHttpMethod `json:"http_method"`
+	RoutePath   string                        `json:"route_path"`
+	TriggerPath *string                       `json:"trigger_path,omitempty"`
 }
 
 // ExistsRouteJSONBodyHttpMethod defines parameters for ExistsRoute.
