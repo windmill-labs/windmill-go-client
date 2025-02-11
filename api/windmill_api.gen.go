@@ -162,6 +162,7 @@ const (
 	CaptureTriggerKindHttp      CaptureTriggerKind = "http"
 	CaptureTriggerKindKafka     CaptureTriggerKind = "kafka"
 	CaptureTriggerKindNats      CaptureTriggerKind = "nats"
+	CaptureTriggerKindPostgres  CaptureTriggerKind = "postgres"
 	CaptureTriggerKindWebhook   CaptureTriggerKind = "webhook"
 	CaptureTriggerKindWebsocket CaptureTriggerKind = "websocket"
 )
@@ -4334,6 +4335,11 @@ type SetPostgresTriggerEnabledJSONBody struct {
 	Enabled bool `json:"enabled"`
 }
 
+// TestPostgresConnectionJSONBody defines parameters for TestPostgresConnection.
+type TestPostgresConnectionJSONBody struct {
+	Database string `json:"database"`
+}
+
 // CreateRawAppJSONBody defines parameters for CreateRawApp.
 type CreateRawAppJSONBody struct {
 	Path    string `json:"path"`
@@ -5084,6 +5090,9 @@ type CreatePostgresReplicationSlotJSONRequestBody = Slot
 
 // DeletePostgresReplicationSlotJSONRequestBody defines body for DeletePostgresReplicationSlot for application/json ContentType.
 type DeletePostgresReplicationSlotJSONRequestBody = Slot
+
+// TestPostgresConnectionJSONRequestBody defines body for TestPostgresConnection for application/json ContentType.
+type TestPostgresConnectionJSONRequestBody TestPostgresConnectionJSONBody
 
 // UpdatePostgresTriggerJSONRequestBody defines body for UpdatePostgresTrigger for application/json ContentType.
 type UpdatePostgresTriggerJSONRequestBody = EditPostgresTrigger
@@ -6839,6 +6848,11 @@ type ClientInterface interface {
 
 	// ListPostgresReplicationSlot request
 	ListPostgresReplicationSlot(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestPostgresConnectionWithBody request with any body
+	TestPostgresConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestPostgresConnection(ctx context.Context, workspace WorkspaceId, body TestPostgresConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdatePostgresTriggerWithBody request with any body
 	UpdatePostgresTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11962,6 +11976,30 @@ func (c *Client) DeletePostgresReplicationSlot(ctx context.Context, workspace Wo
 
 func (c *Client) ListPostgresReplicationSlot(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListPostgresReplicationSlotRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestPostgresConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestPostgresConnectionRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestPostgresConnection(ctx context.Context, workspace WorkspaceId, body TestPostgresConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestPostgresConnectionRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -32240,6 +32278,53 @@ func NewListPostgresReplicationSlotRequest(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewTestPostgresConnectionRequest calls the generic TestPostgresConnection builder with application/json body
+func NewTestPostgresConnectionRequest(server string, workspace WorkspaceId, body TestPostgresConnectionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestPostgresConnectionRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewTestPostgresConnectionRequestWithBody generates requests for TestPostgresConnection with any type of body
+func NewTestPostgresConnectionRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/test", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUpdatePostgresTriggerRequest calls the generic UpdatePostgresTrigger builder with application/json body
 func NewUpdatePostgresTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdatePostgresTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -40189,6 +40274,11 @@ type ClientWithResponsesInterface interface {
 	// ListPostgresReplicationSlotWithResponse request
 	ListPostgresReplicationSlotWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListPostgresReplicationSlotResponse, error)
 
+	// TestPostgresConnectionWithBodyWithResponse request with any body
+	TestPostgresConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestPostgresConnectionResponse, error)
+
+	TestPostgresConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestPostgresConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestPostgresConnectionResponse, error)
+
 	// UpdatePostgresTriggerWithBodyWithResponse request with any body
 	UpdatePostgresTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePostgresTriggerResponse, error)
 
@@ -47049,6 +47139,27 @@ func (r ListPostgresReplicationSlotResponse) StatusCode() int {
 	return 0
 }
 
+type TestPostgresConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestPostgresConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestPostgresConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UpdatePostgresTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -53512,6 +53623,23 @@ func (c *ClientWithResponses) ListPostgresReplicationSlotWithResponse(ctx contex
 		return nil, err
 	}
 	return ParseListPostgresReplicationSlotResponse(rsp)
+}
+
+// TestPostgresConnectionWithBodyWithResponse request with arbitrary body returning *TestPostgresConnectionResponse
+func (c *ClientWithResponses) TestPostgresConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestPostgresConnectionResponse, error) {
+	rsp, err := c.TestPostgresConnectionWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestPostgresConnectionResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestPostgresConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestPostgresConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestPostgresConnectionResponse, error) {
+	rsp, err := c.TestPostgresConnection(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestPostgresConnectionResponse(rsp)
 }
 
 // UpdatePostgresTriggerWithBodyWithResponse request with arbitrary body returning *UpdatePostgresTriggerResponse
@@ -61435,6 +61563,22 @@ func ParseListPostgresReplicationSlotResponse(rsp *http.Response) (*ListPostgres
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseTestPostgresConnectionResponse parses an HTTP response from a TestPostgresConnectionWithResponse call
+func ParseTestPostgresConnectionResponse(rsp *http.Response) (*TestPostgresConnectionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestPostgresConnectionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
