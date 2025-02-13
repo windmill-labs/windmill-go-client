@@ -2863,6 +2863,21 @@ type SearchJobsIndexParams struct {
 	SearchQuery string `form:"search_query" json:"search_query"`
 }
 
+// SendMessageToConversationJSONBody defines parameters for SendMessageToConversation.
+type SendMessageToConversationJSONBody struct {
+	// CardBlock The card block to be sent in the Teams card
+	CardBlock *map[string]interface{} `json:"card_block,omitempty"`
+
+	// ConversationId The ID of the Teams conversation/activity
+	ConversationId string `json:"conversation_id"`
+
+	// Success Used for styling the card conditionally
+	Success *bool `json:"success,omitempty"`
+
+	// Text The message text to be sent in the Teams card
+	Text string `json:"text"`
+}
+
 // AcceptInviteJSONBody defines parameters for AcceptInvite.
 type AcceptInviteJSONBody struct {
 	Username    *string `json:"username,omitempty"`
@@ -4629,6 +4644,12 @@ type ChangeWorkspaceNameJSONBody struct {
 	NewName *string `json:"new_name,omitempty"`
 }
 
+// ConnectTeamsJSONBody defines parameters for ConnectTeams.
+type ConnectTeamsJSONBody struct {
+	TeamId   *string `json:"team_id,omitempty"`
+	TeamName *string `json:"team_name,omitempty"`
+}
+
 // WorkspaceGetCriticalAlertsParams defines parameters for WorkspaceGetCriticalAlerts.
 type WorkspaceGetCriticalAlertsParams struct {
 	Page         *int  `form:"page,omitempty" json:"page,omitempty"`
@@ -4700,6 +4721,11 @@ type EditSlackCommandJSONBody struct {
 	SlackCommandScript *string `json:"slack_command_script,omitempty"`
 }
 
+// EditTeamsCommandJSONBody defines parameters for EditTeamsCommand.
+type EditTeamsCommandJSONBody struct {
+	SlackCommandScript *string `json:"slack_command_script,omitempty"`
+}
+
 // EditWebhookJSONBody defines parameters for EditWebhook.
 type EditWebhookJSONBody struct {
 	Webhook *string `json:"webhook,omitempty"`
@@ -4720,6 +4746,13 @@ type InviteUserJSONBody struct {
 
 // RunSlackMessageTestJobJSONBody defines parameters for RunSlackMessageTestJob.
 type RunSlackMessageTestJobJSONBody struct {
+	Channel       *string `json:"channel,omitempty"`
+	HubScriptPath *string `json:"hub_script_path,omitempty"`
+	TestMsg       *string `json:"test_msg,omitempty"`
+}
+
+// RunTeamsMessageTestJobJSONBody defines parameters for RunTeamsMessageTestJob.
+type RunTeamsMessageTestJobJSONBody struct {
 	Channel       *string `json:"channel,omitempty"`
 	HubScriptPath *string `json:"hub_script_path,omitempty"`
 	TestMsg       *string `json:"test_msg,omitempty"`
@@ -4835,6 +4868,9 @@ type TestObjectStorageConfigJSONRequestBody TestObjectStorageConfigJSONBody
 
 // TestSmtpJSONRequestBody defines body for TestSmtp for application/json ContentType.
 type TestSmtpJSONRequestBody TestSmtpJSONBody
+
+// SendMessageToConversationJSONRequestBody defines body for SendMessageToConversation for application/json ContentType.
+type SendMessageToConversationJSONRequestBody SendMessageToConversationJSONBody
 
 // AcceptInviteJSONRequestBody defines body for AcceptInvite for application/json ContentType.
 type AcceptInviteJSONRequestBody AcceptInviteJSONBody
@@ -5175,6 +5211,9 @@ type ChangeWorkspaceIdJSONRequestBody ChangeWorkspaceIdJSONBody
 // ChangeWorkspaceNameJSONRequestBody defines body for ChangeWorkspaceName for application/json ContentType.
 type ChangeWorkspaceNameJSONRequestBody ChangeWorkspaceNameJSONBody
 
+// ConnectTeamsJSONRequestBody defines body for ConnectTeams for application/json ContentType.
+type ConnectTeamsJSONRequestBody ConnectTeamsJSONBody
+
 // WorkspaceMuteCriticalAlertsUIJSONRequestBody defines body for WorkspaceMuteCriticalAlertsUI for application/json ContentType.
 type WorkspaceMuteCriticalAlertsUIJSONRequestBody WorkspaceMuteCriticalAlertsUIJSONBody
 
@@ -5211,6 +5250,9 @@ type EditLargeFileStorageConfigJSONRequestBody EditLargeFileStorageConfigJSONBod
 // EditSlackCommandJSONRequestBody defines body for EditSlackCommand for application/json ContentType.
 type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
 
+// EditTeamsCommandJSONRequestBody defines body for EditTeamsCommand for application/json ContentType.
+type EditTeamsCommandJSONRequestBody EditTeamsCommandJSONBody
+
 // EditWebhookJSONRequestBody defines body for EditWebhook for application/json ContentType.
 type EditWebhookJSONRequestBody EditWebhookJSONBody
 
@@ -5225,6 +5267,9 @@ type UpdateOperatorSettingsJSONRequestBody = OperatorSettings
 
 // RunSlackMessageTestJobJSONRequestBody defines body for RunSlackMessageTestJob for application/json ContentType.
 type RunSlackMessageTestJobJSONRequestBody RunSlackMessageTestJobJSONBody
+
+// RunTeamsMessageTestJobJSONRequestBody defines body for RunTeamsMessageTestJob for application/json ContentType.
+type RunTeamsMessageTestJobJSONRequestBody RunTeamsMessageTestJobJSONBody
 
 // SetAutomaticBillingJSONRequestBody defines body for SetAutomaticBilling for application/json ContentType.
 type SetAutomaticBillingJSONRequestBody SetAutomaticBillingJSONBody
@@ -6022,6 +6067,11 @@ type ClientInterface interface {
 	// SearchJobsIndex request
 	SearchJobsIndex(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SendMessageToConversationWithBody request with any body
+	SendMessageToConversationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SendMessageToConversation(ctx context.Context, body SendMessageToConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SyncTeams request
 	SyncTeams(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6776,6 +6826,9 @@ type ClientInterface interface {
 	// DisconnectSlack request
 	DisconnectSlack(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DisconnectTeams request
+	DisconnectTeams(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RefreshTokenWithBody request with any body
 	RefreshTokenWithBody(ctx context.Context, workspace WorkspaceId, id AccountId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7154,6 +7207,12 @@ type ClientInterface interface {
 	// ArchiveWorkspace request
 	ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAvailableTeamsChannels request
+	ListAvailableTeamsChannels(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAvailableTeamsIds request
+	ListAvailableTeamsIds(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ChangeWorkspaceColorWithBody request with any body
 	ChangeWorkspaceColorWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7168,6 +7227,11 @@ type ClientInterface interface {
 	ChangeWorkspaceNameWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ChangeWorkspaceName(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ConnectTeamsWithBody request with any body
+	ConnectTeamsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ConnectTeams(ctx context.Context, workspace WorkspaceId, body ConnectTeamsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// WorkspaceGetCriticalAlerts request
 	WorkspaceGetCriticalAlerts(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7244,6 +7308,11 @@ type ClientInterface interface {
 
 	EditSlackCommand(ctx context.Context, workspace WorkspaceId, body EditSlackCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditTeamsCommandWithBody request with any body
+	EditTeamsCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditTeamsCommand(ctx context.Context, workspace WorkspaceId, body EditTeamsCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditWebhookWithBody request with any body
 	EditWebhookWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7298,6 +7367,11 @@ type ClientInterface interface {
 	RunSlackMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunSlackMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunTeamsMessageTestJobWithBody request with any body
+	RunTeamsMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunTeamsMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SetAutomaticBillingWithBody request with any body
 	SetAutomaticBillingWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8328,6 +8402,30 @@ func (c *Client) SearchLogsIndex(ctx context.Context, params *SearchLogsIndexPar
 
 func (c *Client) SearchJobsIndex(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSearchJobsIndexRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SendMessageToConversationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSendMessageToConversationRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SendMessageToConversation(ctx context.Context, body SendMessageToConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSendMessageToConversationRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -11662,6 +11760,18 @@ func (c *Client) DisconnectSlack(ctx context.Context, workspace WorkspaceId, req
 	return c.Client.Do(req)
 }
 
+func (c *Client) DisconnectTeams(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDisconnectTeamsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) RefreshTokenWithBody(ctx context.Context, workspace WorkspaceId, id AccountId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRefreshTokenRequestWithBody(c.Server, workspace, id, contentType, body)
 	if err != nil {
@@ -13306,6 +13416,30 @@ func (c *Client) ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, re
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListAvailableTeamsChannels(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAvailableTeamsChannelsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAvailableTeamsIds(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAvailableTeamsIdsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ChangeWorkspaceColorWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewChangeWorkspaceColorRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -13368,6 +13502,30 @@ func (c *Client) ChangeWorkspaceNameWithBody(ctx context.Context, workspace Work
 
 func (c *Client) ChangeWorkspaceName(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewChangeWorkspaceNameRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectTeamsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectTeamsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectTeams(ctx context.Context, workspace WorkspaceId, body ConnectTeamsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectTeamsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -13726,6 +13884,30 @@ func (c *Client) EditSlackCommand(ctx context.Context, workspace WorkspaceId, bo
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditTeamsCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditTeamsCommandRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditTeamsCommand(ctx context.Context, workspace WorkspaceId, body EditTeamsCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditTeamsCommandRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditWebhookWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditWebhookRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -13956,6 +14138,30 @@ func (c *Client) RunSlackMessageTestJobWithBody(ctx context.Context, workspace W
 
 func (c *Client) RunSlackMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunSlackMessageTestJobRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunTeamsMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunTeamsMessageTestJobRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunTeamsMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunTeamsMessageTestJobRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16906,6 +17112,46 @@ func NewSearchJobsIndexRequest(server string, workspace WorkspaceId, params *Sea
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewSendMessageToConversationRequest calls the generic SendMessageToConversation builder with application/json body
+func NewSendMessageToConversationRequest(server string, body SendMessageToConversationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSendMessageToConversationRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSendMessageToConversationRequestWithBody generates requests for SendMessageToConversation with any type of body
+func NewSendMessageToConversationRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/teams/activities")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -31302,6 +31548,40 @@ func NewDisconnectSlackRequest(server string, workspace WorkspaceId) (*http.Requ
 	return req, nil
 }
 
+// NewDisconnectTeamsRequest generates requests for DisconnectTeams
+func NewDisconnectTeamsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/oauth/disconnect_teams", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewRefreshTokenRequest calls the generic RefreshToken builder with application/json body
 func NewRefreshTokenRequest(server string, workspace WorkspaceId, id AccountId, body RefreshTokenJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -36794,6 +37074,74 @@ func NewArchiveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Req
 	return req, nil
 }
 
+// NewListAvailableTeamsChannelsRequest generates requests for ListAvailableTeamsChannels
+func NewListAvailableTeamsChannelsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/available_teams_channels", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAvailableTeamsIdsRequest generates requests for ListAvailableTeamsIds
+func NewListAvailableTeamsIdsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/available_teams_ids", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewChangeWorkspaceColorRequest calls the generic ChangeWorkspaceColor builder with application/json body
 func NewChangeWorkspaceColorRequest(server string, workspace WorkspaceId, body ChangeWorkspaceColorJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -36916,6 +37264,53 @@ func NewChangeWorkspaceNameRequestWithBody(server string, workspace WorkspaceId,
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/change_workspace_name", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewConnectTeamsRequest calls the generic ConnectTeams builder with application/json body
+func NewConnectTeamsRequest(server string, workspace WorkspaceId, body ConnectTeamsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewConnectTeamsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewConnectTeamsRequestWithBody generates requests for ConnectTeams with any type of body
+func NewConnectTeamsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/connect_teams", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -37730,6 +38125,53 @@ func NewEditSlackCommandRequestWithBody(server string, workspace WorkspaceId, co
 	return req, nil
 }
 
+// NewEditTeamsCommandRequest calls the generic EditTeamsCommand builder with application/json body
+func NewEditTeamsCommandRequest(server string, workspace WorkspaceId, body EditTeamsCommandJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditTeamsCommandRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditTeamsCommandRequestWithBody generates requests for EditTeamsCommand with any type of body
+func NewEditTeamsCommandRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_teams_command", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditWebhookRequest calls the generic EditWebhook builder with application/json body
 func NewEditWebhookRequest(server string, workspace WorkspaceId, body EditWebhookJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -38286,6 +38728,53 @@ func NewRunSlackMessageTestJobRequestWithBody(server string, workspace Workspace
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/run_slack_message_test_job", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRunTeamsMessageTestJobRequest calls the generic RunTeamsMessageTestJob builder with application/json body
+func NewRunTeamsMessageTestJobRequest(server string, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunTeamsMessageTestJobRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRunTeamsMessageTestJobRequestWithBody generates requests for RunTeamsMessageTestJob with any type of body
+func NewRunTeamsMessageTestJobRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/run_teams_message_test_job", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -39447,6 +39936,11 @@ type ClientWithResponsesInterface interface {
 	// SearchJobsIndexWithResponse request
 	SearchJobsIndexWithResponse(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*SearchJobsIndexResponse, error)
 
+	// SendMessageToConversationWithBodyWithResponse request with any body
+	SendMessageToConversationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SendMessageToConversationResponse, error)
+
+	SendMessageToConversationWithResponse(ctx context.Context, body SendMessageToConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*SendMessageToConversationResponse, error)
+
 	// SyncTeamsWithResponse request
 	SyncTeamsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SyncTeamsResponse, error)
 
@@ -40201,6 +40695,9 @@ type ClientWithResponsesInterface interface {
 	// DisconnectSlackWithResponse request
 	DisconnectSlackWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DisconnectSlackResponse, error)
 
+	// DisconnectTeamsWithResponse request
+	DisconnectTeamsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DisconnectTeamsResponse, error)
+
 	// RefreshTokenWithBodyWithResponse request with any body
 	RefreshTokenWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id AccountId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RefreshTokenResponse, error)
 
@@ -40579,6 +41076,12 @@ type ClientWithResponsesInterface interface {
 	// ArchiveWorkspaceWithResponse request
 	ArchiveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ArchiveWorkspaceResponse, error)
 
+	// ListAvailableTeamsChannelsWithResponse request
+	ListAvailableTeamsChannelsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAvailableTeamsChannelsResponse, error)
+
+	// ListAvailableTeamsIdsWithResponse request
+	ListAvailableTeamsIdsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAvailableTeamsIdsResponse, error)
+
 	// ChangeWorkspaceColorWithBodyWithResponse request with any body
 	ChangeWorkspaceColorWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceColorResponse, error)
 
@@ -40593,6 +41096,11 @@ type ClientWithResponsesInterface interface {
 	ChangeWorkspaceNameWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceNameResponse, error)
 
 	ChangeWorkspaceNameWithResponse(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeWorkspaceNameResponse, error)
+
+	// ConnectTeamsWithBodyWithResponse request with any body
+	ConnectTeamsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectTeamsResponse, error)
+
+	ConnectTeamsWithResponse(ctx context.Context, workspace WorkspaceId, body ConnectTeamsJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectTeamsResponse, error)
 
 	// WorkspaceGetCriticalAlertsWithResponse request
 	WorkspaceGetCriticalAlertsWithResponse(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*WorkspaceGetCriticalAlertsResponse, error)
@@ -40669,6 +41177,11 @@ type ClientWithResponsesInterface interface {
 
 	EditSlackCommandWithResponse(ctx context.Context, workspace WorkspaceId, body EditSlackCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
 
+	// EditTeamsCommandWithBodyWithResponse request with any body
+	EditTeamsCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditTeamsCommandResponse, error)
+
+	EditTeamsCommandWithResponse(ctx context.Context, workspace WorkspaceId, body EditTeamsCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*EditTeamsCommandResponse, error)
+
 	// EditWebhookWithBodyWithResponse request with any body
 	EditWebhookWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
 
@@ -40723,6 +41236,11 @@ type ClientWithResponsesInterface interface {
 	RunSlackMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error)
 
 	RunSlackMessageTestJobWithResponse(ctx context.Context, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error)
+
+	// RunTeamsMessageTestJobWithBodyWithResponse request with any body
+	RunTeamsMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error)
+
+	RunTeamsMessageTestJobWithResponse(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error)
 
 	// SetAutomaticBillingWithBodyWithResponse request with any body
 	SetAutomaticBillingWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAutomaticBillingResponse, error)
@@ -42277,6 +42795,27 @@ func (r SearchJobsIndexResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SearchJobsIndexResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SendMessageToConversationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SendMessageToConversationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SendMessageToConversationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -46733,6 +47272,27 @@ func (r DisconnectSlackResponse) StatusCode() int {
 	return 0
 }
 
+type DisconnectTeamsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DisconnectTeamsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DisconnectTeamsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RefreshTokenResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -48983,6 +49543,58 @@ func (r ArchiveWorkspaceResponse) StatusCode() int {
 	return 0
 }
 
+type ListAvailableTeamsChannelsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		ChannelId   *string `json:"channel_id,omitempty"`
+		ChannelName *string `json:"channel_name,omitempty"`
+		ServiceUrl  *string `json:"service_url,omitempty"`
+		TenantId    *string `json:"tenant_id,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAvailableTeamsChannelsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAvailableTeamsChannelsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAvailableTeamsIdsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		TeamId   *string `json:"team_id,omitempty"`
+		TeamName *string `json:"team_name,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAvailableTeamsIdsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAvailableTeamsIdsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ChangeWorkspaceColorResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -49040,6 +49652,27 @@ func (r ChangeWorkspaceNameResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ChangeWorkspaceNameResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ConnectTeamsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ConnectTeamsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ConnectTeamsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -49422,6 +50055,27 @@ func (r EditSlackCommandResponse) StatusCode() int {
 	return 0
 }
 
+type EditTeamsCommandResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditTeamsCommandResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditTeamsCommandResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditWebhookResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -49583,6 +50237,9 @@ type GetSettingsResponse struct {
 		SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
 		SlackName                 *string                    `json:"slack_name,omitempty"`
 		SlackTeamId               *string                    `json:"slack_team_id,omitempty"`
+		TeamsCommandScript        *string                    `json:"teams_command_script,omitempty"`
+		TeamsTeamId               *string                    `json:"teams_team_id,omitempty"`
+		TeamsTeamName             *string                    `json:"teams_team_name,omitempty"`
 		Webhook                   *string                    `json:"webhook,omitempty"`
 		WorkspaceId               *string                    `json:"workspace_id,omitempty"`
 	}
@@ -49775,6 +50432,27 @@ func (r RunSlackMessageTestJobResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunSlackMessageTestJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunTeamsMessageTestJobResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunTeamsMessageTestJobResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunTeamsMessageTestJobResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -50972,6 +51650,23 @@ func (c *ClientWithResponses) SearchJobsIndexWithResponse(ctx context.Context, w
 		return nil, err
 	}
 	return ParseSearchJobsIndexResponse(rsp)
+}
+
+// SendMessageToConversationWithBodyWithResponse request with arbitrary body returning *SendMessageToConversationResponse
+func (c *ClientWithResponses) SendMessageToConversationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SendMessageToConversationResponse, error) {
+	rsp, err := c.SendMessageToConversationWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSendMessageToConversationResponse(rsp)
+}
+
+func (c *ClientWithResponses) SendMessageToConversationWithResponse(ctx context.Context, body SendMessageToConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*SendMessageToConversationResponse, error) {
+	rsp, err := c.SendMessageToConversation(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSendMessageToConversationResponse(rsp)
 }
 
 // SyncTeamsWithResponse request returning *SyncTeamsResponse
@@ -53390,6 +54085,15 @@ func (c *ClientWithResponses) DisconnectSlackWithResponse(ctx context.Context, w
 	return ParseDisconnectSlackResponse(rsp)
 }
 
+// DisconnectTeamsWithResponse request returning *DisconnectTeamsResponse
+func (c *ClientWithResponses) DisconnectTeamsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DisconnectTeamsResponse, error) {
+	rsp, err := c.DisconnectTeams(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDisconnectTeamsResponse(rsp)
+}
+
 // RefreshTokenWithBodyWithResponse request with arbitrary body returning *RefreshTokenResponse
 func (c *ClientWithResponses) RefreshTokenWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id AccountId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RefreshTokenResponse, error) {
 	rsp, err := c.RefreshTokenWithBody(ctx, workspace, id, contentType, body, reqEditors...)
@@ -54590,6 +55294,24 @@ func (c *ClientWithResponses) ArchiveWorkspaceWithResponse(ctx context.Context, 
 	return ParseArchiveWorkspaceResponse(rsp)
 }
 
+// ListAvailableTeamsChannelsWithResponse request returning *ListAvailableTeamsChannelsResponse
+func (c *ClientWithResponses) ListAvailableTeamsChannelsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAvailableTeamsChannelsResponse, error) {
+	rsp, err := c.ListAvailableTeamsChannels(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAvailableTeamsChannelsResponse(rsp)
+}
+
+// ListAvailableTeamsIdsWithResponse request returning *ListAvailableTeamsIdsResponse
+func (c *ClientWithResponses) ListAvailableTeamsIdsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAvailableTeamsIdsResponse, error) {
+	rsp, err := c.ListAvailableTeamsIds(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAvailableTeamsIdsResponse(rsp)
+}
+
 // ChangeWorkspaceColorWithBodyWithResponse request with arbitrary body returning *ChangeWorkspaceColorResponse
 func (c *ClientWithResponses) ChangeWorkspaceColorWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceColorResponse, error) {
 	rsp, err := c.ChangeWorkspaceColorWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -54639,6 +55361,23 @@ func (c *ClientWithResponses) ChangeWorkspaceNameWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseChangeWorkspaceNameResponse(rsp)
+}
+
+// ConnectTeamsWithBodyWithResponse request with arbitrary body returning *ConnectTeamsResponse
+func (c *ClientWithResponses) ConnectTeamsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectTeamsResponse, error) {
+	rsp, err := c.ConnectTeamsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectTeamsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ConnectTeamsWithResponse(ctx context.Context, workspace WorkspaceId, body ConnectTeamsJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectTeamsResponse, error) {
+	rsp, err := c.ConnectTeams(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectTeamsResponse(rsp)
 }
 
 // WorkspaceGetCriticalAlertsWithResponse request returning *WorkspaceGetCriticalAlertsResponse
@@ -54890,6 +55629,23 @@ func (c *ClientWithResponses) EditSlackCommandWithResponse(ctx context.Context, 
 	return ParseEditSlackCommandResponse(rsp)
 }
 
+// EditTeamsCommandWithBodyWithResponse request with arbitrary body returning *EditTeamsCommandResponse
+func (c *ClientWithResponses) EditTeamsCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditTeamsCommandResponse, error) {
+	rsp, err := c.EditTeamsCommandWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditTeamsCommandResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditTeamsCommandWithResponse(ctx context.Context, workspace WorkspaceId, body EditTeamsCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*EditTeamsCommandResponse, error) {
+	rsp, err := c.EditTeamsCommand(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditTeamsCommandResponse(rsp)
+}
+
 // EditWebhookWithBodyWithResponse request with arbitrary body returning *EditWebhookResponse
 func (c *ClientWithResponses) EditWebhookWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error) {
 	rsp, err := c.EditWebhookWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -55063,6 +55819,23 @@ func (c *ClientWithResponses) RunSlackMessageTestJobWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseRunSlackMessageTestJobResponse(rsp)
+}
+
+// RunTeamsMessageTestJobWithBodyWithResponse request with arbitrary body returning *RunTeamsMessageTestJobResponse
+func (c *ClientWithResponses) RunTeamsMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error) {
+	rsp, err := c.RunTeamsMessageTestJobWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunTeamsMessageTestJobResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunTeamsMessageTestJobWithResponse(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error) {
+	rsp, err := c.RunTeamsMessageTestJob(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunTeamsMessageTestJobResponse(rsp)
 }
 
 // SetAutomaticBillingWithBodyWithResponse request with arbitrary body returning *SetAutomaticBillingResponse
@@ -56794,6 +57567,22 @@ func ParseSearchJobsIndexResponse(rsp *http.Response) (*SearchJobsIndexResponse,
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseSendMessageToConversationResponse parses an HTTP response from a SendMessageToConversationWithResponse call
+func ParseSendMessageToConversationResponse(rsp *http.Response) (*SendMessageToConversationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SendMessageToConversationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -61194,6 +61983,22 @@ func ParseDisconnectSlackResponse(rsp *http.Response) (*DisconnectSlackResponse,
 	return response, nil
 }
 
+// ParseDisconnectTeamsResponse parses an HTTP response from a DisconnectTeamsWithResponse call
+func ParseDisconnectTeamsResponse(rsp *http.Response) (*DisconnectTeamsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DisconnectTeamsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseRefreshTokenResponse parses an HTTP response from a RefreshTokenWithResponse call
 func ParseRefreshTokenResponse(rsp *http.Response) (*RefreshTokenResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -63410,6 +64215,66 @@ func ParseArchiveWorkspaceResponse(rsp *http.Response) (*ArchiveWorkspaceRespons
 	return response, nil
 }
 
+// ParseListAvailableTeamsChannelsResponse parses an HTTP response from a ListAvailableTeamsChannelsWithResponse call
+func ParseListAvailableTeamsChannelsResponse(rsp *http.Response) (*ListAvailableTeamsChannelsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAvailableTeamsChannelsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			ChannelId   *string `json:"channel_id,omitempty"`
+			ChannelName *string `json:"channel_name,omitempty"`
+			ServiceUrl  *string `json:"service_url,omitempty"`
+			TenantId    *string `json:"tenant_id,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAvailableTeamsIdsResponse parses an HTTP response from a ListAvailableTeamsIdsWithResponse call
+func ParseListAvailableTeamsIdsResponse(rsp *http.Response) (*ListAvailableTeamsIdsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAvailableTeamsIdsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			TeamId   *string `json:"team_id,omitempty"`
+			TeamName *string `json:"team_name,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseChangeWorkspaceColorResponse parses an HTTP response from a ChangeWorkspaceColorWithResponse call
 func ParseChangeWorkspaceColorResponse(rsp *http.Response) (*ChangeWorkspaceColorResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -63451,6 +64316,22 @@ func ParseChangeWorkspaceNameResponse(rsp *http.Response) (*ChangeWorkspaceNameR
 	}
 
 	response := &ChangeWorkspaceNameResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseConnectTeamsResponse parses an HTTP response from a ConnectTeamsWithResponse call
+func ParseConnectTeamsResponse(rsp *http.Response) (*ConnectTeamsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ConnectTeamsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -63830,6 +64711,22 @@ func ParseEditSlackCommandResponse(rsp *http.Response) (*EditSlackCommandRespons
 	return response, nil
 }
 
+// ParseEditTeamsCommandResponse parses an HTTP response from a EditTeamsCommandWithResponse call
+func ParseEditTeamsCommandResponse(rsp *http.Response) (*EditTeamsCommandResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditTeamsCommandResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseEditWebhookResponse parses an HTTP response from a EditWebhookWithResponse call
 func ParseEditWebhookResponse(rsp *http.Response) (*EditWebhookResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -64000,6 +64897,9 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
 			SlackName                 *string                    `json:"slack_name,omitempty"`
 			SlackTeamId               *string                    `json:"slack_team_id,omitempty"`
+			TeamsCommandScript        *string                    `json:"teams_command_script,omitempty"`
+			TeamsTeamId               *string                    `json:"teams_team_id,omitempty"`
+			TeamsTeamName             *string                    `json:"teams_team_name,omitempty"`
 			Webhook                   *string                    `json:"webhook,omitempty"`
 			WorkspaceId               *string                    `json:"workspace_id,omitempty"`
 		}
@@ -64170,6 +65070,22 @@ func ParseRunSlackMessageTestJobResponse(rsp *http.Response) (*RunSlackMessageTe
 	}
 
 	response := &RunSlackMessageTestJobResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunTeamsMessageTestJobResponse parses an HTTP response from a RunTeamsMessageTestJobWithResponse call
+func ParseRunTeamsMessageTestJobResponse(rsp *http.Response) (*RunTeamsMessageTestJobResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunTeamsMessageTestJobResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
