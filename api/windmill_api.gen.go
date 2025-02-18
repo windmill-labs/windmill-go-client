@@ -163,6 +163,7 @@ const (
 	CaptureTriggerKindKafka     CaptureTriggerKind = "kafka"
 	CaptureTriggerKindNats      CaptureTriggerKind = "nats"
 	CaptureTriggerKindPostgres  CaptureTriggerKind = "postgres"
+	CaptureTriggerKindSqs       CaptureTriggerKind = "sqs"
 	CaptureTriggerKindWebhook   CaptureTriggerKind = "webhook"
 	CaptureTriggerKindWebsocket CaptureTriggerKind = "websocket"
 )
@@ -547,6 +548,7 @@ const (
 	AddGranularAclsParamsKindResource         AddGranularAclsParamsKind = "resource"
 	AddGranularAclsParamsKindSchedule         AddGranularAclsParamsKind = "schedule"
 	AddGranularAclsParamsKindScript           AddGranularAclsParamsKind = "script"
+	AddGranularAclsParamsKindSqsTrigger       AddGranularAclsParamsKind = "sqs_trigger"
 	AddGranularAclsParamsKindVariable         AddGranularAclsParamsKind = "variable"
 	AddGranularAclsParamsKindWebsocketTrigger AddGranularAclsParamsKind = "websocket_trigger"
 )
@@ -565,6 +567,7 @@ const (
 	GetGranularAclsParamsKindResource         GetGranularAclsParamsKind = "resource"
 	GetGranularAclsParamsKindSchedule         GetGranularAclsParamsKind = "schedule"
 	GetGranularAclsParamsKindScript           GetGranularAclsParamsKind = "script"
+	GetGranularAclsParamsKindSqsTrigger       GetGranularAclsParamsKind = "sqs_trigger"
 	GetGranularAclsParamsKindVariable         GetGranularAclsParamsKind = "variable"
 	GetGranularAclsParamsKindWebsocketTrigger GetGranularAclsParamsKind = "websocket_trigger"
 )
@@ -583,6 +586,7 @@ const (
 	RemoveGranularAclsParamsKindResource         RemoveGranularAclsParamsKind = "resource"
 	RemoveGranularAclsParamsKindSchedule         RemoveGranularAclsParamsKind = "schedule"
 	RemoveGranularAclsParamsKindScript           RemoveGranularAclsParamsKind = "script"
+	RemoveGranularAclsParamsKindSqsTrigger       RemoveGranularAclsParamsKind = "sqs_trigger"
 	RemoveGranularAclsParamsKindVariable         RemoveGranularAclsParamsKind = "variable"
 	RemoveGranularAclsParamsKindWebsocketTrigger RemoveGranularAclsParamsKind = "websocket_trigger"
 )
@@ -1011,6 +1015,17 @@ type EditSchedule struct {
 	Tag                 *string     `json:"tag,omitempty"`
 	Timezone            string      `json:"timezone"`
 	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
+}
+
+// EditSqsTrigger defines model for EditSqsTrigger.
+type EditSqsTrigger struct {
+	AwsResourcePath   string    `json:"aws_resource_path"`
+	Enabled           bool      `json:"enabled"`
+	IsFlow            bool      `json:"is_flow"`
+	MessageAttributes *[]string `json:"message_attributes,omitempty"`
+	Path              string    `json:"path"`
+	QueueUrl          string    `json:"queue_url"`
+	ScriptPath        string    `json:"script_path"`
 }
 
 // EditVariable defines model for EditVariable.
@@ -1497,23 +1512,7 @@ type JobSearchHit struct {
 }
 
 // KafkaTrigger defines model for KafkaTrigger.
-type KafkaTrigger struct {
-	EditedAt          time.Time       `json:"edited_at"`
-	EditedBy          string          `json:"edited_by"`
-	Email             string          `json:"email"`
-	Enabled           bool            `json:"enabled"`
-	Error             *string         `json:"error,omitempty"`
-	ExtraPerms        map[string]bool `json:"extra_perms"`
-	GroupId           string          `json:"group_id"`
-	IsFlow            bool            `json:"is_flow"`
-	KafkaResourcePath string          `json:"kafka_resource_path"`
-	LastServerPing    *time.Time      `json:"last_server_ping,omitempty"`
-	Path              string          `json:"path"`
-	ScriptPath        string          `json:"script_path"`
-	ServerId          *string         `json:"server_id,omitempty"`
-	Topics            []string        `json:"topics"`
-	WorkspaceId       string          `json:"workspace_id"`
-}
+type KafkaTrigger = TriggerExtraProperty
 
 // Language defines model for Language.
 type Language string
@@ -1624,25 +1623,7 @@ type MetricMetadata struct {
 }
 
 // NatsTrigger defines model for NatsTrigger.
-type NatsTrigger struct {
-	ConsumerName     *string         `json:"consumer_name,omitempty"`
-	EditedAt         time.Time       `json:"edited_at"`
-	EditedBy         string          `json:"edited_by"`
-	Email            string          `json:"email"`
-	Enabled          bool            `json:"enabled"`
-	Error            *string         `json:"error,omitempty"`
-	ExtraPerms       map[string]bool `json:"extra_perms"`
-	IsFlow           bool            `json:"is_flow"`
-	LastServerPing   *time.Time      `json:"last_server_ping,omitempty"`
-	NatsResourcePath string          `json:"nats_resource_path"`
-	Path             string          `json:"path"`
-	ScriptPath       string          `json:"script_path"`
-	ServerId         *string         `json:"server_id,omitempty"`
-	StreamName       *string         `json:"stream_name,omitempty"`
-	Subjects         []string        `json:"subjects"`
-	UseJetstream     bool            `json:"use_jetstream"`
-	WorkspaceId      string          `json:"workspace_id"`
-}
+type NatsTrigger = TriggerExtraProperty
 
 // NewHttpTrigger defines model for NewHttpTrigger.
 type NewHttpTrigger struct {
@@ -1800,6 +1781,17 @@ type NewScriptWithDraft struct {
 
 // NewScriptWithDraftKind defines model for NewScriptWithDraft.Kind.
 type NewScriptWithDraftKind string
+
+// NewSqsTrigger defines model for NewSqsTrigger.
+type NewSqsTrigger struct {
+	AwsResourcePath   string    `json:"aws_resource_path"`
+	Enabled           *bool     `json:"enabled,omitempty"`
+	IsFlow            bool      `json:"is_flow"`
+	MessageAttributes *[]string `json:"message_attributes,omitempty"`
+	Path              string    `json:"path"`
+	QueueUrl          string    `json:"queue_url"`
+	ScriptPath        string    `json:"script_path"`
+}
 
 // NewToken defines model for NewToken.
 type NewToken struct {
@@ -2240,6 +2232,9 @@ type SlotList struct {
 	SlotName *string `json:"slot_name,omitempty"`
 }
 
+// SqsTrigger defines model for SqsTrigger.
+type SqsTrigger = TriggerExtraProperty
+
 // StaticTransform defines model for StaticTransform.
 type StaticTransform struct {
 	Type  StaticTransformType `json:"type"`
@@ -2295,6 +2290,9 @@ type TriggerExtraProperty struct {
 	EditedBy    string          `json:"edited_by"`
 	Email       string          `json:"email"`
 	ExtraPerms  map[string]bool `json:"extra_perms"`
+	IsFlow      bool            `json:"is_flow"`
+	Path        string          `json:"path"`
+	ScriptPath  string          `json:"script_path"`
 	WorkspaceId string          `json:"workspace_id"`
 }
 
@@ -2309,6 +2307,7 @@ type TriggersCount struct {
 		Schedule *string `json:"schedule,omitempty"`
 	} `json:"primary_schedule,omitempty"`
 	ScheduleCount  *float32 `json:"schedule_count,omitempty"`
+	SqsCount       *float32 `json:"sqs_count,omitempty"`
 	WebhookCount   *float32 `json:"webhook_count,omitempty"`
 	WebsocketCount *float32 `json:"websocket_count,omitempty"`
 }
@@ -4560,6 +4559,30 @@ type ToggleWorkspaceErrorHandlerForScriptJSONBody struct {
 	Muted *bool `json:"muted,omitempty"`
 }
 
+// ListSqsTriggersParams defines parameters for ListSqsTriggers.
+type ListSqsTriggersParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// Path filter by path
+	Path      *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+}
+
+// SetSqsTriggerEnabledJSONBody defines parameters for SetSqsTriggerEnabled.
+type SetSqsTriggerEnabledJSONBody struct {
+	Enabled bool `json:"enabled"`
+}
+
+// TestSqsConnectionJSONBody defines parameters for TestSqsConnection.
+type TestSqsConnectionJSONBody struct {
+	Connection map[string]interface{} `json:"connection"`
+}
+
 // CreateVariableParams defines parameters for CreateVariable.
 type CreateVariableParams struct {
 	AlreadyEncrypted *bool `form:"already_encrypted,omitempty" json:"already_encrypted,omitempty"`
@@ -5174,6 +5197,18 @@ type UpdateScriptHistoryJSONRequestBody UpdateScriptHistoryJSONBody
 
 // ToggleWorkspaceErrorHandlerForScriptJSONRequestBody defines body for ToggleWorkspaceErrorHandlerForScript for application/json ContentType.
 type ToggleWorkspaceErrorHandlerForScriptJSONRequestBody ToggleWorkspaceErrorHandlerForScriptJSONBody
+
+// CreateSqsTriggerJSONRequestBody defines body for CreateSqsTrigger for application/json ContentType.
+type CreateSqsTriggerJSONRequestBody = NewSqsTrigger
+
+// SetSqsTriggerEnabledJSONRequestBody defines body for SetSqsTriggerEnabled for application/json ContentType.
+type SetSqsTriggerEnabledJSONRequestBody SetSqsTriggerEnabledJSONBody
+
+// TestSqsConnectionJSONRequestBody defines body for TestSqsConnection for application/json ContentType.
+type TestSqsConnectionJSONRequestBody TestSqsConnectionJSONBody
+
+// UpdateSqsTriggerJSONRequestBody defines body for UpdateSqsTrigger for application/json ContentType.
+type UpdateSqsTriggerJSONRequestBody = EditSqsTrigger
 
 // UpdateUserJSONRequestBody defines body for UpdateUser for application/json ContentType.
 type UpdateUserJSONRequestBody = EditWorkspaceUser
@@ -7101,6 +7136,38 @@ type ClientInterface interface {
 	ToggleWorkspaceErrorHandlerForScriptWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ToggleWorkspaceErrorHandlerForScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateSqsTriggerWithBody request with any body
+	CreateSqsTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateSqsTrigger(ctx context.Context, workspace WorkspaceId, body CreateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteSqsTrigger request
+	DeleteSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsSqsTrigger request
+	ExistsSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSqsTrigger request
+	GetSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListSqsTriggers request
+	ListSqsTriggers(ctx context.Context, workspace WorkspaceId, params *ListSqsTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetSqsTriggerEnabledWithBody request with any body
+	SetSqsTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetSqsTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestSqsConnectionWithBody request with any body
+	TestSqsConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestSqsConnection(ctx context.Context, workspace WorkspaceId, body TestSqsConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateSqsTriggerWithBody request with any body
+	UpdateSqsTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteUser request
 	DeleteUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12950,6 +13017,150 @@ func (c *Client) ToggleWorkspaceErrorHandlerForScriptWithBody(ctx context.Contex
 
 func (c *Client) ToggleWorkspaceErrorHandlerForScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewToggleWorkspaceErrorHandlerForScriptRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateSqsTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateSqsTriggerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateSqsTrigger(ctx context.Context, workspace WorkspaceId, body CreateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateSqsTriggerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteSqsTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsSqsTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSqsTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListSqsTriggers(ctx context.Context, workspace WorkspaceId, params *ListSqsTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSqsTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetSqsTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetSqsTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetSqsTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetSqsTriggerEnabledRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestSqsConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestSqsConnectionRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestSqsConnection(ctx context.Context, workspace WorkspaceId, body TestSqsConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestSqsConnectionRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateSqsTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateSqsTriggerRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateSqsTriggerRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -35637,6 +35848,451 @@ func NewToggleWorkspaceErrorHandlerForScriptRequestWithBody(server string, works
 	return req, nil
 }
 
+// NewCreateSqsTriggerRequest calls the generic CreateSqsTrigger builder with application/json body
+func NewCreateSqsTriggerRequest(server string, workspace WorkspaceId, body CreateSqsTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateSqsTriggerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateSqsTriggerRequestWithBody generates requests for CreateSqsTrigger with any type of body
+func NewCreateSqsTriggerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/sqs_triggers/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteSqsTriggerRequest generates requests for DeleteSqsTrigger
+func NewDeleteSqsTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/sqs_triggers/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsSqsTriggerRequest generates requests for ExistsSqsTrigger
+func NewExistsSqsTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/sqs_triggers/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetSqsTriggerRequest generates requests for GetSqsTrigger
+func NewGetSqsTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/sqs_triggers/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListSqsTriggersRequest generates requests for ListSqsTriggers
+func NewListSqsTriggersRequest(server string, workspace WorkspaceId, params *ListSqsTriggersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/sqs_triggers/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsFlow != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PathStart != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetSqsTriggerEnabledRequest calls the generic SetSqsTriggerEnabled builder with application/json body
+func NewSetSqsTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetSqsTriggerEnabledJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetSqsTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewSetSqsTriggerEnabledRequestWithBody generates requests for SetSqsTriggerEnabled with any type of body
+func NewSetSqsTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/sqs_triggers/setenabled/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestSqsConnectionRequest calls the generic TestSqsConnection builder with application/json body
+func NewTestSqsConnectionRequest(server string, workspace WorkspaceId, body TestSqsConnectionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestSqsConnectionRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewTestSqsConnectionRequestWithBody generates requests for TestSqsConnection with any type of body
+func NewTestSqsConnectionRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/sqs_triggers/test", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateSqsTriggerRequest calls the generic UpdateSqsTrigger builder with application/json body
+func NewUpdateSqsTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateSqsTriggerRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateSqsTriggerRequestWithBody generates requests for UpdateSqsTrigger with any type of body
+func NewUpdateSqsTriggerRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/sqs_triggers/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewDeleteUserRequest generates requests for DeleteUser
 func NewDeleteUserRequest(server string, workspace WorkspaceId, username string) (*http.Request, error) {
 	var err error
@@ -40970,6 +41626,38 @@ type ClientWithResponsesInterface interface {
 	ToggleWorkspaceErrorHandlerForScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForScriptResponse, error)
 
 	ToggleWorkspaceErrorHandlerForScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForScriptResponse, error)
+
+	// CreateSqsTriggerWithBodyWithResponse request with any body
+	CreateSqsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateSqsTriggerResponse, error)
+
+	CreateSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSqsTriggerResponse, error)
+
+	// DeleteSqsTriggerWithResponse request
+	DeleteSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteSqsTriggerResponse, error)
+
+	// ExistsSqsTriggerWithResponse request
+	ExistsSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsSqsTriggerResponse, error)
+
+	// GetSqsTriggerWithResponse request
+	GetSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetSqsTriggerResponse, error)
+
+	// ListSqsTriggersWithResponse request
+	ListSqsTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListSqsTriggersParams, reqEditors ...RequestEditorFn) (*ListSqsTriggersResponse, error)
+
+	// SetSqsTriggerEnabledWithBodyWithResponse request with any body
+	SetSqsTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetSqsTriggerEnabledResponse, error)
+
+	SetSqsTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetSqsTriggerEnabledResponse, error)
+
+	// TestSqsConnectionWithBodyWithResponse request with any body
+	TestSqsConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSqsConnectionResponse, error)
+
+	TestSqsConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestSqsConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestSqsConnectionResponse, error)
+
+	// UpdateSqsTriggerWithBodyWithResponse request with any body
+	UpdateSqsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateSqsTriggerResponse, error)
+
+	UpdateSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateSqsTriggerResponse, error)
 
 	// DeleteUserWithResponse request
 	DeleteUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*DeleteUserResponse, error)
@@ -48919,6 +49607,177 @@ func (r ToggleWorkspaceErrorHandlerForScriptResponse) StatusCode() int {
 	return 0
 }
 
+type CreateSqsTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateSqsTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateSqsTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteSqsTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteSqsTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteSqsTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsSqsTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsSqsTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsSqsTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetSqsTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SqsTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSqsTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSqsTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListSqsTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]SqsTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSqsTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSqsTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetSqsTriggerEnabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetSqsTriggerEnabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetSqsTriggerEnabledResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestSqsConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestSqsConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestSqsConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateSqsTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateSqsTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateSqsTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DeleteUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -50576,6 +51435,7 @@ type GetUsedTriggersResponse struct {
 		KafkaUsed      bool `json:"kafka_used"`
 		NatsUsed       bool `json:"nats_used"`
 		PostgresUsed   bool `json:"postgres_used"`
+		SqsUsed        bool `json:"sqs_used"`
 		WebsocketUsed  bool `json:"websocket_used"`
 	}
 }
@@ -54959,6 +55819,110 @@ func (c *ClientWithResponses) ToggleWorkspaceErrorHandlerForScriptWithResponse(c
 		return nil, err
 	}
 	return ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp)
+}
+
+// CreateSqsTriggerWithBodyWithResponse request with arbitrary body returning *CreateSqsTriggerResponse
+func (c *ClientWithResponses) CreateSqsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateSqsTriggerResponse, error) {
+	rsp, err := c.CreateSqsTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateSqsTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSqsTriggerResponse, error) {
+	rsp, err := c.CreateSqsTrigger(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateSqsTriggerResponse(rsp)
+}
+
+// DeleteSqsTriggerWithResponse request returning *DeleteSqsTriggerResponse
+func (c *ClientWithResponses) DeleteSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteSqsTriggerResponse, error) {
+	rsp, err := c.DeleteSqsTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteSqsTriggerResponse(rsp)
+}
+
+// ExistsSqsTriggerWithResponse request returning *ExistsSqsTriggerResponse
+func (c *ClientWithResponses) ExistsSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsSqsTriggerResponse, error) {
+	rsp, err := c.ExistsSqsTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsSqsTriggerResponse(rsp)
+}
+
+// GetSqsTriggerWithResponse request returning *GetSqsTriggerResponse
+func (c *ClientWithResponses) GetSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetSqsTriggerResponse, error) {
+	rsp, err := c.GetSqsTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSqsTriggerResponse(rsp)
+}
+
+// ListSqsTriggersWithResponse request returning *ListSqsTriggersResponse
+func (c *ClientWithResponses) ListSqsTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListSqsTriggersParams, reqEditors ...RequestEditorFn) (*ListSqsTriggersResponse, error) {
+	rsp, err := c.ListSqsTriggers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSqsTriggersResponse(rsp)
+}
+
+// SetSqsTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetSqsTriggerEnabledResponse
+func (c *ClientWithResponses) SetSqsTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetSqsTriggerEnabledResponse, error) {
+	rsp, err := c.SetSqsTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetSqsTriggerEnabledResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetSqsTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetSqsTriggerEnabledResponse, error) {
+	rsp, err := c.SetSqsTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetSqsTriggerEnabledResponse(rsp)
+}
+
+// TestSqsConnectionWithBodyWithResponse request with arbitrary body returning *TestSqsConnectionResponse
+func (c *ClientWithResponses) TestSqsConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSqsConnectionResponse, error) {
+	rsp, err := c.TestSqsConnectionWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestSqsConnectionResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestSqsConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestSqsConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestSqsConnectionResponse, error) {
+	rsp, err := c.TestSqsConnection(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestSqsConnectionResponse(rsp)
+}
+
+// UpdateSqsTriggerWithBodyWithResponse request with arbitrary body returning *UpdateSqsTriggerResponse
+func (c *ClientWithResponses) UpdateSqsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateSqsTriggerResponse, error) {
+	rsp, err := c.UpdateSqsTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateSqsTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateSqsTriggerResponse, error) {
+	rsp, err := c.UpdateSqsTrigger(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateSqsTriggerResponse(rsp)
 }
 
 // DeleteUserWithResponse request returning *DeleteUserResponse
@@ -63601,6 +64565,164 @@ func ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp *http.Response) (*Tog
 	return response, nil
 }
 
+// ParseCreateSqsTriggerResponse parses an HTTP response from a CreateSqsTriggerWithResponse call
+func ParseCreateSqsTriggerResponse(rsp *http.Response) (*CreateSqsTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateSqsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteSqsTriggerResponse parses an HTTP response from a DeleteSqsTriggerWithResponse call
+func ParseDeleteSqsTriggerResponse(rsp *http.Response) (*DeleteSqsTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteSqsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsSqsTriggerResponse parses an HTTP response from a ExistsSqsTriggerWithResponse call
+func ParseExistsSqsTriggerResponse(rsp *http.Response) (*ExistsSqsTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsSqsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSqsTriggerResponse parses an HTTP response from a GetSqsTriggerWithResponse call
+func ParseGetSqsTriggerResponse(rsp *http.Response) (*GetSqsTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSqsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SqsTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListSqsTriggersResponse parses an HTTP response from a ListSqsTriggersWithResponse call
+func ParseListSqsTriggersResponse(rsp *http.Response) (*ListSqsTriggersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSqsTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []SqsTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetSqsTriggerEnabledResponse parses an HTTP response from a SetSqsTriggerEnabledWithResponse call
+func ParseSetSqsTriggerEnabledResponse(rsp *http.Response) (*SetSqsTriggerEnabledResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetSqsTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestSqsConnectionResponse parses an HTTP response from a TestSqsConnectionWithResponse call
+func ParseTestSqsConnectionResponse(rsp *http.Response) (*TestSqsConnectionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestSqsConnectionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateSqsTriggerResponse parses an HTTP response from a UpdateSqsTriggerWithResponse call
+func ParseUpdateSqsTriggerResponse(rsp *http.Response) (*UpdateSqsTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateSqsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseDeleteUserResponse parses an HTTP response from a DeleteUserWithResponse call
 func ParseDeleteUserResponse(rsp *http.Response) (*DeleteUserResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -65206,6 +66328,7 @@ func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse,
 			KafkaUsed      bool `json:"kafka_used"`
 			NatsUsed       bool `json:"nats_used"`
 			PostgresUsed   bool `json:"postgres_used"`
+			SqsUsed        bool `json:"sqs_used"`
 			WebsocketUsed  bool `json:"websocket_used"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
