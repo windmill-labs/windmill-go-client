@@ -29,6 +29,7 @@ const (
 	Anthropic  AIProvider = "anthropic"
 	Customai   AIProvider = "customai"
 	Deepseek   AIProvider = "deepseek"
+	Googleai   AIProvider = "googleai"
 	Groq       AIProvider = "groq"
 	Mistral    AIProvider = "mistral"
 	Openai     AIProvider = "openai"
