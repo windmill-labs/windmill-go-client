@@ -1102,6 +1102,7 @@ type Flow struct {
 	EditedAt            time.Time               `json:"edited_at"`
 	EditedBy            string                  `json:"edited_by"`
 	ExtraPerms          ExtraPerms              `json:"extra_perms"`
+	LockErrorLogs       *string                 `json:"lock_error_logs,omitempty"`
 	OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 	Path                string                  `json:"path"`
 	Priority            *int                    `json:"priority,omitempty"`
@@ -3095,6 +3096,9 @@ type ListAuditLogsParams struct {
 
 	// ActionKind filter on type of operation
 	ActionKind *ListAuditLogsParamsActionKind `form:"action_kind,omitempty" json:"action_kind,omitempty"`
+
+	// AllWorkspaces get audit logs for all workspaces
+	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 }
 
 // ListAuditLogsParamsActionKind defines parameters for ListAuditLogs.
@@ -6363,6 +6367,9 @@ type ClientInterface interface {
 	// DeleteFlowByPath request
 	DeleteFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetFlowDeploymentStatus request
+	GetFlowDeploymentStatus(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ExistsFlowByPath request
 	ExistsFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9610,6 +9617,18 @@ func (c *Client) CreateFlow(ctx context.Context, workspace WorkspaceId, body Cre
 
 func (c *Client) DeleteFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteFlowByPathRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetFlowDeploymentStatus(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowDeploymentStatusRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -19916,6 +19935,22 @@ func NewListAuditLogsRequest(server string, workspace WorkspaceId, params *ListA
 
 		}
 
+		if params.AllWorkspaces != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -21141,6 +21176,47 @@ func NewDeleteFlowByPathRequest(server string, workspace WorkspaceId, path Scrip
 	}
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetFlowDeploymentStatusRequest generates requests for GetFlowDeploymentStatus
+func NewGetFlowDeploymentStatusRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/deployment_status/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -40853,6 +40929,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteFlowByPathWithResponse request
 	DeleteFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteFlowByPathResponse, error)
 
+	// GetFlowDeploymentStatusWithResponse request
+	GetFlowDeploymentStatusWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowDeploymentStatusResponse, error)
+
 	// ExistsFlowByPathWithResponse request
 	ExistsFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ExistsFlowByPathResponse, error)
 
@@ -45013,6 +45092,30 @@ func (r DeleteFlowByPathResponse) StatusCode() int {
 	return 0
 }
 
+type GetFlowDeploymentStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		LockErrorLogs *string `json:"lock_error_logs,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetFlowDeploymentStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFlowDeploymentStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ExistsFlowByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -45047,6 +45150,7 @@ type GetFlowByPathWithDraftResponse struct {
 		EditedAt            time.Time               `json:"edited_at"`
 		EditedBy            string                  `json:"edited_by"`
 		ExtraPerms          ExtraPerms              `json:"extra_perms"`
+		LockErrorLogs       *string                 `json:"lock_error_logs,omitempty"`
 		OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 		Path                string                  `json:"path"`
 		Priority            *int                    `json:"priority,omitempty"`
@@ -45221,6 +45325,7 @@ type ListFlowsResponse struct {
 		EditedBy            string                  `json:"edited_by"`
 		ExtraPerms          ExtraPerms              `json:"extra_perms"`
 		HasDraft            *bool                   `json:"has_draft,omitempty"`
+		LockErrorLogs       *string                 `json:"lock_error_logs,omitempty"`
 		OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 		Path                string                  `json:"path"`
 		Priority            *int                    `json:"priority,omitempty"`
@@ -53343,6 +53448,15 @@ func (c *ClientWithResponses) DeleteFlowByPathWithResponse(ctx context.Context, 
 	return ParseDeleteFlowByPathResponse(rsp)
 }
 
+// GetFlowDeploymentStatusWithResponse request returning *GetFlowDeploymentStatusResponse
+func (c *ClientWithResponses) GetFlowDeploymentStatusWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowDeploymentStatusResponse, error) {
+	rsp, err := c.GetFlowDeploymentStatus(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFlowDeploymentStatusResponse(rsp)
+}
+
 // ExistsFlowByPathWithResponse request returning *ExistsFlowByPathResponse
 func (c *ClientWithResponses) ExistsFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ExistsFlowByPathResponse, error) {
 	rsp, err := c.ExistsFlowByPath(ctx, workspace, path, reqEditors...)
@@ -59980,6 +60094,34 @@ func ParseDeleteFlowByPathResponse(rsp *http.Response) (*DeleteFlowByPathRespons
 	return response, nil
 }
 
+// ParseGetFlowDeploymentStatusResponse parses an HTTP response from a GetFlowDeploymentStatusWithResponse call
+func ParseGetFlowDeploymentStatusResponse(rsp *http.Response) (*GetFlowDeploymentStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFlowDeploymentStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			LockErrorLogs *string `json:"lock_error_logs,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseExistsFlowByPathResponse parses an HTTP response from a ExistsFlowByPathWithResponse call
 func ParseExistsFlowByPathResponse(rsp *http.Response) (*ExistsFlowByPathResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -60030,6 +60172,7 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			EditedAt            time.Time               `json:"edited_at"`
 			EditedBy            string                  `json:"edited_by"`
 			ExtraPerms          ExtraPerms              `json:"extra_perms"`
+			LockErrorLogs       *string                 `json:"lock_error_logs,omitempty"`
 			OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 			Path                string                  `json:"path"`
 			Priority            *int                    `json:"priority,omitempty"`
@@ -60223,6 +60366,7 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			EditedBy            string                  `json:"edited_by"`
 			ExtraPerms          ExtraPerms              `json:"extra_perms"`
 			HasDraft            *bool                   `json:"has_draft,omitempty"`
+			LockErrorLogs       *string                 `json:"lock_error_logs,omitempty"`
 			OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
 			Path                string                  `json:"path"`
 			Priority            *int                    `json:"priority,omitempty"`
