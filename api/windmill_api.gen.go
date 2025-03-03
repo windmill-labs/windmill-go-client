@@ -648,6 +648,12 @@ const (
 	UnstarJSONBodyFavoriteKindScript UnstarJSONBodyFavoriteKind = "script"
 )
 
+// Defines values for ListFlowPathsFromWorkspaceRunnableParamsRunnableKind.
+const (
+	ListFlowPathsFromWorkspaceRunnableParamsRunnableKindFlow   ListFlowPathsFromWorkspaceRunnableParamsRunnableKind = "flow"
+	ListFlowPathsFromWorkspaceRunnableParamsRunnableKindScript ListFlowPathsFromWorkspaceRunnableParamsRunnableKind = "script"
+)
+
 // Defines values for ExistsRouteJSONBodyHttpMethod.
 const (
 	ExistsRouteJSONBodyHttpMethodDelete ExistsRouteJSONBodyHttpMethod = "delete"
@@ -3046,6 +3052,11 @@ type UpdateAppJSONBody struct {
 	Value             *interface{} `json:"value,omitempty"`
 }
 
+// DeleteS3FileFromAppParams defines parameters for DeleteS3FileFromApp.
+type DeleteS3FileFromAppParams struct {
+	DeleteToken string `form:"delete_token" json:"delete_token"`
+}
+
 // ExecuteComponentJSONBody defines parameters for ExecuteComponent.
 type ExecuteComponentJSONBody struct {
 	Args                          interface{}             `json:"args"`
@@ -3063,6 +3074,17 @@ type ExecuteComponentJSONBody struct {
 		Path     *string `json:"path,omitempty"`
 	} `json:"raw_code,omitempty"`
 	Version *int `json:"version,omitempty"`
+}
+
+// UploadS3FileFromAppParams defines parameters for UploadS3FileFromApp.
+type UploadS3FileFromAppParams struct {
+	FileKey            *string `form:"file_key,omitempty" json:"file_key,omitempty"`
+	FileExtension      *string `form:"file_extension,omitempty" json:"file_extension,omitempty"`
+	S3ResourcePath     *string `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
+	ResourceType       *string `form:"resource_type,omitempty" json:"resource_type,omitempty"`
+	Storage            *string `form:"storage,omitempty" json:"storage,omitempty"`
+	ContentType        *string `form:"content_type,omitempty" json:"content_type,omitempty"`
+	ContentDisposition *string `form:"content_disposition,omitempty" json:"content_disposition,omitempty"`
 }
 
 // ListAuditLogsParams defines parameters for ListAuditLogs.
@@ -3327,6 +3349,9 @@ type ListFlowsParams struct {
 	// include deployment message
 	WithDeploymentMsg *bool `form:"with_deployment_msg,omitempty" json:"with_deployment_msg,omitempty"`
 }
+
+// ListFlowPathsFromWorkspaceRunnableParamsRunnableKind defines parameters for ListFlowPathsFromWorkspaceRunnable.
+type ListFlowPathsFromWorkspaceRunnableParamsRunnableKind string
 
 // ToggleWorkspaceErrorHandlerForFlowJSONBody defines parameters for ToggleWorkspaceErrorHandlerForFlow.
 type ToggleWorkspaceErrorHandlerForFlowJSONBody struct {
@@ -6293,6 +6318,9 @@ type ClientInterface interface {
 
 	UpdateApp(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteS3FileFromApp request
+	DeleteS3FileFromApp(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ExecuteComponentWithBody request with any body
 	ExecuteComponentWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6303,6 +6331,9 @@ type ClientInterface interface {
 
 	// GetPublicResource request
 	GetPublicResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UploadS3FileFromAppWithBody request with any body
+	UploadS3FileFromAppWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAuditLog request
 	GetAuditLog(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6401,6 +6432,9 @@ type ClientInterface interface {
 
 	// ListFlowPaths request
 	ListFlowPaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListFlowPathsFromWorkspaceRunnable request
+	ListFlowPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListSearchFlow request
 	ListSearchFlow(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9303,6 +9337,18 @@ func (c *Client) UpdateApp(ctx context.Context, workspace WorkspaceId, path Scri
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeleteS3FileFromApp(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteS3FileFromAppRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ExecuteComponentWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExecuteComponentRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
@@ -9341,6 +9387,18 @@ func (c *Client) GetPublicAppBySecret(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) GetPublicResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPublicResourceRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UploadS3FileFromAppWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUploadS3FileFromAppRequestWithBody(c.Server, workspace, path, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -9761,6 +9819,18 @@ func (c *Client) ListFlows(ctx context.Context, workspace WorkspaceId, params *L
 
 func (c *Client) ListFlowPaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListFlowPathsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListFlowPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListFlowPathsFromWorkspaceRunnableRequest(c.Server, workspace, runnableKind, path)
 	if err != nil {
 		return nil, err
 	}
@@ -19569,6 +19639,58 @@ func NewUpdateAppRequestWithBody(server string, workspace WorkspaceId, path Scri
 	return req, nil
 }
 
+// NewDeleteS3FileFromAppRequest generates requests for DeleteS3FileFromApp
+func NewDeleteS3FileFromAppRequest(server string, workspace WorkspaceId, params *DeleteS3FileFromAppParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps_u/delete_s3_file", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "delete_token", runtime.ParamLocationQuery, params.DeleteToken); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewExecuteComponentRequest calls the generic ExecuteComponent builder with application/json body
 func NewExecuteComponentRequest(server string, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -19701,6 +19823,167 @@ func NewGetPublicResourceRequest(server string, workspace WorkspaceId, path Path
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewUploadS3FileFromAppRequestWithBody generates requests for UploadS3FileFromApp with any type of body
+func NewUploadS3FileFromAppRequestWithBody(server string, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps_u/upload_s3_file/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.FileKey != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, *params.FileKey); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.FileExtension != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_extension", runtime.ParamLocationQuery, *params.FileExtension); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.S3ResourcePath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "s3_resource_path", runtime.ParamLocationQuery, *params.S3ResourcePath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ResourceType != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resource_type", runtime.ParamLocationQuery, *params.ResourceType); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ContentType != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "content_type", runtime.ParamLocationQuery, *params.ContentType); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ContentDisposition != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "content_disposition", runtime.ParamLocationQuery, *params.ContentDisposition); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -21818,6 +22101,54 @@ func NewListFlowPathsRequest(server string, workspace WorkspaceId) (*http.Reques
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/flows/list_paths", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListFlowPathsFromWorkspaceRunnableRequest generates requests for ListFlowPathsFromWorkspaceRunnable
+func NewListFlowPathsFromWorkspaceRunnableRequest(server string, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "runnable_kind", runtime.ParamLocationPath, runnableKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/list_paths_from_workspace_runnable/%s/%s", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -40855,6 +41186,9 @@ type ClientWithResponsesInterface interface {
 
 	UpdateAppWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAppResponse, error)
 
+	// DeleteS3FileFromAppWithResponse request
+	DeleteS3FileFromAppWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*DeleteS3FileFromAppResponse, error)
+
 	// ExecuteComponentWithBodyWithResponse request with any body
 	ExecuteComponentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error)
 
@@ -40865,6 +41199,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetPublicResourceWithResponse request
 	GetPublicResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicResourceResponse, error)
+
+	// UploadS3FileFromAppWithBodyWithResponse request with any body
+	UploadS3FileFromAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadS3FileFromAppResponse, error)
 
 	// GetAuditLogWithResponse request
 	GetAuditLogWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAuditLogResponse, error)
@@ -40963,6 +41300,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListFlowPathsWithResponse request
 	ListFlowPathsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListFlowPathsResponse, error)
+
+	// ListFlowPathsFromWorkspaceRunnableWithResponse request
+	ListFlowPathsFromWorkspaceRunnableWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*ListFlowPathsFromWorkspaceRunnableResponse, error)
 
 	// ListSearchFlowWithResponse request
 	ListSearchFlowWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchFlowResponse, error)
@@ -44659,6 +44999,27 @@ func (r UpdateAppResponse) StatusCode() int {
 	return 0
 }
 
+type DeleteS3FileFromAppResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteS3FileFromAppResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteS3FileFromAppResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ExecuteComponentResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -44718,6 +45079,31 @@ func (r GetPublicResourceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetPublicResourceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UploadS3FileFromAppResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		DeleteToken string `json:"delete_token"`
+		FileKey     string `json:"file_key"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UploadS3FileFromAppResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UploadS3FileFromAppResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -45372,6 +45758,28 @@ func (r ListFlowPathsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListFlowPathsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListFlowPathsFromWorkspaceRunnableResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListFlowPathsFromWorkspaceRunnableResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListFlowPathsFromWorkspaceRunnableResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -53212,6 +53620,15 @@ func (c *ClientWithResponses) UpdateAppWithResponse(ctx context.Context, workspa
 	return ParseUpdateAppResponse(rsp)
 }
 
+// DeleteS3FileFromAppWithResponse request returning *DeleteS3FileFromAppResponse
+func (c *ClientWithResponses) DeleteS3FileFromAppWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*DeleteS3FileFromAppResponse, error) {
+	rsp, err := c.DeleteS3FileFromApp(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteS3FileFromAppResponse(rsp)
+}
+
 // ExecuteComponentWithBodyWithResponse request with arbitrary body returning *ExecuteComponentResponse
 func (c *ClientWithResponses) ExecuteComponentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error) {
 	rsp, err := c.ExecuteComponentWithBody(ctx, workspace, path, contentType, body, reqEditors...)
@@ -53245,6 +53662,15 @@ func (c *ClientWithResponses) GetPublicResourceWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseGetPublicResourceResponse(rsp)
+}
+
+// UploadS3FileFromAppWithBodyWithResponse request with arbitrary body returning *UploadS3FileFromAppResponse
+func (c *ClientWithResponses) UploadS3FileFromAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadS3FileFromAppResponse, error) {
+	rsp, err := c.UploadS3FileFromAppWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUploadS3FileFromAppResponse(rsp)
 }
 
 // GetAuditLogWithResponse request returning *GetAuditLogResponse
@@ -53553,6 +53979,15 @@ func (c *ClientWithResponses) ListFlowPathsWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseListFlowPathsResponse(rsp)
+}
+
+// ListFlowPathsFromWorkspaceRunnableWithResponse request returning *ListFlowPathsFromWorkspaceRunnableResponse
+func (c *ClientWithResponses) ListFlowPathsFromWorkspaceRunnableWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*ListFlowPathsFromWorkspaceRunnableResponse, error) {
+	rsp, err := c.ListFlowPathsFromWorkspaceRunnable(ctx, workspace, runnableKind, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListFlowPathsFromWorkspaceRunnableResponse(rsp)
 }
 
 // ListSearchFlowWithResponse request returning *ListSearchFlowResponse
@@ -59680,6 +60115,22 @@ func ParseUpdateAppResponse(rsp *http.Response) (*UpdateAppResponse, error) {
 	return response, nil
 }
 
+// ParseDeleteS3FileFromAppResponse parses an HTTP response from a DeleteS3FileFromAppWithResponse call
+func ParseDeleteS3FileFromAppResponse(rsp *http.Response) (*DeleteS3FileFromAppResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteS3FileFromAppResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseExecuteComponentResponse parses an HTTP response from a ExecuteComponentWithResponse call
 func ParseExecuteComponentResponse(rsp *http.Response) (*ExecuteComponentResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -59738,6 +60189,35 @@ func ParseGetPublicResourceResponse(rsp *http.Response) (*GetPublicResourceRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUploadS3FileFromAppResponse parses an HTTP response from a UploadS3FileFromAppWithResponse call
+func ParseUploadS3FileFromAppResponse(rsp *http.Response) (*UploadS3FileFromAppResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UploadS3FileFromAppResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			DeleteToken string `json:"delete_token"`
+			FileKey     string `json:"file_key"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -60401,6 +60881,32 @@ func ParseListFlowPathsResponse(rsp *http.Response) (*ListFlowPathsResponse, err
 	response := &ListFlowPathsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListFlowPathsFromWorkspaceRunnableResponse parses an HTTP response from a ListFlowPathsFromWorkspaceRunnableWithResponse call
+func ParseListFlowPathsFromWorkspaceRunnableResponse(rsp *http.Response) (*ListFlowPathsFromWorkspaceRunnableResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListFlowPathsFromWorkspaceRunnableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
