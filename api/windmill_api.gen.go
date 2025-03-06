@@ -162,6 +162,7 @@ const (
 	CaptureTriggerKindEmail     CaptureTriggerKind = "email"
 	CaptureTriggerKindHttp      CaptureTriggerKind = "http"
 	CaptureTriggerKindKafka     CaptureTriggerKind = "kafka"
+	CaptureTriggerKindMqtt      CaptureTriggerKind = "mqtt"
 	CaptureTriggerKindNats      CaptureTriggerKind = "nats"
 	CaptureTriggerKindPostgres  CaptureTriggerKind = "postgres"
 	CaptureTriggerKindSqs       CaptureTriggerKind = "sqs"
@@ -338,6 +339,19 @@ const (
 	ListableAppExecutionModeViewer    ListableAppExecutionMode = "viewer"
 )
 
+// Defines values for MqttClientVersion.
+const (
+	V3 MqttClientVersion = "v3"
+	V5 MqttClientVersion = "v5"
+)
+
+// Defines values for MqttQoS.
+const (
+	Qos0 MqttQoS = "qos0"
+	Qos1 MqttQoS = "qos1"
+	Qos2 MqttQoS = "qos2"
+)
+
 // Defines values for NewHttpTriggerHttpMethod.
 const (
 	NewHttpTriggerHttpMethodDelete NewHttpTriggerHttpMethod = "delete"
@@ -497,6 +511,7 @@ const (
 	WorkspaceDeployUISettingsIncludeTypeResource WorkspaceDeployUISettingsIncludeType = "resource"
 	WorkspaceDeployUISettingsIncludeTypeScript   WorkspaceDeployUISettingsIncludeType = "script"
 	WorkspaceDeployUISettingsIncludeTypeSecret   WorkspaceDeployUISettingsIncludeType = "secret"
+	WorkspaceDeployUISettingsIncludeTypeTrigger  WorkspaceDeployUISettingsIncludeType = "trigger"
 	WorkspaceDeployUISettingsIncludeTypeVariable WorkspaceDeployUISettingsIncludeType = "variable"
 )
 
@@ -543,6 +558,7 @@ const (
 	AddGranularAclsParamsKindGroup            AddGranularAclsParamsKind = "group_"
 	AddGranularAclsParamsKindHttpTrigger      AddGranularAclsParamsKind = "http_trigger"
 	AddGranularAclsParamsKindKafkaTrigger     AddGranularAclsParamsKind = "kafka_trigger"
+	AddGranularAclsParamsKindMqttTrigger      AddGranularAclsParamsKind = "mqtt_trigger"
 	AddGranularAclsParamsKindNatsTrigger      AddGranularAclsParamsKind = "nats_trigger"
 	AddGranularAclsParamsKindPostgresTrigger  AddGranularAclsParamsKind = "postgres_trigger"
 	AddGranularAclsParamsKindRawApp           AddGranularAclsParamsKind = "raw_app"
@@ -562,6 +578,7 @@ const (
 	GetGranularAclsParamsKindGroup            GetGranularAclsParamsKind = "group_"
 	GetGranularAclsParamsKindHttpTrigger      GetGranularAclsParamsKind = "http_trigger"
 	GetGranularAclsParamsKindKafkaTrigger     GetGranularAclsParamsKind = "kafka_trigger"
+	GetGranularAclsParamsKindMqttTrigger      GetGranularAclsParamsKind = "mqtt_trigger"
 	GetGranularAclsParamsKindNatsTrigger      GetGranularAclsParamsKind = "nats_trigger"
 	GetGranularAclsParamsKindPostgresTrigger  GetGranularAclsParamsKind = "postgres_trigger"
 	GetGranularAclsParamsKindRawApp           GetGranularAclsParamsKind = "raw_app"
@@ -581,6 +598,7 @@ const (
 	RemoveGranularAclsParamsKindGroup            RemoveGranularAclsParamsKind = "group_"
 	RemoveGranularAclsParamsKindHttpTrigger      RemoveGranularAclsParamsKind = "http_trigger"
 	RemoveGranularAclsParamsKindKafkaTrigger     RemoveGranularAclsParamsKind = "kafka_trigger"
+	RemoveGranularAclsParamsKindMqttTrigger      RemoveGranularAclsParamsKind = "mqtt_trigger"
 	RemoveGranularAclsParamsKindNatsTrigger      RemoveGranularAclsParamsKind = "nats_trigger"
 	RemoveGranularAclsParamsKindPostgresTrigger  RemoveGranularAclsParamsKind = "postgres_trigger"
 	RemoveGranularAclsParamsKindRawApp           RemoveGranularAclsParamsKind = "raw_app"
@@ -962,6 +980,20 @@ type EditKafkaTrigger struct {
 	Path              string   `json:"path"`
 	ScriptPath        string   `json:"script_path"`
 	Topics            []string `json:"topics"`
+}
+
+// EditMqttTrigger defines model for EditMqttTrigger.
+type EditMqttTrigger struct {
+	ClientId         *string              `json:"client_id,omitempty"`
+	ClientVersion    *MqttClientVersion   `json:"client_version,omitempty"`
+	Enabled          bool                 `json:"enabled"`
+	IsFlow           bool                 `json:"is_flow"`
+	MqttResourcePath string               `json:"mqtt_resource_path"`
+	Path             string               `json:"path"`
+	ScriptPath       string               `json:"script_path"`
+	SubscribeTopics  []MqttSubscribeTopic `json:"subscribe_topics"`
+	V3Config         *MqttV3Config        `json:"v3_config,omitempty"`
+	V5Config         *MqttV5Config        `json:"v5_config,omitempty"`
 }
 
 // EditNatsTrigger defines model for EditNatsTrigger.
@@ -1630,6 +1662,33 @@ type MetricMetadata struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// MqttClientVersion defines model for MqttClientVersion.
+type MqttClientVersion string
+
+// MqttQoS defines model for MqttQoS.
+type MqttQoS string
+
+// MqttSubscribeTopic defines model for MqttSubscribeTopic.
+type MqttSubscribeTopic struct {
+	Qos   MqttQoS `json:"qos"`
+	Topic string  `json:"topic"`
+}
+
+// MqttTrigger defines model for MqttTrigger.
+type MqttTrigger = TriggerExtraProperty
+
+// MqttV3Config defines model for MqttV3Config.
+type MqttV3Config struct {
+	CleanSession *bool `json:"clean_session,omitempty"`
+}
+
+// MqttV5Config defines model for MqttV5Config.
+type MqttV5Config struct {
+	CleanStart            *bool    `json:"clean_start,omitempty"`
+	SessionExpiryInterval *float32 `json:"session_expiry_interval,omitempty"`
+	TopicAlias            *float32 `json:"topic_alias,omitempty"`
+}
+
 // NatsTrigger defines model for NatsTrigger.
 type NatsTrigger = TriggerExtraProperty
 
@@ -1662,6 +1721,20 @@ type NewKafkaTrigger struct {
 	Path              string   `json:"path"`
 	ScriptPath        string   `json:"script_path"`
 	Topics            []string `json:"topics"`
+}
+
+// NewMqttTrigger defines model for NewMqttTrigger.
+type NewMqttTrigger struct {
+	ClientId         *string              `json:"client_id,omitempty"`
+	ClientVersion    *MqttClientVersion   `json:"client_version,omitempty"`
+	Enabled          *bool                `json:"enabled,omitempty"`
+	IsFlow           bool                 `json:"is_flow"`
+	MqttResourcePath string               `json:"mqtt_resource_path"`
+	Path             string               `json:"path"`
+	ScriptPath       string               `json:"script_path"`
+	SubscribeTopics  []MqttSubscribeTopic `json:"subscribe_topics"`
+	V3Config         *MqttV3Config        `json:"v3_config,omitempty"`
+	V5Config         *MqttV5Config        `json:"v5_config,omitempty"`
 }
 
 // NewNatsTrigger defines model for NewNatsTrigger.
@@ -1924,6 +1997,10 @@ type PolarsClientKwargs struct {
 
 // Policy defines model for Policy.
 type Policy struct {
+	AllowedS3Keys *[]struct {
+		Resource *string `json:"resource,omitempty"`
+		S3Path   *string `json:"s3_path,omitempty"`
+	} `json:"allowed_s3_keys,omitempty"`
 	ExecutionMode   *PolicyExecutionMode               `json:"execution_mode,omitempty"`
 	OnBehalfOf      *string                            `json:"on_behalf_of,omitempty"`
 	OnBehalfOfEmail *string                            `json:"on_behalf_of_email,omitempty"`
@@ -2309,6 +2386,7 @@ type TriggersCount struct {
 	EmailCount      *float32 `json:"email_count,omitempty"`
 	HttpRoutesCount *float32 `json:"http_routes_count,omitempty"`
 	KafkaCount      *float32 `json:"kafka_count,omitempty"`
+	MqttCount       *float32 `json:"mqtt_count,omitempty"`
 	NatsCount       *float32 `json:"nats_count,omitempty"`
 	PostgresCount   *float32 `json:"postgres_count,omitempty"`
 	PrimarySchedule *struct {
@@ -4318,6 +4396,30 @@ type TestKafkaConnectionJSONBody struct {
 	Connection map[string]interface{} `json:"connection"`
 }
 
+// ListMqttTriggersParams defines parameters for ListMqttTriggers.
+type ListMqttTriggersParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// Path filter by path
+	Path      *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+}
+
+// SetMqttTriggerEnabledJSONBody defines parameters for SetMqttTriggerEnabled.
+type SetMqttTriggerEnabledJSONBody struct {
+	Enabled bool `json:"enabled"`
+}
+
+// TestMqttConnectionJSONBody defines parameters for TestMqttConnection.
+type TestMqttConnectionJSONBody struct {
+	Connection map[string]interface{} `json:"connection"`
+}
+
 // ListNatsTriggersParams defines parameters for ListNatsTriggers.
 type ListNatsTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -5137,6 +5239,18 @@ type TestKafkaConnectionJSONRequestBody TestKafkaConnectionJSONBody
 
 // UpdateKafkaTriggerJSONRequestBody defines body for UpdateKafkaTrigger for application/json ContentType.
 type UpdateKafkaTriggerJSONRequestBody = EditKafkaTrigger
+
+// CreateMqttTriggerJSONRequestBody defines body for CreateMqttTrigger for application/json ContentType.
+type CreateMqttTriggerJSONRequestBody = NewMqttTrigger
+
+// SetMqttTriggerEnabledJSONRequestBody defines body for SetMqttTriggerEnabled for application/json ContentType.
+type SetMqttTriggerEnabledJSONRequestBody SetMqttTriggerEnabledJSONBody
+
+// TestMqttConnectionJSONRequestBody defines body for TestMqttConnection for application/json ContentType.
+type TestMqttConnectionJSONRequestBody TestMqttConnectionJSONBody
+
+// UpdateMqttTriggerJSONRequestBody defines body for UpdateMqttTrigger for application/json ContentType.
+type UpdateMqttTriggerJSONRequestBody = EditMqttTrigger
 
 // CreateNatsTriggerJSONRequestBody defines body for CreateNatsTrigger for application/json ContentType.
 type CreateNatsTriggerJSONRequestBody = NewNatsTrigger
@@ -6854,6 +6968,38 @@ type ClientInterface interface {
 	UpdateKafkaTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateMqttTriggerWithBody request with any body
+	CreateMqttTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateMqttTrigger(ctx context.Context, workspace WorkspaceId, body CreateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteMqttTrigger request
+	DeleteMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsMqttTrigger request
+	ExistsMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetMqttTrigger request
+	GetMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListMqttTriggers request
+	ListMqttTriggers(ctx context.Context, workspace WorkspaceId, params *ListMqttTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetMqttTriggerEnabledWithBody request with any body
+	SetMqttTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetMqttTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestMqttConnectionWithBody request with any body
+	TestMqttConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestMqttConnection(ctx context.Context, workspace WorkspaceId, body TestMqttConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateMqttTriggerWithBody request with any body
+	UpdateMqttTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateNatsTriggerWithBody request with any body
 	CreateNatsTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11691,6 +11837,150 @@ func (c *Client) UpdateKafkaTriggerWithBody(ctx context.Context, workspace Works
 
 func (c *Client) UpdateKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateKafkaTriggerRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateMqttTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateMqttTriggerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateMqttTrigger(ctx context.Context, workspace WorkspaceId, body CreateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateMqttTriggerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteMqttTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsMqttTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMqttTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListMqttTriggers(ctx context.Context, workspace WorkspaceId, params *ListMqttTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListMqttTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetMqttTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetMqttTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetMqttTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetMqttTriggerEnabledRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestMqttConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestMqttConnectionRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestMqttConnection(ctx context.Context, workspace WorkspaceId, body TestMqttConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestMqttConnectionRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateMqttTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateMqttTriggerRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateMqttTriggerRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -31553,6 +31843,451 @@ func NewUpdateKafkaTriggerRequestWithBody(server string, workspace WorkspaceId, 
 	return req, nil
 }
 
+// NewCreateMqttTriggerRequest calls the generic CreateMqttTrigger builder with application/json body
+func NewCreateMqttTriggerRequest(server string, workspace WorkspaceId, body CreateMqttTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateMqttTriggerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateMqttTriggerRequestWithBody generates requests for CreateMqttTrigger with any type of body
+func NewCreateMqttTriggerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/mqtt_triggers/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteMqttTriggerRequest generates requests for DeleteMqttTrigger
+func NewDeleteMqttTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/mqtt_triggers/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsMqttTriggerRequest generates requests for ExistsMqttTrigger
+func NewExistsMqttTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/mqtt_triggers/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetMqttTriggerRequest generates requests for GetMqttTrigger
+func NewGetMqttTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/mqtt_triggers/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListMqttTriggersRequest generates requests for ListMqttTriggers
+func NewListMqttTriggersRequest(server string, workspace WorkspaceId, params *ListMqttTriggersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/mqtt_triggers/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsFlow != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PathStart != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetMqttTriggerEnabledRequest calls the generic SetMqttTriggerEnabled builder with application/json body
+func NewSetMqttTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetMqttTriggerEnabledJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetMqttTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewSetMqttTriggerEnabledRequestWithBody generates requests for SetMqttTriggerEnabled with any type of body
+func NewSetMqttTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/mqtt_triggers/setenabled/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestMqttConnectionRequest calls the generic TestMqttConnection builder with application/json body
+func NewTestMqttConnectionRequest(server string, workspace WorkspaceId, body TestMqttConnectionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestMqttConnectionRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewTestMqttConnectionRequestWithBody generates requests for TestMqttConnection with any type of body
+func NewTestMqttConnectionRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/mqtt_triggers/test", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateMqttTriggerRequest calls the generic UpdateMqttTrigger builder with application/json body
+func NewUpdateMqttTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateMqttTriggerRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateMqttTriggerRequestWithBody generates requests for UpdateMqttTrigger with any type of body
+func NewUpdateMqttTriggerRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/mqtt_triggers/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateNatsTriggerRequest calls the generic CreateNatsTrigger builder with application/json body
 func NewCreateNatsTriggerRequest(server string, workspace WorkspaceId, body CreateNatsTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -41723,6 +42458,38 @@ type ClientWithResponsesInterface interface {
 
 	UpdateKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateKafkaTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateKafkaTriggerResponse, error)
 
+	// CreateMqttTriggerWithBodyWithResponse request with any body
+	CreateMqttTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateMqttTriggerResponse, error)
+
+	CreateMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateMqttTriggerResponse, error)
+
+	// DeleteMqttTriggerWithResponse request
+	DeleteMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteMqttTriggerResponse, error)
+
+	// ExistsMqttTriggerWithResponse request
+	ExistsMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsMqttTriggerResponse, error)
+
+	// GetMqttTriggerWithResponse request
+	GetMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetMqttTriggerResponse, error)
+
+	// ListMqttTriggersWithResponse request
+	ListMqttTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListMqttTriggersParams, reqEditors ...RequestEditorFn) (*ListMqttTriggersResponse, error)
+
+	// SetMqttTriggerEnabledWithBodyWithResponse request with any body
+	SetMqttTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetMqttTriggerEnabledResponse, error)
+
+	SetMqttTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetMqttTriggerEnabledResponse, error)
+
+	// TestMqttConnectionWithBodyWithResponse request with any body
+	TestMqttConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestMqttConnectionResponse, error)
+
+	TestMqttConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestMqttConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestMqttConnectionResponse, error)
+
+	// UpdateMqttTriggerWithBodyWithResponse request with any body
+	UpdateMqttTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateMqttTriggerResponse, error)
+
+	UpdateMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMqttTriggerResponse, error)
+
 	// CreateNatsTriggerWithBodyWithResponse request with any body
 	CreateNatsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNatsTriggerResponse, error)
 
@@ -48219,6 +48986,177 @@ func (r UpdateKafkaTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type CreateMqttTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateMqttTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateMqttTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteMqttTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteMqttTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteMqttTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsMqttTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsMqttTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsMqttTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetMqttTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *MqttTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMqttTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMqttTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListMqttTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]MqttTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r ListMqttTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListMqttTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetMqttTriggerEnabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetMqttTriggerEnabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetMqttTriggerEnabledResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestMqttConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestMqttConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestMqttConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateMqttTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateMqttTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateMqttTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateNatsTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -51947,6 +52885,7 @@ type GetUsedTriggersResponse struct {
 	JSON200      *struct {
 		HttpRoutesUsed bool `json:"http_routes_used"`
 		KafkaUsed      bool `json:"kafka_used"`
+		MqttUsed       bool `json:"mqtt_used"`
 		NatsUsed       bool `json:"nats_used"`
 		PostgresUsed   bool `json:"postgres_used"`
 		SqsUsed        bool `json:"sqs_used"`
@@ -55337,6 +56276,110 @@ func (c *ClientWithResponses) UpdateKafkaTriggerWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseUpdateKafkaTriggerResponse(rsp)
+}
+
+// CreateMqttTriggerWithBodyWithResponse request with arbitrary body returning *CreateMqttTriggerResponse
+func (c *ClientWithResponses) CreateMqttTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateMqttTriggerResponse, error) {
+	rsp, err := c.CreateMqttTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateMqttTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateMqttTriggerResponse, error) {
+	rsp, err := c.CreateMqttTrigger(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateMqttTriggerResponse(rsp)
+}
+
+// DeleteMqttTriggerWithResponse request returning *DeleteMqttTriggerResponse
+func (c *ClientWithResponses) DeleteMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteMqttTriggerResponse, error) {
+	rsp, err := c.DeleteMqttTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteMqttTriggerResponse(rsp)
+}
+
+// ExistsMqttTriggerWithResponse request returning *ExistsMqttTriggerResponse
+func (c *ClientWithResponses) ExistsMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsMqttTriggerResponse, error) {
+	rsp, err := c.ExistsMqttTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsMqttTriggerResponse(rsp)
+}
+
+// GetMqttTriggerWithResponse request returning *GetMqttTriggerResponse
+func (c *ClientWithResponses) GetMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetMqttTriggerResponse, error) {
+	rsp, err := c.GetMqttTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMqttTriggerResponse(rsp)
+}
+
+// ListMqttTriggersWithResponse request returning *ListMqttTriggersResponse
+func (c *ClientWithResponses) ListMqttTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListMqttTriggersParams, reqEditors ...RequestEditorFn) (*ListMqttTriggersResponse, error) {
+	rsp, err := c.ListMqttTriggers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListMqttTriggersResponse(rsp)
+}
+
+// SetMqttTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetMqttTriggerEnabledResponse
+func (c *ClientWithResponses) SetMqttTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetMqttTriggerEnabledResponse, error) {
+	rsp, err := c.SetMqttTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetMqttTriggerEnabledResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetMqttTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetMqttTriggerEnabledResponse, error) {
+	rsp, err := c.SetMqttTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetMqttTriggerEnabledResponse(rsp)
+}
+
+// TestMqttConnectionWithBodyWithResponse request with arbitrary body returning *TestMqttConnectionResponse
+func (c *ClientWithResponses) TestMqttConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestMqttConnectionResponse, error) {
+	rsp, err := c.TestMqttConnectionWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestMqttConnectionResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestMqttConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestMqttConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestMqttConnectionResponse, error) {
+	rsp, err := c.TestMqttConnection(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestMqttConnectionResponse(rsp)
+}
+
+// UpdateMqttTriggerWithBodyWithResponse request with arbitrary body returning *UpdateMqttTriggerResponse
+func (c *ClientWithResponses) UpdateMqttTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateMqttTriggerResponse, error) {
+	rsp, err := c.UpdateMqttTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateMqttTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMqttTriggerResponse, error) {
+	rsp, err := c.UpdateMqttTrigger(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateMqttTriggerResponse(rsp)
 }
 
 // CreateNatsTriggerWithBodyWithResponse request with arbitrary body returning *CreateNatsTriggerResponse
@@ -63376,6 +64419,164 @@ func ParseUpdateKafkaTriggerResponse(rsp *http.Response) (*UpdateKafkaTriggerRes
 	return response, nil
 }
 
+// ParseCreateMqttTriggerResponse parses an HTTP response from a CreateMqttTriggerWithResponse call
+func ParseCreateMqttTriggerResponse(rsp *http.Response) (*CreateMqttTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateMqttTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteMqttTriggerResponse parses an HTTP response from a DeleteMqttTriggerWithResponse call
+func ParseDeleteMqttTriggerResponse(rsp *http.Response) (*DeleteMqttTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteMqttTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsMqttTriggerResponse parses an HTTP response from a ExistsMqttTriggerWithResponse call
+func ParseExistsMqttTriggerResponse(rsp *http.Response) (*ExistsMqttTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsMqttTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetMqttTriggerResponse parses an HTTP response from a GetMqttTriggerWithResponse call
+func ParseGetMqttTriggerResponse(rsp *http.Response) (*GetMqttTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMqttTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest MqttTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListMqttTriggersResponse parses an HTTP response from a ListMqttTriggersWithResponse call
+func ParseListMqttTriggersResponse(rsp *http.Response) (*ListMqttTriggersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListMqttTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []MqttTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetMqttTriggerEnabledResponse parses an HTTP response from a SetMqttTriggerEnabledWithResponse call
+func ParseSetMqttTriggerEnabledResponse(rsp *http.Response) (*SetMqttTriggerEnabledResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetMqttTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestMqttConnectionResponse parses an HTTP response from a TestMqttConnectionWithResponse call
+func ParseTestMqttConnectionResponse(rsp *http.Response) (*TestMqttConnectionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestMqttConnectionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateMqttTriggerResponse parses an HTTP response from a UpdateMqttTriggerWithResponse call
+func ParseUpdateMqttTriggerResponse(rsp *http.Response) (*UpdateMqttTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateMqttTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCreateNatsTriggerResponse parses an HTTP response from a CreateNatsTriggerWithResponse call
 func ParseCreateNatsTriggerResponse(rsp *http.Response) (*CreateNatsTriggerResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -66977,6 +68178,7 @@ func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse,
 		var dest struct {
 			HttpRoutesUsed bool `json:"http_routes_used"`
 			KafkaUsed      bool `json:"kafka_used"`
+			MqttUsed       bool `json:"mqtt_used"`
 			NatsUsed       bool `json:"nats_used"`
 			PostgresUsed   bool `json:"postgres_used"`
 			SqsUsed        bool `json:"sqs_used"`
