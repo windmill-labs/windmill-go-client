@@ -967,6 +967,7 @@ type EditHttpTrigger struct {
 		S3       string  `json:"s3"`
 		Storage  *string `json:"storage,omitempty"`
 	} `json:"static_asset_config,omitempty"`
+	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
 }
 
 // EditHttpTriggerHttpMethod defines model for EditHttpTrigger.HttpMethod.
@@ -1707,6 +1708,7 @@ type NewHttpTrigger struct {
 		S3       string  `json:"s3"`
 		Storage  *string `json:"storage,omitempty"`
 	} `json:"static_asset_config,omitempty"`
+	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
 }
 
 // NewHttpTriggerHttpMethod defines model for NewHttpTrigger.HttpMethod.
@@ -3546,9 +3548,10 @@ type ListHttpTriggersParams struct {
 
 // ExistsRouteJSONBody defines parameters for ExistsRoute.
 type ExistsRouteJSONBody struct {
-	HttpMethod  ExistsRouteJSONBodyHttpMethod `json:"http_method"`
-	RoutePath   string                        `json:"route_path"`
-	TriggerPath *string                       `json:"trigger_path,omitempty"`
+	HttpMethod      ExistsRouteJSONBodyHttpMethod `json:"http_method"`
+	RoutePath       string                        `json:"route_path"`
+	TriggerPath     *string                       `json:"trigger_path,omitempty"`
+	WorkspacedRoute *bool                         `json:"workspaced_route,omitempty"`
 }
 
 // ExistsRouteJSONBodyHttpMethod defines parameters for ExistsRoute.
