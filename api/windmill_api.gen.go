@@ -6579,6 +6579,9 @@ type ClientInterface interface {
 	// DeleteFolder request
 	DeleteFolder(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ExistsFolder request
+	ExistsFolder(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetFolder request
 	GetFolder(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10109,6 +10112,18 @@ func (c *Client) CreateFolder(ctx context.Context, workspace WorkspaceId, body C
 
 func (c *Client) DeleteFolder(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteFolderRequest(c.Server, workspace, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsFolder(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsFolderRequest(c.Server, workspace, name)
 	if err != nil {
 		return nil, err
 	}
@@ -22774,6 +22789,47 @@ func NewDeleteFolderRequest(server string, workspace WorkspaceId, name Name) (*h
 	}
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsFolderRequest generates requests for ExistsFolder
+func NewExistsFolderRequest(server string, workspace WorkspaceId, name Name) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/folders/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -42068,6 +42124,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteFolderWithResponse request
 	DeleteFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*DeleteFolderResponse, error)
 
+	// ExistsFolderWithResponse request
+	ExistsFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*ExistsFolderResponse, error)
+
 	// GetFolderWithResponse request
 	GetFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*GetFolderResponse, error)
 
@@ -46699,6 +46758,28 @@ func (r DeleteFolderResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteFolderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsFolderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsFolderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsFolderResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -55024,6 +55105,15 @@ func (c *ClientWithResponses) DeleteFolderWithResponse(ctx context.Context, work
 	return ParseDeleteFolderResponse(rsp)
 }
 
+// ExistsFolderWithResponse request returning *ExistsFolderResponse
+func (c *ClientWithResponses) ExistsFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*ExistsFolderResponse, error) {
+	rsp, err := c.ExistsFolder(ctx, workspace, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsFolderResponse(rsp)
+}
+
 // GetFolderWithResponse request returning *GetFolderResponse
 func (c *ClientWithResponses) GetFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*GetFolderResponse, error) {
 	rsp, err := c.GetFolder(ctx, workspace, name, reqEditors...)
@@ -62085,6 +62175,32 @@ func ParseDeleteFolderResponse(rsp *http.Response) (*DeleteFolderResponse, error
 	response := &DeleteFolderResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsFolderResponse parses an HTTP response from a ExistsFolderWithResponse call
+func ParseExistsFolderResponse(rsp *http.Response) (*ExistsFolderResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsFolderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
