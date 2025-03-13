@@ -3572,8 +3572,11 @@ type GetInputHistoryParams struct {
 	Page *Page `form:"page,omitempty" json:"page,omitempty"`
 
 	// PerPage number of items to return for a given page (default 30, max 100)
-	PerPage        *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
-	IncludePreview *bool    `form:"include_preview,omitempty" json:"include_preview,omitempty"`
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// Args filter on jobs containing those args as a json subset (@> in postgres)
+	Args           *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
+	IncludePreview *bool       `form:"include_preview,omitempty" json:"include_preview,omitempty"`
 }
 
 // ListInputsParams defines parameters for ListInputs.
@@ -24174,6 +24177,22 @@ func NewGetInputHistoryRequest(server string, workspace WorkspaceId, params *Get
 		if params.PerPage != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Args != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "args", runtime.ParamLocationQuery, *params.Args); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
