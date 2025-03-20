@@ -630,6 +630,12 @@ const (
 	ListCapturesParamsRunnableKindScript ListCapturesParamsRunnableKind = "script"
 )
 
+// Defines values for MoveCapturesAndConfigsParamsRunnableKind.
+const (
+	MoveCapturesAndConfigsParamsRunnableKindFlow   MoveCapturesAndConfigsParamsRunnableKind = "flow"
+	MoveCapturesAndConfigsParamsRunnableKindScript MoveCapturesAndConfigsParamsRunnableKind = "script"
+)
+
 // Defines values for PingCaptureConfigParamsRunnableKind.
 const (
 	PingCaptureConfigParamsRunnableKindFlow   PingCaptureConfigParamsRunnableKind = "flow"
@@ -872,6 +878,7 @@ type CompletedJob struct {
 	Success        bool         `json:"success"`
 	Tag            string       `json:"tag"`
 	VisibleToOwner bool         `json:"visible_to_owner"`
+	Worker         *string      `json:"worker,omitempty"`
 	WorkspaceId    *string      `json:"workspace_id,omitempty"`
 }
 
@@ -959,6 +966,7 @@ type EditHttpTrigger struct {
 	IsFlow            bool                      `json:"is_flow"`
 	IsStaticWebsite   bool                      `json:"is_static_website"`
 	Path              string                    `json:"path"`
+	RawString         *bool                     `json:"raw_string,omitempty"`
 	RequiresAuth      bool                      `json:"requires_auth"`
 	RoutePath         *string                   `json:"route_path,omitempty"`
 	ScriptPath        string                    `json:"script_path"`
@@ -968,6 +976,7 @@ type EditHttpTrigger struct {
 		Storage  *string `json:"storage,omitempty"`
 	} `json:"static_asset_config,omitempty"`
 	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
+	WrapBody        *bool `json:"wrap_body,omitempty"`
 }
 
 // EditHttpTriggerHttpMethod defines model for EditHttpTrigger.HttpMethod.
@@ -1491,6 +1500,7 @@ type Job0 struct {
 	Tag            string       `json:"tag"`
 	Type           *Job0Type    `json:"type,omitempty"`
 	VisibleToOwner bool         `json:"visible_to_owner"`
+	Worker         *string      `json:"worker,omitempty"`
 	WorkspaceId    *string      `json:"workspace_id,omitempty"`
 }
 
@@ -1538,6 +1548,7 @@ type Job1 struct {
 	Tag            string     `json:"tag"`
 	Type           *Job1Type  `json:"type,omitempty"`
 	VisibleToOwner bool       `json:"visible_to_owner"`
+	Worker         *string    `json:"worker,omitempty"`
 	WorkspaceId    *string    `json:"workspace_id,omitempty"`
 }
 
@@ -1700,6 +1711,7 @@ type NewHttpTrigger struct {
 	IsFlow            bool                     `json:"is_flow"`
 	IsStaticWebsite   bool                     `json:"is_static_website"`
 	Path              string                   `json:"path"`
+	RawString         *bool                    `json:"raw_string,omitempty"`
 	RequiresAuth      bool                     `json:"requires_auth"`
 	RoutePath         string                   `json:"route_path"`
 	ScriptPath        string                   `json:"script_path"`
@@ -1709,6 +1721,7 @@ type NewHttpTrigger struct {
 		Storage  *string `json:"storage,omitempty"`
 	} `json:"static_asset_config,omitempty"`
 	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
+	WrapBody        *bool `json:"wrap_body,omitempty"`
 }
 
 // NewHttpTriggerHttpMethod defines model for NewHttpTrigger.HttpMethod.
@@ -2075,6 +2088,7 @@ type QueuedJob struct {
 	Suspend        *float32   `json:"suspend,omitempty"`
 	Tag            string     `json:"tag"`
 	VisibleToOwner bool       `json:"visible_to_owner"`
+	Worker         *string    `json:"worker,omitempty"`
 	WorkspaceId    *string    `json:"workspace_id,omitempty"`
 }
 
@@ -2762,6 +2776,9 @@ type Username = string
 // VersionId defines model for VersionId.
 type VersionId = float32
 
+// Worker defines model for Worker.
+type Worker = string
+
 // WorkerTag defines model for WorkerTag.
 type WorkerTag = string
 
@@ -3223,6 +3240,14 @@ type ListCapturesParams struct {
 // ListCapturesParamsRunnableKind defines parameters for ListCaptures.
 type ListCapturesParamsRunnableKind string
 
+// MoveCapturesAndConfigsJSONBody defines parameters for MoveCapturesAndConfigs.
+type MoveCapturesAndConfigsJSONBody struct {
+	NewPath *string `json:"new_path,omitempty"`
+}
+
+// MoveCapturesAndConfigsParamsRunnableKind defines parameters for MoveCapturesAndConfigs.
+type MoveCapturesAndConfigsParamsRunnableKind string
+
 // PingCaptureConfigParamsRunnableKind defines parameters for PingCaptureConfig.
 type PingCaptureConfigParamsRunnableKind string
 
@@ -3379,6 +3404,12 @@ type CreateFlowJSONBody struct {
 	Value               FlowValue               `json:"value"`
 	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+}
+
+// DeleteFlowByPathParams defines parameters for DeleteFlowByPath.
+type DeleteFlowByPathParams struct {
+	// KeepCaptures keep captures
+	KeepCaptures *bool `form:"keep_captures,omitempty" json:"keep_captures,omitempty"`
 }
 
 // GetFlowByPathParams defines parameters for GetFlowByPath.
@@ -3754,6 +3785,9 @@ type ListCompletedJobsParams struct {
 	// Label mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string in the array at key 'wm_labels')
 	Label *Label `form:"label,omitempty" json:"label,omitempty"`
 
+	// Worker worker this job was ran on
+	Worker *Worker `form:"worker,omitempty" json:"worker,omitempty"`
+
 	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
@@ -3827,6 +3861,9 @@ type ListJobsParams struct {
 
 	// Label mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string in the array at key 'wm_labels')
 	Label *Label `form:"label,omitempty" json:"label,omitempty"`
+
+	// Worker worker this job was ran on
+	Worker *Worker `form:"worker,omitempty" json:"worker,omitempty"`
 
 	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
@@ -3958,6 +3995,9 @@ type ListQueueParams struct {
 
 	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// Worker worker this job was ran on
+	Worker *Worker `form:"worker,omitempty" json:"worker,omitempty"`
 
 	// ScriptPathExact mask to filter exact matching path
 	ScriptPathExact *ScriptExactPath `form:"script_path_exact,omitempty" json:"script_path_exact,omitempty"`
@@ -4608,6 +4648,12 @@ type SetScheduleEnabledJSONBody struct {
 	Enabled bool `json:"enabled"`
 }
 
+// DeleteScriptByPathParams defines parameters for DeleteScriptByPath.
+type DeleteScriptByPathParams struct {
+	// KeepCaptures keep captures
+	KeepCaptures *bool `form:"keep_captures,omitempty" json:"keep_captures,omitempty"`
+}
+
 // GetScriptByHashParams defines parameters for GetScriptByHash.
 type GetScriptByHashParams struct {
 	WithStarredInfo *bool `form:"with_starred_info,omitempty" json:"with_starred_info,omitempty"`
@@ -5086,6 +5132,9 @@ type UpdateAppJSONRequestBody UpdateAppJSONBody
 
 // ExecuteComponentJSONRequestBody defines body for ExecuteComponent for application/json ContentType.
 type ExecuteComponentJSONRequestBody ExecuteComponentJSONBody
+
+// MoveCapturesAndConfigsJSONRequestBody defines body for MoveCapturesAndConfigs for application/json ContentType.
+type MoveCapturesAndConfigsJSONRequestBody MoveCapturesAndConfigsJSONBody
 
 // SetCaptureConfigJSONRequestBody defines body for SetCaptureConfig for application/json ContentType.
 type SetCaptureConfigJSONRequestBody SetCaptureConfigJSONBody
@@ -6467,6 +6516,11 @@ type ClientInterface interface {
 	// ListCaptures request
 	ListCaptures(ctx context.Context, workspace WorkspaceId, runnableKind ListCapturesParamsRunnableKind, path Path, params *ListCapturesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// MoveCapturesAndConfigsWithBody request with any body
+	MoveCapturesAndConfigsWithBody(ctx context.Context, workspace WorkspaceId, runnableKind MoveCapturesAndConfigsParamsRunnableKind, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MoveCapturesAndConfigs(ctx context.Context, workspace WorkspaceId, runnableKind MoveCapturesAndConfigsParamsRunnableKind, path Path, body MoveCapturesAndConfigsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// PingCaptureConfig request
 	PingCaptureConfig(ctx context.Context, workspace WorkspaceId, triggerKind CaptureTriggerKind, runnableKind PingCaptureConfigParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6516,7 +6570,7 @@ type ClientInterface interface {
 	CreateFlow(ctx context.Context, workspace WorkspaceId, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteFlowByPath request
-	DeleteFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	DeleteFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteFlowByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFlowDeploymentStatus request
 	GetFlowDeploymentStatus(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7280,7 +7334,7 @@ type ClientInterface interface {
 	DeleteScriptByHash(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteScriptByPath request
-	DeleteScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	DeleteScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteScriptByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetScriptDeploymentStatus request
 	GetScriptDeploymentStatus(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9612,6 +9666,30 @@ func (c *Client) ListCaptures(ctx context.Context, workspace WorkspaceId, runnab
 	return c.Client.Do(req)
 }
 
+func (c *Client) MoveCapturesAndConfigsWithBody(ctx context.Context, workspace WorkspaceId, runnableKind MoveCapturesAndConfigsParamsRunnableKind, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMoveCapturesAndConfigsRequestWithBody(c.Server, workspace, runnableKind, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MoveCapturesAndConfigs(ctx context.Context, workspace WorkspaceId, runnableKind MoveCapturesAndConfigsParamsRunnableKind, path Path, body MoveCapturesAndConfigsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMoveCapturesAndConfigsRequest(c.Server, workspace, runnableKind, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) PingCaptureConfig(ctx context.Context, workspace WorkspaceId, triggerKind CaptureTriggerKind, runnableKind PingCaptureConfigParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPingCaptureConfigRequest(c.Server, workspace, triggerKind, runnableKind, path)
 	if err != nil {
@@ -9828,8 +9906,8 @@ func (c *Client) CreateFlow(ctx context.Context, workspace WorkspaceId, body Cre
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteFlowByPathRequest(c.Server, workspace, path)
+func (c *Client) DeleteFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteFlowByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteFlowByPathRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -13200,8 +13278,8 @@ func (c *Client) DeleteScriptByHash(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteScriptByPathRequest(c.Server, workspace, path)
+func (c *Client) DeleteScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteScriptByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteScriptByPathRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -20706,6 +20784,67 @@ func NewListCapturesRequest(server string, workspace WorkspaceId, runnableKind L
 	return req, nil
 }
 
+// NewMoveCapturesAndConfigsRequest calls the generic MoveCapturesAndConfigs builder with application/json body
+func NewMoveCapturesAndConfigsRequest(server string, workspace WorkspaceId, runnableKind MoveCapturesAndConfigsParamsRunnableKind, path Path, body MoveCapturesAndConfigsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMoveCapturesAndConfigsRequestWithBody(server, workspace, runnableKind, path, "application/json", bodyReader)
+}
+
+// NewMoveCapturesAndConfigsRequestWithBody generates requests for MoveCapturesAndConfigs with any type of body
+func NewMoveCapturesAndConfigsRequestWithBody(server string, workspace WorkspaceId, runnableKind MoveCapturesAndConfigsParamsRunnableKind, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "runnable_kind", runtime.ParamLocationPath, runnableKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/capture/move/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewPingCaptureConfigRequest generates requests for PingCaptureConfig
 func NewPingCaptureConfigRequest(server string, workspace WorkspaceId, triggerKind CaptureTriggerKind, runnableKind PingCaptureConfigParamsRunnableKind, path Path) (*http.Request, error) {
 	var err error
@@ -21737,7 +21876,7 @@ func NewCreateFlowRequestWithBody(server string, workspace WorkspaceId, contentT
 }
 
 // NewDeleteFlowByPathRequest generates requests for DeleteFlowByPath
-func NewDeleteFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+func NewDeleteFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *DeleteFlowByPathParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -21767,6 +21906,28 @@ func NewDeleteFlowByPathRequest(server string, workspace WorkspaceId, path Scrip
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.KeepCaptures != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "keep_captures", runtime.ParamLocationQuery, *params.KeepCaptures); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
@@ -26406,6 +26567,22 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 
 		}
 
+		if params.Worker != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "worker", runtime.ParamLocationQuery, *params.Worker); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.ParentJob != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
@@ -26986,6 +27163,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Worker != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "worker", runtime.ParamLocationQuery, *params.Worker); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -27841,6 +28034,22 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 		if params.ParentJob != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Worker != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "worker", runtime.ParamLocationQuery, *params.Worker); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -36055,7 +36264,7 @@ func NewDeleteScriptByHashRequest(server string, workspace WorkspaceId, hash Scr
 }
 
 // NewDeleteScriptByPathRequest generates requests for DeleteScriptByPath
-func NewDeleteScriptByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+func NewDeleteScriptByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *DeleteScriptByPathParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -36085,6 +36294,28 @@ func NewDeleteScriptByPathRequest(server string, workspace WorkspaceId, path Scr
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.KeepCaptures != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "keep_captures", runtime.ParamLocationQuery, *params.KeepCaptures); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
@@ -42028,6 +42259,11 @@ type ClientWithResponsesInterface interface {
 	// ListCapturesWithResponse request
 	ListCapturesWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListCapturesParamsRunnableKind, path Path, params *ListCapturesParams, reqEditors ...RequestEditorFn) (*ListCapturesResponse, error)
 
+	// MoveCapturesAndConfigsWithBodyWithResponse request with any body
+	MoveCapturesAndConfigsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind MoveCapturesAndConfigsParamsRunnableKind, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MoveCapturesAndConfigsResponse, error)
+
+	MoveCapturesAndConfigsWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind MoveCapturesAndConfigsParamsRunnableKind, path Path, body MoveCapturesAndConfigsJSONRequestBody, reqEditors ...RequestEditorFn) (*MoveCapturesAndConfigsResponse, error)
+
 	// PingCaptureConfigWithResponse request
 	PingCaptureConfigWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind CaptureTriggerKind, runnableKind PingCaptureConfigParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*PingCaptureConfigResponse, error)
 
@@ -42077,7 +42313,7 @@ type ClientWithResponsesInterface interface {
 	CreateFlowWithResponse(ctx context.Context, workspace WorkspaceId, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateFlowResponse, error)
 
 	// DeleteFlowByPathWithResponse request
-	DeleteFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteFlowByPathResponse, error)
+	DeleteFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteFlowByPathParams, reqEditors ...RequestEditorFn) (*DeleteFlowByPathResponse, error)
 
 	// GetFlowDeploymentStatusWithResponse request
 	GetFlowDeploymentStatusWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowDeploymentStatusResponse, error)
@@ -42841,7 +43077,7 @@ type ClientWithResponsesInterface interface {
 	DeleteScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*DeleteScriptByHashResponse, error)
 
 	// DeleteScriptByPathWithResponse request
-	DeleteScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteScriptByPathResponse, error)
+	DeleteScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteScriptByPathParams, reqEditors ...RequestEditorFn) (*DeleteScriptByPathResponse, error)
 
 	// GetScriptDeploymentStatusWithResponse request
 	GetScriptDeploymentStatusWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*GetScriptDeploymentStatusResponse, error)
@@ -46040,6 +46276,27 @@ func (r ListCapturesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListCapturesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type MoveCapturesAndConfigsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r MoveCapturesAndConfigsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MoveCapturesAndConfigsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -54751,6 +55008,23 @@ func (c *ClientWithResponses) ListCapturesWithResponse(ctx context.Context, work
 	return ParseListCapturesResponse(rsp)
 }
 
+// MoveCapturesAndConfigsWithBodyWithResponse request with arbitrary body returning *MoveCapturesAndConfigsResponse
+func (c *ClientWithResponses) MoveCapturesAndConfigsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind MoveCapturesAndConfigsParamsRunnableKind, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MoveCapturesAndConfigsResponse, error) {
+	rsp, err := c.MoveCapturesAndConfigsWithBody(ctx, workspace, runnableKind, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMoveCapturesAndConfigsResponse(rsp)
+}
+
+func (c *ClientWithResponses) MoveCapturesAndConfigsWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind MoveCapturesAndConfigsParamsRunnableKind, path Path, body MoveCapturesAndConfigsJSONRequestBody, reqEditors ...RequestEditorFn) (*MoveCapturesAndConfigsResponse, error) {
+	rsp, err := c.MoveCapturesAndConfigs(ctx, workspace, runnableKind, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMoveCapturesAndConfigsResponse(rsp)
+}
+
 // PingCaptureConfigWithResponse request returning *PingCaptureConfigResponse
 func (c *ClientWithResponses) PingCaptureConfigWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind CaptureTriggerKind, runnableKind PingCaptureConfigParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*PingCaptureConfigResponse, error) {
 	rsp, err := c.PingCaptureConfig(ctx, workspace, triggerKind, runnableKind, path, reqEditors...)
@@ -54908,8 +55182,8 @@ func (c *ClientWithResponses) CreateFlowWithResponse(ctx context.Context, worksp
 }
 
 // DeleteFlowByPathWithResponse request returning *DeleteFlowByPathResponse
-func (c *ClientWithResponses) DeleteFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteFlowByPathResponse, error) {
-	rsp, err := c.DeleteFlowByPath(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) DeleteFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteFlowByPathParams, reqEditors ...RequestEditorFn) (*DeleteFlowByPathResponse, error) {
+	rsp, err := c.DeleteFlowByPath(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -57358,8 +57632,8 @@ func (c *ClientWithResponses) DeleteScriptByHashWithResponse(ctx context.Context
 }
 
 // DeleteScriptByPathWithResponse request returning *DeleteScriptByPathResponse
-func (c *ClientWithResponses) DeleteScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteScriptByPathResponse, error) {
-	rsp, err := c.DeleteScriptByPath(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) DeleteScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteScriptByPathParams, reqEditors ...RequestEditorFn) (*DeleteScriptByPathResponse, error) {
+	rsp, err := c.DeleteScriptByPath(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -61482,6 +61756,22 @@ func ParseListCapturesResponse(rsp *http.Response) (*ListCapturesResponse, error
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseMoveCapturesAndConfigsResponse parses an HTTP response from a MoveCapturesAndConfigsWithResponse call
+func ParseMoveCapturesAndConfigsResponse(rsp *http.Response) (*MoveCapturesAndConfigsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MoveCapturesAndConfigsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
