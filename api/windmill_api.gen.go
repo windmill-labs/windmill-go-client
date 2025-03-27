@@ -34,6 +34,7 @@ const (
 	Mistral    AIProvider = "mistral"
 	Openai     AIProvider = "openai"
 	Openrouter AIProvider = "openrouter"
+	Togetherai AIProvider = "togetherai"
 )
 
 // Defines values for AppWithLastVersionExecutionMode.
@@ -145,6 +146,16 @@ const (
 	WorkspacesEditWebhook          AuditLogOperation = "workspaces.edit_webhook"
 	WorkspacesUnarchive            AuditLogOperation = "workspaces.unarchive"
 	WorkspacesUpdate               AuditLogOperation = "workspaces.update"
+)
+
+// Defines values for AuthenticationMethod.
+const (
+	ApiKey       AuthenticationMethod = "api_key"
+	BasicHttp    AuthenticationMethod = "basic_http"
+	CustomScript AuthenticationMethod = "custom_script"
+	None         AuthenticationMethod = "none"
+	Signature    AuthenticationMethod = "signature"
+	Windmill     AuthenticationMethod = "windmill"
 )
 
 // Defines values for BranchAllType.
@@ -474,9 +485,11 @@ const (
 	ScriptLangDeno       ScriptLang = "deno"
 	ScriptLangGo         ScriptLang = "go"
 	ScriptLangGraphql    ScriptLang = "graphql"
+	ScriptLangJava       ScriptLang = "java"
 	ScriptLangMssql      ScriptLang = "mssql"
 	ScriptLangMysql      ScriptLang = "mysql"
 	ScriptLangNativets   ScriptLang = "nativets"
+	ScriptLangNu         ScriptLang = "nu"
 	ScriptLangOracledb   ScriptLang = "oracledb"
 	ScriptLangPhp        ScriptLang = "php"
 	ScriptLangPostgresql ScriptLang = "postgresql"
@@ -610,6 +623,12 @@ const (
 	RemoveGranularAclsParamsKindWebsocketTrigger RemoveGranularAclsParamsKind = "websocket_trigger"
 )
 
+// Defines values for ListAppPathsFromWorkspaceRunnableParamsRunnableKind.
+const (
+	ListAppPathsFromWorkspaceRunnableParamsRunnableKindFlow   ListAppPathsFromWorkspaceRunnableParamsRunnableKind = "flow"
+	ListAppPathsFromWorkspaceRunnableParamsRunnableKindScript ListAppPathsFromWorkspaceRunnableParamsRunnableKind = "script"
+)
+
 // Defines values for ListAuditLogsParamsActionKind.
 const (
 	ListAuditLogsParamsActionKindCreate  ListAuditLogsParamsActionKind = "Create"
@@ -694,12 +713,25 @@ const (
 	SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerTypeSuccess  SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType = "success"
 )
 
+// AIConfig defines model for AIConfig.
+type AIConfig struct {
+	CodeCompletionModel *AIProviderModel             `json:"code_completion_model,omitempty"`
+	DefaultModel        *AIProviderModel             `json:"default_model,omitempty"`
+	Providers           *map[string]AIProviderConfig `json:"providers,omitempty"`
+}
+
 // AIProvider defines model for AIProvider.
 type AIProvider string
 
-// AIResource defines model for AIResource.
-type AIResource struct {
-	Path     string     `json:"path"`
+// AIProviderConfig defines model for AIProviderConfig.
+type AIProviderConfig struct {
+	Models       []string `json:"models"`
+	ResourcePath string   `json:"resource_path"`
+}
+
+// AIProviderModel defines model for AIProviderModel.
+type AIProviderModel struct {
+	Model    string     `json:"model"`
 	Provider AIProvider `json:"provider"`
 }
 
@@ -765,6 +797,9 @@ type AuditLogActionKind string
 
 // AuditLogOperation defines model for AuditLog.Operation.
 type AuditLogOperation string
+
+// AuthenticationMethod defines model for AuthenticationMethod.
+type AuthenticationMethod string
 
 // AutoscalingEvent defines model for AutoscalingEvent.
 type AutoscalingEvent struct {
@@ -961,16 +996,17 @@ type CriticalAlert struct {
 
 // EditHttpTrigger defines model for EditHttpTrigger.
 type EditHttpTrigger struct {
-	HttpMethod        EditHttpTriggerHttpMethod `json:"http_method"`
-	IsAsync           bool                      `json:"is_async"`
-	IsFlow            bool                      `json:"is_flow"`
-	IsStaticWebsite   bool                      `json:"is_static_website"`
-	Path              string                    `json:"path"`
-	RawString         *bool                     `json:"raw_string,omitempty"`
-	RequiresAuth      bool                      `json:"requires_auth"`
-	RoutePath         *string                   `json:"route_path,omitempty"`
-	ScriptPath        string                    `json:"script_path"`
-	StaticAssetConfig *struct {
+	AuthenticationMethod       AuthenticationMethod      `json:"authentication_method"`
+	AuthenticationResourcePath *string                   `json:"authentication_resource_path,omitempty"`
+	HttpMethod                 EditHttpTriggerHttpMethod `json:"http_method"`
+	IsAsync                    bool                      `json:"is_async"`
+	IsFlow                     bool                      `json:"is_flow"`
+	IsStaticWebsite            bool                      `json:"is_static_website"`
+	Path                       string                    `json:"path"`
+	RawString                  *bool                     `json:"raw_string,omitempty"`
+	RoutePath                  *string                   `json:"route_path,omitempty"`
+	ScriptPath                 string                    `json:"script_path"`
+	StaticAssetConfig          *struct {
 		Filename *string `json:"filename,omitempty"`
 		S3       string  `json:"s3"`
 		Storage  *string `json:"storage,omitempty"`
@@ -1047,6 +1083,7 @@ type EditResourceType struct {
 type EditSchedule struct {
 	Args                ScriptArgs  `json:"args"`
 	CronVersion         *string     `json:"cron_version,omitempty"`
+	Description         *string     `json:"description,omitempty"`
 	NoFlowOverlap       *bool       `json:"no_flow_overlap,omitempty"`
 	OnFailure           *string     `json:"on_failure,omitempty"`
 	OnFailureExact      *bool       `json:"on_failure_exact,omitempty"`
@@ -1379,6 +1416,17 @@ type GitRepositorySettings struct {
 // GitRepositorySettingsExcludeTypesOverride defines model for GitRepositorySettings.ExcludeTypesOverride.
 type GitRepositorySettingsExcludeTypesOverride string
 
+// GithubInstallations defines model for GithubInstallations.
+type GithubInstallations = []struct {
+	AccountId      string  `json:"account_id"`
+	InstallationId float32 `json:"installation_id"`
+	Repositories   []struct {
+		Name string `json:"name"`
+		Url  string `json:"url"`
+	} `json:"repositories"`
+	WorkspaceId *string `json:"workspace_id,omitempty"`
+}
+
 // GlobalSetting defines model for GlobalSetting.
 type GlobalSetting struct {
 	Name  string                 `json:"name"`
@@ -1706,16 +1754,17 @@ type NatsTrigger = TriggerExtraProperty
 
 // NewHttpTrigger defines model for NewHttpTrigger.
 type NewHttpTrigger struct {
-	HttpMethod        NewHttpTriggerHttpMethod `json:"http_method"`
-	IsAsync           bool                     `json:"is_async"`
-	IsFlow            bool                     `json:"is_flow"`
-	IsStaticWebsite   bool                     `json:"is_static_website"`
-	Path              string                   `json:"path"`
-	RawString         *bool                    `json:"raw_string,omitempty"`
-	RequiresAuth      bool                     `json:"requires_auth"`
-	RoutePath         string                   `json:"route_path"`
-	ScriptPath        string                   `json:"script_path"`
-	StaticAssetConfig *struct {
+	AuthenticationMethod       AuthenticationMethod     `json:"authentication_method"`
+	AuthenticationResourcePath *string                  `json:"authentication_resource_path,omitempty"`
+	HttpMethod                 NewHttpTriggerHttpMethod `json:"http_method"`
+	IsAsync                    bool                     `json:"is_async"`
+	IsFlow                     bool                     `json:"is_flow"`
+	IsStaticWebsite            bool                     `json:"is_static_website"`
+	Path                       string                   `json:"path"`
+	RawString                  *bool                    `json:"raw_string,omitempty"`
+	RoutePath                  string                   `json:"route_path"`
+	ScriptPath                 string                   `json:"script_path"`
+	StaticAssetConfig          *struct {
 		Filename *string `json:"filename,omitempty"`
 		S3       string  `json:"s3"`
 		Storage  *string `json:"storage,omitempty"`
@@ -1781,6 +1830,7 @@ type NewPostgresTrigger struct {
 type NewSchedule struct {
 	Args                ScriptArgs  `json:"args"`
 	CronVersion         *string     `json:"cron_version,omitempty"`
+	Description         *string     `json:"description,omitempty"`
 	Enabled             *bool       `json:"enabled,omitempty"`
 	IsFlow              bool        `json:"is_flow"`
 	NoFlowOverlap       *bool       `json:"no_flow_overlap,omitempty"`
@@ -2198,6 +2248,7 @@ type ScalarMetric struct {
 type Schedule struct {
 	Args                *ScriptArgs     `json:"args,omitempty"`
 	CronVersion         *string         `json:"cron_version,omitempty"`
+	Description         *string         `json:"description,omitempty"`
 	EditedAt            time.Time       `json:"edited_at"`
 	EditedBy            string          `json:"edited_by"`
 	Email               string          `json:"email"`
@@ -2230,6 +2281,7 @@ type Schedule struct {
 type ScheduleWJobs struct {
 	Args        *ScriptArgs     `json:"args,omitempty"`
 	CronVersion *string         `json:"cron_version,omitempty"`
+	Description *string         `json:"description,omitempty"`
 	EditedAt    time.Time       `json:"edited_at"`
 	EditedBy    string          `json:"edited_by"`
 	Email       string          `json:"email"`
@@ -3139,6 +3191,9 @@ type ListAppsParams struct {
 	WithDeploymentMsg *bool `form:"with_deployment_msg,omitempty" json:"with_deployment_msg,omitempty"`
 }
 
+// ListAppPathsFromWorkspaceRunnableParamsRunnableKind defines parameters for ListAppPathsFromWorkspaceRunnable.
+type ListAppPathsFromWorkspaceRunnableParamsRunnableKind string
+
 // UpdateAppJSONBody defines parameters for UpdateApp.
 type UpdateAppJSONBody struct {
 	CustomPath        *string      `json:"custom_path,omitempty"`
@@ -3525,6 +3580,25 @@ type UpdateFolderJSONBody struct {
 	ExtraPerms *map[string]bool `json:"extra_perms,omitempty"`
 	Owners     *[]string        `json:"owners,omitempty"`
 	Summary    *string          `json:"summary,omitempty"`
+}
+
+// ImportInstallationJSONBody defines parameters for ImportInstallation.
+type ImportInstallationJSONBody struct {
+	JwtToken string `json:"jwt_token"`
+}
+
+// InstallFromWorkspaceJSONBody defines parameters for InstallFromWorkspace.
+type InstallFromWorkspaceJSONBody struct {
+	// InstallationId The ID of the GitHub installation to copy
+	InstallationId float32 `json:"installation_id"`
+
+	// SourceWorkspaceId The ID of the workspace containing the installation to copy
+	SourceWorkspaceId string `json:"source_workspace_id"`
+}
+
+// GetGithubAppTokenJSONBody defines parameters for GetGithubAppToken.
+type GetGithubAppTokenJSONBody struct {
+	JobToken string `json:"job_token"`
 }
 
 // AddUserToGroupJSONBody defines parameters for AddUserToGroup.
@@ -4884,13 +4958,6 @@ type EditAutoInviteJSONBody struct {
 	Operator  *bool `json:"operator,omitempty"`
 }
 
-// EditCopilotConfigJSONBody defines parameters for EditCopilotConfig.
-type EditCopilotConfigJSONBody struct {
-	AiModels            []string    `json:"ai_models"`
-	AiResource          *AIResource `json:"ai_resource,omitempty"`
-	CodeCompletionModel *string     `json:"code_completion_model,omitempty"`
-}
-
 // EditWorkspaceDefaultAppJSONBody defines parameters for EditWorkspaceDefaultApp.
 type EditWorkspaceDefaultAppJSONBody struct {
 	DefaultAppPath *string `json:"default_app_path,omitempty"`
@@ -4963,12 +5030,6 @@ type RunTeamsMessageTestJobJSONBody struct {
 	Channel       *string `json:"channel,omitempty"`
 	HubScriptPath *string `json:"hub_script_path,omitempty"`
 	TestMsg       *string `json:"test_msg,omitempty"`
-}
-
-// SetAutomaticBillingJSONBody defines parameters for SetAutomaticBilling.
-type SetAutomaticBillingJSONBody struct {
-	AutomaticBilling bool     `json:"automatic_billing"`
-	Seats            *float32 `json:"seats,omitempty"`
 }
 
 // SetEnvironmentVariableJSONBody defines parameters for SetEnvironmentVariable.
@@ -5174,6 +5235,15 @@ type RemoveOwnerToFolderJSONRequestBody RemoveOwnerToFolderJSONBody
 
 // UpdateFolderJSONRequestBody defines body for UpdateFolder for application/json ContentType.
 type UpdateFolderJSONRequestBody UpdateFolderJSONBody
+
+// ImportInstallationJSONRequestBody defines body for ImportInstallation for application/json ContentType.
+type ImportInstallationJSONRequestBody ImportInstallationJSONBody
+
+// InstallFromWorkspaceJSONRequestBody defines body for InstallFromWorkspace for application/json ContentType.
+type InstallFromWorkspaceJSONRequestBody InstallFromWorkspaceJSONBody
+
+// GetGithubAppTokenJSONRequestBody defines body for GetGithubAppToken for application/json ContentType.
+type GetGithubAppTokenJSONRequestBody GetGithubAppTokenJSONBody
 
 // AddUserToGroupJSONRequestBody defines body for AddUserToGroup for application/json ContentType.
 type AddUserToGroupJSONRequestBody AddUserToGroupJSONBody
@@ -5461,7 +5531,7 @@ type DeleteInviteJSONRequestBody DeleteInviteJSONBody
 type EditAutoInviteJSONRequestBody EditAutoInviteJSONBody
 
 // EditCopilotConfigJSONRequestBody defines body for EditCopilotConfig for application/json ContentType.
-type EditCopilotConfigJSONRequestBody EditCopilotConfigJSONBody
+type EditCopilotConfigJSONRequestBody = AIConfig
 
 // EditWorkspaceDefaultAppJSONRequestBody defines body for EditWorkspaceDefaultApp for application/json ContentType.
 type EditWorkspaceDefaultAppJSONRequestBody EditWorkspaceDefaultAppJSONBody
@@ -5504,9 +5574,6 @@ type RunSlackMessageTestJobJSONRequestBody RunSlackMessageTestJobJSONBody
 
 // RunTeamsMessageTestJobJSONRequestBody defines body for RunTeamsMessageTestJob for application/json ContentType.
 type RunTeamsMessageTestJobJSONRequestBody RunTeamsMessageTestJobJSONBody
-
-// SetAutomaticBillingJSONRequestBody defines body for SetAutomaticBilling for application/json ContentType.
-type SetAutomaticBillingJSONRequestBody SetAutomaticBillingJSONBody
 
 // SetEnvironmentVariableJSONRequestBody defines body for SetEnvironmentVariable for application/json ContentType.
 type SetEnvironmentVariableJSONRequestBody SetEnvironmentVariableJSONBody
@@ -6136,6 +6203,9 @@ type ClientInterface interface {
 	// ListHubFlows request
 	ListHubFlows(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetGlobalConnectedRepositories request
+	GetGlobalConnectedRepositories(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AddUserToInstanceGroupWithBody request with any body
 	AddUserToInstanceGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6476,6 +6546,9 @@ type ClientInterface interface {
 	// ListApps request
 	ListApps(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAppPathsFromWorkspaceRunnable request
+	ListAppPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, runnableKind ListAppPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListSearchApp request
 	ListSearchApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6663,6 +6736,27 @@ type ClientInterface interface {
 	UpdateFolderWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateFolder(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExportInstallation request
+	ExportInstallation(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ImportInstallationWithBody request with any body
+	ImportInstallationWithBody(ctx context.Context, workspace string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ImportInstallation(ctx context.Context, workspace string, body ImportInstallationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// InstallFromWorkspaceWithBody request with any body
+	InstallFromWorkspaceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	InstallFromWorkspace(ctx context.Context, workspace WorkspaceId, body InstallFromWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteFromWorkspace request
+	DeleteFromWorkspace(ctx context.Context, workspace WorkspaceId, installationId int64, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetGithubAppTokenWithBody request with any body
+	GetGithubAppTokenWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GetGithubAppToken(ctx context.Context, workspace WorkspaceId, body GetGithubAppTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AddUserToGroupWithBody request with any body
 	AddUserToGroupWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7371,6 +7465,9 @@ type ClientInterface interface {
 	// ListScriptPaths request
 	ListScriptPaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListScriptPathsFromWorkspaceRunnable request
+	ListScriptPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListSearchScript request
 	ListSearchScript(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7691,11 +7788,6 @@ type ClientInterface interface {
 
 	RunTeamsMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SetAutomaticBillingWithBody request with any body
-	SetAutomaticBillingWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	SetAutomaticBilling(ctx context.Context, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// SetEnvironmentVariableWithBody request with any body
 	SetEnvironmentVariableWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8000,6 +8092,18 @@ func (c *Client) GetHubFlowById(ctx context.Context, id PathId, reqEditors ...Re
 
 func (c *Client) ListHubFlows(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListHubFlowsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGlobalConnectedRepositories(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGlobalConnectedRepositoriesRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -9498,6 +9602,18 @@ func (c *Client) ListApps(ctx context.Context, workspace WorkspaceId, params *Li
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListAppPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, runnableKind ListAppPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAppPathsFromWorkspaceRunnableRequest(c.Server, workspace, runnableKind, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListSearchApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListSearchAppRequest(c.Server, workspace)
 	if err != nil {
@@ -10304,6 +10420,102 @@ func (c *Client) UpdateFolderWithBody(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) UpdateFolder(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateFolderRequest(c.Server, workspace, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExportInstallation(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExportInstallationRequest(c.Server, workspace, installationId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ImportInstallationWithBody(ctx context.Context, workspace string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewImportInstallationRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ImportInstallation(ctx context.Context, workspace string, body ImportInstallationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewImportInstallationRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) InstallFromWorkspaceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewInstallFromWorkspaceRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) InstallFromWorkspace(ctx context.Context, workspace WorkspaceId, body InstallFromWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewInstallFromWorkspaceRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteFromWorkspace(ctx context.Context, workspace WorkspaceId, installationId int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteFromWorkspaceRequest(c.Server, workspace, installationId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGithubAppTokenWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGithubAppTokenRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGithubAppToken(ctx context.Context, workspace WorkspaceId, body GetGithubAppTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGithubAppTokenRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -13434,6 +13646,18 @@ func (c *Client) ListScriptPaths(ctx context.Context, workspace WorkspaceId, req
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListScriptPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListScriptPathsFromWorkspaceRunnableRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListSearchScript(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListSearchScriptRequest(c.Server, workspace)
 	if err != nil {
@@ -14862,30 +15086,6 @@ func (c *Client) RunTeamsMessageTestJob(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetAutomaticBillingWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetAutomaticBillingRequestWithBody(c.Server, workspace, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SetAutomaticBilling(ctx context.Context, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetAutomaticBillingRequest(c.Server, workspace, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) SetEnvironmentVariableWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetEnvironmentVariableRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -15822,6 +16022,33 @@ func NewListHubFlowsRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/flows/hub/list")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetGlobalConnectedRepositoriesRequest generates requests for GetGlobalConnectedRepositories
+func NewGetGlobalConnectedRepositoriesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/github_app/connected_repositories")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -19899,6 +20126,54 @@ func NewListAppsRequest(server string, workspace WorkspaceId, params *ListAppsPa
 	return req, nil
 }
 
+// NewListAppPathsFromWorkspaceRunnableRequest generates requests for ListAppPathsFromWorkspaceRunnable
+func NewListAppPathsFromWorkspaceRunnableRequest(server string, workspace WorkspaceId, runnableKind ListAppPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "runnable_kind", runtime.ParamLocationPath, runnableKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/list_paths_from_workspace_runnable/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListSearchAppRequest generates requests for ListSearchApp
 func NewListSearchAppRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -23303,6 +23578,229 @@ func NewUpdateFolderRequestWithBody(server string, workspace WorkspaceId, name N
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/folders/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewExportInstallationRequest generates requests for ExportInstallation
+func NewExportInstallationRequest(server string, workspace string, installationId int) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "installationId", runtime.ParamLocationPath, installationId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/github_app/export/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewImportInstallationRequest calls the generic ImportInstallation builder with application/json body
+func NewImportInstallationRequest(server string, workspace string, body ImportInstallationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewImportInstallationRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewImportInstallationRequestWithBody generates requests for ImportInstallation with any type of body
+func NewImportInstallationRequestWithBody(server string, workspace string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/github_app/import", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewInstallFromWorkspaceRequest calls the generic InstallFromWorkspace builder with application/json body
+func NewInstallFromWorkspaceRequest(server string, workspace WorkspaceId, body InstallFromWorkspaceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewInstallFromWorkspaceRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewInstallFromWorkspaceRequestWithBody generates requests for InstallFromWorkspace with any type of body
+func NewInstallFromWorkspaceRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/github_app/install_from_workspace", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteFromWorkspaceRequest generates requests for DeleteFromWorkspace
+func NewDeleteFromWorkspaceRequest(server string, workspace WorkspaceId, installationId int64) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "installation_id", runtime.ParamLocationPath, installationId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/github_app/installation/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetGithubAppTokenRequest calls the generic GetGithubAppToken builder with application/json body
+func NewGetGithubAppTokenRequest(server string, workspace WorkspaceId, body GetGithubAppTokenJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGetGithubAppTokenRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewGetGithubAppTokenRequestWithBody generates requests for GetGithubAppToken with any type of body
+func NewGetGithubAppTokenRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/github_app/token", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -37089,6 +37587,47 @@ func NewListScriptPathsRequest(server string, workspace WorkspaceId) (*http.Requ
 	return req, nil
 }
 
+// NewListScriptPathsFromWorkspaceRunnableRequest generates requests for ListScriptPathsFromWorkspaceRunnable
+func NewListScriptPathsFromWorkspaceRunnableRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/list_paths_from_workspace_runnable/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListSearchScriptRequest generates requests for ListSearchScript
 func NewListSearchScriptRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -40902,53 +41441,6 @@ func NewRunTeamsMessageTestJobRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
-// NewSetAutomaticBillingRequest calls the generic SetAutomaticBilling builder with application/json body
-func NewSetAutomaticBillingRequest(server string, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewSetAutomaticBillingRequestWithBody(server, workspace, "application/json", bodyReader)
-}
-
-// NewSetAutomaticBillingRequestWithBody generates requests for SetAutomaticBilling with any type of body
-func NewSetAutomaticBillingRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/workspaces/set_automatic_billing", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewSetEnvironmentVariableRequest calls the generic SetEnvironmentVariable builder with application/json body
 func NewSetEnvironmentVariableRequest(server string, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -41879,6 +42371,9 @@ type ClientWithResponsesInterface interface {
 	// ListHubFlowsWithResponse request
 	ListHubFlowsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubFlowsResponse, error)
 
+	// GetGlobalConnectedRepositoriesWithResponse request
+	GetGlobalConnectedRepositoriesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetGlobalConnectedRepositoriesResponse, error)
+
 	// AddUserToInstanceGroupWithBodyWithResponse request with any body
 	AddUserToInstanceGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserToInstanceGroupResponse, error)
 
@@ -42219,6 +42714,9 @@ type ClientWithResponsesInterface interface {
 	// ListAppsWithResponse request
 	ListAppsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAppsParams, reqEditors ...RequestEditorFn) (*ListAppsResponse, error)
 
+	// ListAppPathsFromWorkspaceRunnableWithResponse request
+	ListAppPathsFromWorkspaceRunnableWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListAppPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*ListAppPathsFromWorkspaceRunnableResponse, error)
+
 	// ListSearchAppWithResponse request
 	ListSearchAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchAppResponse, error)
 
@@ -42406,6 +42904,27 @@ type ClientWithResponsesInterface interface {
 	UpdateFolderWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFolderResponse, error)
 
 	UpdateFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFolderResponse, error)
+
+	// ExportInstallationWithResponse request
+	ExportInstallationWithResponse(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*ExportInstallationResponse, error)
+
+	// ImportInstallationWithBodyWithResponse request with any body
+	ImportInstallationWithBodyWithResponse(ctx context.Context, workspace string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportInstallationResponse, error)
+
+	ImportInstallationWithResponse(ctx context.Context, workspace string, body ImportInstallationJSONRequestBody, reqEditors ...RequestEditorFn) (*ImportInstallationResponse, error)
+
+	// InstallFromWorkspaceWithBodyWithResponse request with any body
+	InstallFromWorkspaceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*InstallFromWorkspaceResponse, error)
+
+	InstallFromWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, body InstallFromWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*InstallFromWorkspaceResponse, error)
+
+	// DeleteFromWorkspaceWithResponse request
+	DeleteFromWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, installationId int64, reqEditors ...RequestEditorFn) (*DeleteFromWorkspaceResponse, error)
+
+	// GetGithubAppTokenWithBodyWithResponse request with any body
+	GetGithubAppTokenWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetGithubAppTokenResponse, error)
+
+	GetGithubAppTokenWithResponse(ctx context.Context, workspace WorkspaceId, body GetGithubAppTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*GetGithubAppTokenResponse, error)
 
 	// AddUserToGroupWithBodyWithResponse request with any body
 	AddUserToGroupWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserToGroupResponse, error)
@@ -43114,6 +43633,9 @@ type ClientWithResponsesInterface interface {
 	// ListScriptPathsWithResponse request
 	ListScriptPathsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListScriptPathsResponse, error)
 
+	// ListScriptPathsFromWorkspaceRunnableWithResponse request
+	ListScriptPathsFromWorkspaceRunnableWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ListScriptPathsFromWorkspaceRunnableResponse, error)
+
 	// ListSearchScriptWithResponse request
 	ListSearchScriptWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchScriptResponse, error)
 
@@ -43433,11 +43955,6 @@ type ClientWithResponsesInterface interface {
 	RunTeamsMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error)
 
 	RunTeamsMessageTestJobWithResponse(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error)
-
-	// SetAutomaticBillingWithBodyWithResponse request with any body
-	SetAutomaticBillingWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAutomaticBillingResponse, error)
-
-	SetAutomaticBillingWithResponse(ctx context.Context, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody, reqEditors ...RequestEditorFn) (*SetAutomaticBillingResponse, error)
 
 	// SetEnvironmentVariableWithBodyWithResponse request with any body
 	SetEnvironmentVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error)
@@ -43948,6 +44465,28 @@ func (r ListHubFlowsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListHubFlowsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGlobalConnectedRepositoriesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GithubInstallations
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGlobalConnectedRepositoriesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGlobalConnectedRepositoriesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -46016,6 +46555,28 @@ func (r ListAppsResponse) StatusCode() int {
 	return 0
 }
 
+type ListAppPathsFromWorkspaceRunnableResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAppPathsFromWorkspaceRunnableResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAppPathsFromWorkspaceRunnableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListSearchAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -47196,6 +47757,117 @@ func (r UpdateFolderResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateFolderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExportInstallationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		JwtToken *string `json:"jwt_token,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ExportInstallationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExportInstallationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ImportInstallationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ImportInstallationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ImportInstallationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type InstallFromWorkspaceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r InstallFromWorkspaceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r InstallFromWorkspaceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteFromWorkspaceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteFromWorkspaceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteFromWorkspaceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGithubAppTokenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Token string `json:"token"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGithubAppTokenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGithubAppTokenResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -51309,6 +51981,28 @@ func (r ListScriptPathsResponse) StatusCode() int {
 	return 0
 }
 
+type ListScriptPathsFromWorkspaceRunnableResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListScriptPathsFromWorkspaceRunnableResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListScriptPathsFromWorkspaceRunnableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListSearchScriptResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -52816,6 +53510,7 @@ func (r SetWorkspaceEncryptionKeyResponse) StatusCode() int {
 type GetCopilotInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *AIConfig
 }
 
 // Status returns HTTPResponse.Status
@@ -52884,13 +53579,10 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AiModels                  []string                   `json:"ai_models"`
-		AiResource                *AIResource                `json:"ai_resource,omitempty"`
+		AiConfig                  *AIConfig                  `json:"ai_config,omitempty"`
 		AutoAdd                   *bool                      `json:"auto_add,omitempty"`
 		AutoInviteDomain          *string                    `json:"auto_invite_domain,omitempty"`
 		AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
-		AutomaticBilling          bool                       `json:"automatic_billing"`
-		CodeCompletionModel       *string                    `json:"code_completion_model,omitempty"`
 		Color                     *string                    `json:"color,omitempty"`
 		CustomerId                *string                    `json:"customer_id,omitempty"`
 		DefaultApp                *string                    `json:"default_app,omitempty"`
@@ -53064,11 +53756,10 @@ type GetPremiumInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AutomaticBilling bool     `json:"automatic_billing"`
-		Owner            string   `json:"owner"`
-		Premium          bool     `json:"premium"`
-		Seats            *float32 `json:"seats,omitempty"`
-		Usage            *float32 `json:"usage,omitempty"`
+		Owner   string   `json:"owner"`
+		Premium bool     `json:"premium"`
+		Status  *string  `json:"status,omitempty"`
+		Usage   *float32 `json:"usage,omitempty"`
 	}
 }
 
@@ -53124,27 +53815,6 @@ func (r RunTeamsMessageTestJobResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunTeamsMessageTestJobResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type SetAutomaticBillingResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r SetAutomaticBillingResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r SetAutomaticBillingResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -53798,6 +54468,15 @@ func (c *ClientWithResponses) ListHubFlowsWithResponse(ctx context.Context, reqE
 		return nil, err
 	}
 	return ParseListHubFlowsResponse(rsp)
+}
+
+// GetGlobalConnectedRepositoriesWithResponse request returning *GetGlobalConnectedRepositoriesResponse
+func (c *ClientWithResponses) GetGlobalConnectedRepositoriesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetGlobalConnectedRepositoriesResponse, error) {
+	rsp, err := c.GetGlobalConnectedRepositories(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGlobalConnectedRepositoriesResponse(rsp)
 }
 
 // AddUserToInstanceGroupWithBodyWithResponse request with arbitrary body returning *AddUserToInstanceGroupResponse
@@ -54884,6 +55563,15 @@ func (c *ClientWithResponses) ListAppsWithResponse(ctx context.Context, workspac
 	return ParseListAppsResponse(rsp)
 }
 
+// ListAppPathsFromWorkspaceRunnableWithResponse request returning *ListAppPathsFromWorkspaceRunnableResponse
+func (c *ClientWithResponses) ListAppPathsFromWorkspaceRunnableWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListAppPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*ListAppPathsFromWorkspaceRunnableResponse, error) {
+	rsp, err := c.ListAppPathsFromWorkspaceRunnable(ctx, workspace, runnableKind, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAppPathsFromWorkspaceRunnableResponse(rsp)
+}
+
 // ListSearchAppWithResponse request returning *ListSearchAppResponse
 func (c *ClientWithResponses) ListSearchAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchAppResponse, error) {
 	rsp, err := c.ListSearchApp(ctx, workspace, reqEditors...)
@@ -55478,6 +56166,75 @@ func (c *ClientWithResponses) UpdateFolderWithResponse(ctx context.Context, work
 		return nil, err
 	}
 	return ParseUpdateFolderResponse(rsp)
+}
+
+// ExportInstallationWithResponse request returning *ExportInstallationResponse
+func (c *ClientWithResponses) ExportInstallationWithResponse(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*ExportInstallationResponse, error) {
+	rsp, err := c.ExportInstallation(ctx, workspace, installationId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExportInstallationResponse(rsp)
+}
+
+// ImportInstallationWithBodyWithResponse request with arbitrary body returning *ImportInstallationResponse
+func (c *ClientWithResponses) ImportInstallationWithBodyWithResponse(ctx context.Context, workspace string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportInstallationResponse, error) {
+	rsp, err := c.ImportInstallationWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseImportInstallationResponse(rsp)
+}
+
+func (c *ClientWithResponses) ImportInstallationWithResponse(ctx context.Context, workspace string, body ImportInstallationJSONRequestBody, reqEditors ...RequestEditorFn) (*ImportInstallationResponse, error) {
+	rsp, err := c.ImportInstallation(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseImportInstallationResponse(rsp)
+}
+
+// InstallFromWorkspaceWithBodyWithResponse request with arbitrary body returning *InstallFromWorkspaceResponse
+func (c *ClientWithResponses) InstallFromWorkspaceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*InstallFromWorkspaceResponse, error) {
+	rsp, err := c.InstallFromWorkspaceWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseInstallFromWorkspaceResponse(rsp)
+}
+
+func (c *ClientWithResponses) InstallFromWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, body InstallFromWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*InstallFromWorkspaceResponse, error) {
+	rsp, err := c.InstallFromWorkspace(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseInstallFromWorkspaceResponse(rsp)
+}
+
+// DeleteFromWorkspaceWithResponse request returning *DeleteFromWorkspaceResponse
+func (c *ClientWithResponses) DeleteFromWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, installationId int64, reqEditors ...RequestEditorFn) (*DeleteFromWorkspaceResponse, error) {
+	rsp, err := c.DeleteFromWorkspace(ctx, workspace, installationId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteFromWorkspaceResponse(rsp)
+}
+
+// GetGithubAppTokenWithBodyWithResponse request with arbitrary body returning *GetGithubAppTokenResponse
+func (c *ClientWithResponses) GetGithubAppTokenWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetGithubAppTokenResponse, error) {
+	rsp, err := c.GetGithubAppTokenWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGithubAppTokenResponse(rsp)
+}
+
+func (c *ClientWithResponses) GetGithubAppTokenWithResponse(ctx context.Context, workspace WorkspaceId, body GetGithubAppTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*GetGithubAppTokenResponse, error) {
+	rsp, err := c.GetGithubAppToken(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGithubAppTokenResponse(rsp)
 }
 
 // AddUserToGroupWithBodyWithResponse request with arbitrary body returning *AddUserToGroupResponse
@@ -57747,6 +58504,15 @@ func (c *ClientWithResponses) ListScriptPathsWithResponse(ctx context.Context, w
 	return ParseListScriptPathsResponse(rsp)
 }
 
+// ListScriptPathsFromWorkspaceRunnableWithResponse request returning *ListScriptPathsFromWorkspaceRunnableResponse
+func (c *ClientWithResponses) ListScriptPathsFromWorkspaceRunnableWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ListScriptPathsFromWorkspaceRunnableResponse, error) {
+	rsp, err := c.ListScriptPathsFromWorkspaceRunnable(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListScriptPathsFromWorkspaceRunnableResponse(rsp)
+}
+
 // ListSearchScriptWithResponse request returning *ListSearchScriptResponse
 func (c *ClientWithResponses) ListSearchScriptWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchScriptResponse, error) {
 	rsp, err := c.ListSearchScript(ctx, workspace, reqEditors...)
@@ -58781,23 +59547,6 @@ func (c *ClientWithResponses) RunTeamsMessageTestJobWithResponse(ctx context.Con
 	return ParseRunTeamsMessageTestJobResponse(rsp)
 }
 
-// SetAutomaticBillingWithBodyWithResponse request with arbitrary body returning *SetAutomaticBillingResponse
-func (c *ClientWithResponses) SetAutomaticBillingWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAutomaticBillingResponse, error) {
-	rsp, err := c.SetAutomaticBillingWithBody(ctx, workspace, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSetAutomaticBillingResponse(rsp)
-}
-
-func (c *ClientWithResponses) SetAutomaticBillingWithResponse(ctx context.Context, workspace WorkspaceId, body SetAutomaticBillingJSONRequestBody, reqEditors ...RequestEditorFn) (*SetAutomaticBillingResponse, error) {
-	rsp, err := c.SetAutomaticBilling(ctx, workspace, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSetAutomaticBillingResponse(rsp)
-}
-
 // SetEnvironmentVariableWithBodyWithResponse request with arbitrary body returning *SetEnvironmentVariableResponse
 func (c *ClientWithResponses) SetEnvironmentVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error) {
 	rsp, err := c.SetEnvironmentVariableWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -59484,6 +60233,32 @@ func ParseListHubFlowsResponse(rsp *http.Response) (*ListHubFlowsResponse, error
 				Votes    float32  `json:"votes"`
 			} `json:"flows,omitempty"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetGlobalConnectedRepositoriesResponse parses an HTTP response from a GetGlobalConnectedRepositoriesWithResponse call
+func ParseGetGlobalConnectedRepositoriesResponse(rsp *http.Response) (*GetGlobalConnectedRepositoriesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGlobalConnectedRepositoriesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GithubInstallations
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -61483,6 +62258,32 @@ func ParseListAppsResponse(rsp *http.Response) (*ListAppsResponse, error) {
 	return response, nil
 }
 
+// ParseListAppPathsFromWorkspaceRunnableResponse parses an HTTP response from a ListAppPathsFromWorkspaceRunnableWithResponse call
+func ParseListAppPathsFromWorkspaceRunnableResponse(rsp *http.Response) (*ListAppPathsFromWorkspaceRunnableResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAppPathsFromWorkspaceRunnableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListSearchAppResponse parses an HTTP response from a ListSearchAppWithResponse call
 func ParseListSearchAppResponse(rsp *http.Response) (*ListSearchAppResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -62656,6 +63457,110 @@ func ParseUpdateFolderResponse(rsp *http.Response) (*UpdateFolderResponse, error
 	response := &UpdateFolderResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExportInstallationResponse parses an HTTP response from a ExportInstallationWithResponse call
+func ParseExportInstallationResponse(rsp *http.Response) (*ExportInstallationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExportInstallationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			JwtToken *string `json:"jwt_token,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseImportInstallationResponse parses an HTTP response from a ImportInstallationWithResponse call
+func ParseImportInstallationResponse(rsp *http.Response) (*ImportInstallationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ImportInstallationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseInstallFromWorkspaceResponse parses an HTTP response from a InstallFromWorkspaceWithResponse call
+func ParseInstallFromWorkspaceResponse(rsp *http.Response) (*InstallFromWorkspaceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &InstallFromWorkspaceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteFromWorkspaceResponse parses an HTTP response from a DeleteFromWorkspaceWithResponse call
+func ParseDeleteFromWorkspaceResponse(rsp *http.Response) (*DeleteFromWorkspaceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteFromWorkspaceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetGithubAppTokenResponse parses an HTTP response from a GetGithubAppTokenWithResponse call
+func ParseGetGithubAppTokenResponse(rsp *http.Response) (*GetGithubAppTokenResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGithubAppTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Token string `json:"token"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -66742,6 +67647,32 @@ func ParseListScriptPathsResponse(rsp *http.Response) (*ListScriptPathsResponse,
 	return response, nil
 }
 
+// ParseListScriptPathsFromWorkspaceRunnableResponse parses an HTTP response from a ListScriptPathsFromWorkspaceRunnableWithResponse call
+func ParseListScriptPathsFromWorkspaceRunnableResponse(rsp *http.Response) (*ListScriptPathsFromWorkspaceRunnableResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListScriptPathsFromWorkspaceRunnableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListSearchScriptResponse parses an HTTP response from a ListSearchScriptWithResponse call
 func ParseListSearchScriptResponse(rsp *http.Response) (*ListSearchScriptResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -68202,6 +69133,16 @@ func ParseGetCopilotInfoResponse(rsp *http.Response) (*GetCopilotInfoResponse, e
 		HTTPResponse: rsp,
 	}
 
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AIConfig
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
 	return response, nil
 }
 
@@ -68275,13 +69216,10 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AiModels                  []string                   `json:"ai_models"`
-			AiResource                *AIResource                `json:"ai_resource,omitempty"`
+			AiConfig                  *AIConfig                  `json:"ai_config,omitempty"`
 			AutoAdd                   *bool                      `json:"auto_add,omitempty"`
 			AutoInviteDomain          *string                    `json:"auto_invite_domain,omitempty"`
 			AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
-			AutomaticBilling          bool                       `json:"automatic_billing"`
-			CodeCompletionModel       *string                    `json:"code_completion_model,omitempty"`
 			Color                     *string                    `json:"color,omitempty"`
 			CustomerId                *string                    `json:"customer_id,omitempty"`
 			DefaultApp                *string                    `json:"default_app,omitempty"`
@@ -68447,11 +69385,10 @@ func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AutomaticBilling bool     `json:"automatic_billing"`
-			Owner            string   `json:"owner"`
-			Premium          bool     `json:"premium"`
-			Seats            *float32 `json:"seats,omitempty"`
-			Usage            *float32 `json:"usage,omitempty"`
+			Owner   string   `json:"owner"`
+			Premium bool     `json:"premium"`
+			Status  *string  `json:"status,omitempty"`
+			Usage   *float32 `json:"usage,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -68488,22 +69425,6 @@ func ParseRunTeamsMessageTestJobResponse(rsp *http.Response) (*RunTeamsMessageTe
 	}
 
 	response := &RunTeamsMessageTestJobResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseSetAutomaticBillingResponse parses an HTTP response from a SetAutomaticBillingWithResponse call
-func ParseSetAutomaticBillingResponse(rsp *http.Response) (*SetAutomaticBillingResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &SetAutomaticBillingResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
