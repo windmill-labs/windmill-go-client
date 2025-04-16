@@ -26,15 +26,16 @@ const (
 
 // Defines values for AIProvider.
 const (
-	Anthropic  AIProvider = "anthropic"
-	Customai   AIProvider = "customai"
-	Deepseek   AIProvider = "deepseek"
-	Googleai   AIProvider = "googleai"
-	Groq       AIProvider = "groq"
-	Mistral    AIProvider = "mistral"
-	Openai     AIProvider = "openai"
-	Openrouter AIProvider = "openrouter"
-	Togetherai AIProvider = "togetherai"
+	Anthropic   AIProvider = "anthropic"
+	AzureOpenai AIProvider = "azure_openai"
+	Customai    AIProvider = "customai"
+	Deepseek    AIProvider = "deepseek"
+	Googleai    AIProvider = "googleai"
+	Groq        AIProvider = "groq"
+	Mistral     AIProvider = "mistral"
+	Openai      AIProvider = "openai"
+	Openrouter  AIProvider = "openrouter"
+	Togetherai  AIProvider = "togetherai"
 )
 
 // Defines values for AppWithLastVersionExecutionMode.
@@ -171,6 +172,7 @@ const (
 // Defines values for CaptureTriggerKind.
 const (
 	CaptureTriggerKindEmail     CaptureTriggerKind = "email"
+	CaptureTriggerKindGcp       CaptureTriggerKind = "gcp"
 	CaptureTriggerKindHttp      CaptureTriggerKind = "http"
 	CaptureTriggerKindKafka     CaptureTriggerKind = "kafka"
 	CaptureTriggerKindMqtt      CaptureTriggerKind = "mqtt"
@@ -197,6 +199,12 @@ const (
 	CompletedJobJobKindScript             CompletedJobJobKind = "script"
 	CompletedJobJobKindScriptHub          CompletedJobJobKind = "script_hub"
 	CompletedJobJobKindSinglescriptflow   CompletedJobJobKind = "singlescriptflow"
+)
+
+// Defines values for DeliveryType.
+const (
+	Pull DeliveryType = "pull"
+	Push DeliveryType = "push"
 )
 
 // Defines values for EditHttpTriggerHttpMethod.
@@ -504,6 +512,12 @@ const (
 	StaticTransformTypeJavascript StaticTransformType = "javascript"
 )
 
+// Defines values for SubscriptionMode.
+const (
+	CreateUpdate SubscriptionMode = "create_update"
+	Existing     SubscriptionMode = "existing"
+)
+
 // Defines values for WhileloopFlowType.
 const (
 	WhileloopFlowTypeForloopflow WhileloopFlowType = "forloopflow"
@@ -568,6 +582,7 @@ const (
 	AddGranularAclsParamsKindApp              AddGranularAclsParamsKind = "app"
 	AddGranularAclsParamsKindFlow             AddGranularAclsParamsKind = "flow"
 	AddGranularAclsParamsKindFolder           AddGranularAclsParamsKind = "folder"
+	AddGranularAclsParamsKindGcpTrigger       AddGranularAclsParamsKind = "gcp_trigger"
 	AddGranularAclsParamsKindGroup            AddGranularAclsParamsKind = "group_"
 	AddGranularAclsParamsKindHttpTrigger      AddGranularAclsParamsKind = "http_trigger"
 	AddGranularAclsParamsKindKafkaTrigger     AddGranularAclsParamsKind = "kafka_trigger"
@@ -588,6 +603,7 @@ const (
 	GetGranularAclsParamsKindApp              GetGranularAclsParamsKind = "app"
 	GetGranularAclsParamsKindFlow             GetGranularAclsParamsKind = "flow"
 	GetGranularAclsParamsKindFolder           GetGranularAclsParamsKind = "folder"
+	GetGranularAclsParamsKindGcpTrigger       GetGranularAclsParamsKind = "gcp_trigger"
 	GetGranularAclsParamsKindGroup            GetGranularAclsParamsKind = "group_"
 	GetGranularAclsParamsKindHttpTrigger      GetGranularAclsParamsKind = "http_trigger"
 	GetGranularAclsParamsKindKafkaTrigger     GetGranularAclsParamsKind = "kafka_trigger"
@@ -608,6 +624,7 @@ const (
 	RemoveGranularAclsParamsKindApp              RemoveGranularAclsParamsKind = "app"
 	RemoveGranularAclsParamsKindFlow             RemoveGranularAclsParamsKind = "flow"
 	RemoveGranularAclsParamsKindFolder           RemoveGranularAclsParamsKind = "folder"
+	RemoveGranularAclsParamsKindGcpTrigger       RemoveGranularAclsParamsKind = "gcp_trigger"
 	RemoveGranularAclsParamsKindGroup            RemoveGranularAclsParamsKind = "group_"
 	RemoveGranularAclsParamsKindHttpTrigger      RemoveGranularAclsParamsKind = "http_trigger"
 	RemoveGranularAclsParamsKindKafkaTrigger     RemoveGranularAclsParamsKind = "kafka_trigger"
@@ -992,6 +1009,29 @@ type CriticalAlert struct {
 
 	// WorkspaceId Workspace id if the alert is in the scope of a workspace
 	WorkspaceId *string `json:"workspace_id"`
+}
+
+// DeleteGcpSubscription defines model for DeleteGcpSubscription.
+type DeleteGcpSubscription struct {
+	SubscriptionId string `json:"subscription_id"`
+}
+
+// DeliveryType defines model for DeliveryType.
+type DeliveryType string
+
+// EditGcpTrigger defines model for EditGcpTrigger.
+type EditGcpTrigger struct {
+	Enabled         bool    `json:"enabled"`
+	GcpResourcePath *string `json:"gcp_resource_path,omitempty"`
+	IsFlow          bool    `json:"is_flow"`
+	Path            string  `json:"path"`
+	ScriptPath      string  `json:"script_path"`
+
+	// SubscriptionMode "This is a union type representing the subscription mode.
+	//  - 'existing': Represents an existing GCP subscription, and should be accompanied by an 'ExistingGcpSubscription' object.
+	//  - 'create_update': Represents a new or updated GCP subscription, and should be accompanied by a 'CreateUpdateConfig' object."
+	SubscriptionMode GcpSubscriptionModeConfig `json:"subscription_mode"`
+	TopicId          string                    `json:"topic_id"`
 }
 
 // EditHttpTrigger defines model for EditHttpTrigger.
@@ -1404,6 +1444,32 @@ type ForloopFlow struct {
 // ForloopFlowType defines model for ForloopFlow.Type.
 type ForloopFlowType string
 
+// GcpCreateUpdateSubscription defines model for GcpCreateUpdateSubscription.
+type GcpCreateUpdateSubscription struct {
+	DeliveryConfig *PushConfig  `json:"delivery_config,omitempty"`
+	DeliveryType   DeliveryType `json:"delivery_type"`
+	SubscriptionId *string      `json:"subscription_id,omitempty"`
+}
+
+// GcpExistingSubscription defines model for GcpExistingSubscription.
+type GcpExistingSubscription struct {
+	BaseEndpoint   string `json:"base_endpoint"`
+	SubscriptionId string `json:"subscription_id"`
+}
+
+// GcpSubscriptionModeConfig defines model for GcpSubscriptionModeConfig.
+type GcpSubscriptionModeConfig struct {
+	union json.RawMessage
+}
+
+// GcpTrigger defines model for GcpTrigger.
+type GcpTrigger = TriggerExtraProperty
+
+// GetAllTopicSubscription defines model for GetAllTopicSubscription.
+type GetAllTopicSubscription struct {
+	TopicId string `json:"topic_id"`
+}
+
 // GitRepositorySettings defines model for GitRepositorySettings.
 type GitRepositorySettings struct {
 	ExcludeTypesOverride *[]GitRepositorySettingsExcludeTypesOverride `json:"exclude_types_override,omitempty"`
@@ -1752,6 +1818,21 @@ type MqttV5Config struct {
 // NatsTrigger defines model for NatsTrigger.
 type NatsTrigger = TriggerExtraProperty
 
+// NewGcpTrigger defines model for NewGcpTrigger.
+type NewGcpTrigger struct {
+	Enabled         *bool  `json:"enabled,omitempty"`
+	GcpResourcePath string `json:"gcp_resource_path"`
+	IsFlow          bool   `json:"is_flow"`
+	Path            string `json:"path"`
+	ScriptPath      string `json:"script_path"`
+
+	// SubscriptionMode "This is a union type representing the subscription mode.
+	//  - 'existing': Represents an existing GCP subscription, and should be accompanied by an 'ExistingGcpSubscription' object.
+	//  - 'create_update': Represents a new or updated GCP subscription, and should be accompanied by a 'CreateUpdateConfig' object."
+	SubscriptionMode GcpSubscriptionModeConfig `json:"subscription_mode"`
+	TopicId          string                    `json:"topic_id"`
+}
+
 // NewHttpTrigger defines model for NewHttpTrigger.
 type NewHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod     `json:"authentication_method"`
@@ -2089,6 +2170,7 @@ type Preview struct {
 	Language        *ScriptLang  `json:"language,omitempty"`
 	Lock            *string      `json:"lock,omitempty"`
 	Path            *string      `json:"path,omitempty"`
+	ScriptHash      *string      `json:"script_hash,omitempty"`
 	Tag             *string      `json:"tag,omitempty"`
 }
 
@@ -2099,6 +2181,13 @@ type PreviewKind string
 type PublicationData struct {
 	TableToTrack       *[]Relations `json:"table_to_track,omitempty"`
 	TransactionToTrack []string     `json:"transaction_to_track"`
+}
+
+// PushConfig defines model for PushConfig.
+type PushConfig struct {
+	Audience     *string `json:"audience,omitempty"`
+	Authenticate bool    `json:"authenticate"`
+	BaseEndpoint string  `json:"base_endpoint"`
 }
 
 // QueuedJob defines model for QueuedJob.
@@ -2226,6 +2315,14 @@ type Retry struct {
 
 // RunnableType defines model for RunnableType.
 type RunnableType string
+
+// S3Object defines model for S3Object.
+type S3Object struct {
+	Filename  *string `json:"filename,omitempty"`
+	Presigned *string `json:"presigned,omitempty"`
+	S3        string  `json:"s3"`
+	Storage   *string `json:"storage,omitempty"`
+}
 
 // S3Resource defines model for S3Resource.
 type S3Resource struct {
@@ -2397,6 +2494,9 @@ type StaticTransform struct {
 // StaticTransformType defines model for StaticTransform.Type.
 type StaticTransformType string
 
+// SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
+type SubscriptionMode string
+
 // TableToTrack defines model for TableToTrack.
 type TableToTrack = []struct {
 	ColumnsName *[]string `json:"columns_name,omitempty"`
@@ -2452,6 +2552,7 @@ type TriggerExtraProperty struct {
 // TriggersCount defines model for TriggersCount.
 type TriggersCount struct {
 	EmailCount      *float32 `json:"email_count,omitempty"`
+	GcpCount        *float32 `json:"gcp_count,omitempty"`
 	HttpRoutesCount *float32 `json:"http_routes_count,omitempty"`
 	KafkaCount      *float32 `json:"kafka_count,omitempty"`
 	MqttCount       *float32 `json:"mqtt_count,omitempty"`
@@ -2666,6 +2767,9 @@ type ActionKind string
 // After defines model for After.
 type After = time.Time
 
+// AllowWildcards defines model for AllowWildcards.
+type AllowWildcards = bool
+
 // ArgsFilter defines model for ArgsFilter.
 type ArgsFilter = string
 
@@ -2836,6 +2940,13 @@ type WorkerTag = string
 
 // WorkspaceId defines model for WorkspaceId.
 type WorkspaceId = string
+
+// CreateAgentTokenJSONBody defines parameters for CreateAgentToken.
+type CreateAgentTokenJSONBody struct {
+	Exp         int      `json:"exp"`
+	Tags        []string `json:"tags"`
+	WorkerGroup string   `json:"worker_group"`
+}
 
 // UpdateConfigJSONBody defines parameters for UpdateConfig.
 type UpdateConfigJSONBody = interface{}
@@ -3194,6 +3305,11 @@ type ListAppsParams struct {
 // ListAppPathsFromWorkspaceRunnableParamsRunnableKind defines parameters for ListAppPathsFromWorkspaceRunnable.
 type ListAppPathsFromWorkspaceRunnableParamsRunnableKind string
 
+// SignS3ObjectsJSONBody defines parameters for SignS3Objects.
+type SignS3ObjectsJSONBody struct {
+	S3Objects []S3Object `json:"s3_objects"`
+}
+
 // UpdateAppJSONBody defines parameters for UpdateApp.
 type UpdateAppJSONBody struct {
 	CustomPath        *string      `json:"custom_path,omitempty"`
@@ -3372,6 +3488,9 @@ type ListExtendedJobsParams struct {
 
 	// Result filter on jobs containing those result as a json subset (@> in postgres)
 	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
+
+	// AllowWildcards allow wildcards (*) in the filter of label, tag, worker
+	AllowWildcards *AllowWildcards `form:"allow_wildcards,omitempty" json:"allow_wildcards,omitempty"`
 
 	// Page which page to return (start at 1, default 1)
 	Page *Page `form:"page,omitempty" json:"page,omitempty"`
@@ -3580,6 +3699,30 @@ type UpdateFolderJSONBody struct {
 	ExtraPerms *map[string]bool `json:"extra_perms,omitempty"`
 	Owners     *[]string        `json:"owners,omitempty"`
 	Summary    *string          `json:"summary,omitempty"`
+}
+
+// ListGcpTriggersParams defines parameters for ListGcpTriggers.
+type ListGcpTriggersParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// Path filter by path
+	Path      *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+}
+
+// SetGcpTriggerEnabledJSONBody defines parameters for SetGcpTriggerEnabled.
+type SetGcpTriggerEnabledJSONBody struct {
+	Enabled bool `json:"enabled"`
+}
+
+// TestGcpConnectionJSONBody defines parameters for TestGcpConnection.
+type TestGcpConnectionJSONBody struct {
+	Connection map[string]interface{} `json:"connection"`
 }
 
 // ImportInstallationJSONBody defines parameters for ImportInstallation.
@@ -3895,6 +4038,9 @@ type ListCompletedJobsParams struct {
 	// Result filter on jobs containing those result as a json subset (@> in postgres)
 	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
 
+	// AllowWildcards allow wildcards (*) in the filter of label, tag, worker
+	AllowWildcards *AllowWildcards `form:"allow_wildcards,omitempty" json:"allow_wildcards,omitempty"`
+
 	// Tag filter on jobs with a given tag/worker group
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 
@@ -3996,6 +4142,9 @@ type ListJobsParams struct {
 	// Result filter on jobs containing those result as a json subset (@> in postgres)
 	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
 
+	// AllowWildcards allow wildcards (*) in the filter of label, tag, worker
+	AllowWildcards *AllowWildcards `form:"allow_wildcards,omitempty" json:"allow_wildcards,omitempty"`
+
 	// Page which page to return (start at 1, default 1)
 	Page *Page `form:"page,omitempty" json:"page,omitempty"`
 
@@ -4020,6 +4169,102 @@ type ListJobsParams struct {
 	// IsNotSchedule is not a scheduled job
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
+
+// ListFilteredJobsUuidsParams defines parameters for ListFilteredJobsUuids.
+type ListFilteredJobsUuidsParams struct {
+	// CreatedBy mask to filter exact matching user creator
+	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
+
+	// Label mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string in the array at key 'wm_labels')
+	Label *Label `form:"label,omitempty" json:"label,omitempty"`
+
+	// Worker worker this job was ran on
+	Worker *Worker `form:"worker,omitempty" json:"worker,omitempty"`
+
+	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
+	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// ScriptPathExact mask to filter exact matching path
+	ScriptPathExact *ScriptExactPath `form:"script_path_exact,omitempty" json:"script_path_exact,omitempty"`
+
+	// ScriptPathStart mask to filter matching starting path
+	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
+
+	// SchedulePath mask to filter by schedule path
+	SchedulePath *SchedulePath `form:"schedule_path,omitempty" json:"schedule_path,omitempty"`
+
+	// ScriptHash mask to filter exact matching path
+	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
+
+	// StartedBefore filter on started before (inclusive) timestamp
+	StartedBefore *StartedBefore `form:"started_before,omitempty" json:"started_before,omitempty"`
+
+	// StartedAfter filter on started after (exclusive) timestamp
+	StartedAfter *StartedAfter `form:"started_after,omitempty" json:"started_after,omitempty"`
+
+	// CreatedBefore filter on created before (inclusive) timestamp
+	CreatedBefore *CreatedBefore `form:"created_before,omitempty" json:"created_before,omitempty"`
+
+	// CreatedAfter filter on created after (exclusive) timestamp
+	CreatedAfter *CreatedAfter `form:"created_after,omitempty" json:"created_after,omitempty"`
+
+	// CreatedOrStartedBefore filter on created_at for non non started job and started_at otherwise before (inclusive) timestamp
+	CreatedOrStartedBefore *CreatedOrStartedBefore `form:"created_or_started_before,omitempty" json:"created_or_started_before,omitempty"`
+
+	// Running filter on running jobs
+	Running *Running `form:"running,omitempty" json:"running,omitempty"`
+
+	// ScheduledForBeforeNow filter on jobs scheduled_for before now (hence waitinf for a worker)
+	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
+
+	// CreatedOrStartedAfter filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp
+	CreatedOrStartedAfter *CreatedOrStartedAfter `form:"created_or_started_after,omitempty" json:"created_or_started_after,omitempty"`
+
+	// CreatedOrStartedAfterCompletedJobs filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp but only for the completed jobs
+	CreatedOrStartedAfterCompletedJobs *CreatedOrStartedAfterCompletedJob `form:"created_or_started_after_completed_jobs,omitempty" json:"created_or_started_after_completed_jobs,omitempty"`
+
+	// JobKinds filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
+	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
+
+	// Suspended filter on suspended jobs
+	Suspended *Suspended `form:"suspended,omitempty" json:"suspended,omitempty"`
+
+	// Args filter on jobs containing those args as a json subset (@> in postgres)
+	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
+
+	// Tag filter on jobs with a given tag/worker group
+	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// Result filter on jobs containing those result as a json subset (@> in postgres)
+	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
+
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// IsSkipped is the job skipped
+	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
+
+	// IsFlowStep is the job a flow step
+	IsFlowStep *bool `form:"is_flow_step,omitempty" json:"is_flow_step,omitempty"`
+
+	// HasNullParent has null parent
+	HasNullParent *bool `form:"has_null_parent,omitempty" json:"has_null_parent,omitempty"`
+
+	// Success filter on successful jobs
+	Success *bool `form:"success,omitempty" json:"success,omitempty"`
+
+	// AllWorkspaces get jobs from all workspaces (only valid if request come from the `admins` workspace)
+	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
+
+	// IsNotSchedule is not a scheduled job
+	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
+}
+
+// ListSelectedJobGroupsJSONBody defines parameters for ListSelectedJobGroups.
+type ListSelectedJobGroupsJSONBody = []openapi_types.UUID
 
 // OpenaiSyncFlowByPathParams defines parameters for OpenaiSyncFlowByPath.
 type OpenaiSyncFlowByPathParams struct {
@@ -4112,6 +4357,9 @@ type ListQueueParams struct {
 	// Result filter on jobs containing those result as a json subset (@> in postgres)
 	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
 
+	// AllowWildcards allow wildcards (*) in the filter of label, tag, worker
+	AllowWildcards *AllowWildcards `form:"allow_wildcards,omitempty" json:"allow_wildcards,omitempty"`
+
 	// Tag filter on jobs with a given tag/worker group
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 
@@ -4128,8 +4376,8 @@ type ListQueueParams struct {
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
 
-// ListFilteredUuidsParams defines parameters for ListFilteredUuids.
-type ListFilteredUuidsParams struct {
+// ListFilteredQueueUuidsParams defines parameters for ListFilteredQueueUuids.
+type ListFilteredQueueUuidsParams struct {
 	// OrderDesc order by desc order (default true)
 	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
 
@@ -4178,6 +4426,9 @@ type ListFilteredUuidsParams struct {
 	// Result filter on jobs containing those result as a json subset (@> in postgres)
 	Result *ResultFilter `form:"result,omitempty" json:"result,omitempty"`
 
+	// AllowWildcards allow wildcards (*) in the filter of label, tag, worker
+	AllowWildcards *AllowWildcards `form:"allow_wildcards,omitempty" json:"allow_wildcards,omitempty"`
+
 	// Tag filter on jobs with a given tag/worker group
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 
@@ -4223,6 +4474,19 @@ type RestartFlowAtStepParams struct {
 // GetResumeUrlsParams defines parameters for GetResumeUrls.
 type GetResumeUrlsParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
+}
+
+// BatchReRunJobsJSONBody defines parameters for BatchReRunJobs.
+type BatchReRunJobsJSONBody struct {
+	FlowOptionsByPath map[string]struct {
+		InputTransforms  *map[string]InputTransform `json:"input_transforms,omitempty"`
+		UseLatestVersion *bool                      `json:"use_latest_version,omitempty"`
+	} `json:"flow_options_by_path"`
+	JobIds              []string `json:"job_ids"`
+	ScriptOptionsByPath map[string]struct {
+		InputTransforms  *map[string]InputTransform `json:"input_transforms,omitempty"`
+		UseLatestVersion *bool                      `json:"use_latest_version,omitempty"`
+	} `json:"script_options_by_path"`
 }
 
 // RunRawScriptDependenciesJSONBody defines parameters for RunRawScriptDependencies.
@@ -5086,6 +5350,9 @@ type ListWorkspacesAsSuperAdminParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
+// CreateAgentTokenJSONRequestBody defines body for CreateAgentToken for application/json ContentType.
+type CreateAgentTokenJSONRequestBody CreateAgentTokenJSONBody
+
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = Login
 
@@ -5188,6 +5455,9 @@ type CreateAppJSONRequestBody CreateAppJSONBody
 // UpdateAppHistoryJSONRequestBody defines body for UpdateAppHistory for application/json ContentType.
 type UpdateAppHistoryJSONRequestBody UpdateAppHistoryJSONBody
 
+// SignS3ObjectsJSONRequestBody defines body for SignS3Objects for application/json ContentType.
+type SignS3ObjectsJSONRequestBody SignS3ObjectsJSONBody
+
 // UpdateAppJSONRequestBody defines body for UpdateApp for application/json ContentType.
 type UpdateAppJSONRequestBody UpdateAppJSONBody
 
@@ -5235,6 +5505,24 @@ type RemoveOwnerToFolderJSONRequestBody RemoveOwnerToFolderJSONBody
 
 // UpdateFolderJSONRequestBody defines body for UpdateFolder for application/json ContentType.
 type UpdateFolderJSONRequestBody UpdateFolderJSONBody
+
+// CreateGcpTriggerJSONRequestBody defines body for CreateGcpTrigger for application/json ContentType.
+type CreateGcpTriggerJSONRequestBody = NewGcpTrigger
+
+// SetGcpTriggerEnabledJSONRequestBody defines body for SetGcpTriggerEnabled for application/json ContentType.
+type SetGcpTriggerEnabledJSONRequestBody SetGcpTriggerEnabledJSONBody
+
+// DeleteGcpSubscriptionJSONRequestBody defines body for DeleteGcpSubscription for application/json ContentType.
+type DeleteGcpSubscriptionJSONRequestBody = DeleteGcpSubscription
+
+// ListAllTGoogleTopicSubscriptionsJSONRequestBody defines body for ListAllTGoogleTopicSubscriptions for application/json ContentType.
+type ListAllTGoogleTopicSubscriptionsJSONRequestBody = GetAllTopicSubscription
+
+// TestGcpConnectionJSONRequestBody defines body for TestGcpConnection for application/json ContentType.
+type TestGcpConnectionJSONRequestBody TestGcpConnectionJSONBody
+
+// UpdateGcpTriggerJSONRequestBody defines body for UpdateGcpTrigger for application/json ContentType.
+type UpdateGcpTriggerJSONRequestBody = EditGcpTrigger
 
 // ImportInstallationJSONRequestBody defines body for ImportInstallation for application/json ContentType.
 type ImportInstallationJSONRequestBody ImportInstallationJSONBody
@@ -5299,6 +5587,9 @@ type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONB
 // SetFlowUserStateJSONRequestBody defines body for SetFlowUserState for application/json ContentType.
 type SetFlowUserStateJSONRequestBody = SetFlowUserStateJSONBody
 
+// ListSelectedJobGroupsJSONRequestBody defines body for ListSelectedJobGroups for application/json ContentType.
+type ListSelectedJobGroupsJSONRequestBody = ListSelectedJobGroupsJSONBody
+
 // OpenaiSyncFlowByPathJSONRequestBody defines body for OpenaiSyncFlowByPath for application/json ContentType.
 type OpenaiSyncFlowByPathJSONRequestBody = ScriptArgs
 
@@ -5310,6 +5601,9 @@ type CancelSelectionJSONRequestBody = CancelSelectionJSONBody
 
 // RestartFlowAtStepJSONRequestBody defines body for RestartFlowAtStep for application/json ContentType.
 type RestartFlowAtStepJSONRequestBody = ScriptArgs
+
+// BatchReRunJobsJSONRequestBody defines body for BatchReRunJobs for application/json ContentType.
+type BatchReRunJobsJSONRequestBody BatchReRunJobsJSONBody
 
 // RunRawScriptDependenciesJSONRequestBody defines body for RunRawScriptDependencies for application/json ContentType.
 type RunRawScriptDependenciesJSONRequestBody RunRawScriptDependenciesJSONBody
@@ -5859,6 +6153,68 @@ func (t *FlowModuleValue) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsGcpExistingSubscription returns the union data inside the GcpSubscriptionModeConfig as a GcpExistingSubscription
+func (t GcpSubscriptionModeConfig) AsGcpExistingSubscription() (GcpExistingSubscription, error) {
+	var body GcpExistingSubscription
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGcpExistingSubscription overwrites any union data inside the GcpSubscriptionModeConfig as the provided GcpExistingSubscription
+func (t *GcpSubscriptionModeConfig) FromGcpExistingSubscription(v GcpExistingSubscription) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeGcpExistingSubscription performs a merge with any union data inside the GcpSubscriptionModeConfig, using the provided GcpExistingSubscription
+func (t *GcpSubscriptionModeConfig) MergeGcpExistingSubscription(v GcpExistingSubscription) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsGcpCreateUpdateSubscription returns the union data inside the GcpSubscriptionModeConfig as a GcpCreateUpdateSubscription
+func (t GcpSubscriptionModeConfig) AsGcpCreateUpdateSubscription() (GcpCreateUpdateSubscription, error) {
+	var body GcpCreateUpdateSubscription
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGcpCreateUpdateSubscription overwrites any union data inside the GcpSubscriptionModeConfig as the provided GcpCreateUpdateSubscription
+func (t *GcpSubscriptionModeConfig) FromGcpCreateUpdateSubscription(v GcpCreateUpdateSubscription) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeGcpCreateUpdateSubscription performs a merge with any union data inside the GcpSubscriptionModeConfig, using the provided GcpCreateUpdateSubscription
+func (t *GcpSubscriptionModeConfig) MergeGcpCreateUpdateSubscription(v GcpCreateUpdateSubscription) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t GcpSubscriptionModeConfig) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *GcpSubscriptionModeConfig) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsStaticTransform returns the union data inside the InputTransform as a StaticTransform
 func (t InputTransform) AsStaticTransform() (StaticTransform, error) {
 	var body StaticTransform
@@ -6145,6 +6501,11 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// CreateAgentTokenWithBody request with any body
+	CreateAgentTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateAgentToken(ctx context.Context, body CreateAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetHubAppById request
 	GetHubAppById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6555,6 +6916,11 @@ type ClientInterface interface {
 	// GetPublicSecretOfApp request
 	GetPublicSecretOfApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SignS3ObjectsWithBody request with any body
+	SignS3ObjectsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SignS3Objects(ctx context.Context, workspace WorkspaceId, body SignS3ObjectsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UpdateAppWithBody request with any body
 	UpdateAppWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6736,6 +7102,51 @@ type ClientInterface interface {
 	UpdateFolderWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateFolder(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateGcpTriggerWithBody request with any body
+	CreateGcpTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateGcpTrigger(ctx context.Context, workspace WorkspaceId, body CreateGcpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteGcpTrigger request
+	DeleteGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsGcpTrigger request
+	ExistsGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetGcpTrigger request
+	GetGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListGcpTriggers request
+	ListGcpTriggers(ctx context.Context, workspace WorkspaceId, params *ListGcpTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetGcpTriggerEnabledWithBody request with any body
+	SetGcpTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetGcpTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteGcpSubscriptionWithBody request with any body
+	DeleteGcpSubscriptionWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DeleteGcpSubscription(ctx context.Context, workspace WorkspaceId, path Path, body DeleteGcpSubscriptionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAllTGoogleTopicSubscriptionsWithBody request with any body
+	ListAllTGoogleTopicSubscriptionsWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ListAllTGoogleTopicSubscriptions(ctx context.Context, workspace WorkspaceId, path Path, body ListAllTGoogleTopicSubscriptionsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestGcpConnectionWithBody request with any body
+	TestGcpConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestGcpConnection(ctx context.Context, workspace WorkspaceId, body TestGcpConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListGoogleTopics request
+	ListGoogleTopics(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateGcpTriggerWithBody request with any body
+	UpdateGcpTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateGcpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ExportInstallation request
 	ExportInstallation(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6944,6 +7355,14 @@ type ClientInterface interface {
 	// ListJobs request
 	ListJobs(ctx context.Context, workspace WorkspaceId, params *ListJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListFilteredJobsUuids request
+	ListFilteredJobsUuids(ctx context.Context, workspace WorkspaceId, params *ListFilteredJobsUuidsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListSelectedJobGroupsWithBody request with any body
+	ListSelectedJobGroupsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ListSelectedJobGroups(ctx context.Context, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// OpenaiSyncFlowByPathWithBody request with any body
 	OpenaiSyncFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6965,8 +7384,8 @@ type ClientInterface interface {
 	// ListQueue request
 	ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ListFilteredUuids request
-	ListFilteredUuids(ctx context.Context, workspace WorkspaceId, params *ListFilteredUuidsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListFilteredQueueUuids request
+	ListFilteredQueueUuids(ctx context.Context, workspace WorkspaceId, params *ListFilteredQueueUuidsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RestartFlowAtStepWithBody request with any body
 	RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6978,6 +7397,11 @@ type ClientInterface interface {
 
 	// GetResumeUrls request
 	GetResumeUrls(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// BatchReRunJobsWithBody request with any body
+	BatchReRunJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	BatchReRunJobs(ctx context.Context, workspace WorkspaceId, body BatchReRunJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunRawScriptDependenciesWithBody request with any body
 	RunRawScriptDependenciesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -7860,6 +8284,30 @@ type ClientInterface interface {
 
 	// ListUserWorkspaces request
 	ListUserWorkspaces(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) CreateAgentTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateAgentTokenRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateAgentToken(ctx context.Context, body CreateAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateAgentTokenRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) GetHubAppById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -9638,6 +10086,30 @@ func (c *Client) GetPublicSecretOfApp(ctx context.Context, workspace WorkspaceId
 	return c.Client.Do(req)
 }
 
+func (c *Client) SignS3ObjectsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignS3ObjectsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignS3Objects(ctx context.Context, workspace WorkspaceId, body SignS3ObjectsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignS3ObjectsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) UpdateAppWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateAppRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
@@ -10420,6 +10892,210 @@ func (c *Client) UpdateFolderWithBody(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) UpdateFolder(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateFolderRequest(c.Server, workspace, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateGcpTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateGcpTriggerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateGcpTrigger(ctx context.Context, workspace WorkspaceId, body CreateGcpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateGcpTriggerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteGcpTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsGcpTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGcpTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListGcpTriggers(ctx context.Context, workspace WorkspaceId, params *ListGcpTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGcpTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetGcpTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetGcpTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetGcpTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetGcpTriggerEnabledRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteGcpSubscriptionWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteGcpSubscriptionRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteGcpSubscription(ctx context.Context, workspace WorkspaceId, path Path, body DeleteGcpSubscriptionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteGcpSubscriptionRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAllTGoogleTopicSubscriptionsWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAllTGoogleTopicSubscriptionsRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAllTGoogleTopicSubscriptions(ctx context.Context, workspace WorkspaceId, path Path, body ListAllTGoogleTopicSubscriptionsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAllTGoogleTopicSubscriptionsRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestGcpConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestGcpConnectionRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestGcpConnection(ctx context.Context, workspace WorkspaceId, body TestGcpConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestGcpConnectionRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListGoogleTopics(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGoogleTopicsRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateGcpTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateGcpTriggerRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateGcpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateGcpTriggerRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -11342,6 +12018,42 @@ func (c *Client) ListJobs(ctx context.Context, workspace WorkspaceId, params *Li
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListFilteredJobsUuids(ctx context.Context, workspace WorkspaceId, params *ListFilteredJobsUuidsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListFilteredJobsUuidsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListSelectedJobGroupsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSelectedJobGroupsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListSelectedJobGroups(ctx context.Context, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSelectedJobGroupsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) OpenaiSyncFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewOpenaiSyncFlowByPathRequestWithBody(c.Server, workspace, path, params, contentType, body)
 	if err != nil {
@@ -11438,8 +12150,8 @@ func (c *Client) ListQueue(ctx context.Context, workspace WorkspaceId, params *L
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListFilteredUuids(ctx context.Context, workspace WorkspaceId, params *ListFilteredUuidsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListFilteredUuidsRequest(c.Server, workspace, params)
+func (c *Client) ListFilteredQueueUuids(ctx context.Context, workspace WorkspaceId, params *ListFilteredQueueUuidsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListFilteredQueueUuidsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -11488,6 +12200,30 @@ func (c *Client) ResultById(ctx context.Context, workspace WorkspaceId, flowJobI
 
 func (c *Client) GetResumeUrls(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetResumeUrlsRequest(c.Server, workspace, id, resumeId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) BatchReRunJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBatchReRunJobsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) BatchReRunJobs(ctx context.Context, workspace WorkspaceId, body BatchReRunJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBatchReRunJobsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15396,6 +16132,46 @@ func (c *Client) ListUserWorkspaces(ctx context.Context, reqEditors ...RequestEd
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewCreateAgentTokenRequest calls the generic CreateAgentToken builder with application/json body
+func NewCreateAgentTokenRequest(server string, body CreateAgentTokenJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateAgentTokenRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateAgentTokenRequestWithBody generates requests for CreateAgentToken with any type of body
+func NewCreateAgentTokenRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/agent_workers/create_agent_token")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
 }
 
 // NewGetHubAppByIdRequest generates requests for GetHubAppById
@@ -20249,6 +21025,53 @@ func NewGetPublicSecretOfAppRequest(server string, workspace WorkspaceId, path P
 	return req, nil
 }
 
+// NewSignS3ObjectsRequest calls the generic SignS3Objects builder with application/json body
+func NewSignS3ObjectsRequest(server string, workspace WorkspaceId, body SignS3ObjectsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSignS3ObjectsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSignS3ObjectsRequestWithBody generates requests for SignS3Objects with any type of body
+func NewSignS3ObjectsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/sign_s3_objects", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUpdateAppRequest calls the generic UpdateApp builder with application/json body
 func NewUpdateAppRequest(server string, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -21640,6 +22463,22 @@ func NewListExtendedJobsRequest(server string, workspace WorkspaceId, params *Li
 		if params.Result != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "result", runtime.ParamLocationQuery, *params.Result); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.AllowWildcards != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "allow_wildcards", runtime.ParamLocationQuery, *params.AllowWildcards); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -23578,6 +24417,600 @@ func NewUpdateFolderRequestWithBody(server string, workspace WorkspaceId, name N
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/folders/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateGcpTriggerRequest calls the generic CreateGcpTrigger builder with application/json body
+func NewCreateGcpTriggerRequest(server string, workspace WorkspaceId, body CreateGcpTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateGcpTriggerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateGcpTriggerRequestWithBody generates requests for CreateGcpTrigger with any type of body
+func NewCreateGcpTriggerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteGcpTriggerRequest generates requests for DeleteGcpTrigger
+func NewDeleteGcpTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsGcpTriggerRequest generates requests for ExistsGcpTrigger
+func NewExistsGcpTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetGcpTriggerRequest generates requests for GetGcpTrigger
+func NewGetGcpTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListGcpTriggersRequest generates requests for ListGcpTriggers
+func NewListGcpTriggersRequest(server string, workspace WorkspaceId, params *ListGcpTriggersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsFlow != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PathStart != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetGcpTriggerEnabledRequest calls the generic SetGcpTriggerEnabled builder with application/json body
+func NewSetGcpTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetGcpTriggerEnabledJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetGcpTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewSetGcpTriggerEnabledRequestWithBody generates requests for SetGcpTriggerEnabled with any type of body
+func NewSetGcpTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/setenabled/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteGcpSubscriptionRequest calls the generic DeleteGcpSubscription builder with application/json body
+func NewDeleteGcpSubscriptionRequest(server string, workspace WorkspaceId, path Path, body DeleteGcpSubscriptionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDeleteGcpSubscriptionRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewDeleteGcpSubscriptionRequestWithBody generates requests for DeleteGcpSubscription with any type of body
+func NewDeleteGcpSubscriptionRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/subscriptions/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListAllTGoogleTopicSubscriptionsRequest calls the generic ListAllTGoogleTopicSubscriptions builder with application/json body
+func NewListAllTGoogleTopicSubscriptionsRequest(server string, workspace WorkspaceId, path Path, body ListAllTGoogleTopicSubscriptionsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewListAllTGoogleTopicSubscriptionsRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewListAllTGoogleTopicSubscriptionsRequestWithBody generates requests for ListAllTGoogleTopicSubscriptions with any type of body
+func NewListAllTGoogleTopicSubscriptionsRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/subscriptions/list/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestGcpConnectionRequest calls the generic TestGcpConnection builder with application/json body
+func NewTestGcpConnectionRequest(server string, workspace WorkspaceId, body TestGcpConnectionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestGcpConnectionRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewTestGcpConnectionRequestWithBody generates requests for TestGcpConnection with any type of body
+func NewTestGcpConnectionRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/test", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListGoogleTopicsRequest generates requests for ListGoogleTopics
+func NewListGoogleTopicsRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/topics/list/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateGcpTriggerRequest calls the generic UpdateGcpTrigger builder with application/json body
+func NewUpdateGcpTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdateGcpTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateGcpTriggerRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateGcpTriggerRequestWithBody generates requests for UpdateGcpTrigger with any type of body
+func NewUpdateGcpTriggerRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/update/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -27257,6 +28690,22 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 
 		}
 
+		if params.AllowWildcards != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "allow_wildcards", runtime.ParamLocationQuery, *params.AllowWildcards); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.Tag != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
@@ -27994,6 +29443,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 		}
 
+		if params.AllowWildcards != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "allow_wildcards", runtime.ParamLocationQuery, *params.AllowWildcards); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.Page != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
@@ -28129,6 +29594,573 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewListFilteredJobsUuidsRequest generates requests for ListFilteredJobsUuids
+func NewListFilteredJobsUuidsRequest(server string, workspace WorkspaceId, params *ListFilteredJobsUuidsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/list_filtered_uuids", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.CreatedBy != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_by", runtime.ParamLocationQuery, *params.CreatedBy); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Worker != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "worker", runtime.ParamLocationQuery, *params.Worker); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ParentJob != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ScriptPathExact != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_path_exact", runtime.ParamLocationQuery, *params.ScriptPathExact); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ScriptPathStart != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_path_start", runtime.ParamLocationQuery, *params.ScriptPathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SchedulePath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "schedule_path", runtime.ParamLocationQuery, *params.SchedulePath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ScriptHash != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_hash", runtime.ParamLocationQuery, *params.ScriptHash); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.StartedBefore != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_before", runtime.ParamLocationQuery, *params.StartedBefore); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.StartedAfter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "started_after", runtime.ParamLocationQuery, *params.StartedAfter); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CreatedBefore != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_before", runtime.ParamLocationQuery, *params.CreatedBefore); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CreatedAfter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_after", runtime.ParamLocationQuery, *params.CreatedAfter); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CreatedOrStartedBefore != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_before", runtime.ParamLocationQuery, *params.CreatedOrStartedBefore); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Running != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "running", runtime.ParamLocationQuery, *params.Running); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ScheduledForBeforeNow != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for_before_now", runtime.ParamLocationQuery, *params.ScheduledForBeforeNow); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CreatedOrStartedAfter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after", runtime.ParamLocationQuery, *params.CreatedOrStartedAfter); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CreatedOrStartedAfterCompletedJobs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after_completed_jobs", runtime.ParamLocationQuery, *params.CreatedOrStartedAfterCompletedJobs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobKinds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_kinds", runtime.ParamLocationQuery, *params.JobKinds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Suspended != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "suspended", runtime.ParamLocationQuery, *params.Suspended); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Args != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "args", runtime.ParamLocationQuery, *params.Args); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tag != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Result != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "result", runtime.ParamLocationQuery, *params.Result); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsSkipped != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_skipped", runtime.ParamLocationQuery, *params.IsSkipped); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsFlowStep != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow_step", runtime.ParamLocationQuery, *params.IsFlowStep); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.HasNullParent != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "has_null_parent", runtime.ParamLocationQuery, *params.HasNullParent); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Success != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "success", runtime.ParamLocationQuery, *params.Success); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.AllWorkspaces != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsNotSchedule != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_not_schedule", runtime.ParamLocationQuery, *params.IsNotSchedule); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListSelectedJobGroupsRequest calls the generic ListSelectedJobGroups builder with application/json body
+func NewListSelectedJobGroupsRequest(server string, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewListSelectedJobGroupsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewListSelectedJobGroupsRequestWithBody generates requests for ListSelectedJobGroups with any type of body
+func NewListSelectedJobGroupsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/list_selected_job_groups", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -28769,6 +30801,22 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 
 		}
 
+		if params.AllowWildcards != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "allow_wildcards", runtime.ParamLocationQuery, *params.AllowWildcards); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.Tag != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
@@ -28860,8 +30908,8 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 	return req, nil
 }
 
-// NewListFilteredUuidsRequest generates requests for ListFilteredUuids
-func NewListFilteredUuidsRequest(server string, workspace WorkspaceId, params *ListFilteredUuidsParams) (*http.Request, error) {
+// NewListFilteredQueueUuidsRequest generates requests for ListFilteredQueueUuids
+func NewListFilteredQueueUuidsRequest(server string, workspace WorkspaceId, params *ListFilteredQueueUuidsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -29132,6 +31180,22 @@ func NewListFilteredUuidsRequest(server string, workspace WorkspaceId, params *L
 		if params.Result != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "result", runtime.ParamLocationQuery, *params.Result); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.AllowWildcards != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "allow_wildcards", runtime.ParamLocationQuery, *params.AllowWildcards); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -29552,6 +31616,53 @@ func NewGetResumeUrlsRequest(server string, workspace WorkspaceId, id JobId, res
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewBatchReRunJobsRequest calls the generic BatchReRunJobs builder with application/json body
+func NewBatchReRunJobsRequest(server string, workspace WorkspaceId, body BatchReRunJobsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewBatchReRunJobsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewBatchReRunJobsRequestWithBody generates requests for BatchReRunJobs with any type of body
+func NewBatchReRunJobsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run/batch_rerun_jobs", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -42313,6 +44424,11 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// CreateAgentTokenWithBodyWithResponse request with any body
+	CreateAgentTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAgentTokenResponse, error)
+
+	CreateAgentTokenWithResponse(ctx context.Context, body CreateAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAgentTokenResponse, error)
+
 	// GetHubAppByIdWithResponse request
 	GetHubAppByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubAppByIdResponse, error)
 
@@ -42723,6 +44839,11 @@ type ClientWithResponsesInterface interface {
 	// GetPublicSecretOfAppWithResponse request
 	GetPublicSecretOfAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicSecretOfAppResponse, error)
 
+	// SignS3ObjectsWithBodyWithResponse request with any body
+	SignS3ObjectsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignS3ObjectsResponse, error)
+
+	SignS3ObjectsWithResponse(ctx context.Context, workspace WorkspaceId, body SignS3ObjectsJSONRequestBody, reqEditors ...RequestEditorFn) (*SignS3ObjectsResponse, error)
+
 	// UpdateAppWithBodyWithResponse request with any body
 	UpdateAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppResponse, error)
 
@@ -42904,6 +45025,51 @@ type ClientWithResponsesInterface interface {
 	UpdateFolderWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFolderResponse, error)
 
 	UpdateFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFolderResponse, error)
+
+	// CreateGcpTriggerWithBodyWithResponse request with any body
+	CreateGcpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateGcpTriggerResponse, error)
+
+	CreateGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateGcpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateGcpTriggerResponse, error)
+
+	// DeleteGcpTriggerWithResponse request
+	DeleteGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteGcpTriggerResponse, error)
+
+	// ExistsGcpTriggerWithResponse request
+	ExistsGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsGcpTriggerResponse, error)
+
+	// GetGcpTriggerWithResponse request
+	GetGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetGcpTriggerResponse, error)
+
+	// ListGcpTriggersWithResponse request
+	ListGcpTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListGcpTriggersParams, reqEditors ...RequestEditorFn) (*ListGcpTriggersResponse, error)
+
+	// SetGcpTriggerEnabledWithBodyWithResponse request with any body
+	SetGcpTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetGcpTriggerEnabledResponse, error)
+
+	SetGcpTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGcpTriggerEnabledResponse, error)
+
+	// DeleteGcpSubscriptionWithBodyWithResponse request with any body
+	DeleteGcpSubscriptionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionResponse, error)
+
+	DeleteGcpSubscriptionWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body DeleteGcpSubscriptionJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionResponse, error)
+
+	// ListAllTGoogleTopicSubscriptionsWithBodyWithResponse request with any body
+	ListAllTGoogleTopicSubscriptionsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAllTGoogleTopicSubscriptionsResponse, error)
+
+	ListAllTGoogleTopicSubscriptionsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body ListAllTGoogleTopicSubscriptionsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListAllTGoogleTopicSubscriptionsResponse, error)
+
+	// TestGcpConnectionWithBodyWithResponse request with any body
+	TestGcpConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestGcpConnectionResponse, error)
+
+	TestGcpConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestGcpConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestGcpConnectionResponse, error)
+
+	// ListGoogleTopicsWithResponse request
+	ListGoogleTopicsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListGoogleTopicsResponse, error)
+
+	// UpdateGcpTriggerWithBodyWithResponse request with any body
+	UpdateGcpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateGcpTriggerResponse, error)
+
+	UpdateGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateGcpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateGcpTriggerResponse, error)
 
 	// ExportInstallationWithResponse request
 	ExportInstallationWithResponse(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*ExportInstallationResponse, error)
@@ -43112,6 +45278,14 @@ type ClientWithResponsesInterface interface {
 	// ListJobsWithResponse request
 	ListJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListJobsParams, reqEditors ...RequestEditorFn) (*ListJobsResponse, error)
 
+	// ListFilteredJobsUuidsWithResponse request
+	ListFilteredJobsUuidsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFilteredJobsUuidsParams, reqEditors ...RequestEditorFn) (*ListFilteredJobsUuidsResponse, error)
+
+	// ListSelectedJobGroupsWithBodyWithResponse request with any body
+	ListSelectedJobGroupsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListSelectedJobGroupsResponse, error)
+
+	ListSelectedJobGroupsWithResponse(ctx context.Context, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListSelectedJobGroupsResponse, error)
+
 	// OpenaiSyncFlowByPathWithBodyWithResponse request with any body
 	OpenaiSyncFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenaiSyncFlowByPathResponse, error)
 
@@ -43133,8 +45307,8 @@ type ClientWithResponsesInterface interface {
 	// ListQueueWithResponse request
 	ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error)
 
-	// ListFilteredUuidsWithResponse request
-	ListFilteredUuidsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFilteredUuidsParams, reqEditors ...RequestEditorFn) (*ListFilteredUuidsResponse, error)
+	// ListFilteredQueueUuidsWithResponse request
+	ListFilteredQueueUuidsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFilteredQueueUuidsParams, reqEditors ...RequestEditorFn) (*ListFilteredQueueUuidsResponse, error)
 
 	// RestartFlowAtStepWithBodyWithResponse request with any body
 	RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
@@ -43146,6 +45320,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetResumeUrlsWithResponse request
 	GetResumeUrlsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*GetResumeUrlsResponse, error)
+
+	// BatchReRunJobsWithBodyWithResponse request with any body
+	BatchReRunJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BatchReRunJobsResponse, error)
+
+	BatchReRunJobsWithResponse(ctx context.Context, workspace WorkspaceId, body BatchReRunJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*BatchReRunJobsResponse, error)
 
 	// RunRawScriptDependenciesWithBodyWithResponse request with any body
 	RunRawScriptDependenciesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesResponse, error)
@@ -44028,6 +46207,28 @@ type ClientWithResponsesInterface interface {
 
 	// ListUserWorkspacesWithResponse request
 	ListUserWorkspacesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListUserWorkspacesResponse, error)
+}
+
+type CreateAgentTokenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateAgentTokenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateAgentTokenResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type GetHubAppByIdResponse struct {
@@ -46623,6 +48824,28 @@ func (r GetPublicSecretOfAppResponse) StatusCode() int {
 	return 0
 }
 
+type SignS3ObjectsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]S3Object
+}
+
+// Status returns HTTPResponse.Status
+func (r SignS3ObjectsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignS3ObjectsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UpdateAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -46888,6 +49111,7 @@ func (r PingCaptureConfigResponse) StatusCode() int {
 type SetCaptureConfigResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *map[string]interface{}
 }
 
 // Status returns HTTPResponse.Status
@@ -47757,6 +49981,242 @@ func (r UpdateFolderResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateFolderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateGcpTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateGcpTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateGcpTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteGcpTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteGcpTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteGcpTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsGcpTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsGcpTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsGcpTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGcpTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GcpTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGcpTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGcpTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListGcpTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]GcpTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGcpTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGcpTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetGcpTriggerEnabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetGcpTriggerEnabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetGcpTriggerEnabledResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteGcpSubscriptionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteGcpSubscriptionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteGcpSubscriptionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAllTGoogleTopicSubscriptionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAllTGoogleTopicSubscriptionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAllTGoogleTopicSubscriptionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestGcpConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestGcpConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestGcpConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListGoogleTopicsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGoogleTopicsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGoogleTopicsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateGcpTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateGcpTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateGcpTriggerResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -49000,6 +51460,49 @@ func (r ListJobsResponse) StatusCode() int {
 	return 0
 }
 
+type ListFilteredJobsUuidsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListFilteredJobsUuidsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListFilteredJobsUuidsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListSelectedJobGroupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSelectedJobGroupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSelectedJobGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type OpenaiSyncFlowByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -49113,14 +51616,14 @@ func (r ListQueueResponse) StatusCode() int {
 	return 0
 }
 
-type ListFilteredUuidsResponse struct {
+type ListFilteredQueueUuidsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]string
 }
 
 // Status returns HTTPResponse.Status
-func (r ListFilteredUuidsResponse) Status() string {
+func (r ListFilteredQueueUuidsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -49128,7 +51631,7 @@ func (r ListFilteredUuidsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ListFilteredUuidsResponse) StatusCode() int {
+func (r ListFilteredQueueUuidsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -49198,6 +51701,27 @@ func (r GetResumeUrlsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetResumeUrlsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type BatchReRunJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r BatchReRunJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r BatchReRunJobsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -53913,6 +56437,7 @@ type GetUsedTriggersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
+		GcpUsed        bool `json:"gcp_used"`
 		HttpRoutesUsed bool `json:"http_routes_used"`
 		KafkaUsed      bool `json:"kafka_used"`
 		MqttUsed       bool `json:"mqtt_used"`
@@ -54290,6 +56815,23 @@ func (r ListUserWorkspacesResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// CreateAgentTokenWithBodyWithResponse request with arbitrary body returning *CreateAgentTokenResponse
+func (c *ClientWithResponses) CreateAgentTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAgentTokenResponse, error) {
+	rsp, err := c.CreateAgentTokenWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAgentTokenResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateAgentTokenWithResponse(ctx context.Context, body CreateAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAgentTokenResponse, error) {
+	rsp, err := c.CreateAgentToken(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAgentTokenResponse(rsp)
 }
 
 // GetHubAppByIdWithResponse request returning *GetHubAppByIdResponse
@@ -55590,6 +58132,23 @@ func (c *ClientWithResponses) GetPublicSecretOfAppWithResponse(ctx context.Conte
 	return ParseGetPublicSecretOfAppResponse(rsp)
 }
 
+// SignS3ObjectsWithBodyWithResponse request with arbitrary body returning *SignS3ObjectsResponse
+func (c *ClientWithResponses) SignS3ObjectsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignS3ObjectsResponse, error) {
+	rsp, err := c.SignS3ObjectsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignS3ObjectsResponse(rsp)
+}
+
+func (c *ClientWithResponses) SignS3ObjectsWithResponse(ctx context.Context, workspace WorkspaceId, body SignS3ObjectsJSONRequestBody, reqEditors ...RequestEditorFn) (*SignS3ObjectsResponse, error) {
+	rsp, err := c.SignS3Objects(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignS3ObjectsResponse(rsp)
+}
+
 // UpdateAppWithBodyWithResponse request with arbitrary body returning *UpdateAppResponse
 func (c *ClientWithResponses) UpdateAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppResponse, error) {
 	rsp, err := c.UpdateAppWithBody(ctx, workspace, path, contentType, body, reqEditors...)
@@ -56166,6 +58725,153 @@ func (c *ClientWithResponses) UpdateFolderWithResponse(ctx context.Context, work
 		return nil, err
 	}
 	return ParseUpdateFolderResponse(rsp)
+}
+
+// CreateGcpTriggerWithBodyWithResponse request with arbitrary body returning *CreateGcpTriggerResponse
+func (c *ClientWithResponses) CreateGcpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateGcpTriggerResponse, error) {
+	rsp, err := c.CreateGcpTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateGcpTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateGcpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateGcpTriggerResponse, error) {
+	rsp, err := c.CreateGcpTrigger(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateGcpTriggerResponse(rsp)
+}
+
+// DeleteGcpTriggerWithResponse request returning *DeleteGcpTriggerResponse
+func (c *ClientWithResponses) DeleteGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteGcpTriggerResponse, error) {
+	rsp, err := c.DeleteGcpTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteGcpTriggerResponse(rsp)
+}
+
+// ExistsGcpTriggerWithResponse request returning *ExistsGcpTriggerResponse
+func (c *ClientWithResponses) ExistsGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsGcpTriggerResponse, error) {
+	rsp, err := c.ExistsGcpTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsGcpTriggerResponse(rsp)
+}
+
+// GetGcpTriggerWithResponse request returning *GetGcpTriggerResponse
+func (c *ClientWithResponses) GetGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetGcpTriggerResponse, error) {
+	rsp, err := c.GetGcpTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGcpTriggerResponse(rsp)
+}
+
+// ListGcpTriggersWithResponse request returning *ListGcpTriggersResponse
+func (c *ClientWithResponses) ListGcpTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListGcpTriggersParams, reqEditors ...RequestEditorFn) (*ListGcpTriggersResponse, error) {
+	rsp, err := c.ListGcpTriggers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGcpTriggersResponse(rsp)
+}
+
+// SetGcpTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetGcpTriggerEnabledResponse
+func (c *ClientWithResponses) SetGcpTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetGcpTriggerEnabledResponse, error) {
+	rsp, err := c.SetGcpTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetGcpTriggerEnabledResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetGcpTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGcpTriggerEnabledResponse, error) {
+	rsp, err := c.SetGcpTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetGcpTriggerEnabledResponse(rsp)
+}
+
+// DeleteGcpSubscriptionWithBodyWithResponse request with arbitrary body returning *DeleteGcpSubscriptionResponse
+func (c *ClientWithResponses) DeleteGcpSubscriptionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionResponse, error) {
+	rsp, err := c.DeleteGcpSubscriptionWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteGcpSubscriptionResponse(rsp)
+}
+
+func (c *ClientWithResponses) DeleteGcpSubscriptionWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body DeleteGcpSubscriptionJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionResponse, error) {
+	rsp, err := c.DeleteGcpSubscription(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteGcpSubscriptionResponse(rsp)
+}
+
+// ListAllTGoogleTopicSubscriptionsWithBodyWithResponse request with arbitrary body returning *ListAllTGoogleTopicSubscriptionsResponse
+func (c *ClientWithResponses) ListAllTGoogleTopicSubscriptionsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAllTGoogleTopicSubscriptionsResponse, error) {
+	rsp, err := c.ListAllTGoogleTopicSubscriptionsWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAllTGoogleTopicSubscriptionsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ListAllTGoogleTopicSubscriptionsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body ListAllTGoogleTopicSubscriptionsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListAllTGoogleTopicSubscriptionsResponse, error) {
+	rsp, err := c.ListAllTGoogleTopicSubscriptions(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAllTGoogleTopicSubscriptionsResponse(rsp)
+}
+
+// TestGcpConnectionWithBodyWithResponse request with arbitrary body returning *TestGcpConnectionResponse
+func (c *ClientWithResponses) TestGcpConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestGcpConnectionResponse, error) {
+	rsp, err := c.TestGcpConnectionWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestGcpConnectionResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestGcpConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestGcpConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestGcpConnectionResponse, error) {
+	rsp, err := c.TestGcpConnection(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestGcpConnectionResponse(rsp)
+}
+
+// ListGoogleTopicsWithResponse request returning *ListGoogleTopicsResponse
+func (c *ClientWithResponses) ListGoogleTopicsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListGoogleTopicsResponse, error) {
+	rsp, err := c.ListGoogleTopics(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGoogleTopicsResponse(rsp)
+}
+
+// UpdateGcpTriggerWithBodyWithResponse request with arbitrary body returning *UpdateGcpTriggerResponse
+func (c *ClientWithResponses) UpdateGcpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateGcpTriggerResponse, error) {
+	rsp, err := c.UpdateGcpTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateGcpTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateGcpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateGcpTriggerResponse, error) {
+	rsp, err := c.UpdateGcpTrigger(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateGcpTriggerResponse(rsp)
 }
 
 // ExportInstallationWithResponse request returning *ExportInstallationResponse
@@ -56831,6 +59537,32 @@ func (c *ClientWithResponses) ListJobsWithResponse(ctx context.Context, workspac
 	return ParseListJobsResponse(rsp)
 }
 
+// ListFilteredJobsUuidsWithResponse request returning *ListFilteredJobsUuidsResponse
+func (c *ClientWithResponses) ListFilteredJobsUuidsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFilteredJobsUuidsParams, reqEditors ...RequestEditorFn) (*ListFilteredJobsUuidsResponse, error) {
+	rsp, err := c.ListFilteredJobsUuids(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListFilteredJobsUuidsResponse(rsp)
+}
+
+// ListSelectedJobGroupsWithBodyWithResponse request with arbitrary body returning *ListSelectedJobGroupsResponse
+func (c *ClientWithResponses) ListSelectedJobGroupsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListSelectedJobGroupsResponse, error) {
+	rsp, err := c.ListSelectedJobGroupsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSelectedJobGroupsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ListSelectedJobGroupsWithResponse(ctx context.Context, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListSelectedJobGroupsResponse, error) {
+	rsp, err := c.ListSelectedJobGroups(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSelectedJobGroupsResponse(rsp)
+}
+
 // OpenaiSyncFlowByPathWithBodyWithResponse request with arbitrary body returning *OpenaiSyncFlowByPathResponse
 func (c *ClientWithResponses) OpenaiSyncFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenaiSyncFlowByPathResponse, error) {
 	rsp, err := c.OpenaiSyncFlowByPathWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
@@ -56900,13 +59632,13 @@ func (c *ClientWithResponses) ListQueueWithResponse(ctx context.Context, workspa
 	return ParseListQueueResponse(rsp)
 }
 
-// ListFilteredUuidsWithResponse request returning *ListFilteredUuidsResponse
-func (c *ClientWithResponses) ListFilteredUuidsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFilteredUuidsParams, reqEditors ...RequestEditorFn) (*ListFilteredUuidsResponse, error) {
-	rsp, err := c.ListFilteredUuids(ctx, workspace, params, reqEditors...)
+// ListFilteredQueueUuidsWithResponse request returning *ListFilteredQueueUuidsResponse
+func (c *ClientWithResponses) ListFilteredQueueUuidsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFilteredQueueUuidsParams, reqEditors ...RequestEditorFn) (*ListFilteredQueueUuidsResponse, error) {
+	rsp, err := c.ListFilteredQueueUuids(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseListFilteredUuidsResponse(rsp)
+	return ParseListFilteredQueueUuidsResponse(rsp)
 }
 
 // RestartFlowAtStepWithBodyWithResponse request with arbitrary body returning *RestartFlowAtStepResponse
@@ -56942,6 +59674,23 @@ func (c *ClientWithResponses) GetResumeUrlsWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseGetResumeUrlsResponse(rsp)
+}
+
+// BatchReRunJobsWithBodyWithResponse request with arbitrary body returning *BatchReRunJobsResponse
+func (c *ClientWithResponses) BatchReRunJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BatchReRunJobsResponse, error) {
+	rsp, err := c.BatchReRunJobsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBatchReRunJobsResponse(rsp)
+}
+
+func (c *ClientWithResponses) BatchReRunJobsWithResponse(ctx context.Context, workspace WorkspaceId, body BatchReRunJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*BatchReRunJobsResponse, error) {
+	rsp, err := c.BatchReRunJobs(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBatchReRunJobsResponse(rsp)
 }
 
 // RunRawScriptDependenciesWithBodyWithResponse request with arbitrary body returning *RunRawScriptDependenciesResponse
@@ -59776,6 +62525,32 @@ func (c *ClientWithResponses) ListUserWorkspacesWithResponse(ctx context.Context
 	return ParseListUserWorkspacesResponse(rsp)
 }
 
+// ParseCreateAgentTokenResponse parses an HTTP response from a CreateAgentTokenWithResponse call
+func ParseCreateAgentTokenResponse(rsp *http.Response) (*CreateAgentTokenResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateAgentTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetHubAppByIdResponse parses an HTTP response from a GetHubAppByIdWithResponse call
 func ParseGetHubAppByIdResponse(rsp *http.Response) (*GetHubAppByIdResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -62329,6 +65104,32 @@ func ParseGetPublicSecretOfAppResponse(rsp *http.Response) (*GetPublicSecretOfAp
 	return response, nil
 }
 
+// ParseSignS3ObjectsResponse parses an HTTP response from a SignS3ObjectsWithResponse call
+func ParseSignS3ObjectsResponse(rsp *http.Response) (*SignS3ObjectsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignS3ObjectsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []S3Object
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseUpdateAppResponse parses an HTTP response from a UpdateAppWithResponse call
 func ParseUpdateAppResponse(rsp *http.Response) (*UpdateAppResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -62605,6 +65406,16 @@ func ParseSetCaptureConfigResponse(rsp *http.Response) (*SetCaptureConfigRespons
 	response := &SetCaptureConfigResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -63455,6 +66266,232 @@ func ParseUpdateFolderResponse(rsp *http.Response) (*UpdateFolderResponse, error
 	}
 
 	response := &UpdateFolderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateGcpTriggerResponse parses an HTTP response from a CreateGcpTriggerWithResponse call
+func ParseCreateGcpTriggerResponse(rsp *http.Response) (*CreateGcpTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateGcpTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteGcpTriggerResponse parses an HTTP response from a DeleteGcpTriggerWithResponse call
+func ParseDeleteGcpTriggerResponse(rsp *http.Response) (*DeleteGcpTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteGcpTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsGcpTriggerResponse parses an HTTP response from a ExistsGcpTriggerWithResponse call
+func ParseExistsGcpTriggerResponse(rsp *http.Response) (*ExistsGcpTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsGcpTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetGcpTriggerResponse parses an HTTP response from a GetGcpTriggerWithResponse call
+func ParseGetGcpTriggerResponse(rsp *http.Response) (*GetGcpTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGcpTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GcpTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListGcpTriggersResponse parses an HTTP response from a ListGcpTriggersWithResponse call
+func ParseListGcpTriggersResponse(rsp *http.Response) (*ListGcpTriggersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGcpTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []GcpTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetGcpTriggerEnabledResponse parses an HTTP response from a SetGcpTriggerEnabledWithResponse call
+func ParseSetGcpTriggerEnabledResponse(rsp *http.Response) (*SetGcpTriggerEnabledResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetGcpTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteGcpSubscriptionResponse parses an HTTP response from a DeleteGcpSubscriptionWithResponse call
+func ParseDeleteGcpSubscriptionResponse(rsp *http.Response) (*DeleteGcpSubscriptionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteGcpSubscriptionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListAllTGoogleTopicSubscriptionsResponse parses an HTTP response from a ListAllTGoogleTopicSubscriptionsWithResponse call
+func ParseListAllTGoogleTopicSubscriptionsResponse(rsp *http.Response) (*ListAllTGoogleTopicSubscriptionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAllTGoogleTopicSubscriptionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseTestGcpConnectionResponse parses an HTTP response from a TestGcpConnectionWithResponse call
+func ParseTestGcpConnectionResponse(rsp *http.Response) (*TestGcpConnectionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestGcpConnectionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListGoogleTopicsResponse parses an HTTP response from a ListGoogleTopicsWithResponse call
+func ParseListGoogleTopicsResponse(rsp *http.Response) (*ListGoogleTopicsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGoogleTopicsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateGcpTriggerResponse parses an HTTP response from a UpdateGcpTriggerWithResponse call
+func ParseUpdateGcpTriggerResponse(rsp *http.Response) (*UpdateGcpTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateGcpTriggerResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -64748,6 +67785,48 @@ func ParseListJobsResponse(rsp *http.Response) (*ListJobsResponse, error) {
 	return response, nil
 }
 
+// ParseListFilteredJobsUuidsResponse parses an HTTP response from a ListFilteredJobsUuidsWithResponse call
+func ParseListFilteredJobsUuidsResponse(rsp *http.Response) (*ListFilteredJobsUuidsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListFilteredJobsUuidsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListSelectedJobGroupsResponse parses an HTTP response from a ListSelectedJobGroupsWithResponse call
+func ParseListSelectedJobGroupsResponse(rsp *http.Response) (*ListSelectedJobGroupsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSelectedJobGroupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseOpenaiSyncFlowByPathResponse parses an HTTP response from a OpenaiSyncFlowByPathWithResponse call
 func ParseOpenaiSyncFlowByPathResponse(rsp *http.Response) (*OpenaiSyncFlowByPathResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -64881,15 +67960,15 @@ func ParseListQueueResponse(rsp *http.Response) (*ListQueueResponse, error) {
 	return response, nil
 }
 
-// ParseListFilteredUuidsResponse parses an HTTP response from a ListFilteredUuidsWithResponse call
-func ParseListFilteredUuidsResponse(rsp *http.Response) (*ListFilteredUuidsResponse, error) {
+// ParseListFilteredQueueUuidsResponse parses an HTTP response from a ListFilteredQueueUuidsWithResponse call
+func ParseListFilteredQueueUuidsResponse(rsp *http.Response) (*ListFilteredQueueUuidsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ListFilteredUuidsResponse{
+	response := &ListFilteredQueueUuidsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -64974,6 +68053,22 @@ func ParseGetResumeUrlsResponse(rsp *http.Response) (*GetResumeUrlsResponse, err
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseBatchReRunJobsResponse parses an HTTP response from a BatchReRunJobsWithResponse call
+func ParseBatchReRunJobsResponse(rsp *http.Response) (*BatchReRunJobsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &BatchReRunJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -69525,6 +72620,7 @@ func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
+			GcpUsed        bool `json:"gcp_used"`
 			HttpRoutesUsed bool `json:"http_routes_used"`
 			KafkaUsed      bool `json:"kafka_used"`
 			MqttUsed       bool `json:"mqtt_used"`
