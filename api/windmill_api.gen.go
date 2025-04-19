@@ -159,6 +159,12 @@ const (
 	Windmill     AuthenticationMethod = "windmill"
 )
 
+// Defines values for AwsAuthResourceType.
+const (
+	Credentials AwsAuthResourceType = "credentials"
+	Oidc        AwsAuthResourceType = "oidc"
+)
+
 // Defines values for BranchAllType.
 const (
 	Branchall BranchAllType = "branchall"
@@ -828,6 +834,9 @@ type AutoscalingEvent struct {
 	WorkerGroup    *string    `json:"worker_group,omitempty"`
 }
 
+// AwsAuthResourceType defines model for AwsAuthResourceType.
+type AwsAuthResourceType string
+
 // BranchAll defines model for BranchAll.
 type BranchAll struct {
 	Branches []struct {
@@ -1145,13 +1154,14 @@ type EditSchedule struct {
 
 // EditSqsTrigger defines model for EditSqsTrigger.
 type EditSqsTrigger struct {
-	AwsResourcePath   string    `json:"aws_resource_path"`
-	Enabled           bool      `json:"enabled"`
-	IsFlow            bool      `json:"is_flow"`
-	MessageAttributes *[]string `json:"message_attributes,omitempty"`
-	Path              string    `json:"path"`
-	QueueUrl          string    `json:"queue_url"`
-	ScriptPath        string    `json:"script_path"`
+	AwsAuthResourceType AwsAuthResourceType `json:"aws_auth_resource_type"`
+	AwsResourcePath     string              `json:"aws_resource_path"`
+	Enabled             bool                `json:"enabled"`
+	IsFlow              bool                `json:"is_flow"`
+	MessageAttributes   *[]string           `json:"message_attributes,omitempty"`
+	Path                string              `json:"path"`
+	QueueUrl            string              `json:"queue_url"`
+	ScriptPath          string              `json:"script_path"`
 }
 
 // EditVariable defines model for EditVariable.
@@ -2011,13 +2021,14 @@ type NewScriptWithDraftKind string
 
 // NewSqsTrigger defines model for NewSqsTrigger.
 type NewSqsTrigger struct {
-	AwsResourcePath   string    `json:"aws_resource_path"`
-	Enabled           *bool     `json:"enabled,omitempty"`
-	IsFlow            bool      `json:"is_flow"`
-	MessageAttributes *[]string `json:"message_attributes,omitempty"`
-	Path              string    `json:"path"`
-	QueueUrl          string    `json:"queue_url"`
-	ScriptPath        string    `json:"script_path"`
+	AwsAuthResourceType AwsAuthResourceType `json:"aws_auth_resource_type"`
+	AwsResourcePath     string              `json:"aws_resource_path"`
+	Enabled             *bool               `json:"enabled,omitempty"`
+	IsFlow              bool                `json:"is_flow"`
+	MessageAttributes   *[]string           `json:"message_attributes,omitempty"`
+	Path                string              `json:"path"`
+	QueueUrl            string              `json:"queue_url"`
+	ScriptPath          string              `json:"script_path"`
 }
 
 // NewToken defines model for NewToken.
