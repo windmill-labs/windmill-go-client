@@ -1028,21 +1028,6 @@ type DeleteGcpSubscription struct {
 // DeliveryType defines model for DeliveryType.
 type DeliveryType string
 
-// EditGcpTrigger defines model for EditGcpTrigger.
-type EditGcpTrigger struct {
-	Enabled         bool    `json:"enabled"`
-	GcpResourcePath *string `json:"gcp_resource_path,omitempty"`
-	IsFlow          bool    `json:"is_flow"`
-	Path            string  `json:"path"`
-	ScriptPath      string  `json:"script_path"`
-
-	// SubscriptionMode "This is a union type representing the subscription mode.
-	//  - 'existing': Represents an existing GCP subscription, and should be accompanied by an 'ExistingGcpSubscription' object.
-	//  - 'create_update': Represents a new or updated GCP subscription, and should be accompanied by a 'CreateUpdateConfig' object."
-	SubscriptionMode GcpSubscriptionModeConfig `json:"subscription_mode"`
-	TopicId          string                    `json:"topic_id"`
-}
-
 // EditHttpTrigger defines model for EditHttpTrigger.
 type EditHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod      `json:"authentication_method"`
@@ -1454,26 +1439,25 @@ type ForloopFlow struct {
 // ForloopFlowType defines model for ForloopFlow.Type.
 type ForloopFlowType string
 
-// GcpCreateUpdateSubscription defines model for GcpCreateUpdateSubscription.
-type GcpCreateUpdateSubscription struct {
-	DeliveryConfig *PushConfig  `json:"delivery_config,omitempty"`
-	DeliveryType   DeliveryType `json:"delivery_type"`
-	SubscriptionId *string      `json:"subscription_id,omitempty"`
-}
-
-// GcpExistingSubscription defines model for GcpExistingSubscription.
-type GcpExistingSubscription struct {
-	BaseEndpoint   string `json:"base_endpoint"`
-	SubscriptionId string `json:"subscription_id"`
-}
-
-// GcpSubscriptionModeConfig defines model for GcpSubscriptionModeConfig.
-type GcpSubscriptionModeConfig struct {
-	union json.RawMessage
-}
-
 // GcpTrigger defines model for GcpTrigger.
 type GcpTrigger = TriggerExtraProperty
+
+// GcpTriggerData defines model for GcpTriggerData.
+type GcpTriggerData struct {
+	BaseEndpoint    *string       `json:"base_endpoint,omitempty"`
+	DeliveryConfig  *PushConfig   `json:"delivery_config,omitempty"`
+	DeliveryType    *DeliveryType `json:"delivery_type,omitempty"`
+	Enabled         *bool         `json:"enabled,omitempty"`
+	GcpResourcePath string        `json:"gcp_resource_path"`
+	IsFlow          bool          `json:"is_flow"`
+	Path            string        `json:"path"`
+	ScriptPath      string        `json:"script_path"`
+	SubscriptionId  *string       `json:"subscription_id,omitempty"`
+
+	// SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
+	SubscriptionMode SubscriptionMode `json:"subscription_mode"`
+	TopicId          string           `json:"topic_id"`
+}
 
 // GetAllTopicSubscription defines model for GetAllTopicSubscription.
 type GetAllTopicSubscription struct {
@@ -1720,6 +1704,7 @@ type ListableApp struct {
 	ExtraPerms    map[string]bool          `json:"extra_perms"`
 	Id            int                      `json:"id"`
 	Path          string                   `json:"path"`
+	RawApp        *bool                    `json:"raw_app,omitempty"`
 	Starred       *bool                    `json:"starred,omitempty"`
 	Summary       string                   `json:"summary"`
 	Version       int                      `json:"version"`
@@ -1827,21 +1812,6 @@ type MqttV5Config struct {
 
 // NatsTrigger defines model for NatsTrigger.
 type NatsTrigger = TriggerExtraProperty
-
-// NewGcpTrigger defines model for NewGcpTrigger.
-type NewGcpTrigger struct {
-	Enabled         *bool  `json:"enabled,omitempty"`
-	GcpResourcePath string `json:"gcp_resource_path"`
-	IsFlow          bool   `json:"is_flow"`
-	Path            string `json:"path"`
-	ScriptPath      string `json:"script_path"`
-
-	// SubscriptionMode "This is a union type representing the subscription mode.
-	//  - 'existing': Represents an existing GCP subscription, and should be accompanied by an 'ExistingGcpSubscription' object.
-	//  - 'create_update': Represents a new or updated GCP subscription, and should be accompanied by a 'CreateUpdateConfig' object."
-	SubscriptionMode GcpSubscriptionModeConfig `json:"subscription_mode"`
-	TopicId          string                    `json:"topic_id"`
-}
 
 // NewHttpTrigger defines model for NewHttpTrigger.
 type NewHttpTrigger struct {
@@ -2198,7 +2168,6 @@ type PublicationData struct {
 type PushConfig struct {
 	Audience     *string `json:"audience,omitempty"`
 	Authenticate bool    `json:"authenticate"`
-	BaseEndpoint string  `json:"base_endpoint"`
 }
 
 // QueuedJob defines model for QueuedJob.
@@ -3270,6 +3239,21 @@ type CreateAppJSONBody struct {
 	Value             interface{} `json:"value"`
 }
 
+// CreateAppRawMultipartBody defines parameters for CreateAppRaw.
+type CreateAppRawMultipartBody struct {
+	App *struct {
+		CustomPath        *string     `json:"custom_path,omitempty"`
+		DeploymentMessage *string     `json:"deployment_message,omitempty"`
+		DraftOnly         *bool       `json:"draft_only,omitempty"`
+		Path              string      `json:"path"`
+		Policy            Policy      `json:"policy"`
+		Summary           string      `json:"summary"`
+		Value             interface{} `json:"value"`
+	} `json:"app,omitempty"`
+	Css *string `json:"css,omitempty"`
+	Js  *string `json:"js,omitempty"`
+}
+
 // GetAppByPathParams defines parameters for GetAppByPath.
 type GetAppByPathParams struct {
 	WithStarredInfo *bool `form:"with_starred_info,omitempty" json:"with_starred_info,omitempty"`
@@ -3329,6 +3313,20 @@ type UpdateAppJSONBody struct {
 	Policy            *Policy      `json:"policy,omitempty"`
 	Summary           *string      `json:"summary,omitempty"`
 	Value             *interface{} `json:"value,omitempty"`
+}
+
+// UpdateAppRawMultipartBody defines parameters for UpdateAppRaw.
+type UpdateAppRawMultipartBody struct {
+	App *struct {
+		CustomPath        *string      `json:"custom_path,omitempty"`
+		DeploymentMessage *string      `json:"deployment_message,omitempty"`
+		Path              *string      `json:"path,omitempty"`
+		Policy            *Policy      `json:"policy,omitempty"`
+		Summary           *string      `json:"summary,omitempty"`
+		Value             *interface{} `json:"value,omitempty"`
+	} `json:"app,omitempty"`
+	Css *string `json:"css,omitempty"`
+	Js  *string `json:"js,omitempty"`
 }
 
 // DeleteS3FileFromAppParams defines parameters for DeleteS3FileFromApp.
@@ -5463,6 +5461,9 @@ type RemoveGranularAclsJSONRequestBody RemoveGranularAclsJSONBody
 // CreateAppJSONRequestBody defines body for CreateApp for application/json ContentType.
 type CreateAppJSONRequestBody CreateAppJSONBody
 
+// CreateAppRawMultipartRequestBody defines body for CreateAppRaw for multipart/form-data ContentType.
+type CreateAppRawMultipartRequestBody CreateAppRawMultipartBody
+
 // UpdateAppHistoryJSONRequestBody defines body for UpdateAppHistory for application/json ContentType.
 type UpdateAppHistoryJSONRequestBody UpdateAppHistoryJSONBody
 
@@ -5471,6 +5472,9 @@ type SignS3ObjectsJSONRequestBody SignS3ObjectsJSONBody
 
 // UpdateAppJSONRequestBody defines body for UpdateApp for application/json ContentType.
 type UpdateAppJSONRequestBody UpdateAppJSONBody
+
+// UpdateAppRawMultipartRequestBody defines body for UpdateAppRaw for multipart/form-data ContentType.
+type UpdateAppRawMultipartRequestBody UpdateAppRawMultipartBody
 
 // ExecuteComponentJSONRequestBody defines body for ExecuteComponent for application/json ContentType.
 type ExecuteComponentJSONRequestBody ExecuteComponentJSONBody
@@ -5518,7 +5522,7 @@ type RemoveOwnerToFolderJSONRequestBody RemoveOwnerToFolderJSONBody
 type UpdateFolderJSONRequestBody UpdateFolderJSONBody
 
 // CreateGcpTriggerJSONRequestBody defines body for CreateGcpTrigger for application/json ContentType.
-type CreateGcpTriggerJSONRequestBody = NewGcpTrigger
+type CreateGcpTriggerJSONRequestBody = GcpTriggerData
 
 // SetGcpTriggerEnabledJSONRequestBody defines body for SetGcpTriggerEnabled for application/json ContentType.
 type SetGcpTriggerEnabledJSONRequestBody SetGcpTriggerEnabledJSONBody
@@ -5533,7 +5537,7 @@ type ListAllTGoogleTopicSubscriptionsJSONRequestBody = GetAllTopicSubscription
 type TestGcpConnectionJSONRequestBody TestGcpConnectionJSONBody
 
 // UpdateGcpTriggerJSONRequestBody defines body for UpdateGcpTrigger for application/json ContentType.
-type UpdateGcpTriggerJSONRequestBody = EditGcpTrigger
+type UpdateGcpTriggerJSONRequestBody = GcpTriggerData
 
 // ImportInstallationJSONRequestBody defines body for ImportInstallation for application/json ContentType.
 type ImportInstallationJSONRequestBody ImportInstallationJSONBody
@@ -6160,68 +6164,6 @@ func (t FlowModuleValue) MarshalJSON() ([]byte, error) {
 }
 
 func (t *FlowModuleValue) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsGcpExistingSubscription returns the union data inside the GcpSubscriptionModeConfig as a GcpExistingSubscription
-func (t GcpSubscriptionModeConfig) AsGcpExistingSubscription() (GcpExistingSubscription, error) {
-	var body GcpExistingSubscription
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromGcpExistingSubscription overwrites any union data inside the GcpSubscriptionModeConfig as the provided GcpExistingSubscription
-func (t *GcpSubscriptionModeConfig) FromGcpExistingSubscription(v GcpExistingSubscription) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeGcpExistingSubscription performs a merge with any union data inside the GcpSubscriptionModeConfig, using the provided GcpExistingSubscription
-func (t *GcpSubscriptionModeConfig) MergeGcpExistingSubscription(v GcpExistingSubscription) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsGcpCreateUpdateSubscription returns the union data inside the GcpSubscriptionModeConfig as a GcpCreateUpdateSubscription
-func (t GcpSubscriptionModeConfig) AsGcpCreateUpdateSubscription() (GcpCreateUpdateSubscription, error) {
-	var body GcpCreateUpdateSubscription
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromGcpCreateUpdateSubscription overwrites any union data inside the GcpSubscriptionModeConfig as the provided GcpCreateUpdateSubscription
-func (t *GcpSubscriptionModeConfig) FromGcpCreateUpdateSubscription(v GcpCreateUpdateSubscription) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeGcpCreateUpdateSubscription performs a merge with any union data inside the GcpSubscriptionModeConfig, using the provided GcpCreateUpdateSubscription
-func (t *GcpSubscriptionModeConfig) MergeGcpCreateUpdateSubscription(v GcpCreateUpdateSubscription) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t GcpSubscriptionModeConfig) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *GcpSubscriptionModeConfig) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -6880,6 +6822,9 @@ type ClientInterface interface {
 
 	CreateApp(ctx context.Context, workspace WorkspaceId, body CreateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateAppRawWithBody request with any body
+	CreateAppRawWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CustomPathExists request
 	CustomPathExists(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -6936,6 +6881,9 @@ type ClientInterface interface {
 	UpdateAppWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateApp(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateAppRawWithBody request with any body
+	UpdateAppRawWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteS3FileFromApp request
 	DeleteS3FileFromApp(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9905,6 +9853,18 @@ func (c *Client) CreateApp(ctx context.Context, workspace WorkspaceId, body Crea
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreateAppRawWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateAppRawRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CustomPathExists(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCustomPathExistsRequest(c.Server, workspace, customPath)
 	if err != nil {
@@ -10135,6 +10095,18 @@ func (c *Client) UpdateAppWithBody(ctx context.Context, workspace WorkspaceId, p
 
 func (c *Client) UpdateApp(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateAppRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateAppRawWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateAppRawRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -20229,6 +20201,42 @@ func NewCreateAppRequestWithBody(server string, workspace WorkspaceId, contentTy
 	return req, nil
 }
 
+// NewCreateAppRawRequestWithBody generates requests for CreateAppRaw with any type of body
+func NewCreateAppRawRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/create_raw", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCustomPathExistsRequest generates requests for CustomPathExists
 func NewCustomPathExistsRequest(server string, workspace WorkspaceId, customPath CustomPath) (*http.Request, error) {
 	var err error
@@ -21118,6 +21126,49 @@ func NewUpdateAppRequestWithBody(server string, workspace WorkspaceId, path Scri
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/apps/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateAppRawRequestWithBody generates requests for UpdateAppRaw with any type of body
+func NewUpdateAppRawRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/update_raw/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -44803,6 +44854,9 @@ type ClientWithResponsesInterface interface {
 
 	CreateAppWithResponse(ctx context.Context, workspace WorkspaceId, body CreateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAppResponse, error)
 
+	// CreateAppRawWithBodyWithResponse request with any body
+	CreateAppRawWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAppRawResponse, error)
+
 	// CustomPathExistsWithResponse request
 	CustomPathExistsWithResponse(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*CustomPathExistsResponse, error)
 
@@ -44859,6 +44913,9 @@ type ClientWithResponsesInterface interface {
 	UpdateAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppResponse, error)
 
 	UpdateAppWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAppResponse, error)
+
+	// UpdateAppRawWithBodyWithResponse request with any body
+	UpdateAppRawWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppRawResponse, error)
 
 	// DeleteS3FileFromAppWithResponse request
 	DeleteS3FileFromAppWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*DeleteS3FileFromAppResponse, error)
@@ -48506,6 +48563,27 @@ func (r CreateAppResponse) StatusCode() int {
 	return 0
 }
 
+type CreateAppRawResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateAppRawResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateAppRawResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CustomPathExistsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -48872,6 +48950,27 @@ func (r UpdateAppResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateAppResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateAppRawResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateAppRawResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateAppRawResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -58000,6 +58099,15 @@ func (c *ClientWithResponses) CreateAppWithResponse(ctx context.Context, workspa
 	return ParseCreateAppResponse(rsp)
 }
 
+// CreateAppRawWithBodyWithResponse request with arbitrary body returning *CreateAppRawResponse
+func (c *ClientWithResponses) CreateAppRawWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAppRawResponse, error) {
+	rsp, err := c.CreateAppRawWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAppRawResponse(rsp)
+}
+
 // CustomPathExistsWithResponse request returning *CustomPathExistsResponse
 func (c *ClientWithResponses) CustomPathExistsWithResponse(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*CustomPathExistsResponse, error) {
 	rsp, err := c.CustomPathExists(ctx, workspace, customPath, reqEditors...)
@@ -58175,6 +58283,15 @@ func (c *ClientWithResponses) UpdateAppWithResponse(ctx context.Context, workspa
 		return nil, err
 	}
 	return ParseUpdateAppResponse(rsp)
+}
+
+// UpdateAppRawWithBodyWithResponse request with arbitrary body returning *UpdateAppRawResponse
+func (c *ClientWithResponses) UpdateAppRawWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppRawResponse, error) {
+	rsp, err := c.UpdateAppRawWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAppRawResponse(rsp)
 }
 
 // DeleteS3FileFromAppWithResponse request returning *DeleteS3FileFromAppResponse
@@ -64762,6 +64879,22 @@ func ParseCreateAppResponse(rsp *http.Response) (*CreateAppResponse, error) {
 	return response, nil
 }
 
+// ParseCreateAppRawResponse parses an HTTP response from a CreateAppRawWithResponse call
+func ParseCreateAppRawResponse(rsp *http.Response) (*CreateAppRawResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateAppRawResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCustomPathExistsResponse parses an HTTP response from a CustomPathExistsWithResponse call
 func ParseCustomPathExistsResponse(rsp *http.Response) (*CustomPathExistsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -65150,6 +65283,22 @@ func ParseUpdateAppResponse(rsp *http.Response) (*UpdateAppResponse, error) {
 	}
 
 	response := &UpdateAppResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateAppRawResponse parses an HTTP response from a UpdateAppRawWithResponse call
+func ParseUpdateAppRawResponse(rsp *http.Response) (*UpdateAppRawResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateAppRawResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
