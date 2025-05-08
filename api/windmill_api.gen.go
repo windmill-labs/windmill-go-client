@@ -1272,16 +1272,10 @@ type FlowModule struct {
 		Expr string `json:"expr"`
 	} `json:"skip_if,omitempty"`
 	Sleep               *InputTransform `json:"sleep,omitempty"`
-	StopAfterAllItersIf *struct {
-		Expr          string `json:"expr"`
-		SkipIfStopped *bool  `json:"skip_if_stopped,omitempty"`
-	} `json:"stop_after_all_iters_if,omitempty"`
-	StopAfterIf *struct {
-		Expr          string `json:"expr"`
-		SkipIfStopped *bool  `json:"skip_if_stopped,omitempty"`
-	} `json:"stop_after_if,omitempty"`
-	Summary *string `json:"summary,omitempty"`
-	Suspend *struct {
+	StopAfterAllItersIf *StopAfterIf    `json:"stop_after_all_iters_if,omitempty"`
+	StopAfterIf         *StopAfterIf    `json:"stop_after_if,omitempty"`
+	Summary             *string         `json:"summary,omitempty"`
+	Suspend             *struct {
 		ContinueOnDisapproveTimeout *bool `json:"continue_on_disapprove_timeout,omitempty"`
 		HideCancel                  *bool `json:"hide_cancel,omitempty"`
 		RequiredEvents              *int  `json:"required_events,omitempty"`
@@ -2473,6 +2467,13 @@ type StaticTransform struct {
 
 // StaticTransformType defines model for StaticTransform.Type.
 type StaticTransformType string
+
+// StopAfterIf defines model for StopAfterIf.
+type StopAfterIf struct {
+	ErrorMessage  *string `json:"error_message,omitempty"`
+	Expr          string  `json:"expr"`
+	SkipIfStopped *bool   `json:"skip_if_stopped,omitempty"`
+}
 
 // SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
 type SubscriptionMode string
