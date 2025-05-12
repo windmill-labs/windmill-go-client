@@ -867,11 +867,11 @@ type BranchOneType string
 
 // Capture defines model for Capture.
 type Capture struct {
-	CreatedAt    time.Time          `json:"created_at"`
-	Id           int                `json:"id"`
-	Payload      interface{}        `json:"payload"`
-	TriggerExtra *interface{}       `json:"trigger_extra,omitempty"`
-	TriggerKind  CaptureTriggerKind `json:"trigger_kind"`
+	CreatedAt        time.Time          `json:"created_at"`
+	Id               int                `json:"id"`
+	MainArgs         interface{}        `json:"main_args"`
+	PreprocessorArgs interface{}        `json:"preprocessor_args"`
+	TriggerKind      CaptureTriggerKind `json:"trigger_kind"`
 }
 
 // CaptureConfig defines model for CaptureConfig.
