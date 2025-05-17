@@ -758,6 +758,15 @@ type AIProviderModel struct {
 	Provider AIProvider `json:"provider"`
 }
 
+// Alert defines model for Alert.
+type Alert struct {
+	AlertCooldownSeconds      int      `json:"alert_cooldown_seconds"`
+	AlertTimeThresholdSeconds int      `json:"alert_time_threshold_seconds"`
+	JobsNumThreshold          int      `json:"jobs_num_threshold"`
+	Name                      string   `json:"name"`
+	TagsToMonitor             []string `json:"tags_to_monitor"`
+}
+
 // AppHistory defines model for AppHistory.
 type AppHistory struct {
 	DeploymentMsg *string `json:"deployment_msg,omitempty"`
@@ -956,6 +965,11 @@ type ConcurrencyGroup struct {
 type Config struct {
 	Config *map[string]interface{} `json:"config,omitempty"`
 	Name   string                  `json:"name"`
+}
+
+// Configs defines model for Configs.
+type Configs struct {
+	Alerts *[]Alert `json:"alerts,omitempty"`
 }
 
 // ContextualVariable defines model for ContextualVariable.
@@ -46681,7 +46695,7 @@ func (r GetConcurrencyKeyResponse) StatusCode() int {
 type GetConfigResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *interface{}
+	JSON200      *Configs
 }
 
 // Status returns HTTPResponse.Status
@@ -63116,7 +63130,7 @@ func ParseGetConfigResponse(rsp *http.Response) (*GetConfigResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
+		var dest Configs
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
