@@ -270,6 +270,7 @@ const (
 	GitRepositorySettingsExcludeTypesOverrideSchedule     GitRepositorySettingsExcludeTypesOverride = "schedule"
 	GitRepositorySettingsExcludeTypesOverrideScript       GitRepositorySettingsExcludeTypesOverride = "script"
 	GitRepositorySettingsExcludeTypesOverrideSecret       GitRepositorySettingsExcludeTypesOverride = "secret"
+	GitRepositorySettingsExcludeTypesOverrideTrigger      GitRepositorySettingsExcludeTypesOverride = "trigger"
 	GitRepositorySettingsExcludeTypesOverrideUser         GitRepositorySettingsExcludeTypesOverride = "user"
 	GitRepositorySettingsExcludeTypesOverrideVariable     GitRepositorySettingsExcludeTypesOverride = "variable"
 )
@@ -559,6 +560,7 @@ const (
 	WorkspaceGitSyncSettingsIncludeTypeSchedule     WorkspaceGitSyncSettingsIncludeType = "schedule"
 	WorkspaceGitSyncSettingsIncludeTypeScript       WorkspaceGitSyncSettingsIncludeType = "script"
 	WorkspaceGitSyncSettingsIncludeTypeSecret       WorkspaceGitSyncSettingsIncludeType = "secret"
+	WorkspaceGitSyncSettingsIncludeTypeTrigger      WorkspaceGitSyncSettingsIncludeType = "trigger"
 	WorkspaceGitSyncSettingsIncludeTypeUser         WorkspaceGitSyncSettingsIncludeType = "user"
 	WorkspaceGitSyncSettingsIncludeTypeVariable     WorkspaceGitSyncSettingsIncludeType = "variable"
 )
@@ -3122,7 +3124,8 @@ type SearchLogsIndexParams struct {
 
 // SearchJobsIndexParams defines parameters for SearchJobsIndex.
 type SearchJobsIndexParams struct {
-	SearchQuery string `form:"search_query" json:"search_query"`
+	SearchQuery      string `form:"search_query" json:"search_query"`
+	PaginationOffset *int   `form:"pagination_offset,omitempty" json:"pagination_offset,omitempty"`
 }
 
 // SendMessageToConversationJSONBody defines parameters for SendMessageToConversation.
@@ -18820,6 +18823,22 @@ func NewSearchJobsIndexRequest(server string, workspace WorkspaceId, params *Sea
 					queryValues.Add(k, v2)
 				}
 			}
+		}
+
+		if params.PaginationOffset != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "pagination_offset", runtime.ParamLocationQuery, *params.PaginationOffset); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -47966,13 +47985,23 @@ type SearchJobsIndexResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
+		// HitCount how many jobs matched in total
+		HitCount *float32 `json:"hit_count,omitempty"`
+
 		// Hits the jobs that matched the query
 		Hits *[]JobSearchHit `json:"hits,omitempty"`
 
+		// IndexMetadata Metadata about the index current state
+		IndexMetadata *struct {
+			// IndexedUntil Datetime of the most recently indexed job
+			IndexedUntil *time.Time `json:"indexed_until,omitempty"`
+
+			// LostLockOwnership Is the current indexer service being replaced
+			LostLockOwnership *bool `json:"lost_lock_ownership,omitempty"`
+		} `json:"index_metadata,omitempty"`
+
 		// QueryParseErrors a list of the terms that couldn't be parsed (and thus ignored)
-		QueryParseErrors *[]struct {
-			Dancer *string `json:"dancer,omitempty"`
-		} `json:"query_parse_errors,omitempty"`
+		QueryParseErrors *[]string `json:"query_parse_errors,omitempty"`
 	}
 }
 
@@ -64396,13 +64425,23 @@ func ParseSearchJobsIndexResponse(rsp *http.Response) (*SearchJobsIndexResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
+			// HitCount how many jobs matched in total
+			HitCount *float32 `json:"hit_count,omitempty"`
+
 			// Hits the jobs that matched the query
 			Hits *[]JobSearchHit `json:"hits,omitempty"`
 
+			// IndexMetadata Metadata about the index current state
+			IndexMetadata *struct {
+				// IndexedUntil Datetime of the most recently indexed job
+				IndexedUntil *time.Time `json:"indexed_until,omitempty"`
+
+				// LostLockOwnership Is the current indexer service being replaced
+				LostLockOwnership *bool `json:"lost_lock_ownership,omitempty"`
+			} `json:"index_metadata,omitempty"`
+
 			// QueryParseErrors a list of the terms that couldn't be parsed (and thus ignored)
-			QueryParseErrors *[]struct {
-				Dancer *string `json:"dancer,omitempty"`
-			} `json:"query_parse_errors,omitempty"`
+			QueryParseErrors *[]string `json:"query_parse_errors,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
