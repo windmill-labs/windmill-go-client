@@ -498,6 +498,7 @@ const (
 	ScriptLangBun        ScriptLang = "bun"
 	ScriptLangCsharp     ScriptLang = "csharp"
 	ScriptLangDeno       ScriptLang = "deno"
+	ScriptLangDuckdb     ScriptLang = "duckdb"
 	ScriptLangGo         ScriptLang = "go"
 	ScriptLangGraphql    ScriptLang = "graphql"
 	ScriptLangJava       ScriptLang = "java"
@@ -6523,6 +6524,9 @@ type ClientInterface interface {
 	// ListAutoscalingEvents request
 	ListAutoscalingEvents(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAvailablePythonVersions request
+	ListAvailablePythonVersions(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListWorkerGroups request
 	ListWorkerGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8435,6 +8439,18 @@ func (c *Client) ListConfigs(ctx context.Context, reqEditors ...RequestEditorFn)
 
 func (c *Client) ListAutoscalingEvents(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAutoscalingEventsRequest(c.Server, workerGroup)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAvailablePythonVersions(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAvailablePythonVersionsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -16536,6 +16552,33 @@ func NewListAutoscalingEventsRequest(server string, workerGroup string) (*http.R
 	}
 
 	operationPath := fmt.Sprintf("/configs/list_autoscaling_events/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAvailablePythonVersionsRequest generates requests for ListAvailablePythonVersions
+func NewListAvailablePythonVersionsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/list_available_python_versions")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -44733,6 +44776,9 @@ type ClientWithResponsesInterface interface {
 	// ListAutoscalingEventsWithResponse request
 	ListAutoscalingEventsWithResponse(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*ListAutoscalingEventsResponse, error)
 
+	// ListAvailablePythonVersionsWithResponse request
+	ListAvailablePythonVersionsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAvailablePythonVersionsResponse, error)
+
 	// ListWorkerGroupsWithResponse request
 	ListWorkerGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkerGroupsResponse, error)
 
@@ -46771,6 +46817,28 @@ func (r ListAutoscalingEventsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListAutoscalingEventsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAvailablePythonVersionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAvailablePythonVersionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAvailablePythonVersionsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -57292,6 +57360,15 @@ func (c *ClientWithResponses) ListAutoscalingEventsWithResponse(ctx context.Cont
 	return ParseListAutoscalingEventsResponse(rsp)
 }
 
+// ListAvailablePythonVersionsWithResponse request returning *ListAvailablePythonVersionsResponse
+func (c *ClientWithResponses) ListAvailablePythonVersionsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAvailablePythonVersionsResponse, error) {
+	rsp, err := c.ListAvailablePythonVersions(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAvailablePythonVersionsResponse(rsp)
+}
+
 // ListWorkerGroupsWithResponse request returning *ListWorkerGroupsResponse
 func (c *ClientWithResponses) ListWorkerGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkerGroupsResponse, error) {
 	rsp, err := c.ListWorkerGroups(ctx, reqEditors...)
@@ -63212,6 +63289,32 @@ func ParseListAutoscalingEventsResponse(rsp *http.Response) (*ListAutoscalingEve
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []AutoscalingEvent
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAvailablePythonVersionsResponse parses an HTTP response from a ListAvailablePythonVersionsWithResponse call
+func ParseListAvailablePythonVersionsResponse(rsp *http.Response) (*ListAvailablePythonVersionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAvailablePythonVersionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
