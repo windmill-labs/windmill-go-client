@@ -3152,11 +3152,14 @@ type AcceptInviteJSONBody struct {
 
 // CreateUserGloballyJSONBody defines parameters for CreateUserGlobally.
 type CreateUserGloballyJSONBody struct {
-	Company    *string `json:"company,omitempty"`
-	Email      string  `json:"email"`
-	Name       *string `json:"name,omitempty"`
-	Password   string  `json:"password"`
-	SuperAdmin bool    `json:"super_admin"`
+	Company  *string `json:"company,omitempty"`
+	Email    string  `json:"email"`
+	Name     *string `json:"name,omitempty"`
+	Password string  `json:"password"`
+
+	// SkipEmail Skip sending email notifications to the user
+	SkipEmail  *bool `json:"skip_email,omitempty"`
+	SuperAdmin bool  `json:"super_admin"`
 }
 
 // DeclineInviteJSONBody defines parameters for DeclineInvite.
