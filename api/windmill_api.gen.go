@@ -165,16 +165,6 @@ const (
 	Oidc        AwsAuthResourceType = "oidc"
 )
 
-// Defines values for BranchAllType.
-const (
-	Branchall BranchAllType = "branchall"
-)
-
-// Defines values for BranchOneType.
-const (
-	Branchone BranchOneType = "branchone"
-)
-
 // Defines values for CaptureTriggerKind.
 const (
 	CaptureTriggerKindEmail     CaptureTriggerKind = "email"
@@ -238,27 +228,6 @@ const (
 	FlowStatusFailureModuleTypeWaitingForPriorSteps FlowStatusFailureModuleType = "WaitingForPriorSteps"
 )
 
-// Defines values for FlowStatusModuleBranchChosenType.
-const (
-	FlowStatusModuleBranchChosenTypeBranch  FlowStatusModuleBranchChosenType = "branch"
-	FlowStatusModuleBranchChosenTypeDefault FlowStatusModuleBranchChosenType = "default"
-)
-
-// Defines values for FlowStatusModuleType.
-const (
-	FlowStatusModuleTypeFailure              FlowStatusModuleType = "Failure"
-	FlowStatusModuleTypeInProgress           FlowStatusModuleType = "InProgress"
-	FlowStatusModuleTypeSuccess              FlowStatusModuleType = "Success"
-	FlowStatusModuleTypeWaitingForEvents     FlowStatusModuleType = "WaitingForEvents"
-	FlowStatusModuleTypeWaitingForExecutor   FlowStatusModuleType = "WaitingForExecutor"
-	FlowStatusModuleTypeWaitingForPriorSteps FlowStatusModuleType = "WaitingForPriorSteps"
-)
-
-// Defines values for ForloopFlowType.
-const (
-	ForloopFlowTypeForloopflow ForloopFlowType = "forloopflow"
-)
-
 // Defines values for GitRepositorySettingsExcludeTypesOverride.
 const (
 	GitRepositorySettingsExcludeTypesOverrideApp          GitRepositorySettingsExcludeTypesOverride = "app"
@@ -281,14 +250,12 @@ const (
 	Password GlobalUserInfoLoginType = "password"
 )
 
-// Defines values for IdentityType.
+// Defines values for HubScriptKind.
 const (
-	IdentityTypeIdentity IdentityType = "identity"
-)
-
-// Defines values for JavascriptTransformType.
-const (
-	JavascriptTransformTypeJavascript JavascriptTransformType = "javascript"
+	HubScriptKindApproval HubScriptKind = "approval"
+	HubScriptKindFailure  HubScriptKind = "failure"
+	HubScriptKindScript   HubScriptKind = "script"
+	HubScriptKindTrigger  HubScriptKind = "trigger"
 )
 
 // Defines values for Job0JobKind.
@@ -407,16 +374,6 @@ const (
 	NewScriptWithDraftKindTrigger      NewScriptWithDraftKind = "trigger"
 )
 
-// Defines values for PathFlowType.
-const (
-	PathFlowTypeFlow PathFlowType = "flow"
-)
-
-// Defines values for PathScriptType.
-const (
-	PathScriptTypeScript PathScriptType = "script"
-)
-
 // Defines values for PolicyExecutionMode.
 const (
 	PolicyExecutionModeAnonymous PolicyExecutionMode = "anonymous"
@@ -447,30 +404,6 @@ const (
 	QueuedJobJobKindScript             QueuedJobJobKind = "script"
 	QueuedJobJobKindScriptHub          QueuedJobJobKind = "script_hub"
 	QueuedJobJobKindSinglescriptflow   QueuedJobJobKind = "singlescriptflow"
-)
-
-// Defines values for RawScriptLanguage.
-const (
-	RawScriptLanguageBash       RawScriptLanguage = "bash"
-	RawScriptLanguageBigquery   RawScriptLanguage = "bigquery"
-	RawScriptLanguageBun        RawScriptLanguage = "bun"
-	RawScriptLanguageDeno       RawScriptLanguage = "deno"
-	RawScriptLanguageGo         RawScriptLanguage = "go"
-	RawScriptLanguageGraphql    RawScriptLanguage = "graphql"
-	RawScriptLanguageMssql      RawScriptLanguage = "mssql"
-	RawScriptLanguageMysql      RawScriptLanguage = "mysql"
-	RawScriptLanguageNativets   RawScriptLanguage = "nativets"
-	RawScriptLanguageOracledb   RawScriptLanguage = "oracledb"
-	RawScriptLanguagePhp        RawScriptLanguage = "php"
-	RawScriptLanguagePostgresql RawScriptLanguage = "postgresql"
-	RawScriptLanguagePowershell RawScriptLanguage = "powershell"
-	RawScriptLanguagePython3    RawScriptLanguage = "python3"
-	RawScriptLanguageSnowflake  RawScriptLanguage = "snowflake"
-)
-
-// Defines values for RawScriptType.
-const (
-	Rawscript RawScriptType = "rawscript"
 )
 
 // Defines values for RunnableType.
@@ -515,20 +448,10 @@ const (
 	ScriptLangSnowflake  ScriptLang = "snowflake"
 )
 
-// Defines values for StaticTransformType.
-const (
-	StaticTransformTypeJavascript StaticTransformType = "javascript"
-)
-
 // Defines values for SubscriptionMode.
 const (
 	CreateUpdate SubscriptionMode = "create_update"
 	Existing     SubscriptionMode = "existing"
-)
-
-// Defines values for WhileloopFlowType.
-const (
-	WhileloopFlowTypeForloopflow WhileloopFlowType = "forloopflow"
 )
 
 // Defines values for WindmillFilePreviewContentType.
@@ -564,6 +487,91 @@ const (
 	WorkspaceGitSyncSettingsIncludeTypeTrigger      WorkspaceGitSyncSettingsIncludeType = "trigger"
 	WorkspaceGitSyncSettingsIncludeTypeUser         WorkspaceGitSyncSettingsIncludeType = "user"
 	WorkspaceGitSyncSettingsIncludeTypeVariable     WorkspaceGitSyncSettingsIncludeType = "variable"
+)
+
+// Defines values for SchemasBranchAllType.
+const (
+	Branchall SchemasBranchAllType = "branchall"
+)
+
+// Defines values for SchemasBranchOneType.
+const (
+	Branchone SchemasBranchOneType = "branchone"
+)
+
+// Defines values for SchemasFlowStatusModuleBranchChosenType.
+const (
+	SchemasFlowStatusModuleBranchChosenTypeBranch  SchemasFlowStatusModuleBranchChosenType = "branch"
+	SchemasFlowStatusModuleBranchChosenTypeDefault SchemasFlowStatusModuleBranchChosenType = "default"
+)
+
+// Defines values for SchemasFlowStatusModuleType.
+const (
+	SchemasFlowStatusModuleTypeFailure              SchemasFlowStatusModuleType = "Failure"
+	SchemasFlowStatusModuleTypeInProgress           SchemasFlowStatusModuleType = "InProgress"
+	SchemasFlowStatusModuleTypeSuccess              SchemasFlowStatusModuleType = "Success"
+	SchemasFlowStatusModuleTypeWaitingForEvents     SchemasFlowStatusModuleType = "WaitingForEvents"
+	SchemasFlowStatusModuleTypeWaitingForExecutor   SchemasFlowStatusModuleType = "WaitingForExecutor"
+	SchemasFlowStatusModuleTypeWaitingForPriorSteps SchemasFlowStatusModuleType = "WaitingForPriorSteps"
+)
+
+// Defines values for SchemasForloopFlowType.
+const (
+	SchemasForloopFlowTypeForloopflow SchemasForloopFlowType = "forloopflow"
+)
+
+// Defines values for SchemasIdentityType.
+const (
+	Identity SchemasIdentityType = "identity"
+)
+
+// Defines values for SchemasJavascriptTransformType.
+const (
+	SchemasJavascriptTransformTypeJavascript SchemasJavascriptTransformType = "javascript"
+)
+
+// Defines values for SchemasPathFlowType.
+const (
+	SchemasPathFlowTypeFlow SchemasPathFlowType = "flow"
+)
+
+// Defines values for SchemasPathScriptType.
+const (
+	SchemasPathScriptTypeScript SchemasPathScriptType = "script"
+)
+
+// Defines values for SchemasRawScriptLanguage.
+const (
+	SchemasRawScriptLanguageBash       SchemasRawScriptLanguage = "bash"
+	SchemasRawScriptLanguageBigquery   SchemasRawScriptLanguage = "bigquery"
+	SchemasRawScriptLanguageBun        SchemasRawScriptLanguage = "bun"
+	SchemasRawScriptLanguageDeno       SchemasRawScriptLanguage = "deno"
+	SchemasRawScriptLanguageGo         SchemasRawScriptLanguage = "go"
+	SchemasRawScriptLanguageGraphql    SchemasRawScriptLanguage = "graphql"
+	SchemasRawScriptLanguageMssql      SchemasRawScriptLanguage = "mssql"
+	SchemasRawScriptLanguageMysql      SchemasRawScriptLanguage = "mysql"
+	SchemasRawScriptLanguageNativets   SchemasRawScriptLanguage = "nativets"
+	SchemasRawScriptLanguageOracledb   SchemasRawScriptLanguage = "oracledb"
+	SchemasRawScriptLanguagePhp        SchemasRawScriptLanguage = "php"
+	SchemasRawScriptLanguagePostgresql SchemasRawScriptLanguage = "postgresql"
+	SchemasRawScriptLanguagePowershell SchemasRawScriptLanguage = "powershell"
+	SchemasRawScriptLanguagePython3    SchemasRawScriptLanguage = "python3"
+	SchemasRawScriptLanguageSnowflake  SchemasRawScriptLanguage = "snowflake"
+)
+
+// Defines values for SchemasRawScriptType.
+const (
+	Rawscript SchemasRawScriptType = "rawscript"
+)
+
+// Defines values for SchemasStaticTransformType.
+const (
+	SchemasStaticTransformTypeJavascript SchemasStaticTransformType = "javascript"
+)
+
+// Defines values for SchemasWhileloopFlowType.
+const (
+	SchemasWhileloopFlowTypeForloopflow SchemasWhileloopFlowType = "forloopflow"
 )
 
 // Defines values for ActionKind.
@@ -848,34 +856,6 @@ type AutoscalingEvent struct {
 
 // AwsAuthResourceType defines model for AwsAuthResourceType.
 type AwsAuthResourceType string
-
-// BranchAll defines model for BranchAll.
-type BranchAll struct {
-	Branches []struct {
-		Modules     []FlowModule `json:"modules"`
-		SkipFailure *bool        `json:"skip_failure,omitempty"`
-		Summary     *string      `json:"summary,omitempty"`
-	} `json:"branches"`
-	Parallel *bool         `json:"parallel,omitempty"`
-	Type     BranchAllType `json:"type"`
-}
-
-// BranchAllType defines model for BranchAll.Type.
-type BranchAllType string
-
-// BranchOne defines model for BranchOne.
-type BranchOne struct {
-	Branches []struct {
-		Expr    string       `json:"expr"`
-		Modules []FlowModule `json:"modules"`
-		Summary *string      `json:"summary,omitempty"`
-	} `json:"branches"`
-	Default []FlowModule  `json:"default"`
-	Type    BranchOneType `json:"type"`
-}
-
-// BranchOneType defines model for BranchOne.Type.
-type BranchOneType string
 
 // Capture defines model for Capture.
 type Capture struct {
@@ -1248,7 +1228,7 @@ type Flow struct {
 	Summary             string                  `json:"summary"`
 	Tag                 *string                 `json:"tag,omitempty"`
 	Timeout             *float32                `json:"timeout,omitempty"`
-	Value               FlowValue               `json:"value"`
+	Value               SchemasFlowValue        `json:"value"`
 	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 	WorkspaceId         *string                 `json:"workspace_id,omitempty"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -1271,46 +1251,6 @@ type FlowMetadata struct {
 	VisibleToRunnerOnly *bool      `json:"visible_to_runner_only,omitempty"`
 	WorkspaceId         *string    `json:"workspace_id,omitempty"`
 	WsErrorHandlerMuted *bool      `json:"ws_error_handler_muted,omitempty"`
-}
-
-// FlowModule defines model for FlowModule.
-type FlowModule struct {
-	CacheTtl        *float32 `json:"cache_ttl,omitempty"`
-	ContinueOnError *bool    `json:"continue_on_error,omitempty"`
-	DeleteAfterUse  *bool    `json:"delete_after_use,omitempty"`
-	Id              string   `json:"id"`
-	Mock            *struct {
-		Enabled     *bool        `json:"enabled,omitempty"`
-		ReturnValue *interface{} `json:"return_value,omitempty"`
-	} `json:"mock,omitempty"`
-	Priority *float32 `json:"priority,omitempty"`
-	Retry    *Retry   `json:"retry,omitempty"`
-	SkipIf   *struct {
-		Expr string `json:"expr"`
-	} `json:"skip_if,omitempty"`
-	Sleep               *InputTransform `json:"sleep,omitempty"`
-	StopAfterAllItersIf *StopAfterIf    `json:"stop_after_all_iters_if,omitempty"`
-	StopAfterIf         *StopAfterIf    `json:"stop_after_if,omitempty"`
-	Summary             *string         `json:"summary,omitempty"`
-	Suspend             *struct {
-		ContinueOnDisapproveTimeout *bool `json:"continue_on_disapprove_timeout,omitempty"`
-		HideCancel                  *bool `json:"hide_cancel,omitempty"`
-		RequiredEvents              *int  `json:"required_events,omitempty"`
-		ResumeForm                  *struct {
-			Schema *map[string]interface{} `json:"schema,omitempty"`
-		} `json:"resume_form,omitempty"`
-		SelfApprovalDisabled *bool           `json:"self_approval_disabled,omitempty"`
-		Timeout              *int            `json:"timeout,omitempty"`
-		UserAuthRequired     *bool           `json:"user_auth_required,omitempty"`
-		UserGroupsRequired   *InputTransform `json:"user_groups_required,omitempty"`
-	} `json:"suspend,omitempty"`
-	Timeout *float32        `json:"timeout,omitempty"`
-	Value   FlowModuleValue `json:"value"`
-}
-
-// FlowModuleValue defines model for FlowModuleValue.
-type FlowModuleValue struct {
-	union json.RawMessage
 }
 
 // FlowPreview defines model for FlowPreview.
@@ -1353,8 +1293,8 @@ type FlowStatus struct {
 		Skipped      *bool                       `json:"skipped,omitempty"`
 		Type         FlowStatusFailureModuleType `json:"type"`
 	} `json:"failure_module"`
-	Modules            []FlowStatusModule `json:"modules"`
-	PreprocessorModule *FlowStatusModule  `json:"preprocessor_module,omitempty"`
+	Modules            []SchemasFlowStatusModule `json:"modules"`
+	PreprocessorModule *SchemasFlowStatusModule  `json:"preprocessor_module,omitempty"`
 	Retry              *struct {
 		FailCount  *int                  `json:"fail_count,omitempty"`
 		FailedJobs *[]openapi_types.UUID `json:"failed_jobs,omitempty"`
@@ -1369,55 +1309,19 @@ type FlowStatusFailureModuleBranchChosenType string
 // FlowStatusFailureModuleType defines model for FlowStatus.FailureModule.Type.
 type FlowStatusFailureModuleType string
 
-// FlowStatusModule defines model for FlowStatusModule.
-type FlowStatusModule struct {
-	Approvers *[]struct {
-		Approver string `json:"approver"`
-		ResumeId int    `json:"resume_id"`
-	} `json:"approvers,omitempty"`
-	BranchChosen *struct {
-		Branch *int                             `json:"branch,omitempty"`
-		Type   FlowStatusModuleBranchChosenType `json:"type"`
-	} `json:"branch_chosen,omitempty"`
-	Branchall *struct {
-		Branch int `json:"branch"`
-		Len    int `json:"len"`
-	} `json:"branchall,omitempty"`
-	Count           *int                  `json:"count,omitempty"`
-	FailedRetries   *[]openapi_types.UUID `json:"failed_retries,omitempty"`
-	FlowJobs        *[]string             `json:"flow_jobs,omitempty"`
-	FlowJobsSuccess *[]bool               `json:"flow_jobs_success,omitempty"`
-	Id              *string               `json:"id,omitempty"`
-	Iterator        *struct {
-		Args   *interface{}   `json:"args,omitempty"`
-		Index  *int           `json:"index,omitempty"`
-		Itered *[]interface{} `json:"itered,omitempty"`
-	} `json:"iterator,omitempty"`
-	Job      *openapi_types.UUID  `json:"job,omitempty"`
-	Progress *int                 `json:"progress,omitempty"`
-	Skipped  *bool                `json:"skipped,omitempty"`
-	Type     FlowStatusModuleType `json:"type"`
-}
-
-// FlowStatusModuleBranchChosenType defines model for FlowStatusModule.BranchChosen.Type.
-type FlowStatusModuleBranchChosenType string
-
-// FlowStatusModuleType defines model for FlowStatusModule.Type.
-type FlowStatusModuleType string
-
 // FlowValue defines model for FlowValue.
 type FlowValue struct {
-	CacheTtl               *float32     `json:"cache_ttl,omitempty"`
-	ConcurrencyKey         *string      `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS *float32     `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *float32     `json:"concurrent_limit,omitempty"`
-	EarlyReturn            *string      `json:"early_return,omitempty"`
-	FailureModule          *FlowModule  `json:"failure_module,omitempty"`
-	Modules                []FlowModule `json:"modules"`
-	PreprocessorModule     *FlowModule  `json:"preprocessor_module,omitempty"`
-	Priority               *float32     `json:"priority,omitempty"`
-	SameWorker             *bool        `json:"same_worker,omitempty"`
-	SkipExpr               *string      `json:"skip_expr,omitempty"`
+	CacheTtl               *float32            `json:"cache_ttl,omitempty"`
+	ConcurrencyKey         *string             `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS *float32            `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *float32            `json:"concurrent_limit,omitempty"`
+	EarlyReturn            *string             `json:"early_return,omitempty"`
+	FailureModule          *SchemasFlowModule  `json:"failure_module,omitempty"`
+	Modules                []SchemasFlowModule `json:"modules"`
+	PreprocessorModule     *SchemasFlowModule  `json:"preprocessor_module,omitempty"`
+	Priority               *float32            `json:"priority,omitempty"`
+	SameWorker             *bool               `json:"same_worker,omitempty"`
+	SkipExpr               *string             `json:"skip_expr,omitempty"`
 }
 
 // FlowVersion defines model for FlowVersion.
@@ -1436,19 +1340,6 @@ type Folder struct {
 	Owners     []string        `json:"owners"`
 	Summary    *string         `json:"summary,omitempty"`
 }
-
-// ForloopFlow defines model for ForloopFlow.
-type ForloopFlow struct {
-	Iterator     InputTransform  `json:"iterator"`
-	Modules      []FlowModule    `json:"modules"`
-	Parallel     *bool           `json:"parallel,omitempty"`
-	Parallelism  *int            `json:"parallelism,omitempty"`
-	SkipFailures bool            `json:"skip_failures"`
-	Type         ForloopFlowType `json:"type"`
-}
-
-// ForloopFlowType defines model for ForloopFlow.Type.
-type ForloopFlowType string
 
 // GcpTrigger defines model for GcpTrigger.
 type GcpTrigger = TriggerExtraProperty
@@ -1532,16 +1423,7 @@ type Group struct {
 type HttpTrigger = TriggerExtraProperty
 
 // HubScriptKind defines model for HubScriptKind.
-type HubScriptKind = interface{}
-
-// Identity defines model for Identity.
-type Identity struct {
-	Flow *bool        `json:"flow,omitempty"`
-	Type IdentityType `json:"type"`
-}
-
-// IdentityType defines model for Identity.Type.
-type IdentityType string
+type HubScriptKind string
 
 // Input defines model for Input.
 type Input struct {
@@ -1564,15 +1446,6 @@ type InstanceGroup struct {
 	Name    string    `json:"name"`
 	Summary *string   `json:"summary,omitempty"`
 }
-
-// JavascriptTransform defines model for JavascriptTransform.
-type JavascriptTransform struct {
-	Expr string                  `json:"expr"`
-	Type JavascriptTransformType `json:"type"`
-}
-
-// JavascriptTransformType defines model for JavascriptTransform.Type.
-type JavascriptTransformType string
 
 // Job defines model for Job.
 type Job struct {
@@ -2056,7 +1929,7 @@ type OpenFlow struct {
 	Description *string                 `json:"description,omitempty"`
 	Schema      *map[string]interface{} `json:"schema,omitempty"`
 	Summary     string                  `json:"summary"`
-	Value       FlowValue               `json:"value"`
+	Value       SchemasFlowValue        `json:"value"`
 }
 
 // OpenFlowWPath defines model for OpenFlowWPath.
@@ -2070,7 +1943,7 @@ type OpenFlowWPath struct {
 	Summary             string                  `json:"summary"`
 	Tag                 *string                 `json:"tag,omitempty"`
 	Timeout             *float32                `json:"timeout,omitempty"`
-	Value               FlowValue               `json:"value"`
+	Value               SchemasFlowValue        `json:"value"`
 	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
@@ -2104,29 +1977,6 @@ type OperatorSettings struct {
 	// Workers Whether operators can view workers page
 	Workers bool `json:"workers"`
 }
-
-// PathFlow defines model for PathFlow.
-type PathFlow struct {
-	InputTransforms map[string]InputTransform `json:"input_transforms"`
-	Path            string                    `json:"path"`
-	Type            PathFlowType              `json:"type"`
-}
-
-// PathFlowType defines model for PathFlow.Type.
-type PathFlowType string
-
-// PathScript defines model for PathScript.
-type PathScript struct {
-	Hash            *string                   `json:"hash,omitempty"`
-	InputTransforms map[string]InputTransform `json:"input_transforms"`
-	IsTrigger       *bool                     `json:"is_trigger,omitempty"`
-	Path            string                    `json:"path"`
-	TagOverride     *string                   `json:"tag_override,omitempty"`
-	Type            PathScriptType            `json:"type"`
-}
-
-// PathScriptType defines model for PathScript.Type.
-type PathScriptType string
 
 // PolarsClientKwargs defines model for PolarsClientKwargs.
 type PolarsClientKwargs struct {
@@ -2224,27 +2074,6 @@ type QueuedJob struct {
 
 // QueuedJobJobKind defines model for QueuedJob.JobKind.
 type QueuedJobJobKind string
-
-// RawScript defines model for RawScript.
-type RawScript struct {
-	ConcurrencyTimeWindowS *float32                  `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *float32                  `json:"concurrent_limit,omitempty"`
-	Content                string                    `json:"content"`
-	CustomConcurrencyKey   *string                   `json:"custom_concurrency_key,omitempty"`
-	InputTransforms        map[string]InputTransform `json:"input_transforms"`
-	IsTrigger              *bool                     `json:"is_trigger,omitempty"`
-	Language               RawScriptLanguage         `json:"language"`
-	Lock                   *string                   `json:"lock,omitempty"`
-	Path                   *string                   `json:"path,omitempty"`
-	Tag                    *string                   `json:"tag,omitempty"`
-	Type                   RawScriptType             `json:"type"`
-}
-
-// RawScriptLanguage defines model for RawScript.Language.
-type RawScriptLanguage string
-
-// RawScriptType defines model for RawScript.Type.
-type RawScriptType string
 
 // RawScriptForDependencies defines model for RawScriptForDependencies.
 type RawScriptForDependencies struct {
@@ -2476,22 +2305,6 @@ type SlotList struct {
 // SqsTrigger defines model for SqsTrigger.
 type SqsTrigger = TriggerExtraProperty
 
-// StaticTransform defines model for StaticTransform.
-type StaticTransform struct {
-	Type  StaticTransformType `json:"type"`
-	Value *interface{}        `json:"value,omitempty"`
-}
-
-// StaticTransformType defines model for StaticTransform.Type.
-type StaticTransformType string
-
-// StopAfterIf defines model for StopAfterIf.
-type StopAfterIf struct {
-	ErrorMessage  *string `json:"error_message,omitempty"`
-	Expr          string  `json:"expr"`
-	SkipIfStopped *bool   `json:"skip_if_stopped,omitempty"`
-}
-
 // SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
 type SubscriptionMode string
 
@@ -2638,18 +2451,6 @@ type WebsocketTriggerInitialMessage1 struct {
 	} `json:"runnable_result"`
 }
 
-// WhileloopFlow defines model for WhileloopFlow.
-type WhileloopFlow struct {
-	Modules      []FlowModule      `json:"modules"`
-	Parallel     *bool             `json:"parallel,omitempty"`
-	Parallelism  *int              `json:"parallelism,omitempty"`
-	SkipFailures bool              `json:"skip_failures"`
-	Type         WhileloopFlowType `json:"type"`
-}
-
-// WhileloopFlowType defines model for WhileloopFlow.Type.
-type WhileloopFlowType string
-
 // WindmillFileMetadata defines model for WindmillFileMetadata.
 type WindmillFileMetadata struct {
 	Expires      *time.Time `json:"expires,omitempty"`
@@ -2755,6 +2556,247 @@ type WorkspaceInvite struct {
 	Operator    bool   `json:"operator"`
 	WorkspaceId string `json:"workspace_id"`
 }
+
+// SchemasBranchAll defines model for schemas-BranchAll.
+type SchemasBranchAll struct {
+	Branches []struct {
+		Modules     []SchemasFlowModule `json:"modules"`
+		SkipFailure *bool               `json:"skip_failure,omitempty"`
+		Summary     *string             `json:"summary,omitempty"`
+	} `json:"branches"`
+	Parallel *bool                `json:"parallel,omitempty"`
+	Type     SchemasBranchAllType `json:"type"`
+}
+
+// SchemasBranchAllType defines model for SchemasBranchAll.Type.
+type SchemasBranchAllType string
+
+// SchemasBranchOne defines model for schemas-BranchOne.
+type SchemasBranchOne struct {
+	Branches []struct {
+		Expr    string              `json:"expr"`
+		Modules []SchemasFlowModule `json:"modules"`
+		Summary *string             `json:"summary,omitempty"`
+	} `json:"branches"`
+	Default []SchemasFlowModule  `json:"default"`
+	Type    SchemasBranchOneType `json:"type"`
+}
+
+// SchemasBranchOneType defines model for SchemasBranchOne.Type.
+type SchemasBranchOneType string
+
+// SchemasFlowModule defines model for schemas-FlowModule.
+type SchemasFlowModule struct {
+	CacheTtl        *float32 `json:"cache_ttl,omitempty"`
+	ContinueOnError *bool    `json:"continue_on_error,omitempty"`
+	DeleteAfterUse  *bool    `json:"delete_after_use,omitempty"`
+	Id              string   `json:"id"`
+	Mock            *struct {
+		Enabled     *bool        `json:"enabled,omitempty"`
+		ReturnValue *interface{} `json:"return_value,omitempty"`
+	} `json:"mock,omitempty"`
+	Priority *float32      `json:"priority,omitempty"`
+	Retry    *SchemasRetry `json:"retry,omitempty"`
+	SkipIf   *struct {
+		Expr string `json:"expr"`
+	} `json:"skip_if,omitempty"`
+	Sleep               *SchemasInputTransform `json:"sleep,omitempty"`
+	StopAfterAllItersIf *SchemasStopAfterIf    `json:"stop_after_all_iters_if,omitempty"`
+	StopAfterIf         *SchemasStopAfterIf    `json:"stop_after_if,omitempty"`
+	Summary             *string                `json:"summary,omitempty"`
+	Suspend             *struct {
+		ContinueOnDisapproveTimeout *bool `json:"continue_on_disapprove_timeout,omitempty"`
+		HideCancel                  *bool `json:"hide_cancel,omitempty"`
+		RequiredEvents              *int  `json:"required_events,omitempty"`
+		ResumeForm                  *struct {
+			Schema *map[string]interface{} `json:"schema,omitempty"`
+		} `json:"resume_form,omitempty"`
+		SelfApprovalDisabled *bool                  `json:"self_approval_disabled,omitempty"`
+		Timeout              *int                   `json:"timeout,omitempty"`
+		UserAuthRequired     *bool                  `json:"user_auth_required,omitempty"`
+		UserGroupsRequired   *SchemasInputTransform `json:"user_groups_required,omitempty"`
+	} `json:"suspend,omitempty"`
+	Timeout *float32               `json:"timeout,omitempty"`
+	Value   SchemasFlowModuleValue `json:"value"`
+}
+
+// SchemasFlowModuleValue defines model for schemas-FlowModuleValue.
+type SchemasFlowModuleValue struct {
+	union json.RawMessage
+}
+
+// SchemasFlowStatusModule defines model for schemas-FlowStatusModule.
+type SchemasFlowStatusModule struct {
+	Approvers *[]struct {
+		Approver string `json:"approver"`
+		ResumeId int    `json:"resume_id"`
+	} `json:"approvers,omitempty"`
+	BranchChosen *struct {
+		Branch *int                                    `json:"branch,omitempty"`
+		Type   SchemasFlowStatusModuleBranchChosenType `json:"type"`
+	} `json:"branch_chosen,omitempty"`
+	Branchall *struct {
+		Branch int `json:"branch"`
+		Len    int `json:"len"`
+	} `json:"branchall,omitempty"`
+	Count           *int                  `json:"count,omitempty"`
+	FailedRetries   *[]openapi_types.UUID `json:"failed_retries,omitempty"`
+	FlowJobs        *[]string             `json:"flow_jobs,omitempty"`
+	FlowJobsSuccess *[]bool               `json:"flow_jobs_success,omitempty"`
+	Id              *string               `json:"id,omitempty"`
+	Iterator        *struct {
+		Args   *interface{}   `json:"args,omitempty"`
+		Index  *int           `json:"index,omitempty"`
+		Itered *[]interface{} `json:"itered,omitempty"`
+	} `json:"iterator,omitempty"`
+	Job      *openapi_types.UUID         `json:"job,omitempty"`
+	Progress *int                        `json:"progress,omitempty"`
+	Skipped  *bool                       `json:"skipped,omitempty"`
+	Type     SchemasFlowStatusModuleType `json:"type"`
+}
+
+// SchemasFlowStatusModuleBranchChosenType defines model for SchemasFlowStatusModule.BranchChosen.Type.
+type SchemasFlowStatusModuleBranchChosenType string
+
+// SchemasFlowStatusModuleType defines model for SchemasFlowStatusModule.Type.
+type SchemasFlowStatusModuleType string
+
+// SchemasFlowValue defines model for schemas-FlowValue.
+type SchemasFlowValue struct {
+	CacheTtl               *float32            `json:"cache_ttl,omitempty"`
+	ConcurrencyKey         *string             `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS *float32            `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *float32            `json:"concurrent_limit,omitempty"`
+	EarlyReturn            *string             `json:"early_return,omitempty"`
+	FailureModule          *SchemasFlowModule  `json:"failure_module,omitempty"`
+	Modules                []SchemasFlowModule `json:"modules"`
+	PreprocessorModule     *SchemasFlowModule  `json:"preprocessor_module,omitempty"`
+	Priority               *float32            `json:"priority,omitempty"`
+	SameWorker             *bool               `json:"same_worker,omitempty"`
+	SkipExpr               *string             `json:"skip_expr,omitempty"`
+}
+
+// SchemasForloopFlow defines model for schemas-ForloopFlow.
+type SchemasForloopFlow struct {
+	Iterator     SchemasInputTransform  `json:"iterator"`
+	Modules      []SchemasFlowModule    `json:"modules"`
+	Parallel     *bool                  `json:"parallel,omitempty"`
+	Parallelism  *int                   `json:"parallelism,omitempty"`
+	SkipFailures bool                   `json:"skip_failures"`
+	Type         SchemasForloopFlowType `json:"type"`
+}
+
+// SchemasForloopFlowType defines model for SchemasForloopFlow.Type.
+type SchemasForloopFlowType string
+
+// SchemasIdentity defines model for schemas-Identity.
+type SchemasIdentity struct {
+	Flow *bool               `json:"flow,omitempty"`
+	Type SchemasIdentityType `json:"type"`
+}
+
+// SchemasIdentityType defines model for SchemasIdentity.Type.
+type SchemasIdentityType string
+
+// SchemasInputTransform defines model for schemas-InputTransform.
+type SchemasInputTransform struct {
+	union json.RawMessage
+}
+
+// SchemasJavascriptTransform defines model for schemas-JavascriptTransform.
+type SchemasJavascriptTransform struct {
+	Expr string                         `json:"expr"`
+	Type SchemasJavascriptTransformType `json:"type"`
+}
+
+// SchemasJavascriptTransformType defines model for SchemasJavascriptTransform.Type.
+type SchemasJavascriptTransformType string
+
+// SchemasPathFlow defines model for schemas-PathFlow.
+type SchemasPathFlow struct {
+	InputTransforms map[string]SchemasInputTransform `json:"input_transforms"`
+	Path            string                           `json:"path"`
+	Type            SchemasPathFlowType              `json:"type"`
+}
+
+// SchemasPathFlowType defines model for SchemasPathFlow.Type.
+type SchemasPathFlowType string
+
+// SchemasPathScript defines model for schemas-PathScript.
+type SchemasPathScript struct {
+	Hash            *string                          `json:"hash,omitempty"`
+	InputTransforms map[string]SchemasInputTransform `json:"input_transforms"`
+	IsTrigger       *bool                            `json:"is_trigger,omitempty"`
+	Path            string                           `json:"path"`
+	TagOverride     *string                          `json:"tag_override,omitempty"`
+	Type            SchemasPathScriptType            `json:"type"`
+}
+
+// SchemasPathScriptType defines model for SchemasPathScript.Type.
+type SchemasPathScriptType string
+
+// SchemasRawScript defines model for schemas-RawScript.
+type SchemasRawScript struct {
+	ConcurrencyTimeWindowS *float32                         `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *float32                         `json:"concurrent_limit,omitempty"`
+	Content                string                           `json:"content"`
+	CustomConcurrencyKey   *string                          `json:"custom_concurrency_key,omitempty"`
+	InputTransforms        map[string]SchemasInputTransform `json:"input_transforms"`
+	IsTrigger              *bool                            `json:"is_trigger,omitempty"`
+	Language               SchemasRawScriptLanguage         `json:"language"`
+	Lock                   *string                          `json:"lock,omitempty"`
+	Path                   *string                          `json:"path,omitempty"`
+	Tag                    *string                          `json:"tag,omitempty"`
+	Type                   SchemasRawScriptType             `json:"type"`
+}
+
+// SchemasRawScriptLanguage defines model for SchemasRawScript.Language.
+type SchemasRawScriptLanguage string
+
+// SchemasRawScriptType defines model for SchemasRawScript.Type.
+type SchemasRawScriptType string
+
+// SchemasRetry defines model for schemas-Retry.
+type SchemasRetry struct {
+	Constant *struct {
+		Attempts *int `json:"attempts,omitempty"`
+		Seconds  *int `json:"seconds,omitempty"`
+	} `json:"constant,omitempty"`
+	Exponential *struct {
+		Attempts     *int `json:"attempts,omitempty"`
+		Multiplier   *int `json:"multiplier,omitempty"`
+		RandomFactor *int `json:"random_factor,omitempty"`
+		Seconds      *int `json:"seconds,omitempty"`
+	} `json:"exponential,omitempty"`
+}
+
+// SchemasStaticTransform defines model for schemas-StaticTransform.
+type SchemasStaticTransform struct {
+	Type  SchemasStaticTransformType `json:"type"`
+	Value *interface{}               `json:"value,omitempty"`
+}
+
+// SchemasStaticTransformType defines model for SchemasStaticTransform.Type.
+type SchemasStaticTransformType string
+
+// SchemasStopAfterIf defines model for schemas-StopAfterIf.
+type SchemasStopAfterIf struct {
+	ErrorMessage  *string `json:"error_message,omitempty"`
+	Expr          string  `json:"expr"`
+	SkipIfStopped *bool   `json:"skip_if_stopped,omitempty"`
+}
+
+// SchemasWhileloopFlow defines model for schemas-WhileloopFlow.
+type SchemasWhileloopFlow struct {
+	Modules      []SchemasFlowModule      `json:"modules"`
+	Parallel     *bool                    `json:"parallel,omitempty"`
+	Parallelism  *int                     `json:"parallelism,omitempty"`
+	SkipFailures bool                     `json:"skip_failures"`
+	Type         SchemasWhileloopFlowType `json:"type"`
+}
+
+// SchemasWhileloopFlowType defines model for SchemasWhileloopFlow.Type.
+type SchemasWhileloopFlowType string
 
 // AccountId defines model for AccountId.
 type AccountId = int
@@ -3606,7 +3648,7 @@ type CreateFlowJSONBody struct {
 	Summary             string                  `json:"summary"`
 	Tag                 *string                 `json:"tag,omitempty"`
 	Timeout             *float32                `json:"timeout,omitempty"`
-	Value               FlowValue               `json:"value"`
+	Value               SchemasFlowValue        `json:"value"`
 	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
@@ -3686,7 +3728,7 @@ type UpdateFlowJSONBody struct {
 	Summary             string                  `json:"summary"`
 	Tag                 *string                 `json:"tag,omitempty"`
 	Timeout             *float32                `json:"timeout,omitempty"`
-	Value               FlowValue               `json:"value"`
+	Value               SchemasFlowValue        `json:"value"`
 	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
@@ -5932,292 +5974,23 @@ type ExistsWorkspaceJSONRequestBody ExistsWorkspaceJSONBody
 // ExistsUsernameJSONRequestBody defines body for ExistsUsername for application/json ContentType.
 type ExistsUsernameJSONRequestBody ExistsUsernameJSONBody
 
-// AsRawScript returns the union data inside the FlowModuleValue as a RawScript
-func (t FlowModuleValue) AsRawScript() (RawScript, error) {
-	var body RawScript
+// AsSchemasStaticTransform returns the union data inside the InputTransform as a SchemasStaticTransform
+func (t InputTransform) AsSchemasStaticTransform() (SchemasStaticTransform, error) {
+	var body SchemasStaticTransform
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRawScript overwrites any union data inside the FlowModuleValue as the provided RawScript
-func (t *FlowModuleValue) FromRawScript(v RawScript) error {
-	v.Type = "rawscript"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeRawScript performs a merge with any union data inside the FlowModuleValue, using the provided RawScript
-func (t *FlowModuleValue) MergeRawScript(v RawScript) error {
-	v.Type = "rawscript"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsPathScript returns the union data inside the FlowModuleValue as a PathScript
-func (t FlowModuleValue) AsPathScript() (PathScript, error) {
-	var body PathScript
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromPathScript overwrites any union data inside the FlowModuleValue as the provided PathScript
-func (t *FlowModuleValue) FromPathScript(v PathScript) error {
-	v.Type = "script"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergePathScript performs a merge with any union data inside the FlowModuleValue, using the provided PathScript
-func (t *FlowModuleValue) MergePathScript(v PathScript) error {
-	v.Type = "script"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsPathFlow returns the union data inside the FlowModuleValue as a PathFlow
-func (t FlowModuleValue) AsPathFlow() (PathFlow, error) {
-	var body PathFlow
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromPathFlow overwrites any union data inside the FlowModuleValue as the provided PathFlow
-func (t *FlowModuleValue) FromPathFlow(v PathFlow) error {
-	v.Type = "flow"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergePathFlow performs a merge with any union data inside the FlowModuleValue, using the provided PathFlow
-func (t *FlowModuleValue) MergePathFlow(v PathFlow) error {
-	v.Type = "flow"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsForloopFlow returns the union data inside the FlowModuleValue as a ForloopFlow
-func (t FlowModuleValue) AsForloopFlow() (ForloopFlow, error) {
-	var body ForloopFlow
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromForloopFlow overwrites any union data inside the FlowModuleValue as the provided ForloopFlow
-func (t *FlowModuleValue) FromForloopFlow(v ForloopFlow) error {
-	v.Type = "forloopflow"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeForloopFlow performs a merge with any union data inside the FlowModuleValue, using the provided ForloopFlow
-func (t *FlowModuleValue) MergeForloopFlow(v ForloopFlow) error {
-	v.Type = "forloopflow"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsWhileloopFlow returns the union data inside the FlowModuleValue as a WhileloopFlow
-func (t FlowModuleValue) AsWhileloopFlow() (WhileloopFlow, error) {
-	var body WhileloopFlow
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromWhileloopFlow overwrites any union data inside the FlowModuleValue as the provided WhileloopFlow
-func (t *FlowModuleValue) FromWhileloopFlow(v WhileloopFlow) error {
-	v.Type = "whileloopflow"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeWhileloopFlow performs a merge with any union data inside the FlowModuleValue, using the provided WhileloopFlow
-func (t *FlowModuleValue) MergeWhileloopFlow(v WhileloopFlow) error {
-	v.Type = "whileloopflow"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsBranchOne returns the union data inside the FlowModuleValue as a BranchOne
-func (t FlowModuleValue) AsBranchOne() (BranchOne, error) {
-	var body BranchOne
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromBranchOne overwrites any union data inside the FlowModuleValue as the provided BranchOne
-func (t *FlowModuleValue) FromBranchOne(v BranchOne) error {
-	v.Type = "branchone"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeBranchOne performs a merge with any union data inside the FlowModuleValue, using the provided BranchOne
-func (t *FlowModuleValue) MergeBranchOne(v BranchOne) error {
-	v.Type = "branchone"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsBranchAll returns the union data inside the FlowModuleValue as a BranchAll
-func (t FlowModuleValue) AsBranchAll() (BranchAll, error) {
-	var body BranchAll
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromBranchAll overwrites any union data inside the FlowModuleValue as the provided BranchAll
-func (t *FlowModuleValue) FromBranchAll(v BranchAll) error {
-	v.Type = "branchall"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeBranchAll performs a merge with any union data inside the FlowModuleValue, using the provided BranchAll
-func (t *FlowModuleValue) MergeBranchAll(v BranchAll) error {
-	v.Type = "branchall"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsIdentity returns the union data inside the FlowModuleValue as a Identity
-func (t FlowModuleValue) AsIdentity() (Identity, error) {
-	var body Identity
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromIdentity overwrites any union data inside the FlowModuleValue as the provided Identity
-func (t *FlowModuleValue) FromIdentity(v Identity) error {
-	v.Type = "identity"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeIdentity performs a merge with any union data inside the FlowModuleValue, using the provided Identity
-func (t *FlowModuleValue) MergeIdentity(v Identity) error {
-	v.Type = "identity"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t FlowModuleValue) Discriminator() (string, error) {
-	var discriminator struct {
-		Discriminator string `json:"type"`
-	}
-	err := json.Unmarshal(t.union, &discriminator)
-	return discriminator.Discriminator, err
-}
-
-func (t FlowModuleValue) ValueByDiscriminator() (interface{}, error) {
-	discriminator, err := t.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch discriminator {
-	case "branchall":
-		return t.AsBranchAll()
-	case "branchone":
-		return t.AsBranchOne()
-	case "flow":
-		return t.AsPathFlow()
-	case "forloopflow":
-		return t.AsForloopFlow()
-	case "identity":
-		return t.AsIdentity()
-	case "rawscript":
-		return t.AsRawScript()
-	case "script":
-		return t.AsPathScript()
-	case "whileloopflow":
-		return t.AsWhileloopFlow()
-	default:
-		return nil, errors.New("unknown discriminator value: " + discriminator)
-	}
-}
-
-func (t FlowModuleValue) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *FlowModuleValue) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsStaticTransform returns the union data inside the InputTransform as a StaticTransform
-func (t InputTransform) AsStaticTransform() (StaticTransform, error) {
-	var body StaticTransform
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromStaticTransform overwrites any union data inside the InputTransform as the provided StaticTransform
-func (t *InputTransform) FromStaticTransform(v StaticTransform) error {
+// FromSchemasStaticTransform overwrites any union data inside the InputTransform as the provided SchemasStaticTransform
+func (t *InputTransform) FromSchemasStaticTransform(v SchemasStaticTransform) error {
 	v.Type = "static"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeStaticTransform performs a merge with any union data inside the InputTransform, using the provided StaticTransform
-func (t *InputTransform) MergeStaticTransform(v StaticTransform) error {
+// MergeSchemasStaticTransform performs a merge with any union data inside the InputTransform, using the provided SchemasStaticTransform
+func (t *InputTransform) MergeSchemasStaticTransform(v SchemasStaticTransform) error {
 	v.Type = "static"
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -6229,23 +6002,23 @@ func (t *InputTransform) MergeStaticTransform(v StaticTransform) error {
 	return err
 }
 
-// AsJavascriptTransform returns the union data inside the InputTransform as a JavascriptTransform
-func (t InputTransform) AsJavascriptTransform() (JavascriptTransform, error) {
-	var body JavascriptTransform
+// AsSchemasJavascriptTransform returns the union data inside the InputTransform as a SchemasJavascriptTransform
+func (t InputTransform) AsSchemasJavascriptTransform() (SchemasJavascriptTransform, error) {
+	var body SchemasJavascriptTransform
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromJavascriptTransform overwrites any union data inside the InputTransform as the provided JavascriptTransform
-func (t *InputTransform) FromJavascriptTransform(v JavascriptTransform) error {
+// FromSchemasJavascriptTransform overwrites any union data inside the InputTransform as the provided SchemasJavascriptTransform
+func (t *InputTransform) FromSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
 	v.Type = "javascript"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeJavascriptTransform performs a merge with any union data inside the InputTransform, using the provided JavascriptTransform
-func (t *InputTransform) MergeJavascriptTransform(v JavascriptTransform) error {
+// MergeSchemasJavascriptTransform performs a merge with any union data inside the InputTransform, using the provided SchemasJavascriptTransform
+func (t *InputTransform) MergeSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
 	v.Type = "javascript"
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -6272,9 +6045,9 @@ func (t InputTransform) ValueByDiscriminator() (interface{}, error) {
 	}
 	switch discriminator {
 	case "javascript":
-		return t.AsJavascriptTransform()
+		return t.AsSchemasJavascriptTransform()
 	case "static":
-		return t.AsStaticTransform()
+		return t.AsSchemasStaticTransform()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -6410,6 +6183,364 @@ func (t WebsocketTriggerInitialMessage) MarshalJSON() ([]byte, error) {
 }
 
 func (t *WebsocketTriggerInitialMessage) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsSchemasRawScript returns the union data inside the SchemasFlowModuleValue as a SchemasRawScript
+func (t SchemasFlowModuleValue) AsSchemasRawScript() (SchemasRawScript, error) {
+	var body SchemasRawScript
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasRawScript overwrites any union data inside the SchemasFlowModuleValue as the provided SchemasRawScript
+func (t *SchemasFlowModuleValue) FromSchemasRawScript(v SchemasRawScript) error {
+	v.Type = "rawscript"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasRawScript performs a merge with any union data inside the SchemasFlowModuleValue, using the provided SchemasRawScript
+func (t *SchemasFlowModuleValue) MergeSchemasRawScript(v SchemasRawScript) error {
+	v.Type = "rawscript"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasPathScript returns the union data inside the SchemasFlowModuleValue as a SchemasPathScript
+func (t SchemasFlowModuleValue) AsSchemasPathScript() (SchemasPathScript, error) {
+	var body SchemasPathScript
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasPathScript overwrites any union data inside the SchemasFlowModuleValue as the provided SchemasPathScript
+func (t *SchemasFlowModuleValue) FromSchemasPathScript(v SchemasPathScript) error {
+	v.Type = "script"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasPathScript performs a merge with any union data inside the SchemasFlowModuleValue, using the provided SchemasPathScript
+func (t *SchemasFlowModuleValue) MergeSchemasPathScript(v SchemasPathScript) error {
+	v.Type = "script"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasPathFlow returns the union data inside the SchemasFlowModuleValue as a SchemasPathFlow
+func (t SchemasFlowModuleValue) AsSchemasPathFlow() (SchemasPathFlow, error) {
+	var body SchemasPathFlow
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasPathFlow overwrites any union data inside the SchemasFlowModuleValue as the provided SchemasPathFlow
+func (t *SchemasFlowModuleValue) FromSchemasPathFlow(v SchemasPathFlow) error {
+	v.Type = "flow"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasPathFlow performs a merge with any union data inside the SchemasFlowModuleValue, using the provided SchemasPathFlow
+func (t *SchemasFlowModuleValue) MergeSchemasPathFlow(v SchemasPathFlow) error {
+	v.Type = "flow"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasForloopFlow returns the union data inside the SchemasFlowModuleValue as a SchemasForloopFlow
+func (t SchemasFlowModuleValue) AsSchemasForloopFlow() (SchemasForloopFlow, error) {
+	var body SchemasForloopFlow
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasForloopFlow overwrites any union data inside the SchemasFlowModuleValue as the provided SchemasForloopFlow
+func (t *SchemasFlowModuleValue) FromSchemasForloopFlow(v SchemasForloopFlow) error {
+	v.Type = "forloopflow"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasForloopFlow performs a merge with any union data inside the SchemasFlowModuleValue, using the provided SchemasForloopFlow
+func (t *SchemasFlowModuleValue) MergeSchemasForloopFlow(v SchemasForloopFlow) error {
+	v.Type = "forloopflow"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasWhileloopFlow returns the union data inside the SchemasFlowModuleValue as a SchemasWhileloopFlow
+func (t SchemasFlowModuleValue) AsSchemasWhileloopFlow() (SchemasWhileloopFlow, error) {
+	var body SchemasWhileloopFlow
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasWhileloopFlow overwrites any union data inside the SchemasFlowModuleValue as the provided SchemasWhileloopFlow
+func (t *SchemasFlowModuleValue) FromSchemasWhileloopFlow(v SchemasWhileloopFlow) error {
+	v.Type = "whileloopflow"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasWhileloopFlow performs a merge with any union data inside the SchemasFlowModuleValue, using the provided SchemasWhileloopFlow
+func (t *SchemasFlowModuleValue) MergeSchemasWhileloopFlow(v SchemasWhileloopFlow) error {
+	v.Type = "whileloopflow"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasBranchOne returns the union data inside the SchemasFlowModuleValue as a SchemasBranchOne
+func (t SchemasFlowModuleValue) AsSchemasBranchOne() (SchemasBranchOne, error) {
+	var body SchemasBranchOne
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasBranchOne overwrites any union data inside the SchemasFlowModuleValue as the provided SchemasBranchOne
+func (t *SchemasFlowModuleValue) FromSchemasBranchOne(v SchemasBranchOne) error {
+	v.Type = "branchone"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasBranchOne performs a merge with any union data inside the SchemasFlowModuleValue, using the provided SchemasBranchOne
+func (t *SchemasFlowModuleValue) MergeSchemasBranchOne(v SchemasBranchOne) error {
+	v.Type = "branchone"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasBranchAll returns the union data inside the SchemasFlowModuleValue as a SchemasBranchAll
+func (t SchemasFlowModuleValue) AsSchemasBranchAll() (SchemasBranchAll, error) {
+	var body SchemasBranchAll
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasBranchAll overwrites any union data inside the SchemasFlowModuleValue as the provided SchemasBranchAll
+func (t *SchemasFlowModuleValue) FromSchemasBranchAll(v SchemasBranchAll) error {
+	v.Type = "branchall"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasBranchAll performs a merge with any union data inside the SchemasFlowModuleValue, using the provided SchemasBranchAll
+func (t *SchemasFlowModuleValue) MergeSchemasBranchAll(v SchemasBranchAll) error {
+	v.Type = "branchall"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasIdentity returns the union data inside the SchemasFlowModuleValue as a SchemasIdentity
+func (t SchemasFlowModuleValue) AsSchemasIdentity() (SchemasIdentity, error) {
+	var body SchemasIdentity
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasIdentity overwrites any union data inside the SchemasFlowModuleValue as the provided SchemasIdentity
+func (t *SchemasFlowModuleValue) FromSchemasIdentity(v SchemasIdentity) error {
+	v.Type = "identity"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasIdentity performs a merge with any union data inside the SchemasFlowModuleValue, using the provided SchemasIdentity
+func (t *SchemasFlowModuleValue) MergeSchemasIdentity(v SchemasIdentity) error {
+	v.Type = "identity"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t SchemasFlowModuleValue) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t SchemasFlowModuleValue) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "branchall":
+		return t.AsSchemasBranchAll()
+	case "branchone":
+		return t.AsSchemasBranchOne()
+	case "flow":
+		return t.AsSchemasPathFlow()
+	case "forloopflow":
+		return t.AsSchemasForloopFlow()
+	case "identity":
+		return t.AsSchemasIdentity()
+	case "rawscript":
+		return t.AsSchemasRawScript()
+	case "script":
+		return t.AsSchemasPathScript()
+	case "whileloopflow":
+		return t.AsSchemasWhileloopFlow()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t SchemasFlowModuleValue) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *SchemasFlowModuleValue) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsSchemasStaticTransform returns the union data inside the SchemasInputTransform as a SchemasStaticTransform
+func (t SchemasInputTransform) AsSchemasStaticTransform() (SchemasStaticTransform, error) {
+	var body SchemasStaticTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasStaticTransform overwrites any union data inside the SchemasInputTransform as the provided SchemasStaticTransform
+func (t *SchemasInputTransform) FromSchemasStaticTransform(v SchemasStaticTransform) error {
+	v.Type = "static"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasStaticTransform performs a merge with any union data inside the SchemasInputTransform, using the provided SchemasStaticTransform
+func (t *SchemasInputTransform) MergeSchemasStaticTransform(v SchemasStaticTransform) error {
+	v.Type = "static"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasJavascriptTransform returns the union data inside the SchemasInputTransform as a SchemasJavascriptTransform
+func (t SchemasInputTransform) AsSchemasJavascriptTransform() (SchemasJavascriptTransform, error) {
+	var body SchemasJavascriptTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasJavascriptTransform overwrites any union data inside the SchemasInputTransform as the provided SchemasJavascriptTransform
+func (t *SchemasInputTransform) FromSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
+	v.Type = "javascript"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasJavascriptTransform performs a merge with any union data inside the SchemasInputTransform, using the provided SchemasJavascriptTransform
+func (t *SchemasInputTransform) MergeSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
+	v.Type = "javascript"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t SchemasInputTransform) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t SchemasInputTransform) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "javascript":
+		return t.AsSchemasJavascriptTransform()
+	case "static":
+		return t.AsSchemasStaticTransform()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t SchemasInputTransform) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *SchemasInputTransform) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -49836,7 +49967,7 @@ type GetFlowByPathWithDraftResponse struct {
 		Summary             string                  `json:"summary"`
 		Tag                 *string                 `json:"tag,omitempty"`
 		Timeout             *float32                `json:"timeout,omitempty"`
-		Value               FlowValue               `json:"value"`
+		Value               SchemasFlowValue        `json:"value"`
 		VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 		WorkspaceId         *string                 `json:"workspace_id,omitempty"`
 		WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -50011,7 +50142,7 @@ type ListFlowsResponse struct {
 		Summary             string                  `json:"summary"`
 		Tag                 *string                 `json:"tag,omitempty"`
 		Timeout             *float32                `json:"timeout,omitempty"`
-		Value               FlowValue               `json:"value"`
+		Value               SchemasFlowValue        `json:"value"`
 		VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 		WorkspaceId         *string                 `json:"workspace_id,omitempty"`
 		WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -66244,7 +66375,7 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			Summary             string                  `json:"summary"`
 			Tag                 *string                 `json:"tag,omitempty"`
 			Timeout             *float32                `json:"timeout,omitempty"`
-			Value               FlowValue               `json:"value"`
+			Value               SchemasFlowValue        `json:"value"`
 			VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 			WorkspaceId         *string                 `json:"workspace_id,omitempty"`
 			WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -66438,7 +66569,7 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			Summary             string                  `json:"summary"`
 			Tag                 *string                 `json:"tag,omitempty"`
 			Timeout             *float32                `json:"timeout,omitempty"`
-			Value               FlowValue               `json:"value"`
+			Value               SchemasFlowValue        `json:"value"`
 			VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 			WorkspaceId         *string                 `json:"workspace_id,omitempty"`
 			WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
