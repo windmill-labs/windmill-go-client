@@ -5158,6 +5158,10 @@ type ListScriptsParams struct {
 	// WithDeploymentMsg (default false)
 	// include deployment message
 	WithDeploymentMsg *bool `form:"with_deployment_msg,omitempty" json:"with_deployment_msg,omitempty"`
+
+	// Languages Filter to only include scripts written in the given languages.
+	// Accepts multiple values as a comma-separated list.
+	Languages *string `form:"languages,omitempty" json:"languages,omitempty"`
 }
 
 // ToggleWorkspaceErrorHandlerForScriptJSONBody defines parameters for ToggleWorkspaceErrorHandlerForScript.
@@ -7797,6 +7801,9 @@ type ClientInterface interface {
 
 	// ListPostgresTriggers request
 	ListPostgresTriggers(ctx context.Context, workspace WorkspaceId, params *ListPostgresTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetPostgresVersion request
+	GetPostgresVersion(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreatePostgresPublicationWithBody request with any body
 	CreatePostgresPublicationWithBody(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -13589,6 +13596,18 @@ func (c *Client) IsValidPostgresConfiguration(ctx context.Context, workspace Wor
 
 func (c *Client) ListPostgresTriggers(ctx context.Context, workspace WorkspaceId, params *ListPostgresTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListPostgresTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPostgresVersion(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPostgresVersionRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -36792,6 +36811,47 @@ func NewListPostgresTriggersRequest(server string, workspace WorkspaceId, params
 	return req, nil
 }
 
+// NewGetPostgresVersionRequest generates requests for GetPostgresVersion
+func NewGetPostgresVersionRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/postgres/version/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreatePostgresPublicationRequest calls the generic CreatePostgresPublication builder with application/json body
 func NewCreatePostgresPublicationRequest(server string, workspace WorkspaceId, publication PublicationName, path Path, body CreatePostgresPublicationJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -40086,6 +40146,22 @@ func NewListScriptsRequest(server string, workspace WorkspaceId, params *ListScr
 		if params.WithDeploymentMsg != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_deployment_msg", runtime.ParamLocationQuery, *params.WithDeploymentMsg); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Languages != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "languages", runtime.ParamLocationQuery, *params.Languages); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -46049,6 +46125,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListPostgresTriggersWithResponse request
 	ListPostgresTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListPostgresTriggersParams, reqEditors ...RequestEditorFn) (*ListPostgresTriggersResponse, error)
+
+	// GetPostgresVersionWithResponse request
+	GetPostgresVersionWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPostgresVersionResponse, error)
 
 	// CreatePostgresPublicationWithBodyWithResponse request with any body
 	CreatePostgresPublicationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePostgresPublicationResponse, error)
@@ -53756,6 +53835,28 @@ func (r ListPostgresTriggersResponse) StatusCode() int {
 	return 0
 }
 
+type GetPostgresVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPostgresVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPostgresVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreatePostgresPublicationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -61140,6 +61241,15 @@ func (c *ClientWithResponses) ListPostgresTriggersWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseListPostgresTriggersResponse(rsp)
+}
+
+// GetPostgresVersionWithResponse request returning *GetPostgresVersionResponse
+func (c *ClientWithResponses) GetPostgresVersionWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPostgresVersionResponse, error) {
+	rsp, err := c.GetPostgresVersion(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPostgresVersionResponse(rsp)
 }
 
 // CreatePostgresPublicationWithBodyWithResponse request with arbitrary body returning *CreatePostgresPublicationResponse
@@ -70106,6 +70216,32 @@ func ParseListPostgresTriggersResponse(rsp *http.Response) (*ListPostgresTrigger
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []PostgresTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetPostgresVersionResponse parses an HTTP response from a GetPostgresVersionWithResponse call
+func ParseGetPostgresVersionResponse(rsp *http.Response) (*GetPostgresVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPostgresVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
