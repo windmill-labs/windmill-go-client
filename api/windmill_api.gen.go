@@ -203,15 +203,6 @@ const (
 	Push DeliveryType = "push"
 )
 
-// Defines values for EditHttpTriggerHttpMethod.
-const (
-	EditHttpTriggerHttpMethodDelete EditHttpTriggerHttpMethod = "delete"
-	EditHttpTriggerHttpMethodGet    EditHttpTriggerHttpMethod = "get"
-	EditHttpTriggerHttpMethodPatch  EditHttpTriggerHttpMethod = "patch"
-	EditHttpTriggerHttpMethodPost   EditHttpTriggerHttpMethod = "post"
-	EditHttpTriggerHttpMethodPut    EditHttpTriggerHttpMethod = "put"
-)
-
 // Defines values for FlowStatusFailureModuleBranchChosenType.
 const (
 	FlowStatusFailureModuleBranchChosenTypeBranch  FlowStatusFailureModuleBranchChosenType = "branch"
@@ -248,6 +239,15 @@ const (
 const (
 	Github   GlobalUserInfoLoginType = "github"
 	Password GlobalUserInfoLoginType = "password"
+)
+
+// Defines values for HttpMethod.
+const (
+	HttpMethodDelete HttpMethod = "delete"
+	HttpMethodGet    HttpMethod = "get"
+	HttpMethodPatch  HttpMethod = "patch"
+	HttpMethodPost   HttpMethod = "post"
+	HttpMethodPut    HttpMethod = "put"
 )
 
 // Defines values for HubScriptKind.
@@ -343,15 +343,6 @@ const (
 	Qos0 MqttQoS = "qos0"
 	Qos1 MqttQoS = "qos1"
 	Qos2 MqttQoS = "qos2"
-)
-
-// Defines values for NewHttpTriggerHttpMethod.
-const (
-	NewHttpTriggerHttpMethodDelete NewHttpTriggerHttpMethod = "delete"
-	NewHttpTriggerHttpMethodGet    NewHttpTriggerHttpMethod = "get"
-	NewHttpTriggerHttpMethodPatch  NewHttpTriggerHttpMethod = "patch"
-	NewHttpTriggerHttpMethodPost   NewHttpTriggerHttpMethod = "post"
-	NewHttpTriggerHttpMethodPut    NewHttpTriggerHttpMethod = "put"
 )
 
 // Defines values for NewScriptKind.
@@ -731,15 +722,6 @@ const (
 	ListFlowPathsFromWorkspaceRunnableParamsRunnableKindScript ListFlowPathsFromWorkspaceRunnableParamsRunnableKind = "script"
 )
 
-// Defines values for ExistsRouteJSONBodyHttpMethod.
-const (
-	ExistsRouteJSONBodyHttpMethodDelete ExistsRouteJSONBodyHttpMethod = "delete"
-	ExistsRouteJSONBodyHttpMethodGet    ExistsRouteJSONBodyHttpMethod = "get"
-	ExistsRouteJSONBodyHttpMethodPatch  ExistsRouteJSONBodyHttpMethod = "patch"
-	ExistsRouteJSONBodyHttpMethodPost   ExistsRouteJSONBodyHttpMethod = "post"
-	ExistsRouteJSONBodyHttpMethodPut    ExistsRouteJSONBodyHttpMethod = "put"
-)
-
 // Defines values for SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType.
 const (
 	SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerTypeError    SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType = "error"
@@ -1027,16 +1009,16 @@ type DeliveryType string
 
 // EditHttpTrigger defines model for EditHttpTrigger.
 type EditHttpTrigger struct {
-	AuthenticationMethod       AuthenticationMethod      `json:"authentication_method"`
-	AuthenticationResourcePath *string                   `json:"authentication_resource_path,omitempty"`
-	HttpMethod                 EditHttpTriggerHttpMethod `json:"http_method"`
-	IsAsync                    bool                      `json:"is_async"`
-	IsFlow                     bool                      `json:"is_flow"`
-	IsStaticWebsite            bool                      `json:"is_static_website"`
-	Path                       string                    `json:"path"`
-	RawString                  *bool                     `json:"raw_string,omitempty"`
-	RoutePath                  *string                   `json:"route_path,omitempty"`
-	ScriptPath                 string                    `json:"script_path"`
+	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
+	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
+	HttpMethod                 HttpMethod           `json:"http_method"`
+	IsAsync                    bool                 `json:"is_async"`
+	IsFlow                     bool                 `json:"is_flow"`
+	IsStaticWebsite            bool                 `json:"is_static_website"`
+	Path                       string               `json:"path"`
+	RawString                  *bool                `json:"raw_string,omitempty"`
+	RoutePath                  *string              `json:"route_path,omitempty"`
+	ScriptPath                 string               `json:"script_path"`
 	StaticAssetConfig          *struct {
 		Filename *string `json:"filename,omitempty"`
 		S3       string  `json:"s3"`
@@ -1045,9 +1027,6 @@ type EditHttpTrigger struct {
 	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
 	WrapBody        *bool `json:"wrap_body,omitempty"`
 }
-
-// EditHttpTriggerHttpMethod defines model for EditHttpTrigger.HttpMethod.
-type EditHttpTriggerHttpMethod string
 
 // EditKafkaTrigger defines model for EditKafkaTrigger.
 type EditKafkaTrigger struct {
@@ -1419,6 +1398,9 @@ type Group struct {
 	Summary    *string          `json:"summary,omitempty"`
 }
 
+// HttpMethod defines model for HttpMethod.
+type HttpMethod string
+
 // HttpTrigger defines model for HttpTrigger.
 type HttpTrigger = TriggerExtraProperty
 
@@ -1699,16 +1681,16 @@ type NatsTrigger = TriggerExtraProperty
 
 // NewHttpTrigger defines model for NewHttpTrigger.
 type NewHttpTrigger struct {
-	AuthenticationMethod       AuthenticationMethod     `json:"authentication_method"`
-	AuthenticationResourcePath *string                  `json:"authentication_resource_path,omitempty"`
-	HttpMethod                 NewHttpTriggerHttpMethod `json:"http_method"`
-	IsAsync                    bool                     `json:"is_async"`
-	IsFlow                     bool                     `json:"is_flow"`
-	IsStaticWebsite            bool                     `json:"is_static_website"`
-	Path                       string                   `json:"path"`
-	RawString                  *bool                    `json:"raw_string,omitempty"`
-	RoutePath                  string                   `json:"route_path"`
-	ScriptPath                 string                   `json:"script_path"`
+	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
+	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
+	HttpMethod                 HttpMethod           `json:"http_method"`
+	IsAsync                    bool                 `json:"is_async"`
+	IsFlow                     bool                 `json:"is_flow"`
+	IsStaticWebsite            bool                 `json:"is_static_website"`
+	Path                       string               `json:"path"`
+	RawString                  *bool                `json:"raw_string,omitempty"`
+	RoutePath                  string               `json:"route_path"`
+	ScriptPath                 string               `json:"script_path"`
 	StaticAssetConfig          *struct {
 		Filename *string `json:"filename,omitempty"`
 		S3       string  `json:"s3"`
@@ -1717,9 +1699,6 @@ type NewHttpTrigger struct {
 	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
 	WrapBody        *bool `json:"wrap_body,omitempty"`
 }
-
-// NewHttpTriggerHttpMethod defines model for NewHttpTrigger.HttpMethod.
-type NewHttpTriggerHttpMethod string
 
 // NewKafkaTrigger defines model for NewKafkaTrigger.
 type NewKafkaTrigger struct {
@@ -3853,6 +3832,9 @@ type UpdateGroupJSONBody struct {
 	Summary *string `json:"summary,omitempty"`
 }
 
+// CreateHttpTriggersJSONBody defines parameters for CreateHttpTriggers.
+type CreateHttpTriggersJSONBody = []NewHttpTrigger
+
 // ListHttpTriggersParams defines parameters for ListHttpTriggers.
 type ListHttpTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -3869,14 +3851,11 @@ type ListHttpTriggersParams struct {
 
 // ExistsRouteJSONBody defines parameters for ExistsRoute.
 type ExistsRouteJSONBody struct {
-	HttpMethod      ExistsRouteJSONBodyHttpMethod `json:"http_method"`
-	RoutePath       string                        `json:"route_path"`
-	TriggerPath     *string                       `json:"trigger_path,omitempty"`
-	WorkspacedRoute *bool                         `json:"workspaced_route,omitempty"`
+	HttpMethod      HttpMethod `json:"http_method"`
+	RoutePath       string     `json:"route_path"`
+	TriggerPath     *string    `json:"trigger_path,omitempty"`
+	WorkspacedRoute *bool      `json:"workspaced_route,omitempty"`
 }
-
-// ExistsRouteJSONBodyHttpMethod defines parameters for ExistsRoute.
-type ExistsRouteJSONBodyHttpMethod string
 
 // CreateInputParams defines parameters for CreateInput.
 type CreateInputParams struct {
@@ -5642,6 +5621,9 @@ type UpdateGroupJSONRequestBody UpdateGroupJSONBody
 // CreateHttpTriggerJSONRequestBody defines body for CreateHttpTrigger for application/json ContentType.
 type CreateHttpTriggerJSONRequestBody = NewHttpTrigger
 
+// CreateHttpTriggersJSONRequestBody defines body for CreateHttpTriggers for application/json ContentType.
+type CreateHttpTriggersJSONRequestBody = CreateHttpTriggersJSONBody
+
 // ExistsRouteJSONRequestBody defines body for ExistsRoute for application/json ContentType.
 type ExistsRouteJSONRequestBody ExistsRouteJSONBody
 
@@ -7335,6 +7317,11 @@ type ClientInterface interface {
 	CreateHttpTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CreateHttpTrigger(ctx context.Context, workspace WorkspaceId, body CreateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateHttpTriggersWithBody request with any body
+	CreateHttpTriggersWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateHttpTriggers(ctx context.Context, workspace WorkspaceId, body CreateHttpTriggersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteHttpTrigger request
 	DeleteHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11532,6 +11519,30 @@ func (c *Client) CreateHttpTriggerWithBody(ctx context.Context, workspace Worksp
 
 func (c *Client) CreateHttpTrigger(ctx context.Context, workspace WorkspaceId, body CreateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateHttpTriggerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateHttpTriggersWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateHttpTriggersRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateHttpTriggers(ctx context.Context, workspace WorkspaceId, body CreateHttpTriggersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateHttpTriggersRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -26018,6 +26029,53 @@ func NewCreateHttpTriggerRequestWithBody(server string, workspace WorkspaceId, c
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/http_triggers/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateHttpTriggersRequest calls the generic CreateHttpTriggers builder with application/json body
+func NewCreateHttpTriggersRequest(server string, workspace WorkspaceId, body CreateHttpTriggersJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateHttpTriggersRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateHttpTriggersRequestWithBody generates requests for CreateHttpTriggers with any type of body
+func NewCreateHttpTriggersRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/http_triggers/create_many", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -45660,6 +45718,11 @@ type ClientWithResponsesInterface interface {
 
 	CreateHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateHttpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateHttpTriggerResponse, error)
 
+	// CreateHttpTriggersWithBodyWithResponse request with any body
+	CreateHttpTriggersWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateHttpTriggersResponse, error)
+
+	CreateHttpTriggersWithResponse(ctx context.Context, workspace WorkspaceId, body CreateHttpTriggersJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateHttpTriggersResponse, error)
+
 	// DeleteHttpTriggerWithResponse request
 	DeleteHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteHttpTriggerResponse, error)
 
@@ -51131,6 +51194,27 @@ func (r CreateHttpTriggerResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateHttpTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateHttpTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateHttpTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateHttpTriggersResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -59745,6 +59829,23 @@ func (c *ClientWithResponses) CreateHttpTriggerWithResponse(ctx context.Context,
 	return ParseCreateHttpTriggerResponse(rsp)
 }
 
+// CreateHttpTriggersWithBodyWithResponse request with arbitrary body returning *CreateHttpTriggersResponse
+func (c *ClientWithResponses) CreateHttpTriggersWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateHttpTriggersResponse, error) {
+	rsp, err := c.CreateHttpTriggersWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateHttpTriggersResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateHttpTriggersWithResponse(ctx context.Context, workspace WorkspaceId, body CreateHttpTriggersJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateHttpTriggersResponse, error) {
+	rsp, err := c.CreateHttpTriggers(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateHttpTriggersResponse(rsp)
+}
+
 // DeleteHttpTriggerWithResponse request returning *DeleteHttpTriggerResponse
 func (c *ClientWithResponses) DeleteHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteHttpTriggerResponse, error) {
 	rsp, err := c.DeleteHttpTrigger(ctx, workspace, path, reqEditors...)
@@ -67537,6 +67638,22 @@ func ParseCreateHttpTriggerResponse(rsp *http.Response) (*CreateHttpTriggerRespo
 	}
 
 	response := &CreateHttpTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateHttpTriggersResponse parses an HTTP response from a CreateHttpTriggersWithResponse call
+func ParseCreateHttpTriggersResponse(rsp *http.Response) (*CreateHttpTriggersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateHttpTriggersResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
