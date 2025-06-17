@@ -365,6 +365,12 @@ const (
 	NewScriptWithDraftKindTrigger      NewScriptWithDraftKind = "trigger"
 )
 
+// Defines values for OpenapiSpecFormat.
+const (
+	Json OpenapiSpecFormat = "json"
+	Yaml OpenapiSpecFormat = "yaml"
+)
+
 // Defines values for PolicyExecutionMode.
 const (
 	PolicyExecutionModeAnonymous PolicyExecutionMode = "anonymous"
@@ -395,6 +401,12 @@ const (
 	QueuedJobJobKindScript             QueuedJobJobKind = "script"
 	QueuedJobJobKindScriptHub          QueuedJobJobKind = "script_hub"
 	QueuedJobJobKindSinglescriptflow   QueuedJobJobKind = "singlescriptflow"
+)
+
+// Defines values for RunnableKind.
+const (
+	RunnableKindFlow   RunnableKind = "flow"
+	RunnableKindScript RunnableKind = "script"
 )
 
 // Defines values for RunnableType.
@@ -443,6 +455,13 @@ const (
 const (
 	CreateUpdate SubscriptionMode = "create_update"
 	Existing     SubscriptionMode = "existing"
+)
+
+// Defines values for WebhookFiltersUserOrFolderRegex.
+const (
+	Asterisk WebhookFiltersUserOrFolderRegex = "*"
+	F        WebhookFiltersUserOrFolderRegex = "f"
+	U        WebhookFiltersUserOrFolderRegex = "u"
 )
 
 // Defines values for WindmillFilePreviewContentType.
@@ -571,12 +590,6 @@ const (
 	ActionKindDelete  ActionKind = "Delete"
 	ActionKindExecute ActionKind = "Execute"
 	ActionKindUpdate  ActionKind = "Update"
-)
-
-// Defines values for RunnableKind.
-const (
-	RunnableKindFlow   RunnableKind = "flow"
-	RunnableKindScript RunnableKind = "script"
 )
 
 // Defines values for ClearIndexParamsIdxName.
@@ -1011,6 +1024,7 @@ type DeliveryType string
 type EditHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
 	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
+	Description                *string              `json:"description,omitempty"`
 	HttpMethod                 HttpMethod           `json:"http_method"`
 	IsAsync                    bool                 `json:"is_async"`
 	IsFlow                     bool                 `json:"is_flow"`
@@ -1024,8 +1038,9 @@ type EditHttpTrigger struct {
 		S3       string  `json:"s3"`
 		Storage  *string `json:"storage,omitempty"`
 	} `json:"static_asset_config,omitempty"`
-	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
-	WrapBody        *bool `json:"wrap_body,omitempty"`
+	Summary         *string `json:"summary,omitempty"`
+	WorkspacedRoute *bool   `json:"workspaced_route,omitempty"`
+	WrapBody        *bool   `json:"wrap_body,omitempty"`
 }
 
 // EditKafkaTrigger defines model for EditKafkaTrigger.
@@ -1338,6 +1353,15 @@ type GcpTriggerData struct {
 	// SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
 	SubscriptionMode SubscriptionMode `json:"subscription_mode"`
 	TopicId          string           `json:"topic_id"`
+}
+
+// GenerateOpenapiSpec defines model for GenerateOpenapiSpec.
+type GenerateOpenapiSpec struct {
+	HttpRouteFilters  *[]OpenapiHttpRouteFilters `json:"http_route_filters,omitempty"`
+	Info              *OpenapiV3Info             `json:"info,omitempty"`
+	OpenapiSpecFormat *OpenapiSpecFormat         `json:"openapi_spec_format,omitempty"`
+	Url               *string                    `json:"url,omitempty"`
+	WebhookFilters    *[]WebhookFilters          `json:"webhook_filters,omitempty"`
 }
 
 // GetAllTopicSubscription defines model for GetAllTopicSubscription.
@@ -1683,6 +1707,7 @@ type NatsTrigger = TriggerExtraProperty
 type NewHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
 	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
+	Description                *string              `json:"description,omitempty"`
 	HttpMethod                 HttpMethod           `json:"http_method"`
 	IsAsync                    bool                 `json:"is_async"`
 	IsFlow                     bool                 `json:"is_flow"`
@@ -1696,8 +1721,9 @@ type NewHttpTrigger struct {
 		S3       string  `json:"s3"`
 		Storage  *string `json:"storage,omitempty"`
 	} `json:"static_asset_config,omitempty"`
-	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
-	WrapBody        *bool `json:"wrap_body,omitempty"`
+	Summary         *string `json:"summary,omitempty"`
+	WorkspacedRoute *bool   `json:"workspaced_route,omitempty"`
+	WrapBody        *bool   `json:"wrap_body,omitempty"`
 }
 
 // NewKafkaTrigger defines model for NewKafkaTrigger.
@@ -1927,6 +1953,34 @@ type OpenFlowWPath struct {
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
+// OpenapiHttpRouteFilters defines model for OpenapiHttpRouteFilters.
+type OpenapiHttpRouteFilters struct {
+	FolderRegex    string `json:"folder_regex"`
+	PathRegex      string `json:"path_regex"`
+	RoutePathRegex string `json:"route_path_regex"`
+}
+
+// OpenapiSpecFormat defines model for OpenapiSpecFormat.
+type OpenapiSpecFormat string
+
+// OpenapiV3Info defines model for OpenapiV3Info.
+type OpenapiV3Info struct {
+	Contact *struct {
+		Email *string `json:"email,omitempty"`
+		Name  *string `json:"name,omitempty"`
+		Url   *string `json:"url,omitempty"`
+	} `json:"contact,omitempty"`
+	Description *string `json:"description,omitempty"`
+	License     *struct {
+		Identifier *string `json:"identifier,omitempty"`
+		Name       string  `json:"name"`
+		Url        *string `json:"url,omitempty"`
+	} `json:"license,omitempty"`
+	TermsOfService *string `json:"terms_of_service,omitempty"`
+	Title          string  `json:"title"`
+	Version        string  `json:"version"`
+}
+
 // OperatorSettings defines model for OperatorSettings.
 type OperatorSettings struct {
 	// AuditLogs Whether operators can view audit logs
@@ -2111,6 +2165,9 @@ type Retry struct {
 		Seconds      *int `json:"seconds,omitempty"`
 	} `json:"exponential,omitempty"`
 }
+
+// RunnableKind defines model for RunnableKind.
+type RunnableKind string
 
 // RunnableType defines model for RunnableType.
 type RunnableType string
@@ -2407,6 +2464,17 @@ type UserWorkspaceList struct {
 		Username         string            `json:"username"`
 	} `json:"workspaces"`
 }
+
+// WebhookFilters defines model for WebhookFilters.
+type WebhookFilters struct {
+	Path                   string                          `json:"path"`
+	RunnableKind           RunnableKind                    `json:"runnable_kind"`
+	UserOrFolderRegex      WebhookFiltersUserOrFolderRegex `json:"user_or_folder_regex"`
+	UserOrFolderRegexValue string                          `json:"user_or_folder_regex_value"`
+}
+
+// WebhookFiltersUserOrFolderRegex defines model for WebhookFilters.UserOrFolderRegex.
+type WebhookFiltersUserOrFolderRegex string
 
 // WebsocketTrigger defines model for WebsocketTrigger.
 type WebsocketTrigger = TriggerExtraProperty
@@ -2896,9 +2964,6 @@ type ResultFilter = string
 
 // RunnableId defines model for RunnableId.
 type RunnableId = string
-
-// RunnableKind defines model for RunnableKind.
-type RunnableKind string
 
 // RunnableTypeQuery defines model for RunnableTypeQuery.
 type RunnableTypeQuery = RunnableType
@@ -5768,6 +5833,12 @@ type CreateAccountJSONRequestBody CreateAccountJSONBody
 // RefreshTokenJSONRequestBody defines body for RefreshToken for application/json ContentType.
 type RefreshTokenJSONRequestBody RefreshTokenJSONBody
 
+// DownloadOpenapiSpecJSONRequestBody defines body for DownloadOpenapiSpec for application/json ContentType.
+type DownloadOpenapiSpecJSONRequestBody = GenerateOpenapiSpec
+
+// GenerateOpenapiSpecJSONRequestBody defines body for GenerateOpenapiSpec for application/json ContentType.
+type GenerateOpenapiSpecJSONRequestBody = GenerateOpenapiSpec
+
 // CreatePostgresTriggerJSONRequestBody defines body for CreatePostgresTrigger for application/json ContentType.
 type CreatePostgresTriggerJSONRequestBody = NewPostgresTrigger
 
@@ -7760,6 +7831,16 @@ type ClientInterface interface {
 
 	// GetOidcToken request
 	GetOidcToken(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DownloadOpenapiSpecWithBody request with any body
+	DownloadOpenapiSpecWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DownloadOpenapiSpec(ctx context.Context, workspace WorkspaceId, body DownloadOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GenerateOpenapiSpecWithBody request with any body
+	GenerateOpenapiSpecWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GenerateOpenapiSpec(ctx context.Context, workspace WorkspaceId, body GenerateOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreatePostgresTriggerWithBody request with any body
 	CreatePostgresTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -13487,6 +13568,54 @@ func (c *Client) RefreshToken(ctx context.Context, workspace WorkspaceId, id Acc
 
 func (c *Client) GetOidcToken(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetOidcTokenRequest(c.Server, workspace, audience)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DownloadOpenapiSpecWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDownloadOpenapiSpecRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DownloadOpenapiSpec(ctx context.Context, workspace WorkspaceId, body DownloadOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDownloadOpenapiSpecRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GenerateOpenapiSpecWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGenerateOpenapiSpecRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GenerateOpenapiSpec(ctx context.Context, workspace WorkspaceId, body GenerateOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGenerateOpenapiSpecRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -36450,6 +36579,100 @@ func NewGetOidcTokenRequest(server string, workspace WorkspaceId, audience strin
 	return req, nil
 }
 
+// NewDownloadOpenapiSpecRequest calls the generic DownloadOpenapiSpec builder with application/json body
+func NewDownloadOpenapiSpecRequest(server string, workspace WorkspaceId, body DownloadOpenapiSpecJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDownloadOpenapiSpecRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewDownloadOpenapiSpecRequestWithBody generates requests for DownloadOpenapiSpec with any type of body
+func NewDownloadOpenapiSpecRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/openapi/download", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGenerateOpenapiSpecRequest calls the generic GenerateOpenapiSpec builder with application/json body
+func NewGenerateOpenapiSpecRequest(server string, workspace WorkspaceId, body GenerateOpenapiSpecJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGenerateOpenapiSpecRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewGenerateOpenapiSpecRequestWithBody generates requests for GenerateOpenapiSpec with any type of body
+func NewGenerateOpenapiSpecRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/openapi/generate", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreatePostgresTriggerRequest calls the generic CreatePostgresTrigger builder with application/json body
 func NewCreatePostgresTriggerRequest(server string, workspace WorkspaceId, body CreatePostgresTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -46161,6 +46384,16 @@ type ClientWithResponsesInterface interface {
 	// GetOidcTokenWithResponse request
 	GetOidcTokenWithResponse(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*GetOidcTokenResponse, error)
 
+	// DownloadOpenapiSpecWithBodyWithResponse request with any body
+	DownloadOpenapiSpecWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DownloadOpenapiSpecResponse, error)
+
+	DownloadOpenapiSpecWithResponse(ctx context.Context, workspace WorkspaceId, body DownloadOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*DownloadOpenapiSpecResponse, error)
+
+	// GenerateOpenapiSpecWithBodyWithResponse request with any body
+	GenerateOpenapiSpecWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GenerateOpenapiSpecResponse, error)
+
+	GenerateOpenapiSpecWithResponse(ctx context.Context, workspace WorkspaceId, body GenerateOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateOpenapiSpecResponse, error)
+
 	// CreatePostgresTriggerWithBodyWithResponse request with any body
 	CreatePostgresTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePostgresTriggerResponse, error)
 
@@ -53747,6 +53980,48 @@ func (r GetOidcTokenResponse) StatusCode() int {
 	return 0
 }
 
+type DownloadOpenapiSpecResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DownloadOpenapiSpecResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DownloadOpenapiSpecResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GenerateOpenapiSpecResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GenerateOpenapiSpecResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GenerateOpenapiSpecResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreatePostgresTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -61254,6 +61529,40 @@ func (c *ClientWithResponses) GetOidcTokenWithResponse(ctx context.Context, work
 		return nil, err
 	}
 	return ParseGetOidcTokenResponse(rsp)
+}
+
+// DownloadOpenapiSpecWithBodyWithResponse request with arbitrary body returning *DownloadOpenapiSpecResponse
+func (c *ClientWithResponses) DownloadOpenapiSpecWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DownloadOpenapiSpecResponse, error) {
+	rsp, err := c.DownloadOpenapiSpecWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDownloadOpenapiSpecResponse(rsp)
+}
+
+func (c *ClientWithResponses) DownloadOpenapiSpecWithResponse(ctx context.Context, workspace WorkspaceId, body DownloadOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*DownloadOpenapiSpecResponse, error) {
+	rsp, err := c.DownloadOpenapiSpec(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDownloadOpenapiSpecResponse(rsp)
+}
+
+// GenerateOpenapiSpecWithBodyWithResponse request with arbitrary body returning *GenerateOpenapiSpecResponse
+func (c *ClientWithResponses) GenerateOpenapiSpecWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GenerateOpenapiSpecResponse, error) {
+	rsp, err := c.GenerateOpenapiSpecWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGenerateOpenapiSpecResponse(rsp)
+}
+
+func (c *ClientWithResponses) GenerateOpenapiSpecWithResponse(ctx context.Context, workspace WorkspaceId, body GenerateOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateOpenapiSpecResponse, error) {
+	rsp, err := c.GenerateOpenapiSpec(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGenerateOpenapiSpecResponse(rsp)
 }
 
 // CreatePostgresTriggerWithBodyWithResponse request with arbitrary body returning *CreatePostgresTriggerResponse
@@ -70168,6 +70477,38 @@ func ParseGetOidcTokenResponse(rsp *http.Response) (*GetOidcTokenResponse, error
 	}
 
 	response := &GetOidcTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDownloadOpenapiSpecResponse parses an HTTP response from a DownloadOpenapiSpecWithResponse call
+func ParseDownloadOpenapiSpecResponse(rsp *http.Response) (*DownloadOpenapiSpecResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DownloadOpenapiSpecResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGenerateOpenapiSpecResponse parses an HTTP response from a GenerateOpenapiSpecWithResponse call
+func ParseGenerateOpenapiSpecResponse(rsp *http.Response) (*GenerateOpenapiSpecResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GenerateOpenapiSpecResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
