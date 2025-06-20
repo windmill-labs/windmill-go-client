@@ -3025,11 +3025,32 @@ type WorkerTag = string
 // WorkspaceId defines model for WorkspaceId.
 type WorkspaceId = string
 
+// BlacklistAgentTokenJSONBody defines parameters for BlacklistAgentToken.
+type BlacklistAgentTokenJSONBody struct {
+	// ExpiresAt Optional expiration date for the blacklist entry
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// Token The agent token to blacklist
+	Token string `json:"token"`
+}
+
 // CreateAgentTokenJSONBody defines parameters for CreateAgentToken.
 type CreateAgentTokenJSONBody struct {
 	Exp         int      `json:"exp"`
 	Tags        []string `json:"tags"`
 	WorkerGroup string   `json:"worker_group"`
+}
+
+// ListBlacklistedAgentTokensParams defines parameters for ListBlacklistedAgentTokens.
+type ListBlacklistedAgentTokensParams struct {
+	// IncludeExpired Whether to include expired blacklisted tokens
+	IncludeExpired *bool `form:"include_expired,omitempty" json:"include_expired,omitempty"`
+}
+
+// RemoveBlacklistAgentTokenJSONBody defines parameters for RemoveBlacklistAgentToken.
+type RemoveBlacklistAgentTokenJSONBody struct {
+	// Token The agent token to remove from blacklist
+	Token string `json:"token"`
 }
 
 // UpdateConfigJSONBody defines parameters for UpdateConfig.
@@ -5482,8 +5503,14 @@ type ListWorkspacesAsSuperAdminParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
+// BlacklistAgentTokenJSONRequestBody defines body for BlacklistAgentToken for application/json ContentType.
+type BlacklistAgentTokenJSONRequestBody BlacklistAgentTokenJSONBody
+
 // CreateAgentTokenJSONRequestBody defines body for CreateAgentToken for application/json ContentType.
 type CreateAgentTokenJSONRequestBody CreateAgentTokenJSONBody
+
+// RemoveBlacklistAgentTokenJSONRequestBody defines body for RemoveBlacklistAgentToken for application/json ContentType.
+type RemoveBlacklistAgentTokenJSONRequestBody RemoveBlacklistAgentTokenJSONBody
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = Login
@@ -6675,10 +6702,23 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// BlacklistAgentTokenWithBody request with any body
+	BlacklistAgentTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	BlacklistAgentToken(ctx context.Context, body BlacklistAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateAgentTokenWithBody request with any body
 	CreateAgentTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CreateAgentToken(ctx context.Context, body CreateAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListBlacklistedAgentTokens request
+	ListBlacklistedAgentTokens(ctx context.Context, params *ListBlacklistedAgentTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RemoveBlacklistAgentTokenWithBody request with any body
+	RemoveBlacklistAgentTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RemoveBlacklistAgentToken(ctx context.Context, body RemoveBlacklistAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetHubAppById request
 	GetHubAppById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8490,6 +8530,30 @@ type ClientInterface interface {
 	ListUserWorkspaces(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
+func (c *Client) BlacklistAgentTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBlacklistAgentTokenRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) BlacklistAgentToken(ctx context.Context, body BlacklistAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBlacklistAgentTokenRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateAgentTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateAgentTokenRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -8504,6 +8568,42 @@ func (c *Client) CreateAgentTokenWithBody(ctx context.Context, contentType strin
 
 func (c *Client) CreateAgentToken(ctx context.Context, body CreateAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateAgentTokenRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListBlacklistedAgentTokens(ctx context.Context, params *ListBlacklistedAgentTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListBlacklistedAgentTokensRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RemoveBlacklistAgentTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRemoveBlacklistAgentTokenRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RemoveBlacklistAgentToken(ctx context.Context, body RemoveBlacklistAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRemoveBlacklistAgentTokenRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16470,6 +16570,46 @@ func (c *Client) ListUserWorkspaces(ctx context.Context, reqEditors ...RequestEd
 	return c.Client.Do(req)
 }
 
+// NewBlacklistAgentTokenRequest calls the generic BlacklistAgentToken builder with application/json body
+func NewBlacklistAgentTokenRequest(server string, body BlacklistAgentTokenJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewBlacklistAgentTokenRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewBlacklistAgentTokenRequestWithBody generates requests for BlacklistAgentToken with any type of body
+func NewBlacklistAgentTokenRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/agent_workers/blacklist_token")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateAgentTokenRequest calls the generic CreateAgentToken builder with application/json body
 func NewCreateAgentTokenRequest(server string, body CreateAgentTokenJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -16491,6 +16631,95 @@ func NewCreateAgentTokenRequestWithBody(server string, contentType string, body 
 	}
 
 	operationPath := fmt.Sprintf("/agent_workers/create_agent_token")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListBlacklistedAgentTokensRequest generates requests for ListBlacklistedAgentTokens
+func NewListBlacklistedAgentTokensRequest(server string, params *ListBlacklistedAgentTokensParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/agent_workers/list_blacklisted_tokens")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeExpired != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_expired", runtime.ParamLocationQuery, *params.IncludeExpired); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRemoveBlacklistAgentTokenRequest calls the generic RemoveBlacklistAgentToken builder with application/json body
+func NewRemoveBlacklistAgentTokenRequest(server string, body RemoveBlacklistAgentTokenJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRemoveBlacklistAgentTokenRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewRemoveBlacklistAgentTokenRequestWithBody generates requests for RemoveBlacklistAgentToken with any type of body
+func NewRemoveBlacklistAgentTokenRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/agent_workers/remove_blacklist_token")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -45227,10 +45456,23 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// BlacklistAgentTokenWithBodyWithResponse request with any body
+	BlacklistAgentTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BlacklistAgentTokenResponse, error)
+
+	BlacklistAgentTokenWithResponse(ctx context.Context, body BlacklistAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*BlacklistAgentTokenResponse, error)
+
 	// CreateAgentTokenWithBodyWithResponse request with any body
 	CreateAgentTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAgentTokenResponse, error)
 
 	CreateAgentTokenWithResponse(ctx context.Context, body CreateAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAgentTokenResponse, error)
+
+	// ListBlacklistedAgentTokensWithResponse request
+	ListBlacklistedAgentTokensWithResponse(ctx context.Context, params *ListBlacklistedAgentTokensParams, reqEditors ...RequestEditorFn) (*ListBlacklistedAgentTokensResponse, error)
+
+	// RemoveBlacklistAgentTokenWithBodyWithResponse request with any body
+	RemoveBlacklistAgentTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RemoveBlacklistAgentTokenResponse, error)
+
+	RemoveBlacklistAgentTokenWithResponse(ctx context.Context, body RemoveBlacklistAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveBlacklistAgentTokenResponse, error)
 
 	// GetHubAppByIdWithResponse request
 	GetHubAppByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubAppByIdResponse, error)
@@ -47042,6 +47284,27 @@ type ClientWithResponsesInterface interface {
 	ListUserWorkspacesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListUserWorkspacesResponse, error)
 }
 
+type BlacklistAgentTokenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r BlacklistAgentTokenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r BlacklistAgentTokenResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateAgentTokenResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -47058,6 +47321,61 @@ func (r CreateAgentTokenResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateAgentTokenResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListBlacklistedAgentTokensResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		// BlacklistedAt When the token was blacklisted
+		BlacklistedAt time.Time `json:"blacklisted_at"`
+
+		// BlacklistedBy Email of the user who blacklisted the token
+		BlacklistedBy string `json:"blacklisted_by"`
+
+		// ExpiresAt When the blacklist entry expires
+		ExpiresAt time.Time `json:"expires_at"`
+
+		// Token The blacklisted token (without prefix)
+		Token string `json:"token"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListBlacklistedAgentTokensResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListBlacklistedAgentTokensResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RemoveBlacklistAgentTokenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RemoveBlacklistAgentTokenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RemoveBlacklistAgentTokenResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -57830,6 +58148,23 @@ func (r ListUserWorkspacesResponse) StatusCode() int {
 	return 0
 }
 
+// BlacklistAgentTokenWithBodyWithResponse request with arbitrary body returning *BlacklistAgentTokenResponse
+func (c *ClientWithResponses) BlacklistAgentTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BlacklistAgentTokenResponse, error) {
+	rsp, err := c.BlacklistAgentTokenWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBlacklistAgentTokenResponse(rsp)
+}
+
+func (c *ClientWithResponses) BlacklistAgentTokenWithResponse(ctx context.Context, body BlacklistAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*BlacklistAgentTokenResponse, error) {
+	rsp, err := c.BlacklistAgentToken(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBlacklistAgentTokenResponse(rsp)
+}
+
 // CreateAgentTokenWithBodyWithResponse request with arbitrary body returning *CreateAgentTokenResponse
 func (c *ClientWithResponses) CreateAgentTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAgentTokenResponse, error) {
 	rsp, err := c.CreateAgentTokenWithBody(ctx, contentType, body, reqEditors...)
@@ -57845,6 +58180,32 @@ func (c *ClientWithResponses) CreateAgentTokenWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseCreateAgentTokenResponse(rsp)
+}
+
+// ListBlacklistedAgentTokensWithResponse request returning *ListBlacklistedAgentTokensResponse
+func (c *ClientWithResponses) ListBlacklistedAgentTokensWithResponse(ctx context.Context, params *ListBlacklistedAgentTokensParams, reqEditors ...RequestEditorFn) (*ListBlacklistedAgentTokensResponse, error) {
+	rsp, err := c.ListBlacklistedAgentTokens(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListBlacklistedAgentTokensResponse(rsp)
+}
+
+// RemoveBlacklistAgentTokenWithBodyWithResponse request with arbitrary body returning *RemoveBlacklistAgentTokenResponse
+func (c *ClientWithResponses) RemoveBlacklistAgentTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RemoveBlacklistAgentTokenResponse, error) {
+	rsp, err := c.RemoveBlacklistAgentTokenWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRemoveBlacklistAgentTokenResponse(rsp)
+}
+
+func (c *ClientWithResponses) RemoveBlacklistAgentTokenWithResponse(ctx context.Context, body RemoveBlacklistAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveBlacklistAgentTokenResponse, error) {
+	rsp, err := c.RemoveBlacklistAgentToken(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRemoveBlacklistAgentTokenResponse(rsp)
 }
 
 // GetHubAppByIdWithResponse request returning *GetHubAppByIdResponse
@@ -63634,6 +63995,22 @@ func (c *ClientWithResponses) ListUserWorkspacesWithResponse(ctx context.Context
 	return ParseListUserWorkspacesResponse(rsp)
 }
 
+// ParseBlacklistAgentTokenResponse parses an HTTP response from a BlacklistAgentTokenWithResponse call
+func ParseBlacklistAgentTokenResponse(rsp *http.Response) (*BlacklistAgentTokenResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &BlacklistAgentTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCreateAgentTokenResponse parses an HTTP response from a CreateAgentTokenWithResponse call
 func ParseCreateAgentTokenResponse(rsp *http.Response) (*CreateAgentTokenResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -63655,6 +64032,60 @@ func ParseCreateAgentTokenResponse(rsp *http.Response) (*CreateAgentTokenRespons
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseListBlacklistedAgentTokensResponse parses an HTTP response from a ListBlacklistedAgentTokensWithResponse call
+func ParseListBlacklistedAgentTokensResponse(rsp *http.Response) (*ListBlacklistedAgentTokensResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListBlacklistedAgentTokensResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			// BlacklistedAt When the token was blacklisted
+			BlacklistedAt time.Time `json:"blacklisted_at"`
+
+			// BlacklistedBy Email of the user who blacklisted the token
+			BlacklistedBy string `json:"blacklisted_by"`
+
+			// ExpiresAt When the blacklist entry expires
+			ExpiresAt time.Time `json:"expires_at"`
+
+			// Token The blacklisted token (without prefix)
+			Token string `json:"token"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRemoveBlacklistAgentTokenResponse parses an HTTP response from a RemoveBlacklistAgentTokenWithResponse call
+func ParseRemoveBlacklistAgentTokenResponse(rsp *http.Response) (*RemoveBlacklistAgentTokenResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RemoveBlacklistAgentTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
