@@ -1,38 +1,15 @@
 package windmill
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"math"
-	"math/rand"
-	"net/http"
 	"os"
-	"github.com/google/uuid"
-	api "github.com/windmill-labs/windmill-go-client/api"
 )
-
-type ClientWithWorkspace struct {
-	Client    *api.ClientWithResponses
-	Workspace string
-}
 
 func GetClient() (ClientWithWorkspace, error) {
 	base_url := os.Getenv("BASE_INTERNAL_URL") + "/api"
 	workspace := os.Getenv("WM_WORKSPACE")
 	token := os.Getenv("WM_TOKEN")
 
-	client, _ := api.NewClientWithResponses(base_url, func(c *api.Client) error {
-		c.RequestEditors = append(c.RequestEditors, func(ctx context.Context, req *http.Request) error {
-			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
-			return nil
-		})
-		return nil
-	})
-	return ClientWithWorkspace{
-		Client:    client,
-		Workspace: workspace,
-	}, nil
+	return NewClient(base_url, token, workspace)
 }
 func newBool(b bool) *bool {
 	return &b
@@ -43,14 +20,7 @@ func GetVariable(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	res, err := client.Client.GetVariableValueWithResponse(context.Background(), client.Workspace, path)
-	if err != nil {
-		return "", err
-	}
-	if res.StatusCode()/100 != 2 {
-		return "", errors.New(string(res.Body))
-	}
-	return *res.JSON200, nil
+	return client.GetVariable(path)
 }
 
 func GetResource(path string) (interface{}, error) {
@@ -58,15 +28,7 @@ func GetResource(path string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	params := api.GetResourceValueInterpolatedParams{}
-	res, err := client.Client.GetResourceValueInterpolatedWithResponse(context.Background(), client.Workspace, path, &params)
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode()/100 != 2 {
-		return nil, errors.New(string(res.Body))
-	}
-	return *res.JSON200, nil
+	return client.GetResource(path)
 }
 
 func SetResource(path string, value interface{}, resourceTypeOpt ...string) error {
@@ -74,37 +36,7 @@ func SetResource(path string, value interface{}, resourceTypeOpt ...string) erro
 	if err != nil {
 		return err
 	}
-	params := api.GetResourceValueInterpolatedParams{}
-	getRes, getErr := client.Client.GetResourceValueInterpolatedWithResponse(context.Background(), client.Workspace, path, &params)
-	if getErr != nil {
-		return getErr
-	}
-	if getRes.StatusCode() == 404 {
-		resourceType := "any"
-		if len(resourceTypeOpt) > 0 {
-			resourceType = resourceTypeOpt[0]
-		}
-		res, err := client.Client.CreateResourceWithResponse(context.Background(), client.Workspace, &api.CreateResourceParams{
-			UpdateIfExists: newBool(true),
-		}, api.CreateResource{Value: &value, Path: path, ResourceType: resourceType})
-		if err != nil {
-			return err
-		}
-		if res.StatusCode()/100 != 2 {
-			return errors.New(string(res.Body))
-		}
-	} else {
-		res, err := client.Client.UpdateResourceValueWithResponse(context.Background(), client.Workspace, path, api.UpdateResourceValueJSONRequestBody{
-			Value: &value,
-		})
-		if err != nil {
-			return err
-		}
-		if res.StatusCode()/100 != 2 {
-			return errors.New(string(res.Body))
-		}
-	}
-	return nil
+	return client.SetResource(path, value, resourceTypeOpt...)
 }
 
 func SetVariable(path string, value string) error {
@@ -112,29 +44,7 @@ func SetVariable(path string, value string) error {
 	if err != nil {
 		return err
 	}
-	f := false
-	res, err := client.Client.UpdateVariableWithResponse(context.Background(), client.Workspace, path, &api.UpdateVariableParams{AlreadyEncrypted: &f}, api.EditVariable{Value: &value})
-	if err != nil {
-		f = true
-	}
-	if res.StatusCode()/100 != 2 {
-		f = true
-	}
-	if f {
-		res, err := client.Client.CreateVariableWithResponse(context.Background(), client.Workspace, &api.CreateVariableParams{},
-			api.CreateVariableJSONRequestBody{
-				Path:  path,
-				Value: value,
-			})
-
-		if err != nil {
-			return err
-		}
-		if res.StatusCode()/100 != 2 {
-			return errors.New(string(res.Body))
-		}
-	}
-	return nil
+	return client.SetVariable(path, value)
 }
 
 func GetStatePath() string {
@@ -164,29 +74,9 @@ type ResumeUrls struct {
 }
 
 func GetResumeUrls(approver string) (ResumeUrls, error) {
-	var urls ResumeUrls
 	client, err := GetClient()
 	if err != nil {
-		return urls, err
+		return ResumeUrls{}, err
 	}
-	jobId, err := uuid.Parse(os.Getenv("WM_JOB_ID"))
-	if err != nil {
-		return urls, err
-	}
-	params := api.GetResumeUrlsParams{Approver: &approver}
-	nonce := rand.Intn(int(math.MaxUint32))
-	res, err := client.Client.GetResumeUrlsWithResponse(context.Background(),
-		client.Workspace,
-		jobId,
-		nonce,
-		&params,
-	)
-	if err != nil {
-		return urls, err
-	}
-	if res.StatusCode()/100 != 2 {
-		return urls, errors.New(string(res.Body))
-	}
-	urls = *res.JSON200
-	return urls, nil
+	return client.GetResumeUrls(approver)
 }
