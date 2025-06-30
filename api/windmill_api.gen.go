@@ -313,6 +313,7 @@ const (
 const (
 	LargeFileStorageSecondaryStorageTypeAzureBlobStorage      LargeFileStorageSecondaryStorageType = "AzureBlobStorage"
 	LargeFileStorageSecondaryStorageTypeAzureWorkloadIdentity LargeFileStorageSecondaryStorageType = "AzureWorkloadIdentity"
+	LargeFileStorageSecondaryStorageTypeGoogleCloudStorage    LargeFileStorageSecondaryStorageType = "GoogleCloudStorage"
 	LargeFileStorageSecondaryStorageTypeS3AwsOidc             LargeFileStorageSecondaryStorageType = "S3AwsOidc"
 	LargeFileStorageSecondaryStorageTypeS3Storage             LargeFileStorageSecondaryStorageType = "S3Storage"
 )
@@ -321,6 +322,7 @@ const (
 const (
 	LargeFileStorageTypeAzureBlobStorage      LargeFileStorageType = "AzureBlobStorage"
 	LargeFileStorageTypeAzureWorkloadIdentity LargeFileStorageType = "AzureWorkloadIdentity"
+	LargeFileStorageTypeGoogleCloudStorage    LargeFileStorageType = "GoogleCloudStorage"
 	LargeFileStorageTypeS3AwsOidc             LargeFileStorageType = "S3AwsOidc"
 	LargeFileStorageTypeS3Storage             LargeFileStorageType = "S3Storage"
 )
@@ -1570,10 +1572,12 @@ type Language string
 // LargeFileStorage defines model for LargeFileStorage.
 type LargeFileStorage struct {
 	AzureBlobResourcePath *string `json:"azure_blob_resource_path,omitempty"`
+	GcsResourcePath       *string `json:"gcs_resource_path,omitempty"`
 	PublicResource        *bool   `json:"public_resource,omitempty"`
 	S3ResourcePath        *string `json:"s3_resource_path,omitempty"`
 	SecondaryStorage      *map[string]struct {
 		AzureBlobResourcePath *string                               `json:"azure_blob_resource_path,omitempty"`
+		GcsResourcePath       *string                               `json:"gcs_resource_path,omitempty"`
 		PublicResource        *bool                                 `json:"public_resource,omitempty"`
 		S3ResourcePath        *string                               `json:"s3_resource_path,omitempty"`
 		Type                  *LargeFileStorageSecondaryStorageType `json:"type,omitempty"`
