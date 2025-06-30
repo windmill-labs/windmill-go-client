@@ -5,7 +5,7 @@ import (
 )
 
 func GetClient() (ClientWithWorkspace, error) {
-	base_url := os.Getenv("BASE_INTERNAL_URL") + "/api"
+	base_url := os.Getenv("BASE_INTERNAL_URL")
 	workspace := os.Getenv("WM_WORKSPACE")
 	token := os.Getenv("WM_TOKEN")
 

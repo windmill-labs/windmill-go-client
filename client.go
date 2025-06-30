@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/google/uuid"
 	api "github.com/windmill-labs/windmill-go-client/api"
@@ -19,6 +20,11 @@ type ClientWithWorkspace struct {
 }
 
 func NewClient(baseUrl, token, workspace string) (ClientWithWorkspace, error) {
+	if !strings.HasSuffix(baseUrl, "/") {
+		baseUrl += "/"
+	}
+	baseUrl += "api/"
+
 	client, err := api.NewClientWithResponses(baseUrl, func(c *api.Client) error {
 		c.RequestEditors = append(c.RequestEditors, func(ctx context.Context, req *http.Request) error {
 			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
