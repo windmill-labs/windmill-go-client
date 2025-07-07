@@ -828,6 +828,7 @@ type AuditLog struct {
 	Operation  AuditLogOperation       `json:"operation"`
 	Parameters *map[string]interface{} `json:"parameters,omitempty"`
 	Resource   *string                 `json:"resource,omitempty"`
+	Span       *string                 `json:"span,omitempty"`
 	Timestamp  time.Time               `json:"timestamp"`
 	Username   string                  `json:"username"`
 }
