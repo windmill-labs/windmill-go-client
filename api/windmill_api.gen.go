@@ -8423,6 +8423,9 @@ type ClientInterface interface {
 	// GetLargeFileStorageConfig request
 	GetLargeFileStorageConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetSecondaryStorageNames request
+	GetSecondaryStorageNames(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetSettings request
 	GetSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16085,6 +16088,18 @@ func (c *Client) GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEdit
 
 func (c *Client) GetLargeFileStorageConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetLargeFileStorageConfigRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSecondaryStorageNames(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSecondaryStorageNamesRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -44197,6 +44212,40 @@ func NewGetLargeFileStorageConfigRequest(server string, workspace WorkspaceId) (
 	return req, nil
 }
 
+// NewGetSecondaryStorageNamesRequest generates requests for GetSecondaryStorageNames
+func NewGetSecondaryStorageNamesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_secondary_storage_names", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetSettingsRequest generates requests for GetSettings
 func NewGetSettingsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -47176,6 +47225,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetLargeFileStorageConfigWithResponse request
 	GetLargeFileStorageConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetLargeFileStorageConfigResponse, error)
+
+	// GetSecondaryStorageNamesWithResponse request
+	GetSecondaryStorageNamesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSecondaryStorageNamesResponse, error)
 
 	// GetSettingsWithResponse request
 	GetSettingsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSettingsResponse, error)
@@ -57435,6 +57487,28 @@ func (r GetLargeFileStorageConfigResponse) StatusCode() int {
 	return 0
 }
 
+type GetSecondaryStorageNamesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSecondaryStorageNamesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSecondaryStorageNamesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -63647,6 +63721,15 @@ func (c *ClientWithResponses) GetLargeFileStorageConfigWithResponse(ctx context.
 		return nil, err
 	}
 	return ParseGetLargeFileStorageConfigResponse(rsp)
+}
+
+// GetSecondaryStorageNamesWithResponse request returning *GetSecondaryStorageNamesResponse
+func (c *ClientWithResponses) GetSecondaryStorageNamesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSecondaryStorageNamesResponse, error) {
+	rsp, err := c.GetSecondaryStorageNames(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSecondaryStorageNamesResponse(rsp)
 }
 
 // GetSettingsWithResponse request returning *GetSettingsResponse
@@ -73988,6 +74071,32 @@ func ParseGetLargeFileStorageConfigResponse(rsp *http.Response) (*GetLargeFileSt
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest LargeFileStorage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSecondaryStorageNamesResponse parses an HTTP response from a GetSecondaryStorageNamesWithResponse call
+func ParseGetSecondaryStorageNamesResponse(rsp *http.Response) (*GetSecondaryStorageNamesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSecondaryStorageNamesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
