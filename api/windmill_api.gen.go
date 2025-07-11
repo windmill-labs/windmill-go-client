@@ -52,6 +52,26 @@ const (
 	AppWithLastVersionWDraftExecutionModeViewer    AppWithLastVersionWDraftExecutionMode = "viewer"
 )
 
+// Defines values for AssetKind.
+const (
+	AssetKindResource AssetKind = "resource"
+	AssetKindS3object AssetKind = "s3object"
+	AssetKindVariable AssetKind = "variable"
+)
+
+// Defines values for AssetUsageAccessType.
+const (
+	AssetUsageAccessTypeR  AssetUsageAccessType = "r"
+	AssetUsageAccessTypeRw AssetUsageAccessType = "rw"
+	AssetUsageAccessTypeW  AssetUsageAccessType = "w"
+)
+
+// Defines values for AssetUsageKind.
+const (
+	AssetUsageKindFlow   AssetUsageKind = "flow"
+	AssetUsageKindScript AssetUsageKind = "script"
+)
+
 // Defines values for AuditLogActionKind.
 const (
 	AuditLogActionKindCreated AuditLogActionKind = "Created"
@@ -347,6 +367,19 @@ const (
 	Qos2 MqttQoS = "qos2"
 )
 
+// Defines values for NewScriptFallbackAccessTypesAccessType.
+const (
+	NewScriptFallbackAccessTypesAccessTypeR  NewScriptFallbackAccessTypesAccessType = "r"
+	NewScriptFallbackAccessTypesAccessTypeRw NewScriptFallbackAccessTypesAccessType = "rw"
+	NewScriptFallbackAccessTypesAccessTypeW  NewScriptFallbackAccessTypesAccessType = "w"
+)
+
+// Defines values for NewScriptFallbackAccessTypesKind.
+const (
+	NewScriptFallbackAccessTypesKindResource NewScriptFallbackAccessTypesKind = "resource"
+	NewScriptFallbackAccessTypesKindS3object NewScriptFallbackAccessTypesKind = "s3object"
+)
+
 // Defines values for NewScriptKind.
 const (
 	NewScriptKindApproval     NewScriptKind = "approval"
@@ -355,6 +388,19 @@ const (
 	NewScriptKindPreprocessor NewScriptKind = "preprocessor"
 	NewScriptKindScript       NewScriptKind = "script"
 	NewScriptKindTrigger      NewScriptKind = "trigger"
+)
+
+// Defines values for NewScriptWithDraftFallbackAccessTypesAccessType.
+const (
+	NewScriptWithDraftFallbackAccessTypesAccessTypeR  NewScriptWithDraftFallbackAccessTypesAccessType = "r"
+	NewScriptWithDraftFallbackAccessTypesAccessTypeRw NewScriptWithDraftFallbackAccessTypesAccessType = "rw"
+	NewScriptWithDraftFallbackAccessTypesAccessTypeW  NewScriptWithDraftFallbackAccessTypesAccessType = "w"
+)
+
+// Defines values for NewScriptWithDraftFallbackAccessTypesKind.
+const (
+	NewScriptWithDraftFallbackAccessTypesKindResource NewScriptWithDraftFallbackAccessTypesKind = "resource"
+	NewScriptWithDraftFallbackAccessTypesKindS3object NewScriptWithDraftFallbackAccessTypesKind = "s3object"
 )
 
 // Defines values for NewScriptWithDraftKind.
@@ -550,6 +596,19 @@ const (
 // Defines values for SchemasPathScriptType.
 const (
 	SchemasPathScriptTypeScript SchemasPathScriptType = "script"
+)
+
+// Defines values for SchemasRawScriptAssetFallbackAccessTypesAccessType.
+const (
+	SchemasRawScriptAssetFallbackAccessTypesAccessTypeR  SchemasRawScriptAssetFallbackAccessTypesAccessType = "r"
+	SchemasRawScriptAssetFallbackAccessTypesAccessTypeRw SchemasRawScriptAssetFallbackAccessTypesAccessType = "rw"
+	SchemasRawScriptAssetFallbackAccessTypesAccessTypeW  SchemasRawScriptAssetFallbackAccessTypesAccessType = "w"
+)
+
+// Defines values for SchemasRawScriptAssetFallbackAccessTypesKind.
+const (
+	SchemasRawScriptAssetFallbackAccessTypesKindResource SchemasRawScriptAssetFallbackAccessTypesKind = "resource"
+	SchemasRawScriptAssetFallbackAccessTypesKindS3object SchemasRawScriptAssetFallbackAccessTypesKind = "s3object"
 )
 
 // Defines values for SchemasRawScriptLanguage.
@@ -821,6 +880,15 @@ type AppWithLastVersionWDraft struct {
 // AppWithLastVersionWDraftExecutionMode defines model for AppWithLastVersionWDraft.ExecutionMode.
 type AppWithLastVersionWDraftExecutionMode string
 
+// AssetKind defines model for AssetKind.
+type AssetKind string
+
+// AssetUsageAccessType defines model for AssetUsageAccessType.
+type AssetUsageAccessType string
+
+// AssetUsageKind defines model for AssetUsageKind.
+type AssetUsageKind string
+
 // AuditLog defines model for AuditLog.
 type AuditLog struct {
 	ActionKind AuditLogActionKind      `json:"action_kind"`
@@ -1028,12 +1096,15 @@ type EditHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
 	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
 	Description                *string              `json:"description,omitempty"`
+	ErrorHandlerArgs           *ScriptArgs          `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath           *string              `json:"error_handler_path,omitempty"`
 	HttpMethod                 HttpMethod           `json:"http_method"`
 	IsAsync                    bool                 `json:"is_async"`
 	IsFlow                     bool                 `json:"is_flow"`
 	IsStaticWebsite            bool                 `json:"is_static_website"`
 	Path                       string               `json:"path"`
 	RawString                  *bool                `json:"raw_string,omitempty"`
+	Retry                      *Retry               `json:"retry,omitempty"`
 	RoutePath                  *string              `json:"route_path,omitempty"`
 	ScriptPath                 string               `json:"script_path"`
 	StaticAssetConfig          *struct {
@@ -1048,12 +1119,15 @@ type EditHttpTrigger struct {
 
 // EditKafkaTrigger defines model for EditKafkaTrigger.
 type EditKafkaTrigger struct {
-	GroupId           string   `json:"group_id"`
-	IsFlow            bool     `json:"is_flow"`
-	KafkaResourcePath string   `json:"kafka_resource_path"`
-	Path              string   `json:"path"`
-	ScriptPath        string   `json:"script_path"`
-	Topics            []string `json:"topics"`
+	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
+	GroupId           string      `json:"group_id"`
+	IsFlow            bool        `json:"is_flow"`
+	KafkaResourcePath string      `json:"kafka_resource_path"`
+	Path              string      `json:"path"`
+	Retry             *Retry      `json:"retry,omitempty"`
+	ScriptPath        string      `json:"script_path"`
+	Topics            []string    `json:"topics"`
 }
 
 // EditMqttTrigger defines model for EditMqttTrigger.
@@ -1061,9 +1135,12 @@ type EditMqttTrigger struct {
 	ClientId         *string              `json:"client_id,omitempty"`
 	ClientVersion    *MqttClientVersion   `json:"client_version,omitempty"`
 	Enabled          bool                 `json:"enabled"`
+	ErrorHandlerArgs *ScriptArgs          `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string              `json:"error_handler_path,omitempty"`
 	IsFlow           bool                 `json:"is_flow"`
 	MqttResourcePath string               `json:"mqtt_resource_path"`
 	Path             string               `json:"path"`
+	Retry            *Retry               `json:"retry,omitempty"`
 	ScriptPath       string               `json:"script_path"`
 	SubscribeTopics  []MqttSubscribeTopic `json:"subscribe_topics"`
 	V3Config         *MqttV3Config        `json:"v3_config,omitempty"`
@@ -1072,25 +1149,31 @@ type EditMqttTrigger struct {
 
 // EditNatsTrigger defines model for EditNatsTrigger.
 type EditNatsTrigger struct {
-	ConsumerName     *string  `json:"consumer_name,omitempty"`
-	IsFlow           bool     `json:"is_flow"`
-	NatsResourcePath string   `json:"nats_resource_path"`
-	Path             string   `json:"path"`
-	ScriptPath       string   `json:"script_path"`
-	StreamName       *string  `json:"stream_name,omitempty"`
-	Subjects         []string `json:"subjects"`
-	UseJetstream     bool     `json:"use_jetstream"`
+	ConsumerName     *string     `json:"consumer_name,omitempty"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	IsFlow           bool        `json:"is_flow"`
+	NatsResourcePath string      `json:"nats_resource_path"`
+	Path             string      `json:"path"`
+	Retry            *Retry      `json:"retry,omitempty"`
+	ScriptPath       string      `json:"script_path"`
+	StreamName       *string     `json:"stream_name,omitempty"`
+	Subjects         []string    `json:"subjects"`
+	UseJetstream     bool        `json:"use_jetstream"`
 }
 
 // EditPostgresTrigger defines model for EditPostgresTrigger.
 type EditPostgresTrigger struct {
 	Enabled              bool             `json:"enabled"`
+	ErrorHandlerArgs     *ScriptArgs      `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath     *string          `json:"error_handler_path,omitempty"`
 	IsFlow               bool             `json:"is_flow"`
 	Path                 string           `json:"path"`
 	PostgresResourcePath string           `json:"postgres_resource_path"`
 	Publication          *PublicationData `json:"publication,omitempty"`
 	PublicationName      string           `json:"publication_name"`
 	ReplicationSlotName  string           `json:"replication_slot_name"`
+	Retry                *Retry           `json:"retry,omitempty"`
 	ScriptPath           string           `json:"script_path"`
 }
 
@@ -1136,10 +1219,13 @@ type EditSqsTrigger struct {
 	AwsAuthResourceType AwsAuthResourceType `json:"aws_auth_resource_type"`
 	AwsResourcePath     string              `json:"aws_resource_path"`
 	Enabled             bool                `json:"enabled"`
+	ErrorHandlerArgs    *ScriptArgs         `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath    *string             `json:"error_handler_path,omitempty"`
 	IsFlow              bool                `json:"is_flow"`
 	MessageAttributes   *[]string           `json:"message_attributes,omitempty"`
 	Path                string              `json:"path"`
 	QueueUrl            string              `json:"queue_url"`
+	Retry               *Retry              `json:"retry,omitempty"`
 	ScriptPath          string              `json:"script_path"`
 }
 
@@ -1153,7 +1239,9 @@ type EditVariable struct {
 
 // EditWebsocketTrigger defines model for EditWebsocketTrigger.
 type EditWebsocketTrigger struct {
-	CanReturnMessage bool `json:"can_return_message"`
+	CanReturnMessage bool        `json:"can_return_message"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
 	Filters          []struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
@@ -1161,6 +1249,7 @@ type EditWebsocketTrigger struct {
 	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
 	IsFlow          bool                              `json:"is_flow"`
 	Path            string                            `json:"path"`
+	Retry           *Retry                            `json:"retry,omitempty"`
 	ScriptPath      string                            `json:"script_path"`
 	Url             string                            `json:"url"`
 	UrlRunnableArgs *ScriptArgs                       `json:"url_runnable_args,omitempty"`
@@ -1343,15 +1432,18 @@ type GcpTrigger = TriggerExtraProperty
 
 // GcpTriggerData defines model for GcpTriggerData.
 type GcpTriggerData struct {
-	BaseEndpoint    *string       `json:"base_endpoint,omitempty"`
-	DeliveryConfig  *PushConfig   `json:"delivery_config,omitempty"`
-	DeliveryType    *DeliveryType `json:"delivery_type,omitempty"`
-	Enabled         *bool         `json:"enabled,omitempty"`
-	GcpResourcePath string        `json:"gcp_resource_path"`
-	IsFlow          bool          `json:"is_flow"`
-	Path            string        `json:"path"`
-	ScriptPath      string        `json:"script_path"`
-	SubscriptionId  *string       `json:"subscription_id,omitempty"`
+	BaseEndpoint     *string       `json:"base_endpoint,omitempty"`
+	DeliveryConfig   *PushConfig   `json:"delivery_config,omitempty"`
+	DeliveryType     *DeliveryType `json:"delivery_type,omitempty"`
+	Enabled          *bool         `json:"enabled,omitempty"`
+	ErrorHandlerArgs *ScriptArgs   `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string       `json:"error_handler_path,omitempty"`
+	GcpResourcePath  string        `json:"gcp_resource_path"`
+	IsFlow           bool          `json:"is_flow"`
+	Path             string        `json:"path"`
+	Retry            *Retry        `json:"retry,omitempty"`
+	ScriptPath       string        `json:"script_path"`
+	SubscriptionId   *string       `json:"subscription_id,omitempty"`
 
 	// SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
 	SubscriptionMode SubscriptionMode `json:"subscription_mode"`
@@ -1702,7 +1794,7 @@ type MqttV3Config struct {
 type MqttV5Config struct {
 	CleanStart            *bool    `json:"clean_start,omitempty"`
 	SessionExpiryInterval *float32 `json:"session_expiry_interval,omitempty"`
-	TopicAlias            *float32 `json:"topic_alias,omitempty"`
+	TopicAliasMaximum     *float32 `json:"topic_alias_maximum,omitempty"`
 }
 
 // NatsTrigger defines model for NatsTrigger.
@@ -1713,12 +1805,15 @@ type NewHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
 	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
 	Description                *string              `json:"description,omitempty"`
+	ErrorHandlerArgs           *ScriptArgs          `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath           *string              `json:"error_handler_path,omitempty"`
 	HttpMethod                 HttpMethod           `json:"http_method"`
 	IsAsync                    bool                 `json:"is_async"`
 	IsFlow                     bool                 `json:"is_flow"`
 	IsStaticWebsite            bool                 `json:"is_static_website"`
 	Path                       string               `json:"path"`
 	RawString                  *bool                `json:"raw_string,omitempty"`
+	Retry                      *Retry               `json:"retry,omitempty"`
 	RoutePath                  string               `json:"route_path"`
 	ScriptPath                 string               `json:"script_path"`
 	StaticAssetConfig          *struct {
@@ -1733,13 +1828,16 @@ type NewHttpTrigger struct {
 
 // NewKafkaTrigger defines model for NewKafkaTrigger.
 type NewKafkaTrigger struct {
-	Enabled           *bool    `json:"enabled,omitempty"`
-	GroupId           string   `json:"group_id"`
-	IsFlow            bool     `json:"is_flow"`
-	KafkaResourcePath string   `json:"kafka_resource_path"`
-	Path              string   `json:"path"`
-	ScriptPath        string   `json:"script_path"`
-	Topics            []string `json:"topics"`
+	Enabled           *bool       `json:"enabled,omitempty"`
+	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
+	GroupId           string      `json:"group_id"`
+	IsFlow            bool        `json:"is_flow"`
+	KafkaResourcePath string      `json:"kafka_resource_path"`
+	Path              string      `json:"path"`
+	Retry             *Retry      `json:"retry,omitempty"`
+	ScriptPath        string      `json:"script_path"`
+	Topics            []string    `json:"topics"`
 }
 
 // NewMqttTrigger defines model for NewMqttTrigger.
@@ -1747,9 +1845,12 @@ type NewMqttTrigger struct {
 	ClientId         *string              `json:"client_id,omitempty"`
 	ClientVersion    *MqttClientVersion   `json:"client_version,omitempty"`
 	Enabled          *bool                `json:"enabled,omitempty"`
+	ErrorHandlerArgs *ScriptArgs          `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string              `json:"error_handler_path,omitempty"`
 	IsFlow           bool                 `json:"is_flow"`
 	MqttResourcePath string               `json:"mqtt_resource_path"`
 	Path             string               `json:"path"`
+	Retry            *Retry               `json:"retry,omitempty"`
 	ScriptPath       string               `json:"script_path"`
 	SubscribeTopics  []MqttSubscribeTopic `json:"subscribe_topics"`
 	V3Config         *MqttV3Config        `json:"v3_config,omitempty"`
@@ -1758,26 +1859,32 @@ type NewMqttTrigger struct {
 
 // NewNatsTrigger defines model for NewNatsTrigger.
 type NewNatsTrigger struct {
-	ConsumerName     *string  `json:"consumer_name,omitempty"`
-	Enabled          *bool    `json:"enabled,omitempty"`
-	IsFlow           bool     `json:"is_flow"`
-	NatsResourcePath string   `json:"nats_resource_path"`
-	Path             string   `json:"path"`
-	ScriptPath       string   `json:"script_path"`
-	StreamName       *string  `json:"stream_name,omitempty"`
-	Subjects         []string `json:"subjects"`
-	UseJetstream     bool     `json:"use_jetstream"`
+	ConsumerName     *string     `json:"consumer_name,omitempty"`
+	Enabled          *bool       `json:"enabled,omitempty"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	IsFlow           bool        `json:"is_flow"`
+	NatsResourcePath string      `json:"nats_resource_path"`
+	Path             string      `json:"path"`
+	Retry            *Retry      `json:"retry,omitempty"`
+	ScriptPath       string      `json:"script_path"`
+	StreamName       *string     `json:"stream_name,omitempty"`
+	Subjects         []string    `json:"subjects"`
+	UseJetstream     bool        `json:"use_jetstream"`
 }
 
 // NewPostgresTrigger defines model for NewPostgresTrigger.
 type NewPostgresTrigger struct {
 	Enabled              bool             `json:"enabled"`
+	ErrorHandlerArgs     *ScriptArgs      `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath     *string          `json:"error_handler_path,omitempty"`
 	IsFlow               bool             `json:"is_flow"`
 	Path                 string           `json:"path"`
 	PostgresResourcePath string           `json:"postgres_resource_path"`
 	Publication          *PublicationData `json:"publication,omitempty"`
 	PublicationName      *string          `json:"publication_name,omitempty"`
 	ReplicationSlotName  *string          `json:"replication_slot_name,omitempty"`
+	Retry                *Retry           `json:"retry,omitempty"`
 	ScriptPath           string           `json:"script_path"`
 }
 
@@ -1811,18 +1918,23 @@ type NewSchedule struct {
 
 // NewScript defines model for NewScript.
 type NewScript struct {
-	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
-	Codebase               *string                 `json:"codebase,omitempty"`
-	ConcurrencyKey         *string                 `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
-	Content                string                  `json:"content"`
-	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse         *bool                   `json:"delete_after_use,omitempty"`
-	DeploymentMessage      *string                 `json:"deployment_message,omitempty"`
-	Description            string                  `json:"description"`
-	DraftOnly              *bool                   `json:"draft_only,omitempty"`
-	Envs                   *[]string               `json:"envs,omitempty"`
+	CacheTtl               *float32  `json:"cache_ttl,omitempty"`
+	Codebase               *string   `json:"codebase,omitempty"`
+	ConcurrencyKey         *string   `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS *int      `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *int      `json:"concurrent_limit,omitempty"`
+	Content                string    `json:"content"`
+	DedicatedWorker        *bool     `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse         *bool     `json:"delete_after_use,omitempty"`
+	DeploymentMessage      *string   `json:"deployment_message,omitempty"`
+	Description            string    `json:"description"`
+	DraftOnly              *bool     `json:"draft_only,omitempty"`
+	Envs                   *[]string `json:"envs,omitempty"`
+	FallbackAccessTypes    *[]struct {
+		AccessType NewScriptFallbackAccessTypesAccessType `json:"access_type"`
+		Kind       NewScriptFallbackAccessTypesKind       `json:"kind"`
+		Path       string                                 `json:"path"`
+	} `json:"fallback_access_types,omitempty"`
 	HasPreprocessor        *bool                   `json:"has_preprocessor,omitempty"`
 	IsTemplate             *bool                   `json:"is_template,omitempty"`
 	Kind                   *NewScriptKind          `json:"kind,omitempty"`
@@ -1842,24 +1954,35 @@ type NewScript struct {
 	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
+// NewScriptFallbackAccessTypesAccessType defines model for NewScript.FallbackAccessTypes.AccessType.
+type NewScriptFallbackAccessTypesAccessType string
+
+// NewScriptFallbackAccessTypesKind defines model for NewScript.FallbackAccessTypes.Kind.
+type NewScriptFallbackAccessTypesKind string
+
 // NewScriptKind defines model for NewScript.Kind.
 type NewScriptKind string
 
 // NewScriptWithDraft defines model for NewScriptWithDraft.
 type NewScriptWithDraft struct {
-	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
-	Codebase               *string                 `json:"codebase,omitempty"`
-	ConcurrencyKey         *string                 `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
-	Content                string                  `json:"content"`
-	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse         *bool                   `json:"delete_after_use,omitempty"`
-	DeploymentMessage      *string                 `json:"deployment_message,omitempty"`
-	Description            string                  `json:"description"`
-	Draft                  *NewScript              `json:"draft,omitempty"`
-	DraftOnly              *bool                   `json:"draft_only,omitempty"`
-	Envs                   *[]string               `json:"envs,omitempty"`
+	CacheTtl               *float32   `json:"cache_ttl,omitempty"`
+	Codebase               *string    `json:"codebase,omitempty"`
+	ConcurrencyKey         *string    `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS *int       `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *int       `json:"concurrent_limit,omitempty"`
+	Content                string     `json:"content"`
+	DedicatedWorker        *bool      `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse         *bool      `json:"delete_after_use,omitempty"`
+	DeploymentMessage      *string    `json:"deployment_message,omitempty"`
+	Description            string     `json:"description"`
+	Draft                  *NewScript `json:"draft,omitempty"`
+	DraftOnly              *bool      `json:"draft_only,omitempty"`
+	Envs                   *[]string  `json:"envs,omitempty"`
+	FallbackAccessTypes    *[]struct {
+		AccessType NewScriptWithDraftFallbackAccessTypesAccessType `json:"access_type"`
+		Kind       NewScriptWithDraftFallbackAccessTypesKind       `json:"kind"`
+		Path       string                                          `json:"path"`
+	} `json:"fallback_access_types,omitempty"`
 	HasPreprocessor        *bool                   `json:"has_preprocessor,omitempty"`
 	Hash                   string                  `json:"hash"`
 	IsTemplate             *bool                   `json:"is_template,omitempty"`
@@ -1880,6 +2003,12 @@ type NewScriptWithDraft struct {
 	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
+// NewScriptWithDraftFallbackAccessTypesAccessType defines model for NewScriptWithDraft.FallbackAccessTypes.AccessType.
+type NewScriptWithDraftFallbackAccessTypesAccessType string
+
+// NewScriptWithDraftFallbackAccessTypesKind defines model for NewScriptWithDraft.FallbackAccessTypes.Kind.
+type NewScriptWithDraftFallbackAccessTypesKind string
+
 // NewScriptWithDraftKind defines model for NewScriptWithDraft.Kind.
 type NewScriptWithDraftKind string
 
@@ -1888,10 +2017,13 @@ type NewSqsTrigger struct {
 	AwsAuthResourceType AwsAuthResourceType `json:"aws_auth_resource_type"`
 	AwsResourcePath     string              `json:"aws_resource_path"`
 	Enabled             *bool               `json:"enabled,omitempty"`
+	ErrorHandlerArgs    *ScriptArgs         `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath    *string             `json:"error_handler_path,omitempty"`
 	IsFlow              bool                `json:"is_flow"`
 	MessageAttributes   *[]string           `json:"message_attributes,omitempty"`
 	Path                string              `json:"path"`
 	QueueUrl            string              `json:"queue_url"`
+	Retry               *Retry              `json:"retry,omitempty"`
 	ScriptPath          string              `json:"script_path"`
 }
 
@@ -1913,8 +2045,10 @@ type NewTokenImpersonate struct {
 
 // NewWebsocketTrigger defines model for NewWebsocketTrigger.
 type NewWebsocketTrigger struct {
-	CanReturnMessage bool  `json:"can_return_message"`
-	Enabled          *bool `json:"enabled,omitempty"`
+	CanReturnMessage bool        `json:"can_return_message"`
+	Enabled          *bool       `json:"enabled,omitempty"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
 	Filters          []struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
@@ -1922,6 +2056,7 @@ type NewWebsocketTrigger struct {
 	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
 	IsFlow          bool                              `json:"is_flow"`
 	Path            string                            `json:"path"`
+	Retry           *Retry                            `json:"retry,omitempty"`
 	ScriptPath      string                            `json:"script_path"`
 	Url             string                            `json:"url"`
 	UrlRunnableArgs *ScriptArgs                       `json:"url_runnable_args,omitempty"`
@@ -1988,6 +2123,9 @@ type OpenapiV3Info struct {
 
 // OperatorSettings defines model for OperatorSettings.
 type OperatorSettings struct {
+	// Assets Whether operators can view assets
+	Assets bool `json:"assets"`
+
 	// AuditLogs Whether operators can view audit logs
 	AuditLogs bool `json:"audit_logs"`
 
@@ -2789,6 +2927,11 @@ type SchemasPathScriptType string
 
 // SchemasRawScript defines model for schemas-RawScript.
 type SchemasRawScript struct {
+	AssetFallbackAccessTypes *[]struct {
+		AccessType *SchemasRawScriptAssetFallbackAccessTypesAccessType `json:"access_type,omitempty"`
+		Kind       SchemasRawScriptAssetFallbackAccessTypesKind        `json:"kind"`
+		Path       string                                              `json:"path"`
+	} `json:"asset_fallback_access_types,omitempty"`
 	ConcurrencyTimeWindowS *float32                         `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *float32                         `json:"concurrent_limit,omitempty"`
 	Content                string                           `json:"content"`
@@ -2801,6 +2944,12 @@ type SchemasRawScript struct {
 	Tag                    *string                          `json:"tag,omitempty"`
 	Type                   SchemasRawScriptType             `json:"type"`
 }
+
+// SchemasRawScriptAssetFallbackAccessTypesAccessType defines model for SchemasRawScript.AssetFallbackAccessTypes.AccessType.
+type SchemasRawScriptAssetFallbackAccessTypesAccessType string
+
+// SchemasRawScriptAssetFallbackAccessTypesKind defines model for SchemasRawScript.AssetFallbackAccessTypes.Kind.
+type SchemasRawScriptAssetFallbackAccessTypesKind string
 
 // SchemasRawScriptLanguage defines model for SchemasRawScript.Language.
 type SchemasRawScriptLanguage string
@@ -3496,6 +3645,14 @@ type UploadS3FileFromAppParams struct {
 	Storage            *string `form:"storage,omitempty" json:"storage,omitempty"`
 	ContentType        *string `form:"content_type,omitempty" json:"content_type,omitempty"`
 	ContentDisposition *string `form:"content_disposition,omitempty" json:"content_disposition,omitempty"`
+}
+
+// ListAssetsByUsageJSONBody defines parameters for ListAssetsByUsage.
+type ListAssetsByUsageJSONBody struct {
+	Usages []struct {
+		Kind AssetUsageKind `json:"kind"`
+		Path string         `json:"path"`
+	} `json:"usages"`
 }
 
 // ListAuditLogsParams defines parameters for ListAuditLogs.
@@ -5634,6 +5791,9 @@ type UpdateAppRawMultipartRequestBody UpdateAppRawMultipartBody
 // ExecuteComponentJSONRequestBody defines body for ExecuteComponent for application/json ContentType.
 type ExecuteComponentJSONRequestBody ExecuteComponentJSONBody
 
+// ListAssetsByUsageJSONRequestBody defines body for ListAssetsByUsage for application/json ContentType.
+type ListAssetsByUsageJSONRequestBody ListAssetsByUsageJSONBody
+
 // MoveCapturesAndConfigsJSONRequestBody defines body for MoveCapturesAndConfigs for application/json ContentType.
 type MoveCapturesAndConfigsJSONRequestBody MoveCapturesAndConfigsJSONBody
 
@@ -7170,6 +7330,14 @@ type ClientInterface interface {
 
 	// UploadS3FileFromAppWithBody request with any body
 	UploadS3FileFromAppWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAssets request
+	ListAssets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAssetsByUsageWithBody request with any body
+	ListAssetsByUsageWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ListAssetsByUsage(ctx context.Context, workspace WorkspaceId, body ListAssetsByUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAuditLog request
 	GetAuditLog(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10544,6 +10712,42 @@ func (c *Client) GetPublicResource(ctx context.Context, workspace WorkspaceId, p
 
 func (c *Client) UploadS3FileFromAppWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUploadS3FileFromAppRequestWithBody(c.Server, workspace, path, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAssets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAssetsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAssetsByUsageWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAssetsByUsageRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAssetsByUsage(ctx context.Context, workspace WorkspaceId, body ListAssetsByUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAssetsByUsageRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -22170,6 +22374,87 @@ func NewUploadS3FileFromAppRequestWithBody(server string, workspace WorkspaceId,
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListAssetsRequest generates requests for ListAssets
+func NewListAssetsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/assets/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAssetsByUsageRequest calls the generic ListAssetsByUsage builder with application/json body
+func NewListAssetsByUsageRequest(server string, workspace WorkspaceId, body ListAssetsByUsageJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewListAssetsByUsageRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewListAssetsByUsageRequestWithBody generates requests for ListAssetsByUsage with any type of body
+func NewListAssetsByUsageRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/assets/list_by_usages", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -45974,6 +46259,14 @@ type ClientWithResponsesInterface interface {
 	// UploadS3FileFromAppWithBodyWithResponse request with any body
 	UploadS3FileFromAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadS3FileFromAppResponse, error)
 
+	// ListAssetsWithResponse request
+	ListAssetsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAssetsResponse, error)
+
+	// ListAssetsByUsageWithBodyWithResponse request with any body
+	ListAssetsByUsageWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAssetsByUsageResponse, error)
+
+	ListAssetsByUsageWithResponse(ctx context.Context, workspace WorkspaceId, body ListAssetsByUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*ListAssetsByUsageResponse, error)
+
 	// GetAuditLogWithResponse request
 	GetAuditLogWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAuditLogResponse, error)
 
@@ -50254,6 +50547,65 @@ func (r UploadS3FileFromAppResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UploadS3FileFromAppResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAssetsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Kind     AssetKind `json:"kind"`
+		Metadata *struct {
+			ResourceType *string `json:"resource_type,omitempty"`
+		} `json:"metadata,omitempty"`
+		Path   string `json:"path"`
+		Usages []struct {
+			AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
+			Kind       AssetUsageKind        `json:"kind"`
+			Path       string                `json:"path"`
+		} `json:"usages"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAssetsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAssetsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAssetsByUsageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[][]struct {
+		AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
+		Kind       AssetKind             `json:"kind"`
+		Path       string                `json:"path"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAssetsByUsageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAssetsByUsageResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -59699,6 +60051,32 @@ func (c *ClientWithResponses) UploadS3FileFromAppWithBodyWithResponse(ctx contex
 	return ParseUploadS3FileFromAppResponse(rsp)
 }
 
+// ListAssetsWithResponse request returning *ListAssetsResponse
+func (c *ClientWithResponses) ListAssetsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAssetsResponse, error) {
+	rsp, err := c.ListAssets(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAssetsResponse(rsp)
+}
+
+// ListAssetsByUsageWithBodyWithResponse request with arbitrary body returning *ListAssetsByUsageResponse
+func (c *ClientWithResponses) ListAssetsByUsageWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAssetsByUsageResponse, error) {
+	rsp, err := c.ListAssetsByUsageWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAssetsByUsageResponse(rsp)
+}
+
+func (c *ClientWithResponses) ListAssetsByUsageWithResponse(ctx context.Context, workspace WorkspaceId, body ListAssetsByUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*ListAssetsByUsageResponse, error) {
+	rsp, err := c.ListAssetsByUsage(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAssetsByUsageResponse(rsp)
+}
+
 // GetAuditLogWithResponse request returning *GetAuditLogResponse
 func (c *ClientWithResponses) GetAuditLogWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAuditLogResponse, error) {
 	rsp, err := c.GetAuditLog(ctx, workspace, id, reqEditors...)
@@ -66944,6 +67322,73 @@ func ParseUploadS3FileFromAppResponse(rsp *http.Response) (*UploadS3FileFromAppR
 		var dest struct {
 			DeleteToken string `json:"delete_token"`
 			FileKey     string `json:"file_key"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAssetsResponse parses an HTTP response from a ListAssetsWithResponse call
+func ParseListAssetsResponse(rsp *http.Response) (*ListAssetsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAssetsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Kind     AssetKind `json:"kind"`
+			Metadata *struct {
+				ResourceType *string `json:"resource_type,omitempty"`
+			} `json:"metadata,omitempty"`
+			Path   string `json:"path"`
+			Usages []struct {
+				AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
+				Kind       AssetUsageKind        `json:"kind"`
+				Path       string                `json:"path"`
+			} `json:"usages"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAssetsByUsageResponse parses an HTTP response from a ListAssetsByUsageWithResponse call
+func ParseListAssetsByUsageResponse(rsp *http.Response) (*ListAssetsByUsageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAssetsByUsageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest [][]struct {
+			AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
+			Kind       AssetKind             `json:"kind"`
+			Path       string                `json:"path"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
