@@ -245,14 +245,34 @@ const (
 	GitRepositorySettingsExcludeTypesOverrideFlow         GitRepositorySettingsExcludeTypesOverride = "flow"
 	GitRepositorySettingsExcludeTypesOverrideFolder       GitRepositorySettingsExcludeTypesOverride = "folder"
 	GitRepositorySettingsExcludeTypesOverrideGroup        GitRepositorySettingsExcludeTypesOverride = "group"
+	GitRepositorySettingsExcludeTypesOverrideKey          GitRepositorySettingsExcludeTypesOverride = "key"
 	GitRepositorySettingsExcludeTypesOverrideResource     GitRepositorySettingsExcludeTypesOverride = "resource"
 	GitRepositorySettingsExcludeTypesOverrideResourcetype GitRepositorySettingsExcludeTypesOverride = "resourcetype"
 	GitRepositorySettingsExcludeTypesOverrideSchedule     GitRepositorySettingsExcludeTypesOverride = "schedule"
 	GitRepositorySettingsExcludeTypesOverrideScript       GitRepositorySettingsExcludeTypesOverride = "script"
 	GitRepositorySettingsExcludeTypesOverrideSecret       GitRepositorySettingsExcludeTypesOverride = "secret"
+	GitRepositorySettingsExcludeTypesOverrideSettings     GitRepositorySettingsExcludeTypesOverride = "settings"
 	GitRepositorySettingsExcludeTypesOverrideTrigger      GitRepositorySettingsExcludeTypesOverride = "trigger"
 	GitRepositorySettingsExcludeTypesOverrideUser         GitRepositorySettingsExcludeTypesOverride = "user"
 	GitRepositorySettingsExcludeTypesOverrideVariable     GitRepositorySettingsExcludeTypesOverride = "variable"
+)
+
+// Defines values for GitRepositorySettingsSettingsIncludeType.
+const (
+	GitRepositorySettingsSettingsIncludeTypeApp          GitRepositorySettingsSettingsIncludeType = "app"
+	GitRepositorySettingsSettingsIncludeTypeFlow         GitRepositorySettingsSettingsIncludeType = "flow"
+	GitRepositorySettingsSettingsIncludeTypeFolder       GitRepositorySettingsSettingsIncludeType = "folder"
+	GitRepositorySettingsSettingsIncludeTypeGroup        GitRepositorySettingsSettingsIncludeType = "group"
+	GitRepositorySettingsSettingsIncludeTypeKey          GitRepositorySettingsSettingsIncludeType = "key"
+	GitRepositorySettingsSettingsIncludeTypeResource     GitRepositorySettingsSettingsIncludeType = "resource"
+	GitRepositorySettingsSettingsIncludeTypeResourcetype GitRepositorySettingsSettingsIncludeType = "resourcetype"
+	GitRepositorySettingsSettingsIncludeTypeSchedule     GitRepositorySettingsSettingsIncludeType = "schedule"
+	GitRepositorySettingsSettingsIncludeTypeScript       GitRepositorySettingsSettingsIncludeType = "script"
+	GitRepositorySettingsSettingsIncludeTypeSecret       GitRepositorySettingsSettingsIncludeType = "secret"
+	GitRepositorySettingsSettingsIncludeTypeSettings     GitRepositorySettingsSettingsIncludeType = "settings"
+	GitRepositorySettingsSettingsIncludeTypeTrigger      GitRepositorySettingsSettingsIncludeType = "trigger"
+	GitRepositorySettingsSettingsIncludeTypeUser         GitRepositorySettingsSettingsIncludeType = "user"
+	GitRepositorySettingsSettingsIncludeTypeVariable     GitRepositorySettingsSettingsIncludeType = "variable"
 )
 
 // Defines values for GlobalUserInfoLoginType.
@@ -529,22 +549,6 @@ const (
 	WorkspaceDeployUISettingsIncludeTypeSecret   WorkspaceDeployUISettingsIncludeType = "secret"
 	WorkspaceDeployUISettingsIncludeTypeTrigger  WorkspaceDeployUISettingsIncludeType = "trigger"
 	WorkspaceDeployUISettingsIncludeTypeVariable WorkspaceDeployUISettingsIncludeType = "variable"
-)
-
-// Defines values for WorkspaceGitSyncSettingsIncludeType.
-const (
-	WorkspaceGitSyncSettingsIncludeTypeApp          WorkspaceGitSyncSettingsIncludeType = "app"
-	WorkspaceGitSyncSettingsIncludeTypeFlow         WorkspaceGitSyncSettingsIncludeType = "flow"
-	WorkspaceGitSyncSettingsIncludeTypeFolder       WorkspaceGitSyncSettingsIncludeType = "folder"
-	WorkspaceGitSyncSettingsIncludeTypeGroup        WorkspaceGitSyncSettingsIncludeType = "group"
-	WorkspaceGitSyncSettingsIncludeTypeResource     WorkspaceGitSyncSettingsIncludeType = "resource"
-	WorkspaceGitSyncSettingsIncludeTypeResourcetype WorkspaceGitSyncSettingsIncludeType = "resourcetype"
-	WorkspaceGitSyncSettingsIncludeTypeSchedule     WorkspaceGitSyncSettingsIncludeType = "schedule"
-	WorkspaceGitSyncSettingsIncludeTypeScript       WorkspaceGitSyncSettingsIncludeType = "script"
-	WorkspaceGitSyncSettingsIncludeTypeSecret       WorkspaceGitSyncSettingsIncludeType = "secret"
-	WorkspaceGitSyncSettingsIncludeTypeTrigger      WorkspaceGitSyncSettingsIncludeType = "trigger"
-	WorkspaceGitSyncSettingsIncludeTypeUser         WorkspaceGitSyncSettingsIncludeType = "user"
-	WorkspaceGitSyncSettingsIncludeTypeVariable     WorkspaceGitSyncSettingsIncludeType = "variable"
 )
 
 // Defines values for SchemasBranchAllType.
@@ -1466,15 +1470,25 @@ type GetAllTopicSubscription struct {
 
 // GitRepositorySettings defines model for GitRepositorySettings.
 type GitRepositorySettings struct {
+	Collapsed            *bool                                        `json:"collapsed,omitempty"`
 	ExcludeTypesOverride *[]GitRepositorySettingsExcludeTypesOverride `json:"exclude_types_override,omitempty"`
 	GitRepoResourcePath  string                                       `json:"git_repo_resource_path"`
 	GroupByFolder        *bool                                        `json:"group_by_folder,omitempty"`
 	ScriptPath           string                                       `json:"script_path"`
-	UseIndividualBranch  *bool                                        `json:"use_individual_branch,omitempty"`
+	Settings             *struct {
+		ExcludePath      *[]string                                   `json:"exclude_path,omitempty"`
+		ExtraIncludePath *[]string                                   `json:"extra_include_path,omitempty"`
+		IncludePath      *[]string                                   `json:"include_path,omitempty"`
+		IncludeType      *[]GitRepositorySettingsSettingsIncludeType `json:"include_type,omitempty"`
+	} `json:"settings,omitempty"`
+	UseIndividualBranch *bool `json:"use_individual_branch,omitempty"`
 }
 
 // GitRepositorySettingsExcludeTypesOverride defines model for GitRepositorySettings.ExcludeTypesOverride.
 type GitRepositorySettingsExcludeTypesOverride string
+
+// GitRepositorySettingsSettingsIncludeType defines model for GitRepositorySettings.Settings.IncludeType.
+type GitRepositorySettingsSettingsIncludeType string
 
 // GithubInstallations defines model for GithubInstallations.
 type GithubInstallations = []struct {
@@ -2732,13 +2746,8 @@ type WorkspaceDeployUISettingsIncludeType string
 
 // WorkspaceGitSyncSettings defines model for WorkspaceGitSyncSettings.
 type WorkspaceGitSyncSettings struct {
-	IncludePath  *[]string                              `json:"include_path,omitempty"`
-	IncludeType  *[]WorkspaceGitSyncSettingsIncludeType `json:"include_type,omitempty"`
-	Repositories *[]GitRepositorySettings               `json:"repositories,omitempty"`
+	Repositories *[]GitRepositorySettings `json:"repositories,omitempty"`
 }
-
-// WorkspaceGitSyncSettingsIncludeType defines model for WorkspaceGitSyncSettings.IncludeType.
-type WorkspaceGitSyncSettingsIncludeType string
 
 // WorkspaceInvite defines model for WorkspaceInvite.
 type WorkspaceInvite struct {
@@ -52681,7 +52690,6 @@ func (r ListStoredFilesResponse) StatusCode() int {
 type LoadCsvPreviewResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *interface{}
 }
 
 // Status returns HTTPResponse.Status
@@ -52747,7 +52755,6 @@ func (r LoadFilePreviewResponse) StatusCode() int {
 type LoadParquetPreviewResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *interface{}
 }
 
 // Status returns HTTPResponse.Status
@@ -69493,16 +69500,6 @@ func ParseLoadCsvPreviewResponse(rsp *http.Response) (*LoadCsvPreviewResponse, e
 		HTTPResponse: rsp,
 	}
 
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
 	return response, nil
 }
 
@@ -69569,16 +69566,6 @@ func ParseLoadParquetPreviewResponse(rsp *http.Response) (*LoadParquetPreviewRes
 	response := &LoadParquetPreviewResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
 	}
 
 	return response, nil
