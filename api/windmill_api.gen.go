@@ -2523,6 +2523,7 @@ type TimeseriesMetric struct {
 type TokenResponse struct {
 	AccessToken  string    `json:"access_token"`
 	ExpiresIn    *int      `json:"expires_in,omitempty"`
+	GrantType    *string   `json:"grant_type,omitempty"`
 	RefreshToken *string   `json:"refresh_token,omitempty"`
 	Scope        *[]string `json:"scope,omitempty"`
 }
@@ -3268,6 +3269,16 @@ type CountJobsByTagParams struct {
 type ConnectCallbackJSONBody struct {
 	Code  string `json:"code"`
 	State string `json:"state"`
+}
+
+// ConnectClientCredentialsJSONBody defines parameters for ConnectClientCredentials.
+type ConnectClientCredentialsJSONBody struct {
+	// CcClientId OAuth client ID for resource-level authentication
+	CcClientId string `json:"cc_client_id"`
+
+	// CcClientSecret OAuth client secret for resource-level authentication
+	CcClientSecret string    `json:"cc_client_secret"`
+	Scopes         *[]string `json:"scopes,omitempty"`
 }
 
 // ConnectSlackCallbackInstanceJSONBody defines parameters for ConnectSlackCallbackInstance.
@@ -5147,9 +5158,15 @@ type ConnectSlackCallbackJSONBody struct {
 
 // CreateAccountJSONBody defines parameters for CreateAccount.
 type CreateAccountJSONBody struct {
-	Client       string  `json:"client"`
-	ExpiresIn    int     `json:"expires_in"`
-	RefreshToken *string `json:"refresh_token,omitempty"`
+	// CcClientId OAuth client ID for resource-level credentials (client_credentials flow only)
+	CcClientId *string `json:"cc_client_id,omitempty"`
+
+	// CcClientSecret OAuth client secret for resource-level credentials (client_credentials flow only)
+	CcClientSecret *string `json:"cc_client_secret,omitempty"`
+	Client         string  `json:"client"`
+	ExpiresIn      int     `json:"expires_in"`
+	GrantType      *string `json:"grant_type,omitempty"`
+	RefreshToken   *string `json:"refresh_token,omitempty"`
 }
 
 // RefreshTokenJSONBody defines parameters for RefreshToken.
@@ -5697,6 +5714,9 @@ type UpdateInstanceGroupJSONRequestBody UpdateInstanceGroupJSONBody
 
 // ConnectCallbackJSONRequestBody defines body for ConnectCallback for application/json ContentType.
 type ConnectCallbackJSONRequestBody ConnectCallbackJSONBody
+
+// ConnectClientCredentialsJSONRequestBody defines body for ConnectClientCredentials for application/json ContentType.
+type ConnectClientCredentialsJSONRequestBody ConnectClientCredentialsJSONBody
 
 // ConnectSlackCallbackInstanceJSONRequestBody defines body for ConnectSlackCallbackInstance for application/json ContentType.
 type ConnectSlackCallbackInstanceJSONRequestBody ConnectSlackCallbackInstanceJSONBody
@@ -6999,6 +7019,11 @@ type ClientInterface interface {
 	ConnectCallbackWithBody(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ConnectCallback(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ConnectClientCredentialsWithBody request with any body
+	ConnectClientCredentialsWithBody(ctx context.Context, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ConnectClientCredentials(ctx context.Context, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ConnectSlackCallbackInstanceWithBody request with any body
 	ConnectSlackCallbackInstanceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9272,6 +9297,30 @@ func (c *Client) ConnectCallbackWithBody(ctx context.Context, clientName ClientN
 
 func (c *Client) ConnectCallback(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConnectCallbackRequest(c.Server, clientName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectClientCredentialsWithBody(ctx context.Context, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectClientCredentialsRequestWithBody(c.Server, client, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectClientCredentials(ctx context.Context, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectClientCredentialsRequest(c.Server, client, body)
 	if err != nil {
 		return nil, err
 	}
@@ -18170,6 +18219,53 @@ func NewConnectCallbackRequestWithBody(server string, clientName ClientName, con
 	}
 
 	operationPath := fmt.Sprintf("/oauth/connect_callback/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewConnectClientCredentialsRequest calls the generic ConnectClientCredentials builder with application/json body
+func NewConnectClientCredentialsRequest(server string, client string, body ConnectClientCredentialsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewConnectClientCredentialsRequestWithBody(server, client, "application/json", bodyReader)
+}
+
+// NewConnectClientCredentialsRequestWithBody generates requests for ConnectClientCredentials with any type of body
+func NewConnectClientCredentialsRequestWithBody(server string, client string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "client", runtime.ParamLocationPath, client)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oauth/connect_client_credentials/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -45928,6 +46024,11 @@ type ClientWithResponsesInterface interface {
 
 	ConnectCallbackWithResponse(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error)
 
+	// ConnectClientCredentialsWithBodyWithResponse request with any body
+	ConnectClientCredentialsWithBodyWithResponse(ctx context.Context, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error)
+
+	ConnectClientCredentialsWithResponse(ctx context.Context, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error)
+
 	// ConnectSlackCallbackInstanceWithBodyWithResponse request with any body
 	ConnectSlackCallbackInstanceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackInstanceResponse, error)
 
@@ -48502,6 +48603,28 @@ func (r ConnectCallbackResponse) StatusCode() int {
 	return 0
 }
 
+type ConnectClientCredentialsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TokenResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ConnectClientCredentialsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ConnectClientCredentialsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ConnectSlackCallbackInstanceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -48528,6 +48651,7 @@ type GetOAuthConnectResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		ExtraParams *map[string]interface{} `json:"extra_params,omitempty"`
+		GrantTypes  *[]string               `json:"grant_types,omitempty"`
 		Scopes      *[]string               `json:"scopes,omitempty"`
 	}
 }
@@ -59000,6 +59124,23 @@ func (c *ClientWithResponses) ConnectCallbackWithResponse(ctx context.Context, c
 	return ParseConnectCallbackResponse(rsp)
 }
 
+// ConnectClientCredentialsWithBodyWithResponse request with arbitrary body returning *ConnectClientCredentialsResponse
+func (c *ClientWithResponses) ConnectClientCredentialsWithBodyWithResponse(ctx context.Context, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error) {
+	rsp, err := c.ConnectClientCredentialsWithBody(ctx, client, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectClientCredentialsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ConnectClientCredentialsWithResponse(ctx context.Context, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error) {
+	rsp, err := c.ConnectClientCredentials(ctx, client, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectClientCredentialsResponse(rsp)
+}
+
 // ConnectSlackCallbackInstanceWithBodyWithResponse request with arbitrary body returning *ConnectSlackCallbackInstanceResponse
 func (c *ClientWithResponses) ConnectSlackCallbackInstanceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackInstanceResponse, error) {
 	rsp, err := c.ConnectSlackCallbackInstanceWithBody(ctx, contentType, body, reqEditors...)
@@ -65359,6 +65500,32 @@ func ParseConnectCallbackResponse(rsp *http.Response) (*ConnectCallbackResponse,
 	return response, nil
 }
 
+// ParseConnectClientCredentialsResponse parses an HTTP response from a ConnectClientCredentialsWithResponse call
+func ParseConnectClientCredentialsResponse(rsp *http.Response) (*ConnectClientCredentialsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ConnectClientCredentialsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TokenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseConnectSlackCallbackInstanceResponse parses an HTTP response from a ConnectSlackCallbackInstanceWithResponse call
 func ParseConnectSlackCallbackInstanceResponse(rsp *http.Response) (*ConnectSlackCallbackInstanceResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -65392,6 +65559,7 @@ func ParseGetOAuthConnectResponse(rsp *http.Response) (*GetOAuthConnectResponse,
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			ExtraParams *map[string]interface{} `json:"extra_params,omitempty"`
+			GrantTypes  *[]string               `json:"grant_types,omitempty"`
 			Scopes      *[]string               `json:"scopes,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
