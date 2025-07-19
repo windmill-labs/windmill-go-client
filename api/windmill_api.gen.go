@@ -56,7 +56,6 @@ const (
 const (
 	AssetKindResource AssetKind = "resource"
 	AssetKindS3object AssetKind = "s3object"
-	AssetKindVariable AssetKind = "variable"
 )
 
 // Defines values for AssetUsageAccessType.
@@ -387,17 +386,24 @@ const (
 	Qos2 MqttQoS = "qos2"
 )
 
-// Defines values for NewScriptFallbackAccessTypesAccessType.
+// Defines values for NewScriptAssetsAccessType.
 const (
-	NewScriptFallbackAccessTypesAccessTypeR  NewScriptFallbackAccessTypesAccessType = "r"
-	NewScriptFallbackAccessTypesAccessTypeRw NewScriptFallbackAccessTypesAccessType = "rw"
-	NewScriptFallbackAccessTypesAccessTypeW  NewScriptFallbackAccessTypesAccessType = "w"
+	NewScriptAssetsAccessTypeR  NewScriptAssetsAccessType = "r"
+	NewScriptAssetsAccessTypeRw NewScriptAssetsAccessType = "rw"
+	NewScriptAssetsAccessTypeW  NewScriptAssetsAccessType = "w"
 )
 
-// Defines values for NewScriptFallbackAccessTypesKind.
+// Defines values for NewScriptAssetsAltAccessType.
 const (
-	NewScriptFallbackAccessTypesKindResource NewScriptFallbackAccessTypesKind = "resource"
-	NewScriptFallbackAccessTypesKindS3object NewScriptFallbackAccessTypesKind = "s3object"
+	NewScriptAssetsAltAccessTypeR  NewScriptAssetsAltAccessType = "r"
+	NewScriptAssetsAltAccessTypeRw NewScriptAssetsAltAccessType = "rw"
+	NewScriptAssetsAltAccessTypeW  NewScriptAssetsAltAccessType = "w"
+)
+
+// Defines values for NewScriptAssetsKind.
+const (
+	NewScriptAssetsKindResource NewScriptAssetsKind = "resource"
+	NewScriptAssetsKindS3object NewScriptAssetsKind = "s3object"
 )
 
 // Defines values for NewScriptKind.
@@ -410,17 +416,24 @@ const (
 	NewScriptKindTrigger      NewScriptKind = "trigger"
 )
 
-// Defines values for NewScriptWithDraftFallbackAccessTypesAccessType.
+// Defines values for NewScriptWithDraftAssetsAccessType.
 const (
-	NewScriptWithDraftFallbackAccessTypesAccessTypeR  NewScriptWithDraftFallbackAccessTypesAccessType = "r"
-	NewScriptWithDraftFallbackAccessTypesAccessTypeRw NewScriptWithDraftFallbackAccessTypesAccessType = "rw"
-	NewScriptWithDraftFallbackAccessTypesAccessTypeW  NewScriptWithDraftFallbackAccessTypesAccessType = "w"
+	NewScriptWithDraftAssetsAccessTypeR  NewScriptWithDraftAssetsAccessType = "r"
+	NewScriptWithDraftAssetsAccessTypeRw NewScriptWithDraftAssetsAccessType = "rw"
+	NewScriptWithDraftAssetsAccessTypeW  NewScriptWithDraftAssetsAccessType = "w"
 )
 
-// Defines values for NewScriptWithDraftFallbackAccessTypesKind.
+// Defines values for NewScriptWithDraftAssetsAltAccessType.
 const (
-	NewScriptWithDraftFallbackAccessTypesKindResource NewScriptWithDraftFallbackAccessTypesKind = "resource"
-	NewScriptWithDraftFallbackAccessTypesKindS3object NewScriptWithDraftFallbackAccessTypesKind = "s3object"
+	NewScriptWithDraftAssetsAltAccessTypeR  NewScriptWithDraftAssetsAltAccessType = "r"
+	NewScriptWithDraftAssetsAltAccessTypeRw NewScriptWithDraftAssetsAltAccessType = "rw"
+	NewScriptWithDraftAssetsAltAccessTypeW  NewScriptWithDraftAssetsAltAccessType = "w"
+)
+
+// Defines values for NewScriptWithDraftAssetsKind.
+const (
+	NewScriptWithDraftAssetsKindResource NewScriptWithDraftAssetsKind = "resource"
+	NewScriptWithDraftAssetsKindS3object NewScriptWithDraftAssetsKind = "s3object"
 )
 
 // Defines values for NewScriptWithDraftKind.
@@ -579,7 +592,7 @@ const (
 
 // Defines values for SchemasForloopFlowType.
 const (
-	SchemasForloopFlowTypeForloopflow SchemasForloopFlowType = "forloopflow"
+	Forloopflow SchemasForloopFlowType = "forloopflow"
 )
 
 // Defines values for SchemasIdentityType.
@@ -589,7 +602,7 @@ const (
 
 // Defines values for SchemasJavascriptTransformType.
 const (
-	SchemasJavascriptTransformTypeJavascript SchemasJavascriptTransformType = "javascript"
+	Javascript SchemasJavascriptTransformType = "javascript"
 )
 
 // Defines values for SchemasPathFlowType.
@@ -602,17 +615,24 @@ const (
 	SchemasPathScriptTypeScript SchemasPathScriptType = "script"
 )
 
-// Defines values for SchemasRawScriptAssetFallbackAccessTypesAccessType.
+// Defines values for SchemasRawScriptAssetsAccessType.
 const (
-	SchemasRawScriptAssetFallbackAccessTypesAccessTypeR  SchemasRawScriptAssetFallbackAccessTypesAccessType = "r"
-	SchemasRawScriptAssetFallbackAccessTypesAccessTypeRw SchemasRawScriptAssetFallbackAccessTypesAccessType = "rw"
-	SchemasRawScriptAssetFallbackAccessTypesAccessTypeW  SchemasRawScriptAssetFallbackAccessTypesAccessType = "w"
+	SchemasRawScriptAssetsAccessTypeR  SchemasRawScriptAssetsAccessType = "r"
+	SchemasRawScriptAssetsAccessTypeRw SchemasRawScriptAssetsAccessType = "rw"
+	SchemasRawScriptAssetsAccessTypeW  SchemasRawScriptAssetsAccessType = "w"
 )
 
-// Defines values for SchemasRawScriptAssetFallbackAccessTypesKind.
+// Defines values for SchemasRawScriptAssetsAltAccessType.
 const (
-	SchemasRawScriptAssetFallbackAccessTypesKindResource SchemasRawScriptAssetFallbackAccessTypesKind = "resource"
-	SchemasRawScriptAssetFallbackAccessTypesKindS3object SchemasRawScriptAssetFallbackAccessTypesKind = "s3object"
+	R  SchemasRawScriptAssetsAltAccessType = "r"
+	Rw SchemasRawScriptAssetsAltAccessType = "rw"
+	W  SchemasRawScriptAssetsAltAccessType = "w"
+)
+
+// Defines values for SchemasRawScriptAssetsKind.
+const (
+	SchemasRawScriptAssetsKindResource SchemasRawScriptAssetsKind = "resource"
+	SchemasRawScriptAssetsKindS3object SchemasRawScriptAssetsKind = "s3object"
 )
 
 // Defines values for SchemasRawScriptLanguage.
@@ -641,12 +661,12 @@ const (
 
 // Defines values for SchemasStaticTransformType.
 const (
-	SchemasStaticTransformTypeJavascript SchemasStaticTransformType = "javascript"
+	Static SchemasStaticTransformType = "static"
 )
 
 // Defines values for SchemasWhileloopFlowType.
 const (
-	SchemasWhileloopFlowTypeForloopflow SchemasWhileloopFlowType = "forloopflow"
+	Whileloopflow SchemasWhileloopFlowType = "whileloopflow"
 )
 
 // Defines values for ActionKind.
@@ -1932,23 +1952,24 @@ type NewSchedule struct {
 
 // NewScript defines model for NewScript.
 type NewScript struct {
-	CacheTtl               *float32  `json:"cache_ttl,omitempty"`
-	Codebase               *string   `json:"codebase,omitempty"`
-	ConcurrencyKey         *string   `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS *int      `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *int      `json:"concurrent_limit,omitempty"`
-	Content                string    `json:"content"`
-	DedicatedWorker        *bool     `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse         *bool     `json:"delete_after_use,omitempty"`
-	DeploymentMessage      *string   `json:"deployment_message,omitempty"`
-	Description            string    `json:"description"`
-	DraftOnly              *bool     `json:"draft_only,omitempty"`
-	Envs                   *[]string `json:"envs,omitempty"`
-	FallbackAccessTypes    *[]struct {
-		AccessType NewScriptFallbackAccessTypesAccessType `json:"access_type"`
-		Kind       NewScriptFallbackAccessTypesKind       `json:"kind"`
-		Path       string                                 `json:"path"`
-	} `json:"fallback_access_types,omitempty"`
+	Assets *[]struct {
+		AccessType    *NewScriptAssetsAccessType    `json:"access_type,omitempty"`
+		AltAccessType *NewScriptAssetsAltAccessType `json:"alt_access_type,omitempty"`
+		Kind          NewScriptAssetsKind           `json:"kind"`
+		Path          string                        `json:"path"`
+	} `json:"assets,omitempty"`
+	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
+	Codebase               *string                 `json:"codebase,omitempty"`
+	ConcurrencyKey         *string                 `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
+	Content                string                  `json:"content"`
+	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse         *bool                   `json:"delete_after_use,omitempty"`
+	DeploymentMessage      *string                 `json:"deployment_message,omitempty"`
+	Description            string                  `json:"description"`
+	DraftOnly              *bool                   `json:"draft_only,omitempty"`
+	Envs                   *[]string               `json:"envs,omitempty"`
 	HasPreprocessor        *bool                   `json:"has_preprocessor,omitempty"`
 	IsTemplate             *bool                   `json:"is_template,omitempty"`
 	Kind                   *NewScriptKind          `json:"kind,omitempty"`
@@ -1968,35 +1989,39 @@ type NewScript struct {
 	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
-// NewScriptFallbackAccessTypesAccessType defines model for NewScript.FallbackAccessTypes.AccessType.
-type NewScriptFallbackAccessTypesAccessType string
+// NewScriptAssetsAccessType defines model for NewScript.Assets.AccessType.
+type NewScriptAssetsAccessType string
 
-// NewScriptFallbackAccessTypesKind defines model for NewScript.FallbackAccessTypes.Kind.
-type NewScriptFallbackAccessTypesKind string
+// NewScriptAssetsAltAccessType defines model for NewScript.Assets.AltAccessType.
+type NewScriptAssetsAltAccessType string
+
+// NewScriptAssetsKind defines model for NewScript.Assets.Kind.
+type NewScriptAssetsKind string
 
 // NewScriptKind defines model for NewScript.Kind.
 type NewScriptKind string
 
 // NewScriptWithDraft defines model for NewScriptWithDraft.
 type NewScriptWithDraft struct {
-	CacheTtl               *float32   `json:"cache_ttl,omitempty"`
-	Codebase               *string    `json:"codebase,omitempty"`
-	ConcurrencyKey         *string    `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS *int       `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *int       `json:"concurrent_limit,omitempty"`
-	Content                string     `json:"content"`
-	DedicatedWorker        *bool      `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse         *bool      `json:"delete_after_use,omitempty"`
-	DeploymentMessage      *string    `json:"deployment_message,omitempty"`
-	Description            string     `json:"description"`
-	Draft                  *NewScript `json:"draft,omitempty"`
-	DraftOnly              *bool      `json:"draft_only,omitempty"`
-	Envs                   *[]string  `json:"envs,omitempty"`
-	FallbackAccessTypes    *[]struct {
-		AccessType NewScriptWithDraftFallbackAccessTypesAccessType `json:"access_type"`
-		Kind       NewScriptWithDraftFallbackAccessTypesKind       `json:"kind"`
-		Path       string                                          `json:"path"`
-	} `json:"fallback_access_types,omitempty"`
+	Assets *[]struct {
+		AccessType    *NewScriptWithDraftAssetsAccessType    `json:"access_type,omitempty"`
+		AltAccessType *NewScriptWithDraftAssetsAltAccessType `json:"alt_access_type,omitempty"`
+		Kind          NewScriptWithDraftAssetsKind           `json:"kind"`
+		Path          string                                 `json:"path"`
+	} `json:"assets,omitempty"`
+	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
+	Codebase               *string                 `json:"codebase,omitempty"`
+	ConcurrencyKey         *string                 `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
+	Content                string                  `json:"content"`
+	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse         *bool                   `json:"delete_after_use,omitempty"`
+	DeploymentMessage      *string                 `json:"deployment_message,omitempty"`
+	Description            string                  `json:"description"`
+	Draft                  *NewScript              `json:"draft,omitempty"`
+	DraftOnly              *bool                   `json:"draft_only,omitempty"`
+	Envs                   *[]string               `json:"envs,omitempty"`
 	HasPreprocessor        *bool                   `json:"has_preprocessor,omitempty"`
 	Hash                   string                  `json:"hash"`
 	IsTemplate             *bool                   `json:"is_template,omitempty"`
@@ -2017,11 +2042,14 @@ type NewScriptWithDraft struct {
 	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
-// NewScriptWithDraftFallbackAccessTypesAccessType defines model for NewScriptWithDraft.FallbackAccessTypes.AccessType.
-type NewScriptWithDraftFallbackAccessTypesAccessType string
+// NewScriptWithDraftAssetsAccessType defines model for NewScriptWithDraft.Assets.AccessType.
+type NewScriptWithDraftAssetsAccessType string
 
-// NewScriptWithDraftFallbackAccessTypesKind defines model for NewScriptWithDraft.FallbackAccessTypes.Kind.
-type NewScriptWithDraftFallbackAccessTypesKind string
+// NewScriptWithDraftAssetsAltAccessType defines model for NewScriptWithDraft.Assets.AltAccessType.
+type NewScriptWithDraftAssetsAltAccessType string
+
+// NewScriptWithDraftAssetsKind defines model for NewScriptWithDraft.Assets.Kind.
+type NewScriptWithDraftAssetsKind string
 
 // NewScriptWithDraftKind defines model for NewScriptWithDraft.Kind.
 type NewScriptWithDraftKind string
@@ -2423,6 +2451,21 @@ type ScheduleWJobs struct {
 	Tag                 *string     `json:"tag,omitempty"`
 	Timezone            string      `json:"timezone"`
 	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
+}
+
+// ScopeDefinition defines model for ScopeDefinition.
+type ScopeDefinition struct {
+	Description          *string `json:"description"`
+	Label                string  `json:"label"`
+	RequiresResourcePath bool    `json:"requires_resource_path"`
+	Value                string  `json:"value"`
+}
+
+// ScopeDomain defines model for ScopeDomain.
+type ScopeDomain struct {
+	Description *string           `json:"description"`
+	Name        string            `json:"name"`
+	Scopes      []ScopeDefinition `json:"scopes"`
 }
 
 // Script defines model for Script.
@@ -2937,11 +2980,12 @@ type SchemasPathScriptType string
 
 // SchemasRawScript defines model for schemas-RawScript.
 type SchemasRawScript struct {
-	AssetFallbackAccessTypes *[]struct {
-		AccessType *SchemasRawScriptAssetFallbackAccessTypesAccessType `json:"access_type,omitempty"`
-		Kind       SchemasRawScriptAssetFallbackAccessTypesKind        `json:"kind"`
-		Path       string                                              `json:"path"`
-	} `json:"asset_fallback_access_types,omitempty"`
+	Assets *[]struct {
+		AccessType    *SchemasRawScriptAssetsAccessType    `json:"access_type,omitempty"`
+		AltAccessType *SchemasRawScriptAssetsAltAccessType `json:"alt_access_type,omitempty"`
+		Kind          SchemasRawScriptAssetsKind           `json:"kind"`
+		Path          string                               `json:"path"`
+	} `json:"assets,omitempty"`
 	ConcurrencyTimeWindowS *float32                         `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *float32                         `json:"concurrent_limit,omitempty"`
 	Content                string                           `json:"content"`
@@ -2955,11 +2999,14 @@ type SchemasRawScript struct {
 	Type                   SchemasRawScriptType             `json:"type"`
 }
 
-// SchemasRawScriptAssetFallbackAccessTypesAccessType defines model for SchemasRawScript.AssetFallbackAccessTypes.AccessType.
-type SchemasRawScriptAssetFallbackAccessTypesAccessType string
+// SchemasRawScriptAssetsAccessType defines model for SchemasRawScript.Assets.AccessType.
+type SchemasRawScriptAssetsAccessType string
 
-// SchemasRawScriptAssetFallbackAccessTypesKind defines model for SchemasRawScript.AssetFallbackAccessTypes.Kind.
-type SchemasRawScriptAssetFallbackAccessTypesKind string
+// SchemasRawScriptAssetsAltAccessType defines model for SchemasRawScript.Assets.AltAccessType.
+type SchemasRawScriptAssetsAltAccessType string
+
+// SchemasRawScriptAssetsKind defines model for SchemasRawScript.Assets.Kind.
+type SchemasRawScriptAssetsKind string
 
 // SchemasRawScriptLanguage defines model for SchemasRawScript.Language.
 type SchemasRawScriptLanguage string
@@ -2984,7 +3031,7 @@ type SchemasRetry struct {
 // SchemasStaticTransform defines model for schemas-StaticTransform.
 type SchemasStaticTransform struct {
 	Type  SchemasStaticTransformType `json:"type"`
-	Value *interface{}               `json:"value,omitempty"`
+	Value interface{}                `json:"value"`
 }
 
 // SchemasStaticTransformType defines model for SchemasStaticTransform.Type.
@@ -5042,6 +5089,7 @@ type GetCompletedJobResultMaybeParams struct {
 // GetJobParams defines parameters for GetJob.
 type GetJobParams struct {
 	NoLogs *bool `form:"no_logs,omitempty" json:"no_logs,omitempty"`
+	NoCode *bool `form:"no_code,omitempty" json:"no_code,omitempty"`
 }
 
 // GetSuspendedJobFlowParams defines parameters for GetSuspendedJobFlow.
@@ -5054,6 +5102,14 @@ type GetJobUpdatesParams struct {
 	Running     *bool `form:"running,omitempty" json:"running,omitempty"`
 	LogOffset   *int  `form:"log_offset,omitempty" json:"log_offset,omitempty"`
 	GetProgress *bool `form:"get_progress,omitempty" json:"get_progress,omitempty"`
+}
+
+// GetJobUpdatesSSEParams defines parameters for GetJobUpdatesSSE.
+type GetJobUpdatesSSEParams struct {
+	Running     *bool `form:"running,omitempty" json:"running,omitempty"`
+	LogOffset   *int  `form:"log_offset,omitempty" json:"log_offset,omitempty"`
+	GetProgress *bool `form:"get_progress,omitempty" json:"get_progress,omitempty"`
+	OnlyResult  *bool `form:"only_result,omitempty" json:"only_result,omitempty"`
 }
 
 // CancelQueuedJobJSONBody defines parameters for CancelQueuedJob.
@@ -7156,6 +7212,9 @@ type ClientInterface interface {
 	// SyncTeams request
 	SyncTeams(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAvailableScopes request
+	ListAvailableScopes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// BackendUptodate request
 	BackendUptodate(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7932,6 +7991,9 @@ type ClientInterface interface {
 
 	// GetJobUpdates request
 	GetJobUpdates(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetJobUpdatesSSE request
+	GetJobUpdatesSSE(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesSSEParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CancelQueuedJobWithBody request with any body
 	CancelQueuedJobWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9858,6 +9920,18 @@ func (c *Client) SendMessageToConversation(ctx context.Context, body SendMessage
 
 func (c *Client) SyncTeams(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSyncTeamsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAvailableScopes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAvailableScopesRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -13278,6 +13352,18 @@ func (c *Client) GetRootJobId(ctx context.Context, workspace WorkspaceId, id Job
 
 func (c *Client) GetJobUpdates(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetJobUpdatesRequest(c.Server, workspace, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetJobUpdatesSSE(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesSSEParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetJobUpdatesSSERequest(c.Server, workspace, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -19806,6 +19892,33 @@ func NewSyncTeamsRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAvailableScopesRequest generates requests for ListAvailableScopes
+func NewListAvailableScopesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/tokens/list/scopes")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -34852,6 +34965,22 @@ func NewGetJobRequest(server string, workspace WorkspaceId, id JobId, params *Ge
 
 		}
 
+		if params.NoCode != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "no_code", runtime.ParamLocationQuery, *params.NoCode); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -35216,6 +35345,117 @@ func NewGetJobUpdatesRequest(server string, workspace WorkspaceId, id JobId, par
 		if params.GetProgress != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_progress", runtime.ParamLocationQuery, *params.GetProgress); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetJobUpdatesSSERequest generates requests for GetJobUpdatesSSE
+func NewGetJobUpdatesSSERequest(server string, workspace WorkspaceId, id JobId, params *GetJobUpdatesSSEParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/getupdate_sse/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Running != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "running", runtime.ParamLocationQuery, *params.Running); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.LogOffset != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "log_offset", runtime.ParamLocationQuery, *params.LogOffset); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.GetProgress != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_progress", runtime.ParamLocationQuery, *params.GetProgress); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.OnlyResult != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "only_result", runtime.ParamLocationQuery, *params.OnlyResult); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -46160,6 +46400,9 @@ type ClientWithResponsesInterface interface {
 	// SyncTeamsWithResponse request
 	SyncTeamsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SyncTeamsResponse, error)
 
+	// ListAvailableScopesWithResponse request
+	ListAvailableScopesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAvailableScopesResponse, error)
+
 	// BackendUptodateWithResponse request
 	BackendUptodateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*BackendUptodateResponse, error)
 
@@ -46936,6 +47179,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetJobUpdatesWithResponse request
 	GetJobUpdatesWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesParams, reqEditors ...RequestEditorFn) (*GetJobUpdatesResponse, error)
+
+	// GetJobUpdatesSSEWithResponse request
+	GetJobUpdatesSSEWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesSSEParams, reqEditors ...RequestEditorFn) (*GetJobUpdatesSSEResponse, error)
 
 	// CancelQueuedJobWithBodyWithResponse request with any body
 	CancelQueuedJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelQueuedJobResponse, error)
@@ -49436,6 +49682,28 @@ func (r SyncTeamsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SyncTeamsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAvailableScopesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]ScopeDomain
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAvailableScopesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAvailableScopesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -54067,6 +54335,27 @@ func (r GetJobUpdatesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetJobUpdatesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetJobUpdatesSSEResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetJobUpdatesSSEResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetJobUpdatesSSEResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -59534,6 +59823,15 @@ func (c *ClientWithResponses) SyncTeamsWithResponse(ctx context.Context, reqEdit
 	return ParseSyncTeamsResponse(rsp)
 }
 
+// ListAvailableScopesWithResponse request returning *ListAvailableScopesResponse
+func (c *ClientWithResponses) ListAvailableScopesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAvailableScopesResponse, error) {
+	rsp, err := c.ListAvailableScopes(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAvailableScopesResponse(rsp)
+}
+
 // BackendUptodateWithResponse request returning *BackendUptodateResponse
 func (c *ClientWithResponses) BackendUptodateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*BackendUptodateResponse, error) {
 	rsp, err := c.BackendUptodate(ctx, reqEditors...)
@@ -62019,6 +62317,15 @@ func (c *ClientWithResponses) GetJobUpdatesWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseGetJobUpdatesResponse(rsp)
+}
+
+// GetJobUpdatesSSEWithResponse request returning *GetJobUpdatesSSEResponse
+func (c *ClientWithResponses) GetJobUpdatesSSEWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobUpdatesSSEParams, reqEditors ...RequestEditorFn) (*GetJobUpdatesSSEResponse, error) {
+	rsp, err := c.GetJobUpdatesSSE(ctx, workspace, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetJobUpdatesSSEResponse(rsp)
 }
 
 // CancelQueuedJobWithBodyWithResponse request with arbitrary body returning *CancelQueuedJobResponse
@@ -66314,6 +66621,32 @@ func ParseSyncTeamsResponse(rsp *http.Response) (*SyncTeamsResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []TeamInfo
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAvailableScopesResponse parses an HTTP response from a ListAvailableScopesWithResponse call
+func ParseListAvailableScopesResponse(rsp *http.Response) (*ListAvailableScopesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAvailableScopesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ScopeDomain
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -70932,6 +71265,22 @@ func ParseGetJobUpdatesResponse(rsp *http.Response) (*GetJobUpdatesResponse, err
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetJobUpdatesSSEResponse parses an HTTP response from a GetJobUpdatesSSEWithResponse call
+func ParseGetJobUpdatesSSEResponse(rsp *http.Response) (*GetJobUpdatesSSEResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetJobUpdatesSSEResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
