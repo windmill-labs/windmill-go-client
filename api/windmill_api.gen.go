@@ -1007,22 +1007,23 @@ type CompletedJob struct {
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
-	PermissionedAs string       `json:"permissioned_as"`
-	Preprocessed   *bool        `json:"preprocessed,omitempty"`
-	Priority       *int         `json:"priority,omitempty"`
-	RawCode        *string      `json:"raw_code,omitempty"`
-	RawFlow        *FlowValue   `json:"raw_flow,omitempty"`
-	Result         *interface{} `json:"result,omitempty"`
-	SchedulePath   *string      `json:"schedule_path,omitempty"`
-	ScriptHash     *string      `json:"script_hash,omitempty"`
-	ScriptPath     *string      `json:"script_path,omitempty"`
-	SelfWaitTimeMs *float32     `json:"self_wait_time_ms,omitempty"`
-	StartedAt      time.Time    `json:"started_at"`
-	Success        bool         `json:"success"`
-	Tag            string       `json:"tag"`
-	VisibleToOwner bool         `json:"visible_to_owner"`
-	Worker         *string      `json:"worker,omitempty"`
-	WorkspaceId    *string      `json:"workspace_id,omitempty"`
+	PermissionedAs       string          `json:"permissioned_as"`
+	Preprocessed         *bool           `json:"preprocessed,omitempty"`
+	Priority             *int            `json:"priority,omitempty"`
+	RawCode              *string         `json:"raw_code,omitempty"`
+	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
+	Result               *interface{}    `json:"result,omitempty"`
+	SchedulePath         *string         `json:"schedule_path,omitempty"`
+	ScriptHash           *string         `json:"script_hash,omitempty"`
+	ScriptPath           *string         `json:"script_path,omitempty"`
+	SelfWaitTimeMs       *float32        `json:"self_wait_time_ms,omitempty"`
+	StartedAt            time.Time       `json:"started_at"`
+	Success              bool            `json:"success"`
+	Tag                  string          `json:"tag"`
+	VisibleToOwner       bool            `json:"visible_to_owner"`
+	Worker               *string         `json:"worker,omitempty"`
+	WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
+	WorkspaceId          *string         `json:"workspace_id,omitempty"`
 }
 
 // CompletedJobJobKind defines model for CompletedJob.JobKind.
@@ -1612,23 +1613,24 @@ type Job0 struct {
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
-	PermissionedAs string       `json:"permissioned_as"`
-	Preprocessed   *bool        `json:"preprocessed,omitempty"`
-	Priority       *int         `json:"priority,omitempty"`
-	RawCode        *string      `json:"raw_code,omitempty"`
-	RawFlow        *FlowValue   `json:"raw_flow,omitempty"`
-	Result         *interface{} `json:"result,omitempty"`
-	SchedulePath   *string      `json:"schedule_path,omitempty"`
-	ScriptHash     *string      `json:"script_hash,omitempty"`
-	ScriptPath     *string      `json:"script_path,omitempty"`
-	SelfWaitTimeMs *float32     `json:"self_wait_time_ms,omitempty"`
-	StartedAt      time.Time    `json:"started_at"`
-	Success        bool         `json:"success"`
-	Tag            string       `json:"tag"`
-	Type           *Job0Type    `json:"type,omitempty"`
-	VisibleToOwner bool         `json:"visible_to_owner"`
-	Worker         *string      `json:"worker,omitempty"`
-	WorkspaceId    *string      `json:"workspace_id,omitempty"`
+	PermissionedAs       string          `json:"permissioned_as"`
+	Preprocessed         *bool           `json:"preprocessed,omitempty"`
+	Priority             *int            `json:"priority,omitempty"`
+	RawCode              *string         `json:"raw_code,omitempty"`
+	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
+	Result               *interface{}    `json:"result,omitempty"`
+	SchedulePath         *string         `json:"schedule_path,omitempty"`
+	ScriptHash           *string         `json:"script_hash,omitempty"`
+	ScriptPath           *string         `json:"script_path,omitempty"`
+	SelfWaitTimeMs       *float32        `json:"self_wait_time_ms,omitempty"`
+	StartedAt            time.Time       `json:"started_at"`
+	Success              bool            `json:"success"`
+	Tag                  string          `json:"tag"`
+	Type                 *Job0Type       `json:"type,omitempty"`
+	VisibleToOwner       bool            `json:"visible_to_owner"`
+	Worker               *string         `json:"worker,omitempty"`
+	WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
+	WorkspaceId          *string         `json:"workspace_id,omitempty"`
 }
 
 // Job0JobKind defines model for Job.0.JobKind.
@@ -1659,24 +1661,25 @@ type Job1 struct {
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
-	PermissionedAs string     `json:"permissioned_as"`
-	Preprocessed   *bool      `json:"preprocessed,omitempty"`
-	Priority       *int       `json:"priority,omitempty"`
-	RawCode        *string    `json:"raw_code,omitempty"`
-	RawFlow        *FlowValue `json:"raw_flow,omitempty"`
-	Running        bool       `json:"running"`
-	SchedulePath   *string    `json:"schedule_path,omitempty"`
-	ScheduledFor   *time.Time `json:"scheduled_for,omitempty"`
-	ScriptHash     *string    `json:"script_hash,omitempty"`
-	ScriptPath     *string    `json:"script_path,omitempty"`
-	SelfWaitTimeMs *float32   `json:"self_wait_time_ms,omitempty"`
-	StartedAt      *time.Time `json:"started_at,omitempty"`
-	Suspend        *float32   `json:"suspend,omitempty"`
-	Tag            string     `json:"tag"`
-	Type           *Job1Type  `json:"type,omitempty"`
-	VisibleToOwner bool       `json:"visible_to_owner"`
-	Worker         *string    `json:"worker,omitempty"`
-	WorkspaceId    *string    `json:"workspace_id,omitempty"`
+	PermissionedAs       string          `json:"permissioned_as"`
+	Preprocessed         *bool           `json:"preprocessed,omitempty"`
+	Priority             *int            `json:"priority,omitempty"`
+	RawCode              *string         `json:"raw_code,omitempty"`
+	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
+	Running              bool            `json:"running"`
+	SchedulePath         *string         `json:"schedule_path,omitempty"`
+	ScheduledFor         *time.Time      `json:"scheduled_for,omitempty"`
+	ScriptHash           *string         `json:"script_hash,omitempty"`
+	ScriptPath           *string         `json:"script_path,omitempty"`
+	SelfWaitTimeMs       *float32        `json:"self_wait_time_ms,omitempty"`
+	StartedAt            *time.Time      `json:"started_at,omitempty"`
+	Suspend              *float32        `json:"suspend,omitempty"`
+	Tag                  string          `json:"tag"`
+	Type                 *Job1Type       `json:"type,omitempty"`
+	VisibleToOwner       bool            `json:"visible_to_owner"`
+	Worker               *string         `json:"worker,omitempty"`
+	WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
+	WorkspaceId          *string         `json:"workspace_id,omitempty"`
 }
 
 // Job1JobKind defines model for Job.1.JobKind.
@@ -2271,23 +2274,24 @@ type QueuedJob struct {
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
-	PermissionedAs string     `json:"permissioned_as"`
-	Preprocessed   *bool      `json:"preprocessed,omitempty"`
-	Priority       *int       `json:"priority,omitempty"`
-	RawCode        *string    `json:"raw_code,omitempty"`
-	RawFlow        *FlowValue `json:"raw_flow,omitempty"`
-	Running        bool       `json:"running"`
-	SchedulePath   *string    `json:"schedule_path,omitempty"`
-	ScheduledFor   *time.Time `json:"scheduled_for,omitempty"`
-	ScriptHash     *string    `json:"script_hash,omitempty"`
-	ScriptPath     *string    `json:"script_path,omitempty"`
-	SelfWaitTimeMs *float32   `json:"self_wait_time_ms,omitempty"`
-	StartedAt      *time.Time `json:"started_at,omitempty"`
-	Suspend        *float32   `json:"suspend,omitempty"`
-	Tag            string     `json:"tag"`
-	VisibleToOwner bool       `json:"visible_to_owner"`
-	Worker         *string    `json:"worker,omitempty"`
-	WorkspaceId    *string    `json:"workspace_id,omitempty"`
+	PermissionedAs       string          `json:"permissioned_as"`
+	Preprocessed         *bool           `json:"preprocessed,omitempty"`
+	Priority             *int            `json:"priority,omitempty"`
+	RawCode              *string         `json:"raw_code,omitempty"`
+	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
+	Running              bool            `json:"running"`
+	SchedulePath         *string         `json:"schedule_path,omitempty"`
+	ScheduledFor         *time.Time      `json:"scheduled_for,omitempty"`
+	ScriptHash           *string         `json:"script_hash,omitempty"`
+	ScriptPath           *string         `json:"script_path,omitempty"`
+	SelfWaitTimeMs       *float32        `json:"self_wait_time_ms,omitempty"`
+	StartedAt            *time.Time      `json:"started_at,omitempty"`
+	Suspend              *float32        `json:"suspend,omitempty"`
+	Tag                  string          `json:"tag"`
+	VisibleToOwner       bool            `json:"visible_to_owner"`
+	Worker               *string         `json:"worker,omitempty"`
+	WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
+	WorkspaceId          *string         `json:"workspace_id,omitempty"`
 }
 
 // QueuedJobJobKind defines model for QueuedJob.JobKind.
@@ -2753,9 +2757,6 @@ type WorkflowStatus struct {
 	ScheduledFor *time.Time `json:"scheduled_for,omitempty"`
 	StartedAt    *time.Time `json:"started_at,omitempty"`
 }
-
-// WorkflowStatusRecord defines model for WorkflowStatusRecord.
-type WorkflowStatusRecord map[string]WorkflowStatus
 
 // WorkflowTask defines model for WorkflowTask.
 type WorkflowTask struct {
@@ -5388,6 +5389,7 @@ type DeleteScriptByPathParams struct {
 // GetScriptByHashParams defines parameters for GetScriptByHash.
 type GetScriptByHashParams struct {
 	WithStarredInfo *bool `form:"with_starred_info,omitempty" json:"with_starred_info,omitempty"`
+	Authed          *bool `form:"authed,omitempty" json:"authed,omitempty"`
 }
 
 // GetScriptByPathParams defines parameters for GetScriptByPath.
@@ -40776,6 +40778,22 @@ func NewGetScriptByHashRequest(server string, workspace WorkspaceId, hash Script
 
 		}
 
+		if params.Authed != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "authed", runtime.ParamLocationQuery, *params.Authed); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -54315,13 +54333,14 @@ type GetJobUpdatesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Completed  *bool                 `json:"completed,omitempty"`
-		FlowStatus *WorkflowStatusRecord `json:"flow_status,omitempty"`
-		LogOffset  *int                  `json:"log_offset,omitempty"`
-		MemPeak    *int                  `json:"mem_peak,omitempty"`
-		NewLogs    *string               `json:"new_logs,omitempty"`
-		Progress   *int                  `json:"progress,omitempty"`
-		Running    *bool                 `json:"running,omitempty"`
+		Completed            *bool           `json:"completed,omitempty"`
+		FlowStatus           *FlowStatus     `json:"flow_status,omitempty"`
+		LogOffset            *int            `json:"log_offset,omitempty"`
+		MemPeak              *int            `json:"mem_peak,omitempty"`
+		NewLogs              *string         `json:"new_logs,omitempty"`
+		Progress             *int            `json:"progress,omitempty"`
+		Running              *bool           `json:"running,omitempty"`
+		WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
 	}
 }
 
@@ -71252,13 +71271,14 @@ func ParseGetJobUpdatesResponse(rsp *http.Response) (*GetJobUpdatesResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Completed  *bool                 `json:"completed,omitempty"`
-			FlowStatus *WorkflowStatusRecord `json:"flow_status,omitempty"`
-			LogOffset  *int                  `json:"log_offset,omitempty"`
-			MemPeak    *int                  `json:"mem_peak,omitempty"`
-			NewLogs    *string               `json:"new_logs,omitempty"`
-			Progress   *int                  `json:"progress,omitempty"`
-			Running    *bool                 `json:"running,omitempty"`
+			Completed            *bool           `json:"completed,omitempty"`
+			FlowStatus           *FlowStatus     `json:"flow_status,omitempty"`
+			LogOffset            *int            `json:"log_offset,omitempty"`
+			MemPeak              *int            `json:"mem_peak,omitempty"`
+			NewLogs              *string         `json:"new_logs,omitempty"`
+			Progress             *int            `json:"progress,omitempty"`
+			Running              *bool           `json:"running,omitempty"`
+			WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
