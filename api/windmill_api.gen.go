@@ -3334,8 +3334,11 @@ type ConnectClientCredentialsJSONBody struct {
 	CcClientId string `json:"cc_client_id"`
 
 	// CcClientSecret OAuth client secret for resource-level authentication
-	CcClientSecret string    `json:"cc_client_secret"`
-	Scopes         *[]string `json:"scopes,omitempty"`
+	CcClientSecret string `json:"cc_client_secret"`
+
+	// CcTokenUrl OAuth token URL override for resource-level authentication
+	CcTokenUrl *string   `json:"cc_token_url,omitempty"`
+	Scopes     *[]string `json:"scopes,omitempty"`
 }
 
 // ConnectSlackCallbackInstanceJSONBody defines parameters for ConnectSlackCallbackInstance.
@@ -5229,10 +5232,13 @@ type CreateAccountJSONBody struct {
 
 	// CcClientSecret OAuth client secret for resource-level credentials (client_credentials flow only)
 	CcClientSecret *string `json:"cc_client_secret,omitempty"`
-	Client         string  `json:"client"`
-	ExpiresIn      int     `json:"expires_in"`
-	GrantType      *string `json:"grant_type,omitempty"`
-	RefreshToken   *string `json:"refresh_token,omitempty"`
+
+	// CcTokenUrl OAuth token URL override for resource-level authentication (client_credentials flow only)
+	CcTokenUrl   *string `json:"cc_token_url,omitempty"`
+	Client       string  `json:"client"`
+	ExpiresIn    int     `json:"expires_in"`
+	GrantType    *string `json:"grant_type,omitempty"`
+	RefreshToken *string `json:"refresh_token,omitempty"`
 }
 
 // RefreshTokenJSONBody defines parameters for RefreshToken.
