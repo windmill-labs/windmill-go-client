@@ -238,40 +238,22 @@ const (
 	FlowStatusFailureModuleTypeWaitingForPriorSteps FlowStatusFailureModuleType = "WaitingForPriorSteps"
 )
 
-// Defines values for GitRepositorySettingsExcludeTypesOverride.
+// Defines values for GitSyncObjectType.
 const (
-	GitRepositorySettingsExcludeTypesOverrideApp          GitRepositorySettingsExcludeTypesOverride = "app"
-	GitRepositorySettingsExcludeTypesOverrideFlow         GitRepositorySettingsExcludeTypesOverride = "flow"
-	GitRepositorySettingsExcludeTypesOverrideFolder       GitRepositorySettingsExcludeTypesOverride = "folder"
-	GitRepositorySettingsExcludeTypesOverrideGroup        GitRepositorySettingsExcludeTypesOverride = "group"
-	GitRepositorySettingsExcludeTypesOverrideKey          GitRepositorySettingsExcludeTypesOverride = "key"
-	GitRepositorySettingsExcludeTypesOverrideResource     GitRepositorySettingsExcludeTypesOverride = "resource"
-	GitRepositorySettingsExcludeTypesOverrideResourcetype GitRepositorySettingsExcludeTypesOverride = "resourcetype"
-	GitRepositorySettingsExcludeTypesOverrideSchedule     GitRepositorySettingsExcludeTypesOverride = "schedule"
-	GitRepositorySettingsExcludeTypesOverrideScript       GitRepositorySettingsExcludeTypesOverride = "script"
-	GitRepositorySettingsExcludeTypesOverrideSecret       GitRepositorySettingsExcludeTypesOverride = "secret"
-	GitRepositorySettingsExcludeTypesOverrideSettings     GitRepositorySettingsExcludeTypesOverride = "settings"
-	GitRepositorySettingsExcludeTypesOverrideTrigger      GitRepositorySettingsExcludeTypesOverride = "trigger"
-	GitRepositorySettingsExcludeTypesOverrideUser         GitRepositorySettingsExcludeTypesOverride = "user"
-	GitRepositorySettingsExcludeTypesOverrideVariable     GitRepositorySettingsExcludeTypesOverride = "variable"
-)
-
-// Defines values for GitRepositorySettingsSettingsIncludeType.
-const (
-	GitRepositorySettingsSettingsIncludeTypeApp          GitRepositorySettingsSettingsIncludeType = "app"
-	GitRepositorySettingsSettingsIncludeTypeFlow         GitRepositorySettingsSettingsIncludeType = "flow"
-	GitRepositorySettingsSettingsIncludeTypeFolder       GitRepositorySettingsSettingsIncludeType = "folder"
-	GitRepositorySettingsSettingsIncludeTypeGroup        GitRepositorySettingsSettingsIncludeType = "group"
-	GitRepositorySettingsSettingsIncludeTypeKey          GitRepositorySettingsSettingsIncludeType = "key"
-	GitRepositorySettingsSettingsIncludeTypeResource     GitRepositorySettingsSettingsIncludeType = "resource"
-	GitRepositorySettingsSettingsIncludeTypeResourcetype GitRepositorySettingsSettingsIncludeType = "resourcetype"
-	GitRepositorySettingsSettingsIncludeTypeSchedule     GitRepositorySettingsSettingsIncludeType = "schedule"
-	GitRepositorySettingsSettingsIncludeTypeScript       GitRepositorySettingsSettingsIncludeType = "script"
-	GitRepositorySettingsSettingsIncludeTypeSecret       GitRepositorySettingsSettingsIncludeType = "secret"
-	GitRepositorySettingsSettingsIncludeTypeSettings     GitRepositorySettingsSettingsIncludeType = "settings"
-	GitRepositorySettingsSettingsIncludeTypeTrigger      GitRepositorySettingsSettingsIncludeType = "trigger"
-	GitRepositorySettingsSettingsIncludeTypeUser         GitRepositorySettingsSettingsIncludeType = "user"
-	GitRepositorySettingsSettingsIncludeTypeVariable     GitRepositorySettingsSettingsIncludeType = "variable"
+	GitSyncObjectTypeApp          GitSyncObjectType = "app"
+	GitSyncObjectTypeFlow         GitSyncObjectType = "flow"
+	GitSyncObjectTypeFolder       GitSyncObjectType = "folder"
+	GitSyncObjectTypeGroup        GitSyncObjectType = "group"
+	GitSyncObjectTypeKey          GitSyncObjectType = "key"
+	GitSyncObjectTypeResource     GitSyncObjectType = "resource"
+	GitSyncObjectTypeResourcetype GitSyncObjectType = "resourcetype"
+	GitSyncObjectTypeSchedule     GitSyncObjectType = "schedule"
+	GitSyncObjectTypeScript       GitSyncObjectType = "script"
+	GitSyncObjectTypeSecret       GitSyncObjectType = "secret"
+	GitSyncObjectTypeSettings     GitSyncObjectType = "settings"
+	GitSyncObjectTypeTrigger      GitSyncObjectType = "trigger"
+	GitSyncObjectTypeUser         GitSyncObjectType = "user"
+	GitSyncObjectTypeVariable     GitSyncObjectType = "variable"
 )
 
 // Defines values for GlobalUserInfoLoginType.
@@ -551,17 +533,6 @@ const (
 	Parquet WindmillFilePreviewContentType = "Parquet"
 	RawText WindmillFilePreviewContentType = "RawText"
 	Unknown WindmillFilePreviewContentType = "Unknown"
-)
-
-// Defines values for WorkspaceDeployUISettingsIncludeType.
-const (
-	WorkspaceDeployUISettingsIncludeTypeApp      WorkspaceDeployUISettingsIncludeType = "app"
-	WorkspaceDeployUISettingsIncludeTypeFlow     WorkspaceDeployUISettingsIncludeType = "flow"
-	WorkspaceDeployUISettingsIncludeTypeResource WorkspaceDeployUISettingsIncludeType = "resource"
-	WorkspaceDeployUISettingsIncludeTypeScript   WorkspaceDeployUISettingsIncludeType = "script"
-	WorkspaceDeployUISettingsIncludeTypeSecret   WorkspaceDeployUISettingsIncludeType = "secret"
-	WorkspaceDeployUISettingsIncludeTypeTrigger  WorkspaceDeployUISettingsIncludeType = "trigger"
-	WorkspaceDeployUISettingsIncludeTypeVariable WorkspaceDeployUISettingsIncludeType = "variable"
 )
 
 // Defines values for SchemasBranchAllType.
@@ -1491,25 +1462,22 @@ type GetAllTopicSubscription struct {
 
 // GitRepositorySettings defines model for GitRepositorySettings.
 type GitRepositorySettings struct {
-	Collapsed            *bool                                        `json:"collapsed,omitempty"`
-	ExcludeTypesOverride *[]GitRepositorySettingsExcludeTypesOverride `json:"exclude_types_override,omitempty"`
-	GitRepoResourcePath  string                                       `json:"git_repo_resource_path"`
-	GroupByFolder        *bool                                        `json:"group_by_folder,omitempty"`
-	ScriptPath           string                                       `json:"script_path"`
+	Collapsed            *bool                `json:"collapsed,omitempty"`
+	ExcludeTypesOverride *[]GitSyncObjectType `json:"exclude_types_override,omitempty"`
+	GitRepoResourcePath  string               `json:"git_repo_resource_path"`
+	GroupByFolder        *bool                `json:"group_by_folder,omitempty"`
+	ScriptPath           string               `json:"script_path"`
 	Settings             *struct {
-		ExcludePath      *[]string                                   `json:"exclude_path,omitempty"`
-		ExtraIncludePath *[]string                                   `json:"extra_include_path,omitempty"`
-		IncludePath      *[]string                                   `json:"include_path,omitempty"`
-		IncludeType      *[]GitRepositorySettingsSettingsIncludeType `json:"include_type,omitempty"`
+		ExcludePath      *[]string            `json:"exclude_path,omitempty"`
+		ExtraIncludePath *[]string            `json:"extra_include_path,omitempty"`
+		IncludePath      *[]string            `json:"include_path,omitempty"`
+		IncludeType      *[]GitSyncObjectType `json:"include_type,omitempty"`
 	} `json:"settings,omitempty"`
 	UseIndividualBranch *bool `json:"use_individual_branch,omitempty"`
 }
 
-// GitRepositorySettingsExcludeTypesOverride defines model for GitRepositorySettings.ExcludeTypesOverride.
-type GitRepositorySettingsExcludeTypesOverride string
-
-// GitRepositorySettingsSettingsIncludeType defines model for GitRepositorySettings.Settings.IncludeType.
-type GitRepositorySettingsSettingsIncludeType string
+// GitSyncObjectType defines model for GitSyncObjectType.
+type GitSyncObjectType string
 
 // GithubInstallations defines model for GithubInstallations.
 type GithubInstallations = []struct {
@@ -2781,12 +2749,9 @@ type WorkspaceDefaultScripts struct {
 
 // WorkspaceDeployUISettings defines model for WorkspaceDeployUISettings.
 type WorkspaceDeployUISettings struct {
-	IncludePath *[]string                               `json:"include_path,omitempty"`
-	IncludeType *[]WorkspaceDeployUISettingsIncludeType `json:"include_type,omitempty"`
+	IncludePath *[]string            `json:"include_path,omitempty"`
+	IncludeType *[]GitSyncObjectType `json:"include_type,omitempty"`
 }
-
-// WorkspaceDeployUISettingsIncludeType defines model for WorkspaceDeployUISettings.IncludeType.
-type WorkspaceDeployUISettingsIncludeType string
 
 // WorkspaceGitSyncSettings defines model for WorkspaceGitSyncSettings.
 type WorkspaceGitSyncSettings struct {
@@ -5613,6 +5578,12 @@ type WorkspaceMuteCriticalAlertsUIJSONBody struct {
 	MuteCriticalAlerts *bool `json:"mute_critical_alerts,omitempty"`
 }
 
+// DeleteGitSyncRepositoryJSONBody defines parameters for DeleteGitSyncRepository.
+type DeleteGitSyncRepositoryJSONBody struct {
+	// GitRepoResourcePath The resource path of the git repository to delete
+	GitRepoResourcePath string `json:"git_repo_resource_path"`
+}
+
 // DeleteInviteJSONBody defines parameters for DeleteInvite.
 type DeleteInviteJSONBody struct {
 	Email    string `json:"email"`
@@ -5652,6 +5623,13 @@ type EditErrorHandlerJSONBody struct {
 // EditWorkspaceGitSyncConfigJSONBody defines parameters for EditWorkspaceGitSyncConfig.
 type EditWorkspaceGitSyncConfigJSONBody struct {
 	GitSyncSettings *WorkspaceGitSyncSettings `json:"git_sync_settings,omitempty"`
+}
+
+// EditGitSyncRepositoryJSONBody defines parameters for EditGitSyncRepository.
+type EditGitSyncRepositoryJSONBody struct {
+	// GitRepoResourcePath The resource path of the git repository to update
+	GitRepoResourcePath string                `json:"git_repo_resource_path"`
+	Repository          GitRepositorySettings `json:"repository"`
 }
 
 // EditLargeFileStorageConfigJSONBody defines parameters for EditLargeFileStorageConfig.
@@ -6250,6 +6228,9 @@ type WorkspaceMuteCriticalAlertsUIJSONRequestBody WorkspaceMuteCriticalAlertsUIJ
 // EditDefaultScriptsJSONRequestBody defines body for EditDefaultScripts for application/json ContentType.
 type EditDefaultScriptsJSONRequestBody = WorkspaceDefaultScripts
 
+// DeleteGitSyncRepositoryJSONRequestBody defines body for DeleteGitSyncRepository for application/json ContentType.
+type DeleteGitSyncRepositoryJSONRequestBody DeleteGitSyncRepositoryJSONBody
+
 // DeleteInviteJSONRequestBody defines body for DeleteInvite for application/json ContentType.
 type DeleteInviteJSONRequestBody DeleteInviteJSONBody
 
@@ -6273,6 +6254,9 @@ type EditErrorHandlerJSONRequestBody EditErrorHandlerJSONBody
 
 // EditWorkspaceGitSyncConfigJSONRequestBody defines body for EditWorkspaceGitSyncConfig for application/json ContentType.
 type EditWorkspaceGitSyncConfigJSONRequestBody EditWorkspaceGitSyncConfigJSONBody
+
+// EditGitSyncRepositoryJSONRequestBody defines body for EditGitSyncRepository for application/json ContentType.
+type EditGitSyncRepositoryJSONRequestBody EditGitSyncRepositoryJSONBody
 
 // EditLargeFileStorageConfigJSONRequestBody defines body for EditLargeFileStorageConfig for application/json ContentType.
 type EditLargeFileStorageConfigJSONRequestBody EditLargeFileStorageConfigJSONBody
@@ -8618,6 +8602,11 @@ type ClientInterface interface {
 
 	EditDefaultScripts(ctx context.Context, workspace WorkspaceId, body EditDefaultScriptsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteGitSyncRepositoryWithBody request with any body
+	DeleteGitSyncRepositoryWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DeleteGitSyncRepository(ctx context.Context, workspace WorkspaceId, body DeleteGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteInviteWithBody request with any body
 	DeleteInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8657,6 +8646,11 @@ type ClientInterface interface {
 	EditWorkspaceGitSyncConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditWorkspaceGitSyncConfig(ctx context.Context, workspace WorkspaceId, body EditWorkspaceGitSyncConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EditGitSyncRepositoryWithBody request with any body
+	EditGitSyncRepositoryWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditGitSyncRepository(ctx context.Context, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditLargeFileStorageConfigWithBody request with any body
 	EditLargeFileStorageConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16094,6 +16088,30 @@ func (c *Client) EditDefaultScripts(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeleteGitSyncRepositoryWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteGitSyncRepositoryRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteGitSyncRepository(ctx context.Context, workspace WorkspaceId, body DeleteGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteGitSyncRepositoryRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) DeleteInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteInviteRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -16276,6 +16294,30 @@ func (c *Client) EditWorkspaceGitSyncConfigWithBody(ctx context.Context, workspa
 
 func (c *Client) EditWorkspaceGitSyncConfig(ctx context.Context, workspace WorkspaceId, body EditWorkspaceGitSyncConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditWorkspaceGitSyncConfigRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditGitSyncRepositoryWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditGitSyncRepositoryRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditGitSyncRepository(ctx context.Context, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditGitSyncRepositoryRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -44119,6 +44161,53 @@ func NewEditDefaultScriptsRequestWithBody(server string, workspace WorkspaceId, 
 	return req, nil
 }
 
+// NewDeleteGitSyncRepositoryRequest calls the generic DeleteGitSyncRepository builder with application/json body
+func NewDeleteGitSyncRepositoryRequest(server string, workspace WorkspaceId, body DeleteGitSyncRepositoryJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDeleteGitSyncRepositoryRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewDeleteGitSyncRepositoryRequestWithBody generates requests for DeleteGitSyncRepository with any type of body
+func NewDeleteGitSyncRepositoryRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/delete_git_sync_repository", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewDeleteInviteRequest calls the generic DeleteInvite builder with application/json body
 func NewDeleteInviteRequest(server string, workspace WorkspaceId, body DeleteInviteJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -44476,6 +44565,53 @@ func NewEditWorkspaceGitSyncConfigRequestWithBody(server string, workspace Works
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_git_sync_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewEditGitSyncRepositoryRequest calls the generic EditGitSyncRepository builder with application/json body
+func NewEditGitSyncRepositoryRequest(server string, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditGitSyncRepositoryRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditGitSyncRepositoryRequestWithBody generates requests for EditGitSyncRepository with any type of body
+func NewEditGitSyncRepositoryRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_git_sync_repository", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -47822,6 +47958,11 @@ type ClientWithResponsesInterface interface {
 
 	EditDefaultScriptsWithResponse(ctx context.Context, workspace WorkspaceId, body EditDefaultScriptsJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDefaultScriptsResponse, error)
 
+	// DeleteGitSyncRepositoryWithBodyWithResponse request with any body
+	DeleteGitSyncRepositoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteGitSyncRepositoryResponse, error)
+
+	DeleteGitSyncRepositoryWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteGitSyncRepositoryResponse, error)
+
 	// DeleteInviteWithBodyWithResponse request with any body
 	DeleteInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error)
 
@@ -47861,6 +48002,11 @@ type ClientWithResponsesInterface interface {
 	EditWorkspaceGitSyncConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceGitSyncConfigResponse, error)
 
 	EditWorkspaceGitSyncConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditWorkspaceGitSyncConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWorkspaceGitSyncConfigResponse, error)
+
+	// EditGitSyncRepositoryWithBodyWithResponse request with any body
+	EditGitSyncRepositoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditGitSyncRepositoryResponse, error)
+
+	EditGitSyncRepositoryWithResponse(ctx context.Context, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*EditGitSyncRepositoryResponse, error)
 
 	// EditLargeFileStorageConfigWithBodyWithResponse request with any body
 	EditLargeFileStorageConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditLargeFileStorageConfigResponse, error)
@@ -57916,6 +58062,28 @@ func (r EditDefaultScriptsResponse) StatusCode() int {
 	return 0
 }
 
+type DeleteGitSyncRepositoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteGitSyncRepositoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteGitSyncRepositoryResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DeleteInviteResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -58080,6 +58248,28 @@ func (r EditWorkspaceGitSyncConfigResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r EditWorkspaceGitSyncConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type EditGitSyncRepositoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r EditGitSyncRepositoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditGitSyncRepositoryResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -64324,6 +64514,23 @@ func (c *ClientWithResponses) EditDefaultScriptsWithResponse(ctx context.Context
 	return ParseEditDefaultScriptsResponse(rsp)
 }
 
+// DeleteGitSyncRepositoryWithBodyWithResponse request with arbitrary body returning *DeleteGitSyncRepositoryResponse
+func (c *ClientWithResponses) DeleteGitSyncRepositoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteGitSyncRepositoryResponse, error) {
+	rsp, err := c.DeleteGitSyncRepositoryWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteGitSyncRepositoryResponse(rsp)
+}
+
+func (c *ClientWithResponses) DeleteGitSyncRepositoryWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteGitSyncRepositoryResponse, error) {
+	rsp, err := c.DeleteGitSyncRepository(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteGitSyncRepositoryResponse(rsp)
+}
+
 // DeleteInviteWithBodyWithResponse request with arbitrary body returning *DeleteInviteResponse
 func (c *ClientWithResponses) DeleteInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error) {
 	rsp, err := c.DeleteInviteWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -64458,6 +64665,23 @@ func (c *ClientWithResponses) EditWorkspaceGitSyncConfigWithResponse(ctx context
 		return nil, err
 	}
 	return ParseEditWorkspaceGitSyncConfigResponse(rsp)
+}
+
+// EditGitSyncRepositoryWithBodyWithResponse request with arbitrary body returning *EditGitSyncRepositoryResponse
+func (c *ClientWithResponses) EditGitSyncRepositoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditGitSyncRepositoryResponse, error) {
+	rsp, err := c.EditGitSyncRepositoryWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditGitSyncRepositoryResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditGitSyncRepositoryWithResponse(ctx context.Context, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*EditGitSyncRepositoryResponse, error) {
+	rsp, err := c.EditGitSyncRepository(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditGitSyncRepositoryResponse(rsp)
 }
 
 // EditLargeFileStorageConfigWithBodyWithResponse request with arbitrary body returning *EditLargeFileStorageConfigResponse
@@ -74710,6 +74934,32 @@ func ParseEditDefaultScriptsResponse(rsp *http.Response) (*EditDefaultScriptsRes
 	return response, nil
 }
 
+// ParseDeleteGitSyncRepositoryResponse parses an HTTP response from a DeleteGitSyncRepositoryWithResponse call
+func ParseDeleteGitSyncRepositoryResponse(rsp *http.Response) (*DeleteGitSyncRepositoryResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteGitSyncRepositoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseDeleteInviteResponse parses an HTTP response from a DeleteInviteWithResponse call
 func ParseDeleteInviteResponse(rsp *http.Response) (*DeleteInviteResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -74841,6 +75091,32 @@ func ParseEditWorkspaceGitSyncConfigResponse(rsp *http.Response) (*EditWorkspace
 	}
 
 	response := &EditWorkspaceGitSyncConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseEditGitSyncRepositoryResponse parses an HTTP response from a EditGitSyncRepositoryWithResponse call
+func ParseEditGitSyncRepositoryResponse(rsp *http.Response) (*EditGitSyncRepositoryResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditGitSyncRepositoryResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
