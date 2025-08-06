@@ -54,6 +54,7 @@ const (
 
 // Defines values for AssetKind.
 const (
+	AssetKindDucklake AssetKind = "ducklake"
 	AssetKindResource AssetKind = "resource"
 	AssetKindS3object AssetKind = "s3object"
 )
@@ -222,6 +223,13 @@ const (
 	Push DeliveryType = "push"
 )
 
+// Defines values for DucklakeSettingsDucklakesCatalogResourceType.
+const (
+	DucklakeSettingsDucklakesCatalogResourceTypeInstance   DucklakeSettingsDucklakesCatalogResourceType = "instance"
+	DucklakeSettingsDucklakesCatalogResourceTypeMysql      DucklakeSettingsDucklakesCatalogResourceType = "mysql"
+	DucklakeSettingsDucklakesCatalogResourceTypePostgresql DucklakeSettingsDucklakesCatalogResourceType = "postgresql"
+)
+
 // Defines values for FlowStatusFailureModuleBranchChosenType.
 const (
 	FlowStatusFailureModuleBranchChosenTypeBranch  FlowStatusFailureModuleBranchChosenType = "branch"
@@ -382,12 +390,6 @@ const (
 	NewScriptAssetsAltAccessTypeW  NewScriptAssetsAltAccessType = "w"
 )
 
-// Defines values for NewScriptAssetsKind.
-const (
-	NewScriptAssetsKindResource NewScriptAssetsKind = "resource"
-	NewScriptAssetsKindS3object NewScriptAssetsKind = "s3object"
-)
-
 // Defines values for NewScriptKind.
 const (
 	NewScriptKindApproval     NewScriptKind = "approval"
@@ -410,12 +412,6 @@ const (
 	NewScriptWithDraftAssetsAltAccessTypeR  NewScriptWithDraftAssetsAltAccessType = "r"
 	NewScriptWithDraftAssetsAltAccessTypeRw NewScriptWithDraftAssetsAltAccessType = "rw"
 	NewScriptWithDraftAssetsAltAccessTypeW  NewScriptWithDraftAssetsAltAccessType = "w"
-)
-
-// Defines values for NewScriptWithDraftAssetsKind.
-const (
-	NewScriptWithDraftAssetsKindResource NewScriptWithDraftAssetsKind = "resource"
-	NewScriptWithDraftAssetsKindS3object NewScriptWithDraftAssetsKind = "s3object"
 )
 
 // Defines values for NewScriptWithDraftKind.
@@ -602,27 +598,28 @@ const (
 
 // Defines values for SchemasRawScriptAssetsKind.
 const (
+	SchemasRawScriptAssetsKindDucklake SchemasRawScriptAssetsKind = "ducklake"
 	SchemasRawScriptAssetsKindResource SchemasRawScriptAssetsKind = "resource"
 	SchemasRawScriptAssetsKindS3object SchemasRawScriptAssetsKind = "s3object"
 )
 
 // Defines values for SchemasRawScriptLanguage.
 const (
-	SchemasRawScriptLanguageBash       SchemasRawScriptLanguage = "bash"
-	SchemasRawScriptLanguageBigquery   SchemasRawScriptLanguage = "bigquery"
-	SchemasRawScriptLanguageBun        SchemasRawScriptLanguage = "bun"
-	SchemasRawScriptLanguageDeno       SchemasRawScriptLanguage = "deno"
-	SchemasRawScriptLanguageGo         SchemasRawScriptLanguage = "go"
-	SchemasRawScriptLanguageGraphql    SchemasRawScriptLanguage = "graphql"
-	SchemasRawScriptLanguageMssql      SchemasRawScriptLanguage = "mssql"
-	SchemasRawScriptLanguageMysql      SchemasRawScriptLanguage = "mysql"
-	SchemasRawScriptLanguageNativets   SchemasRawScriptLanguage = "nativets"
-	SchemasRawScriptLanguageOracledb   SchemasRawScriptLanguage = "oracledb"
-	SchemasRawScriptLanguagePhp        SchemasRawScriptLanguage = "php"
-	SchemasRawScriptLanguagePostgresql SchemasRawScriptLanguage = "postgresql"
-	SchemasRawScriptLanguagePowershell SchemasRawScriptLanguage = "powershell"
-	SchemasRawScriptLanguagePython3    SchemasRawScriptLanguage = "python3"
-	SchemasRawScriptLanguageSnowflake  SchemasRawScriptLanguage = "snowflake"
+	Bash       SchemasRawScriptLanguage = "bash"
+	Bigquery   SchemasRawScriptLanguage = "bigquery"
+	Bun        SchemasRawScriptLanguage = "bun"
+	Deno       SchemasRawScriptLanguage = "deno"
+	Go         SchemasRawScriptLanguage = "go"
+	Graphql    SchemasRawScriptLanguage = "graphql"
+	Mssql      SchemasRawScriptLanguage = "mssql"
+	Mysql      SchemasRawScriptLanguage = "mysql"
+	Nativets   SchemasRawScriptLanguage = "nativets"
+	Oracledb   SchemasRawScriptLanguage = "oracledb"
+	Php        SchemasRawScriptLanguage = "php"
+	Postgresql SchemasRawScriptLanguage = "postgresql"
+	Powershell SchemasRawScriptLanguage = "powershell"
+	Python3    SchemasRawScriptLanguage = "python3"
+	Snowflake  SchemasRawScriptLanguage = "snowflake"
 )
 
 // Defines values for SchemasRawScriptType.
@@ -1086,6 +1083,23 @@ type DeleteGcpSubscription struct {
 
 // DeliveryType defines model for DeliveryType.
 type DeliveryType string
+
+// DucklakeSettings defines model for DucklakeSettings.
+type DucklakeSettings struct {
+	Ducklakes map[string]struct {
+		Catalog struct {
+			ResourcePath *string                                      `json:"resource_path,omitempty"`
+			ResourceType DucklakeSettingsDucklakesCatalogResourceType `json:"resource_type"`
+		} `json:"catalog"`
+		Storage struct {
+			Path    string  `json:"path"`
+			Storage *string `json:"storage,omitempty"`
+		} `json:"storage"`
+	} `json:"ducklakes"`
+}
+
+// DucklakeSettingsDucklakesCatalogResourceType defines model for DucklakeSettings.Ducklakes.Catalog.ResourceType.
+type DucklakeSettingsDucklakesCatalogResourceType string
 
 // EditHttpTrigger defines model for EditHttpTrigger.
 type EditHttpTrigger struct {
@@ -1926,7 +1940,7 @@ type NewScript struct {
 	Assets *[]struct {
 		AccessType    *NewScriptAssetsAccessType    `json:"access_type,omitempty"`
 		AltAccessType *NewScriptAssetsAltAccessType `json:"alt_access_type,omitempty"`
-		Kind          NewScriptAssetsKind           `json:"kind"`
+		Kind          AssetKind                     `json:"kind"`
 		Path          string                        `json:"path"`
 	} `json:"assets,omitempty"`
 	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
@@ -1966,9 +1980,6 @@ type NewScriptAssetsAccessType string
 // NewScriptAssetsAltAccessType defines model for NewScript.Assets.AltAccessType.
 type NewScriptAssetsAltAccessType string
 
-// NewScriptAssetsKind defines model for NewScript.Assets.Kind.
-type NewScriptAssetsKind string
-
 // NewScriptKind defines model for NewScript.Kind.
 type NewScriptKind string
 
@@ -1977,7 +1988,7 @@ type NewScriptWithDraft struct {
 	Assets *[]struct {
 		AccessType    *NewScriptWithDraftAssetsAccessType    `json:"access_type,omitempty"`
 		AltAccessType *NewScriptWithDraftAssetsAltAccessType `json:"alt_access_type,omitempty"`
-		Kind          NewScriptWithDraftAssetsKind           `json:"kind"`
+		Kind          AssetKind                              `json:"kind"`
 		Path          string                                 `json:"path"`
 	} `json:"assets,omitempty"`
 	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
@@ -2018,9 +2029,6 @@ type NewScriptWithDraftAssetsAccessType string
 
 // NewScriptWithDraftAssetsAltAccessType defines model for NewScriptWithDraft.Assets.AltAccessType.
 type NewScriptWithDraftAssetsAltAccessType string
-
-// NewScriptWithDraftAssetsKind defines model for NewScriptWithDraft.Assets.Kind.
-type NewScriptWithDraftAssetsKind string
 
 // NewScriptWithDraftKind defines model for NewScriptWithDraft.Kind.
 type NewScriptWithDraftKind string
@@ -3361,6 +3369,9 @@ type GetCriticalAlertsParams struct {
 type CreateCustomerPortalSessionParams struct {
 	LicenseKey *string `form:"license_key,omitempty" json:"license_key,omitempty"`
 }
+
+// DatabasesExistJSONBody defines parameters for DatabasesExist.
+type DatabasesExistJSONBody = []string
 
 // SetGlobalJSONBody defines parameters for SetGlobal.
 type SetGlobalJSONBody struct {
@@ -5068,9 +5079,11 @@ type GetSuspendedJobFlowParams struct {
 
 // GetJobUpdatesParams defines parameters for GetJobUpdates.
 type GetJobUpdatesParams struct {
-	Running     *bool `form:"running,omitempty" json:"running,omitempty"`
-	LogOffset   *int  `form:"log_offset,omitempty" json:"log_offset,omitempty"`
-	GetProgress *bool `form:"get_progress,omitempty" json:"get_progress,omitempty"`
+	Running      *bool `form:"running,omitempty" json:"running,omitempty"`
+	LogOffset    *int  `form:"log_offset,omitempty" json:"log_offset,omitempty"`
+	StreamOffset *int  `form:"stream_offset,omitempty" json:"stream_offset,omitempty"`
+	GetProgress  *bool `form:"get_progress,omitempty" json:"get_progress,omitempty"`
+	NoLogs       *bool `form:"no_logs,omitempty" json:"no_logs,omitempty"`
 }
 
 // GetJobUpdatesSSEParams defines parameters for GetJobUpdatesSSE.
@@ -5079,6 +5092,7 @@ type GetJobUpdatesSSEParams struct {
 	LogOffset   *int  `form:"log_offset,omitempty" json:"log_offset,omitempty"`
 	GetProgress *bool `form:"get_progress,omitempty" json:"get_progress,omitempty"`
 	OnlyResult  *bool `form:"only_result,omitempty" json:"only_result,omitempty"`
+	NoLogs      *bool `form:"no_logs,omitempty" json:"no_logs,omitempty"`
 }
 
 // CancelQueuedJobJSONBody defines parameters for CancelQueuedJob.
@@ -5613,6 +5627,11 @@ type EditWorkspaceDeployUISettingsJSONBody struct {
 	DeployUiSettings *WorkspaceDeployUISettings `json:"deploy_ui_settings,omitempty"`
 }
 
+// EditDucklakeConfigJSONBody defines parameters for EditDucklakeConfig.
+type EditDucklakeConfigJSONBody struct {
+	Settings DucklakeSettings `json:"settings"`
+}
+
 // EditErrorHandlerJSONBody defines parameters for EditErrorHandler.
 type EditErrorHandlerJSONBody struct {
 	ErrorHandler              *string     `json:"error_handler,omitempty"`
@@ -5780,6 +5799,9 @@ type TestMetadataJSONRequestBody = TestMetadataJSONBody
 
 // PreviewScheduleJSONRequestBody defines body for PreviewSchedule for application/json ContentType.
 type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
+
+// DatabasesExistJSONRequestBody defines body for DatabasesExist for application/json ContentType.
+type DatabasesExistJSONRequestBody = DatabasesExistJSONBody
 
 // SetGlobalJSONRequestBody defines body for SetGlobal for application/json ContentType.
 type SetGlobalJSONRequestBody SetGlobalJSONBody
@@ -6248,6 +6270,9 @@ type EditDeployToJSONRequestBody EditDeployToJSONBody
 
 // EditWorkspaceDeployUISettingsJSONRequestBody defines body for EditWorkspaceDeployUISettings for application/json ContentType.
 type EditWorkspaceDeployUISettingsJSONRequestBody EditWorkspaceDeployUISettingsJSONBody
+
+// EditDucklakeConfigJSONRequestBody defines body for EditDucklakeConfig for application/json ContentType.
+type EditDucklakeConfigJSONRequestBody EditDucklakeConfigJSONBody
 
 // EditErrorHandlerJSONRequestBody defines body for EditErrorHandler for application/json ContentType.
 type EditErrorHandlerJSONRequestBody EditErrorHandlerJSONBody
@@ -7129,6 +7154,9 @@ type ClientInterface interface {
 	// ListLogFiles request
 	ListLogFiles(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateDucklakeDatabase request
+	CreateDucklakeDatabase(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetCriticalAlerts request
 	GetCriticalAlerts(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -7140,6 +7168,11 @@ type ClientInterface interface {
 
 	// CreateCustomerPortalSession request
 	CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DatabasesExistWithBody request with any body
+	DatabasesExistWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DatabasesExist(ctx context.Context, body DatabasesExistJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetGlobal request
 	GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8637,6 +8670,11 @@ type ClientInterface interface {
 
 	EditWorkspaceDeployUISettings(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDeployUISettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditDucklakeConfigWithBody request with any body
+	EditDucklakeConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditDucklakeConfig(ctx context.Context, workspace WorkspaceId, body EditDucklakeConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditErrorHandlerWithBody request with any body
 	EditErrorHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8708,6 +8746,9 @@ type ClientInterface interface {
 
 	// LeaveWorkspace request
 	LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListDucklakes request
+	ListDucklakes(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListPendingInvites request
 	ListPendingInvites(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9608,6 +9649,18 @@ func (c *Client) ListLogFiles(ctx context.Context, params *ListLogFilesParams, r
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreateDucklakeDatabase(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDucklakeDatabaseRequest(c.Server, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetCriticalAlerts(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCriticalAlertsRequest(c.Server, params)
 	if err != nil {
@@ -9646,6 +9699,30 @@ func (c *Client) AcknowledgeCriticalAlert(ctx context.Context, id int, reqEditor
 
 func (c *Client) CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateCustomerPortalSessionRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DatabasesExistWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDatabasesExistRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DatabasesExist(ctx context.Context, body DatabasesExistJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDatabasesExistRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16256,6 +16333,30 @@ func (c *Client) EditWorkspaceDeployUISettings(ctx context.Context, workspace Wo
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditDucklakeConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditDucklakeConfigRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditDucklakeConfig(ctx context.Context, workspace WorkspaceId, body EditDucklakeConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditDucklakeConfigRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditErrorHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditErrorHandlerRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -16570,6 +16671,18 @@ func (c *Client) GetIsPremium(ctx context.Context, workspace WorkspaceId, reqEdi
 
 func (c *Client) LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLeaveWorkspaceRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListDucklakes(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDucklakesRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -18997,6 +19110,40 @@ func NewListLogFilesRequest(server string, params *ListLogFilesParams) (*http.Re
 	return req, nil
 }
 
+// NewCreateDucklakeDatabaseRequest generates requests for CreateDucklakeDatabase
+func NewCreateDucklakeDatabaseRequest(server string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/create_ducklake_database/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetCriticalAlertsRequest generates requests for GetCriticalAlerts
 func NewGetCriticalAlertsRequest(server string, params *GetCriticalAlertsParams) (*http.Request, error) {
 	var err error
@@ -19184,6 +19331,46 @@ func NewCreateCustomerPortalSessionRequest(server string, params *CreateCustomer
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewDatabasesExistRequest calls the generic DatabasesExist builder with application/json body
+func NewDatabasesExistRequest(server string, body DatabasesExistJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDatabasesExistRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewDatabasesExistRequestWithBody generates requests for DatabasesExist with any type of body
+func NewDatabasesExistRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/databases_exist")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -35392,9 +35579,41 @@ func NewGetJobUpdatesRequest(server string, workspace WorkspaceId, id JobId, par
 
 		}
 
+		if params.StreamOffset != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "stream_offset", runtime.ParamLocationQuery, *params.StreamOffset); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.GetProgress != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_progress", runtime.ParamLocationQuery, *params.GetProgress); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.NoLogs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "no_logs", runtime.ParamLocationQuery, *params.NoLogs); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -35506,6 +35725,22 @@ func NewGetJobUpdatesSSERequest(server string, workspace WorkspaceId, id JobId, 
 		if params.OnlyResult != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "only_result", runtime.ParamLocationQuery, *params.OnlyResult); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.NoLogs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "no_logs", runtime.ParamLocationQuery, *params.NoLogs); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -44490,6 +44725,53 @@ func NewEditWorkspaceDeployUISettingsRequestWithBody(server string, workspace Wo
 	return req, nil
 }
 
+// NewEditDucklakeConfigRequest calls the generic EditDucklakeConfig builder with application/json body
+func NewEditDucklakeConfigRequest(server string, workspace WorkspaceId, body EditDucklakeConfigJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditDucklakeConfigRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditDucklakeConfigRequestWithBody generates requests for EditDucklakeConfig with any type of body
+func NewEditDucklakeConfigRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_ducklake_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditErrorHandlerRequest calls the generic EditErrorHandler builder with application/json body
 func NewEditErrorHandlerRequest(server string, workspace WorkspaceId, body EditErrorHandlerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -45212,6 +45494,40 @@ func NewLeaveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Reque
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListDucklakesRequest generates requests for ListDucklakes
+func NewListDucklakesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/list_ducklakes", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -46485,6 +46801,9 @@ type ClientWithResponsesInterface interface {
 	// ListLogFilesWithResponse request
 	ListLogFilesWithResponse(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*ListLogFilesResponse, error)
 
+	// CreateDucklakeDatabaseWithResponse request
+	CreateDucklakeDatabaseWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*CreateDucklakeDatabaseResponse, error)
+
 	// GetCriticalAlertsWithResponse request
 	GetCriticalAlertsWithResponse(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*GetCriticalAlertsResponse, error)
 
@@ -46496,6 +46815,11 @@ type ClientWithResponsesInterface interface {
 
 	// CreateCustomerPortalSessionWithResponse request
 	CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
+
+	// DatabasesExistWithBodyWithResponse request with any body
+	DatabasesExistWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DatabasesExistResponse, error)
+
+	DatabasesExistWithResponse(ctx context.Context, body DatabasesExistJSONRequestBody, reqEditors ...RequestEditorFn) (*DatabasesExistResponse, error)
 
 	// GetGlobalWithResponse request
 	GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error)
@@ -47993,6 +48317,11 @@ type ClientWithResponsesInterface interface {
 
 	EditWorkspaceDeployUISettingsWithResponse(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDeployUISettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWorkspaceDeployUISettingsResponse, error)
 
+	// EditDucklakeConfigWithBodyWithResponse request with any body
+	EditDucklakeConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDucklakeConfigResponse, error)
+
+	EditDucklakeConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditDucklakeConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDucklakeConfigResponse, error)
+
 	// EditErrorHandlerWithBodyWithResponse request with any body
 	EditErrorHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error)
 
@@ -48064,6 +48393,9 @@ type ClientWithResponsesInterface interface {
 
 	// LeaveWorkspaceWithResponse request
 	LeaveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*LeaveWorkspaceResponse, error)
+
+	// ListDucklakesWithResponse request
+	ListDucklakesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDucklakesResponse, error)
 
 	// ListPendingInvitesWithResponse request
 	ListPendingInvitesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPendingInvitesResponse, error)
@@ -49365,6 +49697,28 @@ func (r ListLogFilesResponse) StatusCode() int {
 	return 0
 }
 
+type CreateDucklakeDatabaseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateDucklakeDatabaseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateDucklakeDatabaseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetCriticalAlertsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -49454,6 +49808,28 @@ func (r CreateCustomerPortalSessionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateCustomerPortalSessionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DatabasesExistResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r DatabasesExistResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DatabasesExistResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -54490,8 +54866,10 @@ type GetJobUpdatesResponse struct {
 		LogOffset            *int            `json:"log_offset,omitempty"`
 		MemPeak              *int            `json:"mem_peak,omitempty"`
 		NewLogs              *string         `json:"new_logs,omitempty"`
+		NewResultStream      *string         `json:"new_result_stream,omitempty"`
 		Progress             *int            `json:"progress,omitempty"`
 		Running              *bool           `json:"running,omitempty"`
+		StreamOffset         *int            `json:"stream_offset,omitempty"`
 		WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
 	}
 }
@@ -58211,6 +58589,28 @@ func (r EditWorkspaceDeployUISettingsResponse) StatusCode() int {
 	return 0
 }
 
+type EditDucklakeConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r EditDucklakeConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditDucklakeConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditErrorHandlerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -58510,6 +58910,7 @@ type GetSettingsResponse struct {
 		DefaultScripts            *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
 		DeployTo                  *string                    `json:"deploy_to,omitempty"`
 		DeployUi                  *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+		Ducklake                  *DucklakeSettings          `json:"ducklake,omitempty"`
 		ErrorHandler              *string                    `json:"error_handler,omitempty"`
 		ErrorHandlerExtraArgs     *ScriptArgs                `json:"error_handler_extra_args,omitempty"`
 		ErrorHandlerMutedOnCancel bool                       `json:"error_handler_muted_on_cancel"`
@@ -58624,6 +59025,28 @@ func (r LeaveWorkspaceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LeaveWorkspaceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListDucklakesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListDucklakesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListDucklakesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -59801,6 +60224,15 @@ func (c *ClientWithResponses) ListLogFilesWithResponse(ctx context.Context, para
 	return ParseListLogFilesResponse(rsp)
 }
 
+// CreateDucklakeDatabaseWithResponse request returning *CreateDucklakeDatabaseResponse
+func (c *ClientWithResponses) CreateDucklakeDatabaseWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*CreateDucklakeDatabaseResponse, error) {
+	rsp, err := c.CreateDucklakeDatabase(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDucklakeDatabaseResponse(rsp)
+}
+
 // GetCriticalAlertsWithResponse request returning *GetCriticalAlertsResponse
 func (c *ClientWithResponses) GetCriticalAlertsWithResponse(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*GetCriticalAlertsResponse, error) {
 	rsp, err := c.GetCriticalAlerts(ctx, params, reqEditors...)
@@ -59835,6 +60267,23 @@ func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx contex
 		return nil, err
 	}
 	return ParseCreateCustomerPortalSessionResponse(rsp)
+}
+
+// DatabasesExistWithBodyWithResponse request with arbitrary body returning *DatabasesExistResponse
+func (c *ClientWithResponses) DatabasesExistWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DatabasesExistResponse, error) {
+	rsp, err := c.DatabasesExistWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDatabasesExistResponse(rsp)
+}
+
+func (c *ClientWithResponses) DatabasesExistWithResponse(ctx context.Context, body DatabasesExistJSONRequestBody, reqEditors ...RequestEditorFn) (*DatabasesExistResponse, error) {
+	rsp, err := c.DatabasesExist(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDatabasesExistResponse(rsp)
 }
 
 // GetGlobalWithResponse request returning *GetGlobalResponse
@@ -64633,6 +65082,23 @@ func (c *ClientWithResponses) EditWorkspaceDeployUISettingsWithResponse(ctx cont
 	return ParseEditWorkspaceDeployUISettingsResponse(rsp)
 }
 
+// EditDucklakeConfigWithBodyWithResponse request with arbitrary body returning *EditDucklakeConfigResponse
+func (c *ClientWithResponses) EditDucklakeConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDucklakeConfigResponse, error) {
+	rsp, err := c.EditDucklakeConfigWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditDucklakeConfigResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditDucklakeConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditDucklakeConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDucklakeConfigResponse, error) {
+	rsp, err := c.EditDucklakeConfig(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditDucklakeConfigResponse(rsp)
+}
+
 // EditErrorHandlerWithBodyWithResponse request with arbitrary body returning *EditErrorHandlerResponse
 func (c *ClientWithResponses) EditErrorHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditErrorHandlerResponse, error) {
 	rsp, err := c.EditErrorHandlerWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -64865,6 +65331,15 @@ func (c *ClientWithResponses) LeaveWorkspaceWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseLeaveWorkspaceResponse(rsp)
+}
+
+// ListDucklakesWithResponse request returning *ListDucklakesResponse
+func (c *ClientWithResponses) ListDucklakesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDucklakesResponse, error) {
+	rsp, err := c.ListDucklakes(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListDucklakesResponse(rsp)
 }
 
 // ListPendingInvitesWithResponse request returning *ListPendingInvitesResponse
@@ -66393,6 +66868,32 @@ func ParseListLogFilesResponse(rsp *http.Response) (*ListLogFilesResponse, error
 	return response, nil
 }
 
+// ParseCreateDucklakeDatabaseResponse parses an HTTP response from a CreateDucklakeDatabaseWithResponse call
+func ParseCreateDucklakeDatabaseResponse(rsp *http.Response) (*CreateDucklakeDatabaseResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateDucklakeDatabaseResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetCriticalAlertsResponse parses an HTTP response from a GetCriticalAlertsWithResponse call
 func ParseGetCriticalAlertsResponse(rsp *http.Response) (*GetCriticalAlertsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -66490,6 +66991,32 @@ func ParseCreateCustomerPortalSessionResponse(rsp *http.Response) (*CreateCustom
 	response := &CreateCustomerPortalSessionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDatabasesExistResponse parses an HTTP response from a DatabasesExistWithResponse call
+func ParseDatabasesExistResponse(rsp *http.Response) (*DatabasesExistResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DatabasesExistResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -71506,8 +72033,10 @@ func ParseGetJobUpdatesResponse(rsp *http.Response) (*GetJobUpdatesResponse, err
 			LogOffset            *int            `json:"log_offset,omitempty"`
 			MemPeak              *int            `json:"mem_peak,omitempty"`
 			NewLogs              *string         `json:"new_logs,omitempty"`
+			NewResultStream      *string         `json:"new_result_stream,omitempty"`
 			Progress             *int            `json:"progress,omitempty"`
 			Running              *bool           `json:"running,omitempty"`
+			StreamOffset         *int            `json:"stream_offset,omitempty"`
 			WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -75066,6 +75595,32 @@ func ParseEditWorkspaceDeployUISettingsResponse(rsp *http.Response) (*EditWorksp
 	return response, nil
 }
 
+// ParseEditDucklakeConfigResponse parses an HTTP response from a EditDucklakeConfigWithResponse call
+func ParseEditDucklakeConfigResponse(rsp *http.Response) (*EditDucklakeConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditDucklakeConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseEditErrorHandlerResponse parses an HTTP response from a EditErrorHandlerWithResponse call
 func ParseEditErrorHandlerResponse(rsp *http.Response) (*EditErrorHandlerResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -75384,6 +75939,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			DefaultScripts            *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
 			DeployTo                  *string                    `json:"deploy_to,omitempty"`
 			DeployUi                  *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+			Ducklake                  *DucklakeSettings          `json:"ducklake,omitempty"`
 			ErrorHandler              *string                    `json:"error_handler,omitempty"`
 			ErrorHandlerExtraArgs     *ScriptArgs                `json:"error_handler_extra_args,omitempty"`
 			ErrorHandlerMutedOnCancel bool                       `json:"error_handler_muted_on_cancel"`
@@ -75480,6 +76036,32 @@ func ParseLeaveWorkspaceResponse(rsp *http.Response) (*LeaveWorkspaceResponse, e
 	response := &LeaveWorkspaceResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListDucklakesResponse parses an HTTP response from a ListDucklakesWithResponse call
+func ParseListDucklakesResponse(rsp *http.Response) (*ListDucklakesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListDucklakesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
