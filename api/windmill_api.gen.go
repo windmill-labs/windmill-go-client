@@ -952,26 +952,28 @@ type ChannelInfo struct {
 
 // CompletedJob defines model for CompletedJob.
 type CompletedJob struct {
-	AggregateWaitTimeMs *float32            `json:"aggregate_wait_time_ms,omitempty"`
-	Args                *ScriptArgs         `json:"args,omitempty"`
-	Canceled            bool                `json:"canceled"`
-	CanceledBy          *string             `json:"canceled_by,omitempty"`
-	CanceledReason      *string             `json:"canceled_reason,omitempty"`
-	CreatedAt           time.Time           `json:"created_at"`
-	CreatedBy           string              `json:"created_by"`
-	Deleted             *bool               `json:"deleted,omitempty"`
-	DurationMs          int                 `json:"duration_ms"`
-	Email               string              `json:"email"`
-	FlowStatus          *FlowStatus         `json:"flow_status,omitempty"`
-	Id                  openapi_types.UUID  `json:"id"`
-	IsFlowStep          bool                `json:"is_flow_step"`
-	IsSkipped           bool                `json:"is_skipped"`
-	JobKind             CompletedJobJobKind `json:"job_kind"`
-	Labels              *[]string           `json:"labels,omitempty"`
-	Language            *ScriptLang         `json:"language,omitempty"`
-	Logs                *string             `json:"logs,omitempty"`
-	MemPeak             *int                `json:"mem_peak,omitempty"`
-	ParentJob           *openapi_types.UUID `json:"parent_job,omitempty"`
+	AggregateWaitTimeMs *float32 `json:"aggregate_wait_time_ms,omitempty"`
+
+	// Args The arguments to pass to the script or flow
+	Args           *ScriptArgs         `json:"args,omitempty"`
+	Canceled       bool                `json:"canceled"`
+	CanceledBy     *string             `json:"canceled_by,omitempty"`
+	CanceledReason *string             `json:"canceled_reason,omitempty"`
+	CreatedAt      time.Time           `json:"created_at"`
+	CreatedBy      string              `json:"created_by"`
+	Deleted        *bool               `json:"deleted,omitempty"`
+	DurationMs     int                 `json:"duration_ms"`
+	Email          string              `json:"email"`
+	FlowStatus     *FlowStatus         `json:"flow_status,omitempty"`
+	Id             openapi_types.UUID  `json:"id"`
+	IsFlowStep     bool                `json:"is_flow_step"`
+	IsSkipped      bool                `json:"is_skipped"`
+	JobKind        CompletedJobJobKind `json:"job_kind"`
+	Labels         *[]string           `json:"labels,omitempty"`
+	Language       *ScriptLang         `json:"language,omitempty"`
+	Logs           *string             `json:"logs,omitempty"`
+	MemPeak        *int                `json:"mem_peak,omitempty"`
+	ParentJob      *openapi_types.UUID `json:"parent_job,omitempty"`
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
@@ -1030,21 +1032,39 @@ type CreateInput struct {
 
 // CreateResource defines model for CreateResource.
 type CreateResource struct {
-	Description  *string     `json:"description,omitempty"`
-	Path         string      `json:"path"`
+	// Description The description of the resource
+	Description *string `json:"description,omitempty"`
+
+	// Path The path to the resource
+	Path string `json:"path"`
+
+	// ResourceType The resource_type associated with the resource
 	ResourceType string      `json:"resource_type"`
 	Value        interface{} `json:"value"`
 }
 
 // CreateVariable defines model for CreateVariable.
 type CreateVariable struct {
-	Account     *int       `json:"account,omitempty"`
-	Description string     `json:"description"`
-	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
-	IsOauth     *bool      `json:"is_oauth,omitempty"`
-	IsSecret    bool       `json:"is_secret"`
-	Path        string     `json:"path"`
-	Value       string     `json:"value"`
+	// Account The account identifier
+	Account *int `json:"account,omitempty"`
+
+	// Description The description of the variable
+	Description string `json:"description"`
+
+	// ExpiresAt The expiration date of the variable
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// IsOauth Whether the variable is an OAuth variable
+	IsOauth *bool `json:"is_oauth,omitempty"`
+
+	// IsSecret Whether the variable is a secret
+	IsSecret bool `json:"is_secret"`
+
+	// Path The path to the variable
+	Path string `json:"path"`
+
+	// Value The value of the variable
+	Value string `json:"value"`
 }
 
 // CreateWorkspace defines model for CreateWorkspace.
@@ -1106,18 +1126,20 @@ type EditHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
 	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
 	Description                *string              `json:"description,omitempty"`
-	ErrorHandlerArgs           *ScriptArgs          `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath           *string              `json:"error_handler_path,omitempty"`
-	HttpMethod                 HttpMethod           `json:"http_method"`
-	IsAsync                    bool                 `json:"is_async"`
-	IsFlow                     bool                 `json:"is_flow"`
-	IsStaticWebsite            bool                 `json:"is_static_website"`
-	Path                       string               `json:"path"`
-	RawString                  *bool                `json:"raw_string,omitempty"`
-	Retry                      *Retry               `json:"retry,omitempty"`
-	RoutePath                  *string              `json:"route_path,omitempty"`
-	ScriptPath                 string               `json:"script_path"`
-	StaticAssetConfig          *struct {
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
+	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
+	HttpMethod        HttpMethod  `json:"http_method"`
+	IsAsync           bool        `json:"is_async"`
+	IsFlow            bool        `json:"is_flow"`
+	IsStaticWebsite   bool        `json:"is_static_website"`
+	Path              string      `json:"path"`
+	RawString         *bool       `json:"raw_string,omitempty"`
+	Retry             *Retry      `json:"retry,omitempty"`
+	RoutePath         *string     `json:"route_path,omitempty"`
+	ScriptPath        string      `json:"script_path"`
+	StaticAssetConfig *struct {
 		Filename *string `json:"filename,omitempty"`
 		S3       string  `json:"s3"`
 		Storage  *string `json:"storage,omitempty"`
@@ -1129,6 +1151,7 @@ type EditHttpTrigger struct {
 
 // EditKafkaTrigger defines model for EditKafkaTrigger.
 type EditKafkaTrigger struct {
+	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
 	GroupId           string      `json:"group_id"`
@@ -1142,9 +1165,11 @@ type EditKafkaTrigger struct {
 
 // EditMqttTrigger defines model for EditMqttTrigger.
 type EditMqttTrigger struct {
-	ClientId         *string              `json:"client_id,omitempty"`
-	ClientVersion    *MqttClientVersion   `json:"client_version,omitempty"`
-	Enabled          bool                 `json:"enabled"`
+	ClientId      *string            `json:"client_id,omitempty"`
+	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
+	Enabled       bool               `json:"enabled"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs          `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string              `json:"error_handler_path,omitempty"`
 	IsFlow           bool                 `json:"is_flow"`
@@ -1159,7 +1184,9 @@ type EditMqttTrigger struct {
 
 // EditNatsTrigger defines model for EditNatsTrigger.
 type EditNatsTrigger struct {
-	ConsumerName     *string     `json:"consumer_name,omitempty"`
+	ConsumerName *string `json:"consumer_name,omitempty"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
 	IsFlow           bool        `json:"is_flow"`
@@ -1174,7 +1201,9 @@ type EditNatsTrigger struct {
 
 // EditPostgresTrigger defines model for EditPostgresTrigger.
 type EditPostgresTrigger struct {
-	Enabled              bool             `json:"enabled"`
+	Enabled bool `json:"enabled"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs     *ScriptArgs      `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath     *string          `json:"error_handler_path,omitempty"`
 	IsFlow               bool             `json:"is_flow"`
@@ -1189,9 +1218,15 @@ type EditPostgresTrigger struct {
 
 // EditResource defines model for EditResource.
 type EditResource struct {
-	Description *string      `json:"description,omitempty"`
-	Path        *string      `json:"path,omitempty"`
-	Value       *interface{} `json:"value,omitempty"`
+	// Description The new description of the resource
+	Description *string `json:"description,omitempty"`
+
+	// Path The path to the resource
+	Path *string `json:"path,omitempty"`
+
+	// ResourceType The new resource_type to be associated with the resource
+	ResourceType *string      `json:"resource_type,omitempty"`
+	Value        *interface{} `json:"value,omitempty"`
 }
 
 // EditResourceType defines model for EditResourceType.
@@ -1202,26 +1237,63 @@ type EditResourceType struct {
 
 // EditSchedule defines model for EditSchedule.
 type EditSchedule struct {
-	Args                ScriptArgs  `json:"args"`
-	CronVersion         *string     `json:"cron_version,omitempty"`
-	Description         *string     `json:"description,omitempty"`
-	NoFlowOverlap       *bool       `json:"no_flow_overlap,omitempty"`
-	OnFailure           *string     `json:"on_failure,omitempty"`
-	OnFailureExact      *bool       `json:"on_failure_exact,omitempty"`
-	OnFailureExtraArgs  *ScriptArgs `json:"on_failure_extra_args,omitempty"`
-	OnFailureTimes      *float32    `json:"on_failure_times,omitempty"`
-	OnRecovery          *string     `json:"on_recovery,omitempty"`
+	// Args The arguments to pass to the script or flow
+	Args ScriptArgs `json:"args"`
+
+	// CronVersion The version of the cron schedule to use (last is v2)
+	CronVersion *string `json:"cron_version,omitempty"`
+
+	// Description The description of the schedule
+	Description *string `json:"description,omitempty"`
+
+	// NoFlowOverlap Whether the schedule should not run if a flow is already running
+	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
+
+	// OnFailure The path to the script or flow to trigger on failure
+	OnFailure *string `json:"on_failure,omitempty"`
+
+	// OnFailureExact Whether the schedule should only run on the exact time
+	OnFailureExact *bool `json:"on_failure_exact,omitempty"`
+
+	// OnFailureExtraArgs The arguments to pass to the script or flow
+	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
+
+	// OnFailureTimes The number of times to retry on failure
+	OnFailureTimes *float32 `json:"on_failure_times,omitempty"`
+
+	// OnRecovery The path to the script or flow to trigger on recovery
+	OnRecovery *string `json:"on_recovery,omitempty"`
+
+	// OnRecoveryExtraArgs The arguments to pass to the script or flow
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
-	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
-	OnSuccess           *string     `json:"on_success,omitempty"`
-	OnSuccessExtraArgs  *ScriptArgs `json:"on_success_extra_args,omitempty"`
-	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
-	Retry               *Retry      `json:"retry,omitempty"`
-	Schedule            string      `json:"schedule"`
-	Summary             *string     `json:"summary,omitempty"`
-	Tag                 *string     `json:"tag,omitempty"`
-	Timezone            string      `json:"timezone"`
-	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
+
+	// OnRecoveryTimes The number of times to retry on recovery
+	OnRecoveryTimes *float32 `json:"on_recovery_times,omitempty"`
+
+	// OnSuccess The path to the script or flow to trigger on success
+	OnSuccess *string `json:"on_success,omitempty"`
+
+	// OnSuccessExtraArgs The arguments to pass to the script or flow
+	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
+
+	// PausedUntil The date and time the schedule will be paused until
+	PausedUntil *time.Time `json:"paused_until,omitempty"`
+	Retry       *Retry     `json:"retry,omitempty"`
+
+	// Schedule The cron schedule to trigger the script or flow. Should include seconds.
+	Schedule string `json:"schedule"`
+
+	// Summary The summary of the schedule
+	Summary *string `json:"summary,omitempty"`
+
+	// Tag The tag of the schedule
+	Tag *string `json:"tag,omitempty"`
+
+	// Timezone The timezone to use for the cron schedule
+	Timezone string `json:"timezone"`
+
+	// WsErrorHandlerMuted Whether the WebSocket error handler is muted
+	WsErrorHandlerMuted *bool `json:"ws_error_handler_muted,omitempty"`
 }
 
 // EditSqsTrigger defines model for EditSqsTrigger.
@@ -1229,27 +1301,38 @@ type EditSqsTrigger struct {
 	AwsAuthResourceType AwsAuthResourceType `json:"aws_auth_resource_type"`
 	AwsResourcePath     string              `json:"aws_resource_path"`
 	Enabled             bool                `json:"enabled"`
-	ErrorHandlerArgs    *ScriptArgs         `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath    *string             `json:"error_handler_path,omitempty"`
-	IsFlow              bool                `json:"is_flow"`
-	MessageAttributes   *[]string           `json:"message_attributes,omitempty"`
-	Path                string              `json:"path"`
-	QueueUrl            string              `json:"queue_url"`
-	Retry               *Retry              `json:"retry,omitempty"`
-	ScriptPath          string              `json:"script_path"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
+	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
+	IsFlow            bool        `json:"is_flow"`
+	MessageAttributes *[]string   `json:"message_attributes,omitempty"`
+	Path              string      `json:"path"`
+	QueueUrl          string      `json:"queue_url"`
+	Retry             *Retry      `json:"retry,omitempty"`
+	ScriptPath        string      `json:"script_path"`
 }
 
 // EditVariable defines model for EditVariable.
 type EditVariable struct {
+	// Description The new description of the variable
 	Description *string `json:"description,omitempty"`
-	IsSecret    *bool   `json:"is_secret,omitempty"`
-	Path        *string `json:"path,omitempty"`
-	Value       *string `json:"value,omitempty"`
+
+	// IsSecret Whether the variable is a secret
+	IsSecret *bool `json:"is_secret,omitempty"`
+
+	// Path The path to the variable
+	Path *string `json:"path,omitempty"`
+
+	// Value The new value of the variable
+	Value *string `json:"value,omitempty"`
 }
 
 // EditWebsocketTrigger defines model for EditWebsocketTrigger.
 type EditWebsocketTrigger struct {
-	CanReturnMessage bool        `json:"can_return_message"`
+	CanReturnMessage bool `json:"can_return_message"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
 	Filters          []struct {
@@ -1262,7 +1345,9 @@ type EditWebsocketTrigger struct {
 	Retry           *Retry                            `json:"retry,omitempty"`
 	ScriptPath      string                            `json:"script_path"`
 	Url             string                            `json:"url"`
-	UrlRunnableArgs *ScriptArgs                       `json:"url_runnable_args,omitempty"`
+
+	// UrlRunnableArgs The arguments to pass to the script or flow
+	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
 }
 
 // EditWorkspaceUser defines model for EditWorkspaceUser.
@@ -1351,6 +1436,7 @@ type FlowMetadata struct {
 
 // FlowPreview defines model for FlowPreview.
 type FlowPreview struct {
+	// Args The arguments to pass to the script or flow
 	Args          ScriptArgs     `json:"args"`
 	Path          *string        `json:"path,omitempty"`
 	RestartedFrom *RestartedFrom `json:"restarted_from,omitempty"`
@@ -1442,18 +1528,20 @@ type GcpTrigger = TriggerExtraProperty
 
 // GcpTriggerData defines model for GcpTriggerData.
 type GcpTriggerData struct {
-	BaseEndpoint     *string       `json:"base_endpoint,omitempty"`
-	DeliveryConfig   *PushConfig   `json:"delivery_config,omitempty"`
-	DeliveryType     *DeliveryType `json:"delivery_type,omitempty"`
-	Enabled          *bool         `json:"enabled,omitempty"`
-	ErrorHandlerArgs *ScriptArgs   `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string       `json:"error_handler_path,omitempty"`
-	GcpResourcePath  string        `json:"gcp_resource_path"`
-	IsFlow           bool          `json:"is_flow"`
-	Path             string        `json:"path"`
-	Retry            *Retry        `json:"retry,omitempty"`
-	ScriptPath       string        `json:"script_path"`
-	SubscriptionId   *string       `json:"subscription_id,omitempty"`
+	BaseEndpoint   *string       `json:"base_endpoint,omitempty"`
+	DeliveryConfig *PushConfig   `json:"delivery_config,omitempty"`
+	DeliveryType   *DeliveryType `json:"delivery_type,omitempty"`
+	Enabled        *bool         `json:"enabled,omitempty"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	GcpResourcePath  string      `json:"gcp_resource_path"`
+	IsFlow           bool        `json:"is_flow"`
+	Path             string      `json:"path"`
+	Retry            *Retry      `json:"retry,omitempty"`
+	ScriptPath       string      `json:"script_path"`
+	SubscriptionId   *string     `json:"subscription_id,omitempty"`
 
 	// SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
 	SubscriptionMode SubscriptionMode `json:"subscription_mode"`
@@ -1572,26 +1660,28 @@ type Job struct {
 
 // Job0 defines model for .
 type Job0 struct {
-	AggregateWaitTimeMs *float32            `json:"aggregate_wait_time_ms,omitempty"`
-	Args                *ScriptArgs         `json:"args,omitempty"`
-	Canceled            bool                `json:"canceled"`
-	CanceledBy          *string             `json:"canceled_by,omitempty"`
-	CanceledReason      *string             `json:"canceled_reason,omitempty"`
-	CreatedAt           time.Time           `json:"created_at"`
-	CreatedBy           string              `json:"created_by"`
-	Deleted             *bool               `json:"deleted,omitempty"`
-	DurationMs          int                 `json:"duration_ms"`
-	Email               string              `json:"email"`
-	FlowStatus          *FlowStatus         `json:"flow_status,omitempty"`
-	Id                  openapi_types.UUID  `json:"id"`
-	IsFlowStep          bool                `json:"is_flow_step"`
-	IsSkipped           bool                `json:"is_skipped"`
-	JobKind             Job0JobKind         `json:"job_kind"`
-	Labels              *[]string           `json:"labels,omitempty"`
-	Language            *ScriptLang         `json:"language,omitempty"`
-	Logs                *string             `json:"logs,omitempty"`
-	MemPeak             *int                `json:"mem_peak,omitempty"`
-	ParentJob           *openapi_types.UUID `json:"parent_job,omitempty"`
+	AggregateWaitTimeMs *float32 `json:"aggregate_wait_time_ms,omitempty"`
+
+	// Args The arguments to pass to the script or flow
+	Args           *ScriptArgs         `json:"args,omitempty"`
+	Canceled       bool                `json:"canceled"`
+	CanceledBy     *string             `json:"canceled_by,omitempty"`
+	CanceledReason *string             `json:"canceled_reason,omitempty"`
+	CreatedAt      time.Time           `json:"created_at"`
+	CreatedBy      string              `json:"created_by"`
+	Deleted        *bool               `json:"deleted,omitempty"`
+	DurationMs     int                 `json:"duration_ms"`
+	Email          string              `json:"email"`
+	FlowStatus     *FlowStatus         `json:"flow_status,omitempty"`
+	Id             openapi_types.UUID  `json:"id"`
+	IsFlowStep     bool                `json:"is_flow_step"`
+	IsSkipped      bool                `json:"is_skipped"`
+	JobKind        Job0JobKind         `json:"job_kind"`
+	Labels         *[]string           `json:"labels,omitempty"`
+	Language       *ScriptLang         `json:"language,omitempty"`
+	Logs           *string             `json:"logs,omitempty"`
+	MemPeak        *int                `json:"mem_peak,omitempty"`
+	ParentJob      *openapi_types.UUID `json:"parent_job,omitempty"`
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
@@ -1623,23 +1713,25 @@ type Job0Type string
 
 // Job1 defines model for .
 type Job1 struct {
-	AggregateWaitTimeMs *float32            `json:"aggregate_wait_time_ms,omitempty"`
-	Args                *ScriptArgs         `json:"args,omitempty"`
-	Canceled            bool                `json:"canceled"`
-	CanceledBy          *string             `json:"canceled_by,omitempty"`
-	CanceledReason      *string             `json:"canceled_reason,omitempty"`
-	CreatedAt           *time.Time          `json:"created_at,omitempty"`
-	CreatedBy           *string             `json:"created_by,omitempty"`
-	Email               string              `json:"email"`
-	FlowStatus          *FlowStatus         `json:"flow_status,omitempty"`
-	Id                  openapi_types.UUID  `json:"id"`
-	IsFlowStep          bool                `json:"is_flow_step"`
-	JobKind             Job1JobKind         `json:"job_kind"`
-	Language            *ScriptLang         `json:"language,omitempty"`
-	LastPing            *time.Time          `json:"last_ping,omitempty"`
-	Logs                *string             `json:"logs,omitempty"`
-	MemPeak             *int                `json:"mem_peak,omitempty"`
-	ParentJob           *openapi_types.UUID `json:"parent_job,omitempty"`
+	AggregateWaitTimeMs *float32 `json:"aggregate_wait_time_ms,omitempty"`
+
+	// Args The arguments to pass to the script or flow
+	Args           *ScriptArgs         `json:"args,omitempty"`
+	Canceled       bool                `json:"canceled"`
+	CanceledBy     *string             `json:"canceled_by,omitempty"`
+	CanceledReason *string             `json:"canceled_reason,omitempty"`
+	CreatedAt      *time.Time          `json:"created_at,omitempty"`
+	CreatedBy      *string             `json:"created_by,omitempty"`
+	Email          string              `json:"email"`
+	FlowStatus     *FlowStatus         `json:"flow_status,omitempty"`
+	Id             openapi_types.UUID  `json:"id"`
+	IsFlowStep     bool                `json:"is_flow_step"`
+	JobKind        Job1JobKind         `json:"job_kind"`
+	Language       *ScriptLang         `json:"language,omitempty"`
+	LastPing       *time.Time          `json:"last_ping,omitempty"`
+	Logs           *string             `json:"logs,omitempty"`
+	MemPeak        *int                `json:"mem_peak,omitempty"`
+	ParentJob      *openapi_types.UUID `json:"parent_job,omitempty"`
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
@@ -1824,18 +1916,20 @@ type NewHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
 	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
 	Description                *string              `json:"description,omitempty"`
-	ErrorHandlerArgs           *ScriptArgs          `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath           *string              `json:"error_handler_path,omitempty"`
-	HttpMethod                 HttpMethod           `json:"http_method"`
-	IsAsync                    bool                 `json:"is_async"`
-	IsFlow                     bool                 `json:"is_flow"`
-	IsStaticWebsite            bool                 `json:"is_static_website"`
-	Path                       string               `json:"path"`
-	RawString                  *bool                `json:"raw_string,omitempty"`
-	Retry                      *Retry               `json:"retry,omitempty"`
-	RoutePath                  string               `json:"route_path"`
-	ScriptPath                 string               `json:"script_path"`
-	StaticAssetConfig          *struct {
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
+	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
+	HttpMethod        HttpMethod  `json:"http_method"`
+	IsAsync           bool        `json:"is_async"`
+	IsFlow            bool        `json:"is_flow"`
+	IsStaticWebsite   bool        `json:"is_static_website"`
+	Path              string      `json:"path"`
+	RawString         *bool       `json:"raw_string,omitempty"`
+	Retry             *Retry      `json:"retry,omitempty"`
+	RoutePath         string      `json:"route_path"`
+	ScriptPath        string      `json:"script_path"`
+	StaticAssetConfig *struct {
 		Filename *string `json:"filename,omitempty"`
 		S3       string  `json:"s3"`
 		Storage  *string `json:"storage,omitempty"`
@@ -1847,7 +1941,9 @@ type NewHttpTrigger struct {
 
 // NewKafkaTrigger defines model for NewKafkaTrigger.
 type NewKafkaTrigger struct {
-	Enabled           *bool       `json:"enabled,omitempty"`
+	Enabled *bool `json:"enabled,omitempty"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
 	GroupId           string      `json:"group_id"`
@@ -1861,9 +1957,11 @@ type NewKafkaTrigger struct {
 
 // NewMqttTrigger defines model for NewMqttTrigger.
 type NewMqttTrigger struct {
-	ClientId         *string              `json:"client_id,omitempty"`
-	ClientVersion    *MqttClientVersion   `json:"client_version,omitempty"`
-	Enabled          *bool                `json:"enabled,omitempty"`
+	ClientId      *string            `json:"client_id,omitempty"`
+	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
+	Enabled       *bool              `json:"enabled,omitempty"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs          `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string              `json:"error_handler_path,omitempty"`
 	IsFlow           bool                 `json:"is_flow"`
@@ -1878,8 +1976,10 @@ type NewMqttTrigger struct {
 
 // NewNatsTrigger defines model for NewNatsTrigger.
 type NewNatsTrigger struct {
-	ConsumerName     *string     `json:"consumer_name,omitempty"`
-	Enabled          *bool       `json:"enabled,omitempty"`
+	ConsumerName *string `json:"consumer_name,omitempty"`
+	Enabled      *bool   `json:"enabled,omitempty"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
 	IsFlow           bool        `json:"is_flow"`
@@ -1894,7 +1994,9 @@ type NewNatsTrigger struct {
 
 // NewPostgresTrigger defines model for NewPostgresTrigger.
 type NewPostgresTrigger struct {
-	Enabled              bool             `json:"enabled"`
+	Enabled bool `json:"enabled"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs     *ScriptArgs      `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath     *string          `json:"error_handler_path,omitempty"`
 	IsFlow               bool             `json:"is_flow"`
@@ -1909,30 +2011,75 @@ type NewPostgresTrigger struct {
 
 // NewSchedule defines model for NewSchedule.
 type NewSchedule struct {
-	Args                ScriptArgs  `json:"args"`
-	CronVersion         *string     `json:"cron_version,omitempty"`
-	Description         *string     `json:"description,omitempty"`
-	Enabled             *bool       `json:"enabled,omitempty"`
-	IsFlow              bool        `json:"is_flow"`
-	NoFlowOverlap       *bool       `json:"no_flow_overlap,omitempty"`
-	OnFailure           *string     `json:"on_failure,omitempty"`
-	OnFailureExact      *bool       `json:"on_failure_exact,omitempty"`
-	OnFailureExtraArgs  *ScriptArgs `json:"on_failure_extra_args,omitempty"`
-	OnFailureTimes      *float32    `json:"on_failure_times,omitempty"`
-	OnRecovery          *string     `json:"on_recovery,omitempty"`
+	// Args The arguments to pass to the script or flow
+	Args ScriptArgs `json:"args"`
+
+	// CronVersion The version of the cron schedule to use (last is v2)
+	CronVersion *string `json:"cron_version,omitempty"`
+
+	// Description The description of the schedule
+	Description *string `json:"description,omitempty"`
+
+	// Enabled Whether the schedule is enabled
+	Enabled *bool `json:"enabled,omitempty"`
+
+	// IsFlow Whether the schedule is for a flow
+	IsFlow bool `json:"is_flow"`
+
+	// NoFlowOverlap Whether the schedule should not run if a flow is already running
+	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
+
+	// OnFailure The path to the script or flow to trigger on failure
+	OnFailure *string `json:"on_failure,omitempty"`
+
+	// OnFailureExact Whether the schedule should only run on the exact time
+	OnFailureExact *bool `json:"on_failure_exact,omitempty"`
+
+	// OnFailureExtraArgs The arguments to pass to the script or flow
+	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
+
+	// OnFailureTimes The number of times to retry on failure
+	OnFailureTimes *float32 `json:"on_failure_times,omitempty"`
+
+	// OnRecovery The path to the script or flow to trigger on recovery
+	OnRecovery *string `json:"on_recovery,omitempty"`
+
+	// OnRecoveryExtraArgs The arguments to pass to the script or flow
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
-	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
-	OnSuccess           *string     `json:"on_success,omitempty"`
-	OnSuccessExtraArgs  *ScriptArgs `json:"on_success_extra_args,omitempty"`
-	Path                string      `json:"path"`
-	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
-	Retry               *Retry      `json:"retry,omitempty"`
-	Schedule            string      `json:"schedule"`
-	ScriptPath          string      `json:"script_path"`
-	Summary             *string     `json:"summary,omitempty"`
-	Tag                 *string     `json:"tag,omitempty"`
-	Timezone            string      `json:"timezone"`
-	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
+
+	// OnRecoveryTimes The number of times to retry on recovery
+	OnRecoveryTimes *float32 `json:"on_recovery_times,omitempty"`
+
+	// OnSuccess The path to the script or flow to trigger on success
+	OnSuccess *string `json:"on_success,omitempty"`
+
+	// OnSuccessExtraArgs The arguments to pass to the script or flow
+	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
+
+	// Path The path where the schedule will be created
+	Path string `json:"path"`
+
+	// PausedUntil The date and time the schedule will be paused until
+	PausedUntil *time.Time `json:"paused_until,omitempty"`
+	Retry       *Retry     `json:"retry,omitempty"`
+
+	// Schedule The cron schedule to trigger the script or flow. Should include seconds.
+	Schedule string `json:"schedule"`
+
+	// ScriptPath The path to the script or flow to trigger
+	ScriptPath string `json:"script_path"`
+
+	// Summary The summary of the schedule
+	Summary *string `json:"summary,omitempty"`
+
+	// Tag The tag of the schedule
+	Tag *string `json:"tag,omitempty"`
+
+	// Timezone The timezone to use for the cron schedule
+	Timezone string `json:"timezone"`
+
+	// WsErrorHandlerMuted Whether the WebSocket error handler is muted
+	WsErrorHandlerMuted *bool `json:"ws_error_handler_muted,omitempty"`
 }
 
 // NewScript defines model for NewScript.
@@ -2038,14 +2185,16 @@ type NewSqsTrigger struct {
 	AwsAuthResourceType AwsAuthResourceType `json:"aws_auth_resource_type"`
 	AwsResourcePath     string              `json:"aws_resource_path"`
 	Enabled             *bool               `json:"enabled,omitempty"`
-	ErrorHandlerArgs    *ScriptArgs         `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath    *string             `json:"error_handler_path,omitempty"`
-	IsFlow              bool                `json:"is_flow"`
-	MessageAttributes   *[]string           `json:"message_attributes,omitempty"`
-	Path                string              `json:"path"`
-	QueueUrl            string              `json:"queue_url"`
-	Retry               *Retry              `json:"retry,omitempty"`
-	ScriptPath          string              `json:"script_path"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
+	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
+	IsFlow            bool        `json:"is_flow"`
+	MessageAttributes *[]string   `json:"message_attributes,omitempty"`
+	Path              string      `json:"path"`
+	QueueUrl          string      `json:"queue_url"`
+	Retry             *Retry      `json:"retry,omitempty"`
+	ScriptPath        string      `json:"script_path"`
 }
 
 // NewToken defines model for NewToken.
@@ -2066,8 +2215,10 @@ type NewTokenImpersonate struct {
 
 // NewWebsocketTrigger defines model for NewWebsocketTrigger.
 type NewWebsocketTrigger struct {
-	CanReturnMessage bool        `json:"can_return_message"`
-	Enabled          *bool       `json:"enabled,omitempty"`
+	CanReturnMessage bool  `json:"can_return_message"`
+	Enabled          *bool `json:"enabled,omitempty"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
 	Filters          []struct {
@@ -2080,7 +2231,9 @@ type NewWebsocketTrigger struct {
 	Retry           *Retry                            `json:"retry,omitempty"`
 	ScriptPath      string                            `json:"script_path"`
 	Url             string                            `json:"url"`
-	UrlRunnableArgs *ScriptArgs                       `json:"url_runnable_args,omitempty"`
+
+	// UrlRunnableArgs The arguments to pass to the script or flow
+	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
 }
 
 // ObscuredJob defines model for ObscuredJob.
@@ -2202,6 +2355,7 @@ type PostgresTrigger = TriggerExtraProperty
 
 // Preview defines model for Preview.
 type Preview struct {
+	// Args The arguments to pass to the script or flow
 	Args            ScriptArgs   `json:"args"`
 	Content         *string      `json:"content,omitempty"`
 	DedicatedWorker *bool        `json:"dedicated_worker,omitempty"`
@@ -2230,23 +2384,25 @@ type PushConfig struct {
 
 // QueuedJob defines model for QueuedJob.
 type QueuedJob struct {
-	AggregateWaitTimeMs *float32            `json:"aggregate_wait_time_ms,omitempty"`
-	Args                *ScriptArgs         `json:"args,omitempty"`
-	Canceled            bool                `json:"canceled"`
-	CanceledBy          *string             `json:"canceled_by,omitempty"`
-	CanceledReason      *string             `json:"canceled_reason,omitempty"`
-	CreatedAt           *time.Time          `json:"created_at,omitempty"`
-	CreatedBy           *string             `json:"created_by,omitempty"`
-	Email               string              `json:"email"`
-	FlowStatus          *FlowStatus         `json:"flow_status,omitempty"`
-	Id                  openapi_types.UUID  `json:"id"`
-	IsFlowStep          bool                `json:"is_flow_step"`
-	JobKind             QueuedJobJobKind    `json:"job_kind"`
-	Language            *ScriptLang         `json:"language,omitempty"`
-	LastPing            *time.Time          `json:"last_ping,omitempty"`
-	Logs                *string             `json:"logs,omitempty"`
-	MemPeak             *int                `json:"mem_peak,omitempty"`
-	ParentJob           *openapi_types.UUID `json:"parent_job,omitempty"`
+	AggregateWaitTimeMs *float32 `json:"aggregate_wait_time_ms,omitempty"`
+
+	// Args The arguments to pass to the script or flow
+	Args           *ScriptArgs         `json:"args,omitempty"`
+	Canceled       bool                `json:"canceled"`
+	CanceledBy     *string             `json:"canceled_by,omitempty"`
+	CanceledReason *string             `json:"canceled_reason,omitempty"`
+	CreatedAt      *time.Time          `json:"created_at,omitempty"`
+	CreatedBy      *string             `json:"created_by,omitempty"`
+	Email          string              `json:"email"`
+	FlowStatus     *FlowStatus         `json:"flow_status,omitempty"`
+	Id             openapi_types.UUID  `json:"id"`
+	IsFlowStep     bool                `json:"is_flow_step"`
+	JobKind        QueuedJobJobKind    `json:"job_kind"`
+	Language       *ScriptLang         `json:"language,omitempty"`
+	LastPing       *time.Time          `json:"last_ping,omitempty"`
+	Logs           *string             `json:"logs,omitempty"`
+	MemPeak        *int                `json:"mem_peak,omitempty"`
+	ParentJob      *openapi_types.UUID `json:"parent_job,omitempty"`
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
@@ -2364,39 +2520,47 @@ type ScalarMetric struct {
 
 // Schedule defines model for Schedule.
 type Schedule struct {
-	Args                *ScriptArgs     `json:"args,omitempty"`
-	CronVersion         *string         `json:"cron_version,omitempty"`
-	Description         *string         `json:"description,omitempty"`
-	EditedAt            time.Time       `json:"edited_at"`
-	EditedBy            string          `json:"edited_by"`
-	Email               string          `json:"email"`
-	Enabled             bool            `json:"enabled"`
-	Error               *string         `json:"error,omitempty"`
-	ExtraPerms          map[string]bool `json:"extra_perms"`
-	IsFlow              bool            `json:"is_flow"`
-	NoFlowOverlap       *bool           `json:"no_flow_overlap,omitempty"`
-	OnFailure           *string         `json:"on_failure,omitempty"`
-	OnFailureExact      *bool           `json:"on_failure_exact,omitempty"`
-	OnFailureExtraArgs  *ScriptArgs     `json:"on_failure_extra_args,omitempty"`
-	OnFailureTimes      *float32        `json:"on_failure_times,omitempty"`
-	OnRecovery          *string         `json:"on_recovery,omitempty"`
-	OnRecoveryExtraArgs *ScriptArgs     `json:"on_recovery_extra_args,omitempty"`
-	OnRecoveryTimes     *float32        `json:"on_recovery_times,omitempty"`
-	OnSuccess           *string         `json:"on_success,omitempty"`
-	OnSuccessExtraArgs  *ScriptArgs     `json:"on_success_extra_args,omitempty"`
-	Path                string          `json:"path"`
-	PausedUntil         *time.Time      `json:"paused_until,omitempty"`
-	Retry               *Retry          `json:"retry,omitempty"`
-	Schedule            string          `json:"schedule"`
-	ScriptPath          string          `json:"script_path"`
-	Summary             *string         `json:"summary,omitempty"`
-	Tag                 *string         `json:"tag,omitempty"`
-	Timezone            string          `json:"timezone"`
-	WsErrorHandlerMuted *bool           `json:"ws_error_handler_muted,omitempty"`
+	// Args The arguments to pass to the script or flow
+	Args           *ScriptArgs     `json:"args,omitempty"`
+	CronVersion    *string         `json:"cron_version,omitempty"`
+	Description    *string         `json:"description,omitempty"`
+	EditedAt       time.Time       `json:"edited_at"`
+	EditedBy       string          `json:"edited_by"`
+	Email          string          `json:"email"`
+	Enabled        bool            `json:"enabled"`
+	Error          *string         `json:"error,omitempty"`
+	ExtraPerms     map[string]bool `json:"extra_perms"`
+	IsFlow         bool            `json:"is_flow"`
+	NoFlowOverlap  *bool           `json:"no_flow_overlap,omitempty"`
+	OnFailure      *string         `json:"on_failure,omitempty"`
+	OnFailureExact *bool           `json:"on_failure_exact,omitempty"`
+
+	// OnFailureExtraArgs The arguments to pass to the script or flow
+	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
+	OnFailureTimes     *float32    `json:"on_failure_times,omitempty"`
+	OnRecovery         *string     `json:"on_recovery,omitempty"`
+
+	// OnRecoveryExtraArgs The arguments to pass to the script or flow
+	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
+	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
+	OnSuccess           *string     `json:"on_success,omitempty"`
+
+	// OnSuccessExtraArgs The arguments to pass to the script or flow
+	OnSuccessExtraArgs  *ScriptArgs `json:"on_success_extra_args,omitempty"`
+	Path                string      `json:"path"`
+	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
+	Retry               *Retry      `json:"retry,omitempty"`
+	Schedule            string      `json:"schedule"`
+	ScriptPath          string      `json:"script_path"`
+	Summary             *string     `json:"summary,omitempty"`
+	Tag                 *string     `json:"tag,omitempty"`
+	Timezone            string      `json:"timezone"`
+	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
 }
 
 // ScheduleWJobs defines model for ScheduleWJobs.
 type ScheduleWJobs struct {
+	// Args The arguments to pass to the script or flow
 	Args        *ScriptArgs     `json:"args,omitempty"`
 	CronVersion *string         `json:"cron_version,omitempty"`
 	Description *string         `json:"description,omitempty"`
@@ -2412,15 +2576,21 @@ type ScheduleWJobs struct {
 		Id         string  `json:"id"`
 		Success    bool    `json:"success"`
 	} `json:"jobs,omitempty"`
-	NoFlowOverlap       *bool       `json:"no_flow_overlap,omitempty"`
-	OnFailure           *string     `json:"on_failure,omitempty"`
-	OnFailureExact      *bool       `json:"on_failure_exact,omitempty"`
-	OnFailureExtraArgs  *ScriptArgs `json:"on_failure_extra_args,omitempty"`
-	OnFailureTimes      *float32    `json:"on_failure_times,omitempty"`
-	OnRecovery          *string     `json:"on_recovery,omitempty"`
+	NoFlowOverlap  *bool   `json:"no_flow_overlap,omitempty"`
+	OnFailure      *string `json:"on_failure,omitempty"`
+	OnFailureExact *bool   `json:"on_failure_exact,omitempty"`
+
+	// OnFailureExtraArgs The arguments to pass to the script or flow
+	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
+	OnFailureTimes     *float32    `json:"on_failure_times,omitempty"`
+	OnRecovery         *string     `json:"on_recovery,omitempty"`
+
+	// OnRecoveryExtraArgs The arguments to pass to the script or flow
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
 	OnSuccess           *string     `json:"on_success,omitempty"`
+
+	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs  *ScriptArgs `json:"on_success_extra_args,omitempty"`
 	Path                string      `json:"path"`
 	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
@@ -2495,7 +2665,7 @@ type Script struct {
 // ScriptKind defines model for Script.Kind.
 type ScriptKind string
 
-// ScriptArgs defines model for ScriptArgs.
+// ScriptArgs The arguments to pass to the script or flow
 type ScriptArgs map[string]interface{}
 
 // ScriptHistory defines model for ScriptHistory.
@@ -2673,6 +2843,7 @@ type WebsocketTriggerInitialMessage0 struct {
 // WebsocketTriggerInitialMessage1 defines model for .
 type WebsocketTriggerInitialMessage1 struct {
 	RunnableResult struct {
+		// Args The arguments to pass to the script or flow
 		Args   ScriptArgs `json:"args"`
 		IsFlow bool       `json:"is_flow"`
 		Path   string     `json:"path"`
@@ -2736,6 +2907,7 @@ type WorkflowStatus struct {
 
 // WorkflowTask defines model for WorkflowTask.
 type WorkflowTask struct {
+	// Args The arguments to pass to the script or flow
 	Args ScriptArgs `json:"args"`
 }
 
@@ -5088,11 +5260,12 @@ type GetJobUpdatesParams struct {
 
 // GetJobUpdatesSSEParams defines parameters for GetJobUpdatesSSE.
 type GetJobUpdatesSSEParams struct {
-	Running     *bool `form:"running,omitempty" json:"running,omitempty"`
-	LogOffset   *int  `form:"log_offset,omitempty" json:"log_offset,omitempty"`
-	GetProgress *bool `form:"get_progress,omitempty" json:"get_progress,omitempty"`
-	OnlyResult  *bool `form:"only_result,omitempty" json:"only_result,omitempty"`
-	NoLogs      *bool `form:"no_logs,omitempty" json:"no_logs,omitempty"`
+	Running      *bool `form:"running,omitempty" json:"running,omitempty"`
+	LogOffset    *int  `form:"log_offset,omitempty" json:"log_offset,omitempty"`
+	StreamOffset *int  `form:"stream_offset,omitempty" json:"stream_offset,omitempty"`
+	GetProgress  *bool `form:"get_progress,omitempty" json:"get_progress,omitempty"`
+	OnlyResult   *bool `form:"only_result,omitempty" json:"only_result,omitempty"`
+	NoLogs       *bool `form:"no_logs,omitempty" json:"no_logs,omitempty"`
 }
 
 // CancelQueuedJobJSONBody defines parameters for CancelQueuedJob.
@@ -5290,6 +5463,7 @@ type UpdateRawAppJSONBody struct {
 
 // CreateResourceParams defines parameters for CreateResource.
 type CreateResourceParams struct {
+	// UpdateIfExists update the resource if it already exists (default false)
 	UpdateIfExists *bool `form:"update_if_exists,omitempty" json:"update_if_exists,omitempty"`
 }
 
@@ -5312,7 +5486,9 @@ type ListResourceParams struct {
 
 	// ResourceTypeExclude resource_types to not list from, separated by ',',
 	ResourceTypeExclude *string `form:"resource_type_exclude,omitempty" json:"resource_type_exclude,omitempty"`
-	PathStart           *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// PathStart filter resources by path prefix
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
 // UpdateResourceValueJSONBody defines parameters for UpdateResourceValue.
@@ -5332,8 +5508,12 @@ type ListSchedulesParams struct {
 	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
 
 	// Path filter by path
-	Path      *string `form:"path,omitempty" json:"path,omitempty"`
-	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	Path *string `form:"path,omitempty" json:"path,omitempty"`
+
+	// IsFlow filter schedules by whether they target a flow
+	IsFlow *bool `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+
+	// PathStart filter schedules by path prefix
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
@@ -5491,6 +5671,7 @@ type TestSqsConnectionJSONBody struct {
 
 // CreateVariableParams defines parameters for CreateVariable.
 type CreateVariableParams struct {
+	// AlreadyEncrypted whether the variable is already encrypted (default false)
 	AlreadyEncrypted *bool `form:"already_encrypted,omitempty" json:"already_encrypted,omitempty"`
 }
 
@@ -5509,6 +5690,7 @@ type GetVariableParams struct {
 
 // ListVariableParams defines parameters for ListVariable.
 type ListVariableParams struct {
+	// PathStart filter variables by path prefix
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 
 	// Page which page to return (start at 1, default 1)
@@ -5520,6 +5702,7 @@ type ListVariableParams struct {
 
 // UpdateVariableParams defines parameters for UpdateVariable.
 type UpdateVariableParams struct {
+	// AlreadyEncrypted whether the variable is already encrypted (default false)
 	AlreadyEncrypted *bool `form:"already_encrypted,omitempty" json:"already_encrypted,omitempty"`
 }
 
@@ -5544,9 +5727,11 @@ type SetWebsocketTriggerEnabledJSONBody struct {
 
 // TestWebsocketConnectionJSONBody defines parameters for TestWebsocketConnection.
 type TestWebsocketConnectionJSONBody struct {
-	CanReturnMessage bool        `json:"can_return_message"`
-	Url              string      `json:"url"`
-	UrlRunnableArgs  *ScriptArgs `json:"url_runnable_args,omitempty"`
+	CanReturnMessage bool   `json:"can_return_message"`
+	Url              string `json:"url"`
+
+	// UrlRunnableArgs The arguments to pass to the script or flow
+	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
 }
 
 // AddUserJSONBody defines parameters for AddUser.
@@ -5634,7 +5819,9 @@ type EditDucklakeConfigJSONBody struct {
 
 // EditErrorHandlerJSONBody defines parameters for EditErrorHandler.
 type EditErrorHandlerJSONBody struct {
-	ErrorHandler              *string     `json:"error_handler,omitempty"`
+	ErrorHandler *string `json:"error_handler,omitempty"`
+
+	// ErrorHandlerExtraArgs The arguments to pass to the script or flow
 	ErrorHandlerExtraArgs     *ScriptArgs `json:"error_handler_extra_args,omitempty"`
 	ErrorHandlerMutedOnCancel *bool       `json:"error_handler_muted_on_cancel,omitempty"`
 }
@@ -35706,6 +35893,22 @@ func NewGetJobUpdatesSSERequest(server string, workspace WorkspaceId, id JobId, 
 
 		}
 
+		if params.StreamOffset != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "stream_offset", runtime.ParamLocationQuery, *params.StreamOffset); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.GetProgress != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_progress", runtime.ParamLocationQuery, *params.GetProgress); err != nil {
@@ -58900,33 +59103,35 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AiConfig                  *AIConfig                  `json:"ai_config,omitempty"`
-		AutoAdd                   *bool                      `json:"auto_add,omitempty"`
-		AutoInviteDomain          *string                    `json:"auto_invite_domain,omitempty"`
-		AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
-		Color                     *string                    `json:"color,omitempty"`
-		CustomerId                *string                    `json:"customer_id,omitempty"`
-		DefaultApp                *string                    `json:"default_app,omitempty"`
-		DefaultScripts            *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
-		DeployTo                  *string                    `json:"deploy_to,omitempty"`
-		DeployUi                  *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
-		Ducklake                  *DucklakeSettings          `json:"ducklake,omitempty"`
-		ErrorHandler              *string                    `json:"error_handler,omitempty"`
-		ErrorHandlerExtraArgs     *ScriptArgs                `json:"error_handler_extra_args,omitempty"`
-		ErrorHandlerMutedOnCancel bool                       `json:"error_handler_muted_on_cancel"`
-		GitSync                   *WorkspaceGitSyncSettings  `json:"git_sync,omitempty"`
-		LargeFileStorage          *LargeFileStorage          `json:"large_file_storage,omitempty"`
-		MuteCriticalAlerts        *bool                      `json:"mute_critical_alerts,omitempty"`
-		OperatorSettings          *OperatorSettings          `json:"operator_settings"`
-		Plan                      *string                    `json:"plan,omitempty"`
-		SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
-		SlackName                 *string                    `json:"slack_name,omitempty"`
-		SlackTeamId               *string                    `json:"slack_team_id,omitempty"`
-		TeamsCommandScript        *string                    `json:"teams_command_script,omitempty"`
-		TeamsTeamId               *string                    `json:"teams_team_id,omitempty"`
-		TeamsTeamName             *string                    `json:"teams_team_name,omitempty"`
-		Webhook                   *string                    `json:"webhook,omitempty"`
-		WorkspaceId               *string                    `json:"workspace_id,omitempty"`
+		AiConfig           *AIConfig                  `json:"ai_config,omitempty"`
+		AutoAdd            *bool                      `json:"auto_add,omitempty"`
+		AutoInviteDomain   *string                    `json:"auto_invite_domain,omitempty"`
+		AutoInviteOperator *bool                      `json:"auto_invite_operator,omitempty"`
+		Color              *string                    `json:"color,omitempty"`
+		CustomerId         *string                    `json:"customer_id,omitempty"`
+		DefaultApp         *string                    `json:"default_app,omitempty"`
+		DefaultScripts     *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
+		DeployTo           *string                    `json:"deploy_to,omitempty"`
+		DeployUi           *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+		Ducklake           *DucklakeSettings          `json:"ducklake,omitempty"`
+		ErrorHandler       *string                    `json:"error_handler,omitempty"`
+
+		// ErrorHandlerExtraArgs The arguments to pass to the script or flow
+		ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
+		ErrorHandlerMutedOnCancel bool                      `json:"error_handler_muted_on_cancel"`
+		GitSync                   *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
+		LargeFileStorage          *LargeFileStorage         `json:"large_file_storage,omitempty"`
+		MuteCriticalAlerts        *bool                     `json:"mute_critical_alerts,omitempty"`
+		OperatorSettings          *OperatorSettings         `json:"operator_settings"`
+		Plan                      *string                   `json:"plan,omitempty"`
+		SlackCommandScript        *string                   `json:"slack_command_script,omitempty"`
+		SlackName                 *string                   `json:"slack_name,omitempty"`
+		SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
+		TeamsCommandScript        *string                   `json:"teams_command_script,omitempty"`
+		TeamsTeamId               *string                   `json:"teams_team_id,omitempty"`
+		TeamsTeamName             *string                   `json:"teams_team_name,omitempty"`
+		Webhook                   *string                   `json:"webhook,omitempty"`
+		WorkspaceId               *string                   `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -75929,33 +76134,35 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AiConfig                  *AIConfig                  `json:"ai_config,omitempty"`
-			AutoAdd                   *bool                      `json:"auto_add,omitempty"`
-			AutoInviteDomain          *string                    `json:"auto_invite_domain,omitempty"`
-			AutoInviteOperator        *bool                      `json:"auto_invite_operator,omitempty"`
-			Color                     *string                    `json:"color,omitempty"`
-			CustomerId                *string                    `json:"customer_id,omitempty"`
-			DefaultApp                *string                    `json:"default_app,omitempty"`
-			DefaultScripts            *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
-			DeployTo                  *string                    `json:"deploy_to,omitempty"`
-			DeployUi                  *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
-			Ducklake                  *DucklakeSettings          `json:"ducklake,omitempty"`
-			ErrorHandler              *string                    `json:"error_handler,omitempty"`
-			ErrorHandlerExtraArgs     *ScriptArgs                `json:"error_handler_extra_args,omitempty"`
-			ErrorHandlerMutedOnCancel bool                       `json:"error_handler_muted_on_cancel"`
-			GitSync                   *WorkspaceGitSyncSettings  `json:"git_sync,omitempty"`
-			LargeFileStorage          *LargeFileStorage          `json:"large_file_storage,omitempty"`
-			MuteCriticalAlerts        *bool                      `json:"mute_critical_alerts,omitempty"`
-			OperatorSettings          *OperatorSettings          `json:"operator_settings"`
-			Plan                      *string                    `json:"plan,omitempty"`
-			SlackCommandScript        *string                    `json:"slack_command_script,omitempty"`
-			SlackName                 *string                    `json:"slack_name,omitempty"`
-			SlackTeamId               *string                    `json:"slack_team_id,omitempty"`
-			TeamsCommandScript        *string                    `json:"teams_command_script,omitempty"`
-			TeamsTeamId               *string                    `json:"teams_team_id,omitempty"`
-			TeamsTeamName             *string                    `json:"teams_team_name,omitempty"`
-			Webhook                   *string                    `json:"webhook,omitempty"`
-			WorkspaceId               *string                    `json:"workspace_id,omitempty"`
+			AiConfig           *AIConfig                  `json:"ai_config,omitempty"`
+			AutoAdd            *bool                      `json:"auto_add,omitempty"`
+			AutoInviteDomain   *string                    `json:"auto_invite_domain,omitempty"`
+			AutoInviteOperator *bool                      `json:"auto_invite_operator,omitempty"`
+			Color              *string                    `json:"color,omitempty"`
+			CustomerId         *string                    `json:"customer_id,omitempty"`
+			DefaultApp         *string                    `json:"default_app,omitempty"`
+			DefaultScripts     *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
+			DeployTo           *string                    `json:"deploy_to,omitempty"`
+			DeployUi           *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+			Ducklake           *DucklakeSettings          `json:"ducklake,omitempty"`
+			ErrorHandler       *string                    `json:"error_handler,omitempty"`
+
+			// ErrorHandlerExtraArgs The arguments to pass to the script or flow
+			ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
+			ErrorHandlerMutedOnCancel bool                      `json:"error_handler_muted_on_cancel"`
+			GitSync                   *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
+			LargeFileStorage          *LargeFileStorage         `json:"large_file_storage,omitempty"`
+			MuteCriticalAlerts        *bool                     `json:"mute_critical_alerts,omitempty"`
+			OperatorSettings          *OperatorSettings         `json:"operator_settings"`
+			Plan                      *string                   `json:"plan,omitempty"`
+			SlackCommandScript        *string                   `json:"slack_command_script,omitempty"`
+			SlackName                 *string                   `json:"slack_name,omitempty"`
+			SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
+			TeamsCommandScript        *string                   `json:"teams_command_script,omitempty"`
+			TeamsTeamId               *string                   `json:"teams_team_id,omitempty"`
+			TeamsTeamName             *string                   `json:"teams_team_name,omitempty"`
+			Webhook                   *string                   `json:"webhook,omitempty"`
+			WorkspaceId               *string                   `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
