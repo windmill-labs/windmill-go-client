@@ -1528,10 +1528,11 @@ type GcpTrigger = TriggerExtraProperty
 
 // GcpTriggerData defines model for GcpTriggerData.
 type GcpTriggerData struct {
-	BaseEndpoint   *string       `json:"base_endpoint,omitempty"`
-	DeliveryConfig *PushConfig   `json:"delivery_config,omitempty"`
-	DeliveryType   *DeliveryType `json:"delivery_type,omitempty"`
-	Enabled        *bool         `json:"enabled,omitempty"`
+	AutoAcknowledgeMsg *bool         `json:"auto_acknowledge_msg,omitempty"`
+	BaseEndpoint       *string       `json:"base_endpoint,omitempty"`
+	DeliveryConfig     *PushConfig   `json:"delivery_config,omitempty"`
+	DeliveryType       *DeliveryType `json:"delivery_type,omitempty"`
+	Enabled            *bool         `json:"enabled,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -5902,9 +5903,10 @@ type GetCustomTagsParams struct {
 	ShowWorkspaceRestriction *bool   `form:"show_workspace_restriction,omitempty" json:"show_workspace_restriction,omitempty"`
 }
 
-// ExistsWorkerWithTagParams defines parameters for ExistsWorkerWithTag.
-type ExistsWorkerWithTagParams struct {
-	Tag string `form:"tag" json:"tag"`
+// ExistsWorkersWithTagsParams defines parameters for ExistsWorkersWithTags.
+type ExistsWorkersWithTagsParams struct {
+	// Tags comma separated list of tags
+	Tags string `form:"tags" json:"tags"`
 }
 
 // ListWorkersParams defines parameters for ListWorkers.
@@ -8980,8 +8982,8 @@ type ClientInterface interface {
 	// GetCustomTags request
 	GetCustomTags(ctx context.Context, params *GetCustomTagsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ExistsWorkerWithTag request
-	ExistsWorkerWithTag(ctx context.Context, params *ExistsWorkerWithTagParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ExistsWorkersWithTags request
+	ExistsWorkersWithTags(ctx context.Context, params *ExistsWorkersWithTagsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GeDefaultTags request
 	GeDefaultTags(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17072,8 +17074,8 @@ func (c *Client) GetCustomTags(ctx context.Context, params *GetCustomTagsParams,
 	return c.Client.Do(req)
 }
 
-func (c *Client) ExistsWorkerWithTag(ctx context.Context, params *ExistsWorkerWithTagParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewExistsWorkerWithTagRequest(c.Server, params)
+func (c *Client) ExistsWorkersWithTags(ctx context.Context, params *ExistsWorkersWithTagsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsWorkersWithTagsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -46208,8 +46210,8 @@ func NewGetCustomTagsRequest(server string, params *GetCustomTagsParams) (*http.
 	return req, nil
 }
 
-// NewExistsWorkerWithTagRequest generates requests for ExistsWorkerWithTag
-func NewExistsWorkerWithTagRequest(server string, params *ExistsWorkerWithTagParams) (*http.Request, error) {
+// NewExistsWorkersWithTagsRequest generates requests for ExistsWorkersWithTags
+func NewExistsWorkersWithTagsRequest(server string, params *ExistsWorkersWithTagsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -46217,7 +46219,7 @@ func NewExistsWorkerWithTagRequest(server string, params *ExistsWorkerWithTagPar
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/workers/exists_worker_with_tag")
+	operationPath := fmt.Sprintf("/workers/exists_workers_with_tags")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -46230,7 +46232,7 @@ func NewExistsWorkerWithTagRequest(server string, params *ExistsWorkerWithTagPar
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, params.Tag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tags", runtime.ParamLocationQuery, params.Tags); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -48643,8 +48645,8 @@ type ClientWithResponsesInterface interface {
 	// GetCustomTagsWithResponse request
 	GetCustomTagsWithResponse(ctx context.Context, params *GetCustomTagsParams, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error)
 
-	// ExistsWorkerWithTagWithResponse request
-	ExistsWorkerWithTagWithResponse(ctx context.Context, params *ExistsWorkerWithTagParams, reqEditors ...RequestEditorFn) (*ExistsWorkerWithTagResponse, error)
+	// ExistsWorkersWithTagsWithResponse request
+	ExistsWorkersWithTagsWithResponse(ctx context.Context, params *ExistsWorkersWithTagsParams, reqEditors ...RequestEditorFn) (*ExistsWorkersWithTagsResponse, error)
 
 	// GeDefaultTagsWithResponse request
 	GeDefaultTagsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GeDefaultTagsResponse, error)
@@ -59511,14 +59513,14 @@ func (r GetCustomTagsResponse) StatusCode() int {
 	return 0
 }
 
-type ExistsWorkerWithTagResponse struct {
+type ExistsWorkersWithTagsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *bool
+	JSON200      *map[string]bool
 }
 
 // Status returns HTTPResponse.Status
-func (r ExistsWorkerWithTagResponse) Status() string {
+func (r ExistsWorkersWithTagsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -59526,7 +59528,7 @@ func (r ExistsWorkerWithTagResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ExistsWorkerWithTagResponse) StatusCode() int {
+func (r ExistsWorkersWithTagsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -65686,13 +65688,13 @@ func (c *ClientWithResponses) GetCustomTagsWithResponse(ctx context.Context, par
 	return ParseGetCustomTagsResponse(rsp)
 }
 
-// ExistsWorkerWithTagWithResponse request returning *ExistsWorkerWithTagResponse
-func (c *ClientWithResponses) ExistsWorkerWithTagWithResponse(ctx context.Context, params *ExistsWorkerWithTagParams, reqEditors ...RequestEditorFn) (*ExistsWorkerWithTagResponse, error) {
-	rsp, err := c.ExistsWorkerWithTag(ctx, params, reqEditors...)
+// ExistsWorkersWithTagsWithResponse request returning *ExistsWorkersWithTagsResponse
+func (c *ClientWithResponses) ExistsWorkersWithTagsWithResponse(ctx context.Context, params *ExistsWorkersWithTagsParams, reqEditors ...RequestEditorFn) (*ExistsWorkersWithTagsResponse, error) {
+	rsp, err := c.ExistsWorkersWithTags(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseExistsWorkerWithTagResponse(rsp)
+	return ParseExistsWorkersWithTagsResponse(rsp)
 }
 
 // GeDefaultTagsWithResponse request returning *GeDefaultTagsResponse
@@ -76517,22 +76519,22 @@ func ParseGetCustomTagsResponse(rsp *http.Response) (*GetCustomTagsResponse, err
 	return response, nil
 }
 
-// ParseExistsWorkerWithTagResponse parses an HTTP response from a ExistsWorkerWithTagWithResponse call
-func ParseExistsWorkerWithTagResponse(rsp *http.Response) (*ExistsWorkerWithTagResponse, error) {
+// ParseExistsWorkersWithTagsResponse parses an HTTP response from a ExistsWorkersWithTagsWithResponse call
+func ParseExistsWorkersWithTagsResponse(rsp *http.Response) (*ExistsWorkersWithTagsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ExistsWorkerWithTagResponse{
+	response := &ExistsWorkersWithTagsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest bool
+		var dest map[string]bool
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
