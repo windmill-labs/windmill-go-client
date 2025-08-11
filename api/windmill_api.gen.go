@@ -1357,6 +1357,33 @@ type EditWorkspaceUser struct {
 	Operator *bool `json:"operator,omitempty"`
 }
 
+// EndpointTool defines model for EndpointTool.
+type EndpointTool struct {
+	// BodySchema JSON schema for request body
+	BodySchema *map[string]interface{} `json:"body_schema"`
+
+	// Description Short description of the tool
+	Description string `json:"description"`
+
+	// Instructions Detailed instructions for using the tool
+	Instructions string `json:"instructions"`
+
+	// Method HTTP method (GET, POST, etc.)
+	Method string `json:"method"`
+
+	// Name The tool name/operation ID
+	Name string `json:"name"`
+
+	// Path API endpoint path
+	Path string `json:"path"`
+
+	// PathParamsSchema JSON schema for path parameters
+	PathParamsSchema *map[string]interface{} `json:"path_params_schema"`
+
+	// QueryParamsSchema JSON schema for query parameters
+	QueryParamsSchema *map[string]interface{} `json:"query_params_schema"`
+}
+
 // ExportedInstanceGroup defines model for ExportedInstanceGroup.
 type ExportedInstanceGroup struct {
 	Emails          *[]string `json:"emails,omitempty"`
@@ -7286,6 +7313,9 @@ type ClientInterface interface {
 	// GetDbClock request
 	GetDbClock(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListMcpTools request
+	ListMcpTools(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ConnectCallbackWithBody request with any body
 	ConnectCallbackWithBody(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9576,6 +9606,18 @@ func (c *Client) CountJobsByTag(ctx context.Context, params *CountJobsByTagParam
 
 func (c *Client) GetDbClock(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetDbClockRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListMcpTools(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListMcpToolsRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -18621,6 +18663,40 @@ func NewGetDbClockRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/jobs/db_clock")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListMcpToolsRequest generates requests for ListMcpTools
+func NewListMcpToolsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/mcp/w/%s/list_tools", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -46949,6 +47025,9 @@ type ClientWithResponsesInterface interface {
 	// GetDbClockWithResponse request
 	GetDbClockWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDbClockResponse, error)
 
+	// ListMcpToolsWithResponse request
+	ListMcpToolsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListMcpToolsResponse, error)
+
 	// ConnectCallbackWithBodyWithResponse request with any body
 	ConnectCallbackWithBodyWithResponse(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error)
 
@@ -49537,6 +49616,28 @@ func (r GetDbClockResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetDbClockResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListMcpToolsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]EndpointTool
+}
+
+// Status returns HTTPResponse.Status
+func (r ListMcpToolsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListMcpToolsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -60248,6 +60349,15 @@ func (c *ClientWithResponses) GetDbClockWithResponse(ctx context.Context, reqEdi
 	return ParseGetDbClockResponse(rsp)
 }
 
+// ListMcpToolsWithResponse request returning *ListMcpToolsResponse
+func (c *ClientWithResponses) ListMcpToolsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListMcpToolsResponse, error) {
+	rsp, err := c.ListMcpTools(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListMcpToolsResponse(rsp)
+}
+
 // ConnectCallbackWithBodyWithResponse request with arbitrary body returning *ConnectCallbackResponse
 func (c *ClientWithResponses) ConnectCallbackWithBodyWithResponse(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error) {
 	rsp, err := c.ConnectCallbackWithBody(ctx, clientName, contentType, body, reqEditors...)
@@ -66709,6 +66819,32 @@ func ParseGetDbClockResponse(rsp *http.Response) (*GetDbClockResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest int
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListMcpToolsResponse parses an HTTP response from a ListMcpToolsWithResponse call
+func ParseListMcpToolsResponse(rsp *http.Response) (*ListMcpToolsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListMcpToolsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []EndpointTool
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
