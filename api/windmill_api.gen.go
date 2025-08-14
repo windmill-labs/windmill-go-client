@@ -516,6 +516,13 @@ const (
 	Existing     SubscriptionMode = "existing"
 )
 
+// Defines values for UserSourceSource.
+const (
+	UserSourceSourceDomain        UserSourceSource = "domain"
+	UserSourceSourceInstanceGroup UserSourceSource = "instance_group"
+	UserSourceSourceManual        UserSourceSource = "manual"
+)
+
 // Defines values for WebhookFiltersUserOrFolderRegex.
 const (
 	Asterisk WebhookFiltersUserOrFolderRegex = "*"
@@ -1681,6 +1688,14 @@ type InstanceGroup struct {
 	Summary *string   `json:"summary,omitempty"`
 }
 
+// InstanceGroupWithWorkspaces defines model for InstanceGroupWithWorkspaces.
+type InstanceGroupWithWorkspaces struct {
+	Emails     *[]string        `json:"emails,omitempty"`
+	Name       string           `json:"name"`
+	Summary    *string          `json:"summary,omitempty"`
+	Workspaces *[]WorkspaceInfo `json:"workspaces,omitempty"`
+}
+
 // Job defines model for Job.
 type Job struct {
 	union json.RawMessage
@@ -2813,18 +2828,34 @@ type UpdateInput struct {
 
 // User defines model for User.
 type User struct {
-	CreatedAt     time.Time `json:"created_at"`
-	Disabled      bool      `json:"disabled"`
-	Email         string    `json:"email"`
-	Folders       []string  `json:"folders"`
-	FoldersOwners []string  `json:"folders_owners"`
-	Groups        *[]string `json:"groups,omitempty"`
-	IsAdmin       bool      `json:"is_admin"`
-	IsSuperAdmin  bool      `json:"is_super_admin"`
-	Name          *string   `json:"name,omitempty"`
-	Operator      bool      `json:"operator"`
-	Username      string    `json:"username"`
+	AddedVia      *UserSource `json:"added_via"`
+	CreatedAt     time.Time   `json:"created_at"`
+	Disabled      bool        `json:"disabled"`
+	Email         string      `json:"email"`
+	Folders       []string    `json:"folders"`
+	FoldersOwners []string    `json:"folders_owners"`
+	Groups        *[]string   `json:"groups,omitempty"`
+	IsAdmin       bool        `json:"is_admin"`
+	IsSuperAdmin  bool        `json:"is_super_admin"`
+	Name          *string     `json:"name,omitempty"`
+	Operator      bool        `json:"operator"`
+	Username      string      `json:"username"`
 }
+
+// UserSource defines model for UserSource.
+type UserSource struct {
+	// Domain The domain used for auto-invite (when source is 'domain')
+	Domain *string `json:"domain,omitempty"`
+
+	// Group The instance group name (when source is 'instance_group')
+	Group *string `json:"group,omitempty"`
+
+	// Source How the user was added to the workspace
+	Source UserSourceSource `json:"source"`
+}
+
+// UserSourceSource How the user was added to the workspace
+type UserSourceSource string
 
 // UserUsage defines model for UserUsage.
 type UserUsage struct {
@@ -2964,6 +2995,13 @@ type WorkspaceDeployUISettings struct {
 // WorkspaceGitSyncSettings defines model for WorkspaceGitSyncSettings.
 type WorkspaceGitSyncSettings struct {
 	Repositories *[]GitRepositorySettings `json:"repositories,omitempty"`
+}
+
+// WorkspaceInfo defines model for WorkspaceInfo.
+type WorkspaceInfo struct {
+	Role          *string `json:"role,omitempty"`
+	WorkspaceId   *string `json:"workspace_id,omitempty"`
+	WorkspaceName *string `json:"workspace_name,omitempty"`
 }
 
 // WorkspaceInvite defines model for WorkspaceInvite.
@@ -5871,6 +5909,12 @@ type EditGitSyncRepositoryJSONBody struct {
 	Repository          GitRepositorySettings `json:"repository"`
 }
 
+// EditInstanceGroupsJSONBody defines parameters for EditInstanceGroups.
+type EditInstanceGroupsJSONBody struct {
+	Groups *[]string          `json:"groups,omitempty"`
+	Roles  *map[string]string `json:"roles,omitempty"`
+}
+
 // EditLargeFileStorageConfigJSONBody defines parameters for EditLargeFileStorageConfig.
 type EditLargeFileStorageConfigJSONBody struct {
 	LargeFileStorage *LargeFileStorage `json:"large_file_storage,omitempty"`
@@ -6503,6 +6547,9 @@ type EditWorkspaceGitSyncConfigJSONRequestBody EditWorkspaceGitSyncConfigJSONBod
 
 // EditGitSyncRepositoryJSONRequestBody defines body for EditGitSyncRepository for application/json ContentType.
 type EditGitSyncRepositoryJSONRequestBody EditGitSyncRepositoryJSONBody
+
+// EditInstanceGroupsJSONRequestBody defines body for EditInstanceGroups for application/json ContentType.
+type EditInstanceGroupsJSONRequestBody EditInstanceGroupsJSONBody
 
 // EditLargeFileStorageConfigJSONRequestBody defines body for EditLargeFileStorageConfig for application/json ContentType.
 type EditLargeFileStorageConfigJSONRequestBody EditLargeFileStorageConfigJSONBody
@@ -7293,6 +7340,9 @@ type ClientInterface interface {
 
 	// ListInstanceGroups request
 	ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListInstanceGroupsWithWorkspaces request
+	ListInstanceGroupsWithWorkspaces(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// OverwriteInstanceGroupsWithBody request with any body
 	OverwriteInstanceGroupsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8917,6 +8967,11 @@ type ClientInterface interface {
 
 	EditGitSyncRepository(ctx context.Context, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditInstanceGroupsWithBody request with any body
+	EditInstanceGroupsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditInstanceGroups(ctx context.Context, workspace WorkspaceId, body EditInstanceGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditLargeFileStorageConfigWithBody request with any body
 	EditLargeFileStorageConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9506,6 +9561,18 @@ func (c *Client) GetInstanceGroup(ctx context.Context, name Name, reqEditors ...
 
 func (c *Client) ListInstanceGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListInstanceGroupsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListInstanceGroupsWithWorkspaces(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListInstanceGroupsWithWorkspacesRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -16680,6 +16747,30 @@ func (c *Client) EditGitSyncRepository(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditInstanceGroupsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditInstanceGroupsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditInstanceGroups(ctx context.Context, workspace WorkspaceId, body EditInstanceGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditInstanceGroupsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditLargeFileStorageConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditLargeFileStorageConfigRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -18408,6 +18499,33 @@ func NewListInstanceGroupsRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/groups/list")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListInstanceGroupsWithWorkspacesRequest generates requests for ListInstanceGroupsWithWorkspaces
+func NewListInstanceGroupsWithWorkspacesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/list_with_workspaces")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -45277,6 +45395,53 @@ func NewEditGitSyncRepositoryRequestWithBody(server string, workspace WorkspaceI
 	return req, nil
 }
 
+// NewEditInstanceGroupsRequest calls the generic EditInstanceGroups builder with application/json body
+func NewEditInstanceGroupsRequest(server string, workspace WorkspaceId, body EditInstanceGroupsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditInstanceGroupsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditInstanceGroupsRequestWithBody generates requests for EditInstanceGroups with any type of body
+func NewEditInstanceGroupsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_instance_groups", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditLargeFileStorageConfigRequest calls the generic EditLargeFileStorageConfig builder with application/json body
 func NewEditLargeFileStorageConfigRequest(server string, workspace WorkspaceId, body EditLargeFileStorageConfigJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -47084,6 +47249,9 @@ type ClientWithResponsesInterface interface {
 	// ListInstanceGroupsWithResponse request
 	ListInstanceGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceGroupsResponse, error)
 
+	// ListInstanceGroupsWithWorkspacesWithResponse request
+	ListInstanceGroupsWithWorkspacesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceGroupsWithWorkspacesResponse, error)
+
 	// OverwriteInstanceGroupsWithBodyWithResponse request with any body
 	OverwriteInstanceGroupsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OverwriteInstanceGroupsResponse, error)
 
@@ -48707,6 +48875,11 @@ type ClientWithResponsesInterface interface {
 
 	EditGitSyncRepositoryWithResponse(ctx context.Context, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*EditGitSyncRepositoryResponse, error)
 
+	// EditInstanceGroupsWithBodyWithResponse request with any body
+	EditInstanceGroupsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditInstanceGroupsResponse, error)
+
+	EditInstanceGroupsWithResponse(ctx context.Context, workspace WorkspaceId, body EditInstanceGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*EditInstanceGroupsResponse, error)
+
 	// EditLargeFileStorageConfigWithBodyWithResponse request with any body
 	EditLargeFileStorageConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditLargeFileStorageConfigResponse, error)
 
@@ -49568,6 +49741,28 @@ func (r ListInstanceGroupsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListInstanceGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListInstanceGroupsWithWorkspacesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]InstanceGroupWithWorkspaces
+}
+
+// Status returns HTTPResponse.Status
+func (r ListInstanceGroupsWithWorkspacesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListInstanceGroupsWithWorkspacesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -59089,6 +59284,27 @@ func (r EditGitSyncRepositoryResponse) StatusCode() int {
 	return 0
 }
 
+type EditInstanceGroupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditInstanceGroupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditInstanceGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditLargeFileStorageConfigResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -59313,18 +59529,20 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AiConfig           *AIConfig                  `json:"ai_config,omitempty"`
-		AutoAdd            *bool                      `json:"auto_add,omitempty"`
-		AutoInviteDomain   *string                    `json:"auto_invite_domain,omitempty"`
-		AutoInviteOperator *bool                      `json:"auto_invite_operator,omitempty"`
-		Color              *string                    `json:"color,omitempty"`
-		CustomerId         *string                    `json:"customer_id,omitempty"`
-		DefaultApp         *string                    `json:"default_app,omitempty"`
-		DefaultScripts     *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
-		DeployTo           *string                    `json:"deploy_to,omitempty"`
-		DeployUi           *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
-		Ducklake           *DucklakeSettings          `json:"ducklake,omitempty"`
-		ErrorHandler       *string                    `json:"error_handler,omitempty"`
+		AiConfig                   *AIConfig                  `json:"ai_config,omitempty"`
+		AutoAdd                    *bool                      `json:"auto_add,omitempty"`
+		AutoAddInstanceGroups      *[]string                  `json:"auto_add_instance_groups,omitempty"`
+		AutoAddInstanceGroupsRoles *map[string]string         `json:"auto_add_instance_groups_roles,omitempty"`
+		AutoInviteDomain           *string                    `json:"auto_invite_domain,omitempty"`
+		AutoInviteOperator         *bool                      `json:"auto_invite_operator,omitempty"`
+		Color                      *string                    `json:"color,omitempty"`
+		CustomerId                 *string                    `json:"customer_id,omitempty"`
+		DefaultApp                 *string                    `json:"default_app,omitempty"`
+		DefaultScripts             *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
+		DeployTo                   *string                    `json:"deploy_to,omitempty"`
+		DeployUi                   *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+		Ducklake                   *DucklakeSettings          `json:"ducklake,omitempty"`
+		ErrorHandler               *string                    `json:"error_handler,omitempty"`
 
 		// ErrorHandlerExtraArgs The arguments to pass to the script or flow
 		ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
@@ -60376,6 +60594,15 @@ func (c *ClientWithResponses) ListInstanceGroupsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListInstanceGroupsResponse(rsp)
+}
+
+// ListInstanceGroupsWithWorkspacesWithResponse request returning *ListInstanceGroupsWithWorkspacesResponse
+func (c *ClientWithResponses) ListInstanceGroupsWithWorkspacesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceGroupsWithWorkspacesResponse, error) {
+	rsp, err := c.ListInstanceGroupsWithWorkspaces(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListInstanceGroupsWithWorkspacesResponse(rsp)
 }
 
 // OverwriteInstanceGroupsWithBodyWithResponse request with arbitrary body returning *OverwriteInstanceGroupsResponse
@@ -65583,6 +65810,23 @@ func (c *ClientWithResponses) EditGitSyncRepositoryWithResponse(ctx context.Cont
 	return ParseEditGitSyncRepositoryResponse(rsp)
 }
 
+// EditInstanceGroupsWithBodyWithResponse request with arbitrary body returning *EditInstanceGroupsResponse
+func (c *ClientWithResponses) EditInstanceGroupsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditInstanceGroupsResponse, error) {
+	rsp, err := c.EditInstanceGroupsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditInstanceGroupsResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditInstanceGroupsWithResponse(ctx context.Context, workspace WorkspaceId, body EditInstanceGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*EditInstanceGroupsResponse, error) {
+	rsp, err := c.EditInstanceGroups(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditInstanceGroupsResponse(rsp)
+}
+
 // EditLargeFileStorageConfigWithBodyWithResponse request with arbitrary body returning *EditLargeFileStorageConfigResponse
 func (c *ClientWithResponses) EditLargeFileStorageConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditLargeFileStorageConfigResponse, error) {
 	rsp, err := c.EditLargeFileStorageConfigWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -66804,6 +67048,32 @@ func ParseListInstanceGroupsResponse(rsp *http.Response) (*ListInstanceGroupsRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []InstanceGroup
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListInstanceGroupsWithWorkspacesResponse parses an HTTP response from a ListInstanceGroupsWithWorkspacesWithResponse call
+func ParseListInstanceGroupsWithWorkspacesResponse(rsp *http.Response) (*ListInstanceGroupsWithWorkspacesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListInstanceGroupsWithWorkspacesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []InstanceGroupWithWorkspaces
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -76164,6 +76434,22 @@ func ParseEditGitSyncRepositoryResponse(rsp *http.Response) (*EditGitSyncReposit
 	return response, nil
 }
 
+// ParseEditInstanceGroupsResponse parses an HTTP response from a EditInstanceGroupsWithResponse call
+func ParseEditInstanceGroupsResponse(rsp *http.Response) (*EditInstanceGroupsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditInstanceGroupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseEditLargeFileStorageConfigResponse parses an HTTP response from a EditLargeFileStorageConfigWithResponse call
 func ParseEditLargeFileStorageConfigResponse(rsp *http.Response) (*EditLargeFileStorageConfigResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -76404,18 +76690,20 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AiConfig           *AIConfig                  `json:"ai_config,omitempty"`
-			AutoAdd            *bool                      `json:"auto_add,omitempty"`
-			AutoInviteDomain   *string                    `json:"auto_invite_domain,omitempty"`
-			AutoInviteOperator *bool                      `json:"auto_invite_operator,omitempty"`
-			Color              *string                    `json:"color,omitempty"`
-			CustomerId         *string                    `json:"customer_id,omitempty"`
-			DefaultApp         *string                    `json:"default_app,omitempty"`
-			DefaultScripts     *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
-			DeployTo           *string                    `json:"deploy_to,omitempty"`
-			DeployUi           *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
-			Ducklake           *DucklakeSettings          `json:"ducklake,omitempty"`
-			ErrorHandler       *string                    `json:"error_handler,omitempty"`
+			AiConfig                   *AIConfig                  `json:"ai_config,omitempty"`
+			AutoAdd                    *bool                      `json:"auto_add,omitempty"`
+			AutoAddInstanceGroups      *[]string                  `json:"auto_add_instance_groups,omitempty"`
+			AutoAddInstanceGroupsRoles *map[string]string         `json:"auto_add_instance_groups_roles,omitempty"`
+			AutoInviteDomain           *string                    `json:"auto_invite_domain,omitempty"`
+			AutoInviteOperator         *bool                      `json:"auto_invite_operator,omitempty"`
+			Color                      *string                    `json:"color,omitempty"`
+			CustomerId                 *string                    `json:"customer_id,omitempty"`
+			DefaultApp                 *string                    `json:"default_app,omitempty"`
+			DefaultScripts             *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
+			DeployTo                   *string                    `json:"deploy_to,omitempty"`
+			DeployUi                   *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+			Ducklake                   *DucklakeSettings          `json:"ducklake,omitempty"`
+			ErrorHandler               *string                    `json:"error_handler,omitempty"`
 
 			// ErrorHandlerExtraArgs The arguments to pass to the script or flow
 			ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
