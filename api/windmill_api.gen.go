@@ -506,6 +506,7 @@ const (
 	ScriptLangPostgresql ScriptLang = "postgresql"
 	ScriptLangPowershell ScriptLang = "powershell"
 	ScriptLangPython3    ScriptLang = "python3"
+	ScriptLangRuby       ScriptLang = "ruby"
 	ScriptLangRust       ScriptLang = "rust"
 	ScriptLangSnowflake  ScriptLang = "snowflake"
 )
