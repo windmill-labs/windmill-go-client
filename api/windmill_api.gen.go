@@ -7297,6 +7297,9 @@ type ClientInterface interface {
 	// ListWorkerGroups request
 	ListWorkerGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// NativeKubernetesAutoscalingHealthcheck request
+	NativeKubernetesAutoscalingHealthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteConfig request
 	DeleteConfig(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9370,6 +9373,18 @@ func (c *Client) ListAvailablePythonVersions(ctx context.Context, reqEditors ...
 
 func (c *Client) ListWorkerGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListWorkerGroupsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NativeKubernetesAutoscalingHealthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNativeKubernetesAutoscalingHealthcheckRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -18002,6 +18017,33 @@ func NewListWorkerGroupsRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/configs/list_worker_groups")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewNativeKubernetesAutoscalingHealthcheckRequest generates requests for NativeKubernetesAutoscalingHealthcheck
+func NewNativeKubernetesAutoscalingHealthcheckRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/native_kubernetes_autoscaling_healthcheck")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -47205,6 +47247,9 @@ type ClientWithResponsesInterface interface {
 	// ListWorkerGroupsWithResponse request
 	ListWorkerGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkerGroupsResponse, error)
 
+	// NativeKubernetesAutoscalingHealthcheckWithResponse request
+	NativeKubernetesAutoscalingHealthcheckWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*NativeKubernetesAutoscalingHealthcheckResponse, error)
+
 	// DeleteConfigWithResponse request
 	DeleteConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*DeleteConfigResponse, error)
 
@@ -49443,6 +49488,27 @@ func (r ListWorkerGroupsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListWorkerGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type NativeKubernetesAutoscalingHealthcheckResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r NativeKubernetesAutoscalingHealthcheckResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r NativeKubernetesAutoscalingHealthcheckResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -60456,6 +60522,15 @@ func (c *ClientWithResponses) ListWorkerGroupsWithResponse(ctx context.Context, 
 	return ParseListWorkerGroupsResponse(rsp)
 }
 
+// NativeKubernetesAutoscalingHealthcheckWithResponse request returning *NativeKubernetesAutoscalingHealthcheckResponse
+func (c *ClientWithResponses) NativeKubernetesAutoscalingHealthcheckWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*NativeKubernetesAutoscalingHealthcheckResponse, error) {
+	rsp, err := c.NativeKubernetesAutoscalingHealthcheck(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNativeKubernetesAutoscalingHealthcheckResponse(rsp)
+}
+
 // DeleteConfigWithResponse request returning *DeleteConfigResponse
 func (c *ClientWithResponses) DeleteConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*DeleteConfigResponse, error) {
 	rsp, err := c.DeleteConfig(ctx, name, reqEditors...)
@@ -66757,6 +66832,22 @@ func ParseListWorkerGroupsResponse(rsp *http.Response) (*ListWorkerGroupsRespons
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseNativeKubernetesAutoscalingHealthcheckResponse parses an HTTP response from a NativeKubernetesAutoscalingHealthcheckWithResponse call
+func ParseNativeKubernetesAutoscalingHealthcheckResponse(rsp *http.Response) (*NativeKubernetesAutoscalingHealthcheckResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &NativeKubernetesAutoscalingHealthcheckResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
