@@ -9097,6 +9097,9 @@ type ClientInterface interface {
 	// GetQueueMetrics request
 	GetQueueMetrics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetCountsOfRunningJobsPerTag request
+	GetCountsOfRunningJobsPerTag(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// IsDomainAllowed request
 	IsDomainAllowed(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17305,6 +17308,18 @@ func (c *Client) GetCountsOfJobsWaitingPerTag(ctx context.Context, reqEditors ..
 
 func (c *Client) GetQueueMetrics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetQueueMetricsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCountsOfRunningJobsPerTag(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCountsOfRunningJobsPerTagRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -46811,6 +46826,33 @@ func NewGetQueueMetricsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGetCountsOfRunningJobsPerTagRequest generates requests for GetCountsOfRunningJobsPerTag
+func NewGetCountsOfRunningJobsPerTagRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workers/queue_running_counts")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewIsDomainAllowedRequest generates requests for IsDomainAllowed
 func NewIsDomainAllowedRequest(server string) (*http.Request, error) {
 	var err error
@@ -49046,6 +49088,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetQueueMetricsWithResponse request
 	GetQueueMetricsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueMetricsResponse, error)
+
+	// GetCountsOfRunningJobsPerTagWithResponse request
+	GetCountsOfRunningJobsPerTagWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCountsOfRunningJobsPerTagResponse, error)
 
 	// IsDomainAllowedWithResponse request
 	IsDomainAllowedWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsDomainAllowedResponse, error)
@@ -60144,6 +60189,28 @@ func (r GetQueueMetricsResponse) StatusCode() int {
 	return 0
 }
 
+type GetCountsOfRunningJobsPerTagResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]int
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCountsOfRunningJobsPerTagResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCountsOfRunningJobsPerTagResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type IsDomainAllowedResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -66286,6 +66353,15 @@ func (c *ClientWithResponses) GetQueueMetricsWithResponse(ctx context.Context, r
 		return nil, err
 	}
 	return ParseGetQueueMetricsResponse(rsp)
+}
+
+// GetCountsOfRunningJobsPerTagWithResponse request returning *GetCountsOfRunningJobsPerTagResponse
+func (c *ClientWithResponses) GetCountsOfRunningJobsPerTagWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCountsOfRunningJobsPerTagResponse, error) {
+	rsp, err := c.GetCountsOfRunningJobsPerTag(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCountsOfRunningJobsPerTagResponse(rsp)
 }
 
 // IsDomainAllowedWithResponse request returning *IsDomainAllowedResponse
@@ -77319,6 +77395,32 @@ func ParseGetQueueMetricsResponse(rsp *http.Response) (*GetQueueMetricsResponse,
 				Value     float32 `json:"value"`
 			} `json:"values"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCountsOfRunningJobsPerTagResponse parses an HTTP response from a GetCountsOfRunningJobsPerTagWithResponse call
+func ParseGetCountsOfRunningJobsPerTagResponse(rsp *http.Response) (*GetCountsOfRunningJobsPerTagResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCountsOfRunningJobsPerTagResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]int
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
