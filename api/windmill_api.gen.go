@@ -2400,15 +2400,21 @@ type PostgresTrigger = TriggerExtraProperty
 // Preview defines model for Preview.
 type Preview struct {
 	// Args The arguments to pass to the script or flow
-	Args            ScriptArgs   `json:"args"`
+	Args ScriptArgs `json:"args"`
+
+	// Content The code to run
 	Content         *string      `json:"content,omitempty"`
 	DedicatedWorker *bool        `json:"dedicated_worker,omitempty"`
 	Kind            *PreviewKind `json:"kind,omitempty"`
 	Language        *ScriptLang  `json:"language,omitempty"`
 	Lock            *string      `json:"lock,omitempty"`
-	Path            *string      `json:"path,omitempty"`
-	ScriptHash      *string      `json:"script_hash,omitempty"`
-	Tag             *string      `json:"tag,omitempty"`
+
+	// Path The path to the script
+	Path *string `json:"path,omitempty"`
+
+	// ScriptHash The hash of the script
+	ScriptHash *string `json:"script_hash,omitempty"`
+	Tag        *string `json:"tag,omitempty"`
 }
 
 // PreviewKind defines model for Preview.Kind.
@@ -6321,6 +6327,12 @@ type RunWaitResultFlowByPathJSONRequestBody = ScriptArgs
 // RunWaitResultScriptByPathJSONRequestBody defines body for RunWaitResultScriptByPath for application/json ContentType.
 type RunWaitResultScriptByPathJSONRequestBody = ScriptArgs
 
+// RunScriptPreviewAndWaitResultJSONRequestBody defines body for RunScriptPreviewAndWaitResult for application/json ContentType.
+type RunScriptPreviewAndWaitResultJSONRequestBody = Preview
+
+// RunFlowPreviewAndWaitResultJSONRequestBody defines body for RunFlowPreviewAndWaitResult for application/json ContentType.
+type RunFlowPreviewAndWaitResultJSONRequestBody = FlowPreview
+
 // RunCodeWorkflowTaskJSONRequestBody defines body for RunCodeWorkflowTask for application/json ContentType.
 type RunCodeWorkflowTaskJSONRequestBody = WorkflowTask
 
@@ -8242,6 +8254,16 @@ type ClientInterface interface {
 	RunWaitResultScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunWaitResultScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunScriptPreviewAndWaitResultWithBody request with any body
+	RunScriptPreviewAndWaitResultWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunScriptPreviewAndWaitResult(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunFlowPreviewAndWaitResultWithBody request with any body
+	RunFlowPreviewAndWaitResultWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunFlowPreviewAndWaitResult(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSlackApprovalPayload request
 	GetSlackApprovalPayload(ctx context.Context, workspace WorkspaceId, id JobId, params *GetSlackApprovalPayloadParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -13540,6 +13562,54 @@ func (c *Client) RunWaitResultScriptByPathWithBody(ctx context.Context, workspac
 
 func (c *Client) RunWaitResultScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunWaitResultScriptByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunScriptPreviewAndWaitResultWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunScriptPreviewAndWaitResultRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunScriptPreviewAndWaitResult(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunScriptPreviewAndWaitResultRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunFlowPreviewAndWaitResultWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowPreviewAndWaitResultRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunFlowPreviewAndWaitResult(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowPreviewAndWaitResultRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -34874,6 +34944,100 @@ func NewRunWaitResultScriptByPathRequestWithBody(server string, workspace Worksp
 	return req, nil
 }
 
+// NewRunScriptPreviewAndWaitResultRequest calls the generic RunScriptPreviewAndWaitResult builder with application/json body
+func NewRunScriptPreviewAndWaitResultRequest(server string, workspace WorkspaceId, body RunScriptPreviewAndWaitResultJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunScriptPreviewAndWaitResultRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRunScriptPreviewAndWaitResultRequestWithBody generates requests for RunScriptPreviewAndWaitResult with any type of body
+func NewRunScriptPreviewAndWaitResultRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_wait_result/preview", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRunFlowPreviewAndWaitResultRequest calls the generic RunFlowPreviewAndWaitResult builder with application/json body
+func NewRunFlowPreviewAndWaitResultRequest(server string, workspace WorkspaceId, body RunFlowPreviewAndWaitResultJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunFlowPreviewAndWaitResultRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRunFlowPreviewAndWaitResultRequestWithBody generates requests for RunFlowPreviewAndWaitResult with any type of body
+func NewRunFlowPreviewAndWaitResultRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_wait_result/preview_flow", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetSlackApprovalPayloadRequest generates requests for GetSlackApprovalPayload
 func NewGetSlackApprovalPayloadRequest(server string, workspace WorkspaceId, id JobId, params *GetSlackApprovalPayloadParams) (*http.Request, error) {
 	var err error
@@ -48235,6 +48399,16 @@ type ClientWithResponsesInterface interface {
 
 	RunWaitResultScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathParams, body RunWaitResultScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunWaitResultScriptByPathResponse, error)
 
+	// RunScriptPreviewAndWaitResultWithBodyWithResponse request with any body
+	RunScriptPreviewAndWaitResultWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptPreviewAndWaitResultResponse, error)
+
+	RunScriptPreviewAndWaitResultWithResponse(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptPreviewAndWaitResultResponse, error)
+
+	// RunFlowPreviewAndWaitResultWithBodyWithResponse request with any body
+	RunFlowPreviewAndWaitResultWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error)
+
+	RunFlowPreviewAndWaitResultWithResponse(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error)
+
 	// GetSlackApprovalPayloadWithResponse request
 	GetSlackApprovalPayloadWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetSlackApprovalPayloadParams, reqEditors ...RequestEditorFn) (*GetSlackApprovalPayloadResponse, error)
 
@@ -55216,6 +55390,50 @@ func (r RunWaitResultScriptByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunWaitResultScriptByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunScriptPreviewAndWaitResultResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r RunScriptPreviewAndWaitResultResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunScriptPreviewAndWaitResultResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunFlowPreviewAndWaitResultResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r RunFlowPreviewAndWaitResultResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunFlowPreviewAndWaitResultResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -63615,6 +63833,40 @@ func (c *ClientWithResponses) RunWaitResultScriptByPathWithResponse(ctx context.
 		return nil, err
 	}
 	return ParseRunWaitResultScriptByPathResponse(rsp)
+}
+
+// RunScriptPreviewAndWaitResultWithBodyWithResponse request with arbitrary body returning *RunScriptPreviewAndWaitResultResponse
+func (c *ClientWithResponses) RunScriptPreviewAndWaitResultWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptPreviewAndWaitResultResponse, error) {
+	rsp, err := c.RunScriptPreviewAndWaitResultWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunScriptPreviewAndWaitResultResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunScriptPreviewAndWaitResultWithResponse(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptPreviewAndWaitResultResponse, error) {
+	rsp, err := c.RunScriptPreviewAndWaitResult(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunScriptPreviewAndWaitResultResponse(rsp)
+}
+
+// RunFlowPreviewAndWaitResultWithBodyWithResponse request with arbitrary body returning *RunFlowPreviewAndWaitResultResponse
+func (c *ClientWithResponses) RunFlowPreviewAndWaitResultWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error) {
+	rsp, err := c.RunFlowPreviewAndWaitResultWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunFlowPreviewAndWaitResultResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunFlowPreviewAndWaitResultWithResponse(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error) {
+	rsp, err := c.RunFlowPreviewAndWaitResult(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunFlowPreviewAndWaitResultResponse(rsp)
 }
 
 // GetSlackApprovalPayloadWithResponse request returning *GetSlackApprovalPayloadResponse
@@ -72561,6 +72813,58 @@ func ParseRunWaitResultScriptByPathResponse(rsp *http.Response) (*RunWaitResultS
 	}
 
 	response := &RunWaitResultScriptByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRunScriptPreviewAndWaitResultResponse parses an HTTP response from a RunScriptPreviewAndWaitResultWithResponse call
+func ParseRunScriptPreviewAndWaitResultResponse(rsp *http.Response) (*RunScriptPreviewAndWaitResultResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunScriptPreviewAndWaitResultResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRunFlowPreviewAndWaitResultResponse parses an HTTP response from a RunFlowPreviewAndWaitResultWithResponse call
+func ParseRunFlowPreviewAndWaitResultResponse(rsp *http.Response) (*RunFlowPreviewAndWaitResultResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunFlowPreviewAndWaitResultResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
