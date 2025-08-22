@@ -201,6 +201,7 @@ const (
 
 // Defines values for CompletedJobJobKind.
 const (
+	CompletedJobJobKindAiagent            CompletedJobJobKind = "aiagent"
 	CompletedJobJobKindAppdependencies    CompletedJobJobKind = "appdependencies"
 	CompletedJobJobKindAppscript          CompletedJobJobKind = "appscript"
 	CompletedJobJobKindDependencies       CompletedJobJobKind = "dependencies"
@@ -228,6 +229,16 @@ const (
 	DucklakeSettingsDucklakesCatalogResourceTypeInstance   DucklakeSettingsDucklakesCatalogResourceType = "instance"
 	DucklakeSettingsDucklakesCatalogResourceTypeMysql      DucklakeSettingsDucklakesCatalogResourceType = "mysql"
 	DucklakeSettingsDucklakesCatalogResourceTypePostgresql DucklakeSettingsDucklakesCatalogResourceType = "postgresql"
+)
+
+// Defines values for FlowStatusFailureModuleAgentActions0Type.
+const (
+	FlowStatusFailureModuleAgentActions0TypeToolCall FlowStatusFailureModuleAgentActions0Type = "tool_call"
+)
+
+// Defines values for FlowStatusFailureModuleAgentActions1Type.
+const (
+	FlowStatusFailureModuleAgentActions1TypeMessage FlowStatusFailureModuleAgentActions1Type = "message"
 )
 
 // Defines values for FlowStatusFailureModuleBranchChosenType.
@@ -289,6 +300,7 @@ const (
 
 // Defines values for Job0JobKind.
 const (
+	Job0JobKindAiagent            Job0JobKind = "aiagent"
 	Job0JobKindAppdependencies    Job0JobKind = "appdependencies"
 	Job0JobKindAppscript          Job0JobKind = "appscript"
 	Job0JobKindDependencies       Job0JobKind = "dependencies"
@@ -312,6 +324,7 @@ const (
 
 // Defines values for Job1JobKind.
 const (
+	Job1JobKindAiagent            Job1JobKind = "aiagent"
 	Job1JobKindAppdependencies    Job1JobKind = "appdependencies"
 	Job1JobKindAppscript          Job1JobKind = "appscript"
 	Job1JobKindDependencies       Job1JobKind = "dependencies"
@@ -446,6 +459,7 @@ const (
 
 // Defines values for QueuedJobJobKind.
 const (
+	QueuedJobJobKindAiagent            QueuedJobJobKind = "aiagent"
 	QueuedJobJobKindAppdependencies    QueuedJobJobKind = "appdependencies"
 	QueuedJobJobKindAppscript          QueuedJobJobKind = "appscript"
 	QueuedJobJobKindDependencies       QueuedJobJobKind = "dependencies"
@@ -539,6 +553,11 @@ const (
 	Unknown WindmillFilePreviewContentType = "Unknown"
 )
 
+// Defines values for SchemasAiAgentType.
+const (
+	Aiagent SchemasAiAgentType = "aiagent"
+)
+
 // Defines values for SchemasBranchAllType.
 const (
 	Branchall SchemasBranchAllType = "branchall"
@@ -547,6 +566,16 @@ const (
 // Defines values for SchemasBranchOneType.
 const (
 	Branchone SchemasBranchOneType = "branchone"
+)
+
+// Defines values for SchemasFlowStatusModuleAgentActions0Type.
+const (
+	SchemasFlowStatusModuleAgentActions0TypeToolCall SchemasFlowStatusModuleAgentActions0Type = "tool_call"
+)
+
+// Defines values for SchemasFlowStatusModuleAgentActions1Type.
+const (
+	SchemasFlowStatusModuleAgentActions1TypeMessage SchemasFlowStatusModuleAgentActions1Type = "message"
 )
 
 // Defines values for SchemasFlowStatusModuleBranchChosenType.
@@ -1482,7 +1511,9 @@ type FlowPreview struct {
 // FlowStatus defines model for FlowStatus.
 type FlowStatus struct {
 	FailureModule struct {
-		Approvers *[]struct {
+		AgentActions        *[]FlowStatus_FailureModule_AgentActions_Item `json:"agent_actions,omitempty"`
+		AgentActionsSuccess *[]bool                                       `json:"agent_actions_success,omitempty"`
+		Approvers           *[]struct {
 			Approver string `json:"approver"`
 			ResumeId int    `json:"resume_id"`
 		} `json:"approvers,omitempty"`
@@ -1518,6 +1549,30 @@ type FlowStatus struct {
 	} `json:"retry,omitempty"`
 	Step       int                     `json:"step"`
 	UserStates *map[string]interface{} `json:"user_states,omitempty"`
+}
+
+// FlowStatusFailureModuleAgentActions0 defines model for .
+type FlowStatusFailureModuleAgentActions0 struct {
+	FunctionName string                                   `json:"function_name"`
+	JobId        openapi_types.UUID                       `json:"job_id"`
+	ModuleId     string                                   `json:"module_id"`
+	Type         FlowStatusFailureModuleAgentActions0Type `json:"type"`
+}
+
+// FlowStatusFailureModuleAgentActions0Type defines model for FlowStatus.FailureModule.AgentActions.0.Type.
+type FlowStatusFailureModuleAgentActions0Type string
+
+// FlowStatusFailureModuleAgentActions1 defines model for .
+type FlowStatusFailureModuleAgentActions1 struct {
+	Type FlowStatusFailureModuleAgentActions1Type `json:"type"`
+}
+
+// FlowStatusFailureModuleAgentActions1Type defines model for FlowStatus.FailureModule.AgentActions.1.Type.
+type FlowStatusFailureModuleAgentActions1Type string
+
+// FlowStatus_FailureModule_AgentActions_Item defines model for FlowStatus.FailureModule.AgentActions.Item.
+type FlowStatus_FailureModule_AgentActions_Item struct {
+	union json.RawMessage
 }
 
 // FlowStatusFailureModuleBranchChosenType defines model for FlowStatus.FailureModule.BranchChosen.Type.
@@ -3019,6 +3074,17 @@ type WorkspaceInvite struct {
 	WorkspaceId string `json:"workspace_id"`
 }
 
+// SchemasAiAgent defines model for schemas-AiAgent.
+type SchemasAiAgent struct {
+	InputTransforms map[string]SchemasInputTransform `json:"input_transforms"`
+	Parallel        *bool                            `json:"parallel,omitempty"`
+	Tools           []SchemasFlowModule              `json:"tools"`
+	Type            SchemasAiAgentType               `json:"type"`
+}
+
+// SchemasAiAgentType defines model for SchemasAiAgent.Type.
+type SchemasAiAgentType string
+
 // SchemasBranchAll defines model for schemas-BranchAll.
 type SchemasBranchAll struct {
 	Branches []struct {
@@ -3089,7 +3155,9 @@ type SchemasFlowModuleValue struct {
 
 // SchemasFlowStatusModule defines model for schemas-FlowStatusModule.
 type SchemasFlowStatusModule struct {
-	Approvers *[]struct {
+	AgentActions        *[]SchemasFlowStatusModule_AgentActions_Item `json:"agent_actions,omitempty"`
+	AgentActionsSuccess *[]bool                                      `json:"agent_actions_success,omitempty"`
+	Approvers           *[]struct {
 		Approver string `json:"approver"`
 		ResumeId int    `json:"resume_id"`
 	} `json:"approvers,omitempty"`
@@ -3115,6 +3183,30 @@ type SchemasFlowStatusModule struct {
 	Progress *int                        `json:"progress,omitempty"`
 	Skipped  *bool                       `json:"skipped,omitempty"`
 	Type     SchemasFlowStatusModuleType `json:"type"`
+}
+
+// SchemasFlowStatusModuleAgentActions0 defines model for .
+type SchemasFlowStatusModuleAgentActions0 struct {
+	FunctionName string                                   `json:"function_name"`
+	JobId        openapi_types.UUID                       `json:"job_id"`
+	ModuleId     string                                   `json:"module_id"`
+	Type         SchemasFlowStatusModuleAgentActions0Type `json:"type"`
+}
+
+// SchemasFlowStatusModuleAgentActions0Type defines model for SchemasFlowStatusModule.AgentActions.0.Type.
+type SchemasFlowStatusModuleAgentActions0Type string
+
+// SchemasFlowStatusModuleAgentActions1 defines model for .
+type SchemasFlowStatusModuleAgentActions1 struct {
+	Type SchemasFlowStatusModuleAgentActions1Type `json:"type"`
+}
+
+// SchemasFlowStatusModuleAgentActions1Type defines model for SchemasFlowStatusModule.AgentActions.1.Type.
+type SchemasFlowStatusModuleAgentActions1Type string
+
+// SchemasFlowStatusModule_AgentActions_Item defines model for schemas-FlowStatusModule.agent_actions.Item.
+type SchemasFlowStatusModule_AgentActions_Item struct {
+	union json.RawMessage
 }
 
 // SchemasFlowStatusModuleBranchChosenType defines model for SchemasFlowStatusModule.BranchChosen.Type.
@@ -6606,6 +6698,68 @@ type ExistsWorkspaceJSONRequestBody ExistsWorkspaceJSONBody
 // ExistsUsernameJSONRequestBody defines body for ExistsUsername for application/json ContentType.
 type ExistsUsernameJSONRequestBody ExistsUsernameJSONBody
 
+// AsFlowStatusFailureModuleAgentActions0 returns the union data inside the FlowStatus_FailureModule_AgentActions_Item as a FlowStatusFailureModuleAgentActions0
+func (t FlowStatus_FailureModule_AgentActions_Item) AsFlowStatusFailureModuleAgentActions0() (FlowStatusFailureModuleAgentActions0, error) {
+	var body FlowStatusFailureModuleAgentActions0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFlowStatusFailureModuleAgentActions0 overwrites any union data inside the FlowStatus_FailureModule_AgentActions_Item as the provided FlowStatusFailureModuleAgentActions0
+func (t *FlowStatus_FailureModule_AgentActions_Item) FromFlowStatusFailureModuleAgentActions0(v FlowStatusFailureModuleAgentActions0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFlowStatusFailureModuleAgentActions0 performs a merge with any union data inside the FlowStatus_FailureModule_AgentActions_Item, using the provided FlowStatusFailureModuleAgentActions0
+func (t *FlowStatus_FailureModule_AgentActions_Item) MergeFlowStatusFailureModuleAgentActions0(v FlowStatusFailureModuleAgentActions0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsFlowStatusFailureModuleAgentActions1 returns the union data inside the FlowStatus_FailureModule_AgentActions_Item as a FlowStatusFailureModuleAgentActions1
+func (t FlowStatus_FailureModule_AgentActions_Item) AsFlowStatusFailureModuleAgentActions1() (FlowStatusFailureModuleAgentActions1, error) {
+	var body FlowStatusFailureModuleAgentActions1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFlowStatusFailureModuleAgentActions1 overwrites any union data inside the FlowStatus_FailureModule_AgentActions_Item as the provided FlowStatusFailureModuleAgentActions1
+func (t *FlowStatus_FailureModule_AgentActions_Item) FromFlowStatusFailureModuleAgentActions1(v FlowStatusFailureModuleAgentActions1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFlowStatusFailureModuleAgentActions1 performs a merge with any union data inside the FlowStatus_FailureModule_AgentActions_Item, using the provided FlowStatusFailureModuleAgentActions1
+func (t *FlowStatus_FailureModule_AgentActions_Item) MergeFlowStatusFailureModuleAgentActions1(v FlowStatusFailureModuleAgentActions1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t FlowStatus_FailureModule_AgentActions_Item) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *FlowStatus_FailureModule_AgentActions_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsSchemasStaticTransform returns the union data inside the InputTransform as a SchemasStaticTransform
 func (t InputTransform) AsSchemasStaticTransform() (SchemasStaticTransform, error) {
 	var body SchemasStaticTransform
@@ -7043,6 +7197,34 @@ func (t *SchemasFlowModuleValue) MergeSchemasIdentity(v SchemasIdentity) error {
 	return err
 }
 
+// AsSchemasAiAgent returns the union data inside the SchemasFlowModuleValue as a SchemasAiAgent
+func (t SchemasFlowModuleValue) AsSchemasAiAgent() (SchemasAiAgent, error) {
+	var body SchemasAiAgent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasAiAgent overwrites any union data inside the SchemasFlowModuleValue as the provided SchemasAiAgent
+func (t *SchemasFlowModuleValue) FromSchemasAiAgent(v SchemasAiAgent) error {
+	v.Type = "aiagent"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasAiAgent performs a merge with any union data inside the SchemasFlowModuleValue, using the provided SchemasAiAgent
+func (t *SchemasFlowModuleValue) MergeSchemasAiAgent(v SchemasAiAgent) error {
+	v.Type = "aiagent"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t SchemasFlowModuleValue) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -7057,6 +7239,8 @@ func (t SchemasFlowModuleValue) ValueByDiscriminator() (interface{}, error) {
 		return nil, err
 	}
 	switch discriminator {
+	case "aiagent":
+		return t.AsSchemasAiAgent()
 	case "branchall":
 		return t.AsSchemasBranchAll()
 	case "branchone":
@@ -7084,6 +7268,68 @@ func (t SchemasFlowModuleValue) MarshalJSON() ([]byte, error) {
 }
 
 func (t *SchemasFlowModuleValue) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsSchemasFlowStatusModuleAgentActions0 returns the union data inside the SchemasFlowStatusModule_AgentActions_Item as a SchemasFlowStatusModuleAgentActions0
+func (t SchemasFlowStatusModule_AgentActions_Item) AsSchemasFlowStatusModuleAgentActions0() (SchemasFlowStatusModuleAgentActions0, error) {
+	var body SchemasFlowStatusModuleAgentActions0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasFlowStatusModuleAgentActions0 overwrites any union data inside the SchemasFlowStatusModule_AgentActions_Item as the provided SchemasFlowStatusModuleAgentActions0
+func (t *SchemasFlowStatusModule_AgentActions_Item) FromSchemasFlowStatusModuleAgentActions0(v SchemasFlowStatusModuleAgentActions0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasFlowStatusModuleAgentActions0 performs a merge with any union data inside the SchemasFlowStatusModule_AgentActions_Item, using the provided SchemasFlowStatusModuleAgentActions0
+func (t *SchemasFlowStatusModule_AgentActions_Item) MergeSchemasFlowStatusModuleAgentActions0(v SchemasFlowStatusModuleAgentActions0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasFlowStatusModuleAgentActions1 returns the union data inside the SchemasFlowStatusModule_AgentActions_Item as a SchemasFlowStatusModuleAgentActions1
+func (t SchemasFlowStatusModule_AgentActions_Item) AsSchemasFlowStatusModuleAgentActions1() (SchemasFlowStatusModuleAgentActions1, error) {
+	var body SchemasFlowStatusModuleAgentActions1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasFlowStatusModuleAgentActions1 overwrites any union data inside the SchemasFlowStatusModule_AgentActions_Item as the provided SchemasFlowStatusModuleAgentActions1
+func (t *SchemasFlowStatusModule_AgentActions_Item) FromSchemasFlowStatusModuleAgentActions1(v SchemasFlowStatusModuleAgentActions1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasFlowStatusModuleAgentActions1 performs a merge with any union data inside the SchemasFlowStatusModule_AgentActions_Item, using the provided SchemasFlowStatusModuleAgentActions1
+func (t *SchemasFlowStatusModule_AgentActions_Item) MergeSchemasFlowStatusModuleAgentActions1(v SchemasFlowStatusModuleAgentActions1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t SchemasFlowStatusModule_AgentActions_Item) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *SchemasFlowStatusModule_AgentActions_Item) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
