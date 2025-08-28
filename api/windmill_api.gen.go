@@ -6047,6 +6047,12 @@ type InviteUserJSONBody struct {
 	Operator bool   `json:"operator"`
 }
 
+// GetPremiumInfoParams defines parameters for GetPremiumInfo.
+type GetPremiumInfoParams struct {
+	// SkipSubscriptionFetch skip fetching subscription status from stripe
+	SkipSubscriptionFetch *bool `form:"skip_subscription_fetch,omitempty" json:"skip_subscription_fetch,omitempty"`
+}
+
 // RunSlackMessageTestJobJSONBody defines parameters for RunSlackMessageTestJob.
 type RunSlackMessageTestJobJSONBody struct {
 	Channel       *string `json:"channel,omitempty"`
@@ -9313,7 +9319,7 @@ type ClientInterface interface {
 	UpdateOperatorSettings(ctx context.Context, workspace WorkspaceId, body UpdateOperatorSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetPremiumInfo request
-	GetPremiumInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetPremiumInfo(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunSlackMessageTestJobWithBody request with any body
 	RunSlackMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17406,8 +17412,8 @@ func (c *Client) UpdateOperatorSettings(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetPremiumInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetPremiumInfoRequest(c.Server, workspace)
+func (c *Client) GetPremiumInfo(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPremiumInfoRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -46614,7 +46620,7 @@ func NewUpdateOperatorSettingsRequestWithBody(server string, workspace Workspace
 }
 
 // NewGetPremiumInfoRequest generates requests for GetPremiumInfo
-func NewGetPremiumInfoRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewGetPremiumInfoRequest(server string, workspace WorkspaceId, params *GetPremiumInfoParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -46637,6 +46643,28 @@ func NewGetPremiumInfoRequest(server string, workspace WorkspaceId) (*http.Reque
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SkipSubscriptionFetch != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_subscription_fetch", runtime.ParamLocationQuery, *params.SkipSubscriptionFetch); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -49457,7 +49485,7 @@ type ClientWithResponsesInterface interface {
 	UpdateOperatorSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateOperatorSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateOperatorSettingsResponse, error)
 
 	// GetPremiumInfoWithResponse request
-	GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error)
+	GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error)
 
 	// RunSlackMessageTestJobWithBodyWithResponse request with any body
 	RunSlackMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error)
@@ -60309,10 +60337,12 @@ type GetPremiumInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Owner   string   `json:"owner"`
-		Premium bool     `json:"premium"`
-		Status  *string  `json:"status,omitempty"`
-		Usage   *float32 `json:"usage,omitempty"`
+		IsPastDue              bool     `json:"is_past_due"`
+		MaxToleratedExecutions *float32 `json:"max_tolerated_executions,omitempty"`
+		Owner                  string   `json:"owner"`
+		Premium                bool     `json:"premium"`
+		Status                 *string  `json:"status,omitempty"`
+		Usage                  *float32 `json:"usage,omitempty"`
 	}
 }
 
@@ -66687,8 +66717,8 @@ func (c *ClientWithResponses) UpdateOperatorSettingsWithResponse(ctx context.Con
 }
 
 // GetPremiumInfoWithResponse request returning *GetPremiumInfoResponse
-func (c *ClientWithResponses) GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error) {
-	rsp, err := c.GetPremiumInfo(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error) {
+	rsp, err := c.GetPremiumInfo(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -77608,10 +77638,12 @@ func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Owner   string   `json:"owner"`
-			Premium bool     `json:"premium"`
-			Status  *string  `json:"status,omitempty"`
-			Usage   *float32 `json:"usage,omitempty"`
+			IsPastDue              bool     `json:"is_past_due"`
+			MaxToleratedExecutions *float32 `json:"max_tolerated_executions,omitempty"`
+			Owner                  string   `json:"owner"`
+			Premium                bool     `json:"premium"`
+			Status                 *string  `json:"status,omitempty"`
+			Usage                  *float32 `json:"usage,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
