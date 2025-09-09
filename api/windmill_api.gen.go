@@ -835,6 +835,7 @@ const (
 // AIConfig defines model for AIConfig.
 type AIConfig struct {
 	CodeCompletionModel *AIProviderModel             `json:"code_completion_model,omitempty"`
+	CustomPrompts       *map[string]string           `json:"custom_prompts,omitempty"`
 	DefaultModel        *AIProviderModel             `json:"default_model,omitempty"`
 	Providers           *map[string]AIProviderConfig `json:"providers,omitempty"`
 }
@@ -2590,6 +2591,12 @@ type Retry struct {
 		RandomFactor *int `json:"random_factor,omitempty"`
 		Seconds      *int `json:"seconds,omitempty"`
 	} `json:"exponential,omitempty"`
+	RetryIf *RetryIf `json:"retry_if,omitempty"`
+}
+
+// RetryIf defines model for RetryIf.
+type RetryIf struct {
+	Expr string `json:"expr"`
 }
 
 // RunnableKind defines model for RunnableKind.
@@ -3144,7 +3151,7 @@ type SchemasFlowModule struct {
 		UserAuthRequired     *bool                  `json:"user_auth_required,omitempty"`
 		UserGroupsRequired   *SchemasInputTransform `json:"user_groups_required,omitempty"`
 	} `json:"suspend,omitempty"`
-	Timeout *float32               `json:"timeout,omitempty"`
+	Timeout *SchemasInputTransform `json:"timeout,omitempty"`
 	Value   SchemasFlowModuleValue `json:"value"`
 }
 
@@ -3337,6 +3344,7 @@ type SchemasRetry struct {
 		RandomFactor *int `json:"random_factor,omitempty"`
 		Seconds      *int `json:"seconds,omitempty"`
 	} `json:"exponential,omitempty"`
+	RetryIf *RetryIf `json:"retry_if,omitempty"`
 }
 
 // SchemasStaticTransform defines model for schemas-StaticTransform.
@@ -4317,6 +4325,11 @@ type ListFlowsParams struct {
 	// WithDeploymentMsg (default false)
 	// include deployment message
 	WithDeploymentMsg *bool `form:"with_deployment_msg,omitempty" json:"with_deployment_msg,omitempty"`
+}
+
+// ListFlowPathsFromWorkspaceRunnableParams defines parameters for ListFlowPathsFromWorkspaceRunnable.
+type ListFlowPathsFromWorkspaceRunnableParams struct {
+	MatchPathStart *bool `form:"match_path_start,omitempty" json:"match_path_start,omitempty"`
 }
 
 // ListFlowPathsFromWorkspaceRunnableParamsRunnableKind defines parameters for ListFlowPathsFromWorkspaceRunnable.
@@ -5637,10 +5650,18 @@ type CreateResourceParams struct {
 	UpdateIfExists *bool `form:"update_if_exists,omitempty" json:"update_if_exists,omitempty"`
 }
 
+// DeleteResourcesBulkJSONBody defines parameters for DeleteResourcesBulk.
+type DeleteResourcesBulkJSONBody struct {
+	Paths []string `json:"paths"`
+}
+
 // GetResourceValueInterpolatedParams defines parameters for GetResourceValueInterpolated.
 type GetResourceValueInterpolatedParams struct {
 	// JobId job id
 	JobId *openapi_types.UUID `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// AllowCache allow getting a cached value for improved performance
+	AllowCache *bool `form:"allow_cache,omitempty" json:"allow_cache,omitempty"`
 }
 
 // ListResourceParams defines parameters for ListResource.
@@ -5719,6 +5740,11 @@ type SetScheduleEnabledJSONBody struct {
 type DeleteScriptByPathParams struct {
 	// KeepCaptures keep captures
 	KeepCaptures *bool `form:"keep_captures,omitempty" json:"keep_captures,omitempty"`
+}
+
+// DeleteScriptsBulkJSONBody defines parameters for DeleteScriptsBulk.
+type DeleteScriptsBulkJSONBody struct {
+	Paths []string `json:"paths"`
 }
 
 // GetScriptByHashParams defines parameters for GetScriptByHash.
@@ -5845,6 +5871,11 @@ type CreateVariableParams struct {
 	AlreadyEncrypted *bool `form:"already_encrypted,omitempty" json:"already_encrypted,omitempty"`
 }
 
+// DeleteVariablesBulkJSONBody defines parameters for DeleteVariablesBulk.
+type DeleteVariablesBulkJSONBody struct {
+	Paths []string `json:"paths"`
+}
+
 // EncryptValueJSONBody defines parameters for EncryptValue.
 type EncryptValueJSONBody = string
 
@@ -5856,6 +5887,12 @@ type GetVariableParams struct {
 
 	// IncludeEncrypted ask to include the encrypted value if secret and decrypt secret is not true (default: false)
 	IncludeEncrypted *bool `form:"include_encrypted,omitempty" json:"include_encrypted,omitempty"`
+}
+
+// GetVariableValueParams defines parameters for GetVariableValue.
+type GetVariableValueParams struct {
+	// AllowCache allow getting a cached value for improved performance
+	AllowCache *bool `form:"allow_cache,omitempty" json:"allow_cache,omitempty"`
 }
 
 // ListVariableParams defines parameters for ListVariable.
@@ -6536,6 +6573,9 @@ type UpdateRawAppJSONRequestBody UpdateRawAppJSONBody
 // CreateResourceJSONRequestBody defines body for CreateResource for application/json ContentType.
 type CreateResourceJSONRequestBody = CreateResource
 
+// DeleteResourcesBulkJSONRequestBody defines body for DeleteResourcesBulk for application/json ContentType.
+type DeleteResourcesBulkJSONRequestBody DeleteResourcesBulkJSONBody
+
 // CreateResourceTypeJSONRequestBody defines body for CreateResourceType for application/json ContentType.
 type CreateResourceTypeJSONRequestBody = ResourceType
 
@@ -6563,6 +6603,9 @@ type UpdateScheduleJSONRequestBody = EditSchedule
 // CreateScriptJSONRequestBody defines body for CreateScript for application/json ContentType.
 type CreateScriptJSONRequestBody = NewScript
 
+// DeleteScriptsBulkJSONRequestBody defines body for DeleteScriptsBulk for application/json ContentType.
+type DeleteScriptsBulkJSONRequestBody DeleteScriptsBulkJSONBody
+
 // UpdateScriptHistoryJSONRequestBody defines body for UpdateScriptHistory for application/json ContentType.
 type UpdateScriptHistoryJSONRequestBody UpdateScriptHistoryJSONBody
 
@@ -6586,6 +6629,9 @@ type UpdateUserJSONRequestBody = EditWorkspaceUser
 
 // CreateVariableJSONRequestBody defines body for CreateVariable for application/json ContentType.
 type CreateVariableJSONRequestBody = CreateVariable
+
+// DeleteVariablesBulkJSONRequestBody defines body for DeleteVariablesBulk for application/json ContentType.
+type DeleteVariablesBulkJSONRequestBody DeleteVariablesBulkJSONBody
 
 // EncryptValueJSONRequestBody defines body for EncryptValue for application/json ContentType.
 type EncryptValueJSONRequestBody = EncryptValueJSONBody
@@ -8103,7 +8149,7 @@ type ClientInterface interface {
 	ListFlowPaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListFlowPathsFromWorkspaceRunnable request
-	ListFlowPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListFlowPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, params *ListFlowPathsFromWorkspaceRunnableParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListSearchFlow request
 	ListSearchFlow(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8836,6 +8882,11 @@ type ClientInterface interface {
 	// DeleteResource request
 	DeleteResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteResourcesBulkWithBody request with any body
+	DeleteResourcesBulkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DeleteResourcesBulk(ctx context.Context, workspace WorkspaceId, body DeleteResourcesBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ExistsResource request
 	ExistsResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8946,6 +8997,11 @@ type ClientInterface interface {
 
 	// DeleteScriptByPath request
 	DeleteScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteScriptByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteScriptsBulkWithBody request with any body
+	DeleteScriptsBulkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DeleteScriptsBulk(ctx context.Context, workspace WorkspaceId, body DeleteScriptsBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetScriptDeploymentStatus request
 	GetScriptDeploymentStatus(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9074,6 +9130,11 @@ type ClientInterface interface {
 	// DeleteVariable request
 	DeleteVariable(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteVariablesBulkWithBody request with any body
+	DeleteVariablesBulkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DeleteVariablesBulk(ctx context.Context, workspace WorkspaceId, body DeleteVariablesBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EncryptValueWithBody request with any body
 	EncryptValueWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9086,7 +9147,7 @@ type ClientInterface interface {
 	GetVariable(ctx context.Context, workspace WorkspaceId, path Path, params *GetVariableParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetVariableValue request
-	GetVariableValue(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetVariableValue(ctx context.Context, workspace WorkspaceId, path Path, params *GetVariableValueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListVariable request
 	ListVariable(ctx context.Context, workspace WorkspaceId, params *ListVariableParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12012,8 +12073,8 @@ func (c *Client) ListFlowPaths(ctx context.Context, workspace WorkspaceId, reqEd
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListFlowPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListFlowPathsFromWorkspaceRunnableRequest(c.Server, workspace, runnableKind, path)
+func (c *Client) ListFlowPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, params *ListFlowPathsFromWorkspaceRunnableParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListFlowPathsFromWorkspaceRunnableRequest(c.Server, workspace, runnableKind, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -15288,6 +15349,30 @@ func (c *Client) DeleteResource(ctx context.Context, workspace WorkspaceId, path
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeleteResourcesBulkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteResourcesBulkRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteResourcesBulk(ctx context.Context, workspace WorkspaceId, body DeleteResourcesBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteResourcesBulkRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ExistsResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsResourceRequest(c.Server, workspace, path)
 	if err != nil {
@@ -15758,6 +15843,30 @@ func (c *Client) DeleteScriptByHash(ctx context.Context, workspace WorkspaceId, 
 
 func (c *Client) DeleteScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteScriptByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteScriptByPathRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteScriptsBulkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteScriptsBulkRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteScriptsBulk(ctx context.Context, workspace WorkspaceId, body DeleteScriptsBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteScriptsBulkRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16308,6 +16417,30 @@ func (c *Client) DeleteVariable(ctx context.Context, workspace WorkspaceId, path
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeleteVariablesBulkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteVariablesBulkRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteVariablesBulk(ctx context.Context, workspace WorkspaceId, body DeleteVariablesBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteVariablesBulkRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EncryptValueWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEncryptValueRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -16356,8 +16489,8 @@ func (c *Client) GetVariable(ctx context.Context, workspace WorkspaceId, path Pa
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetVariableValue(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetVariableValueRequest(c.Server, workspace, path)
+func (c *Client) GetVariableValue(ctx context.Context, workspace WorkspaceId, path Path, params *GetVariableValueParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetVariableValueRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -25935,7 +26068,7 @@ func NewListFlowPathsRequest(server string, workspace WorkspaceId) (*http.Reques
 }
 
 // NewListFlowPathsFromWorkspaceRunnableRequest generates requests for ListFlowPathsFromWorkspaceRunnable
-func NewListFlowPathsFromWorkspaceRunnableRequest(server string, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath) (*http.Request, error) {
+func NewListFlowPathsFromWorkspaceRunnableRequest(server string, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, params *ListFlowPathsFromWorkspaceRunnableParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -25972,6 +26105,28 @@ func NewListFlowPathsFromWorkspaceRunnableRequest(server string, workspace Works
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.MatchPathStart != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "match_path_start", runtime.ParamLocationQuery, *params.MatchPathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -40261,6 +40416,53 @@ func NewDeleteResourceRequest(server string, workspace WorkspaceId, path Path) (
 	return req, nil
 }
 
+// NewDeleteResourcesBulkRequest calls the generic DeleteResourcesBulk builder with application/json body
+func NewDeleteResourcesBulkRequest(server string, workspace WorkspaceId, body DeleteResourcesBulkJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDeleteResourcesBulkRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewDeleteResourcesBulkRequestWithBody generates requests for DeleteResourcesBulk with any type of body
+func NewDeleteResourcesBulkRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/delete_bulk", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewExistsResourceRequest generates requests for ExistsResource
 func NewExistsResourceRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
 	var err error
@@ -40457,6 +40659,22 @@ func NewGetResourceValueInterpolatedRequest(server string, workspace WorkspaceId
 		if params.JobId != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.AllowCache != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "allow_cache", runtime.ParamLocationQuery, *params.AllowCache); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -41838,6 +42056,53 @@ func NewDeleteScriptByPathRequest(server string, workspace WorkspaceId, path Scr
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewDeleteScriptsBulkRequest calls the generic DeleteScriptsBulk builder with application/json body
+func NewDeleteScriptsBulkRequest(server string, workspace WorkspaceId, body DeleteScriptsBulkJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDeleteScriptsBulkRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewDeleteScriptsBulkRequestWithBody generates requests for DeleteScriptsBulk with any type of body
+func NewDeleteScriptsBulkRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/delete_bulk", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -43839,6 +44104,53 @@ func NewDeleteVariableRequest(server string, workspace WorkspaceId, path Path) (
 	return req, nil
 }
 
+// NewDeleteVariablesBulkRequest calls the generic DeleteVariablesBulk builder with application/json body
+func NewDeleteVariablesBulkRequest(server string, workspace WorkspaceId, body DeleteVariablesBulkJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDeleteVariablesBulkRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewDeleteVariablesBulkRequestWithBody generates requests for DeleteVariablesBulk with any type of body
+func NewDeleteVariablesBulkRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/variables/delete_bulk", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEncryptValueRequest calls the generic EncryptValue builder with application/json body
 func NewEncryptValueRequest(server string, workspace WorkspaceId, body EncryptValueJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -44007,7 +44319,7 @@ func NewGetVariableRequest(server string, workspace WorkspaceId, path Path, para
 }
 
 // NewGetVariableValueRequest generates requests for GetVariableValue
-func NewGetVariableValueRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetVariableValueRequest(server string, workspace WorkspaceId, path Path, params *GetVariableValueParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -44037,6 +44349,28 @@ func NewGetVariableValueRequest(server string, workspace WorkspaceId, path Path)
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.AllowCache != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "allow_cache", runtime.ParamLocationQuery, *params.AllowCache); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -48269,7 +48603,7 @@ type ClientWithResponsesInterface interface {
 	ListFlowPathsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListFlowPathsResponse, error)
 
 	// ListFlowPathsFromWorkspaceRunnableWithResponse request
-	ListFlowPathsFromWorkspaceRunnableWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*ListFlowPathsFromWorkspaceRunnableResponse, error)
+	ListFlowPathsFromWorkspaceRunnableWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, params *ListFlowPathsFromWorkspaceRunnableParams, reqEditors ...RequestEditorFn) (*ListFlowPathsFromWorkspaceRunnableResponse, error)
 
 	// ListSearchFlowWithResponse request
 	ListSearchFlowWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchFlowResponse, error)
@@ -49002,6 +49336,11 @@ type ClientWithResponsesInterface interface {
 	// DeleteResourceWithResponse request
 	DeleteResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteResourceResponse, error)
 
+	// DeleteResourcesBulkWithBodyWithResponse request with any body
+	DeleteResourcesBulkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteResourcesBulkResponse, error)
+
+	DeleteResourcesBulkWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteResourcesBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteResourcesBulkResponse, error)
+
 	// ExistsResourceWithResponse request
 	ExistsResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsResourceResponse, error)
 
@@ -49112,6 +49451,11 @@ type ClientWithResponsesInterface interface {
 
 	// DeleteScriptByPathWithResponse request
 	DeleteScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteScriptByPathParams, reqEditors ...RequestEditorFn) (*DeleteScriptByPathResponse, error)
+
+	// DeleteScriptsBulkWithBodyWithResponse request with any body
+	DeleteScriptsBulkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteScriptsBulkResponse, error)
+
+	DeleteScriptsBulkWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteScriptsBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteScriptsBulkResponse, error)
 
 	// GetScriptDeploymentStatusWithResponse request
 	GetScriptDeploymentStatusWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*GetScriptDeploymentStatusResponse, error)
@@ -49240,6 +49584,11 @@ type ClientWithResponsesInterface interface {
 	// DeleteVariableWithResponse request
 	DeleteVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteVariableResponse, error)
 
+	// DeleteVariablesBulkWithBodyWithResponse request with any body
+	DeleteVariablesBulkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteVariablesBulkResponse, error)
+
+	DeleteVariablesBulkWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteVariablesBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteVariablesBulkResponse, error)
+
 	// EncryptValueWithBodyWithResponse request with any body
 	EncryptValueWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EncryptValueResponse, error)
 
@@ -49252,7 +49601,7 @@ type ClientWithResponsesInterface interface {
 	GetVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetVariableParams, reqEditors ...RequestEditorFn) (*GetVariableResponse, error)
 
 	// GetVariableValueWithResponse request
-	GetVariableValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetVariableValueResponse, error)
+	GetVariableValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetVariableValueParams, reqEditors ...RequestEditorFn) (*GetVariableValueResponse, error)
 
 	// ListVariableWithResponse request
 	ListVariableWithResponse(ctx context.Context, workspace WorkspaceId, params *ListVariableParams, reqEditors ...RequestEditorFn) (*ListVariableResponse, error)
@@ -57507,6 +57856,28 @@ func (r DeleteResourceResponse) StatusCode() int {
 	return 0
 }
 
+type DeleteResourcesBulkResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteResourcesBulkResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteResourcesBulkResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ExistsResourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -58177,6 +58548,28 @@ func (r DeleteScriptByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteScriptByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteScriptsBulkResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteScriptsBulkResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteScriptsBulkResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -58982,6 +59375,28 @@ func (r DeleteVariableResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteVariableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteVariablesBulkResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteVariablesBulkResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteVariablesBulkResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -62801,8 +63216,8 @@ func (c *ClientWithResponses) ListFlowPathsWithResponse(ctx context.Context, wor
 }
 
 // ListFlowPathsFromWorkspaceRunnableWithResponse request returning *ListFlowPathsFromWorkspaceRunnableResponse
-func (c *ClientWithResponses) ListFlowPathsFromWorkspaceRunnableWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, reqEditors ...RequestEditorFn) (*ListFlowPathsFromWorkspaceRunnableResponse, error) {
-	rsp, err := c.ListFlowPathsFromWorkspaceRunnable(ctx, workspace, runnableKind, path, reqEditors...)
+func (c *ClientWithResponses) ListFlowPathsFromWorkspaceRunnableWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, params *ListFlowPathsFromWorkspaceRunnableParams, reqEditors ...RequestEditorFn) (*ListFlowPathsFromWorkspaceRunnableResponse, error) {
+	rsp, err := c.ListFlowPathsFromWorkspaceRunnable(ctx, workspace, runnableKind, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -65172,6 +65587,23 @@ func (c *ClientWithResponses) DeleteResourceWithResponse(ctx context.Context, wo
 	return ParseDeleteResourceResponse(rsp)
 }
 
+// DeleteResourcesBulkWithBodyWithResponse request with arbitrary body returning *DeleteResourcesBulkResponse
+func (c *ClientWithResponses) DeleteResourcesBulkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteResourcesBulkResponse, error) {
+	rsp, err := c.DeleteResourcesBulkWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteResourcesBulkResponse(rsp)
+}
+
+func (c *ClientWithResponses) DeleteResourcesBulkWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteResourcesBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteResourcesBulkResponse, error) {
+	rsp, err := c.DeleteResourcesBulk(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteResourcesBulkResponse(rsp)
+}
+
 // ExistsResourceWithResponse request returning *ExistsResourceResponse
 func (c *ClientWithResponses) ExistsResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsResourceResponse, error) {
 	rsp, err := c.ExistsResource(ctx, workspace, path, reqEditors...)
@@ -65521,6 +65953,23 @@ func (c *ClientWithResponses) DeleteScriptByPathWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseDeleteScriptByPathResponse(rsp)
+}
+
+// DeleteScriptsBulkWithBodyWithResponse request with arbitrary body returning *DeleteScriptsBulkResponse
+func (c *ClientWithResponses) DeleteScriptsBulkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteScriptsBulkResponse, error) {
+	rsp, err := c.DeleteScriptsBulkWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteScriptsBulkResponse(rsp)
+}
+
+func (c *ClientWithResponses) DeleteScriptsBulkWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteScriptsBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteScriptsBulkResponse, error) {
+	rsp, err := c.DeleteScriptsBulk(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteScriptsBulkResponse(rsp)
 }
 
 // GetScriptDeploymentStatusWithResponse request returning *GetScriptDeploymentStatusResponse
@@ -65920,6 +66369,23 @@ func (c *ClientWithResponses) DeleteVariableWithResponse(ctx context.Context, wo
 	return ParseDeleteVariableResponse(rsp)
 }
 
+// DeleteVariablesBulkWithBodyWithResponse request with arbitrary body returning *DeleteVariablesBulkResponse
+func (c *ClientWithResponses) DeleteVariablesBulkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteVariablesBulkResponse, error) {
+	rsp, err := c.DeleteVariablesBulkWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteVariablesBulkResponse(rsp)
+}
+
+func (c *ClientWithResponses) DeleteVariablesBulkWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteVariablesBulkJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteVariablesBulkResponse, error) {
+	rsp, err := c.DeleteVariablesBulk(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteVariablesBulkResponse(rsp)
+}
+
 // EncryptValueWithBodyWithResponse request with arbitrary body returning *EncryptValueResponse
 func (c *ClientWithResponses) EncryptValueWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EncryptValueResponse, error) {
 	rsp, err := c.EncryptValueWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -65956,8 +66422,8 @@ func (c *ClientWithResponses) GetVariableWithResponse(ctx context.Context, works
 }
 
 // GetVariableValueWithResponse request returning *GetVariableValueResponse
-func (c *ClientWithResponses) GetVariableValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetVariableValueResponse, error) {
-	rsp, err := c.GetVariableValue(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetVariableValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetVariableValueParams, reqEditors ...RequestEditorFn) (*GetVariableValueResponse, error) {
+	rsp, err := c.GetVariableValue(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -74788,6 +75254,32 @@ func ParseDeleteResourceResponse(rsp *http.Response) (*DeleteResourceResponse, e
 	return response, nil
 }
 
+// ParseDeleteResourcesBulkResponse parses an HTTP response from a DeleteResourcesBulkWithResponse call
+func ParseDeleteResourcesBulkResponse(rsp *http.Response) (*DeleteResourcesBulkResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteResourcesBulkResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseExistsResourceResponse parses an HTTP response from a ExistsResourceWithResponse call
 func ParseExistsResourceResponse(rsp *http.Response) (*ExistsResourceResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -75470,6 +75962,32 @@ func ParseDeleteScriptByPathResponse(rsp *http.Response) (*DeleteScriptByPathRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteScriptsBulkResponse parses an HTTP response from a DeleteScriptsBulkWithResponse call
+func ParseDeleteScriptsBulkResponse(rsp *http.Response) (*DeleteScriptsBulkResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteScriptsBulkResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -76293,6 +76811,32 @@ func ParseDeleteVariableResponse(rsp *http.Response) (*DeleteVariableResponse, e
 	response := &DeleteVariableResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteVariablesBulkResponse parses an HTTP response from a DeleteVariablesBulkWithResponse call
+func ParseDeleteVariablesBulkResponse(rsp *http.Response) (*DeleteVariablesBulkResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteVariablesBulkResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
