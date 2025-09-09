@@ -187,16 +187,17 @@ const (
 
 // Defines values for CaptureTriggerKind.
 const (
-	CaptureTriggerKindEmail     CaptureTriggerKind = "email"
-	CaptureTriggerKindGcp       CaptureTriggerKind = "gcp"
-	CaptureTriggerKindHttp      CaptureTriggerKind = "http"
-	CaptureTriggerKindKafka     CaptureTriggerKind = "kafka"
-	CaptureTriggerKindMqtt      CaptureTriggerKind = "mqtt"
-	CaptureTriggerKindNats      CaptureTriggerKind = "nats"
-	CaptureTriggerKindPostgres  CaptureTriggerKind = "postgres"
-	CaptureTriggerKindSqs       CaptureTriggerKind = "sqs"
-	CaptureTriggerKindWebhook   CaptureTriggerKind = "webhook"
-	CaptureTriggerKindWebsocket CaptureTriggerKind = "websocket"
+	CaptureTriggerKindDefaultEmail CaptureTriggerKind = "default_email"
+	CaptureTriggerKindEmail        CaptureTriggerKind = "email"
+	CaptureTriggerKindGcp          CaptureTriggerKind = "gcp"
+	CaptureTriggerKindHttp         CaptureTriggerKind = "http"
+	CaptureTriggerKindKafka        CaptureTriggerKind = "kafka"
+	CaptureTriggerKindMqtt         CaptureTriggerKind = "mqtt"
+	CaptureTriggerKindNats         CaptureTriggerKind = "nats"
+	CaptureTriggerKindPostgres     CaptureTriggerKind = "postgres"
+	CaptureTriggerKindSqs          CaptureTriggerKind = "sqs"
+	CaptureTriggerKindWebhook      CaptureTriggerKind = "webhook"
+	CaptureTriggerKindWebsocket    CaptureTriggerKind = "websocket"
 )
 
 // Defines values for CompletedJobJobKind.
@@ -691,6 +692,7 @@ const (
 // Defines values for AddGranularAclsParamsKind.
 const (
 	AddGranularAclsParamsKindApp              AddGranularAclsParamsKind = "app"
+	AddGranularAclsParamsKindEmailTrigger     AddGranularAclsParamsKind = "email_trigger"
 	AddGranularAclsParamsKindFlow             AddGranularAclsParamsKind = "flow"
 	AddGranularAclsParamsKindFolder           AddGranularAclsParamsKind = "folder"
 	AddGranularAclsParamsKindGcpTrigger       AddGranularAclsParamsKind = "gcp_trigger"
@@ -712,6 +714,7 @@ const (
 // Defines values for GetGranularAclsParamsKind.
 const (
 	GetGranularAclsParamsKindApp              GetGranularAclsParamsKind = "app"
+	GetGranularAclsParamsKindEmailTrigger     GetGranularAclsParamsKind = "email_trigger"
 	GetGranularAclsParamsKindFlow             GetGranularAclsParamsKind = "flow"
 	GetGranularAclsParamsKindFolder           GetGranularAclsParamsKind = "folder"
 	GetGranularAclsParamsKindGcpTrigger       GetGranularAclsParamsKind = "gcp_trigger"
@@ -733,6 +736,7 @@ const (
 // Defines values for RemoveGranularAclsParamsKind.
 const (
 	RemoveGranularAclsParamsKindApp              RemoveGranularAclsParamsKind = "app"
+	RemoveGranularAclsParamsKindEmailTrigger     RemoveGranularAclsParamsKind = "email_trigger"
 	RemoveGranularAclsParamsKindFlow             RemoveGranularAclsParamsKind = "flow"
 	RemoveGranularAclsParamsKindFolder           RemoveGranularAclsParamsKind = "folder"
 	RemoveGranularAclsParamsKindGcpTrigger       RemoveGranularAclsParamsKind = "gcp_trigger"
@@ -1159,6 +1163,19 @@ type DucklakeSettings struct {
 // DucklakeSettingsDucklakesCatalogResourceType defines model for DucklakeSettings.Ducklakes.Catalog.ResourceType.
 type DucklakeSettingsDucklakesCatalogResourceType string
 
+// EditEmailTrigger defines model for EditEmailTrigger.
+type EditEmailTrigger struct {
+	// ErrorHandlerArgs The arguments to pass to the script or flow
+	ErrorHandlerArgs    *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath    *string     `json:"error_handler_path,omitempty"`
+	IsFlow              bool        `json:"is_flow"`
+	LocalPart           *string     `json:"local_part,omitempty"`
+	Path                string      `json:"path"`
+	Retry               *Retry      `json:"retry,omitempty"`
+	ScriptPath          string      `json:"script_path"`
+	WorkspacedLocalPart *bool       `json:"workspaced_local_part,omitempty"`
+}
+
 // EditHttpTrigger defines model for EditHttpTrigger.
 type EditHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
@@ -1394,6 +1411,9 @@ type EditWorkspaceUser struct {
 	IsAdmin  *bool `json:"is_admin,omitempty"`
 	Operator *bool `json:"operator,omitempty"`
 }
+
+// EmailTrigger defines model for EmailTrigger.
+type EmailTrigger = TriggerExtraProperty
 
 // EndpointTool defines model for EndpointTool.
 type EndpointTool struct {
@@ -2010,6 +2030,19 @@ type MqttV5Config struct {
 
 // NatsTrigger defines model for NatsTrigger.
 type NatsTrigger = TriggerExtraProperty
+
+// NewEmailTrigger defines model for NewEmailTrigger.
+type NewEmailTrigger struct {
+	// ErrorHandlerArgs The arguments to pass to the script or flow
+	ErrorHandlerArgs    *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath    *string     `json:"error_handler_path,omitempty"`
+	IsFlow              bool        `json:"is_flow"`
+	LocalPart           string      `json:"local_part"`
+	Path                string      `json:"path"`
+	Retry               *Retry      `json:"retry,omitempty"`
+	ScriptPath          string      `json:"script_path"`
+	WorkspacedLocalPart *bool       `json:"workspaced_local_part,omitempty"`
+}
 
 // NewHttpTrigger defines model for NewHttpTrigger.
 type NewHttpTrigger struct {
@@ -2861,14 +2894,15 @@ type TriggerExtraProperty struct {
 
 // TriggersCount defines model for TriggersCount.
 type TriggersCount struct {
-	EmailCount      *float32 `json:"email_count,omitempty"`
-	GcpCount        *float32 `json:"gcp_count,omitempty"`
-	HttpRoutesCount *float32 `json:"http_routes_count,omitempty"`
-	KafkaCount      *float32 `json:"kafka_count,omitempty"`
-	MqttCount       *float32 `json:"mqtt_count,omitempty"`
-	NatsCount       *float32 `json:"nats_count,omitempty"`
-	PostgresCount   *float32 `json:"postgres_count,omitempty"`
-	PrimarySchedule *struct {
+	DefaultEmailCount *float32 `json:"default_email_count,omitempty"`
+	EmailCount        *float32 `json:"email_count,omitempty"`
+	GcpCount          *float32 `json:"gcp_count,omitempty"`
+	HttpRoutesCount   *float32 `json:"http_routes_count,omitempty"`
+	KafkaCount        *float32 `json:"kafka_count,omitempty"`
+	MqttCount         *float32 `json:"mqtt_count,omitempty"`
+	NatsCount         *float32 `json:"nats_count,omitempty"`
+	PostgresCount     *float32 `json:"postgres_count,omitempty"`
+	PrimarySchedule   *struct {
 		Schedule *string `json:"schedule,omitempty"`
 	} `json:"primary_schedule,omitempty"`
 	ScheduleCount  *float32 `json:"schedule_count,omitempty"`
@@ -4221,6 +4255,27 @@ type CreateDraftJSONBodyTyp string
 
 // DeleteDraftParamsKind defines parameters for DeleteDraft.
 type DeleteDraftParamsKind string
+
+// ListEmailTriggersParams defines parameters for ListEmailTriggers.
+type ListEmailTriggersParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// Path filter by path
+	Path      *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+}
+
+// ExistsEmailLocalPartJSONBody defines parameters for ExistsEmailLocalPart.
+type ExistsEmailLocalPartJSONBody struct {
+	LocalPart           string  `json:"local_part"`
+	TriggerPath         *string `json:"trigger_path,omitempty"`
+	WorkspacedLocalPart *bool   `json:"workspaced_local_part,omitempty"`
+}
 
 // QueryResourceTypesParams defines parameters for QueryResourceTypes.
 type QueryResourceTypesParams struct {
@@ -6303,6 +6358,15 @@ type SetCaptureConfigJSONRequestBody SetCaptureConfigJSONBody
 // CreateDraftJSONRequestBody defines body for CreateDraft for application/json ContentType.
 type CreateDraftJSONRequestBody CreateDraftJSONBody
 
+// CreateEmailTriggerJSONRequestBody defines body for CreateEmailTrigger for application/json ContentType.
+type CreateEmailTriggerJSONRequestBody = NewEmailTrigger
+
+// ExistsEmailLocalPartJSONRequestBody defines body for ExistsEmailLocalPart for application/json ContentType.
+type ExistsEmailLocalPartJSONRequestBody ExistsEmailLocalPartJSONBody
+
+// UpdateEmailTriggerJSONRequestBody defines body for UpdateEmailTrigger for application/json ContentType.
+type UpdateEmailTriggerJSONRequestBody = EditEmailTrigger
+
 // StarJSONRequestBody defines body for Star for application/json ContentType.
 type StarJSONRequestBody StarJSONBody
 
@@ -8086,6 +8150,33 @@ type ClientInterface interface {
 
 	// DeleteDraft request
 	DeleteDraft(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateEmailTriggerWithBody request with any body
+	CreateEmailTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateEmailTrigger(ctx context.Context, workspace WorkspaceId, body CreateEmailTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteEmailTrigger request
+	DeleteEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsEmailTrigger request
+	ExistsEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetEmailTrigger request
+	GetEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListEmailTriggers request
+	ListEmailTriggers(ctx context.Context, workspace WorkspaceId, params *ListEmailTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsEmailLocalPartWithBody request with any body
+	ExistsEmailLocalPartWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ExistsEmailLocalPart(ctx context.Context, workspace WorkspaceId, body ExistsEmailLocalPartJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateEmailTriggerWithBody request with any body
+	UpdateEmailTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateEmailTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// QueryResourceTypes request
 	QueryResourceTypes(ctx context.Context, workspace WorkspaceId, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11799,6 +11890,126 @@ func (c *Client) CreateDraft(ctx context.Context, workspace WorkspaceId, body Cr
 
 func (c *Client) DeleteDraft(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteDraftRequest(c.Server, workspace, kind, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateEmailTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateEmailTriggerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateEmailTrigger(ctx context.Context, workspace WorkspaceId, body CreateEmailTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateEmailTriggerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteEmailTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsEmailTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetEmailTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListEmailTriggers(ctx context.Context, workspace WorkspaceId, params *ListEmailTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListEmailTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsEmailLocalPartWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsEmailLocalPartRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsEmailLocalPart(ctx context.Context, workspace WorkspaceId, body ExistsEmailLocalPartJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsEmailLocalPartRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateEmailTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateEmailTriggerRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateEmailTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateEmailTriggerRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -25085,6 +25296,397 @@ func NewDeleteDraftRequest(server string, workspace WorkspaceId, kind DeleteDraf
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewCreateEmailTriggerRequest calls the generic CreateEmailTrigger builder with application/json body
+func NewCreateEmailTriggerRequest(server string, workspace WorkspaceId, body CreateEmailTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateEmailTriggerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateEmailTriggerRequestWithBody generates requests for CreateEmailTrigger with any type of body
+func NewCreateEmailTriggerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/email_triggers/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteEmailTriggerRequest generates requests for DeleteEmailTrigger
+func NewDeleteEmailTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/email_triggers/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsEmailTriggerRequest generates requests for ExistsEmailTrigger
+func NewExistsEmailTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/email_triggers/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetEmailTriggerRequest generates requests for GetEmailTrigger
+func NewGetEmailTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/email_triggers/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListEmailTriggersRequest generates requests for ListEmailTriggers
+func NewListEmailTriggersRequest(server string, workspace WorkspaceId, params *ListEmailTriggersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/email_triggers/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsFlow != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PathStart != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsEmailLocalPartRequest calls the generic ExistsEmailLocalPart builder with application/json body
+func NewExistsEmailLocalPartRequest(server string, workspace WorkspaceId, body ExistsEmailLocalPartJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewExistsEmailLocalPartRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewExistsEmailLocalPartRequestWithBody generates requests for ExistsEmailLocalPart with any type of body
+func NewExistsEmailLocalPartRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/email_triggers/local_part_exists", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateEmailTriggerRequest calls the generic UpdateEmailTrigger builder with application/json body
+func NewUpdateEmailTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdateEmailTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateEmailTriggerRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateEmailTriggerRequestWithBody generates requests for UpdateEmailTrigger with any type of body
+func NewUpdateEmailTriggerRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/email_triggers/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -48541,6 +49143,33 @@ type ClientWithResponsesInterface interface {
 	// DeleteDraftWithResponse request
 	DeleteDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteDraftResponse, error)
 
+	// CreateEmailTriggerWithBodyWithResponse request with any body
+	CreateEmailTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateEmailTriggerResponse, error)
+
+	CreateEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateEmailTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateEmailTriggerResponse, error)
+
+	// DeleteEmailTriggerWithResponse request
+	DeleteEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteEmailTriggerResponse, error)
+
+	// ExistsEmailTriggerWithResponse request
+	ExistsEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsEmailTriggerResponse, error)
+
+	// GetEmailTriggerWithResponse request
+	GetEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetEmailTriggerResponse, error)
+
+	// ListEmailTriggersWithResponse request
+	ListEmailTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListEmailTriggersParams, reqEditors ...RequestEditorFn) (*ListEmailTriggersResponse, error)
+
+	// ExistsEmailLocalPartWithBodyWithResponse request with any body
+	ExistsEmailLocalPartWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExistsEmailLocalPartResponse, error)
+
+	ExistsEmailLocalPartWithResponse(ctx context.Context, workspace WorkspaceId, body ExistsEmailLocalPartJSONRequestBody, reqEditors ...RequestEditorFn) (*ExistsEmailLocalPartResponse, error)
+
+	// UpdateEmailTriggerWithBodyWithResponse request with any body
+	UpdateEmailTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateEmailTriggerResponse, error)
+
+	UpdateEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateEmailTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateEmailTriggerResponse, error)
+
 	// QueryResourceTypesWithResponse request
 	QueryResourceTypesWithResponse(ctx context.Context, workspace WorkspaceId, params *QueryResourceTypesParams, reqEditors ...RequestEditorFn) (*QueryResourceTypesResponse, error)
 
@@ -53308,6 +53937,157 @@ func (r DeleteDraftResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteDraftResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateEmailTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateEmailTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateEmailTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteEmailTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteEmailTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteEmailTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsEmailTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsEmailTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsEmailTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetEmailTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *EmailTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r GetEmailTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetEmailTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListEmailTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]EmailTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r ListEmailTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListEmailTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsEmailLocalPartResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsEmailLocalPartResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsEmailLocalPartResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateEmailTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateEmailTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateEmailTriggerResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -60911,6 +61691,7 @@ type GetUsedTriggersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
+		EmailUsed      bool `json:"email_used"`
 		GcpUsed        bool `json:"gcp_used"`
 		HttpRoutesUsed bool `json:"http_routes_used"`
 		KafkaUsed      bool `json:"kafka_used"`
@@ -63020,6 +63801,93 @@ func (c *ClientWithResponses) DeleteDraftWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseDeleteDraftResponse(rsp)
+}
+
+// CreateEmailTriggerWithBodyWithResponse request with arbitrary body returning *CreateEmailTriggerResponse
+func (c *ClientWithResponses) CreateEmailTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateEmailTriggerResponse, error) {
+	rsp, err := c.CreateEmailTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateEmailTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateEmailTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateEmailTriggerResponse, error) {
+	rsp, err := c.CreateEmailTrigger(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateEmailTriggerResponse(rsp)
+}
+
+// DeleteEmailTriggerWithResponse request returning *DeleteEmailTriggerResponse
+func (c *ClientWithResponses) DeleteEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteEmailTriggerResponse, error) {
+	rsp, err := c.DeleteEmailTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteEmailTriggerResponse(rsp)
+}
+
+// ExistsEmailTriggerWithResponse request returning *ExistsEmailTriggerResponse
+func (c *ClientWithResponses) ExistsEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsEmailTriggerResponse, error) {
+	rsp, err := c.ExistsEmailTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsEmailTriggerResponse(rsp)
+}
+
+// GetEmailTriggerWithResponse request returning *GetEmailTriggerResponse
+func (c *ClientWithResponses) GetEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetEmailTriggerResponse, error) {
+	rsp, err := c.GetEmailTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetEmailTriggerResponse(rsp)
+}
+
+// ListEmailTriggersWithResponse request returning *ListEmailTriggersResponse
+func (c *ClientWithResponses) ListEmailTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListEmailTriggersParams, reqEditors ...RequestEditorFn) (*ListEmailTriggersResponse, error) {
+	rsp, err := c.ListEmailTriggers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListEmailTriggersResponse(rsp)
+}
+
+// ExistsEmailLocalPartWithBodyWithResponse request with arbitrary body returning *ExistsEmailLocalPartResponse
+func (c *ClientWithResponses) ExistsEmailLocalPartWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExistsEmailLocalPartResponse, error) {
+	rsp, err := c.ExistsEmailLocalPartWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsEmailLocalPartResponse(rsp)
+}
+
+func (c *ClientWithResponses) ExistsEmailLocalPartWithResponse(ctx context.Context, workspace WorkspaceId, body ExistsEmailLocalPartJSONRequestBody, reqEditors ...RequestEditorFn) (*ExistsEmailLocalPartResponse, error) {
+	rsp, err := c.ExistsEmailLocalPart(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsEmailLocalPartResponse(rsp)
+}
+
+// UpdateEmailTriggerWithBodyWithResponse request with arbitrary body returning *UpdateEmailTriggerResponse
+func (c *ClientWithResponses) UpdateEmailTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateEmailTriggerResponse, error) {
+	rsp, err := c.UpdateEmailTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateEmailTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateEmailTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateEmailTriggerResponse, error) {
+	rsp, err := c.UpdateEmailTrigger(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateEmailTriggerResponse(rsp)
 }
 
 // QueryResourceTypesWithResponse request returning *QueryResourceTypesResponse
@@ -70837,6 +71705,158 @@ func ParseDeleteDraftResponse(rsp *http.Response) (*DeleteDraftResponse, error) 
 	return response, nil
 }
 
+// ParseCreateEmailTriggerResponse parses an HTTP response from a CreateEmailTriggerWithResponse call
+func ParseCreateEmailTriggerResponse(rsp *http.Response) (*CreateEmailTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateEmailTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteEmailTriggerResponse parses an HTTP response from a DeleteEmailTriggerWithResponse call
+func ParseDeleteEmailTriggerResponse(rsp *http.Response) (*DeleteEmailTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteEmailTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsEmailTriggerResponse parses an HTTP response from a ExistsEmailTriggerWithResponse call
+func ParseExistsEmailTriggerResponse(rsp *http.Response) (*ExistsEmailTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsEmailTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetEmailTriggerResponse parses an HTTP response from a GetEmailTriggerWithResponse call
+func ParseGetEmailTriggerResponse(rsp *http.Response) (*GetEmailTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetEmailTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest EmailTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListEmailTriggersResponse parses an HTTP response from a ListEmailTriggersWithResponse call
+func ParseListEmailTriggersResponse(rsp *http.Response) (*ListEmailTriggersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListEmailTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []EmailTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseExistsEmailLocalPartResponse parses an HTTP response from a ExistsEmailLocalPartWithResponse call
+func ParseExistsEmailLocalPartResponse(rsp *http.Response) (*ExistsEmailLocalPartResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsEmailLocalPartResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateEmailTriggerResponse parses an HTTP response from a UpdateEmailTriggerWithResponse call
+func ParseUpdateEmailTriggerResponse(rsp *http.Response) (*UpdateEmailTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateEmailTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseQueryResourceTypesResponse parses an HTTP response from a QueryResourceTypesWithResponse call
 func ParseQueryResourceTypesResponse(rsp *http.Response) (*QueryResourceTypesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -78324,6 +79344,7 @@ func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
+			EmailUsed      bool `json:"email_used"`
 			GcpUsed        bool `json:"gcp_used"`
 			HttpRoutesUsed bool `json:"http_routes_used"`
 			KafkaUsed      bool `json:"kafka_used"`
