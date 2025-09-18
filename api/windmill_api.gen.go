@@ -232,6 +232,16 @@ const (
 	DucklakeSettingsDucklakesCatalogResourceTypePostgresql DucklakeSettingsDucklakesCatalogResourceType = "postgresql"
 )
 
+// Defines values for DynamicInputDataRunnableRef0Source.
+const (
+	Deployed DynamicInputDataRunnableRef0Source = "deployed"
+)
+
+// Defines values for DynamicInputDataRunnableRef1Source.
+const (
+	Inline DynamicInputDataRunnableRef1Source = "inline"
+)
+
 // Defines values for FlowStatusFailureModuleAgentActions0Type.
 const (
 	FlowStatusFailureModuleAgentActions0TypeToolCall FlowStatusFailureModuleAgentActions0Type = "tool_call"
@@ -841,6 +851,7 @@ type AIConfig struct {
 	CodeCompletionModel *AIProviderModel             `json:"code_completion_model,omitempty"`
 	CustomPrompts       *map[string]string           `json:"custom_prompts,omitempty"`
 	DefaultModel        *AIProviderModel             `json:"default_model,omitempty"`
+	MaxTokensPerModel   *map[string]int              `json:"max_tokens_per_model,omitempty"`
 	Providers           *map[string]AIProviderConfig `json:"providers,omitempty"`
 }
 
@@ -1171,6 +1182,43 @@ type DucklakeSettings struct {
 
 // DucklakeSettingsDucklakesCatalogResourceType defines model for DucklakeSettings.Ducklakes.Catalog.ResourceType.
 type DucklakeSettingsDucklakesCatalogResourceType string
+
+// DynamicInputData defines model for DynamicInputData.
+type DynamicInputData struct {
+	// Args Arguments to pass to the function
+	Args *map[string]interface{} `json:"args,omitempty"`
+
+	// EntrypointFunction Name of the function to execute for dynamic select
+	EntrypointFunction string                       `json:"entrypoint_function"`
+	RunnableRef        DynamicInputData_RunnableRef `json:"runnable_ref"`
+}
+
+// DynamicInputDataRunnableRef0 defines model for .
+type DynamicInputDataRunnableRef0 struct {
+	// Path Path to the deployed script or flow
+	Path         string                             `json:"path"`
+	RunnableKind RunnableKind                       `json:"runnable_kind"`
+	Source       DynamicInputDataRunnableRef0Source `json:"source"`
+}
+
+// DynamicInputDataRunnableRef0Source defines model for DynamicInputData.RunnableRef.0.Source.
+type DynamicInputDataRunnableRef0Source string
+
+// DynamicInputDataRunnableRef1 defines model for .
+type DynamicInputDataRunnableRef1 struct {
+	// Code Code content for inline execution
+	Code     string                             `json:"code"`
+	Language *ScriptLang                        `json:"language,omitempty"`
+	Source   DynamicInputDataRunnableRef1Source `json:"source"`
+}
+
+// DynamicInputDataRunnableRef1Source defines model for DynamicInputData.RunnableRef.1.Source.
+type DynamicInputDataRunnableRef1Source string
+
+// DynamicInputData_RunnableRef defines model for DynamicInputData.RunnableRef.
+type DynamicInputData_RunnableRef struct {
+	union json.RawMessage
+}
 
 // EditEmailTrigger defines model for EditEmailTrigger.
 type EditEmailTrigger struct {
@@ -1648,6 +1696,8 @@ type GcpTrigger = TriggerExtraProperty
 
 // GcpTriggerData defines model for GcpTriggerData.
 type GcpTriggerData struct {
+	// AckDeadline Time in seconds within which the message must be acknowledged. If not provided, defaults to the subscription's acknowledgment deadline (600 seconds).
+	AckDeadline        *int32        `json:"ack_deadline,omitempty"`
 	AutoAcknowledgeMsg *bool         `json:"auto_acknowledge_msg,omitempty"`
 	BaseEndpoint       *string       `json:"base_endpoint,omitempty"`
 	DeliveryConfig     *PushConfig   `json:"delivery_config,omitempty"`
@@ -1904,10 +1954,11 @@ type Language string
 
 // LargeFileStorage defines model for LargeFileStorage.
 type LargeFileStorage struct {
-	AzureBlobResourcePath *string `json:"azure_blob_resource_path,omitempty"`
-	GcsResourcePath       *string `json:"gcs_resource_path,omitempty"`
-	PublicResource        *bool   `json:"public_resource,omitempty"`
-	S3ResourcePath        *string `json:"s3_resource_path,omitempty"`
+	AdvancedPermissions   *[]S3PermissionRule `json:"advanced_permissions,omitempty"`
+	AzureBlobResourcePath *string             `json:"azure_blob_resource_path,omitempty"`
+	GcsResourcePath       *string             `json:"gcs_resource_path,omitempty"`
+	PublicResource        *bool               `json:"public_resource,omitempty"`
+	S3ResourcePath        *string             `json:"s3_resource_path,omitempty"`
 	SecondaryStorage      *map[string]struct {
 		AzureBlobResourcePath *string                               `json:"azure_blob_resource_path,omitempty"`
 		GcsResourcePath       *string                               `json:"gcs_resource_path,omitempty"`
@@ -2653,6 +2704,12 @@ type S3Object struct {
 	Presigned *string `json:"presigned,omitempty"`
 	S3        string  `json:"s3"`
 	Storage   *string `json:"storage,omitempty"`
+}
+
+// S3PermissionRule defines model for S3PermissionRule.
+type S3PermissionRule struct {
+	Allow   string `json:"allow"`
+	Pattern string `json:"pattern"`
 }
 
 // S3Resource defines model for S3Resource.
@@ -3568,6 +3625,9 @@ type ScriptPath = string
 
 // ScriptStartPath defines model for ScriptStartPath.
 type ScriptStartPath = string
+
+// SkipPreprocessor defines model for SkipPreprocessor.
+type SkipPreprocessor = bool
 
 // StartedAfter defines model for StartedAfter.
 type StartedAfter = time.Time
@@ -5031,35 +5091,6 @@ type ListFilteredJobsUuidsParams struct {
 // ListSelectedJobGroupsJSONBody defines parameters for ListSelectedJobGroups.
 type ListSelectedJobGroupsJSONBody = []openapi_types.UUID
 
-// OpenaiSyncFlowByPathParams defines parameters for OpenaiSyncFlowByPath.
-type OpenaiSyncFlowByPathParams struct {
-	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
-	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
-	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
-
-	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
-	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
-
-	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
-	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
-}
-
-// OpenaiSyncScriptByPathParams defines parameters for OpenaiSyncScriptByPath.
-type OpenaiSyncScriptByPathParams struct {
-	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
-	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
-
-	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
-	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
-
-	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
-	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
-	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
-
-	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
-	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
-}
-
 // CancelSelectionJSONBody defines parameters for CancelSelection.
 type CancelSelectionJSONBody = []string
 
@@ -5269,7 +5300,7 @@ type RunFlowByPathParams struct {
 	ScheduledInSecs *int `form:"scheduled_in_secs,omitempty" json:"scheduled_in_secs,omitempty"`
 
 	// SkipPreprocessor skip the preprocessor
-	SkipPreprocessor *bool `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 
 	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
@@ -5300,7 +5331,7 @@ type RunScriptByHashParams struct {
 	ScheduledInSecs *int `form:"scheduled_in_secs,omitempty" json:"scheduled_in_secs,omitempty"`
 
 	// SkipPreprocessor skip the preprocessor
-	SkipPreprocessor *bool `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 
 	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
@@ -5386,6 +5417,9 @@ type RunWaitResultFlowByPathParams struct {
 
 	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 }
 
 // RunWaitResultScriptByPathGetParams defines parameters for RunWaitResultScriptByPathGet.
@@ -5412,6 +5446,9 @@ type RunWaitResultScriptByPathGetParams struct {
 	// Payload The base64 encoded payload that has been encoded as a JSON. e.g how to encode such payload encodeURIComponent
 	// `encodeURIComponent(btoa(JSON.stringify({a: 2})))`
 	Payload *Payload `form:"payload,omitempty" json:"payload,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 }
 
 // RunWaitResultScriptByPathParams defines parameters for RunWaitResultScriptByPath.
@@ -5434,6 +5471,9 @@ type RunWaitResultScriptByPathParams struct {
 
 	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
 	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 }
 
 // GetSlackApprovalPayloadParams defines parameters for GetSlackApprovalPayload.
@@ -6501,12 +6541,6 @@ type SetFlowUserStateJSONRequestBody = SetFlowUserStateJSONBody
 // ListSelectedJobGroupsJSONRequestBody defines body for ListSelectedJobGroups for application/json ContentType.
 type ListSelectedJobGroupsJSONRequestBody = ListSelectedJobGroupsJSONBody
 
-// OpenaiSyncFlowByPathJSONRequestBody defines body for OpenaiSyncFlowByPath for application/json ContentType.
-type OpenaiSyncFlowByPathJSONRequestBody = ScriptArgs
-
-// OpenaiSyncScriptByPathJSONRequestBody defines body for OpenaiSyncScriptByPath for application/json ContentType.
-type OpenaiSyncScriptByPathJSONRequestBody = ScriptArgs
-
 // CancelSelectionJSONRequestBody defines body for CancelSelection for application/json ContentType.
 type CancelSelectionJSONRequestBody = CancelSelectionJSONBody
 
@@ -6518,6 +6552,9 @@ type BatchReRunJobsJSONRequestBody BatchReRunJobsJSONBody
 
 // RunRawScriptDependenciesJSONRequestBody defines body for RunRawScriptDependencies for application/json ContentType.
 type RunRawScriptDependenciesJSONRequestBody RunRawScriptDependenciesJSONBody
+
+// RunDynamicSelectJSONRequestBody defines body for RunDynamicSelect for application/json ContentType.
+type RunDynamicSelectJSONRequestBody = DynamicInputData
 
 // RunFlowByPathJSONRequestBody defines body for RunFlowByPath for application/json ContentType.
 type RunFlowByPathJSONRequestBody = ScriptArgs
@@ -6830,6 +6867,68 @@ type ExistsWorkspaceJSONRequestBody ExistsWorkspaceJSONBody
 
 // ExistsUsernameJSONRequestBody defines body for ExistsUsername for application/json ContentType.
 type ExistsUsernameJSONRequestBody ExistsUsernameJSONBody
+
+// AsDynamicInputDataRunnableRef0 returns the union data inside the DynamicInputData_RunnableRef as a DynamicInputDataRunnableRef0
+func (t DynamicInputData_RunnableRef) AsDynamicInputDataRunnableRef0() (DynamicInputDataRunnableRef0, error) {
+	var body DynamicInputDataRunnableRef0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDynamicInputDataRunnableRef0 overwrites any union data inside the DynamicInputData_RunnableRef as the provided DynamicInputDataRunnableRef0
+func (t *DynamicInputData_RunnableRef) FromDynamicInputDataRunnableRef0(v DynamicInputDataRunnableRef0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeDynamicInputDataRunnableRef0 performs a merge with any union data inside the DynamicInputData_RunnableRef, using the provided DynamicInputDataRunnableRef0
+func (t *DynamicInputData_RunnableRef) MergeDynamicInputDataRunnableRef0(v DynamicInputDataRunnableRef0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsDynamicInputDataRunnableRef1 returns the union data inside the DynamicInputData_RunnableRef as a DynamicInputDataRunnableRef1
+func (t DynamicInputData_RunnableRef) AsDynamicInputDataRunnableRef1() (DynamicInputDataRunnableRef1, error) {
+	var body DynamicInputDataRunnableRef1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromDynamicInputDataRunnableRef1 overwrites any union data inside the DynamicInputData_RunnableRef as the provided DynamicInputDataRunnableRef1
+func (t *DynamicInputData_RunnableRef) FromDynamicInputDataRunnableRef1(v DynamicInputDataRunnableRef1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeDynamicInputDataRunnableRef1 performs a merge with any union data inside the DynamicInputData_RunnableRef, using the provided DynamicInputDataRunnableRef1
+func (t *DynamicInputData_RunnableRef) MergeDynamicInputDataRunnableRef1(v DynamicInputDataRunnableRef1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t DynamicInputData_RunnableRef) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *DynamicInputData_RunnableRef) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // AsFlowStatusFailureModuleAgentActions0 returns the union data inside the FlowStatus_FailureModule_AgentActions_Item as a FlowStatusFailureModuleAgentActions0
 func (t FlowStatus_FailureModule_AgentActions_Item) AsFlowStatusFailureModuleAgentActions0() (FlowStatusFailureModuleAgentActions0, error) {
@@ -8578,16 +8677,6 @@ type ClientInterface interface {
 
 	ListSelectedJobGroups(ctx context.Context, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// OpenaiSyncFlowByPathWithBody request with any body
-	OpenaiSyncFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	OpenaiSyncFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, body OpenaiSyncFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// OpenaiSyncScriptByPathWithBody request with any body
-	OpenaiSyncScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	OpenaiSyncScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// CancelSelectionWithBody request with any body
 	CancelSelectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8628,6 +8717,11 @@ type ClientInterface interface {
 	RunRawScriptDependenciesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunRawScriptDependencies(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunDynamicSelectWithBody request with any body
+	RunDynamicSelectWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunDynamicSelect(ctx context.Context, workspace WorkspaceId, body RunDynamicSelectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunFlowByPathWithBody request with any body
 	RunFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -13740,54 +13834,6 @@ func (c *Client) ListSelectedJobGroups(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) OpenaiSyncFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewOpenaiSyncFlowByPathRequestWithBody(c.Server, workspace, path, params, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) OpenaiSyncFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, body OpenaiSyncFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewOpenaiSyncFlowByPathRequest(c.Server, workspace, path, params, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) OpenaiSyncScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewOpenaiSyncScriptByPathRequestWithBody(c.Server, workspace, path, params, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) OpenaiSyncScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewOpenaiSyncScriptByPathRequest(c.Server, workspace, path, params, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) CancelSelectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCancelSelectionRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -13958,6 +14004,30 @@ func (c *Client) RunRawScriptDependenciesWithBody(ctx context.Context, workspace
 
 func (c *Client) RunRawScriptDependencies(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunRawScriptDependenciesRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunDynamicSelectWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunDynamicSelectRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunDynamicSelect(ctx context.Context, workspace WorkspaceId, body RunDynamicSelectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunDynamicSelectRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -33275,238 +33345,6 @@ func NewListSelectedJobGroupsRequestWithBody(server string, workspace WorkspaceI
 	return req, nil
 }
 
-// NewOpenaiSyncFlowByPathRequest calls the generic OpenaiSyncFlowByPath builder with application/json body
-func NewOpenaiSyncFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, body OpenaiSyncFlowByPathJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewOpenaiSyncFlowByPathRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
-}
-
-// NewOpenaiSyncFlowByPathRequestWithBody generates requests for OpenaiSyncFlowByPath with any type of body
-func NewOpenaiSyncFlowByPathRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/jobs/openai_sync/f/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.IncludeHeader != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.QueueLimit != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.JobId != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewOpenaiSyncScriptByPathRequest calls the generic OpenaiSyncScriptByPath builder with application/json body
-func NewOpenaiSyncScriptByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewOpenaiSyncScriptByPathRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
-}
-
-// NewOpenaiSyncScriptByPathRequestWithBody generates requests for OpenaiSyncScriptByPath with any type of body
-func NewOpenaiSyncScriptByPathRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/jobs/openai_sync/p/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.ParentJob != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.JobId != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.IncludeHeader != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.QueueLimit != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewCancelSelectionRequest calls the generic CancelSelection builder with application/json body
 func NewCancelSelectionRequest(server string, workspace WorkspaceId, body CancelSelectionJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -34906,6 +34744,53 @@ func NewRunRawScriptDependenciesRequestWithBody(server string, workspace Workspa
 	return req, nil
 }
 
+// NewRunDynamicSelectRequest calls the generic RunDynamicSelect builder with application/json body
+func NewRunDynamicSelectRequest(server string, workspace WorkspaceId, body RunDynamicSelectJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunDynamicSelectRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRunDynamicSelectRequestWithBody generates requests for RunDynamicSelect with any type of body
+func NewRunDynamicSelectRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run/dynamic_select", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRunFlowByPathRequest calls the generic RunFlowByPath builder with application/json body
 func NewRunFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, body RunFlowByPathJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -35783,6 +35668,22 @@ func NewRunWaitResultFlowByPathRequestWithBody(server string, workspace Workspac
 
 		}
 
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -35944,6 +35845,22 @@ func NewRunWaitResultScriptByPathGetRequest(server string, workspace WorkspaceId
 
 		}
 
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -36085,6 +36002,22 @@ func NewRunWaitResultScriptByPathRequestWithBody(server string, workspace Worksp
 		if params.QueueLimit != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -49751,16 +49684,6 @@ type ClientWithResponsesInterface interface {
 
 	ListSelectedJobGroupsWithResponse(ctx context.Context, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListSelectedJobGroupsResponse, error)
 
-	// OpenaiSyncFlowByPathWithBodyWithResponse request with any body
-	OpenaiSyncFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenaiSyncFlowByPathResponse, error)
-
-	OpenaiSyncFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, body OpenaiSyncFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenaiSyncFlowByPathResponse, error)
-
-	// OpenaiSyncScriptByPathWithBodyWithResponse request with any body
-	OpenaiSyncScriptByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenaiSyncScriptByPathResponse, error)
-
-	OpenaiSyncScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenaiSyncScriptByPathResponse, error)
-
 	// CancelSelectionWithBodyWithResponse request with any body
 	CancelSelectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error)
 
@@ -49801,6 +49724,11 @@ type ClientWithResponsesInterface interface {
 	RunRawScriptDependenciesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesResponse, error)
 
 	RunRawScriptDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesResponse, error)
+
+	// RunDynamicSelectWithBodyWithResponse request with any body
+	RunDynamicSelectWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunDynamicSelectResponse, error)
+
+	RunDynamicSelectWithResponse(ctx context.Context, workspace WorkspaceId, body RunDynamicSelectJSONRequestBody, reqEditors ...RequestEditorFn) (*RunDynamicSelectResponse, error)
 
 	// RunFlowByPathWithBodyWithResponse request with any body
 	RunFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowByPathResponse, error)
@@ -52636,13 +52564,12 @@ type GetRunnableResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Description        *string `json:"description,omitempty"`
-		EndpointAsync      string  `json:"endpoint_async"`
-		EndpointOpenaiSync string  `json:"endpoint_openai_sync"`
-		EndpointSync       string  `json:"endpoint_sync"`
-		Kind               string  `json:"kind"`
-		Summary            string  `json:"summary"`
-		Workspace          string  `json:"workspace"`
+		Description   *string `json:"description,omitempty"`
+		EndpointAsync string  `json:"endpoint_async"`
+		EndpointSync  string  `json:"endpoint_sync"`
+		Kind          string  `json:"kind"`
+		Summary       string  `json:"summary"`
+		Workspace     string  `json:"workspace"`
 	}
 }
 
@@ -56588,50 +56515,6 @@ func (r ListSelectedJobGroupsResponse) StatusCode() int {
 	return 0
 }
 
-type OpenaiSyncFlowByPathResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *interface{}
-}
-
-// Status returns HTTPResponse.Status
-func (r OpenaiSyncFlowByPathResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r OpenaiSyncFlowByPathResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type OpenaiSyncScriptByPathResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *interface{}
-}
-
-// Status returns HTTPResponse.Status
-func (r OpenaiSyncScriptByPathResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r OpenaiSyncScriptByPathResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type CancelSelectionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -56878,6 +56761,27 @@ func (r RunRawScriptDependenciesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunRawScriptDependenciesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunDynamicSelectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunDynamicSelectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunDynamicSelectResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -65396,40 +65300,6 @@ func (c *ClientWithResponses) ListSelectedJobGroupsWithResponse(ctx context.Cont
 	return ParseListSelectedJobGroupsResponse(rsp)
 }
 
-// OpenaiSyncFlowByPathWithBodyWithResponse request with arbitrary body returning *OpenaiSyncFlowByPathResponse
-func (c *ClientWithResponses) OpenaiSyncFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenaiSyncFlowByPathResponse, error) {
-	rsp, err := c.OpenaiSyncFlowByPathWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseOpenaiSyncFlowByPathResponse(rsp)
-}
-
-func (c *ClientWithResponses) OpenaiSyncFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncFlowByPathParams, body OpenaiSyncFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenaiSyncFlowByPathResponse, error) {
-	rsp, err := c.OpenaiSyncFlowByPath(ctx, workspace, path, params, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseOpenaiSyncFlowByPathResponse(rsp)
-}
-
-// OpenaiSyncScriptByPathWithBodyWithResponse request with arbitrary body returning *OpenaiSyncScriptByPathResponse
-func (c *ClientWithResponses) OpenaiSyncScriptByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenaiSyncScriptByPathResponse, error) {
-	rsp, err := c.OpenaiSyncScriptByPathWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseOpenaiSyncScriptByPathResponse(rsp)
-}
-
-func (c *ClientWithResponses) OpenaiSyncScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *OpenaiSyncScriptByPathParams, body OpenaiSyncScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenaiSyncScriptByPathResponse, error) {
-	rsp, err := c.OpenaiSyncScriptByPath(ctx, workspace, path, params, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseOpenaiSyncScriptByPathResponse(rsp)
-}
-
 // CancelSelectionWithBodyWithResponse request with arbitrary body returning *CancelSelectionResponse
 func (c *ClientWithResponses) CancelSelectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error) {
 	rsp, err := c.CancelSelectionWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -65559,6 +65429,23 @@ func (c *ClientWithResponses) RunRawScriptDependenciesWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseRunRawScriptDependenciesResponse(rsp)
+}
+
+// RunDynamicSelectWithBodyWithResponse request with arbitrary body returning *RunDynamicSelectResponse
+func (c *ClientWithResponses) RunDynamicSelectWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunDynamicSelectResponse, error) {
+	rsp, err := c.RunDynamicSelectWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunDynamicSelectResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunDynamicSelectWithResponse(ctx context.Context, workspace WorkspaceId, body RunDynamicSelectJSONRequestBody, reqEditors ...RequestEditorFn) (*RunDynamicSelectResponse, error) {
+	rsp, err := c.RunDynamicSelect(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunDynamicSelectResponse(rsp)
 }
 
 // RunFlowByPathWithBodyWithResponse request with arbitrary body returning *RunFlowByPathResponse
@@ -70552,13 +70439,12 @@ func ParseGetRunnableResponse(rsp *http.Response) (*GetRunnableResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Description        *string `json:"description,omitempty"`
-			EndpointAsync      string  `json:"endpoint_async"`
-			EndpointOpenaiSync string  `json:"endpoint_openai_sync"`
-			EndpointSync       string  `json:"endpoint_sync"`
-			Kind               string  `json:"kind"`
-			Summary            string  `json:"summary"`
-			Workspace          string  `json:"workspace"`
+			Description   *string `json:"description,omitempty"`
+			EndpointAsync string  `json:"endpoint_async"`
+			EndpointSync  string  `json:"endpoint_sync"`
+			Kind          string  `json:"kind"`
+			Summary       string  `json:"summary"`
+			Workspace     string  `json:"workspace"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -74471,58 +74357,6 @@ func ParseListSelectedJobGroupsResponse(rsp *http.Response) (*ListSelectedJobGro
 	return response, nil
 }
 
-// ParseOpenaiSyncFlowByPathResponse parses an HTTP response from a OpenaiSyncFlowByPathWithResponse call
-func ParseOpenaiSyncFlowByPathResponse(rsp *http.Response) (*OpenaiSyncFlowByPathResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &OpenaiSyncFlowByPathResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseOpenaiSyncScriptByPathResponse parses an HTTP response from a OpenaiSyncScriptByPathWithResponse call
-func ParseOpenaiSyncScriptByPathResponse(rsp *http.Response) (*OpenaiSyncScriptByPathResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &OpenaiSyncScriptByPathResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseCancelSelectionResponse parses an HTTP response from a CancelSelectionWithResponse call
 func ParseCancelSelectionResponse(rsp *http.Response) (*CancelSelectionResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -74796,6 +74630,22 @@ func ParseRunRawScriptDependenciesResponse(rsp *http.Response) (*RunRawScriptDep
 		}
 		response.JSON201 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseRunDynamicSelectResponse parses an HTTP response from a RunDynamicSelectWithResponse call
+func ParseRunDynamicSelectResponse(rsp *http.Response) (*RunDynamicSelectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunDynamicSelectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
