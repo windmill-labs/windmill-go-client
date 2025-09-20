@@ -988,21 +988,6 @@ type CaptureConfig struct {
 // CaptureTriggerKind defines model for CaptureTriggerKind.
 type CaptureTriggerKind string
 
-// ChannelInfo defines model for ChannelInfo.
-type ChannelInfo struct {
-	// ChannelId The unique identifier of the channel
-	ChannelId string `json:"channel_id"`
-
-	// ChannelName The display name of the channel
-	ChannelName string `json:"channel_name"`
-
-	// ServiceUrl The service URL for the channel
-	ServiceUrl string `json:"service_url"`
-
-	// TenantId The Microsoft Teams tenant identifier
-	TenantId string `json:"tenant_id"`
-}
-
 // CompletedJob defines model for CompletedJob.
 type CompletedJob struct {
 	AggregateWaitTimeMs *float32 `json:"aggregate_wait_time_ms,omitempty"`
@@ -1603,11 +1588,15 @@ type FlowStatus struct {
 			Branch int `json:"branch"`
 			Len    int `json:"len"`
 		} `json:"branchall,omitempty"`
-		Count           *int                  `json:"count,omitempty"`
-		FailedRetries   *[]openapi_types.UUID `json:"failed_retries,omitempty"`
-		FlowJobs        *[]string             `json:"flow_jobs,omitempty"`
-		FlowJobsSuccess *[]bool               `json:"flow_jobs_success,omitempty"`
-		Id              *string               `json:"id,omitempty"`
+		Count            *int                  `json:"count,omitempty"`
+		FailedRetries    *[]openapi_types.UUID `json:"failed_retries,omitempty"`
+		FlowJobs         *[]string             `json:"flow_jobs,omitempty"`
+		FlowJobsDuration *struct {
+			DurationMs *[]int    `json:"duration_ms,omitempty"`
+			StartedAt  *[]string `json:"started_at,omitempty"`
+		} `json:"flow_jobs_duration,omitempty"`
+		FlowJobsSuccess *[]bool `json:"flow_jobs_success,omitempty"`
+		Id              *string `json:"id,omitempty"`
 		Iterator        *struct {
 			Args   *interface{}   `json:"args,omitempty"`
 			Index  *int           `json:"index,omitempty"`
@@ -2912,18 +2901,6 @@ type TableToTrack = []struct {
 	WhereClause *string   `json:"where_clause,omitempty"`
 }
 
-// TeamInfo defines model for TeamInfo.
-type TeamInfo struct {
-	// Channels List of channels within the team
-	Channels []ChannelInfo `json:"channels"`
-
-	// TeamId The unique identifier of the Microsoft Teams team
-	TeamId string `json:"team_id"`
-
-	// TeamName The display name of the Microsoft Teams team
-	TeamName string `json:"team_name"`
-}
-
 // TemplateScript defines model for TemplateScript.
 type TemplateScript struct {
 	Language             Language    `json:"language"`
@@ -3280,11 +3257,15 @@ type SchemasFlowStatusModule struct {
 		Branch int `json:"branch"`
 		Len    int `json:"len"`
 	} `json:"branchall,omitempty"`
-	Count           *int                  `json:"count,omitempty"`
-	FailedRetries   *[]openapi_types.UUID `json:"failed_retries,omitempty"`
-	FlowJobs        *[]string             `json:"flow_jobs,omitempty"`
-	FlowJobsSuccess *[]bool               `json:"flow_jobs_success,omitempty"`
-	Id              *string               `json:"id,omitempty"`
+	Count            *int                  `json:"count,omitempty"`
+	FailedRetries    *[]openapi_types.UUID `json:"failed_retries,omitempty"`
+	FlowJobs         *[]string             `json:"flow_jobs,omitempty"`
+	FlowJobsDuration *struct {
+		DurationMs *[]int    `json:"duration_ms,omitempty"`
+		StartedAt  *[]string `json:"started_at,omitempty"`
+	} `json:"flow_jobs_duration,omitempty"`
+	FlowJobsSuccess *[]bool `json:"flow_jobs_success,omitempty"`
+	Id              *string `json:"id,omitempty"`
 	Iterator        *struct {
 		Args   *interface{}   `json:"args,omitempty"`
 		Index  *int           `json:"index,omitempty"`
@@ -5094,6 +5075,11 @@ type ListSelectedJobGroupsJSONBody = []openapi_types.UUID
 // CancelSelectionJSONBody defines parameters for CancelSelection.
 type CancelSelectionJSONBody = []string
 
+// CancelSelectionParams defines parameters for CancelSelection.
+type CancelSelectionParams struct {
+	ForceCancel *bool `form:"force_cancel,omitempty" json:"force_cancel,omitempty"`
+}
+
 // GetQueueCountParams defines parameters for GetQueueCount.
 type GetQueueCountParams struct {
 	// AllWorkspaces get jobs from all workspaces (only valid if request come from the `admins` workspace)
@@ -5573,6 +5559,9 @@ type CancelPersistentQueuedJobsJSONBody struct {
 type ForceCancelQueuedJobJSONBody struct {
 	Reason *string `json:"reason,omitempty"`
 }
+
+// GetStartedAtByIdsJSONBody defines parameters for GetStartedAtByIds.
+type GetStartedAtByIdsJSONBody = []string
 
 // ResumeSuspendedJobGetParams defines parameters for ResumeSuspendedJobGet.
 type ResumeSuspendedJobGetParams struct {
@@ -6055,6 +6044,21 @@ type AddUserJSONBody struct {
 	IsAdmin  bool    `json:"is_admin"`
 	Operator bool    `json:"operator"`
 	Username *string `json:"username,omitempty"`
+}
+
+// ListAvailableTeamsChannelsParams defines parameters for ListAvailableTeamsChannels.
+type ListAvailableTeamsChannelsParams struct {
+	// TeamId Microsoft Teams team ID
+	TeamId string `form:"team_id" json:"team_id"`
+
+	// Search Search channels by name
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+}
+
+// ListAvailableTeamsIdsParams defines parameters for ListAvailableTeamsIds.
+type ListAvailableTeamsIdsParams struct {
+	// Search Search teams by name
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
 }
 
 // ChangeWorkspaceColorJSONBody defines parameters for ChangeWorkspaceColor.
@@ -6597,6 +6601,9 @@ type CancelPersistentQueuedJobsJSONRequestBody CancelPersistentQueuedJobsJSONBod
 
 // ForceCancelQueuedJobJSONRequestBody defines body for ForceCancelQueuedJob for application/json ContentType.
 type ForceCancelQueuedJobJSONRequestBody ForceCancelQueuedJobJSONBody
+
+// GetStartedAtByIdsJSONRequestBody defines body for GetStartedAtByIds for application/json ContentType.
+type GetStartedAtByIdsJSONRequestBody = GetStartedAtByIdsJSONBody
 
 // ResumeSuspendedJobPostJSONRequestBody defines body for ResumeSuspendedJobPost for application/json ContentType.
 type ResumeSuspendedJobPostJSONRequestBody = ResumeSuspendedJobPostJSONBody
@@ -8002,9 +8009,6 @@ type ClientInterface interface {
 
 	SendMessageToConversation(ctx context.Context, body SendMessageToConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SyncTeams request
-	SyncTeams(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ListAvailableScopes request
 	ListAvailableScopes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8678,9 +8682,9 @@ type ClientInterface interface {
 	ListSelectedJobGroups(ctx context.Context, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CancelSelectionWithBody request with any body
-	CancelSelectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CancelSelectionWithBody(ctx context.Context, workspace WorkspaceId, params *CancelSelectionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	CancelSelection(ctx context.Context, workspace WorkspaceId, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CancelSelection(ctx context.Context, workspace WorkspaceId, params *CancelSelectionParams, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetQueueCount request
 	GetQueueCount(ctx context.Context, workspace WorkspaceId, params *GetQueueCountParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8843,6 +8847,11 @@ type ClientInterface interface {
 	ForceCancelQueuedJobWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ForceCancelQueuedJob(ctx context.Context, workspace WorkspaceId, id JobId, body ForceCancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetStartedAtByIdsWithBody request with any body
+	GetStartedAtByIdsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GetStartedAtByIds(ctx context.Context, workspace WorkspaceId, body GetStartedAtByIdsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResumeSuspendedJobGet request
 	ResumeSuspendedJobGet(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9409,10 +9418,10 @@ type ClientInterface interface {
 	ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAvailableTeamsChannels request
-	ListAvailableTeamsChannels(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListAvailableTeamsChannels(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsChannelsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAvailableTeamsIds request
-	ListAvailableTeamsIds(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListAvailableTeamsIds(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsIdsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ChangeWorkspaceColorWithBody request with any body
 	ChangeWorkspaceColorWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10860,18 +10869,6 @@ func (c *Client) SendMessageToConversationWithBody(ctx context.Context, contentT
 
 func (c *Client) SendMessageToConversation(ctx context.Context, body SendMessageToConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSendMessageToConversationRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SyncTeams(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSyncTeamsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -13834,8 +13831,8 @@ func (c *Client) ListSelectedJobGroups(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) CancelSelectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCancelSelectionRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) CancelSelectionWithBody(ctx context.Context, workspace WorkspaceId, params *CancelSelectionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelSelectionRequestWithBody(c.Server, workspace, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -13846,8 +13843,8 @@ func (c *Client) CancelSelectionWithBody(ctx context.Context, workspace Workspac
 	return c.Client.Do(req)
 }
 
-func (c *Client) CancelSelection(ctx context.Context, workspace WorkspaceId, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCancelSelectionRequest(c.Server, workspace, body)
+func (c *Client) CancelSelection(ctx context.Context, workspace WorkspaceId, params *CancelSelectionParams, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelSelectionRequest(c.Server, workspace, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -14568,6 +14565,30 @@ func (c *Client) ForceCancelQueuedJobWithBody(ctx context.Context, workspace Wor
 
 func (c *Client) ForceCancelQueuedJob(ctx context.Context, workspace WorkspaceId, id JobId, body ForceCancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewForceCancelQueuedJobRequest(c.Server, workspace, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetStartedAtByIdsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStartedAtByIdsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetStartedAtByIds(ctx context.Context, workspace WorkspaceId, body GetStartedAtByIdsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStartedAtByIdsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -17062,8 +17083,8 @@ func (c *Client) ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, re
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListAvailableTeamsChannels(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListAvailableTeamsChannelsRequest(c.Server, workspace)
+func (c *Client) ListAvailableTeamsChannels(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsChannelsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAvailableTeamsChannelsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -17074,8 +17095,8 @@ func (c *Client) ListAvailableTeamsChannels(ctx context.Context, workspace Works
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListAvailableTeamsIds(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListAvailableTeamsIdsRequest(c.Server, workspace)
+func (c *Client) ListAvailableTeamsIds(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsIdsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAvailableTeamsIdsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -21378,33 +21399,6 @@ func NewSendMessageToConversationRequestWithBody(server string, contentType stri
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewSyncTeamsRequest generates requests for SyncTeams
-func NewSyncTeamsRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/teams/sync")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -33346,18 +33340,18 @@ func NewListSelectedJobGroupsRequestWithBody(server string, workspace WorkspaceI
 }
 
 // NewCancelSelectionRequest calls the generic CancelSelection builder with application/json body
-func NewCancelSelectionRequest(server string, workspace WorkspaceId, body CancelSelectionJSONRequestBody) (*http.Request, error) {
+func NewCancelSelectionRequest(server string, workspace WorkspaceId, params *CancelSelectionParams, body CancelSelectionJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewCancelSelectionRequestWithBody(server, workspace, "application/json", bodyReader)
+	return NewCancelSelectionRequestWithBody(server, workspace, params, "application/json", bodyReader)
 }
 
 // NewCancelSelectionRequestWithBody generates requests for CancelSelection with any type of body
-func NewCancelSelectionRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+func NewCancelSelectionRequestWithBody(server string, workspace WorkspaceId, params *CancelSelectionParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -33380,6 +33374,28 @@ func NewCancelSelectionRequestWithBody(server string, workspace WorkspaceId, con
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ForceCancel != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "force_cancel", runtime.ParamLocationQuery, *params.ForceCancel); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -37712,6 +37728,53 @@ func NewForceCancelQueuedJobRequestWithBody(server string, workspace WorkspaceId
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/jobs_u/queue/force_cancel/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetStartedAtByIdsRequest calls the generic GetStartedAtByIds builder with application/json body
+func NewGetStartedAtByIdsRequest(server string, workspace WorkspaceId, body GetStartedAtByIdsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGetStartedAtByIdsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewGetStartedAtByIdsRequestWithBody generates requests for GetStartedAtByIds with any type of body
+func NewGetStartedAtByIdsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/queue/get_started_at_by_ids", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -45799,7 +45862,7 @@ func NewArchiveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Req
 }
 
 // NewListAvailableTeamsChannelsRequest generates requests for ListAvailableTeamsChannels
-func NewListAvailableTeamsChannelsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewListAvailableTeamsChannelsRequest(server string, workspace WorkspaceId, params *ListAvailableTeamsChannelsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -45824,6 +45887,40 @@ func NewListAvailableTeamsChannelsRequest(server string, workspace WorkspaceId) 
 		return nil, err
 	}
 
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "team_id", runtime.ParamLocationQuery, params.TeamId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Search != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
@@ -45833,7 +45930,7 @@ func NewListAvailableTeamsChannelsRequest(server string, workspace WorkspaceId) 
 }
 
 // NewListAvailableTeamsIdsRequest generates requests for ListAvailableTeamsIds
-func NewListAvailableTeamsIdsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewListAvailableTeamsIdsRequest(server string, workspace WorkspaceId, params *ListAvailableTeamsIdsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -45856,6 +45953,28 @@ func NewListAvailableTeamsIdsRequest(server string, workspace WorkspaceId) (*htt
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Search != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -49009,9 +49128,6 @@ type ClientWithResponsesInterface interface {
 
 	SendMessageToConversationWithResponse(ctx context.Context, body SendMessageToConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*SendMessageToConversationResponse, error)
 
-	// SyncTeamsWithResponse request
-	SyncTeamsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SyncTeamsResponse, error)
-
 	// ListAvailableScopesWithResponse request
 	ListAvailableScopesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAvailableScopesResponse, error)
 
@@ -49685,9 +49801,9 @@ type ClientWithResponsesInterface interface {
 	ListSelectedJobGroupsWithResponse(ctx context.Context, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListSelectedJobGroupsResponse, error)
 
 	// CancelSelectionWithBodyWithResponse request with any body
-	CancelSelectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error)
+	CancelSelectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CancelSelectionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error)
 
-	CancelSelectionWithResponse(ctx context.Context, workspace WorkspaceId, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error)
+	CancelSelectionWithResponse(ctx context.Context, workspace WorkspaceId, params *CancelSelectionParams, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error)
 
 	// GetQueueCountWithResponse request
 	GetQueueCountWithResponse(ctx context.Context, workspace WorkspaceId, params *GetQueueCountParams, reqEditors ...RequestEditorFn) (*GetQueueCountResponse, error)
@@ -49850,6 +49966,11 @@ type ClientWithResponsesInterface interface {
 	ForceCancelQueuedJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ForceCancelQueuedJobResponse, error)
 
 	ForceCancelQueuedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body ForceCancelQueuedJobJSONRequestBody, reqEditors ...RequestEditorFn) (*ForceCancelQueuedJobResponse, error)
+
+	// GetStartedAtByIdsWithBodyWithResponse request with any body
+	GetStartedAtByIdsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetStartedAtByIdsResponse, error)
+
+	GetStartedAtByIdsWithResponse(ctx context.Context, workspace WorkspaceId, body GetStartedAtByIdsJSONRequestBody, reqEditors ...RequestEditorFn) (*GetStartedAtByIdsResponse, error)
 
 	// ResumeSuspendedJobGetWithResponse request
 	ResumeSuspendedJobGetWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobGetParams, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobGetResponse, error)
@@ -50416,10 +50537,10 @@ type ClientWithResponsesInterface interface {
 	ArchiveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ArchiveWorkspaceResponse, error)
 
 	// ListAvailableTeamsChannelsWithResponse request
-	ListAvailableTeamsChannelsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAvailableTeamsChannelsResponse, error)
+	ListAvailableTeamsChannelsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsChannelsParams, reqEditors ...RequestEditorFn) (*ListAvailableTeamsChannelsResponse, error)
 
 	// ListAvailableTeamsIdsWithResponse request
-	ListAvailableTeamsIdsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAvailableTeamsIdsResponse, error)
+	ListAvailableTeamsIdsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsIdsParams, reqEditors ...RequestEditorFn) (*ListAvailableTeamsIdsResponse, error)
 
 	// ChangeWorkspaceColorWithBodyWithResponse request with any body
 	ChangeWorkspaceColorWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceColorResponse, error)
@@ -52468,28 +52589,6 @@ func (r SendMessageToConversationResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SendMessageToConversationResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type SyncTeamsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *[]TeamInfo
-}
-
-// Status returns HTTPResponse.Status
-func (r SyncTeamsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r SyncTeamsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -57475,6 +57574,28 @@ func (r ForceCancelQueuedJobResponse) StatusCode() int {
 	return 0
 }
 
+type GetStartedAtByIdsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]time.Time
+}
+
+// Status returns HTTPResponse.Status
+func (r GetStartedAtByIdsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetStartedAtByIdsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ResumeSuspendedJobGetResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -60714,8 +60835,6 @@ type ListAvailableTeamsChannelsResponse struct {
 	JSON200      *[]struct {
 		ChannelId   *string `json:"channel_id,omitempty"`
 		ChannelName *string `json:"channel_name,omitempty"`
-		ServiceUrl  *string `json:"service_url,omitempty"`
-		TenantId    *string `json:"tenant_id,omitempty"`
 	}
 }
 
@@ -63143,15 +63262,6 @@ func (c *ClientWithResponses) SendMessageToConversationWithResponse(ctx context.
 	return ParseSendMessageToConversationResponse(rsp)
 }
 
-// SyncTeamsWithResponse request returning *SyncTeamsResponse
-func (c *ClientWithResponses) SyncTeamsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SyncTeamsResponse, error) {
-	rsp, err := c.SyncTeams(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSyncTeamsResponse(rsp)
-}
-
 // ListAvailableScopesWithResponse request returning *ListAvailableScopesResponse
 func (c *ClientWithResponses) ListAvailableScopesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAvailableScopesResponse, error) {
 	rsp, err := c.ListAvailableScopes(ctx, reqEditors...)
@@ -65301,16 +65411,16 @@ func (c *ClientWithResponses) ListSelectedJobGroupsWithResponse(ctx context.Cont
 }
 
 // CancelSelectionWithBodyWithResponse request with arbitrary body returning *CancelSelectionResponse
-func (c *ClientWithResponses) CancelSelectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error) {
-	rsp, err := c.CancelSelectionWithBody(ctx, workspace, contentType, body, reqEditors...)
+func (c *ClientWithResponses) CancelSelectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CancelSelectionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error) {
+	rsp, err := c.CancelSelectionWithBody(ctx, workspace, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseCancelSelectionResponse(rsp)
 }
 
-func (c *ClientWithResponses) CancelSelectionWithResponse(ctx context.Context, workspace WorkspaceId, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error) {
-	rsp, err := c.CancelSelection(ctx, workspace, body, reqEditors...)
+func (c *ClientWithResponses) CancelSelectionWithResponse(ctx context.Context, workspace WorkspaceId, params *CancelSelectionParams, body CancelSelectionJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error) {
+	rsp, err := c.CancelSelection(ctx, workspace, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -65837,6 +65947,23 @@ func (c *ClientWithResponses) ForceCancelQueuedJobWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseForceCancelQueuedJobResponse(rsp)
+}
+
+// GetStartedAtByIdsWithBodyWithResponse request with arbitrary body returning *GetStartedAtByIdsResponse
+func (c *ClientWithResponses) GetStartedAtByIdsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetStartedAtByIdsResponse, error) {
+	rsp, err := c.GetStartedAtByIdsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetStartedAtByIdsResponse(rsp)
+}
+
+func (c *ClientWithResponses) GetStartedAtByIdsWithResponse(ctx context.Context, workspace WorkspaceId, body GetStartedAtByIdsJSONRequestBody, reqEditors ...RequestEditorFn) (*GetStartedAtByIdsResponse, error) {
+	rsp, err := c.GetStartedAtByIds(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetStartedAtByIdsResponse(rsp)
 }
 
 // ResumeSuspendedJobGetWithResponse request returning *ResumeSuspendedJobGetResponse
@@ -67646,8 +67773,8 @@ func (c *ClientWithResponses) ArchiveWorkspaceWithResponse(ctx context.Context, 
 }
 
 // ListAvailableTeamsChannelsWithResponse request returning *ListAvailableTeamsChannelsResponse
-func (c *ClientWithResponses) ListAvailableTeamsChannelsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAvailableTeamsChannelsResponse, error) {
-	rsp, err := c.ListAvailableTeamsChannels(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListAvailableTeamsChannelsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsChannelsParams, reqEditors ...RequestEditorFn) (*ListAvailableTeamsChannelsResponse, error) {
+	rsp, err := c.ListAvailableTeamsChannels(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -67655,8 +67782,8 @@ func (c *ClientWithResponses) ListAvailableTeamsChannelsWithResponse(ctx context
 }
 
 // ListAvailableTeamsIdsWithResponse request returning *ListAvailableTeamsIdsResponse
-func (c *ClientWithResponses) ListAvailableTeamsIdsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAvailableTeamsIdsResponse, error) {
-	rsp, err := c.ListAvailableTeamsIds(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListAvailableTeamsIdsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsIdsParams, reqEditors ...RequestEditorFn) (*ListAvailableTeamsIdsResponse, error) {
+	rsp, err := c.ListAvailableTeamsIds(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -70334,32 +70461,6 @@ func ParseSendMessageToConversationResponse(rsp *http.Response) (*SendMessageToC
 	response := &SendMessageToConversationResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseSyncTeamsResponse parses an HTTP response from a SyncTeamsWithResponse call
-func ParseSyncTeamsResponse(rsp *http.Response) (*SyncTeamsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &SyncTeamsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []TeamInfo
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
 	}
 
 	return response, nil
@@ -75309,6 +75410,32 @@ func ParseForceCancelQueuedJobResponse(rsp *http.Response) (*ForceCancelQueuedJo
 	return response, nil
 }
 
+// ParseGetStartedAtByIdsResponse parses an HTTP response from a GetStartedAtByIdsWithResponse call
+func ParseGetStartedAtByIdsResponse(rsp *http.Response) (*GetStartedAtByIdsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetStartedAtByIdsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []time.Time
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseResumeSuspendedJobGetResponse parses an HTTP response from a ResumeSuspendedJobGetWithResponse call
 func ParseResumeSuspendedJobGetResponse(rsp *http.Response) (*ResumeSuspendedJobGetResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -78449,8 +78576,6 @@ func ParseListAvailableTeamsChannelsResponse(rsp *http.Response) (*ListAvailable
 		var dest []struct {
 			ChannelId   *string `json:"channel_id,omitempty"`
 			ChannelName *string `json:"channel_name,omitempty"`
-			ServiceUrl  *string `json:"service_url,omitempty"`
-			TenantId    *string `json:"tenant_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
