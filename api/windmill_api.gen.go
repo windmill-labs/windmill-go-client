@@ -5666,11 +5666,13 @@ type CreateAccountJSONBody struct {
 	CcClientSecret *string `json:"cc_client_secret,omitempty"`
 
 	// CcTokenUrl OAuth token URL override for resource-level authentication (client_credentials flow only)
-	CcTokenUrl   *string `json:"cc_token_url,omitempty"`
-	Client       string  `json:"client"`
-	ExpiresIn    int     `json:"expires_in"`
-	GrantType    *string `json:"grant_type,omitempty"`
-	RefreshToken *string `json:"refresh_token,omitempty"`
+	CcTokenUrl *string `json:"cc_token_url,omitempty"`
+	Client     string  `json:"client"`
+	ExpiresIn  int     `json:"expires_in"`
+	GrantType  *string `json:"grant_type,omitempty"`
+
+	// RefreshToken OAuth refresh token. For authorization_code flow, this contains the actual refresh token. For client_credentials flow, this must be set to an empty string.
+	RefreshToken string `json:"refresh_token"`
 }
 
 // RefreshTokenJSONBody defines parameters for RefreshToken.
