@@ -1151,6 +1151,15 @@ type DeleteGcpSubscription struct {
 // DeliveryType defines model for DeliveryType.
 type DeliveryType string
 
+// DependencyMap defines model for DependencyMap.
+type DependencyMap struct {
+	ImportedPath   *string `json:"imported_path"`
+	ImporterKind   *string `json:"importer_kind"`
+	ImporterNodeId *string `json:"importer_node_id"`
+	ImporterPath   *string `json:"importer_path"`
+	WorkspaceId    *string `json:"workspace_id"`
+}
+
 // DucklakeSettings defines model for DucklakeSettings.
 type DucklakeSettings struct {
 	Ducklakes map[string]struct {
@@ -1427,7 +1436,8 @@ type EditVariable struct {
 
 // EditWebsocketTrigger defines model for EditWebsocketTrigger.
 type EditWebsocketTrigger struct {
-	CanReturnMessage bool `json:"can_return_message"`
+	CanReturnErrorResult bool `json:"can_return_error_result"`
+	CanReturnMessage     bool `json:"can_return_message"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -2397,8 +2407,9 @@ type NewTokenImpersonate struct {
 
 // NewWebsocketTrigger defines model for NewWebsocketTrigger.
 type NewWebsocketTrigger struct {
-	CanReturnMessage bool  `json:"can_return_message"`
-	Enabled          *bool `json:"enabled,omitempty"`
+	CanReturnErrorResult bool  `json:"can_return_error_result"`
+	CanReturnMessage     bool  `json:"can_return_message"`
+	Enabled              *bool `json:"enabled,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -9561,6 +9572,9 @@ type ClientInterface interface {
 	// GetCopilotInfo request
 	GetCopilotInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetDependencyMap request
+	GetDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetDeployTo request
 	GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9600,6 +9614,9 @@ type ClientInterface interface {
 
 	// GetPremiumInfo request
 	GetPremiumInfo(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RebuildDependencyMap request
+	RebuildDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunSlackMessageTestJobWithBody request with any body
 	RunSlackMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17745,6 +17762,18 @@ func (c *Client) GetCopilotInfo(ctx context.Context, workspace WorkspaceId, reqE
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDependencyMapRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetDeployToRequest(c.Server, workspace)
 	if err != nil {
@@ -17903,6 +17932,18 @@ func (c *Client) UpdateOperatorSettings(ctx context.Context, workspace Workspace
 
 func (c *Client) GetPremiumInfo(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPremiumInfoRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RebuildDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRebuildDependencyMapRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -47367,6 +47408,40 @@ func NewGetCopilotInfoRequest(server string, workspace WorkspaceId) (*http.Reque
 	return req, nil
 }
 
+// NewGetDependencyMapRequest generates requests for GetDependencyMap
+func NewGetDependencyMapRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_dependency_map", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetDeployToRequest generates requests for GetDeployTo
 func NewGetDeployToRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -47816,6 +47891,40 @@ func NewGetPremiumInfoRequest(server string, workspace WorkspaceId, params *GetP
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRebuildDependencyMapRequest generates requests for RebuildDependencyMap
+func NewRebuildDependencyMapRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/rebuild_dependency_map", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -50680,6 +50789,9 @@ type ClientWithResponsesInterface interface {
 	// GetCopilotInfoWithResponse request
 	GetCopilotInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCopilotInfoResponse, error)
 
+	// GetDependencyMapWithResponse request
+	GetDependencyMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDependencyMapResponse, error)
+
 	// GetDeployToWithResponse request
 	GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error)
 
@@ -50719,6 +50831,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetPremiumInfoWithResponse request
 	GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error)
+
+	// RebuildDependencyMapWithResponse request
+	RebuildDependencyMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*RebuildDependencyMapResponse, error)
 
 	// RunSlackMessageTestJobWithBodyWithResponse request with any body
 	RunSlackMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error)
@@ -61537,6 +61652,28 @@ func (r GetCopilotInfoResponse) StatusCode() int {
 	return 0
 }
 
+type GetDependencyMapResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]DependencyMap
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDependencyMapResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDependencyMapResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetDeployToResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -61832,6 +61969,27 @@ func (r GetPremiumInfoResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetPremiumInfoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RebuildDependencyMapResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RebuildDependencyMapResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RebuildDependencyMapResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -68246,6 +68404,15 @@ func (c *ClientWithResponses) GetCopilotInfoWithResponse(ctx context.Context, wo
 	return ParseGetCopilotInfoResponse(rsp)
 }
 
+// GetDependencyMapWithResponse request returning *GetDependencyMapResponse
+func (c *ClientWithResponses) GetDependencyMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDependencyMapResponse, error) {
+	rsp, err := c.GetDependencyMap(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDependencyMapResponse(rsp)
+}
+
 // GetDeployToWithResponse request returning *GetDeployToResponse
 func (c *ClientWithResponses) GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error) {
 	rsp, err := c.GetDeployTo(ctx, workspace, reqEditors...)
@@ -68368,6 +68535,15 @@ func (c *ClientWithResponses) GetPremiumInfoWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseGetPremiumInfoResponse(rsp)
+}
+
+// RebuildDependencyMapWithResponse request returning *RebuildDependencyMapResponse
+func (c *ClientWithResponses) RebuildDependencyMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*RebuildDependencyMapResponse, error) {
+	rsp, err := c.RebuildDependencyMap(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRebuildDependencyMapResponse(rsp)
 }
 
 // RunSlackMessageTestJobWithBodyWithResponse request with arbitrary body returning *RunSlackMessageTestJobResponse
@@ -79250,6 +79426,32 @@ func ParseGetCopilotInfoResponse(rsp *http.Response) (*GetCopilotInfoResponse, e
 	return response, nil
 }
 
+// ParseGetDependencyMapResponse parses an HTTP response from a GetDependencyMapWithResponse call
+func ParseGetDependencyMapResponse(rsp *http.Response) (*GetDependencyMapResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDependencyMapResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []DependencyMap
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetDeployToResponse parses an HTTP response from a GetDeployToWithResponse call
 func ParseGetDeployToResponse(rsp *http.Response) (*GetDeployToResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -79558,6 +79760,22 @@ func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, e
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseRebuildDependencyMapResponse parses an HTTP response from a RebuildDependencyMapWithResponse call
+func ParseRebuildDependencyMapResponse(rsp *http.Response) (*RebuildDependencyMapResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RebuildDependencyMapResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
