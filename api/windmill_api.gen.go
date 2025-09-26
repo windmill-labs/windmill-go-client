@@ -9320,6 +9320,9 @@ type ClientInterface interface {
 
 	UpdateSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ConvertUserToGroup request
+	ConvertUserToGroup(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteUser request
 	DeleteUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16612,6 +16615,18 @@ func (c *Client) UpdateSqsTriggerWithBody(ctx context.Context, workspace Workspa
 
 func (c *Client) UpdateSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateSqsTriggerRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConvertUserToGroup(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConvertUserToGroupRequest(c.Server, workspace, username)
 	if err != nil {
 		return nil, err
 	}
@@ -44398,6 +44413,47 @@ func NewUpdateSqsTriggerRequestWithBody(server string, workspace WorkspaceId, pa
 	return req, nil
 }
 
+// NewConvertUserToGroupRequest generates requests for ConvertUserToGroup
+func NewConvertUserToGroupRequest(server string, workspace WorkspaceId, username string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "username", runtime.ParamLocationPath, username)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/users/convert_to_group/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewDeleteUserRequest generates requests for DeleteUser
 func NewDeleteUserRequest(server string, workspace WorkspaceId, username string) (*http.Request, error) {
 	var err error
@@ -50536,6 +50592,9 @@ type ClientWithResponsesInterface interface {
 	UpdateSqsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateSqsTriggerResponse, error)
 
 	UpdateSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateSqsTriggerResponse, error)
+
+	// ConvertUserToGroupWithResponse request
+	ConvertUserToGroupWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*ConvertUserToGroupResponse, error)
 
 	// DeleteUserWithResponse request
 	DeleteUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*DeleteUserResponse, error)
@@ -60300,6 +60359,27 @@ func (r UpdateSqsTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type ConvertUserToGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ConvertUserToGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ConvertUserToGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DeleteUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -67580,6 +67660,15 @@ func (c *ClientWithResponses) UpdateSqsTriggerWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseUpdateSqsTriggerResponse(rsp)
+}
+
+// ConvertUserToGroupWithResponse request returning *ConvertUserToGroupResponse
+func (c *ClientWithResponses) ConvertUserToGroupWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*ConvertUserToGroupResponse, error) {
+	rsp, err := c.ConvertUserToGroup(ctx, workspace, username, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConvertUserToGroupResponse(rsp)
 }
 
 // DeleteUserWithResponse request returning *DeleteUserResponse
@@ -78089,6 +78178,22 @@ func ParseUpdateSqsTriggerResponse(rsp *http.Response) (*UpdateSqsTriggerRespons
 	}
 
 	response := &UpdateSqsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseConvertUserToGroupResponse parses an HTTP response from a ConvertUserToGroupWithResponse call
+func ParseConvertUserToGroupResponse(rsp *http.Response) (*ConvertUserToGroupResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ConvertUserToGroupResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
