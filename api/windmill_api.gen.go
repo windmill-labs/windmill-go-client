@@ -936,14 +936,15 @@ type AssetUsageKind string
 
 // AuditLog defines model for AuditLog.
 type AuditLog struct {
-	ActionKind AuditLogActionKind      `json:"action_kind"`
-	Id         int                     `json:"id"`
-	Operation  AuditLogOperation       `json:"operation"`
-	Parameters *map[string]interface{} `json:"parameters,omitempty"`
-	Resource   *string                 `json:"resource,omitempty"`
-	Span       *string                 `json:"span,omitempty"`
-	Timestamp  time.Time               `json:"timestamp"`
-	Username   string                  `json:"username"`
+	ActionKind  AuditLogActionKind      `json:"action_kind"`
+	Id          int                     `json:"id"`
+	Operation   AuditLogOperation       `json:"operation"`
+	Parameters  *map[string]interface{} `json:"parameters,omitempty"`
+	Resource    *string                 `json:"resource,omitempty"`
+	Span        *string                 `json:"span,omitempty"`
+	Timestamp   time.Time               `json:"timestamp"`
+	Username    string                  `json:"username"`
+	WorkspaceId string                  `json:"workspace_id"`
 }
 
 // AuditLogActionKind defines model for AuditLog.ActionKind.
