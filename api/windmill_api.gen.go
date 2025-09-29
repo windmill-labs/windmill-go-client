@@ -3683,6 +3683,15 @@ type RemoveBlacklistAgentTokenJSONBody struct {
 	Token string `json:"token"`
 }
 
+// ListAutoscalingEventsParams defines parameters for ListAutoscalingEvents.
+type ListAutoscalingEventsParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
 // UpdateConfigJSONBody defines parameters for UpdateConfig.
 type UpdateConfigJSONBody = interface{}
 
@@ -7800,7 +7809,7 @@ type ClientInterface interface {
 	ListConfigs(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAutoscalingEvents request
-	ListAutoscalingEvents(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListAutoscalingEvents(ctx context.Context, workerGroup string, params *ListAutoscalingEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAvailablePythonVersions request
 	ListAvailablePythonVersions(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9930,8 +9939,8 @@ func (c *Client) ListConfigs(ctx context.Context, reqEditors ...RequestEditorFn)
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListAutoscalingEvents(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListAutoscalingEventsRequest(c.Server, workerGroup)
+func (c *Client) ListAutoscalingEvents(ctx context.Context, workerGroup string, params *ListAutoscalingEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAutoscalingEventsRequest(c.Server, workerGroup, params)
 	if err != nil {
 		return nil, err
 	}
@@ -18854,7 +18863,7 @@ func NewListConfigsRequest(server string) (*http.Request, error) {
 }
 
 // NewListAutoscalingEventsRequest generates requests for ListAutoscalingEvents
-func NewListAutoscalingEventsRequest(server string, workerGroup string) (*http.Request, error) {
+func NewListAutoscalingEventsRequest(server string, workerGroup string, params *ListAutoscalingEventsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -18877,6 +18886,44 @@ func NewListAutoscalingEventsRequest(server string, workerGroup string) (*http.R
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -49073,7 +49120,7 @@ type ClientWithResponsesInterface interface {
 	ListConfigsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListConfigsResponse, error)
 
 	// ListAutoscalingEventsWithResponse request
-	ListAutoscalingEventsWithResponse(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*ListAutoscalingEventsResponse, error)
+	ListAutoscalingEventsWithResponse(ctx context.Context, workerGroup string, params *ListAutoscalingEventsParams, reqEditors ...RequestEditorFn) (*ListAutoscalingEventsResponse, error)
 
 	// ListAvailablePythonVersionsWithResponse request
 	ListAvailablePythonVersionsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAvailablePythonVersionsResponse, error)
@@ -62794,8 +62841,8 @@ func (c *ClientWithResponses) ListConfigsWithResponse(ctx context.Context, reqEd
 }
 
 // ListAutoscalingEventsWithResponse request returning *ListAutoscalingEventsResponse
-func (c *ClientWithResponses) ListAutoscalingEventsWithResponse(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*ListAutoscalingEventsResponse, error) {
-	rsp, err := c.ListAutoscalingEvents(ctx, workerGroup, reqEditors...)
+func (c *ClientWithResponses) ListAutoscalingEventsWithResponse(ctx context.Context, workerGroup string, params *ListAutoscalingEventsParams, reqEditors ...RequestEditorFn) (*ListAutoscalingEventsResponse, error) {
+	rsp, err := c.ListAutoscalingEvents(ctx, workerGroup, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
