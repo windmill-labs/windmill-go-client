@@ -242,6 +242,13 @@ const (
 	Inline DynamicInputDataRunnableRef1Source = "inline"
 )
 
+// Defines values for FlowConversationMessageMessageType.
+const (
+	FlowConversationMessageMessageTypeAssistant FlowConversationMessageMessageType = "assistant"
+	FlowConversationMessageMessageTypeSystem    FlowConversationMessageMessageType = "system"
+	FlowConversationMessageMessageTypeUser      FlowConversationMessageMessageType = "user"
+)
+
 // Defines values for FlowStatusFailureModuleAgentActions0Type.
 const (
 	FlowStatusFailureModuleAgentActions0TypeToolCall FlowStatusFailureModuleAgentActions0Type = "tool_call"
@@ -1553,6 +1560,54 @@ type Flow struct {
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
+// FlowConversation defines model for FlowConversation.
+type FlowConversation struct {
+	// CreatedAt When the conversation was created
+	CreatedAt time.Time `json:"created_at"`
+
+	// CreatedBy Username who created the conversation
+	CreatedBy string `json:"created_by"`
+
+	// FlowPath Path of the flow this conversation is for
+	FlowPath string `json:"flow_path"`
+
+	// Id Unique identifier for the conversation
+	Id openapi_types.UUID `json:"id"`
+
+	// Title Optional title for the conversation
+	Title *string `json:"title"`
+
+	// UpdatedAt When the conversation was last updated
+	UpdatedAt time.Time `json:"updated_at"`
+
+	// WorkspaceId The workspace ID where the conversation belongs
+	WorkspaceId string `json:"workspace_id"`
+}
+
+// FlowConversationMessage defines model for FlowConversationMessage.
+type FlowConversationMessage struct {
+	// Content The message content
+	Content string `json:"content"`
+
+	// ConversationId The conversation this message belongs to
+	ConversationId openapi_types.UUID `json:"conversation_id"`
+
+	// CreatedAt When the message was created
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id Unique identifier for the message
+	Id openapi_types.UUID `json:"id"`
+
+	// JobId Associated job ID if this message came from a flow run
+	JobId *openapi_types.UUID `json:"job_id"`
+
+	// MessageType Type of the message
+	MessageType FlowConversationMessageMessageType `json:"message_type"`
+}
+
+// FlowConversationMessageMessageType Type of the message
+type FlowConversationMessageMessageType string
+
 // FlowMetadata defines model for FlowMetadata.
 type FlowMetadata struct {
 	Archived            bool       `json:"archived"`
@@ -1661,7 +1716,10 @@ type FlowStatusFailureModuleType string
 
 // FlowValue defines model for FlowValue.
 type FlowValue struct {
-	CacheTtl               *float32            `json:"cache_ttl,omitempty"`
+	CacheTtl *float32 `json:"cache_ttl,omitempty"`
+
+	// ChatInputEnabled Whether this flow accepts chat-style input
+	ChatInputEnabled       *bool               `json:"chat_input_enabled,omitempty"`
 	ConcurrencyKey         *string             `json:"concurrency_key,omitempty"`
 	ConcurrencyTimeWindowS *float32            `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *float32            `json:"concurrent_limit,omitempty"`
@@ -3027,6 +3085,7 @@ type UserWorkspaceList struct {
 	Workspaces []struct {
 		Color             string            `json:"color"`
 		CreatedBy         *string           `json:"created_by"`
+		Disabled          bool              `json:"disabled"`
 		Id                string            `json:"id"`
 		Name              string            `json:"name"`
 		OperatorSettings  *OperatorSettings `json:"operator_settings"`
@@ -3321,7 +3380,10 @@ type SchemasFlowStatusModuleType string
 
 // SchemasFlowValue defines model for schemas-FlowValue.
 type SchemasFlowValue struct {
-	CacheTtl               *float32            `json:"cache_ttl,omitempty"`
+	CacheTtl *float32 `json:"cache_ttl,omitempty"`
+
+	// ChatInputEnabled Whether this flow accepts chat-style input
+	ChatInputEnabled       *bool               `json:"chat_input_enabled,omitempty"`
 	ConcurrencyKey         *string             `json:"concurrency_key,omitempty"`
 	ConcurrencyTimeWindowS *float32            `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *float32            `json:"concurrent_limit,omitempty"`
@@ -4379,6 +4441,27 @@ type UnstarJSONBody struct {
 // UnstarJSONBodyFavoriteKind defines parameters for Unstar.
 type UnstarJSONBodyFavoriteKind string
 
+// ListFlowConversationsParams defines parameters for ListFlowConversations.
+type ListFlowConversationsParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// FlowPath filter conversations by flow path
+	FlowPath *string `form:"flow_path,omitempty" json:"flow_path,omitempty"`
+}
+
+// ListConversationMessagesParams defines parameters for ListConversationMessages.
+type ListConversationMessagesParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
 // ArchiveFlowByPathJSONBody defines parameters for ArchiveFlowByPath.
 type ArchiveFlowByPathJSONBody struct {
 	Archived *bool `json:"archived,omitempty"`
@@ -5324,6 +5407,9 @@ type RunFlowByPathParams struct {
 
 	// InvisibleToOwner make the run invisible to the the flow owner (default false)
 	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
+
+	// MemoryId memory ID for chat-enabled flows
+	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
 // RunScriptByHashJSONBody defines parameters for RunScriptByHash.
@@ -5413,6 +5499,174 @@ type RunFlowPreviewParams struct {
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 }
 
+// RunAndStreamFlowByPathGetParams defines parameters for RunAndStreamFlowByPathGet.
+type RunAndStreamFlowByPathGetParams struct {
+	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// Payload The base64 encoded payload that has been encoded as a JSON. e.g how to encode such payload encodeURIComponent
+	// `encodeURIComponent(btoa(JSON.stringify({a: 2})))`
+	Payload *Payload `form:"payload,omitempty" json:"payload,omitempty"`
+
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// MemoryId memory ID for chat-enabled flows
+	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// PollDelayMs delay between polling for job updates in milliseconds
+	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
+}
+
+// RunAndStreamFlowByPathParams defines parameters for RunAndStreamFlowByPath.
+type RunAndStreamFlowByPathParams struct {
+	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// MemoryId memory ID for chat-enabled flows
+	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// PollDelayMs delay between polling for job updates in milliseconds
+	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
+}
+
+// RunAndStreamScriptByHashGetParams defines parameters for RunAndStreamScriptByHashGet.
+type RunAndStreamScriptByHashGetParams struct {
+	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
+	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// Tag Override the tag to use
+	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// CacheTtl Override the cache time to live (in seconds). Can not be used to disable caching, only override with a new cache ttl
+	CacheTtl *CacheTtl `form:"cache_ttl,omitempty" json:"cache_ttl,omitempty"`
+
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// Payload The base64 encoded payload that has been encoded as a JSON. e.g how to encode such payload encodeURIComponent
+	// `encodeURIComponent(btoa(JSON.stringify({a: 2})))`
+	Payload *Payload `form:"payload,omitempty" json:"payload,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// PollDelayMs delay between polling for job updates in milliseconds
+	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
+}
+
+// RunAndStreamScriptByHashParams defines parameters for RunAndStreamScriptByHash.
+type RunAndStreamScriptByHashParams struct {
+	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
+	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// Tag Override the tag to use
+	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// CacheTtl Override the cache time to live (in seconds). Can not be used to disable caching, only override with a new cache ttl
+	CacheTtl *CacheTtl `form:"cache_ttl,omitempty" json:"cache_ttl,omitempty"`
+
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// PollDelayMs delay between polling for job updates in milliseconds
+	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
+}
+
+// RunAndStreamScriptByPathGetParams defines parameters for RunAndStreamScriptByPathGet.
+type RunAndStreamScriptByPathGetParams struct {
+	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
+	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// Tag Override the tag to use
+	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// CacheTtl Override the cache time to live (in seconds). Can not be used to disable caching, only override with a new cache ttl
+	CacheTtl *CacheTtl `form:"cache_ttl,omitempty" json:"cache_ttl,omitempty"`
+
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// Payload The base64 encoded payload that has been encoded as a JSON. e.g how to encode such payload encodeURIComponent
+	// `encodeURIComponent(btoa(JSON.stringify({a: 2})))`
+	Payload *Payload `form:"payload,omitempty" json:"payload,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// PollDelayMs delay between polling for job updates in milliseconds
+	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
+}
+
+// RunAndStreamScriptByPathParams defines parameters for RunAndStreamScriptByPath.
+type RunAndStreamScriptByPathParams struct {
+	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
+	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// Tag Override the tag to use
+	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// CacheTtl Override the cache time to live (in seconds). Can not be used to disable caching, only override with a new cache ttl
+	CacheTtl *CacheTtl `form:"cache_ttl,omitempty" json:"cache_ttl,omitempty"`
+
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// PollDelayMs delay between polling for job updates in milliseconds
+	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
+}
+
 // RunWaitResultFlowByPathParams defines parameters for RunWaitResultFlowByPath.
 type RunWaitResultFlowByPathParams struct {
 	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
@@ -5427,6 +5681,9 @@ type RunWaitResultFlowByPathParams struct {
 
 	// SkipPreprocessor skip the preprocessor
 	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// MemoryId memory ID for chat-enabled flows
+	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
 // RunWaitResultScriptByPathGetParams defines parameters for RunWaitResultScriptByPathGet.
@@ -6597,6 +6854,15 @@ type RunScriptPreviewJSONRequestBody = Preview
 
 // RunFlowPreviewJSONRequestBody defines body for RunFlowPreview for application/json ContentType.
 type RunFlowPreviewJSONRequestBody = FlowPreview
+
+// RunAndStreamFlowByPathJSONRequestBody defines body for RunAndStreamFlowByPath for application/json ContentType.
+type RunAndStreamFlowByPathJSONRequestBody = ScriptArgs
+
+// RunAndStreamScriptByHashJSONRequestBody defines body for RunAndStreamScriptByHash for application/json ContentType.
+type RunAndStreamScriptByHashJSONRequestBody = ScriptArgs
+
+// RunAndStreamScriptByPathJSONRequestBody defines body for RunAndStreamScriptByPath for application/json ContentType.
+type RunAndStreamScriptByPathJSONRequestBody = ScriptArgs
 
 // RunWaitResultFlowByPathJSONRequestBody defines body for RunWaitResultFlowByPath for application/json ContentType.
 type RunWaitResultFlowByPathJSONRequestBody = ScriptArgs
@@ -8214,6 +8480,9 @@ type ClientInterface interface {
 	// GetPublicSecretOfApp request
 	GetPublicSecretOfApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetPublicSecretOfLatestVersionOfApp request
+	GetPublicSecretOfLatestVersionOfApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SignS3ObjectsWithBody request with any body
 	SignS3ObjectsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8333,6 +8602,15 @@ type ClientInterface interface {
 	UnstarWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	Unstar(ctx context.Context, workspace WorkspaceId, body UnstarJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteFlowConversation request
+	DeleteFlowConversation(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListFlowConversations request
+	ListFlowConversations(ctx context.Context, workspace WorkspaceId, params *ListFlowConversationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListConversationMessages request
+	ListConversationMessages(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, params *ListConversationMessagesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ArchiveFlowByPathWithBody request with any body
 	ArchiveFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8774,6 +9052,30 @@ type ClientInterface interface {
 	RunFlowPreviewWithBody(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunFlowPreview(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunAndStreamFlowByPathGet request
+	RunAndStreamFlowByPathGet(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunAndStreamFlowByPathWithBody request with any body
+	RunAndStreamFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunAndStreamFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, body RunAndStreamFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunAndStreamScriptByHashGet request
+	RunAndStreamScriptByHashGet(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunAndStreamScriptByHashWithBody request with any body
+	RunAndStreamScriptByHashWithBody(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunAndStreamScriptByHash(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashParams, body RunAndStreamScriptByHashJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunAndStreamScriptByPathGet request
+	RunAndStreamScriptByPathGet(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunAndStreamScriptByPathWithBody request with any body
+	RunAndStreamScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunAndStreamScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunWaitResultFlowByPathWithBody request with any body
 	RunWaitResultFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11703,6 +12005,18 @@ func (c *Client) GetPublicSecretOfApp(ctx context.Context, workspace WorkspaceId
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetPublicSecretOfLatestVersionOfApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPublicSecretOfLatestVersionOfAppRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) SignS3ObjectsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignS3ObjectsRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -12221,6 +12535,42 @@ func (c *Client) UnstarWithBody(ctx context.Context, workspace WorkspaceId, cont
 
 func (c *Client) Unstar(ctx context.Context, workspace WorkspaceId, body UnstarJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUnstarRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteFlowConversation(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteFlowConversationRequest(c.Server, workspace, conversationId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListFlowConversations(ctx context.Context, workspace WorkspaceId, params *ListFlowConversationsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListFlowConversationsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListConversationMessages(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, params *ListConversationMessagesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListConversationMessagesRequest(c.Server, workspace, conversationId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -14177,6 +14527,114 @@ func (c *Client) RunFlowPreviewWithBody(ctx context.Context, workspace Workspace
 
 func (c *Client) RunFlowPreview(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunFlowPreviewRequest(c.Server, workspace, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAndStreamFlowByPathGet(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathGetParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamFlowByPathGetRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAndStreamFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamFlowByPathRequestWithBody(c.Server, workspace, path, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAndStreamFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, body RunAndStreamFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamFlowByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAndStreamScriptByHashGet(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashGetParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamScriptByHashGetRequest(c.Server, workspace, hash, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAndStreamScriptByHashWithBody(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamScriptByHashRequestWithBody(c.Server, workspace, hash, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAndStreamScriptByHash(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashParams, body RunAndStreamScriptByHashJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamScriptByHashRequest(c.Server, workspace, hash, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAndStreamScriptByPathGet(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathGetParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamScriptByPathGetRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAndStreamScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamScriptByPathRequestWithBody(c.Server, workspace, path, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAndStreamScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamScriptByPathRequest(c.Server, workspace, path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -23721,6 +24179,47 @@ func NewGetPublicSecretOfAppRequest(server string, workspace WorkspaceId, path P
 	return req, nil
 }
 
+// NewGetPublicSecretOfLatestVersionOfAppRequest generates requests for GetPublicSecretOfLatestVersionOfApp
+func NewGetPublicSecretOfLatestVersionOfAppRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/secret_of_latest_version/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewSignS3ObjectsRequest calls the generic SignS3Objects builder with application/json body
 func NewSignS3ObjectsRequest(server string, workspace WorkspaceId, body SignS3ObjectsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -26095,6 +26594,214 @@ func NewUnstarRequestWithBody(server string, workspace WorkspaceId, contentType 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteFlowConversationRequest generates requests for DeleteFlowConversation
+func NewDeleteFlowConversationRequest(server string, workspace WorkspaceId, conversationId openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "conversation_id", runtime.ParamLocationPath, conversationId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flow_conversations/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListFlowConversationsRequest generates requests for ListFlowConversations
+func NewListFlowConversationsRequest(server string, workspace WorkspaceId, params *ListFlowConversationsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flow_conversations/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.FlowPath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "flow_path", runtime.ParamLocationQuery, *params.FlowPath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListConversationMessagesRequest generates requests for ListConversationMessages
+func NewListConversationMessagesRequest(server string, workspace WorkspaceId, conversationId openapi_types.UUID, params *ListConversationMessagesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "conversation_id", runtime.ParamLocationPath, conversationId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flow_conversations/%s/messages", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -35088,6 +35795,22 @@ func NewRunFlowByPathRequestWithBody(server string, workspace WorkspaceId, path 
 
 		}
 
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -35695,6 +36418,1079 @@ func NewRunFlowPreviewRequestWithBody(server string, workspace WorkspaceId, para
 	return req, nil
 }
 
+// NewRunAndStreamFlowByPathGetRequest generates requests for RunAndStreamFlowByPathGet
+func NewRunAndStreamFlowByPathGetRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathGetParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_and_stream/f/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.QueueLimit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Payload != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "payload", runtime.ParamLocationQuery, *params.Payload); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PollDelayMs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "poll_delay_ms", runtime.ParamLocationQuery, *params.PollDelayMs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRunAndStreamFlowByPathRequest calls the generic RunAndStreamFlowByPath builder with application/json body
+func NewRunAndStreamFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, body RunAndStreamFlowByPathJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunAndStreamFlowByPathRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
+}
+
+// NewRunAndStreamFlowByPathRequestWithBody generates requests for RunAndStreamFlowByPath with any type of body
+func NewRunAndStreamFlowByPathRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_and_stream/f/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.QueueLimit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PollDelayMs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "poll_delay_ms", runtime.ParamLocationQuery, *params.PollDelayMs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRunAndStreamScriptByHashGetRequest generates requests for RunAndStreamScriptByHashGet
+func NewRunAndStreamScriptByHashGetRequest(server string, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashGetParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "hash", runtime.ParamLocationPath, hash)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_and_stream/h/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ParentJob != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tag != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CacheTtl != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cache_ttl", runtime.ParamLocationQuery, *params.CacheTtl); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.QueueLimit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Payload != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "payload", runtime.ParamLocationQuery, *params.Payload); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PollDelayMs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "poll_delay_ms", runtime.ParamLocationQuery, *params.PollDelayMs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRunAndStreamScriptByHashRequest calls the generic RunAndStreamScriptByHash builder with application/json body
+func NewRunAndStreamScriptByHashRequest(server string, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashParams, body RunAndStreamScriptByHashJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunAndStreamScriptByHashRequestWithBody(server, workspace, hash, params, "application/json", bodyReader)
+}
+
+// NewRunAndStreamScriptByHashRequestWithBody generates requests for RunAndStreamScriptByHash with any type of body
+func NewRunAndStreamScriptByHashRequestWithBody(server string, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "hash", runtime.ParamLocationPath, hash)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_and_stream/h/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ParentJob != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tag != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CacheTtl != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cache_ttl", runtime.ParamLocationQuery, *params.CacheTtl); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.QueueLimit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PollDelayMs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "poll_delay_ms", runtime.ParamLocationQuery, *params.PollDelayMs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRunAndStreamScriptByPathGetRequest generates requests for RunAndStreamScriptByPathGet
+func NewRunAndStreamScriptByPathGetRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathGetParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_and_stream/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ParentJob != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tag != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CacheTtl != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cache_ttl", runtime.ParamLocationQuery, *params.CacheTtl); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.QueueLimit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Payload != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "payload", runtime.ParamLocationQuery, *params.Payload); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PollDelayMs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "poll_delay_ms", runtime.ParamLocationQuery, *params.PollDelayMs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRunAndStreamScriptByPathRequest calls the generic RunAndStreamScriptByPath builder with application/json body
+func NewRunAndStreamScriptByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunAndStreamScriptByPathRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
+}
+
+// NewRunAndStreamScriptByPathRequestWithBody generates requests for RunAndStreamScriptByPath with any type of body
+func NewRunAndStreamScriptByPathRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_and_stream/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ParentJob != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tag != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CacheTtl != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cache_ttl", runtime.ParamLocationQuery, *params.CacheTtl); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.QueueLimit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PollDelayMs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "poll_delay_ms", runtime.ParamLocationQuery, *params.PollDelayMs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRunWaitResultFlowByPathRequest calls the generic RunWaitResultFlowByPath builder with application/json body
 func NewRunWaitResultFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -35793,6 +37589,22 @@ func NewRunWaitResultFlowByPathRequestWithBody(server string, workspace Workspac
 		if params.SkipPreprocessor != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -49525,6 +51337,9 @@ type ClientWithResponsesInterface interface {
 	// GetPublicSecretOfAppWithResponse request
 	GetPublicSecretOfAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicSecretOfAppResponse, error)
 
+	// GetPublicSecretOfLatestVersionOfAppWithResponse request
+	GetPublicSecretOfLatestVersionOfAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicSecretOfLatestVersionOfAppResponse, error)
+
 	// SignS3ObjectsWithBodyWithResponse request with any body
 	SignS3ObjectsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignS3ObjectsResponse, error)
 
@@ -49644,6 +51459,15 @@ type ClientWithResponsesInterface interface {
 	UnstarWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UnstarResponse, error)
 
 	UnstarWithResponse(ctx context.Context, workspace WorkspaceId, body UnstarJSONRequestBody, reqEditors ...RequestEditorFn) (*UnstarResponse, error)
+
+	// DeleteFlowConversationWithResponse request
+	DeleteFlowConversationWithResponse(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteFlowConversationResponse, error)
+
+	// ListFlowConversationsWithResponse request
+	ListFlowConversationsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFlowConversationsParams, reqEditors ...RequestEditorFn) (*ListFlowConversationsResponse, error)
+
+	// ListConversationMessagesWithResponse request
+	ListConversationMessagesWithResponse(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, params *ListConversationMessagesParams, reqEditors ...RequestEditorFn) (*ListConversationMessagesResponse, error)
 
 	// ArchiveFlowByPathWithBodyWithResponse request with any body
 	ArchiveFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ArchiveFlowByPathResponse, error)
@@ -50085,6 +51909,30 @@ type ClientWithResponsesInterface interface {
 	RunFlowPreviewWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowPreviewResponse, error)
 
 	RunFlowPreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewParams, body RunFlowPreviewJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewResponse, error)
+
+	// RunAndStreamFlowByPathGetWithResponse request
+	RunAndStreamFlowByPathGetWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathGetParams, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByPathGetResponse, error)
+
+	// RunAndStreamFlowByPathWithBodyWithResponse request with any body
+	RunAndStreamFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByPathResponse, error)
+
+	RunAndStreamFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, body RunAndStreamFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByPathResponse, error)
+
+	// RunAndStreamScriptByHashGetWithResponse request
+	RunAndStreamScriptByHashGetWithResponse(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashGetParams, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByHashGetResponse, error)
+
+	// RunAndStreamScriptByHashWithBodyWithResponse request with any body
+	RunAndStreamScriptByHashWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByHashResponse, error)
+
+	RunAndStreamScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashParams, body RunAndStreamScriptByHashJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByHashResponse, error)
+
+	// RunAndStreamScriptByPathGetWithResponse request
+	RunAndStreamScriptByPathGetWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathGetParams, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByPathGetResponse, error)
+
+	// RunAndStreamScriptByPathWithBodyWithResponse request with any body
+	RunAndStreamScriptByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByPathResponse, error)
+
+	RunAndStreamScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByPathResponse, error)
 
 	// RunWaitResultFlowByPathWithBodyWithResponse request with any body
 	RunWaitResultFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error)
@@ -53909,6 +55757,27 @@ func (r GetPublicSecretOfAppResponse) StatusCode() int {
 	return 0
 }
 
+type GetPublicSecretOfLatestVersionOfAppResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPublicSecretOfLatestVersionOfAppResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPublicSecretOfLatestVersionOfAppResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type SignS3ObjectsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -54615,6 +56484,71 @@ func (r UnstarResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UnstarResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteFlowConversationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteFlowConversationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteFlowConversationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListFlowConversationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]FlowConversation
+}
+
+// Status returns HTTPResponse.Status
+func (r ListFlowConversationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListFlowConversationsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListConversationMessagesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]FlowConversationMessage
+}
+
+// Status returns HTTPResponse.Status
+func (r ListConversationMessagesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListConversationMessagesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -57210,6 +59144,132 @@ func (r RunFlowPreviewResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunFlowPreviewResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunAndStreamFlowByPathGetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunAndStreamFlowByPathGetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunAndStreamFlowByPathGetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunAndStreamFlowByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunAndStreamFlowByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunAndStreamFlowByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunAndStreamScriptByHashGetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunAndStreamScriptByHashGetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunAndStreamScriptByHashGetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunAndStreamScriptByHashResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunAndStreamScriptByHashResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunAndStreamScriptByHashResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunAndStreamScriptByPathGetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunAndStreamScriptByPathGetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunAndStreamScriptByPathGetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunAndStreamScriptByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunAndStreamScriptByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunAndStreamScriptByPathResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -64128,6 +66188,15 @@ func (c *ClientWithResponses) GetPublicSecretOfAppWithResponse(ctx context.Conte
 	return ParseGetPublicSecretOfAppResponse(rsp)
 }
 
+// GetPublicSecretOfLatestVersionOfAppWithResponse request returning *GetPublicSecretOfLatestVersionOfAppResponse
+func (c *ClientWithResponses) GetPublicSecretOfLatestVersionOfAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicSecretOfLatestVersionOfAppResponse, error) {
+	rsp, err := c.GetPublicSecretOfLatestVersionOfApp(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPublicSecretOfLatestVersionOfAppResponse(rsp)
+}
+
 // SignS3ObjectsWithBodyWithResponse request with arbitrary body returning *SignS3ObjectsResponse
 func (c *ClientWithResponses) SignS3ObjectsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignS3ObjectsResponse, error) {
 	rsp, err := c.SignS3ObjectsWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -64510,6 +66579,33 @@ func (c *ClientWithResponses) UnstarWithResponse(ctx context.Context, workspace 
 		return nil, err
 	}
 	return ParseUnstarResponse(rsp)
+}
+
+// DeleteFlowConversationWithResponse request returning *DeleteFlowConversationResponse
+func (c *ClientWithResponses) DeleteFlowConversationWithResponse(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, reqEditors ...RequestEditorFn) (*DeleteFlowConversationResponse, error) {
+	rsp, err := c.DeleteFlowConversation(ctx, workspace, conversationId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteFlowConversationResponse(rsp)
+}
+
+// ListFlowConversationsWithResponse request returning *ListFlowConversationsResponse
+func (c *ClientWithResponses) ListFlowConversationsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFlowConversationsParams, reqEditors ...RequestEditorFn) (*ListFlowConversationsResponse, error) {
+	rsp, err := c.ListFlowConversations(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListFlowConversationsResponse(rsp)
+}
+
+// ListConversationMessagesWithResponse request returning *ListConversationMessagesResponse
+func (c *ClientWithResponses) ListConversationMessagesWithResponse(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, params *ListConversationMessagesParams, reqEditors ...RequestEditorFn) (*ListConversationMessagesResponse, error) {
+	rsp, err := c.ListConversationMessages(ctx, workspace, conversationId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListConversationMessagesResponse(rsp)
 }
 
 // ArchiveFlowByPathWithBodyWithResponse request with arbitrary body returning *ArchiveFlowByPathResponse
@@ -65929,6 +68025,84 @@ func (c *ClientWithResponses) RunFlowPreviewWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseRunFlowPreviewResponse(rsp)
+}
+
+// RunAndStreamFlowByPathGetWithResponse request returning *RunAndStreamFlowByPathGetResponse
+func (c *ClientWithResponses) RunAndStreamFlowByPathGetWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathGetParams, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByPathGetResponse, error) {
+	rsp, err := c.RunAndStreamFlowByPathGet(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamFlowByPathGetResponse(rsp)
+}
+
+// RunAndStreamFlowByPathWithBodyWithResponse request with arbitrary body returning *RunAndStreamFlowByPathResponse
+func (c *ClientWithResponses) RunAndStreamFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByPathResponse, error) {
+	rsp, err := c.RunAndStreamFlowByPathWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamFlowByPathResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunAndStreamFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, body RunAndStreamFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByPathResponse, error) {
+	rsp, err := c.RunAndStreamFlowByPath(ctx, workspace, path, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamFlowByPathResponse(rsp)
+}
+
+// RunAndStreamScriptByHashGetWithResponse request returning *RunAndStreamScriptByHashGetResponse
+func (c *ClientWithResponses) RunAndStreamScriptByHashGetWithResponse(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashGetParams, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByHashGetResponse, error) {
+	rsp, err := c.RunAndStreamScriptByHashGet(ctx, workspace, hash, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamScriptByHashGetResponse(rsp)
+}
+
+// RunAndStreamScriptByHashWithBodyWithResponse request with arbitrary body returning *RunAndStreamScriptByHashResponse
+func (c *ClientWithResponses) RunAndStreamScriptByHashWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByHashResponse, error) {
+	rsp, err := c.RunAndStreamScriptByHashWithBody(ctx, workspace, hash, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamScriptByHashResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunAndStreamScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashParams, body RunAndStreamScriptByHashJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByHashResponse, error) {
+	rsp, err := c.RunAndStreamScriptByHash(ctx, workspace, hash, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamScriptByHashResponse(rsp)
+}
+
+// RunAndStreamScriptByPathGetWithResponse request returning *RunAndStreamScriptByPathGetResponse
+func (c *ClientWithResponses) RunAndStreamScriptByPathGetWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathGetParams, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByPathGetResponse, error) {
+	rsp, err := c.RunAndStreamScriptByPathGet(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamScriptByPathGetResponse(rsp)
+}
+
+// RunAndStreamScriptByPathWithBodyWithResponse request with arbitrary body returning *RunAndStreamScriptByPathResponse
+func (c *ClientWithResponses) RunAndStreamScriptByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByPathResponse, error) {
+	rsp, err := c.RunAndStreamScriptByPathWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamScriptByPathResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunAndStreamScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByPathResponse, error) {
+	rsp, err := c.RunAndStreamScriptByPath(ctx, workspace, path, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamScriptByPathResponse(rsp)
 }
 
 // RunWaitResultFlowByPathWithBodyWithResponse request with arbitrary body returning *RunWaitResultFlowByPathResponse
@@ -71819,6 +73993,22 @@ func ParseGetPublicSecretOfAppResponse(rsp *http.Response) (*GetPublicSecretOfAp
 	return response, nil
 }
 
+// ParseGetPublicSecretOfLatestVersionOfAppResponse parses an HTTP response from a GetPublicSecretOfLatestVersionOfAppWithResponse call
+func ParseGetPublicSecretOfLatestVersionOfAppResponse(rsp *http.Response) (*GetPublicSecretOfLatestVersionOfAppResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPublicSecretOfLatestVersionOfAppResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseSignS3ObjectsResponse parses an HTTP response from a SignS3ObjectsWithResponse call
 func ParseSignS3ObjectsResponse(rsp *http.Response) (*SignS3ObjectsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -72528,6 +74718,74 @@ func ParseUnstarResponse(rsp *http.Response) (*UnstarResponse, error) {
 	response := &UnstarResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteFlowConversationResponse parses an HTTP response from a DeleteFlowConversationWithResponse call
+func ParseDeleteFlowConversationResponse(rsp *http.Response) (*DeleteFlowConversationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteFlowConversationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListFlowConversationsResponse parses an HTTP response from a ListFlowConversationsWithResponse call
+func ParseListFlowConversationsResponse(rsp *http.Response) (*ListFlowConversationsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListFlowConversationsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []FlowConversation
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListConversationMessagesResponse parses an HTTP response from a ListConversationMessagesWithResponse call
+func ParseListConversationMessagesResponse(rsp *http.Response) (*ListConversationMessagesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListConversationMessagesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []FlowConversationMessage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -75140,6 +77398,102 @@ func ParseRunFlowPreviewResponse(rsp *http.Response) (*RunFlowPreviewResponse, e
 	}
 
 	response := &RunFlowPreviewResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunAndStreamFlowByPathGetResponse parses an HTTP response from a RunAndStreamFlowByPathGetWithResponse call
+func ParseRunAndStreamFlowByPathGetResponse(rsp *http.Response) (*RunAndStreamFlowByPathGetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunAndStreamFlowByPathGetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunAndStreamFlowByPathResponse parses an HTTP response from a RunAndStreamFlowByPathWithResponse call
+func ParseRunAndStreamFlowByPathResponse(rsp *http.Response) (*RunAndStreamFlowByPathResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunAndStreamFlowByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunAndStreamScriptByHashGetResponse parses an HTTP response from a RunAndStreamScriptByHashGetWithResponse call
+func ParseRunAndStreamScriptByHashGetResponse(rsp *http.Response) (*RunAndStreamScriptByHashGetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunAndStreamScriptByHashGetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunAndStreamScriptByHashResponse parses an HTTP response from a RunAndStreamScriptByHashWithResponse call
+func ParseRunAndStreamScriptByHashResponse(rsp *http.Response) (*RunAndStreamScriptByHashResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunAndStreamScriptByHashResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunAndStreamScriptByPathGetResponse parses an HTTP response from a RunAndStreamScriptByPathGetWithResponse call
+func ParseRunAndStreamScriptByPathGetResponse(rsp *http.Response) (*RunAndStreamScriptByPathGetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunAndStreamScriptByPathGetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunAndStreamScriptByPathResponse parses an HTTP response from a RunAndStreamScriptByPathWithResponse call
+func ParseRunAndStreamScriptByPathResponse(rsp *http.Response) (*RunAndStreamScriptByPathResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunAndStreamScriptByPathResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
