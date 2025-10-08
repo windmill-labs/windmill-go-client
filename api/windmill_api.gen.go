@@ -216,7 +216,7 @@ const (
 	CompletedJobJobKindPreview            CompletedJobJobKind = "preview"
 	CompletedJobJobKindScript             CompletedJobJobKind = "script"
 	CompletedJobJobKindScriptHub          CompletedJobJobKind = "script_hub"
-	CompletedJobJobKindSinglescriptflow   CompletedJobJobKind = "singlescriptflow"
+	CompletedJobJobKindSinglestepflow     CompletedJobJobKind = "singlestepflow"
 )
 
 // Defines values for DeliveryType.
@@ -332,7 +332,7 @@ const (
 	Job0JobKindPreview            Job0JobKind = "preview"
 	Job0JobKindScript             Job0JobKind = "script"
 	Job0JobKindScriptHub          Job0JobKind = "script_hub"
-	Job0JobKindSinglescriptflow   Job0JobKind = "singlescriptflow"
+	Job0JobKindSinglestepflow     Job0JobKind = "singlestepflow"
 )
 
 // Defines values for Job0Type.
@@ -356,7 +356,7 @@ const (
 	Job1JobKindPreview            Job1JobKind = "preview"
 	Job1JobKindScript             Job1JobKind = "script"
 	Job1JobKindScriptHub          Job1JobKind = "script_hub"
-	Job1JobKindSinglescriptflow   Job1JobKind = "singlescriptflow"
+	Job1JobKindSinglestepflow     Job1JobKind = "singlestepflow"
 )
 
 // Defines values for Job1Type.
@@ -392,6 +392,13 @@ const (
 	ListableAppExecutionModeAnonymous ListableAppExecutionMode = "anonymous"
 	ListableAppExecutionModePublisher ListableAppExecutionMode = "publisher"
 	ListableAppExecutionModeViewer    ListableAppExecutionMode = "viewer"
+)
+
+// Defines values for LoggedWizardStatus.
+const (
+	FAIL LoggedWizardStatus = "FAIL"
+	OK   LoggedWizardStatus = "OK"
+	SKIP LoggedWizardStatus = "SKIP"
 )
 
 // Defines values for MqttClientVersion.
@@ -491,7 +498,7 @@ const (
 	QueuedJobJobKindPreview            QueuedJobJobKind = "preview"
 	QueuedJobJobKindScript             QueuedJobJobKind = "script"
 	QueuedJobJobKindScriptHub          QueuedJobJobKind = "script_hub"
-	QueuedJobJobKindSinglescriptflow   QueuedJobJobKind = "singlescriptflow"
+	QueuedJobJobKindSinglestepflow     QueuedJobJobKind = "singlestepflow"
 )
 
 // Defines values for RunnableKind.
@@ -1168,6 +1175,26 @@ type DependencyMap struct {
 	WorkspaceId    *string `json:"workspace_id"`
 }
 
+// DucklakeInstanceCatalogDbStatus defines model for DucklakeInstanceCatalogDbStatus.
+type DucklakeInstanceCatalogDbStatus struct {
+	// Error Error message if the operation failed
+	Error *string                             `json:"error"`
+	Logs  DucklakeInstanceCatalogDbStatusLogs `json:"logs"`
+
+	// Success Whether the operation completed successfully
+	Success bool `json:"success"`
+}
+
+// DucklakeInstanceCatalogDbStatusLogs defines model for DucklakeInstanceCatalogDbStatusLogs.
+type DucklakeInstanceCatalogDbStatusLogs struct {
+	CreatedDatabase     *LoggedWizardStatus `json:"created_database,omitempty"`
+	DatabaseCredentials *LoggedWizardStatus `json:"database_credentials,omitempty"`
+	DbConnect           *LoggedWizardStatus `json:"db_connect,omitempty"`
+	GrantPermissions    *LoggedWizardStatus `json:"grant_permissions,omitempty"`
+	SuperAdmin          *LoggedWizardStatus `json:"super_admin,omitempty"`
+	ValidDbname         *LoggedWizardStatus `json:"valid_dbname,omitempty"`
+}
+
 // DucklakeSettings defines model for DucklakeSettings.
 type DucklakeSettings struct {
 	Ducklakes map[string]struct {
@@ -1359,6 +1386,9 @@ type EditSchedule struct {
 
 	// Description The description of the schedule
 	Description *string `json:"description,omitempty"`
+
+	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean.
+	DynamicSkip *string `json:"dynamic_skip,omitempty"`
 
 	// NoFlowOverlap Whether the schedule should not run if a flow is already running
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
@@ -2101,6 +2131,9 @@ type LogSearchHit struct {
 	Dancer *string `json:"dancer,omitempty"`
 }
 
+// LoggedWizardStatus defines model for LoggedWizardStatus.
+type LoggedWizardStatus string
+
 // Login defines model for Login.
 type Login struct {
 	Email    string `json:"email"`
@@ -2270,6 +2303,9 @@ type NewSchedule struct {
 
 	// Description The description of the schedule
 	Description *string `json:"description,omitempty"`
+
+	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean.
+	DynamicSkip *string `json:"dynamic_skip,omitempty"`
 
 	// Enabled Whether the schedule is enabled
 	Enabled *bool `json:"enabled,omitempty"`
@@ -2791,9 +2827,12 @@ type ScalarMetric struct {
 // Schedule defines model for Schedule.
 type Schedule struct {
 	// Args The arguments to pass to the script or flow
-	Args           *ScriptArgs     `json:"args,omitempty"`
-	CronVersion    *string         `json:"cron_version,omitempty"`
-	Description    *string         `json:"description,omitempty"`
+	Args        *ScriptArgs `json:"args,omitempty"`
+	CronVersion *string     `json:"cron_version,omitempty"`
+	Description *string     `json:"description,omitempty"`
+
+	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean.
+	DynamicSkip    *string         `json:"dynamic_skip,omitempty"`
 	EditedAt       time.Time       `json:"edited_at"`
 	EditedBy       string          `json:"edited_by"`
 	Email          string          `json:"email"`
@@ -2831,9 +2870,12 @@ type Schedule struct {
 // ScheduleWJobs defines model for ScheduleWJobs.
 type ScheduleWJobs struct {
 	// Args The arguments to pass to the script or flow
-	Args        *ScriptArgs     `json:"args,omitempty"`
-	CronVersion *string         `json:"cron_version,omitempty"`
-	Description *string         `json:"description,omitempty"`
+	Args        *ScriptArgs `json:"args,omitempty"`
+	CronVersion *string     `json:"cron_version,omitempty"`
+	Description *string     `json:"description,omitempty"`
+
+	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean.
+	DynamicSkip *string         `json:"dynamic_skip,omitempty"`
 	EditedAt    time.Time       `json:"edited_at"`
 	EditedBy    string          `json:"edited_by"`
 	Email       string          `json:"email"`
@@ -3401,7 +3443,7 @@ type SchemasForloopFlow struct {
 	Iterator     SchemasInputTransform  `json:"iterator"`
 	Modules      []SchemasFlowModule    `json:"modules"`
 	Parallel     *bool                  `json:"parallel,omitempty"`
-	Parallelism  *int                   `json:"parallelism,omitempty"`
+	Parallelism  *SchemasInputTransform `json:"parallelism,omitempty"`
 	SkipFailures bool                   `json:"skip_failures"`
 	Type         SchemasForloopFlowType `json:"type"`
 }
@@ -3526,7 +3568,7 @@ type SchemasStopAfterIf struct {
 type SchemasWhileloopFlow struct {
 	Modules      []SchemasFlowModule      `json:"modules"`
 	Parallel     *bool                    `json:"parallel,omitempty"`
-	Parallelism  *int                     `json:"parallelism,omitempty"`
+	Parallelism  *SchemasInputTransform   `json:"parallelism,omitempty"`
 	SkipFailures bool                     `json:"skip_failures"`
 	Type         SchemasWhileloopFlowType `json:"type"`
 }
@@ -3885,9 +3927,6 @@ type GetCriticalAlertsParams struct {
 type CreateCustomerPortalSessionParams struct {
 	LicenseKey *string `form:"license_key,omitempty" json:"license_key,omitempty"`
 }
-
-// DatabasesExistJSONBody defines parameters for DatabasesExist.
-type DatabasesExistJSONBody = []string
 
 // SetGlobalJSONBody defines parameters for SetGlobal.
 type SetGlobalJSONBody struct {
@@ -6600,9 +6639,6 @@ type TestMetadataJSONRequestBody = TestMetadataJSONBody
 // PreviewScheduleJSONRequestBody defines body for PreviewSchedule for application/json ContentType.
 type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
 
-// DatabasesExistJSONRequestBody defines body for DatabasesExist for application/json ContentType.
-type DatabasesExistJSONRequestBody = DatabasesExistJSONBody
-
 // SetGlobalJSONRequestBody defines body for SetGlobal for application/json ContentType.
 type SetGlobalJSONRequestBody SetGlobalJSONBody
 
@@ -8218,9 +8254,6 @@ type ClientInterface interface {
 	// ListLogFiles request
 	ListLogFiles(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// CreateDucklakeDatabase request
-	CreateDucklakeDatabase(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetCriticalAlerts request
 	GetCriticalAlerts(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8233,10 +8266,8 @@ type ClientInterface interface {
 	// CreateCustomerPortalSession request
 	CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DatabasesExistWithBody request with any body
-	DatabasesExistWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	DatabasesExist(ctx context.Context, body DatabasesExistJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetDucklakeInstanceCatalogDbStatus request
+	GetDucklakeInstanceCatalogDbStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetGlobal request
 	GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8260,6 +8291,9 @@ type ClientInterface interface {
 
 	// SendStats request
 	SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetupDucklakeCatalogDb request
+	SetupDucklakeCatalogDb(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestCriticalChannelsWithBody request with any body
 	TestCriticalChannelsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10865,18 +10899,6 @@ func (c *Client) ListLogFiles(ctx context.Context, params *ListLogFilesParams, r
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateDucklakeDatabase(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateDucklakeDatabaseRequest(c.Server, name)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) GetCriticalAlerts(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCriticalAlertsRequest(c.Server, params)
 	if err != nil {
@@ -10925,20 +10947,8 @@ func (c *Client) CreateCustomerPortalSession(ctx context.Context, params *Create
 	return c.Client.Do(req)
 }
 
-func (c *Client) DatabasesExistWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDatabasesExistRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DatabasesExist(ctx context.Context, body DatabasesExistJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDatabasesExistRequest(c.Server, body)
+func (c *Client) GetDucklakeInstanceCatalogDbStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDucklakeInstanceCatalogDbStatusRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -11035,6 +11045,18 @@ func (c *Client) RenewLicenseKey(ctx context.Context, params *RenewLicenseKeyPar
 
 func (c *Client) SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSendStatsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetupDucklakeCatalogDb(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetupDucklakeCatalogDbRequest(c.Server, name)
 	if err != nil {
 		return nil, err
 	}
@@ -20968,40 +20990,6 @@ func NewListLogFilesRequest(server string, params *ListLogFilesParams) (*http.Re
 	return req, nil
 }
 
-// NewCreateDucklakeDatabaseRequest generates requests for CreateDucklakeDatabase
-func NewCreateDucklakeDatabaseRequest(server string, name string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/settings/create_ducklake_database/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewGetCriticalAlertsRequest generates requests for GetCriticalAlerts
 func NewGetCriticalAlertsRequest(server string, params *GetCriticalAlertsParams) (*http.Request, error) {
 	var err error
@@ -21193,19 +21181,8 @@ func NewCreateCustomerPortalSessionRequest(server string, params *CreateCustomer
 	return req, nil
 }
 
-// NewDatabasesExistRequest calls the generic DatabasesExist builder with application/json body
-func NewDatabasesExistRequest(server string, body DatabasesExistJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewDatabasesExistRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewDatabasesExistRequestWithBody generates requests for DatabasesExist with any type of body
-func NewDatabasesExistRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewGetDucklakeInstanceCatalogDbStatusRequest generates requests for GetDucklakeInstanceCatalogDbStatus
+func NewGetDucklakeInstanceCatalogDbStatusRequest(server string) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -21213,7 +21190,7 @@ func NewDatabasesExistRequestWithBody(server string, contentType string, body io
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/settings/databases_exist")
+	operationPath := fmt.Sprintf("/settings/get_ducklake_instance_catalog_db_status")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -21223,12 +21200,10 @@ func NewDatabasesExistRequestWithBody(server string, contentType string, body io
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -21454,6 +21429,40 @@ func NewSendStatsRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/settings/send_stats")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetupDucklakeCatalogDbRequest generates requests for SetupDucklakeCatalogDb
+func NewSetupDucklakeCatalogDbRequest(server string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/setup_ducklake_catalog_db/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -51075,9 +51084,6 @@ type ClientWithResponsesInterface interface {
 	// ListLogFilesWithResponse request
 	ListLogFilesWithResponse(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*ListLogFilesResponse, error)
 
-	// CreateDucklakeDatabaseWithResponse request
-	CreateDucklakeDatabaseWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*CreateDucklakeDatabaseResponse, error)
-
 	// GetCriticalAlertsWithResponse request
 	GetCriticalAlertsWithResponse(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*GetCriticalAlertsResponse, error)
 
@@ -51090,10 +51096,8 @@ type ClientWithResponsesInterface interface {
 	// CreateCustomerPortalSessionWithResponse request
 	CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
 
-	// DatabasesExistWithBodyWithResponse request with any body
-	DatabasesExistWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DatabasesExistResponse, error)
-
-	DatabasesExistWithResponse(ctx context.Context, body DatabasesExistJSONRequestBody, reqEditors ...RequestEditorFn) (*DatabasesExistResponse, error)
+	// GetDucklakeInstanceCatalogDbStatusWithResponse request
+	GetDucklakeInstanceCatalogDbStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDucklakeInstanceCatalogDbStatusResponse, error)
 
 	// GetGlobalWithResponse request
 	GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error)
@@ -51117,6 +51121,9 @@ type ClientWithResponsesInterface interface {
 
 	// SendStatsWithResponse request
 	SendStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SendStatsResponse, error)
+
+	// SetupDucklakeCatalogDbWithResponse request
+	SetupDucklakeCatalogDbWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*SetupDucklakeCatalogDbResponse, error)
 
 	// TestCriticalChannelsWithBodyWithResponse request with any body
 	TestCriticalChannelsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestCriticalChannelsResponse, error)
@@ -54152,28 +54159,6 @@ func (r ListLogFilesResponse) StatusCode() int {
 	return 0
 }
 
-type CreateDucklakeDatabaseResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *interface{}
-}
-
-// Status returns HTTPResponse.Status
-func (r CreateDucklakeDatabaseResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CreateDucklakeDatabaseResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetCriticalAlertsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -54269,14 +54254,14 @@ func (r CreateCustomerPortalSessionResponse) StatusCode() int {
 	return 0
 }
 
-type DatabasesExistResponse struct {
+type GetDucklakeInstanceCatalogDbStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]string
+	JSON200      *map[string]DucklakeInstanceCatalogDbStatus
 }
 
 // Status returns HTTPResponse.Status
-func (r DatabasesExistResponse) Status() string {
+func (r GetDucklakeInstanceCatalogDbStatusResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -54284,7 +54269,7 @@ func (r DatabasesExistResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DatabasesExistResponse) StatusCode() int {
+func (r GetDucklakeInstanceCatalogDbStatusResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -54439,6 +54424,28 @@ func (r SendStatsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SendStatsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetupDucklakeCatalogDbResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DucklakeInstanceCatalogDbStatus
+}
+
+// Status returns HTTPResponse.Status
+func (r SetupDucklakeCatalogDbResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetupDucklakeCatalogDbResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -65356,15 +65363,6 @@ func (c *ClientWithResponses) ListLogFilesWithResponse(ctx context.Context, para
 	return ParseListLogFilesResponse(rsp)
 }
 
-// CreateDucklakeDatabaseWithResponse request returning *CreateDucklakeDatabaseResponse
-func (c *ClientWithResponses) CreateDucklakeDatabaseWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*CreateDucklakeDatabaseResponse, error) {
-	rsp, err := c.CreateDucklakeDatabase(ctx, name, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateDucklakeDatabaseResponse(rsp)
-}
-
 // GetCriticalAlertsWithResponse request returning *GetCriticalAlertsResponse
 func (c *ClientWithResponses) GetCriticalAlertsWithResponse(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*GetCriticalAlertsResponse, error) {
 	rsp, err := c.GetCriticalAlerts(ctx, params, reqEditors...)
@@ -65401,21 +65399,13 @@ func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx contex
 	return ParseCreateCustomerPortalSessionResponse(rsp)
 }
 
-// DatabasesExistWithBodyWithResponse request with arbitrary body returning *DatabasesExistResponse
-func (c *ClientWithResponses) DatabasesExistWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DatabasesExistResponse, error) {
-	rsp, err := c.DatabasesExistWithBody(ctx, contentType, body, reqEditors...)
+// GetDucklakeInstanceCatalogDbStatusWithResponse request returning *GetDucklakeInstanceCatalogDbStatusResponse
+func (c *ClientWithResponses) GetDucklakeInstanceCatalogDbStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDucklakeInstanceCatalogDbStatusResponse, error) {
+	rsp, err := c.GetDucklakeInstanceCatalogDbStatus(ctx, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDatabasesExistResponse(rsp)
-}
-
-func (c *ClientWithResponses) DatabasesExistWithResponse(ctx context.Context, body DatabasesExistJSONRequestBody, reqEditors ...RequestEditorFn) (*DatabasesExistResponse, error) {
-	rsp, err := c.DatabasesExist(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDatabasesExistResponse(rsp)
+	return ParseGetDucklakeInstanceCatalogDbStatusResponse(rsp)
 }
 
 // GetGlobalWithResponse request returning *GetGlobalResponse
@@ -65487,6 +65477,15 @@ func (c *ClientWithResponses) SendStatsWithResponse(ctx context.Context, reqEdit
 		return nil, err
 	}
 	return ParseSendStatsResponse(rsp)
+}
+
+// SetupDucklakeCatalogDbWithResponse request returning *SetupDucklakeCatalogDbResponse
+func (c *ClientWithResponses) SetupDucklakeCatalogDbWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*SetupDucklakeCatalogDbResponse, error) {
+	rsp, err := c.SetupDucklakeCatalogDb(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetupDucklakeCatalogDbResponse(rsp)
 }
 
 // TestCriticalChannelsWithBodyWithResponse request with arbitrary body returning *TestCriticalChannelsResponse
@@ -72442,32 +72441,6 @@ func ParseListLogFilesResponse(rsp *http.Response) (*ListLogFilesResponse, error
 	return response, nil
 }
 
-// ParseCreateDucklakeDatabaseResponse parses an HTTP response from a CreateDucklakeDatabaseWithResponse call
-func ParseCreateDucklakeDatabaseResponse(rsp *http.Response) (*CreateDucklakeDatabaseResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CreateDucklakeDatabaseResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseGetCriticalAlertsResponse parses an HTTP response from a GetCriticalAlertsWithResponse call
 func ParseGetCriticalAlertsResponse(rsp *http.Response) (*GetCriticalAlertsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -72570,22 +72543,22 @@ func ParseCreateCustomerPortalSessionResponse(rsp *http.Response) (*CreateCustom
 	return response, nil
 }
 
-// ParseDatabasesExistResponse parses an HTTP response from a DatabasesExistWithResponse call
-func ParseDatabasesExistResponse(rsp *http.Response) (*DatabasesExistResponse, error) {
+// ParseGetDucklakeInstanceCatalogDbStatusResponse parses an HTTP response from a GetDucklakeInstanceCatalogDbStatusWithResponse call
+func ParseGetDucklakeInstanceCatalogDbStatusResponse(rsp *http.Response) (*GetDucklakeInstanceCatalogDbStatusResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DatabasesExistResponse{
+	response := &GetDucklakeInstanceCatalogDbStatusResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []string
+		var dest map[string]DucklakeInstanceCatalogDbStatus
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -72746,6 +72719,32 @@ func ParseSendStatsResponse(rsp *http.Response) (*SendStatsResponse, error) {
 	response := &SendStatsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSetupDucklakeCatalogDbResponse parses an HTTP response from a SetupDucklakeCatalogDbWithResponse call
+func ParseSetupDucklakeCatalogDbResponse(rsp *http.Response) (*SetupDucklakeCatalogDbResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetupDucklakeCatalogDbResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DucklakeInstanceCatalogDbStatus
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
