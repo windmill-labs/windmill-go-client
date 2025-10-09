@@ -246,6 +246,7 @@ const (
 const (
 	FlowConversationMessageMessageTypeAssistant FlowConversationMessageMessageType = "assistant"
 	FlowConversationMessageMessageTypeSystem    FlowConversationMessageMessageType = "system"
+	FlowConversationMessageMessageTypeTool      FlowConversationMessageMessageType = "tool"
 	FlowConversationMessageMessageTypeUser      FlowConversationMessageMessageType = "user"
 )
 
@@ -1633,6 +1634,12 @@ type FlowConversationMessage struct {
 
 	// MessageType Type of the message
 	MessageType FlowConversationMessageMessageType `json:"message_type"`
+
+	// StepName The step name that produced that message
+	StepName *string `json:"step_name,omitempty"`
+
+	// Success Whether the message is a success
+	Success *bool `json:"success,omitempty"`
 }
 
 // FlowConversationMessageMessageType Type of the message
@@ -4499,6 +4506,9 @@ type ListConversationMessagesParams struct {
 
 	// PerPage number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// AfterId id to fetch only the messages after that id
+	AfterId *openapi_types.UUID `form:"after_id,omitempty" json:"after_id,omitempty"`
 }
 
 // ArchiveFlowByPathJSONBody defines parameters for ArchiveFlowByPath.
@@ -26791,6 +26801,22 @@ func NewListConversationMessagesRequest(server string, workspace WorkspaceId, co
 		if params.PerPage != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.AfterId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "after_id", runtime.ParamLocationQuery, *params.AfterId); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
