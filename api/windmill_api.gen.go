@@ -6581,6 +6581,11 @@ type ListWorkersParams struct {
 	PingSince *int `form:"ping_since,omitempty" json:"ping_since,omitempty"`
 }
 
+// DeleteWorkspaceParams defines parameters for DeleteWorkspace.
+type DeleteWorkspaceParams struct {
+	OnlyDeleteForks *bool `form:"only_delete_forks,omitempty" json:"only_delete_forks,omitempty"`
+}
+
 // ExistsWorkspaceJSONBody defines parameters for ExistsWorkspace.
 type ExistsWorkspaceJSONBody struct {
 	Id string `json:"id"`
@@ -10044,7 +10049,7 @@ type ClientInterface interface {
 	CreateWorkspaceFork(ctx context.Context, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteWorkspace request
-	DeleteWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	DeleteWorkspace(ctx context.Context, workspace WorkspaceId, params *DeleteWorkspaceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ExistsWorkspaceWithBody request with any body
 	ExistsWorkspaceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18757,8 +18762,8 @@ func (c *Client) CreateWorkspaceFork(ctx context.Context, body CreateWorkspaceFo
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteWorkspaceRequest(c.Server, workspace)
+func (c *Client) DeleteWorkspace(ctx context.Context, workspace WorkspaceId, params *DeleteWorkspaceParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteWorkspaceRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -50607,7 +50612,7 @@ func NewCreateWorkspaceForkRequestWithBody(server string, contentType string, bo
 }
 
 // NewDeleteWorkspaceRequest generates requests for DeleteWorkspace
-func NewDeleteWorkspaceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewDeleteWorkspaceRequest(server string, workspace WorkspaceId, params *DeleteWorkspaceParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -50630,6 +50635,28 @@ func NewDeleteWorkspaceRequest(server string, workspace WorkspaceId) (*http.Requ
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.OnlyDeleteForks != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "only_delete_forks", runtime.ParamLocationQuery, *params.OnlyDeleteForks); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
@@ -52890,7 +52917,7 @@ type ClientWithResponsesInterface interface {
 	CreateWorkspaceForkWithResponse(ctx context.Context, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
 
 	// DeleteWorkspaceWithResponse request
-	DeleteWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DeleteWorkspaceResponse, error)
+	DeleteWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteWorkspaceParams, reqEditors ...RequestEditorFn) (*DeleteWorkspaceResponse, error)
 
 	// ExistsWorkspaceWithBodyWithResponse request with any body
 	ExistsWorkspaceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExistsWorkspaceResponse, error)
@@ -71093,8 +71120,8 @@ func (c *ClientWithResponses) CreateWorkspaceForkWithResponse(ctx context.Contex
 }
 
 // DeleteWorkspaceWithResponse request returning *DeleteWorkspaceResponse
-func (c *ClientWithResponses) DeleteWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DeleteWorkspaceResponse, error) {
-	rsp, err := c.DeleteWorkspace(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) DeleteWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteWorkspaceParams, reqEditors ...RequestEditorFn) (*DeleteWorkspaceResponse, error) {
+	rsp, err := c.DeleteWorkspace(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
