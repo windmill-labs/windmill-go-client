@@ -6133,6 +6133,11 @@ type GetResourceValueInterpolatedParams struct {
 	AllowCache *bool `form:"allow_cache,omitempty" json:"allow_cache,omitempty"`
 }
 
+// GetGitCommitHashParams defines parameters for GetGitCommitHash.
+type GetGitCommitHashParams struct {
+	GitSshIdentity *string `form:"git_ssh_identity,omitempty" json:"git_ssh_identity,omitempty"`
+}
+
 // ListResourceParams defines parameters for ListResource.
 type ListResourceParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -9552,7 +9557,7 @@ type ClientInterface interface {
 	GetResourceValueInterpolated(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceValueInterpolatedParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetGitCommitHash request
-	GetGitCommitHash(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetGitCommitHash(ctx context.Context, workspace WorkspaceId, path Path, params *GetGitCommitHashParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListResource request
 	ListResource(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16435,8 +16440,8 @@ func (c *Client) GetResourceValueInterpolated(ctx context.Context, workspace Wor
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetGitCommitHash(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetGitCommitHashRequest(c.Server, workspace, path)
+func (c *Client) GetGitCommitHash(ctx context.Context, workspace WorkspaceId, path Path, params *GetGitCommitHashParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGitCommitHashRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -44085,7 +44090,7 @@ func NewGetResourceValueInterpolatedRequest(server string, workspace WorkspaceId
 }
 
 // NewGetGitCommitHashRequest generates requests for GetGitCommitHash
-func NewGetGitCommitHashRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetGitCommitHashRequest(server string, workspace WorkspaceId, path Path, params *GetGitCommitHashParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -44115,6 +44120,28 @@ func NewGetGitCommitHashRequest(server string, workspace WorkspaceId, path Path)
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GitSshIdentity != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "git_ssh_identity", runtime.ParamLocationQuery, *params.GitSshIdentity); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -53089,7 +53116,7 @@ type ClientWithResponsesInterface interface {
 	GetResourceValueInterpolatedWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceValueInterpolatedParams, reqEditors ...RequestEditorFn) (*GetResourceValueInterpolatedResponse, error)
 
 	// GetGitCommitHashWithResponse request
-	GetGitCommitHashWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetGitCommitHashResponse, error)
+	GetGitCommitHashWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetGitCommitHashParams, reqEditors ...RequestEditorFn) (*GetGitCommitHashResponse, error)
 
 	// ListResourceWithResponse request
 	ListResourceWithResponse(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*ListResourceResponse, error)
@@ -70263,8 +70290,8 @@ func (c *ClientWithResponses) GetResourceValueInterpolatedWithResponse(ctx conte
 }
 
 // GetGitCommitHashWithResponse request returning *GetGitCommitHashResponse
-func (c *ClientWithResponses) GetGitCommitHashWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetGitCommitHashResponse, error) {
-	rsp, err := c.GetGitCommitHash(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetGitCommitHashWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetGitCommitHashParams, reqEditors ...RequestEditorFn) (*GetGitCommitHashResponse, error) {
+	rsp, err := c.GetGitCommitHash(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
