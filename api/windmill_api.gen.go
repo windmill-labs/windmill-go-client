@@ -4804,6 +4804,12 @@ type GetArgsFromHistoryOrSavedInputParams struct {
 	AllowLarge *bool `form:"allow_large,omitempty" json:"allow_large,omitempty"`
 }
 
+// CheckS3FolderExistsParams defines parameters for CheckS3FolderExists.
+type CheckS3FolderExistsParams struct {
+	// FileKey S3 file key to check (e.g., gitrepos/{workspace_id}/u/user/resource/{commit_hash})
+	FileKey string `form:"file_key" json:"file_key"`
+}
+
 // DeleteS3FileParams defines parameters for DeleteS3File.
 type DeleteS3FileParams struct {
 	FileKey string  `form:"file_key" json:"file_key"`
@@ -4828,6 +4834,14 @@ type FileDownloadParquetAsCsvParams struct {
 // DuckdbConnectionSettingsJSONBody defines parameters for DuckdbConnectionSettings.
 type DuckdbConnectionSettingsJSONBody struct {
 	S3Resource *S3Resource `json:"s3_resource,omitempty"`
+}
+
+// ListGitRepoFilesParams defines parameters for ListGitRepoFiles.
+type ListGitRepoFilesParams struct {
+	MaxKeys int     `form:"max_keys" json:"max_keys"`
+	Marker  *string `form:"marker,omitempty" json:"marker,omitempty"`
+	Prefix  *string `form:"prefix,omitempty" json:"prefix,omitempty"`
+	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
 }
 
 // ListStoredFilesParams defines parameters for ListStoredFiles.
@@ -4858,6 +4872,24 @@ type LoadFileMetadataParams struct {
 
 // LoadFilePreviewParams defines parameters for LoadFilePreview.
 type LoadFilePreviewParams struct {
+	FileKey         string  `form:"file_key" json:"file_key"`
+	FileSizeInBytes *int    `form:"file_size_in_bytes,omitempty" json:"file_size_in_bytes,omitempty"`
+	FileMimeType    *string `form:"file_mime_type,omitempty" json:"file_mime_type,omitempty"`
+	CsvSeparator    *string `form:"csv_separator,omitempty" json:"csv_separator,omitempty"`
+	CsvHasHeader    *bool   `form:"csv_has_header,omitempty" json:"csv_has_header,omitempty"`
+	ReadBytesFrom   *int    `form:"read_bytes_from,omitempty" json:"read_bytes_from,omitempty"`
+	ReadBytesLength *int    `form:"read_bytes_length,omitempty" json:"read_bytes_length,omitempty"`
+	Storage         *string `form:"storage,omitempty" json:"storage,omitempty"`
+}
+
+// LoadGitRepoFileMetadataParams defines parameters for LoadGitRepoFileMetadata.
+type LoadGitRepoFileMetadataParams struct {
+	FileKey string  `form:"file_key" json:"file_key"`
+	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
+}
+
+// LoadGitRepoFilePreviewParams defines parameters for LoadGitRepoFilePreview.
+type LoadGitRepoFilePreviewParams struct {
 	FileKey         string  `form:"file_key" json:"file_key"`
 	FileSizeInBytes *int    `form:"file_size_in_bytes,omitempty" json:"file_size_in_bytes,omitempty"`
 	FileMimeType    *string `form:"file_mime_type,omitempty" json:"file_mime_type,omitempty"`
@@ -4901,6 +4933,17 @@ type PolarsConnectionSettingsJSONBody struct {
 // DatasetStorageTestConnectionParams defines parameters for DatasetStorageTestConnection.
 type DatasetStorageTestConnectionParams struct {
 	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
+}
+
+// GitRepoViewerFileUploadParams defines parameters for GitRepoViewerFileUpload.
+type GitRepoViewerFileUploadParams struct {
+	FileKey            *string `form:"file_key,omitempty" json:"file_key,omitempty"`
+	FileExtension      *string `form:"file_extension,omitempty" json:"file_extension,omitempty"`
+	S3ResourcePath     *string `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
+	ResourceType       *string `form:"resource_type,omitempty" json:"resource_type,omitempty"`
+	Storage            *string `form:"storage,omitempty" json:"storage,omitempty"`
+	ContentType        *string `form:"content_type,omitempty" json:"content_type,omitempty"`
+	ContentDisposition *string `form:"content_disposition,omitempty" json:"content_disposition,omitempty"`
 }
 
 // FileUploadParams defines parameters for FileUpload.
@@ -8918,6 +8961,9 @@ type ClientInterface interface {
 	// GetArgsFromHistoryOrSavedInput request
 	GetArgsFromHistoryOrSavedInput(ctx context.Context, workspace WorkspaceId, jobOrInputId string, params *GetArgsFromHistoryOrSavedInputParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CheckS3FolderExists request
+	CheckS3FolderExists(ctx context.Context, workspace WorkspaceId, params *CheckS3FolderExistsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteS3File request
 	DeleteS3File(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8932,6 +8978,9 @@ type ClientInterface interface {
 
 	DuckdbConnectionSettings(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListGitRepoFiles request
+	ListGitRepoFiles(ctx context.Context, workspace WorkspaceId, params *ListGitRepoFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListStoredFiles request
 	ListStoredFiles(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8943,6 +8992,12 @@ type ClientInterface interface {
 
 	// LoadFilePreview request
 	LoadFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LoadGitRepoFileMetadata request
+	LoadGitRepoFileMetadata(ctx context.Context, workspace WorkspaceId, params *LoadGitRepoFileMetadataParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LoadGitRepoFilePreview request
+	LoadGitRepoFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadGitRepoFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// LoadParquetPreview request
 	LoadParquetPreview(ctx context.Context, workspace WorkspaceId, path Path, params *LoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8960,6 +9015,9 @@ type ClientInterface interface {
 
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, params *DatasetStorageTestConnectionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GitRepoViewerFileUploadWithBody request with any body
+	GitRepoViewerFileUploadWithBody(ctx context.Context, workspace WorkspaceId, params *GitRepoViewerFileUploadParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// FileUploadWithBody request with any body
 	FileUploadWithBody(ctx context.Context, workspace WorkspaceId, params *FileUploadParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9492,6 +9550,9 @@ type ClientInterface interface {
 
 	// GetResourceValueInterpolated request
 	GetResourceValueInterpolated(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceValueInterpolatedParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetGitCommitHash request
+	GetGitCommitHash(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListResource request
 	ListResource(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -13758,6 +13819,18 @@ func (c *Client) GetArgsFromHistoryOrSavedInput(ctx context.Context, workspace W
 	return c.Client.Do(req)
 }
 
+func (c *Client) CheckS3FolderExists(ctx context.Context, workspace WorkspaceId, params *CheckS3FolderExistsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCheckS3FolderExistsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) DeleteS3File(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteS3FileRequest(c.Server, workspace, params)
 	if err != nil {
@@ -13818,6 +13891,18 @@ func (c *Client) DuckdbConnectionSettings(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListGitRepoFiles(ctx context.Context, workspace WorkspaceId, params *ListGitRepoFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGitRepoFilesRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListStoredFiles(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListStoredFilesRequest(c.Server, workspace, params)
 	if err != nil {
@@ -13856,6 +13941,30 @@ func (c *Client) LoadFileMetadata(ctx context.Context, workspace WorkspaceId, pa
 
 func (c *Client) LoadFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLoadFilePreviewRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LoadGitRepoFileMetadata(ctx context.Context, workspace WorkspaceId, params *LoadGitRepoFileMetadataParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoadGitRepoFileMetadataRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LoadGitRepoFilePreview(ctx context.Context, workspace WorkspaceId, params *LoadGitRepoFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoadGitRepoFilePreviewRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -13928,6 +14037,18 @@ func (c *Client) PolarsConnectionSettings(ctx context.Context, workspace Workspa
 
 func (c *Client) DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, params *DatasetStorageTestConnectionParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDatasetStorageTestConnectionRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GitRepoViewerFileUploadWithBody(ctx context.Context, workspace WorkspaceId, params *GitRepoViewerFileUploadParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGitRepoViewerFileUploadRequestWithBody(c.Server, workspace, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16304,6 +16425,18 @@ func (c *Client) GetResourceValue(ctx context.Context, workspace WorkspaceId, pa
 
 func (c *Client) GetResourceValueInterpolated(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceValueInterpolatedParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetResourceValueInterpolatedRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGitCommitHash(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGitCommitHashRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -30582,6 +30715,58 @@ func NewGetArgsFromHistoryOrSavedInputRequest(server string, workspace Workspace
 	return req, nil
 }
 
+// NewCheckS3FolderExistsRequest generates requests for CheckS3FolderExists
+func NewCheckS3FolderExistsRequest(server string, workspace WorkspaceId, params *CheckS3FolderExistsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/check_s3_folder_exists", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewDeleteS3FileRequest generates requests for DeleteS3File
 func NewDeleteS3FileRequest(server string, workspace WorkspaceId, params *DeleteS3FileParams) (*http.Request, error) {
 	var err error
@@ -30877,6 +31062,106 @@ func NewDuckdbConnectionSettingsRequestWithBody(server string, workspace Workspa
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListGitRepoFilesRequest generates requests for ListGitRepoFiles
+func NewListGitRepoFilesRequest(server string, workspace WorkspaceId, params *ListGitRepoFilesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/list_git_repo_files", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_keys", runtime.ParamLocationQuery, params.MaxKeys); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Marker != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "marker", runtime.ParamLocationQuery, *params.Marker); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Prefix != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "prefix", runtime.ParamLocationQuery, *params.Prefix); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -31241,6 +31526,238 @@ func NewLoadFilePreviewRequest(server string, workspace WorkspaceId, params *Loa
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/job_helpers/load_file_preview", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.FileSizeInBytes != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_size_in_bytes", runtime.ParamLocationQuery, *params.FileSizeInBytes); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.FileMimeType != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_mime_type", runtime.ParamLocationQuery, *params.FileMimeType); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CsvSeparator != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_separator", runtime.ParamLocationQuery, *params.CsvSeparator); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CsvHasHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_has_header", runtime.ParamLocationQuery, *params.CsvHasHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ReadBytesFrom != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "read_bytes_from", runtime.ParamLocationQuery, *params.ReadBytesFrom); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ReadBytesLength != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "read_bytes_length", runtime.ParamLocationQuery, *params.ReadBytesLength); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewLoadGitRepoFileMetadataRequest generates requests for LoadGitRepoFileMetadata
+func NewLoadGitRepoFileMetadataRequest(server string, workspace WorkspaceId, params *LoadGitRepoFileMetadataParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/load_git_repo_file_metadata", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewLoadGitRepoFilePreviewRequest generates requests for LoadGitRepoFilePreview
+func NewLoadGitRepoFilePreviewRequest(server string, workspace WorkspaceId, params *LoadGitRepoFilePreviewParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/load_git_repo_file_preview", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -31821,6 +32338,160 @@ func NewDatasetStorageTestConnectionRequest(server string, workspace WorkspaceId
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGitRepoViewerFileUploadRequestWithBody generates requests for GitRepoViewerFileUpload with any type of body
+func NewGitRepoViewerFileUploadRequestWithBody(server string, workspace WorkspaceId, params *GitRepoViewerFileUploadParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/upload_git_repo_file_to_instance_storage", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.FileKey != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, *params.FileKey); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.FileExtension != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_extension", runtime.ParamLocationQuery, *params.FileExtension); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.S3ResourcePath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "s3_resource_path", runtime.ParamLocationQuery, *params.S3ResourcePath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ResourceType != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resource_type", runtime.ParamLocationQuery, *params.ResourceType); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ContentType != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "content_type", runtime.ParamLocationQuery, *params.ContentType); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ContentDisposition != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "content_disposition", runtime.ParamLocationQuery, *params.ContentDisposition); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -43413,6 +44084,47 @@ func NewGetResourceValueInterpolatedRequest(server string, workspace WorkspaceId
 	return req, nil
 }
 
+// NewGetGitCommitHashRequest generates requests for GetGitCommitHash
+func NewGetGitCommitHashRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/git_commit_hash/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListResourceRequest generates requests for ListResource
 func NewListResourceRequest(server string, workspace WorkspaceId, params *ListResourceParams) (*http.Request, error) {
 	var err error
@@ -51786,6 +52498,9 @@ type ClientWithResponsesInterface interface {
 	// GetArgsFromHistoryOrSavedInputWithResponse request
 	GetArgsFromHistoryOrSavedInputWithResponse(ctx context.Context, workspace WorkspaceId, jobOrInputId string, params *GetArgsFromHistoryOrSavedInputParams, reqEditors ...RequestEditorFn) (*GetArgsFromHistoryOrSavedInputResponse, error)
 
+	// CheckS3FolderExistsWithResponse request
+	CheckS3FolderExistsWithResponse(ctx context.Context, workspace WorkspaceId, params *CheckS3FolderExistsParams, reqEditors ...RequestEditorFn) (*CheckS3FolderExistsResponse, error)
+
 	// DeleteS3FileWithResponse request
 	DeleteS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*DeleteS3FileResponse, error)
 
@@ -51800,6 +52515,9 @@ type ClientWithResponsesInterface interface {
 
 	DuckdbConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body DuckdbConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*DuckdbConnectionSettingsResponse, error)
 
+	// ListGitRepoFilesWithResponse request
+	ListGitRepoFilesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListGitRepoFilesParams, reqEditors ...RequestEditorFn) (*ListGitRepoFilesResponse, error)
+
 	// ListStoredFilesWithResponse request
 	ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error)
 
@@ -51811,6 +52529,12 @@ type ClientWithResponsesInterface interface {
 
 	// LoadFilePreviewWithResponse request
 	LoadFilePreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadFilePreviewParams, reqEditors ...RequestEditorFn) (*LoadFilePreviewResponse, error)
+
+	// LoadGitRepoFileMetadataWithResponse request
+	LoadGitRepoFileMetadataWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadGitRepoFileMetadataParams, reqEditors ...RequestEditorFn) (*LoadGitRepoFileMetadataResponse, error)
+
+	// LoadGitRepoFilePreviewWithResponse request
+	LoadGitRepoFilePreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadGitRepoFilePreviewParams, reqEditors ...RequestEditorFn) (*LoadGitRepoFilePreviewResponse, error)
 
 	// LoadParquetPreviewWithResponse request
 	LoadParquetPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *LoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*LoadParquetPreviewResponse, error)
@@ -51828,6 +52552,9 @@ type ClientWithResponsesInterface interface {
 
 	// DatasetStorageTestConnectionWithResponse request
 	DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, params *DatasetStorageTestConnectionParams, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error)
+
+	// GitRepoViewerFileUploadWithBodyWithResponse request with any body
+	GitRepoViewerFileUploadWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *GitRepoViewerFileUploadParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GitRepoViewerFileUploadResponse, error)
 
 	// FileUploadWithBodyWithResponse request with any body
 	FileUploadWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *FileUploadParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FileUploadResponse, error)
@@ -52360,6 +53087,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetResourceValueInterpolatedWithResponse request
 	GetResourceValueInterpolatedWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceValueInterpolatedParams, reqEditors ...RequestEditorFn) (*GetResourceValueInterpolatedResponse, error)
+
+	// GetGitCommitHashWithResponse request
+	GetGitCommitHashWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetGitCommitHashResponse, error)
 
 	// ListResourceWithResponse request
 	ListResourceWithResponse(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*ListResourceResponse, error)
@@ -58116,6 +58846,34 @@ func (r GetArgsFromHistoryOrSavedInputResponse) StatusCode() int {
 	return 0
 }
 
+type CheckS3FolderExistsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Exists Whether the path exists
+		Exists bool `json:"exists"`
+
+		// IsFolder Whether the path is a folder (true) or file (false)
+		IsFolder bool `json:"is_folder"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CheckS3FolderExistsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CheckS3FolderExistsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DeleteS3FileResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -58198,6 +58956,32 @@ func (r DuckdbConnectionSettingsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DuckdbConnectionSettingsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListGitRepoFilesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		NextMarker         *string             `json:"next_marker,omitempty"`
+		RestrictedAccess   *bool               `json:"restricted_access,omitempty"`
+		WindmillLargeFiles []WindmillLargeFile `json:"windmill_large_files"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGitRepoFilesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGitRepoFilesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -58289,6 +59073,50 @@ func (r LoadFilePreviewResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LoadFilePreviewResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LoadGitRepoFileMetadataResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *WindmillFileMetadata
+}
+
+// Status returns HTTPResponse.Status
+func (r LoadGitRepoFileMetadataResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LoadGitRepoFileMetadataResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LoadGitRepoFilePreviewResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *WindmillFilePreview
+}
+
+// Status returns HTTPResponse.Status
+func (r LoadGitRepoFilePreviewResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LoadGitRepoFilePreviewResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -58407,6 +59235,30 @@ func (r DatasetStorageTestConnectionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DatasetStorageTestConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GitRepoViewerFileUploadResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		FileKey string `json:"file_key"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GitRepoViewerFileUploadResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GitRepoViewerFileUploadResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -61387,6 +62239,31 @@ func (r GetResourceValueInterpolatedResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetResourceValueInterpolatedResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGitCommitHashResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// CommitHash Latest commit hash from git ls-remote
+		CommitHash string `json:"commit_hash"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGitCommitHashResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGitCommitHashResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -67487,6 +68364,15 @@ func (c *ClientWithResponses) GetArgsFromHistoryOrSavedInputWithResponse(ctx con
 	return ParseGetArgsFromHistoryOrSavedInputResponse(rsp)
 }
 
+// CheckS3FolderExistsWithResponse request returning *CheckS3FolderExistsResponse
+func (c *ClientWithResponses) CheckS3FolderExistsWithResponse(ctx context.Context, workspace WorkspaceId, params *CheckS3FolderExistsParams, reqEditors ...RequestEditorFn) (*CheckS3FolderExistsResponse, error) {
+	rsp, err := c.CheckS3FolderExists(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCheckS3FolderExistsResponse(rsp)
+}
+
 // DeleteS3FileWithResponse request returning *DeleteS3FileResponse
 func (c *ClientWithResponses) DeleteS3FileWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileParams, reqEditors ...RequestEditorFn) (*DeleteS3FileResponse, error) {
 	rsp, err := c.DeleteS3File(ctx, workspace, params, reqEditors...)
@@ -67531,6 +68417,15 @@ func (c *ClientWithResponses) DuckdbConnectionSettingsWithResponse(ctx context.C
 	return ParseDuckdbConnectionSettingsResponse(rsp)
 }
 
+// ListGitRepoFilesWithResponse request returning *ListGitRepoFilesResponse
+func (c *ClientWithResponses) ListGitRepoFilesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListGitRepoFilesParams, reqEditors ...RequestEditorFn) (*ListGitRepoFilesResponse, error) {
+	rsp, err := c.ListGitRepoFiles(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGitRepoFilesResponse(rsp)
+}
+
 // ListStoredFilesWithResponse request returning *ListStoredFilesResponse
 func (c *ClientWithResponses) ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error) {
 	rsp, err := c.ListStoredFiles(ctx, workspace, params, reqEditors...)
@@ -67565,6 +68460,24 @@ func (c *ClientWithResponses) LoadFilePreviewWithResponse(ctx context.Context, w
 		return nil, err
 	}
 	return ParseLoadFilePreviewResponse(rsp)
+}
+
+// LoadGitRepoFileMetadataWithResponse request returning *LoadGitRepoFileMetadataResponse
+func (c *ClientWithResponses) LoadGitRepoFileMetadataWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadGitRepoFileMetadataParams, reqEditors ...RequestEditorFn) (*LoadGitRepoFileMetadataResponse, error) {
+	rsp, err := c.LoadGitRepoFileMetadata(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoadGitRepoFileMetadataResponse(rsp)
+}
+
+// LoadGitRepoFilePreviewWithResponse request returning *LoadGitRepoFilePreviewResponse
+func (c *ClientWithResponses) LoadGitRepoFilePreviewWithResponse(ctx context.Context, workspace WorkspaceId, params *LoadGitRepoFilePreviewParams, reqEditors ...RequestEditorFn) (*LoadGitRepoFilePreviewResponse, error) {
+	rsp, err := c.LoadGitRepoFilePreview(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoadGitRepoFilePreviewResponse(rsp)
 }
 
 // LoadParquetPreviewWithResponse request returning *LoadParquetPreviewResponse
@@ -67618,6 +68531,15 @@ func (c *ClientWithResponses) DatasetStorageTestConnectionWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseDatasetStorageTestConnectionResponse(rsp)
+}
+
+// GitRepoViewerFileUploadWithBodyWithResponse request with arbitrary body returning *GitRepoViewerFileUploadResponse
+func (c *ClientWithResponses) GitRepoViewerFileUploadWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *GitRepoViewerFileUploadParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GitRepoViewerFileUploadResponse, error) {
+	rsp, err := c.GitRepoViewerFileUploadWithBody(ctx, workspace, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGitRepoViewerFileUploadResponse(rsp)
 }
 
 // FileUploadWithBodyWithResponse request with arbitrary body returning *FileUploadResponse
@@ -69338,6 +70260,15 @@ func (c *ClientWithResponses) GetResourceValueInterpolatedWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseGetResourceValueInterpolatedResponse(rsp)
+}
+
+// GetGitCommitHashWithResponse request returning *GetGitCommitHashResponse
+func (c *ClientWithResponses) GetGitCommitHashWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetGitCommitHashResponse, error) {
+	rsp, err := c.GetGitCommitHash(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGitCommitHashResponse(rsp)
 }
 
 // ListResourceWithResponse request returning *ListResourceResponse
@@ -76315,6 +77246,38 @@ func ParseGetArgsFromHistoryOrSavedInputResponse(rsp *http.Response) (*GetArgsFr
 	return response, nil
 }
 
+// ParseCheckS3FolderExistsResponse parses an HTTP response from a CheckS3FolderExistsWithResponse call
+func ParseCheckS3FolderExistsResponse(rsp *http.Response) (*CheckS3FolderExistsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CheckS3FolderExistsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Exists Whether the path exists
+			Exists bool `json:"exists"`
+
+			// IsFolder Whether the path is a folder (true) or file (false)
+			IsFolder bool `json:"is_folder"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseDeleteS3FileResponse parses an HTTP response from a DeleteS3FileWithResponse call
 func ParseDeleteS3FileResponse(rsp *http.Response) (*DeleteS3FileResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -76390,6 +77353,36 @@ func ParseDuckdbConnectionSettingsResponse(rsp *http.Response) (*DuckdbConnectio
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			ConnectionSettingsStr *string `json:"connection_settings_str,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListGitRepoFilesResponse parses an HTTP response from a ListGitRepoFilesWithResponse call
+func ParseListGitRepoFilesResponse(rsp *http.Response) (*ListGitRepoFilesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGitRepoFilesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			NextMarker         *string             `json:"next_marker,omitempty"`
+			RestrictedAccess   *bool               `json:"restricted_access,omitempty"`
+			WindmillLargeFiles []WindmillLargeFile `json:"windmill_large_files"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -76482,6 +77475,58 @@ func ParseLoadFilePreviewResponse(rsp *http.Response) (*LoadFilePreviewResponse,
 	}
 
 	response := &LoadFilePreviewResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WindmillFilePreview
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseLoadGitRepoFileMetadataResponse parses an HTTP response from a LoadGitRepoFileMetadataWithResponse call
+func ParseLoadGitRepoFileMetadataResponse(rsp *http.Response) (*LoadGitRepoFileMetadataResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LoadGitRepoFileMetadataResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WindmillFileMetadata
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseLoadGitRepoFilePreviewResponse parses an HTTP response from a LoadGitRepoFilePreviewWithResponse call
+func ParseLoadGitRepoFilePreviewResponse(rsp *http.Response) (*LoadGitRepoFilePreviewResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LoadGitRepoFilePreviewResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -76618,6 +77663,34 @@ func ParseDatasetStorageTestConnectionResponse(rsp *http.Response) (*DatasetStor
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGitRepoViewerFileUploadResponse parses an HTTP response from a GitRepoViewerFileUploadWithResponse call
+func ParseGitRepoViewerFileUploadResponse(rsp *http.Response) (*GitRepoViewerFileUploadResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GitRepoViewerFileUploadResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			FileKey string `json:"file_key"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -79485,6 +80558,35 @@ func ParseGetResourceValueInterpolatedResponse(rsp *http.Response) (*GetResource
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetGitCommitHashResponse parses an HTTP response from a GetGitCommitHashWithResponse call
+func ParseGetGitCommitHashResponse(rsp *http.Response) (*GetGitCommitHashResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGitCommitHashResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// CommitHash Latest commit hash from git ls-remote
+			CommitHash string `json:"commit_hash"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
