@@ -309,6 +309,13 @@ const (
 	HttpMethodPut    HttpMethod = "put"
 )
 
+// Defines values for HttpRequestType.
+const (
+	Async   HttpRequestType = "async"
+	Sync    HttpRequestType = "sync"
+	SyncSse HttpRequestType = "sync_sse"
+)
+
 // Defines values for HubScriptKind.
 const (
 	HubScriptKindApproval HubScriptKind = "approval"
@@ -1270,17 +1277,20 @@ type EditHttpTrigger struct {
 	Description                *string              `json:"description,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
-	HttpMethod        HttpMethod  `json:"http_method"`
-	IsAsync           bool        `json:"is_async"`
-	IsFlow            bool        `json:"is_flow"`
-	IsStaticWebsite   bool        `json:"is_static_website"`
-	Path              string      `json:"path"`
-	RawString         *bool       `json:"raw_string,omitempty"`
-	Retry             *Retry      `json:"retry,omitempty"`
-	RoutePath         *string     `json:"route_path,omitempty"`
-	ScriptPath        string      `json:"script_path"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	HttpMethod       HttpMethod  `json:"http_method"`
+
+	// IsAsync Deprecated, use request_type instead
+	IsAsync           *bool            `json:"is_async,omitempty"`
+	IsFlow            bool             `json:"is_flow"`
+	IsStaticWebsite   bool             `json:"is_static_website"`
+	Path              string           `json:"path"`
+	RawString         *bool            `json:"raw_string,omitempty"`
+	RequestType       *HttpRequestType `json:"request_type,omitempty"`
+	Retry             *Retry           `json:"retry,omitempty"`
+	RoutePath         *string          `json:"route_path,omitempty"`
+	ScriptPath        string           `json:"script_path"`
 	StaticAssetConfig *struct {
 		Filename *string `json:"filename,omitempty"`
 		S3       string  `json:"s3"`
@@ -1891,6 +1901,9 @@ type Group struct {
 // HttpMethod defines model for HttpMethod.
 type HttpMethod string
 
+// HttpRequestType defines model for HttpRequestType.
+type HttpRequestType string
+
 // HttpTrigger defines model for HttpTrigger.
 type HttpTrigger = TriggerExtraProperty
 
@@ -2209,17 +2222,20 @@ type NewHttpTrigger struct {
 	Description                *string              `json:"description,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
-	HttpMethod        HttpMethod  `json:"http_method"`
-	IsAsync           bool        `json:"is_async"`
-	IsFlow            bool        `json:"is_flow"`
-	IsStaticWebsite   bool        `json:"is_static_website"`
-	Path              string      `json:"path"`
-	RawString         *bool       `json:"raw_string,omitempty"`
-	Retry             *Retry      `json:"retry,omitempty"`
-	RoutePath         string      `json:"route_path"`
-	ScriptPath        string      `json:"script_path"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	HttpMethod       HttpMethod  `json:"http_method"`
+
+	// IsAsync Deprecated, use request_type instead
+	IsAsync           *bool            `json:"is_async,omitempty"`
+	IsFlow            bool             `json:"is_flow"`
+	IsStaticWebsite   bool             `json:"is_static_website"`
+	Path              string           `json:"path"`
+	RawString         *bool            `json:"raw_string,omitempty"`
+	RequestType       *HttpRequestType `json:"request_type,omitempty"`
+	Retry             *Retry           `json:"retry,omitempty"`
+	RoutePath         string           `json:"route_path"`
+	ScriptPath        string           `json:"script_path"`
 	StaticAssetConfig *struct {
 		Filename *string `json:"filename,omitempty"`
 		S3       string  `json:"s3"`
