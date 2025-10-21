@@ -250,6 +250,11 @@ const (
 	FlowConversationMessageMessageTypeUser      FlowConversationMessageMessageType = "user"
 )
 
+// Defines values for FlowModuleToolToolType.
+const (
+	Flowmodule FlowModuleToolToolType = "flowmodule"
+)
+
 // Defines values for FlowStatusFailureModuleAgentActions0Type.
 const (
 	FlowStatusFailureModuleAgentActions0TypeToolCall FlowStatusFailureModuleAgentActions0Type = "tool_call"
@@ -257,7 +262,12 @@ const (
 
 // Defines values for FlowStatusFailureModuleAgentActions1Type.
 const (
-	FlowStatusFailureModuleAgentActions1TypeMessage FlowStatusFailureModuleAgentActions1Type = "message"
+	FlowStatusFailureModuleAgentActions1TypeMcpToolCall FlowStatusFailureModuleAgentActions1Type = "mcp_tool_call"
+)
+
+// Defines values for FlowStatusFailureModuleAgentActions2Type.
+const (
+	FlowStatusFailureModuleAgentActions2TypeMessage FlowStatusFailureModuleAgentActions2Type = "message"
 )
 
 // Defines values for FlowStatusFailureModuleBranchChosenType.
@@ -407,6 +417,11 @@ const (
 	FAIL LoggedWizardStatus = "FAIL"
 	OK   LoggedWizardStatus = "OK"
 	SKIP LoggedWizardStatus = "SKIP"
+)
+
+// Defines values for McpToolValueToolType.
+const (
+	Mcp McpToolValueToolType = "mcp"
 )
 
 // Defines values for MqttClientVersion.
@@ -608,7 +623,12 @@ const (
 
 // Defines values for SchemasFlowStatusModuleAgentActions1Type.
 const (
-	SchemasFlowStatusModuleAgentActions1TypeMessage SchemasFlowStatusModuleAgentActions1Type = "message"
+	SchemasFlowStatusModuleAgentActions1TypeMcpToolCall SchemasFlowStatusModuleAgentActions1Type = "mcp_tool_call"
+)
+
+// Defines values for SchemasFlowStatusModuleAgentActions2Type.
+const (
+	SchemasFlowStatusModuleAgentActions2TypeMessage SchemasFlowStatusModuleAgentActions2Type = "message"
 )
 
 // Defines values for SchemasFlowStatusModuleBranchChosenType.
@@ -890,6 +910,13 @@ type AIProviderConfig struct {
 type AIProviderModel struct {
 	Model    string     `json:"model"`
 	Provider AIProvider `json:"provider"`
+}
+
+// AgentTool defines model for AgentTool.
+type AgentTool struct {
+	Id      string    `json:"id"`
+	Summary *string   `json:"summary,omitempty"`
+	Value   ToolValue `json:"value"`
 }
 
 // Alert defines model for Alert.
@@ -1674,6 +1701,15 @@ type FlowMetadata struct {
 	WsErrorHandlerMuted *bool      `json:"ws_error_handler_muted,omitempty"`
 }
 
+// FlowModuleTool defines model for FlowModuleTool.
+type FlowModuleTool struct {
+	ToolType FlowModuleToolToolType `json:"tool_type"`
+	union    json.RawMessage
+}
+
+// FlowModuleToolToolType defines model for FlowModuleTool.ToolType.
+type FlowModuleToolToolType string
+
 // FlowPreview defines model for FlowPreview.
 type FlowPreview struct {
 	// Args The arguments to pass to the script or flow
@@ -1744,11 +1780,23 @@ type FlowStatusFailureModuleAgentActions0Type string
 
 // FlowStatusFailureModuleAgentActions1 defines model for .
 type FlowStatusFailureModuleAgentActions1 struct {
-	Type FlowStatusFailureModuleAgentActions1Type `json:"type"`
+	Arguments    *map[string]interface{}                  `json:"arguments,omitempty"`
+	CallId       openapi_types.UUID                       `json:"call_id"`
+	FunctionName string                                   `json:"function_name"`
+	ResourcePath string                                   `json:"resource_path"`
+	Type         FlowStatusFailureModuleAgentActions1Type `json:"type"`
 }
 
 // FlowStatusFailureModuleAgentActions1Type defines model for FlowStatus.FailureModule.AgentActions.1.Type.
 type FlowStatusFailureModuleAgentActions1Type string
+
+// FlowStatusFailureModuleAgentActions2 defines model for .
+type FlowStatusFailureModuleAgentActions2 struct {
+	Type FlowStatusFailureModuleAgentActions2Type `json:"type"`
+}
+
+// FlowStatusFailureModuleAgentActions2Type defines model for FlowStatus.FailureModule.AgentActions.2.Type.
+type FlowStatusFailureModuleAgentActions2Type string
 
 // FlowStatus_FailureModule_AgentActions_Item defines model for FlowStatus.FailureModule.AgentActions.Item.
 type FlowStatus_FailureModule_AgentActions_Item struct {
@@ -2159,6 +2207,17 @@ type Login struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+// McpToolValue defines model for McpToolValue.
+type McpToolValue struct {
+	ExcludeTools *[]string            `json:"exclude_tools,omitempty"`
+	IncludeTools *[]string            `json:"include_tools,omitempty"`
+	ResourcePath string               `json:"resource_path"`
+	ToolType     McpToolValueToolType `json:"tool_type"`
+}
+
+// McpToolValueToolType defines model for McpToolValue.ToolType.
+type McpToolValueToolType string
 
 // MetricDataPoint defines model for MetricDataPoint.
 type MetricDataPoint struct {
@@ -3058,6 +3117,11 @@ type TokenResponse struct {
 	Scope        *[]string `json:"scope,omitempty"`
 }
 
+// ToolValue defines model for ToolValue.
+type ToolValue struct {
+	union json.RawMessage
+}
+
 // TriggerExtraProperty defines model for TriggerExtraProperty.
 type TriggerExtraProperty struct {
 	EditedAt    time.Time       `json:"edited_at"`
@@ -3302,7 +3366,7 @@ type WorkspaceInvite struct {
 type SchemasAiAgent struct {
 	InputTransforms map[string]SchemasInputTransform `json:"input_transforms"`
 	Parallel        *bool                            `json:"parallel,omitempty"`
-	Tools           []SchemasFlowModule              `json:"tools"`
+	Tools           []AgentTool                      `json:"tools"`
 	Type            SchemasAiAgentType               `json:"type"`
 }
 
@@ -3426,11 +3490,23 @@ type SchemasFlowStatusModuleAgentActions0Type string
 
 // SchemasFlowStatusModuleAgentActions1 defines model for .
 type SchemasFlowStatusModuleAgentActions1 struct {
-	Type SchemasFlowStatusModuleAgentActions1Type `json:"type"`
+	Arguments    *map[string]interface{}                  `json:"arguments,omitempty"`
+	CallId       openapi_types.UUID                       `json:"call_id"`
+	FunctionName string                                   `json:"function_name"`
+	ResourcePath string                                   `json:"resource_path"`
+	Type         SchemasFlowStatusModuleAgentActions1Type `json:"type"`
 }
 
 // SchemasFlowStatusModuleAgentActions1Type defines model for SchemasFlowStatusModule.AgentActions.1.Type.
 type SchemasFlowStatusModuleAgentActions1Type string
+
+// SchemasFlowStatusModuleAgentActions2 defines model for .
+type SchemasFlowStatusModuleAgentActions2 struct {
+	Type SchemasFlowStatusModuleAgentActions2Type `json:"type"`
+}
+
+// SchemasFlowStatusModuleAgentActions2Type defines model for SchemasFlowStatusModule.AgentActions.2.Type.
+type SchemasFlowStatusModuleAgentActions2Type string
 
 // SchemasFlowStatusModule_AgentActions_Item defines model for schemas-FlowStatusModule.agent_actions.Item.
 type SchemasFlowStatusModule_AgentActions_Item struct {
@@ -7341,6 +7417,283 @@ func (t *DynamicInputData_RunnableRef) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsSchemasRawScript returns the union data inside the FlowModuleTool as a SchemasRawScript
+func (t FlowModuleTool) AsSchemasRawScript() (SchemasRawScript, error) {
+	var body SchemasRawScript
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasRawScript overwrites any union data inside the FlowModuleTool as the provided SchemasRawScript
+func (t *FlowModuleTool) FromSchemasRawScript(v SchemasRawScript) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasRawScript performs a merge with any union data inside the FlowModuleTool, using the provided SchemasRawScript
+func (t *FlowModuleTool) MergeSchemasRawScript(v SchemasRawScript) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasPathScript returns the union data inside the FlowModuleTool as a SchemasPathScript
+func (t FlowModuleTool) AsSchemasPathScript() (SchemasPathScript, error) {
+	var body SchemasPathScript
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasPathScript overwrites any union data inside the FlowModuleTool as the provided SchemasPathScript
+func (t *FlowModuleTool) FromSchemasPathScript(v SchemasPathScript) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasPathScript performs a merge with any union data inside the FlowModuleTool, using the provided SchemasPathScript
+func (t *FlowModuleTool) MergeSchemasPathScript(v SchemasPathScript) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasPathFlow returns the union data inside the FlowModuleTool as a SchemasPathFlow
+func (t FlowModuleTool) AsSchemasPathFlow() (SchemasPathFlow, error) {
+	var body SchemasPathFlow
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasPathFlow overwrites any union data inside the FlowModuleTool as the provided SchemasPathFlow
+func (t *FlowModuleTool) FromSchemasPathFlow(v SchemasPathFlow) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasPathFlow performs a merge with any union data inside the FlowModuleTool, using the provided SchemasPathFlow
+func (t *FlowModuleTool) MergeSchemasPathFlow(v SchemasPathFlow) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasForloopFlow returns the union data inside the FlowModuleTool as a SchemasForloopFlow
+func (t FlowModuleTool) AsSchemasForloopFlow() (SchemasForloopFlow, error) {
+	var body SchemasForloopFlow
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasForloopFlow overwrites any union data inside the FlowModuleTool as the provided SchemasForloopFlow
+func (t *FlowModuleTool) FromSchemasForloopFlow(v SchemasForloopFlow) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasForloopFlow performs a merge with any union data inside the FlowModuleTool, using the provided SchemasForloopFlow
+func (t *FlowModuleTool) MergeSchemasForloopFlow(v SchemasForloopFlow) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasWhileloopFlow returns the union data inside the FlowModuleTool as a SchemasWhileloopFlow
+func (t FlowModuleTool) AsSchemasWhileloopFlow() (SchemasWhileloopFlow, error) {
+	var body SchemasWhileloopFlow
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasWhileloopFlow overwrites any union data inside the FlowModuleTool as the provided SchemasWhileloopFlow
+func (t *FlowModuleTool) FromSchemasWhileloopFlow(v SchemasWhileloopFlow) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasWhileloopFlow performs a merge with any union data inside the FlowModuleTool, using the provided SchemasWhileloopFlow
+func (t *FlowModuleTool) MergeSchemasWhileloopFlow(v SchemasWhileloopFlow) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasBranchOne returns the union data inside the FlowModuleTool as a SchemasBranchOne
+func (t FlowModuleTool) AsSchemasBranchOne() (SchemasBranchOne, error) {
+	var body SchemasBranchOne
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasBranchOne overwrites any union data inside the FlowModuleTool as the provided SchemasBranchOne
+func (t *FlowModuleTool) FromSchemasBranchOne(v SchemasBranchOne) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasBranchOne performs a merge with any union data inside the FlowModuleTool, using the provided SchemasBranchOne
+func (t *FlowModuleTool) MergeSchemasBranchOne(v SchemasBranchOne) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasBranchAll returns the union data inside the FlowModuleTool as a SchemasBranchAll
+func (t FlowModuleTool) AsSchemasBranchAll() (SchemasBranchAll, error) {
+	var body SchemasBranchAll
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasBranchAll overwrites any union data inside the FlowModuleTool as the provided SchemasBranchAll
+func (t *FlowModuleTool) FromSchemasBranchAll(v SchemasBranchAll) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasBranchAll performs a merge with any union data inside the FlowModuleTool, using the provided SchemasBranchAll
+func (t *FlowModuleTool) MergeSchemasBranchAll(v SchemasBranchAll) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasIdentity returns the union data inside the FlowModuleTool as a SchemasIdentity
+func (t FlowModuleTool) AsSchemasIdentity() (SchemasIdentity, error) {
+	var body SchemasIdentity
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasIdentity overwrites any union data inside the FlowModuleTool as the provided SchemasIdentity
+func (t *FlowModuleTool) FromSchemasIdentity(v SchemasIdentity) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasIdentity performs a merge with any union data inside the FlowModuleTool, using the provided SchemasIdentity
+func (t *FlowModuleTool) MergeSchemasIdentity(v SchemasIdentity) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasAiAgent returns the union data inside the FlowModuleTool as a SchemasAiAgent
+func (t FlowModuleTool) AsSchemasAiAgent() (SchemasAiAgent, error) {
+	var body SchemasAiAgent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasAiAgent overwrites any union data inside the FlowModuleTool as the provided SchemasAiAgent
+func (t *FlowModuleTool) FromSchemasAiAgent(v SchemasAiAgent) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasAiAgent performs a merge with any union data inside the FlowModuleTool, using the provided SchemasAiAgent
+func (t *FlowModuleTool) MergeSchemasAiAgent(v SchemasAiAgent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t FlowModuleTool) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	object := make(map[string]json.RawMessage)
+	if t.union != nil {
+		err = json.Unmarshal(b, &object)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	object["tool_type"], err = json.Marshal(t.ToolType)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'tool_type': %w", err)
+	}
+
+	b, err = json.Marshal(object)
+	return b, err
+}
+
+func (t *FlowModuleTool) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	if err != nil {
+		return err
+	}
+	object := make(map[string]json.RawMessage)
+	err = json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["tool_type"]; found {
+		err = json.Unmarshal(raw, &t.ToolType)
+		if err != nil {
+			return fmt.Errorf("error reading 'tool_type': %w", err)
+		}
+	}
+
+	return err
+}
+
 // AsFlowStatusFailureModuleAgentActions0 returns the union data inside the FlowStatus_FailureModule_AgentActions_Item as a FlowStatusFailureModuleAgentActions0
 func (t FlowStatus_FailureModule_AgentActions_Item) AsFlowStatusFailureModuleAgentActions0() (FlowStatusFailureModuleAgentActions0, error) {
 	var body FlowStatusFailureModuleAgentActions0
@@ -7383,6 +7736,32 @@ func (t *FlowStatus_FailureModule_AgentActions_Item) FromFlowStatusFailureModule
 
 // MergeFlowStatusFailureModuleAgentActions1 performs a merge with any union data inside the FlowStatus_FailureModule_AgentActions_Item, using the provided FlowStatusFailureModuleAgentActions1
 func (t *FlowStatus_FailureModule_AgentActions_Item) MergeFlowStatusFailureModuleAgentActions1(v FlowStatusFailureModuleAgentActions1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsFlowStatusFailureModuleAgentActions2 returns the union data inside the FlowStatus_FailureModule_AgentActions_Item as a FlowStatusFailureModuleAgentActions2
+func (t FlowStatus_FailureModule_AgentActions_Item) AsFlowStatusFailureModuleAgentActions2() (FlowStatusFailureModuleAgentActions2, error) {
+	var body FlowStatusFailureModuleAgentActions2
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFlowStatusFailureModuleAgentActions2 overwrites any union data inside the FlowStatus_FailureModule_AgentActions_Item as the provided FlowStatusFailureModuleAgentActions2
+func (t *FlowStatus_FailureModule_AgentActions_Item) FromFlowStatusFailureModuleAgentActions2(v FlowStatusFailureModuleAgentActions2) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFlowStatusFailureModuleAgentActions2 performs a merge with any union data inside the FlowStatus_FailureModule_AgentActions_Item, using the provided FlowStatusFailureModuleAgentActions2
+func (t *FlowStatus_FailureModule_AgentActions_Item) MergeFlowStatusFailureModuleAgentActions2(v FlowStatusFailureModuleAgentActions2) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -7550,6 +7929,95 @@ func (t Job) MarshalJSON() ([]byte, error) {
 }
 
 func (t *Job) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsFlowModuleTool returns the union data inside the ToolValue as a FlowModuleTool
+func (t ToolValue) AsFlowModuleTool() (FlowModuleTool, error) {
+	var body FlowModuleTool
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFlowModuleTool overwrites any union data inside the ToolValue as the provided FlowModuleTool
+func (t *ToolValue) FromFlowModuleTool(v FlowModuleTool) error {
+	v.ToolType = "flowmodule"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFlowModuleTool performs a merge with any union data inside the ToolValue, using the provided FlowModuleTool
+func (t *ToolValue) MergeFlowModuleTool(v FlowModuleTool) error {
+	v.ToolType = "flowmodule"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsMcpToolValue returns the union data inside the ToolValue as a McpToolValue
+func (t ToolValue) AsMcpToolValue() (McpToolValue, error) {
+	var body McpToolValue
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromMcpToolValue overwrites any union data inside the ToolValue as the provided McpToolValue
+func (t *ToolValue) FromMcpToolValue(v McpToolValue) error {
+	v.ToolType = "mcp"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeMcpToolValue performs a merge with any union data inside the ToolValue, using the provided McpToolValue
+func (t *ToolValue) MergeMcpToolValue(v McpToolValue) error {
+	v.ToolType = "mcp"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t ToolValue) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"tool_type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t ToolValue) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "flowmodule":
+		return t.AsFlowModuleTool()
+	case "mcp":
+		return t.AsMcpToolValue()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t ToolValue) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ToolValue) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -7957,6 +8425,32 @@ func (t *SchemasFlowStatusModule_AgentActions_Item) FromSchemasFlowStatusModuleA
 
 // MergeSchemasFlowStatusModuleAgentActions1 performs a merge with any union data inside the SchemasFlowStatusModule_AgentActions_Item, using the provided SchemasFlowStatusModuleAgentActions1
 func (t *SchemasFlowStatusModule_AgentActions_Item) MergeSchemasFlowStatusModuleAgentActions1(v SchemasFlowStatusModuleAgentActions1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasFlowStatusModuleAgentActions2 returns the union data inside the SchemasFlowStatusModule_AgentActions_Item as a SchemasFlowStatusModuleAgentActions2
+func (t SchemasFlowStatusModule_AgentActions_Item) AsSchemasFlowStatusModuleAgentActions2() (SchemasFlowStatusModuleAgentActions2, error) {
+	var body SchemasFlowStatusModuleAgentActions2
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasFlowStatusModuleAgentActions2 overwrites any union data inside the SchemasFlowStatusModule_AgentActions_Item as the provided SchemasFlowStatusModuleAgentActions2
+func (t *SchemasFlowStatusModule_AgentActions_Item) FromSchemasFlowStatusModuleAgentActions2(v SchemasFlowStatusModuleAgentActions2) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasFlowStatusModuleAgentActions2 performs a merge with any union data inside the SchemasFlowStatusModule_AgentActions_Item, using the provided SchemasFlowStatusModuleAgentActions2
+func (t *SchemasFlowStatusModule_AgentActions_Item) MergeSchemasFlowStatusModuleAgentActions2(v SchemasFlowStatusModuleAgentActions2) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -9583,6 +10077,9 @@ type ClientInterface interface {
 
 	// ListSearchResource request
 	ListSearchResource(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetMcpTools request
+	GetMcpTools(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateResourceTypeWithBody request with any body
 	CreateResourceTypeWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16494,6 +16991,18 @@ func (c *Client) ListResourceNames(ctx context.Context, workspace WorkspaceId, n
 
 func (c *Client) ListSearchResource(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListSearchResourceRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMcpTools(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMcpToolsRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -44363,6 +44872,47 @@ func NewListSearchResourceRequest(server string, workspace WorkspaceId) (*http.R
 	return req, nil
 }
 
+// NewGetMcpToolsRequest generates requests for GetMcpTools
+func NewGetMcpToolsRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/mcp_tools/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateResourceTypeRequest calls the generic CreateResourceType builder with application/json body
 func NewCreateResourceTypeRequest(server string, workspace WorkspaceId, body CreateResourceTypeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -53142,6 +53692,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListSearchResourceWithResponse request
 	ListSearchResourceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchResourceResponse, error)
+
+	// GetMcpToolsWithResponse request
+	GetMcpToolsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetMcpToolsResponse, error)
 
 	// CreateResourceTypeWithBodyWithResponse request with any body
 	CreateResourceTypeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResourceTypeResponse, error)
@@ -62385,6 +62938,32 @@ func (r ListSearchResourceResponse) StatusCode() int {
 	return 0
 }
 
+type GetMcpToolsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Description *string                `json:"description,omitempty"`
+		Name        string                 `json:"name"`
+		Parameters  map[string]interface{} `json:"parameters"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMcpToolsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMcpToolsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateResourceTypeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -70339,6 +70918,15 @@ func (c *ClientWithResponses) ListSearchResourceWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListSearchResourceResponse(rsp)
+}
+
+// GetMcpToolsWithResponse request returning *GetMcpToolsResponse
+func (c *ClientWithResponses) GetMcpToolsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetMcpToolsResponse, error) {
+	rsp, err := c.GetMcpTools(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMcpToolsResponse(rsp)
 }
 
 // CreateResourceTypeWithBodyWithResponse request with arbitrary body returning *CreateResourceTypeResponse
@@ -80713,6 +81301,36 @@ func ParseListSearchResourceResponse(rsp *http.Response) (*ListSearchResourceRes
 		var dest []struct {
 			Path  string      `json:"path"`
 			Value interface{} `json:"value"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetMcpToolsResponse parses an HTTP response from a GetMcpToolsWithResponse call
+func ParseGetMcpToolsResponse(rsp *http.Response) (*GetMcpToolsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMcpToolsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Description *string                `json:"description,omitempty"`
+			Name        string                 `json:"name"`
+			Parameters  map[string]interface{} `json:"parameters"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
