@@ -1818,6 +1818,8 @@ type FlowValue struct {
 	ConcurrencyKey         *string             `json:"concurrency_key,omitempty"`
 	ConcurrencyTimeWindowS *float32            `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *float32            `json:"concurrent_limit,omitempty"`
+	DebounceDelayS         *float32            `json:"debounce_delay_s,omitempty"`
+	DebounceKey            *string             `json:"debounce_key,omitempty"`
 	EarlyReturn            *string             `json:"early_return,omitempty"`
 	FailureModule          *SchemasFlowModule  `json:"failure_module,omitempty"`
 	Modules                []SchemasFlowModule `json:"modules"`
@@ -2465,6 +2467,8 @@ type NewScript struct {
 	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
 	Content                string                  `json:"content"`
+	DebounceDelayS         *int                    `json:"debounce_delay_s,omitempty"`
+	DebounceKey            *string                 `json:"debounce_key,omitempty"`
 	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
 	DeleteAfterUse         *bool                   `json:"delete_after_use,omitempty"`
 	DeploymentMessage      *string                 `json:"deployment_message,omitempty"`
@@ -2513,6 +2517,8 @@ type NewScriptWithDraft struct {
 	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
 	Content                string                  `json:"content"`
+	DebounceDelayS         *int                    `json:"debounce_delay_s,omitempty"`
+	DebounceKey            *string                 `json:"debounce_key,omitempty"`
 	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
 	DeleteAfterUse         *bool                   `json:"delete_after_use,omitempty"`
 	DeploymentMessage      *string                 `json:"deployment_message,omitempty"`
@@ -3528,6 +3534,8 @@ type SchemasFlowValue struct {
 	ConcurrencyKey         *string             `json:"concurrency_key,omitempty"`
 	ConcurrencyTimeWindowS *float32            `json:"concurrency_time_window_s,omitempty"`
 	ConcurrentLimit        *float32            `json:"concurrent_limit,omitempty"`
+	DebounceDelayS         *float32            `json:"debounce_delay_s,omitempty"`
+	DebounceKey            *string             `json:"debounce_key,omitempty"`
 	EarlyReturn            *string             `json:"early_return,omitempty"`
 	FailureModule          *SchemasFlowModule  `json:"failure_module,omitempty"`
 	Modules                []SchemasFlowModule `json:"modules"`
@@ -3650,7 +3658,7 @@ type SchemasRetry struct {
 // SchemasStaticTransform defines model for schemas-StaticTransform.
 type SchemasStaticTransform struct {
 	Type  SchemasStaticTransformType `json:"type"`
-	Value interface{}                `json:"value"`
+	Value *interface{}               `json:"value,omitempty"`
 }
 
 // SchemasStaticTransformType defines model for SchemasStaticTransform.Type.
