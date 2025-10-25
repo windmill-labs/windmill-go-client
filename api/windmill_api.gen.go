@@ -3029,6 +3029,8 @@ type Script struct {
 	Content                string          `json:"content"`
 	CreatedAt              time.Time       `json:"created_at"`
 	CreatedBy              string          `json:"created_by"`
+	DebounceDelayS         *int            `json:"debounce_delay_s,omitempty"`
+	DebounceKey            *string         `json:"debounce_key,omitempty"`
 	DedicatedWorker        *bool           `json:"dedicated_worker,omitempty"`
 	DeleteAfterUse         *bool           `json:"delete_after_use,omitempty"`
 	Deleted                bool            `json:"deleted"`
