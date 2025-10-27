@@ -1047,6 +1047,7 @@ type CompletedJob struct {
 	Canceled       bool                `json:"canceled"`
 	CanceledBy     *string             `json:"canceled_by,omitempty"`
 	CanceledReason *string             `json:"canceled_reason,omitempty"`
+	CompletedAt    *time.Time          `json:"completed_at,omitempty"`
 	CreatedAt      time.Time           `json:"created_at"`
 	CreatedBy      string              `json:"created_by"`
 	Deleted        *bool               `json:"deleted,omitempty"`
@@ -1165,11 +1166,9 @@ type CreateWorkspace struct {
 
 // CreateWorkspaceFork defines model for CreateWorkspaceFork.
 type CreateWorkspaceFork struct {
-	Color             *string `json:"color,omitempty"`
-	Id                string  `json:"id"`
-	Name              string  `json:"name"`
-	ParentWorkspaceId string  `json:"parent_workspace_id"`
-	Username          *string `json:"username,omitempty"`
+	Color *string `json:"color,omitempty"`
+	Id    string  `json:"id"`
+	Name  string  `json:"name"`
 }
 
 // CriticalAlert defines model for CriticalAlert.
@@ -2004,6 +2003,7 @@ type Job0 struct {
 	Canceled       bool                `json:"canceled"`
 	CanceledBy     *string             `json:"canceled_by,omitempty"`
 	CanceledReason *string             `json:"canceled_reason,omitempty"`
+	CompletedAt    *time.Time          `json:"completed_at,omitempty"`
 	CreatedAt      time.Time           `json:"created_at"`
 	CreatedBy      string              `json:"created_by"`
 	Deleted        *bool               `json:"deleted,omitempty"`
@@ -3709,26 +3709,29 @@ type CacheTtl = string
 // ClientName defines model for ClientName.
 type ClientName = string
 
+// CompletedAfter defines model for CompletedAfter.
+type CompletedAfter = time.Time
+
+// CompletedBefore defines model for CompletedBefore.
+type CompletedBefore = time.Time
+
 // ConcurrencyId defines model for ConcurrencyId.
 type ConcurrencyId = string
 
 // CreatedAfter defines model for CreatedAfter.
 type CreatedAfter = time.Time
 
+// CreatedAfterQueue defines model for CreatedAfterQueue.
+type CreatedAfterQueue = time.Time
+
 // CreatedBefore defines model for CreatedBefore.
 type CreatedBefore = time.Time
 
+// CreatedBeforeQueue defines model for CreatedBeforeQueue.
+type CreatedBeforeQueue = time.Time
+
 // CreatedBy defines model for CreatedBy.
 type CreatedBy = string
-
-// CreatedOrStartedAfter defines model for CreatedOrStartedAfter.
-type CreatedOrStartedAfter = time.Time
-
-// CreatedOrStartedAfterCompletedJob defines model for CreatedOrStartedAfterCompletedJob.
-type CreatedOrStartedAfterCompletedJob = time.Time
-
-// CreatedOrStartedBefore defines model for CreatedOrStartedBefore.
-type CreatedOrStartedBefore = time.Time
 
 // CustomPath defines model for CustomPath.
 type CustomPath = string
@@ -4473,20 +4476,23 @@ type ListExtendedJobsParams struct {
 	// StartedAfter filter on started after (exclusive) timestamp
 	StartedAfter *StartedAfter `form:"started_after,omitempty" json:"started_after,omitempty"`
 
-	// CreatedOrStartedBefore filter on created_at for non non started job and started_at otherwise before (inclusive) timestamp
-	CreatedOrStartedBefore *CreatedOrStartedBefore `form:"created_or_started_before,omitempty" json:"created_or_started_before,omitempty"`
-
 	// Running filter on running jobs
 	Running *Running `form:"running,omitempty" json:"running,omitempty"`
 
 	// ScheduledForBeforeNow filter on jobs scheduled_for before now (hence waitinf for a worker)
 	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
 
-	// CreatedOrStartedAfter filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp
-	CreatedOrStartedAfter *CreatedOrStartedAfter `form:"created_or_started_after,omitempty" json:"created_or_started_after,omitempty"`
+	// CompletedBefore filter on started before (inclusive) timestamp
+	CompletedBefore *CompletedBefore `form:"completed_before,omitempty" json:"completed_before,omitempty"`
 
-	// CreatedOrStartedAfterCompletedJobs filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp but only for the completed jobs
-	CreatedOrStartedAfterCompletedJobs *CreatedOrStartedAfterCompletedJob `form:"created_or_started_after_completed_jobs,omitempty" json:"created_or_started_after_completed_jobs,omitempty"`
+	// CompletedAfter filter on started after (exclusive) timestamp
+	CompletedAfter *CompletedAfter `form:"completed_after,omitempty" json:"completed_after,omitempty"`
+
+	// CreatedBeforeQueue filter on jobs created before X for jobs in the queue only
+	CreatedBeforeQueue *CreatedBeforeQueue `form:"created_before_queue,omitempty" json:"created_before_queue,omitempty"`
+
+	// CreatedAfterQueue filter on jobs created after X for jobs in the queue only
+	CreatedAfterQueue *CreatedAfterQueue `form:"created_after_queue,omitempty" json:"created_after_queue,omitempty"`
 
 	// JobKinds filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
@@ -5216,20 +5222,23 @@ type ListJobsParams struct {
 	// CreatedAfter filter on created after (exclusive) timestamp
 	CreatedAfter *CreatedAfter `form:"created_after,omitempty" json:"created_after,omitempty"`
 
-	// CreatedOrStartedBefore filter on created_at for non non started job and started_at otherwise before (inclusive) timestamp
-	CreatedOrStartedBefore *CreatedOrStartedBefore `form:"created_or_started_before,omitempty" json:"created_or_started_before,omitempty"`
+	// CompletedBefore filter on started before (inclusive) timestamp
+	CompletedBefore *CompletedBefore `form:"completed_before,omitempty" json:"completed_before,omitempty"`
+
+	// CompletedAfter filter on started after (exclusive) timestamp
+	CompletedAfter *CompletedAfter `form:"completed_after,omitempty" json:"completed_after,omitempty"`
+
+	// CreatedBeforeQueue filter on jobs created before X for jobs in the queue only
+	CreatedBeforeQueue *CreatedBeforeQueue `form:"created_before_queue,omitempty" json:"created_before_queue,omitempty"`
+
+	// CreatedAfterQueue filter on jobs created after X for jobs in the queue only
+	CreatedAfterQueue *CreatedAfterQueue `form:"created_after_queue,omitempty" json:"created_after_queue,omitempty"`
 
 	// Running filter on running jobs
 	Running *Running `form:"running,omitempty" json:"running,omitempty"`
 
 	// ScheduledForBeforeNow filter on jobs scheduled_for before now (hence waitinf for a worker)
 	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
-
-	// CreatedOrStartedAfter filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp
-	CreatedOrStartedAfter *CreatedOrStartedAfter `form:"created_or_started_after,omitempty" json:"created_or_started_after,omitempty"`
-
-	// CreatedOrStartedAfterCompletedJobs filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp but only for the completed jobs
-	CreatedOrStartedAfterCompletedJobs *CreatedOrStartedAfterCompletedJob `form:"created_or_started_after_completed_jobs,omitempty" json:"created_or_started_after_completed_jobs,omitempty"`
 
 	// JobKinds filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
@@ -5248,9 +5257,6 @@ type ListJobsParams struct {
 
 	// AllowWildcards allow wildcards (*) in the filter of label, tag, worker
 	AllowWildcards *AllowWildcards `form:"allow_wildcards,omitempty" json:"allow_wildcards,omitempty"`
-
-	// Page which page to return (start at 1, default 1)
-	Page *Page `form:"page,omitempty" json:"page,omitempty"`
 
 	// PerPage number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
@@ -5312,20 +5318,23 @@ type ListFilteredJobsUuidsParams struct {
 	// CreatedAfter filter on created after (exclusive) timestamp
 	CreatedAfter *CreatedAfter `form:"created_after,omitempty" json:"created_after,omitempty"`
 
-	// CreatedOrStartedBefore filter on created_at for non non started job and started_at otherwise before (inclusive) timestamp
-	CreatedOrStartedBefore *CreatedOrStartedBefore `form:"created_or_started_before,omitempty" json:"created_or_started_before,omitempty"`
+	// CompletedBefore filter on started before (inclusive) timestamp
+	CompletedBefore *CompletedBefore `form:"completed_before,omitempty" json:"completed_before,omitempty"`
+
+	// CompletedAfter filter on started after (exclusive) timestamp
+	CompletedAfter *CompletedAfter `form:"completed_after,omitempty" json:"completed_after,omitempty"`
+
+	// CreatedBeforeQueue filter on jobs created before X for jobs in the queue only
+	CreatedBeforeQueue *CreatedBeforeQueue `form:"created_before_queue,omitempty" json:"created_before_queue,omitempty"`
+
+	// CreatedAfterQueue filter on jobs created after X for jobs in the queue only
+	CreatedAfterQueue *CreatedAfterQueue `form:"created_after_queue,omitempty" json:"created_after_queue,omitempty"`
 
 	// Running filter on running jobs
 	Running *Running `form:"running,omitempty" json:"running,omitempty"`
 
 	// ScheduledForBeforeNow filter on jobs scheduled_for before now (hence waitinf for a worker)
 	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
-
-	// CreatedOrStartedAfter filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp
-	CreatedOrStartedAfter *CreatedOrStartedAfter `form:"created_or_started_after,omitempty" json:"created_or_started_after,omitempty"`
-
-	// CreatedOrStartedAfterCompletedJobs filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp but only for the completed jobs
-	CreatedOrStartedAfterCompletedJobs *CreatedOrStartedAfterCompletedJob `form:"created_or_started_after_completed_jobs,omitempty" json:"created_or_started_after_completed_jobs,omitempty"`
 
 	// JobKinds filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
@@ -7278,6 +7287,9 @@ type ChangeWorkspaceNameJSONRequestBody ChangeWorkspaceNameJSONBody
 // ConnectTeamsJSONRequestBody defines body for ConnectTeams for application/json ContentType.
 type ConnectTeamsJSONRequestBody ConnectTeamsJSONBody
 
+// CreateWorkspaceForkJSONRequestBody defines body for CreateWorkspaceFork for application/json ContentType.
+type CreateWorkspaceForkJSONRequestBody = CreateWorkspaceFork
+
 // WorkspaceMuteCriticalAlertsUIJSONRequestBody defines body for WorkspaceMuteCriticalAlertsUI for application/json ContentType.
 type WorkspaceMuteCriticalAlertsUIJSONRequestBody WorkspaceMuteCriticalAlertsUIJSONBody
 
@@ -7355,9 +7367,6 @@ type SetThresholdAlertJSONRequestBody SetThresholdAlertJSONBody
 
 // CreateWorkspaceJSONRequestBody defines body for CreateWorkspace for application/json ContentType.
 type CreateWorkspaceJSONRequestBody = CreateWorkspace
-
-// CreateWorkspaceForkJSONRequestBody defines body for CreateWorkspaceFork for application/json ContentType.
-type CreateWorkspaceForkJSONRequestBody = CreateWorkspaceFork
 
 // ExistsWorkspaceJSONRequestBody defines body for ExistsWorkspace for application/json ContentType.
 type ExistsWorkspaceJSONRequestBody ExistsWorkspaceJSONBody
@@ -10409,6 +10418,11 @@ type ClientInterface interface {
 
 	ConnectTeams(ctx context.Context, workspace WorkspaceId, body ConnectTeamsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateWorkspaceForkWithBody request with any body
+	CreateWorkspaceForkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// WorkspaceGetCriticalAlerts request
 	WorkspaceGetCriticalAlerts(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10631,11 +10645,6 @@ type ClientInterface interface {
 	CreateWorkspaceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CreateWorkspace(ctx context.Context, body CreateWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// CreateWorkspaceForkWithBody request with any body
-	CreateWorkspaceForkWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	CreateWorkspaceFork(ctx context.Context, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteWorkspace request
 	DeleteWorkspace(ctx context.Context, workspace WorkspaceId, params *DeleteWorkspaceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18415,6 +18424,30 @@ func (c *Client) ConnectTeams(ctx context.Context, workspace WorkspaceId, body C
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreateWorkspaceForkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateWorkspaceForkRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateWorkspaceForkRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) WorkspaceGetCriticalAlerts(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewWorkspaceGetCriticalAlertsRequest(c.Server, workspace, params)
 	if err != nil {
@@ -19401,30 +19434,6 @@ func (c *Client) CreateWorkspaceWithBody(ctx context.Context, contentType string
 
 func (c *Client) CreateWorkspace(ctx context.Context, body CreateWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateWorkspaceRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CreateWorkspaceForkWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateWorkspaceForkRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CreateWorkspaceFork(ctx context.Context, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateWorkspaceForkRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -26348,22 +26357,6 @@ func NewListExtendedJobsRequest(server string, workspace WorkspaceId, params *Li
 
 		}
 
-		if params.CreatedOrStartedBefore != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_before", runtime.ParamLocationQuery, *params.CreatedOrStartedBefore); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
 		if params.Running != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "running", runtime.ParamLocationQuery, *params.Running); err != nil {
@@ -26396,9 +26389,9 @@ func NewListExtendedJobsRequest(server string, workspace WorkspaceId, params *Li
 
 		}
 
-		if params.CreatedOrStartedAfter != nil {
+		if params.CompletedBefore != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after", runtime.ParamLocationQuery, *params.CreatedOrStartedAfter); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "completed_before", runtime.ParamLocationQuery, *params.CompletedBefore); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -26412,9 +26405,41 @@ func NewListExtendedJobsRequest(server string, workspace WorkspaceId, params *Li
 
 		}
 
-		if params.CreatedOrStartedAfterCompletedJobs != nil {
+		if params.CompletedAfter != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after_completed_jobs", runtime.ParamLocationQuery, *params.CreatedOrStartedAfterCompletedJobs); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "completed_after", runtime.ParamLocationQuery, *params.CompletedAfter); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CreatedBeforeQueue != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_before_queue", runtime.ParamLocationQuery, *params.CreatedBeforeQueue); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CreatedAfterQueue != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_after_queue", runtime.ParamLocationQuery, *params.CreatedAfterQueue); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -34521,9 +34546,57 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 		}
 
-		if params.CreatedOrStartedBefore != nil {
+		if params.CompletedBefore != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_before", runtime.ParamLocationQuery, *params.CreatedOrStartedBefore); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "completed_before", runtime.ParamLocationQuery, *params.CompletedBefore); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CompletedAfter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "completed_after", runtime.ParamLocationQuery, *params.CompletedAfter); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CreatedBeforeQueue != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_before_queue", runtime.ParamLocationQuery, *params.CreatedBeforeQueue); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CreatedAfterQueue != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_after_queue", runtime.ParamLocationQuery, *params.CreatedAfterQueue); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -34556,38 +34629,6 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 		if params.ScheduledForBeforeNow != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for_before_now", runtime.ParamLocationQuery, *params.ScheduledForBeforeNow); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.CreatedOrStartedAfter != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after", runtime.ParamLocationQuery, *params.CreatedOrStartedAfter); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.CreatedOrStartedAfterCompletedJobs != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after_completed_jobs", runtime.ParamLocationQuery, *params.CreatedOrStartedAfterCompletedJobs); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -34684,22 +34725,6 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 		if params.AllowWildcards != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "allow_wildcards", runtime.ParamLocationQuery, *params.AllowWildcards); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Page != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -35057,9 +35082,57 @@ func NewListFilteredJobsUuidsRequest(server string, workspace WorkspaceId, param
 
 		}
 
-		if params.CreatedOrStartedBefore != nil {
+		if params.CompletedBefore != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_before", runtime.ParamLocationQuery, *params.CreatedOrStartedBefore); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "completed_before", runtime.ParamLocationQuery, *params.CompletedBefore); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CompletedAfter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "completed_after", runtime.ParamLocationQuery, *params.CompletedAfter); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CreatedBeforeQueue != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_before_queue", runtime.ParamLocationQuery, *params.CreatedBeforeQueue); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CreatedAfterQueue != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_after_queue", runtime.ParamLocationQuery, *params.CreatedAfterQueue); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -35092,38 +35165,6 @@ func NewListFilteredJobsUuidsRequest(server string, workspace WorkspaceId, param
 		if params.ScheduledForBeforeNow != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for_before_now", runtime.ParamLocationQuery, *params.ScheduledForBeforeNow); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.CreatedOrStartedAfter != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after", runtime.ParamLocationQuery, *params.CreatedOrStartedAfter); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.CreatedOrStartedAfterCompletedJobs != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_or_started_after_completed_jobs", runtime.ParamLocationQuery, *params.CreatedOrStartedAfterCompletedJobs); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -49487,6 +49528,53 @@ func NewConnectTeamsRequestWithBody(server string, workspace WorkspaceId, conten
 	return req, nil
 }
 
+// NewCreateWorkspaceForkRequest calls the generic CreateWorkspaceFork builder with application/json body
+func NewCreateWorkspaceForkRequest(server string, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateWorkspaceForkRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateWorkspaceForkRequestWithBody generates requests for CreateWorkspaceFork with any type of body
+func NewCreateWorkspaceForkRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/create_fork", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewWorkspaceGetCriticalAlertsRequest generates requests for WorkspaceGetCriticalAlerts
 func NewWorkspaceGetCriticalAlertsRequest(server string, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams) (*http.Request, error) {
 	var err error
@@ -51886,46 +51974,6 @@ func NewCreateWorkspaceRequestWithBody(server string, contentType string, body i
 	return req, nil
 }
 
-// NewCreateWorkspaceForkRequest calls the generic CreateWorkspaceFork builder with application/json body
-func NewCreateWorkspaceForkRequest(server string, body CreateWorkspaceForkJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewCreateWorkspaceForkRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewCreateWorkspaceForkRequestWithBody generates requests for CreateWorkspaceFork with any type of body
-func NewCreateWorkspaceForkRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/workspaces/create_fork")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewDeleteWorkspaceRequest generates requests for DeleteWorkspace
 func NewDeleteWorkspaceRequest(server string, workspace WorkspaceId, params *DeleteWorkspaceParams) (*http.Request, error) {
 	var err error
@@ -54024,6 +54072,11 @@ type ClientWithResponsesInterface interface {
 
 	ConnectTeamsWithResponse(ctx context.Context, workspace WorkspaceId, body ConnectTeamsJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectTeamsResponse, error)
 
+	// CreateWorkspaceForkWithBodyWithResponse request with any body
+	CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
+
+	CreateWorkspaceForkWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
+
 	// WorkspaceGetCriticalAlertsWithResponse request
 	WorkspaceGetCriticalAlertsWithResponse(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*WorkspaceGetCriticalAlertsResponse, error)
 
@@ -54246,11 +54299,6 @@ type ClientWithResponsesInterface interface {
 	CreateWorkspaceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceResponse, error)
 
 	CreateWorkspaceWithResponse(ctx context.Context, body CreateWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceResponse, error)
-
-	// CreateWorkspaceForkWithBodyWithResponse request with any body
-	CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
-
-	CreateWorkspaceForkWithResponse(ctx context.Context, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
 
 	// DeleteWorkspaceWithResponse request
 	DeleteWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteWorkspaceParams, reqEditors ...RequestEditorFn) (*DeleteWorkspaceResponse, error)
@@ -64837,6 +64885,27 @@ func (r ConnectTeamsResponse) StatusCode() int {
 	return 0
 }
 
+type CreateWorkspaceForkResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateWorkspaceForkResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateWorkspaceForkResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type WorkspaceGetCriticalAlertsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -66134,27 +66203,6 @@ func (r CreateWorkspaceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateWorkspaceResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type CreateWorkspaceForkResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r CreateWorkspaceForkResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CreateWorkspaceForkResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -71953,6 +72001,23 @@ func (c *ClientWithResponses) ConnectTeamsWithResponse(ctx context.Context, work
 	return ParseConnectTeamsResponse(rsp)
 }
 
+// CreateWorkspaceForkWithBodyWithResponse request with arbitrary body returning *CreateWorkspaceForkResponse
+func (c *ClientWithResponses) CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error) {
+	rsp, err := c.CreateWorkspaceForkWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateWorkspaceForkResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateWorkspaceForkWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error) {
+	rsp, err := c.CreateWorkspaceFork(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateWorkspaceForkResponse(rsp)
+}
+
 // WorkspaceGetCriticalAlertsWithResponse request returning *WorkspaceGetCriticalAlertsResponse
 func (c *ClientWithResponses) WorkspaceGetCriticalAlertsWithResponse(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*WorkspaceGetCriticalAlertsResponse, error) {
 	rsp, err := c.WorkspaceGetCriticalAlerts(ctx, workspace, params, reqEditors...)
@@ -72672,23 +72737,6 @@ func (c *ClientWithResponses) CreateWorkspaceWithResponse(ctx context.Context, b
 		return nil, err
 	}
 	return ParseCreateWorkspaceResponse(rsp)
-}
-
-// CreateWorkspaceForkWithBodyWithResponse request with arbitrary body returning *CreateWorkspaceForkResponse
-func (c *ClientWithResponses) CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error) {
-	rsp, err := c.CreateWorkspaceForkWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateWorkspaceForkResponse(rsp)
-}
-
-func (c *ClientWithResponses) CreateWorkspaceForkWithResponse(ctx context.Context, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error) {
-	rsp, err := c.CreateWorkspaceFork(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateWorkspaceForkResponse(rsp)
 }
 
 // DeleteWorkspaceWithResponse request returning *DeleteWorkspaceResponse
@@ -83190,6 +83238,22 @@ func ParseConnectTeamsResponse(rsp *http.Response) (*ConnectTeamsResponse, error
 	return response, nil
 }
 
+// ParseCreateWorkspaceForkResponse parses an HTTP response from a CreateWorkspaceForkWithResponse call
+func ParseCreateWorkspaceForkResponse(rsp *http.Response) (*CreateWorkspaceForkResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateWorkspaceForkResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseWorkspaceGetCriticalAlertsResponse parses an HTTP response from a WorkspaceGetCriticalAlertsWithResponse call
 func ParseWorkspaceGetCriticalAlertsResponse(rsp *http.Response) (*WorkspaceGetCriticalAlertsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -84507,22 +84571,6 @@ func ParseCreateWorkspaceResponse(rsp *http.Response) (*CreateWorkspaceResponse,
 	}
 
 	response := &CreateWorkspaceResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseCreateWorkspaceForkResponse parses an HTTP response from a CreateWorkspaceForkWithResponse call
-func ParseCreateWorkspaceForkResponse(rsp *http.Response) (*CreateWorkspaceForkResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CreateWorkspaceForkResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
