@@ -1910,10 +1910,16 @@ type GitSyncObjectType string
 type GithubInstallations = []struct {
 	AccountId      string  `json:"account_id"`
 	InstallationId float32 `json:"installation_id"`
-	Repositories   []struct {
+
+	// PerPage Number of repositories loaded per page
+	PerPage      float32 `json:"per_page"`
+	Repositories []struct {
 		Name string `json:"name"`
 		Url  string `json:"url"`
 	} `json:"repositories"`
+
+	// TotalCount Total number of repositories available for this installation
+	TotalCount  float32 `json:"total_count"`
 	WorkspaceId *string `json:"workspace_id,omitempty"`
 }
 
@@ -3924,6 +3930,12 @@ type QueryHubScriptsParams struct {
 
 	// App query scripts app
 	App *string `form:"app,omitempty" json:"app,omitempty"`
+}
+
+// GetGlobalConnectedRepositoriesParams defines parameters for GetGlobalConnectedRepositories.
+type GetGlobalConnectedRepositoriesParams struct {
+	// Search Search repositories by name
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
 }
 
 // AddUserToInstanceGroupJSONBody defines parameters for AddUserToInstanceGroup.
@@ -8735,7 +8747,7 @@ type ClientInterface interface {
 	ListHubFlows(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetGlobalConnectedRepositories request
-	GetGlobalConnectedRepositories(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetGlobalConnectedRepositories(ctx context.Context, params *GetGlobalConnectedRepositoriesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AddUserToInstanceGroupWithBody request with any body
 	AddUserToInstanceGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11020,8 +11032,8 @@ func (c *Client) ListHubFlows(ctx context.Context, reqEditors ...RequestEditorFn
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetGlobalConnectedRepositories(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetGlobalConnectedRepositoriesRequest(c.Server)
+func (c *Client) GetGlobalConnectedRepositories(ctx context.Context, params *GetGlobalConnectedRepositoriesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGlobalConnectedRepositoriesRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -20455,7 +20467,7 @@ func NewListHubFlowsRequest(server string) (*http.Request, error) {
 }
 
 // NewGetGlobalConnectedRepositoriesRequest generates requests for GetGlobalConnectedRepositories
-func NewGetGlobalConnectedRepositoriesRequest(server string) (*http.Request, error) {
+func NewGetGlobalConnectedRepositoriesRequest(server string, params *GetGlobalConnectedRepositoriesParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -20471,6 +20483,28 @@ func NewGetGlobalConnectedRepositoriesRequest(server string) (*http.Request, err
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Search != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -52389,7 +52423,7 @@ type ClientWithResponsesInterface interface {
 	ListHubFlowsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubFlowsResponse, error)
 
 	// GetGlobalConnectedRepositoriesWithResponse request
-	GetGlobalConnectedRepositoriesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetGlobalConnectedRepositoriesResponse, error)
+	GetGlobalConnectedRepositoriesWithResponse(ctx context.Context, params *GetGlobalConnectedRepositoriesParams, reqEditors ...RequestEditorFn) (*GetGlobalConnectedRepositoriesResponse, error)
 
 	// AddUserToInstanceGroupWithBodyWithResponse request with any body
 	AddUserToInstanceGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserToInstanceGroupResponse, error)
@@ -66616,8 +66650,8 @@ func (c *ClientWithResponses) ListHubFlowsWithResponse(ctx context.Context, reqE
 }
 
 // GetGlobalConnectedRepositoriesWithResponse request returning *GetGlobalConnectedRepositoriesResponse
-func (c *ClientWithResponses) GetGlobalConnectedRepositoriesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetGlobalConnectedRepositoriesResponse, error) {
-	rsp, err := c.GetGlobalConnectedRepositories(ctx, reqEditors...)
+func (c *ClientWithResponses) GetGlobalConnectedRepositoriesWithResponse(ctx context.Context, params *GetGlobalConnectedRepositoriesParams, reqEditors ...RequestEditorFn) (*GetGlobalConnectedRepositoriesResponse, error) {
+	rsp, err := c.GetGlobalConnectedRepositories(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
