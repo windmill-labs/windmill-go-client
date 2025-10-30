@@ -6723,6 +6723,12 @@ type SetEnvironmentVariableJSONBody struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// SetWorkspaceSlackOauthConfigJSONBody defines parameters for SetWorkspaceSlackOauthConfig.
+type SetWorkspaceSlackOauthConfigJSONBody struct {
+	SlackOauthClientId     string `json:"slack_oauth_client_id"`
+	SlackOauthClientSecret string `json:"slack_oauth_client_secret"`
+}
+
 // SetThresholdAlertJSONBody defines parameters for SetThresholdAlert.
 type SetThresholdAlertJSONBody struct {
 	ThresholdAlertAmount *float32 `json:"threshold_alert_amount,omitempty"`
@@ -7373,6 +7379,9 @@ type RunTeamsMessageTestJobJSONRequestBody RunTeamsMessageTestJobJSONBody
 
 // SetEnvironmentVariableJSONRequestBody defines body for SetEnvironmentVariable for application/json ContentType.
 type SetEnvironmentVariableJSONRequestBody SetEnvironmentVariableJSONBody
+
+// SetWorkspaceSlackOauthConfigJSONRequestBody defines body for SetWorkspaceSlackOauthConfig for application/json ContentType.
+type SetWorkspaceSlackOauthConfigJSONRequestBody SetWorkspaceSlackOauthConfigJSONBody
 
 // SetThresholdAlertJSONRequestBody defines body for SetThresholdAlert for application/json ContentType.
 type SetThresholdAlertJSONRequestBody SetThresholdAlertJSONBody
@@ -10611,6 +10620,17 @@ type ClientInterface interface {
 	SetEnvironmentVariableWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetEnvironmentVariable(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteWorkspaceSlackOauthConfig request
+	DeleteWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetWorkspaceSlackOauthConfig request
+	GetWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetWorkspaceSlackOauthConfigWithBody request with any body
+	SetWorkspaceSlackOauthConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackOauthConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetThresholdAlert request
 	GetThresholdAlert(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19254,6 +19274,54 @@ func (c *Client) SetEnvironmentVariableWithBody(ctx context.Context, workspace W
 
 func (c *Client) SetEnvironmentVariable(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetEnvironmentVariableRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteWorkspaceSlackOauthConfigRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetWorkspaceSlackOauthConfigRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetWorkspaceSlackOauthConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWorkspaceSlackOauthConfigRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackOauthConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWorkspaceSlackOauthConfigRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -51466,6 +51534,121 @@ func NewSetEnvironmentVariableRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewDeleteWorkspaceSlackOauthConfigRequest generates requests for DeleteWorkspaceSlackOauthConfig
+func NewDeleteWorkspaceSlackOauthConfigRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/slack_oauth_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetWorkspaceSlackOauthConfigRequest generates requests for GetWorkspaceSlackOauthConfig
+func NewGetWorkspaceSlackOauthConfigRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/slack_oauth_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetWorkspaceSlackOauthConfigRequest calls the generic SetWorkspaceSlackOauthConfig builder with application/json body
+func NewSetWorkspaceSlackOauthConfigRequest(server string, workspace WorkspaceId, body SetWorkspaceSlackOauthConfigJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetWorkspaceSlackOauthConfigRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetWorkspaceSlackOauthConfigRequestWithBody generates requests for SetWorkspaceSlackOauthConfig with any type of body
+func NewSetWorkspaceSlackOauthConfigRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/slack_oauth_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetThresholdAlertRequest generates requests for GetThresholdAlert
 func NewGetThresholdAlertRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -54287,6 +54470,17 @@ type ClientWithResponsesInterface interface {
 	SetEnvironmentVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error)
 
 	SetEnvironmentVariableWithResponse(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error)
+
+	// DeleteWorkspaceSlackOauthConfigWithResponse request
+	DeleteWorkspaceSlackOauthConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DeleteWorkspaceSlackOauthConfigResponse, error)
+
+	// GetWorkspaceSlackOauthConfigWithResponse request
+	GetWorkspaceSlackOauthConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceSlackOauthConfigResponse, error)
+
+	// SetWorkspaceSlackOauthConfigWithBodyWithResponse request with any body
+	SetWorkspaceSlackOauthConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackOauthConfigResponse, error)
+
+	SetWorkspaceSlackOauthConfigWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackOauthConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackOauthConfigResponse, error)
 
 	// GetThresholdAlertWithResponse request
 	GetThresholdAlertWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetThresholdAlertResponse, error)
@@ -65631,6 +65825,8 @@ type GetSettingsResponse struct {
 		Plan                      *string                   `json:"plan,omitempty"`
 		SlackCommandScript        *string                   `json:"slack_command_script,omitempty"`
 		SlackName                 *string                   `json:"slack_name,omitempty"`
+		SlackOauthClientId        *string                   `json:"slack_oauth_client_id,omitempty"`
+		SlackOauthClientSecret    *string                   `json:"slack_oauth_client_secret,omitempty"`
 		SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
 		TeamsCommandScript        *string                   `json:"teams_command_script,omitempty"`
 		TeamsTeamId               *string                   `json:"teams_team_id,omitempty"`
@@ -65913,6 +66109,75 @@ func (r SetEnvironmentVariableResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SetEnvironmentVariableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteWorkspaceSlackOauthConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteWorkspaceSlackOauthConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteWorkspaceSlackOauthConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetWorkspaceSlackOauthConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		SlackOauthClientId *string `json:"slack_oauth_client_id"`
+
+		// SlackOauthClientSecret Masked with *** if set
+		SlackOauthClientSecret *string `json:"slack_oauth_client_secret"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetWorkspaceSlackOauthConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetWorkspaceSlackOauthConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetWorkspaceSlackOauthConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetWorkspaceSlackOauthConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetWorkspaceSlackOauthConfigResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -72629,6 +72894,41 @@ func (c *ClientWithResponses) SetEnvironmentVariableWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseSetEnvironmentVariableResponse(rsp)
+}
+
+// DeleteWorkspaceSlackOauthConfigWithResponse request returning *DeleteWorkspaceSlackOauthConfigResponse
+func (c *ClientWithResponses) DeleteWorkspaceSlackOauthConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DeleteWorkspaceSlackOauthConfigResponse, error) {
+	rsp, err := c.DeleteWorkspaceSlackOauthConfig(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteWorkspaceSlackOauthConfigResponse(rsp)
+}
+
+// GetWorkspaceSlackOauthConfigWithResponse request returning *GetWorkspaceSlackOauthConfigResponse
+func (c *ClientWithResponses) GetWorkspaceSlackOauthConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceSlackOauthConfigResponse, error) {
+	rsp, err := c.GetWorkspaceSlackOauthConfig(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetWorkspaceSlackOauthConfigResponse(rsp)
+}
+
+// SetWorkspaceSlackOauthConfigWithBodyWithResponse request with arbitrary body returning *SetWorkspaceSlackOauthConfigResponse
+func (c *ClientWithResponses) SetWorkspaceSlackOauthConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackOauthConfigResponse, error) {
+	rsp, err := c.SetWorkspaceSlackOauthConfigWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetWorkspaceSlackOauthConfigResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetWorkspaceSlackOauthConfigWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackOauthConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackOauthConfigResponse, error) {
+	rsp, err := c.SetWorkspaceSlackOauthConfig(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetWorkspaceSlackOauthConfigResponse(rsp)
 }
 
 // GetThresholdAlertWithResponse request returning *GetThresholdAlertResponse
@@ -84003,6 +84303,8 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			Plan                      *string                   `json:"plan,omitempty"`
 			SlackCommandScript        *string                   `json:"slack_command_script,omitempty"`
 			SlackName                 *string                   `json:"slack_name,omitempty"`
+			SlackOauthClientId        *string                   `json:"slack_oauth_client_id,omitempty"`
+			SlackOauthClientSecret    *string                   `json:"slack_oauth_client_secret,omitempty"`
 			SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
 			TeamsCommandScript        *string                   `json:"teams_command_script,omitempty"`
 			TeamsTeamId               *string                   `json:"teams_team_id,omitempty"`
@@ -84252,6 +84554,69 @@ func ParseSetEnvironmentVariableResponse(rsp *http.Response) (*SetEnvironmentVar
 	}
 
 	response := &SetEnvironmentVariableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteWorkspaceSlackOauthConfigResponse parses an HTTP response from a DeleteWorkspaceSlackOauthConfigWithResponse call
+func ParseDeleteWorkspaceSlackOauthConfigResponse(rsp *http.Response) (*DeleteWorkspaceSlackOauthConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteWorkspaceSlackOauthConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetWorkspaceSlackOauthConfigResponse parses an HTTP response from a GetWorkspaceSlackOauthConfigWithResponse call
+func ParseGetWorkspaceSlackOauthConfigResponse(rsp *http.Response) (*GetWorkspaceSlackOauthConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetWorkspaceSlackOauthConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			SlackOauthClientId *string `json:"slack_oauth_client_id"`
+
+			// SlackOauthClientSecret Masked with *** if set
+			SlackOauthClientSecret *string `json:"slack_oauth_client_secret"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetWorkspaceSlackOauthConfigResponse parses an HTTP response from a SetWorkspaceSlackOauthConfigWithResponse call
+func ParseSetWorkspaceSlackOauthConfigResponse(rsp *http.Response) (*SetWorkspaceSlackOauthConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetWorkspaceSlackOauthConfigResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
