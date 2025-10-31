@@ -1931,15 +1931,16 @@ type GlobalSetting struct {
 
 // GlobalUserInfo defines model for GlobalUserInfo.
 type GlobalUserInfo struct {
-	Company      *string                 `json:"company,omitempty"`
-	Devops       *bool                   `json:"devops,omitempty"`
-	Email        string                  `json:"email"`
-	LoginType    GlobalUserInfoLoginType `json:"login_type"`
-	Name         *string                 `json:"name,omitempty"`
-	OperatorOnly *bool                   `json:"operator_only,omitempty"`
-	SuperAdmin   bool                    `json:"super_admin"`
-	Username     *string                 `json:"username,omitempty"`
-	Verified     bool                    `json:"verified"`
+	Company       *string                 `json:"company,omitempty"`
+	Devops        *bool                   `json:"devops,omitempty"`
+	Email         string                  `json:"email"`
+	FirstTimeUser bool                    `json:"first_time_user"`
+	LoginType     GlobalUserInfoLoginType `json:"login_type"`
+	Name          *string                 `json:"name,omitempty"`
+	OperatorOnly  *bool                   `json:"operator_only,omitempty"`
+	SuperAdmin    bool                    `json:"super_admin"`
+	Username      *string                 `json:"username,omitempty"`
+	Verified      bool                    `json:"verified"`
 }
 
 // GlobalUserInfoLoginType defines model for GlobalUserInfo.LoginType.
@@ -4164,6 +4165,12 @@ type ListUsersAsSuperAdminParams struct {
 
 	// ActiveOnly filter only active users
 	ActiveOnly *bool `form:"active_only,omitempty" json:"active_only,omitempty"`
+}
+
+// SubmitOnboardingDataJSONBody defines parameters for SubmitOnboardingData.
+type SubmitOnboardingDataJSONBody struct {
+	TouchPoint *string `json:"touch_point,omitempty"`
+	UseCase    *string `json:"use_case,omitempty"`
 }
 
 // GlobalUsersOverwriteJSONBody defines parameters for GlobalUsersOverwrite.
@@ -6858,6 +6865,9 @@ type CreateUserGloballyJSONRequestBody CreateUserGloballyJSONBody
 // DeclineInviteJSONRequestBody defines body for DeclineInvite for application/json ContentType.
 type DeclineInviteJSONRequestBody DeclineInviteJSONBody
 
+// SubmitOnboardingDataJSONRequestBody defines body for SubmitOnboardingData for application/json ContentType.
+type SubmitOnboardingDataJSONRequestBody SubmitOnboardingDataJSONBody
+
 // GlobalUsersOverwriteJSONRequestBody defines body for GlobalUsersOverwrite for application/json ContentType.
 type GlobalUsersOverwriteJSONRequestBody = GlobalUsersOverwriteJSONBody
 
@@ -8989,6 +8999,11 @@ type ClientInterface interface {
 
 	// ListWorkspaceInvites request
 	ListWorkspaceInvites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SubmitOnboardingDataWithBody request with any body
+	SubmitOnboardingDataWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SubmitOnboardingData(ctx context.Context, body SubmitOnboardingDataJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GlobalUsersOverwriteWithBody request with any body
 	GlobalUsersOverwriteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12062,6 +12077,30 @@ func (c *Client) ListUsersAsSuperAdmin(ctx context.Context, params *ListUsersAsS
 
 func (c *Client) ListWorkspaceInvites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListWorkspaceInvitesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SubmitOnboardingDataWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSubmitOnboardingDataRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SubmitOnboardingData(ctx context.Context, body SubmitOnboardingDataJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSubmitOnboardingDataRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -23229,6 +23268,46 @@ func NewListWorkspaceInvitesRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewSubmitOnboardingDataRequest calls the generic SubmitOnboardingData builder with application/json body
+func NewSubmitOnboardingDataRequest(server string, body SubmitOnboardingDataJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSubmitOnboardingDataRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSubmitOnboardingDataRequestWithBody generates requests for SubmitOnboardingData with any type of body
+func NewSubmitOnboardingDataRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/onboarding")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -52840,6 +52919,11 @@ type ClientWithResponsesInterface interface {
 	// ListWorkspaceInvitesWithResponse request
 	ListWorkspaceInvitesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkspaceInvitesResponse, error)
 
+	// SubmitOnboardingDataWithBodyWithResponse request with any body
+	SubmitOnboardingDataWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubmitOnboardingDataResponse, error)
+
+	SubmitOnboardingDataWithResponse(ctx context.Context, body SubmitOnboardingDataJSONRequestBody, reqEditors ...RequestEditorFn) (*SubmitOnboardingDataResponse, error)
+
 	// GlobalUsersOverwriteWithBodyWithResponse request with any body
 	GlobalUsersOverwriteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GlobalUsersOverwriteResponse, error)
 
@@ -56619,6 +56703,28 @@ func (r ListWorkspaceInvitesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListWorkspaceInvitesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SubmitOnboardingDataResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r SubmitOnboardingDataResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SubmitOnboardingDataResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -67659,6 +67765,23 @@ func (c *ClientWithResponses) ListWorkspaceInvitesWithResponse(ctx context.Conte
 	return ParseListWorkspaceInvitesResponse(rsp)
 }
 
+// SubmitOnboardingDataWithBodyWithResponse request with arbitrary body returning *SubmitOnboardingDataResponse
+func (c *ClientWithResponses) SubmitOnboardingDataWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubmitOnboardingDataResponse, error) {
+	rsp, err := c.SubmitOnboardingDataWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSubmitOnboardingDataResponse(rsp)
+}
+
+func (c *ClientWithResponses) SubmitOnboardingDataWithResponse(ctx context.Context, body SubmitOnboardingDataJSONRequestBody, reqEditors ...RequestEditorFn) (*SubmitOnboardingDataResponse, error) {
+	rsp, err := c.SubmitOnboardingData(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSubmitOnboardingDataResponse(rsp)
+}
+
 // GlobalUsersOverwriteWithBodyWithResponse request with arbitrary body returning *GlobalUsersOverwriteResponse
 func (c *ClientWithResponses) GlobalUsersOverwriteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GlobalUsersOverwriteResponse, error) {
 	rsp, err := c.GlobalUsersOverwriteWithBody(ctx, contentType, body, reqEditors...)
@@ -75226,6 +75349,32 @@ func ParseListWorkspaceInvitesResponse(rsp *http.Response) (*ListWorkspaceInvite
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []WorkspaceInvite
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSubmitOnboardingDataResponse parses an HTTP response from a SubmitOnboardingDataWithResponse call
+func ParseSubmitOnboardingDataResponse(rsp *http.Response) (*SubmitOnboardingDataResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SubmitOnboardingDataResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
