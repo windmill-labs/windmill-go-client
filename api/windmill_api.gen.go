@@ -3935,8 +3935,8 @@ type QueryHubScriptsParams struct {
 
 // GetGlobalConnectedRepositoriesParams defines parameters for GetGlobalConnectedRepositories.
 type GetGlobalConnectedRepositoriesParams struct {
-	// Search Search repositories by name
-	Search *string `form:"search,omitempty" json:"search,omitempty"`
+	// Page Page number for pagination (default 1)
+	Page *int `form:"page,omitempty" json:"page,omitempty"`
 }
 
 // AddUserToInstanceGroupJSONBody defines parameters for AddUserToInstanceGroup.
@@ -20595,9 +20595,9 @@ func NewGetGlobalConnectedRepositoriesRequest(server string, params *GetGlobalCo
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.Search != nil {
+		if params.Page != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
