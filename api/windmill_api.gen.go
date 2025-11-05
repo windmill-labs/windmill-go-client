@@ -8865,6 +8865,9 @@ type ClientInterface interface {
 	// GetHubScriptByPath request
 	GetHubScriptByPath(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// PickHubScriptByPath request
+	PickHubScriptByPath(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetTopHubScripts request
 	GetTopHubScripts(ctx context.Context, params *GetTopHubScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -11501,6 +11504,18 @@ func (c *Client) GetHubScriptContentByPath(ctx context.Context, path ScriptPath,
 
 func (c *Client) GetHubScriptByPath(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetHubScriptByPathRequest(c.Server, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PickHubScriptByPath(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPickHubScriptByPathRequest(c.Server, path)
 	if err != nil {
 		return nil, err
 	}
@@ -21567,6 +21582,40 @@ func NewGetHubScriptByPathRequest(server string, path ScriptPath) (*http.Request
 	}
 
 	operationPath := fmt.Sprintf("/scripts/hub/get_full/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPickHubScriptByPathRequest generates requests for PickHubScriptByPath
+func NewPickHubScriptByPathRequest(server string, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/scripts/hub/pick/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -52784,6 +52833,9 @@ type ClientWithResponsesInterface interface {
 	// GetHubScriptByPathWithResponse request
 	GetHubScriptByPathWithResponse(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*GetHubScriptByPathResponse, error)
 
+	// PickHubScriptByPathWithResponse request
+	PickHubScriptByPathWithResponse(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*PickHubScriptByPathResponse, error)
+
 	// GetTopHubScriptsWithResponse request
 	GetTopHubScriptsWithResponse(ctx context.Context, params *GetTopHubScriptsParams, reqEditors ...RequestEditorFn) (*GetTopHubScriptsResponse, error)
 
@@ -55796,6 +55848,30 @@ func (r GetHubScriptByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetHubScriptByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PickHubScriptByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Success bool `json:"success"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r PickHubScriptByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PickHubScriptByPathResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -67342,6 +67418,15 @@ func (c *ClientWithResponses) GetHubScriptByPathWithResponse(ctx context.Context
 	return ParseGetHubScriptByPathResponse(rsp)
 }
 
+// PickHubScriptByPathWithResponse request returning *PickHubScriptByPathResponse
+func (c *ClientWithResponses) PickHubScriptByPathWithResponse(ctx context.Context, path ScriptPath, reqEditors ...RequestEditorFn) (*PickHubScriptByPathResponse, error) {
+	rsp, err := c.PickHubScriptByPath(ctx, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePickHubScriptByPathResponse(rsp)
+}
+
 // GetTopHubScriptsWithResponse request returning *GetTopHubScriptsResponse
 func (c *ClientWithResponses) GetTopHubScriptsWithResponse(ctx context.Context, params *GetTopHubScriptsParams, reqEditors ...RequestEditorFn) (*GetTopHubScriptsResponse, error) {
 	rsp, err := c.GetTopHubScripts(ctx, params, reqEditors...)
@@ -74456,6 +74541,34 @@ func ParseGetHubScriptByPathResponse(rsp *http.Response) (*GetHubScriptByPathRes
 			Lockfile *string      `json:"lockfile,omitempty"`
 			Schema   *interface{} `json:"schema,omitempty"`
 			Summary  *string      `json:"summary,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePickHubScriptByPathResponse parses an HTTP response from a PickHubScriptByPathWithResponse call
+func ParsePickHubScriptByPathResponse(rsp *http.Response) (*PickHubScriptByPathResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PickHubScriptByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Success bool `json:"success"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
