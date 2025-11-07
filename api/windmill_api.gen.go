@@ -7318,6 +7318,9 @@ type ConnectTeamsJSONRequestBody ConnectTeamsJSONBody
 // CreateWorkspaceForkJSONRequestBody defines body for CreateWorkspaceFork for application/json ContentType.
 type CreateWorkspaceForkJSONRequestBody = CreateWorkspaceFork
 
+// CreateWorkspaceForkGitBranchJSONRequestBody defines body for CreateWorkspaceForkGitBranch for application/json ContentType.
+type CreateWorkspaceForkGitBranchJSONRequestBody = CreateWorkspaceFork
+
 // WorkspaceMuteCriticalAlertsUIJSONRequestBody defines body for WorkspaceMuteCriticalAlertsUI for application/json ContentType.
 type WorkspaceMuteCriticalAlertsUIJSONRequestBody WorkspaceMuteCriticalAlertsUIJSONBody
 
@@ -10461,6 +10464,11 @@ type ClientInterface interface {
 	CreateWorkspaceForkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateWorkspaceForkGitBranchWithBody request with any body
+	CreateWorkspaceForkGitBranchWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateWorkspaceForkGitBranch(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkGitBranchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// WorkspaceGetCriticalAlerts request
 	WorkspaceGetCriticalAlerts(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18524,6 +18532,30 @@ func (c *Client) CreateWorkspaceForkWithBody(ctx context.Context, workspace Work
 
 func (c *Client) CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateWorkspaceForkRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateWorkspaceForkGitBranchWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateWorkspaceForkGitBranchRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateWorkspaceForkGitBranch(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkGitBranchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateWorkspaceForkGitBranchRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -49805,6 +49837,53 @@ func NewCreateWorkspaceForkRequestWithBody(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewCreateWorkspaceForkGitBranchRequest calls the generic CreateWorkspaceForkGitBranch builder with application/json body
+func NewCreateWorkspaceForkGitBranchRequest(server string, workspace WorkspaceId, body CreateWorkspaceForkGitBranchJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateWorkspaceForkGitBranchRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateWorkspaceForkGitBranchRequestWithBody generates requests for CreateWorkspaceForkGitBranch with any type of body
+func NewCreateWorkspaceForkGitBranchRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/create_workspace_fork_branch", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewWorkspaceGetCriticalAlertsRequest generates requests for WorkspaceGetCriticalAlerts
 func NewWorkspaceGetCriticalAlertsRequest(server string, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams) (*http.Request, error) {
 	var err error
@@ -54429,6 +54508,11 @@ type ClientWithResponsesInterface interface {
 	CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
 
 	CreateWorkspaceForkWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
+
+	// CreateWorkspaceForkGitBranchWithBodyWithResponse request with any body
+	CreateWorkspaceForkGitBranchWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkGitBranchResponse, error)
+
+	CreateWorkspaceForkGitBranchWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkGitBranchJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkGitBranchResponse, error)
 
 	// WorkspaceGetCriticalAlertsWithResponse request
 	WorkspaceGetCriticalAlertsWithResponse(ctx context.Context, workspace WorkspaceId, params *WorkspaceGetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*WorkspaceGetCriticalAlertsResponse, error)
@@ -65316,6 +65400,28 @@ func (r CreateWorkspaceForkResponse) StatusCode() int {
 	return 0
 }
 
+type CreateWorkspaceForkGitBranchResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *[]openapi_types.UUID
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateWorkspaceForkGitBranchResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateWorkspaceForkGitBranchResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type WorkspaceGetCriticalAlertsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -72523,6 +72629,23 @@ func (c *ClientWithResponses) CreateWorkspaceForkWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseCreateWorkspaceForkResponse(rsp)
+}
+
+// CreateWorkspaceForkGitBranchWithBodyWithResponse request with arbitrary body returning *CreateWorkspaceForkGitBranchResponse
+func (c *ClientWithResponses) CreateWorkspaceForkGitBranchWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkGitBranchResponse, error) {
+	rsp, err := c.CreateWorkspaceForkGitBranchWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateWorkspaceForkGitBranchResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateWorkspaceForkGitBranchWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkGitBranchJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkGitBranchResponse, error) {
+	rsp, err := c.CreateWorkspaceForkGitBranch(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateWorkspaceForkGitBranchResponse(rsp)
 }
 
 // WorkspaceGetCriticalAlertsWithResponse request returning *WorkspaceGetCriticalAlertsResponse
@@ -83845,6 +83968,32 @@ func ParseCreateWorkspaceForkResponse(rsp *http.Response) (*CreateWorkspaceForkR
 	response := &CreateWorkspaceForkResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateWorkspaceForkGitBranchResponse parses an HTTP response from a CreateWorkspaceForkGitBranchWithResponse call
+func ParseCreateWorkspaceForkGitBranchResponse(rsp *http.Response) (*CreateWorkspaceForkGitBranchResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateWorkspaceForkGitBranchResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest []openapi_types.UUID
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
 	}
 
 	return response, nil
