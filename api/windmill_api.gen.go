@@ -1821,6 +1821,7 @@ type FlowValue struct {
 	DebounceKey            *string             `json:"debounce_key,omitempty"`
 	EarlyReturn            *string             `json:"early_return,omitempty"`
 	FailureModule          *SchemasFlowModule  `json:"failure_module,omitempty"`
+	FlowEnv                *map[string]string  `json:"flow_env,omitempty"`
 	Modules                []SchemasFlowModule `json:"modules"`
 	PreprocessorModule     *SchemasFlowModule  `json:"preprocessor_module,omitempty"`
 	Priority               *float32            `json:"priority,omitempty"`
@@ -3547,6 +3548,7 @@ type SchemasFlowValue struct {
 	DebounceKey            *string             `json:"debounce_key,omitempty"`
 	EarlyReturn            *string             `json:"early_return,omitempty"`
 	FailureModule          *SchemasFlowModule  `json:"failure_module,omitempty"`
+	FlowEnv                *map[string]string  `json:"flow_env,omitempty"`
 	Modules                []SchemasFlowModule `json:"modules"`
 	PreprocessorModule     *SchemasFlowModule  `json:"preprocessor_module,omitempty"`
 	Priority               *float32            `json:"priority,omitempty"`
