@@ -5721,6 +5721,9 @@ type RunFlowPreviewParams struct {
 
 	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// MemoryId memory ID for chat-enabled flows
+	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
 // RunAndStreamFlowByPathGetParams defines parameters for RunAndStreamFlowByPathGet.
@@ -5962,6 +5965,12 @@ type RunWaitResultScriptByPathParams struct {
 
 	// SkipPreprocessor skip the preprocessor
 	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+}
+
+// RunFlowPreviewAndWaitResultParams defines parameters for RunFlowPreviewAndWaitResult.
+type RunFlowPreviewAndWaitResultParams struct {
+	// MemoryId memory ID for chat-enabled flows
+	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
 // GetSlackApprovalPayloadParams defines parameters for GetSlackApprovalPayload.
@@ -9781,9 +9790,9 @@ type ClientInterface interface {
 	RunScriptPreviewAndWaitResult(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunFlowPreviewAndWaitResultWithBody request with any body
-	RunFlowPreviewAndWaitResultWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RunFlowPreviewAndWaitResultWithBody(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewAndWaitResultParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	RunFlowPreviewAndWaitResult(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RunFlowPreviewAndWaitResult(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewAndWaitResultParams, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSlackApprovalPayload request
 	GetSlackApprovalPayload(ctx context.Context, workspace WorkspaceId, id JobId, params *GetSlackApprovalPayloadParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15520,8 +15529,8 @@ func (c *Client) RunScriptPreviewAndWaitResult(ctx context.Context, workspace Wo
 	return c.Client.Do(req)
 }
 
-func (c *Client) RunFlowPreviewAndWaitResultWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRunFlowPreviewAndWaitResultRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) RunFlowPreviewAndWaitResultWithBody(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewAndWaitResultParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowPreviewAndWaitResultRequestWithBody(c.Server, workspace, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15532,8 +15541,8 @@ func (c *Client) RunFlowPreviewAndWaitResultWithBody(ctx context.Context, worksp
 	return c.Client.Do(req)
 }
 
-func (c *Client) RunFlowPreviewAndWaitResult(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRunFlowPreviewAndWaitResultRequest(c.Server, workspace, body)
+func (c *Client) RunFlowPreviewAndWaitResult(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewAndWaitResultParams, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowPreviewAndWaitResultRequest(c.Server, workspace, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -37961,6 +37970,22 @@ func NewRunFlowPreviewRequestWithBody(server string, workspace WorkspaceId, para
 
 		}
 
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -39582,18 +39607,18 @@ func NewRunScriptPreviewAndWaitResultRequestWithBody(server string, workspace Wo
 }
 
 // NewRunFlowPreviewAndWaitResultRequest calls the generic RunFlowPreviewAndWaitResult builder with application/json body
-func NewRunFlowPreviewAndWaitResultRequest(server string, workspace WorkspaceId, body RunFlowPreviewAndWaitResultJSONRequestBody) (*http.Request, error) {
+func NewRunFlowPreviewAndWaitResultRequest(server string, workspace WorkspaceId, params *RunFlowPreviewAndWaitResultParams, body RunFlowPreviewAndWaitResultJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewRunFlowPreviewAndWaitResultRequestWithBody(server, workspace, "application/json", bodyReader)
+	return NewRunFlowPreviewAndWaitResultRequestWithBody(server, workspace, params, "application/json", bodyReader)
 }
 
 // NewRunFlowPreviewAndWaitResultRequestWithBody generates requests for RunFlowPreviewAndWaitResult with any type of body
-func NewRunFlowPreviewAndWaitResultRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+func NewRunFlowPreviewAndWaitResultRequestWithBody(server string, workspace WorkspaceId, params *RunFlowPreviewAndWaitResultParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -39616,6 +39641,28 @@ func NewRunFlowPreviewAndWaitResultRequestWithBody(server string, workspace Work
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -53825,9 +53872,9 @@ type ClientWithResponsesInterface interface {
 	RunScriptPreviewAndWaitResultWithResponse(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptPreviewAndWaitResultResponse, error)
 
 	// RunFlowPreviewAndWaitResultWithBodyWithResponse request with any body
-	RunFlowPreviewAndWaitResultWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error)
+	RunFlowPreviewAndWaitResultWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewAndWaitResultParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error)
 
-	RunFlowPreviewAndWaitResultWithResponse(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error)
+	RunFlowPreviewAndWaitResultWithResponse(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewAndWaitResultParams, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error)
 
 	// GetSlackApprovalPayloadWithResponse request
 	GetSlackApprovalPayloadWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetSlackApprovalPayloadParams, reqEditors ...RequestEditorFn) (*GetSlackApprovalPayloadResponse, error)
@@ -70435,16 +70482,16 @@ func (c *ClientWithResponses) RunScriptPreviewAndWaitResultWithResponse(ctx cont
 }
 
 // RunFlowPreviewAndWaitResultWithBodyWithResponse request with arbitrary body returning *RunFlowPreviewAndWaitResultResponse
-func (c *ClientWithResponses) RunFlowPreviewAndWaitResultWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error) {
-	rsp, err := c.RunFlowPreviewAndWaitResultWithBody(ctx, workspace, contentType, body, reqEditors...)
+func (c *ClientWithResponses) RunFlowPreviewAndWaitResultWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewAndWaitResultParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error) {
+	rsp, err := c.RunFlowPreviewAndWaitResultWithBody(ctx, workspace, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseRunFlowPreviewAndWaitResultResponse(rsp)
 }
 
-func (c *ClientWithResponses) RunFlowPreviewAndWaitResultWithResponse(ctx context.Context, workspace WorkspaceId, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error) {
-	rsp, err := c.RunFlowPreviewAndWaitResult(ctx, workspace, body, reqEditors...)
+func (c *ClientWithResponses) RunFlowPreviewAndWaitResultWithResponse(ctx context.Context, workspace WorkspaceId, params *RunFlowPreviewAndWaitResultParams, body RunFlowPreviewAndWaitResultJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowPreviewAndWaitResultResponse, error) {
+	rsp, err := c.RunFlowPreviewAndWaitResult(ctx, workspace, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
