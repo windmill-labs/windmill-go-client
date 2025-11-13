@@ -735,6 +735,24 @@ const (
 	ActionKindUpdate  ActionKind = "Update"
 )
 
+// Defines values for JobTriggerKind.
+const (
+	JobTriggerKindCli          JobTriggerKind = "cli"
+	JobTriggerKindDefaultEmail JobTriggerKind = "default_email"
+	JobTriggerKindEmail        JobTriggerKind = "email"
+	JobTriggerKindGcp          JobTriggerKind = "gcp"
+	JobTriggerKindHttp         JobTriggerKind = "http"
+	JobTriggerKindKafka        JobTriggerKind = "kafka"
+	JobTriggerKindMqtt         JobTriggerKind = "mqtt"
+	JobTriggerKindNats         JobTriggerKind = "nats"
+	JobTriggerKindPoll         JobTriggerKind = "poll"
+	JobTriggerKindPostgres     JobTriggerKind = "postgres"
+	JobTriggerKindSchedule     JobTriggerKind = "schedule"
+	JobTriggerKindSqs          JobTriggerKind = "sqs"
+	JobTriggerKindWebhook      JobTriggerKind = "webhook"
+	JobTriggerKindWebsocket    JobTriggerKind = "websocket"
+)
+
 // Defines values for ClearIndexParamsIdxName.
 const (
 	JobIndex        ClearIndexParamsIdxName = "JobIndex"
@@ -845,6 +863,24 @@ const (
 	PingCaptureConfigParamsRunnableKindScript PingCaptureConfigParamsRunnableKind = "script"
 )
 
+// Defines values for ListExtendedJobsParamsTriggerKind.
+const (
+	ListExtendedJobsParamsTriggerKindCli          ListExtendedJobsParamsTriggerKind = "cli"
+	ListExtendedJobsParamsTriggerKindDefaultEmail ListExtendedJobsParamsTriggerKind = "default_email"
+	ListExtendedJobsParamsTriggerKindEmail        ListExtendedJobsParamsTriggerKind = "email"
+	ListExtendedJobsParamsTriggerKindGcp          ListExtendedJobsParamsTriggerKind = "gcp"
+	ListExtendedJobsParamsTriggerKindHttp         ListExtendedJobsParamsTriggerKind = "http"
+	ListExtendedJobsParamsTriggerKindKafka        ListExtendedJobsParamsTriggerKind = "kafka"
+	ListExtendedJobsParamsTriggerKindMqtt         ListExtendedJobsParamsTriggerKind = "mqtt"
+	ListExtendedJobsParamsTriggerKindNats         ListExtendedJobsParamsTriggerKind = "nats"
+	ListExtendedJobsParamsTriggerKindPoll         ListExtendedJobsParamsTriggerKind = "poll"
+	ListExtendedJobsParamsTriggerKindPostgres     ListExtendedJobsParamsTriggerKind = "postgres"
+	ListExtendedJobsParamsTriggerKindSchedule     ListExtendedJobsParamsTriggerKind = "schedule"
+	ListExtendedJobsParamsTriggerKindSqs          ListExtendedJobsParamsTriggerKind = "sqs"
+	ListExtendedJobsParamsTriggerKindWebhook      ListExtendedJobsParamsTriggerKind = "webhook"
+	ListExtendedJobsParamsTriggerKindWebsocket    ListExtendedJobsParamsTriggerKind = "websocket"
+)
+
 // Defines values for CreateDraftJSONBodyTyp.
 const (
 	CreateDraftJSONBodyTypApp    CreateDraftJSONBodyTyp = "app"
@@ -879,6 +915,24 @@ const (
 const (
 	ListFlowPathsFromWorkspaceRunnableParamsRunnableKindFlow   ListFlowPathsFromWorkspaceRunnableParamsRunnableKind = "flow"
 	ListFlowPathsFromWorkspaceRunnableParamsRunnableKindScript ListFlowPathsFromWorkspaceRunnableParamsRunnableKind = "script"
+)
+
+// Defines values for ListJobsParamsTriggerKind.
+const (
+	ListJobsParamsTriggerKindCli          ListJobsParamsTriggerKind = "cli"
+	ListJobsParamsTriggerKindDefaultEmail ListJobsParamsTriggerKind = "default_email"
+	ListJobsParamsTriggerKindEmail        ListJobsParamsTriggerKind = "email"
+	ListJobsParamsTriggerKindGcp          ListJobsParamsTriggerKind = "gcp"
+	ListJobsParamsTriggerKindHttp         ListJobsParamsTriggerKind = "http"
+	ListJobsParamsTriggerKindKafka        ListJobsParamsTriggerKind = "kafka"
+	ListJobsParamsTriggerKindMqtt         ListJobsParamsTriggerKind = "mqtt"
+	ListJobsParamsTriggerKindNats         ListJobsParamsTriggerKind = "nats"
+	ListJobsParamsTriggerKindPoll         ListJobsParamsTriggerKind = "poll"
+	ListJobsParamsTriggerKindPostgres     ListJobsParamsTriggerKind = "postgres"
+	ListJobsParamsTriggerKindSchedule     ListJobsParamsTriggerKind = "schedule"
+	ListJobsParamsTriggerKindSqs          ListJobsParamsTriggerKind = "sqs"
+	ListJobsParamsTriggerKindWebhook      ListJobsParamsTriggerKind = "webhook"
+	ListJobsParamsTriggerKindWebsocket    ListJobsParamsTriggerKind = "websocket"
 )
 
 // Defines values for SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType.
@@ -3763,6 +3817,9 @@ type JobId = openapi_types.UUID
 // JobKinds defines model for JobKinds.
 type JobKinds = string
 
+// JobTriggerKind defines model for JobTriggerKind.
+type JobTriggerKind string
+
 // Key defines model for Key.
 type Key = string
 
@@ -4536,6 +4593,9 @@ type ListExtendedJobsParams struct {
 	// PerPage number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
+	// TriggerKind trigger kind (schedule, http, websocket...)
+	TriggerKind *ListExtendedJobsParamsTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
+
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
 
@@ -4554,6 +4614,9 @@ type ListExtendedJobsParams struct {
 	// IsNotSchedule is not a scheduled job
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
+
+// ListExtendedJobsParamsTriggerKind defines parameters for ListExtendedJobs.
+type ListExtendedJobsParamsTriggerKind string
 
 // CreateDraftJSONBody defines parameters for CreateDraft.
 type CreateDraftJSONBody struct {
@@ -5282,6 +5345,9 @@ type ListJobsParams struct {
 	// PerPage number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
+	// TriggerKind trigger kind (schedule, http, websocket...)
+	TriggerKind *ListJobsParamsTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
+
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
 
@@ -5300,6 +5366,9 @@ type ListJobsParams struct {
 	// IsNotSchedule is not a scheduled job
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
+
+// ListJobsParamsTriggerKind defines parameters for ListJobs.
+type ListJobsParamsTriggerKind string
 
 // ListFilteredJobsUuidsParams defines parameters for ListFilteredJobsUuids.
 type ListFilteredJobsUuidsParams struct {
@@ -26838,6 +26907,22 @@ func NewListExtendedJobsRequest(server string, workspace WorkspaceId, params *Li
 
 		}
 
+		if params.TriggerKind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_kind", runtime.ParamLocationQuery, *params.TriggerKind); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.IsSkipped != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_skipped", runtime.ParamLocationQuery, *params.IsSkipped); err != nil {
@@ -35014,6 +35099,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 		if params.PerPage != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.TriggerKind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_kind", runtime.ParamLocationQuery, *params.TriggerKind); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
