@@ -1676,6 +1676,7 @@ type Flow struct {
 	Tag                 *string                 `json:"tag,omitempty"`
 	Timeout             *float32                `json:"timeout,omitempty"`
 	Value               SchemasFlowValue        `json:"value"`
+	VersionId           *float32                `json:"version_id,omitempty"`
 	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 	WorkspaceId         *string                 `json:"workspace_id,omitempty"`
 	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -5705,6 +5706,37 @@ type RunFlowByPathParams struct {
 	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
+// RunFlowByVersionParams defines parameters for RunFlowByVersion.
+type RunFlowByVersionParams struct {
+	// ScheduledFor when to schedule this job (leave empty for immediate run)
+	ScheduledFor *time.Time `form:"scheduled_for,omitempty" json:"scheduled_for,omitempty"`
+
+	// ScheduledInSecs schedule the script to execute in the number of seconds starting now
+	ScheduledInSecs *int `form:"scheduled_in_secs,omitempty" json:"scheduled_in_secs,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
+	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
+
+	// Tag Override the tag to use
+	Tag *WorkerTag `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// InvisibleToOwner make the run invisible to the the flow owner (default false)
+	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
+
+	// MemoryId memory ID for chat-enabled flows
+	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+}
+
 // RunScriptByHashJSONBody defines parameters for RunScriptByHash.
 type RunScriptByHashJSONBody = map[string]interface{}
 
@@ -5823,6 +5855,54 @@ type RunAndStreamFlowByPathGetParams struct {
 
 // RunAndStreamFlowByPathParams defines parameters for RunAndStreamFlowByPath.
 type RunAndStreamFlowByPathParams struct {
+	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// MemoryId memory ID for chat-enabled flows
+	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// PollDelayMs delay between polling for job updates in milliseconds
+	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
+}
+
+// RunAndStreamFlowByVersionGetParams defines parameters for RunAndStreamFlowByVersionGet.
+type RunAndStreamFlowByVersionGetParams struct {
+	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// Payload The base64 encoded payload that has been encoded as a JSON. e.g how to encode such payload encodeURIComponent
+	// `encodeURIComponent(btoa(JSON.stringify({a: 2})))`
+	Payload *Payload `form:"payload,omitempty" json:"payload,omitempty"`
+
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// MemoryId memory ID for chat-enabled flows
+	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// PollDelayMs delay between polling for job updates in milliseconds
+	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
+}
+
+// RunAndStreamFlowByVersionParams defines parameters for RunAndStreamFlowByVersion.
+type RunAndStreamFlowByVersionParams struct {
 	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
 	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
@@ -5965,6 +6045,48 @@ type RunAndStreamScriptByPathParams struct {
 
 // RunWaitResultFlowByPathParams defines parameters for RunWaitResultFlowByPath.
 type RunWaitResultFlowByPathParams struct {
+	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// MemoryId memory ID for chat-enabled flows
+	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+}
+
+// RunWaitResultFlowByVersionGetParams defines parameters for RunWaitResultFlowByVersionGet.
+type RunWaitResultFlowByVersionGetParams struct {
+	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
+	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
+	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
+
+	// QueueLimit The maximum size of the queue for which the request would get rejected if that job would push it above that limit
+	QueueLimit *QueueLimit `form:"queue_limit,omitempty" json:"queue_limit,omitempty"`
+
+	// Payload The base64 encoded payload that has been encoded as a JSON. e.g how to encode such payload encodeURIComponent
+	// `encodeURIComponent(btoa(JSON.stringify({a: 2})))`
+	Payload *Payload `form:"payload,omitempty" json:"payload,omitempty"`
+
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// SkipPreprocessor skip the preprocessor
+	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
+
+	// MemoryId memory ID for chat-enabled flows
+	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+}
+
+// RunWaitResultFlowByVersionParams defines parameters for RunWaitResultFlowByVersion.
+type RunWaitResultFlowByVersionParams struct {
 	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
 	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
@@ -7161,6 +7283,9 @@ type RunDynamicSelectJSONRequestBody = DynamicInputData
 // RunFlowByPathJSONRequestBody defines body for RunFlowByPath for application/json ContentType.
 type RunFlowByPathJSONRequestBody = ScriptArgs
 
+// RunFlowByVersionJSONRequestBody defines body for RunFlowByVersion for application/json ContentType.
+type RunFlowByVersionJSONRequestBody = ScriptArgs
+
 // RunScriptByHashJSONRequestBody defines body for RunScriptByHash for application/json ContentType.
 type RunScriptByHashJSONRequestBody = RunScriptByHashJSONBody
 
@@ -7176,6 +7301,9 @@ type RunFlowPreviewJSONRequestBody = FlowPreview
 // RunAndStreamFlowByPathJSONRequestBody defines body for RunAndStreamFlowByPath for application/json ContentType.
 type RunAndStreamFlowByPathJSONRequestBody = ScriptArgs
 
+// RunAndStreamFlowByVersionJSONRequestBody defines body for RunAndStreamFlowByVersion for application/json ContentType.
+type RunAndStreamFlowByVersionJSONRequestBody = ScriptArgs
+
 // RunAndStreamScriptByHashJSONRequestBody defines body for RunAndStreamScriptByHash for application/json ContentType.
 type RunAndStreamScriptByHashJSONRequestBody = ScriptArgs
 
@@ -7184,6 +7312,9 @@ type RunAndStreamScriptByPathJSONRequestBody = ScriptArgs
 
 // RunWaitResultFlowByPathJSONRequestBody defines body for RunWaitResultFlowByPath for application/json ContentType.
 type RunWaitResultFlowByPathJSONRequestBody = ScriptArgs
+
+// RunWaitResultFlowByVersionJSONRequestBody defines body for RunWaitResultFlowByVersion for application/json ContentType.
+type RunWaitResultFlowByVersionJSONRequestBody = ScriptArgs
 
 // RunWaitResultScriptByPathJSONRequestBody defines body for RunWaitResultScriptByPath for application/json ContentType.
 type RunWaitResultScriptByPathJSONRequestBody = ScriptArgs
@@ -9796,6 +9927,11 @@ type ClientInterface interface {
 
 	RunFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, body RunFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RunFlowByVersionWithBody request with any body
+	RunFlowByVersionWithBody(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunFlowByVersion(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, body RunFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RunScriptByHashWithBody request with any body
 	RunScriptByHashWithBody(ctx context.Context, workspace WorkspaceId, hash ScriptHash, params *RunScriptByHashParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9824,6 +9960,14 @@ type ClientInterface interface {
 
 	RunAndStreamFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, body RunAndStreamFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RunAndStreamFlowByVersionGet request
+	RunAndStreamFlowByVersionGet(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunAndStreamFlowByVersionWithBody request with any body
+	RunAndStreamFlowByVersionWithBody(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunAndStreamFlowByVersion(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionParams, body RunAndStreamFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RunAndStreamScriptByHashGet request
 	RunAndStreamScriptByHashGet(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9844,6 +9988,14 @@ type ClientInterface interface {
 	RunWaitResultFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunWaitResultFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunWaitResultFlowByVersionGet request
+	RunWaitResultFlowByVersionGet(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunWaitResultFlowByVersionWithBody request with any body
+	RunWaitResultFlowByVersionWithBody(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunWaitResultFlowByVersion(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionParams, body RunWaitResultFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunWaitResultScriptByPathGet request
 	RunWaitResultScriptByPathGet(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathGetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15310,6 +15462,30 @@ func (c *Client) RunFlowByPath(ctx context.Context, workspace WorkspaceId, path 
 	return c.Client.Do(req)
 }
 
+func (c *Client) RunFlowByVersionWithBody(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowByVersionRequestWithBody(c.Server, workspace, version, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunFlowByVersion(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, body RunFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowByVersionRequest(c.Server, workspace, version, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) RunScriptByHashWithBody(ctx context.Context, workspace WorkspaceId, hash ScriptHash, params *RunScriptByHashParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunScriptByHashRequestWithBody(c.Server, workspace, hash, params, contentType, body)
 	if err != nil {
@@ -15442,6 +15618,42 @@ func (c *Client) RunAndStreamFlowByPath(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
+func (c *Client) RunAndStreamFlowByVersionGet(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionGetParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamFlowByVersionGetRequest(c.Server, workspace, version, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAndStreamFlowByVersionWithBody(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamFlowByVersionRequestWithBody(c.Server, workspace, version, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAndStreamFlowByVersion(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionParams, body RunAndStreamFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAndStreamFlowByVersionRequest(c.Server, workspace, version, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) RunAndStreamScriptByHashGet(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashGetParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunAndStreamScriptByHashGetRequest(c.Server, workspace, hash, params)
 	if err != nil {
@@ -15528,6 +15740,42 @@ func (c *Client) RunWaitResultFlowByPathWithBody(ctx context.Context, workspace 
 
 func (c *Client) RunWaitResultFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunWaitResultFlowByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunWaitResultFlowByVersionGet(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionGetParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunWaitResultFlowByVersionGetRequest(c.Server, workspace, version, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunWaitResultFlowByVersionWithBody(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunWaitResultFlowByVersionRequestWithBody(c.Server, workspace, version, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunWaitResultFlowByVersion(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionParams, body RunWaitResultFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunWaitResultFlowByVersionRequest(c.Server, workspace, version, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -37490,6 +37738,210 @@ func NewRunFlowByPathRequestWithBody(server string, workspace WorkspaceId, path 
 	return req, nil
 }
 
+// NewRunFlowByVersionRequest calls the generic RunFlowByVersion builder with application/json body
+func NewRunFlowByVersionRequest(server string, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, body RunFlowByVersionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunFlowByVersionRequestWithBody(server, workspace, version, params, "application/json", bodyReader)
+}
+
+// NewRunFlowByVersionRequestWithBody generates requests for RunFlowByVersion with any type of body
+func NewRunFlowByVersionRequestWithBody(server string, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run/fv/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ScheduledFor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_for", runtime.ParamLocationQuery, *params.ScheduledFor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ScheduledInSecs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scheduled_in_secs", runtime.ParamLocationQuery, *params.ScheduledInSecs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ParentJob != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_job", runtime.ParamLocationQuery, *params.ParentJob); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tag != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.InvisibleToOwner != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "invisible_to_owner", runtime.ParamLocationQuery, *params.InvisibleToOwner); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRunScriptByHashRequest calls the generic RunScriptByHash builder with application/json body
 func NewRunScriptByHashRequest(server string, workspace WorkspaceId, hash ScriptHash, params *RunScriptByHashParams, body RunScriptByHashJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -38415,6 +38867,321 @@ func NewRunAndStreamFlowByPathRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewRunAndStreamFlowByVersionGetRequest generates requests for RunAndStreamFlowByVersionGet
+func NewRunAndStreamFlowByVersionGetRequest(server string, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionGetParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_and_stream/fv/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.QueueLimit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Payload != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "payload", runtime.ParamLocationQuery, *params.Payload); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PollDelayMs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "poll_delay_ms", runtime.ParamLocationQuery, *params.PollDelayMs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRunAndStreamFlowByVersionRequest calls the generic RunAndStreamFlowByVersion builder with application/json body
+func NewRunAndStreamFlowByVersionRequest(server string, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionParams, body RunAndStreamFlowByVersionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunAndStreamFlowByVersionRequestWithBody(server, workspace, version, params, "application/json", bodyReader)
+}
+
+// NewRunAndStreamFlowByVersionRequestWithBody generates requests for RunAndStreamFlowByVersion with any type of body
+func NewRunAndStreamFlowByVersionRequestWithBody(server string, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_and_stream/fv/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.QueueLimit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PollDelayMs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "poll_delay_ms", runtime.ParamLocationQuery, *params.PollDelayMs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRunAndStreamScriptByHashGetRequest generates requests for RunAndStreamScriptByHashGet
 func NewRunAndStreamScriptByHashGetRequest(server string, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashGetParams) (*http.Request, error) {
 	var err error
@@ -39208,6 +39975,289 @@ func NewRunWaitResultFlowByPathRequestWithBody(server string, workspace Workspac
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/jobs/run_wait_result/f/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.QueueLimit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRunWaitResultFlowByVersionGetRequest generates requests for RunWaitResultFlowByVersionGet
+func NewRunWaitResultFlowByVersionGetRequest(server string, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionGetParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_wait_result/fv/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.QueueLimit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "queue_limit", runtime.ParamLocationQuery, *params.QueueLimit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Payload != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "payload", runtime.ParamLocationQuery, *params.Payload); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SkipPreprocessor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_preprocessor", runtime.ParamLocationQuery, *params.SkipPreprocessor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRunWaitResultFlowByVersionRequest calls the generic RunWaitResultFlowByVersion builder with application/json body
+func NewRunWaitResultFlowByVersionRequest(server string, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionParams, body RunWaitResultFlowByVersionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunWaitResultFlowByVersionRequestWithBody(server, workspace, version, params, "application/json", bodyReader)
+}
+
+// NewRunWaitResultFlowByVersionRequestWithBody generates requests for RunWaitResultFlowByVersion with any type of body
+func NewRunWaitResultFlowByVersionRequestWithBody(server string, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_wait_result/fv/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -53910,6 +54960,11 @@ type ClientWithResponsesInterface interface {
 
 	RunFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, body RunFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowByPathResponse, error)
 
+	// RunFlowByVersionWithBodyWithResponse request with any body
+	RunFlowByVersionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowByVersionResponse, error)
+
+	RunFlowByVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, body RunFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowByVersionResponse, error)
+
 	// RunScriptByHashWithBodyWithResponse request with any body
 	RunScriptByHashWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, params *RunScriptByHashParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptByHashResponse, error)
 
@@ -53938,6 +54993,14 @@ type ClientWithResponsesInterface interface {
 
 	RunAndStreamFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamFlowByPathParams, body RunAndStreamFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByPathResponse, error)
 
+	// RunAndStreamFlowByVersionGetWithResponse request
+	RunAndStreamFlowByVersionGetWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionGetParams, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByVersionGetResponse, error)
+
+	// RunAndStreamFlowByVersionWithBodyWithResponse request with any body
+	RunAndStreamFlowByVersionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByVersionResponse, error)
+
+	RunAndStreamFlowByVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionParams, body RunAndStreamFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByVersionResponse, error)
+
 	// RunAndStreamScriptByHashGetWithResponse request
 	RunAndStreamScriptByHashGetWithResponse(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashGetParams, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByHashGetResponse, error)
 
@@ -53958,6 +55021,14 @@ type ClientWithResponsesInterface interface {
 	RunWaitResultFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error)
 
 	RunWaitResultFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error)
+
+	// RunWaitResultFlowByVersionGetWithResponse request
+	RunWaitResultFlowByVersionGetWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionGetParams, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByVersionGetResponse, error)
+
+	// RunWaitResultFlowByVersionWithBodyWithResponse request with any body
+	RunWaitResultFlowByVersionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByVersionResponse, error)
+
+	RunWaitResultFlowByVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionParams, body RunWaitResultFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByVersionResponse, error)
 
 	// RunWaitResultScriptByPathGetWithResponse request
 	RunWaitResultScriptByPathGetWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultScriptByPathGetParams, reqEditors ...RequestEditorFn) (*RunWaitResultScriptByPathGetResponse, error)
@@ -58774,6 +59845,7 @@ type GetFlowByPathWithDraftResponse struct {
 		Tag                 *string                 `json:"tag,omitempty"`
 		Timeout             *float32                `json:"timeout,omitempty"`
 		Value               SchemasFlowValue        `json:"value"`
+		VersionId           *float32                `json:"version_id,omitempty"`
 		VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 		WorkspaceId         *string                 `json:"workspace_id,omitempty"`
 		WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -58949,6 +60021,7 @@ type ListFlowsResponse struct {
 		Tag                 *string                 `json:"tag,omitempty"`
 		Timeout             *float32                `json:"timeout,omitempty"`
 		Value               SchemasFlowValue        `json:"value"`
+		VersionId           *float32                `json:"version_id,omitempty"`
 		VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 		WorkspaceId         *string                 `json:"workspace_id,omitempty"`
 		WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -61276,6 +62349,27 @@ func (r RunFlowByPathResponse) StatusCode() int {
 	return 0
 }
 
+type RunFlowByVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunFlowByVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunFlowByVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RunScriptByHashResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -61402,6 +62496,48 @@ func (r RunAndStreamFlowByPathResponse) StatusCode() int {
 	return 0
 }
 
+type RunAndStreamFlowByVersionGetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunAndStreamFlowByVersionGetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunAndStreamFlowByVersionGetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunAndStreamFlowByVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunAndStreamFlowByVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunAndStreamFlowByVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RunAndStreamScriptByHashGetResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -61502,6 +62638,50 @@ func (r RunWaitResultFlowByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunWaitResultFlowByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunWaitResultFlowByVersionGetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r RunWaitResultFlowByVersionGetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunWaitResultFlowByVersionGetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunWaitResultFlowByVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r RunWaitResultFlowByVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunWaitResultFlowByVersionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -70376,6 +71556,23 @@ func (c *ClientWithResponses) RunFlowByPathWithResponse(ctx context.Context, wor
 	return ParseRunFlowByPathResponse(rsp)
 }
 
+// RunFlowByVersionWithBodyWithResponse request with arbitrary body returning *RunFlowByVersionResponse
+func (c *ClientWithResponses) RunFlowByVersionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowByVersionResponse, error) {
+	rsp, err := c.RunFlowByVersionWithBody(ctx, workspace, version, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunFlowByVersionResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunFlowByVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, body RunFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowByVersionResponse, error) {
+	rsp, err := c.RunFlowByVersion(ctx, workspace, version, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunFlowByVersionResponse(rsp)
+}
+
 // RunScriptByHashWithBodyWithResponse request with arbitrary body returning *RunScriptByHashResponse
 func (c *ClientWithResponses) RunScriptByHashWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, params *RunScriptByHashParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptByHashResponse, error) {
 	rsp, err := c.RunScriptByHashWithBody(ctx, workspace, hash, params, contentType, body, reqEditors...)
@@ -70470,6 +71667,32 @@ func (c *ClientWithResponses) RunAndStreamFlowByPathWithResponse(ctx context.Con
 	return ParseRunAndStreamFlowByPathResponse(rsp)
 }
 
+// RunAndStreamFlowByVersionGetWithResponse request returning *RunAndStreamFlowByVersionGetResponse
+func (c *ClientWithResponses) RunAndStreamFlowByVersionGetWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionGetParams, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByVersionGetResponse, error) {
+	rsp, err := c.RunAndStreamFlowByVersionGet(ctx, workspace, version, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamFlowByVersionGetResponse(rsp)
+}
+
+// RunAndStreamFlowByVersionWithBodyWithResponse request with arbitrary body returning *RunAndStreamFlowByVersionResponse
+func (c *ClientWithResponses) RunAndStreamFlowByVersionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByVersionResponse, error) {
+	rsp, err := c.RunAndStreamFlowByVersionWithBody(ctx, workspace, version, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamFlowByVersionResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunAndStreamFlowByVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunAndStreamFlowByVersionParams, body RunAndStreamFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamFlowByVersionResponse, error) {
+	rsp, err := c.RunAndStreamFlowByVersion(ctx, workspace, version, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAndStreamFlowByVersionResponse(rsp)
+}
+
 // RunAndStreamScriptByHashGetWithResponse request returning *RunAndStreamScriptByHashGetResponse
 func (c *ClientWithResponses) RunAndStreamScriptByHashGetWithResponse(ctx context.Context, workspace WorkspaceId, hash string, params *RunAndStreamScriptByHashGetParams, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByHashGetResponse, error) {
 	rsp, err := c.RunAndStreamScriptByHashGet(ctx, workspace, hash, params, reqEditors...)
@@ -70537,6 +71760,32 @@ func (c *ClientWithResponses) RunWaitResultFlowByPathWithResponse(ctx context.Co
 		return nil, err
 	}
 	return ParseRunWaitResultFlowByPathResponse(rsp)
+}
+
+// RunWaitResultFlowByVersionGetWithResponse request returning *RunWaitResultFlowByVersionGetResponse
+func (c *ClientWithResponses) RunWaitResultFlowByVersionGetWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionGetParams, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByVersionGetResponse, error) {
+	rsp, err := c.RunWaitResultFlowByVersionGet(ctx, workspace, version, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunWaitResultFlowByVersionGetResponse(rsp)
+}
+
+// RunWaitResultFlowByVersionWithBodyWithResponse request with arbitrary body returning *RunWaitResultFlowByVersionResponse
+func (c *ClientWithResponses) RunWaitResultFlowByVersionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByVersionResponse, error) {
+	rsp, err := c.RunWaitResultFlowByVersionWithBody(ctx, workspace, version, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunWaitResultFlowByVersionResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunWaitResultFlowByVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunWaitResultFlowByVersionParams, body RunWaitResultFlowByVersionJSONRequestBody, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByVersionResponse, error) {
+	rsp, err := c.RunWaitResultFlowByVersion(ctx, workspace, version, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunWaitResultFlowByVersionResponse(rsp)
 }
 
 // RunWaitResultScriptByPathGetWithResponse request returning *RunWaitResultScriptByPathGetResponse
@@ -77468,6 +78717,7 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			Tag                 *string                 `json:"tag,omitempty"`
 			Timeout             *float32                `json:"timeout,omitempty"`
 			Value               SchemasFlowValue        `json:"value"`
+			VersionId           *float32                `json:"version_id,omitempty"`
 			VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 			WorkspaceId         *string                 `json:"workspace_id,omitempty"`
 			WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -77662,6 +78912,7 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			Tag                 *string                 `json:"tag,omitempty"`
 			Timeout             *float32                `json:"timeout,omitempty"`
 			Value               SchemasFlowValue        `json:"value"`
+			VersionId           *float32                `json:"version_id,omitempty"`
 			VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
 			WorkspaceId         *string                 `json:"workspace_id,omitempty"`
 			WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
@@ -80024,6 +81275,22 @@ func ParseRunFlowByPathResponse(rsp *http.Response) (*RunFlowByPathResponse, err
 	return response, nil
 }
 
+// ParseRunFlowByVersionResponse parses an HTTP response from a RunFlowByVersionWithResponse call
+func ParseRunFlowByVersionResponse(rsp *http.Response) (*RunFlowByVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunFlowByVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseRunScriptByHashResponse parses an HTTP response from a RunScriptByHashWithResponse call
 func ParseRunScriptByHashResponse(rsp *http.Response) (*RunScriptByHashResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -80120,6 +81387,38 @@ func ParseRunAndStreamFlowByPathResponse(rsp *http.Response) (*RunAndStreamFlowB
 	return response, nil
 }
 
+// ParseRunAndStreamFlowByVersionGetResponse parses an HTTP response from a RunAndStreamFlowByVersionGetWithResponse call
+func ParseRunAndStreamFlowByVersionGetResponse(rsp *http.Response) (*RunAndStreamFlowByVersionGetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunAndStreamFlowByVersionGetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunAndStreamFlowByVersionResponse parses an HTTP response from a RunAndStreamFlowByVersionWithResponse call
+func ParseRunAndStreamFlowByVersionResponse(rsp *http.Response) (*RunAndStreamFlowByVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunAndStreamFlowByVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseRunAndStreamScriptByHashGetResponse parses an HTTP response from a RunAndStreamScriptByHashGetWithResponse call
 func ParseRunAndStreamScriptByHashGetResponse(rsp *http.Response) (*RunAndStreamScriptByHashGetResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -80193,6 +81492,58 @@ func ParseRunWaitResultFlowByPathResponse(rsp *http.Response) (*RunWaitResultFlo
 	}
 
 	response := &RunWaitResultFlowByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRunWaitResultFlowByVersionGetResponse parses an HTTP response from a RunWaitResultFlowByVersionGetWithResponse call
+func ParseRunWaitResultFlowByVersionGetResponse(rsp *http.Response) (*RunWaitResultFlowByVersionGetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunWaitResultFlowByVersionGetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRunWaitResultFlowByVersionResponse parses an HTTP response from a RunWaitResultFlowByVersionWithResponse call
+func ParseRunWaitResultFlowByVersionResponse(rsp *http.Response) (*RunWaitResultFlowByVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunWaitResultFlowByVersionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
