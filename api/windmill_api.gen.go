@@ -2344,6 +2344,7 @@ type NewHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
 	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
 	Description                *string              `json:"description,omitempty"`
+	Enabled                    *bool                `json:"enabled,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -3198,6 +3199,7 @@ type TriggerExtraProperty struct {
 	EditedAt    time.Time       `json:"edited_at"`
 	EditedBy    string          `json:"edited_by"`
 	Email       string          `json:"email"`
+	Enabled     bool            `json:"enabled"`
 	ExtraPerms  map[string]bool `json:"extra_perms"`
 	IsFlow      bool            `json:"is_flow"`
 	Path        string          `json:"path"`
@@ -4955,6 +4957,11 @@ type ExistsRouteJSONBody struct {
 	RoutePath       string     `json:"route_path"`
 	TriggerPath     *string    `json:"trigger_path,omitempty"`
 	WorkspacedRoute *bool      `json:"workspaced_route,omitempty"`
+}
+
+// SetHttpTriggerEnabledJSONBody defines parameters for SetHttpTriggerEnabled.
+type SetHttpTriggerEnabledJSONBody struct {
+	Enabled bool `json:"enabled"`
 }
 
 // CreateInputParams defines parameters for CreateInput.
@@ -7225,6 +7232,9 @@ type CreateHttpTriggersJSONRequestBody = CreateHttpTriggersJSONBody
 
 // ExistsRouteJSONRequestBody defines body for ExistsRoute for application/json ContentType.
 type ExistsRouteJSONRequestBody ExistsRouteJSONBody
+
+// SetHttpTriggerEnabledJSONRequestBody defines body for SetHttpTriggerEnabled for application/json ContentType.
+type SetHttpTriggerEnabledJSONRequestBody SetHttpTriggerEnabledJSONBody
 
 // UpdateHttpTriggerJSONRequestBody defines body for UpdateHttpTrigger for application/json ContentType.
 type UpdateHttpTriggerJSONRequestBody = EditHttpTrigger
@@ -9720,6 +9730,11 @@ type ClientInterface interface {
 	ExistsRouteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ExistsRoute(ctx context.Context, workspace WorkspaceId, body ExistsRouteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetHttpTriggerEnabledWithBody request with any body
+	SetHttpTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetHttpTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateHttpTriggerWithBody request with any body
 	UpdateHttpTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14552,6 +14567,30 @@ func (c *Client) ExistsRouteWithBody(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) ExistsRoute(ctx context.Context, workspace WorkspaceId, body ExistsRouteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsRouteRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetHttpTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetHttpTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetHttpTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetHttpTriggerEnabledRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -31321,6 +31360,60 @@ func NewExistsRouteRequestWithBody(server string, workspace WorkspaceId, content
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/http_triggers/route_exists", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSetHttpTriggerEnabledRequest calls the generic SetHttpTriggerEnabled builder with application/json body
+func NewSetHttpTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetHttpTriggerEnabledJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetHttpTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewSetHttpTriggerEnabledRequestWithBody generates requests for SetHttpTriggerEnabled with any type of body
+func NewSetHttpTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/http_triggers/setenabled/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -54754,6 +54847,11 @@ type ClientWithResponsesInterface interface {
 
 	ExistsRouteWithResponse(ctx context.Context, workspace WorkspaceId, body ExistsRouteJSONRequestBody, reqEditors ...RequestEditorFn) (*ExistsRouteResponse, error)
 
+	// SetHttpTriggerEnabledWithBodyWithResponse request with any body
+	SetHttpTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetHttpTriggerEnabledResponse, error)
+
+	SetHttpTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetHttpTriggerEnabledResponse, error)
+
 	// UpdateHttpTriggerWithBodyWithResponse request with any body
 	UpdateHttpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateHttpTriggerResponse, error)
 
@@ -61061,6 +61159,27 @@ func (r ExistsRouteResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ExistsRouteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetHttpTriggerEnabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetHttpTriggerEnabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetHttpTriggerEnabledResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -70900,6 +71019,23 @@ func (c *ClientWithResponses) ExistsRouteWithResponse(ctx context.Context, works
 	return ParseExistsRouteResponse(rsp)
 }
 
+// SetHttpTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetHttpTriggerEnabledResponse
+func (c *ClientWithResponses) SetHttpTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetHttpTriggerEnabledResponse, error) {
+	rsp, err := c.SetHttpTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetHttpTriggerEnabledResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetHttpTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetHttpTriggerEnabledResponse, error) {
+	rsp, err := c.SetHttpTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetHttpTriggerEnabledResponse(rsp)
+}
+
 // UpdateHttpTriggerWithBodyWithResponse request with arbitrary body returning *UpdateHttpTriggerResponse
 func (c *ClientWithResponses) UpdateHttpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateHttpTriggerResponse, error) {
 	rsp, err := c.UpdateHttpTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
@@ -79908,6 +80044,22 @@ func ParseExistsRouteResponse(rsp *http.Response) (*ExistsRouteResponse, error) 
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseSetHttpTriggerEnabledResponse parses an HTTP response from a SetHttpTriggerEnabledWithResponse call
+func ParseSetHttpTriggerEnabledResponse(rsp *http.Response) (*SetHttpTriggerEnabledResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetHttpTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
