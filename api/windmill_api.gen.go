@@ -27,6 +27,7 @@ const (
 // Defines values for AIProvider.
 const (
 	Anthropic   AIProvider = "anthropic"
+	AwsBedrock  AIProvider = "aws_bedrock"
 	AzureOpenai AIProvider = "azure_openai"
 	Customai    AIProvider = "customai"
 	Deepseek    AIProvider = "deepseek"
