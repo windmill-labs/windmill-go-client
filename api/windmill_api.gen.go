@@ -2329,6 +2329,8 @@ type NatsTrigger = TriggerExtraProperty
 
 // NewEmailTrigger defines model for NewEmailTrigger.
 type NewEmailTrigger struct {
+	Enabled *bool `json:"enabled,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs    *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath    *string     `json:"error_handler_path,omitempty"`
@@ -3359,6 +3361,7 @@ type WindmillLargeFile struct {
 type WorkerPing struct {
 	CustomTags         *[]string `json:"custom_tags,omitempty"`
 	Ip                 string    `json:"ip"`
+	JobIsolation       *string   `json:"job_isolation,omitempty"`
 	JobsExecuted       int       `json:"jobs_executed"`
 	LastJobId          *string   `json:"last_job_id,omitempty"`
 	LastJobWorkspaceId *string   `json:"last_job_workspace_id,omitempty"`
@@ -4654,6 +4657,11 @@ type ExistsEmailLocalPartJSONBody struct {
 	LocalPart           string  `json:"local_part"`
 	TriggerPath         *string `json:"trigger_path,omitempty"`
 	WorkspacedLocalPart *bool   `json:"workspaced_local_part,omitempty"`
+}
+
+// SetEmailTriggerEnabledJSONBody defines parameters for SetEmailTriggerEnabled.
+type SetEmailTriggerEnabledJSONBody struct {
+	Enabled bool `json:"enabled"`
 }
 
 // QueryResourceTypesParams defines parameters for QueryResourceTypes.
@@ -7150,6 +7158,9 @@ type CreateEmailTriggerJSONRequestBody = NewEmailTrigger
 // ExistsEmailLocalPartJSONRequestBody defines body for ExistsEmailLocalPart for application/json ContentType.
 type ExistsEmailLocalPartJSONRequestBody ExistsEmailLocalPartJSONBody
 
+// SetEmailTriggerEnabledJSONRequestBody defines body for SetEmailTriggerEnabled for application/json ContentType.
+type SetEmailTriggerEnabledJSONRequestBody SetEmailTriggerEnabledJSONBody
+
 // UpdateEmailTriggerJSONRequestBody defines body for UpdateEmailTrigger for application/json ContentType.
 type UpdateEmailTriggerJSONRequestBody = EditEmailTrigger
 
@@ -9474,6 +9485,11 @@ type ClientInterface interface {
 	ExistsEmailLocalPartWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ExistsEmailLocalPart(ctx context.Context, workspace WorkspaceId, body ExistsEmailLocalPartJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetEmailTriggerEnabledWithBody request with any body
+	SetEmailTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetEmailTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateEmailTriggerWithBody request with any body
 	UpdateEmailTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -13428,6 +13444,30 @@ func (c *Client) ExistsEmailLocalPartWithBody(ctx context.Context, workspace Wor
 
 func (c *Client) ExistsEmailLocalPart(ctx context.Context, workspace WorkspaceId, body ExistsEmailLocalPartJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsEmailLocalPartRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetEmailTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetEmailTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetEmailTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetEmailTriggerEnabledRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -27731,6 +27771,60 @@ func NewExistsEmailLocalPartRequestWithBody(server string, workspace WorkspaceId
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/email_triggers/local_part_exists", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSetEmailTriggerEnabledRequest calls the generic SetEmailTriggerEnabled builder with application/json body
+func NewSetEmailTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetEmailTriggerEnabledJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetEmailTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewSetEmailTriggerEnabledRequestWithBody generates requests for SetEmailTriggerEnabled with any type of body
+func NewSetEmailTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/email_triggers/setenabled/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -54591,6 +54685,11 @@ type ClientWithResponsesInterface interface {
 
 	ExistsEmailLocalPartWithResponse(ctx context.Context, workspace WorkspaceId, body ExistsEmailLocalPartJSONRequestBody, reqEditors ...RequestEditorFn) (*ExistsEmailLocalPartResponse, error)
 
+	// SetEmailTriggerEnabledWithBodyWithResponse request with any body
+	SetEmailTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEmailTriggerEnabledResponse, error)
+
+	SetEmailTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetEmailTriggerEnabledResponse, error)
+
 	// UpdateEmailTriggerWithBodyWithResponse request with any body
 	UpdateEmailTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateEmailTriggerResponse, error)
 
@@ -59653,6 +59752,27 @@ func (r ExistsEmailLocalPartResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ExistsEmailLocalPartResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetEmailTriggerEnabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetEmailTriggerEnabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetEmailTriggerEnabledResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -70193,6 +70313,23 @@ func (c *ClientWithResponses) ExistsEmailLocalPartWithResponse(ctx context.Conte
 	return ParseExistsEmailLocalPartResponse(rsp)
 }
 
+// SetEmailTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetEmailTriggerEnabledResponse
+func (c *ClientWithResponses) SetEmailTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEmailTriggerEnabledResponse, error) {
+	rsp, err := c.SetEmailTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetEmailTriggerEnabledResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetEmailTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetEmailTriggerEnabledResponse, error) {
+	rsp, err := c.SetEmailTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetEmailTriggerEnabledResponse(rsp)
+}
+
 // UpdateEmailTriggerWithBodyWithResponse request with arbitrary body returning *UpdateEmailTriggerResponse
 func (c *ClientWithResponses) UpdateEmailTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateEmailTriggerResponse, error) {
 	rsp, err := c.UpdateEmailTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
@@ -78567,6 +78704,22 @@ func ParseExistsEmailLocalPartResponse(rsp *http.Response) (*ExistsEmailLocalPar
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseSetEmailTriggerEnabledResponse parses an HTTP response from a SetEmailTriggerEnabledWithResponse call
+func ParseSetEmailTriggerEnabledResponse(rsp *http.Response) (*SetEmailTriggerEnabledResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetEmailTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
