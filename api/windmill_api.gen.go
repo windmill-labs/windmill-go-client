@@ -617,6 +617,12 @@ const (
 	Branchone SchemasBranchOneType = "branchone"
 )
 
+// Defines values for SchemasFlowNoteType.
+const (
+	SchemasFlowNoteTypeFree  SchemasFlowNoteType = "free"
+	SchemasFlowNoteTypeGroup SchemasFlowNoteType = "group"
+)
+
 // Defines values for SchemasFlowStatusModuleAgentActions0Type.
 const (
 	SchemasFlowStatusModuleAgentActions0TypeToolCall SchemasFlowStatusModuleAgentActions0Type = "tool_call"
@@ -1879,10 +1885,13 @@ type FlowValue struct {
 	FailureModule          *SchemasFlowModule  `json:"failure_module,omitempty"`
 	FlowEnv                *map[string]string  `json:"flow_env,omitempty"`
 	Modules                []SchemasFlowModule `json:"modules"`
-	PreprocessorModule     *SchemasFlowModule  `json:"preprocessor_module,omitempty"`
-	Priority               *float32            `json:"priority,omitempty"`
-	SameWorker             *bool               `json:"same_worker,omitempty"`
-	SkipExpr               *string             `json:"skip_expr,omitempty"`
+
+	// Notes Sticky notes attached to the flow
+	Notes              *[]SchemasFlowNote `json:"notes,omitempty"`
+	PreprocessorModule *SchemasFlowModule `json:"preprocessor_module,omitempty"`
+	Priority           *float32           `json:"priority,omitempty"`
+	SameWorker         *bool              `json:"same_worker,omitempty"`
+	SkipExpr           *string            `json:"skip_expr,omitempty"`
 }
 
 // FlowVersion defines model for FlowVersion.
@@ -3518,6 +3527,48 @@ type SchemasFlowModuleValue struct {
 	union json.RawMessage
 }
 
+// SchemasFlowNote A sticky note attached to a flow for documentation and annotation
+type SchemasFlowNote struct {
+	// Color Color of the note (e.g., "yellow", "#ffff00")
+	Color string `json:"color"`
+
+	// ContainedNodeIds For group notes, the IDs of nodes contained within this group
+	ContainedNodeIds *[]string `json:"contained_node_ids,omitempty"`
+
+	// Id Unique identifier for the note
+	Id string `json:"id"`
+
+	// Locked Whether the note is locked and cannot be edited or moved
+	Locked *bool `json:"locked,omitempty"`
+
+	// Position Position of the note in the flow editor
+	Position *struct {
+		// X X coordinate
+		X float32 `json:"x"`
+
+		// Y Y coordinate
+		Y float32 `json:"y"`
+	} `json:"position,omitempty"`
+
+	// Size Size of the note in the flow editor
+	Size *struct {
+		// Height Height in pixels
+		Height float32 `json:"height"`
+
+		// Width Width in pixels
+		Width float32 `json:"width"`
+	} `json:"size,omitempty"`
+
+	// Text Content of the note
+	Text string `json:"text"`
+
+	// Type Type of note - 'free' for standalone notes, 'group' for notes that group other nodes
+	Type SchemasFlowNoteType `json:"type"`
+}
+
+// SchemasFlowNoteType Type of note - 'free' for standalone notes, 'group' for notes that group other nodes
+type SchemasFlowNoteType string
+
 // SchemasFlowStatusModule defines model for schemas-FlowStatusModule.
 type SchemasFlowStatusModule struct {
 	AgentActions        *[]SchemasFlowStatusModule_AgentActions_Item `json:"agent_actions,omitempty"`
@@ -3611,10 +3662,13 @@ type SchemasFlowValue struct {
 	FailureModule          *SchemasFlowModule  `json:"failure_module,omitempty"`
 	FlowEnv                *map[string]string  `json:"flow_env,omitempty"`
 	Modules                []SchemasFlowModule `json:"modules"`
-	PreprocessorModule     *SchemasFlowModule  `json:"preprocessor_module,omitempty"`
-	Priority               *float32            `json:"priority,omitempty"`
-	SameWorker             *bool               `json:"same_worker,omitempty"`
-	SkipExpr               *string             `json:"skip_expr,omitempty"`
+
+	// Notes Sticky notes attached to the flow
+	Notes              *[]SchemasFlowNote `json:"notes,omitempty"`
+	PreprocessorModule *SchemasFlowModule `json:"preprocessor_module,omitempty"`
+	Priority           *float32           `json:"priority,omitempty"`
+	SameWorker         *bool              `json:"same_worker,omitempty"`
+	SkipExpr           *string            `json:"skip_expr,omitempty"`
 }
 
 // SchemasForloopFlow defines model for schemas-ForloopFlow.
