@@ -4845,6 +4845,10 @@ type ListFlowsParams struct {
 	// WithDeploymentMsg (default false)
 	// include deployment message
 	WithDeploymentMsg *bool `form:"with_deployment_msg,omitempty" json:"with_deployment_msg,omitempty"`
+
+	// WithoutDescription (default false)
+	// If true, the description field will be omitted from the response.
+	WithoutDescription *bool `form:"without_description,omitempty" json:"without_description,omitempty"`
 }
 
 // ListFlowPathsFromWorkspaceRunnableParams defines parameters for ListFlowPathsFromWorkspaceRunnable.
@@ -6710,6 +6714,10 @@ type ListScriptsParams struct {
 	// Languages Filter to only include scripts written in the given languages.
 	// Accepts multiple values as a comma-separated list.
 	Languages *string `form:"languages,omitempty" json:"languages,omitempty"`
+
+	// WithoutDescription (default false)
+	// If true, the description field will be omitted from the response.
+	WithoutDescription *bool `form:"without_description,omitempty" json:"without_description,omitempty"`
 }
 
 // ToggleWorkspaceErrorHandlerForScriptJSONBody defines parameters for ToggleWorkspaceErrorHandlerForScript.
@@ -29109,6 +29117,22 @@ func NewListFlowsRequest(server string, workspace WorkspaceId, params *ListFlows
 
 		}
 
+		if params.WithoutDescription != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "without_description", runtime.ParamLocationQuery, *params.WithoutDescription); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -48618,6 +48642,22 @@ func NewListScriptsRequest(server string, workspace WorkspaceId, params *ListScr
 		if params.Languages != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "languages", runtime.ParamLocationQuery, *params.Languages); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.WithoutDescription != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "without_description", runtime.ParamLocationQuery, *params.WithoutDescription); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
