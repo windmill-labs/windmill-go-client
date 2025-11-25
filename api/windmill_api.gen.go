@@ -4486,7 +4486,10 @@ type ExecuteComponentJSONBody struct {
 		Lock     *string `json:"lock,omitempty"`
 		Path     *string `json:"path,omitempty"`
 	} `json:"raw_code,omitempty"`
-	Version *int `json:"version,omitempty"`
+
+	// RunQueryParams Runnable query parameters
+	RunQueryParams *map[string]interface{} `json:"run_query_params,omitempty"`
+	Version        *int                    `json:"version,omitempty"`
 }
 
 // UploadS3FileFromAppParams defines parameters for UploadS3FileFromApp.
