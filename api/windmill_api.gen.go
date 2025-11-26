@@ -3678,6 +3678,7 @@ type SchemasForloopFlow struct {
 	Parallel     *bool                  `json:"parallel,omitempty"`
 	Parallelism  *SchemasInputTransform `json:"parallelism,omitempty"`
 	SkipFailures bool                   `json:"skip_failures"`
+	Squash       *bool                  `json:"squash,omitempty"`
 	Type         SchemasForloopFlowType `json:"type"`
 }
 
@@ -3803,6 +3804,7 @@ type SchemasWhileloopFlow struct {
 	Parallel     *bool                    `json:"parallel,omitempty"`
 	Parallelism  *SchemasInputTransform   `json:"parallelism,omitempty"`
 	SkipFailures bool                     `json:"skip_failures"`
+	Squash       *bool                    `json:"squash,omitempty"`
 	Type         SchemasWhileloopFlowType `json:"type"`
 }
 
@@ -10911,6 +10913,9 @@ type ClientInterface interface {
 	SetWorkspaceEncryptionKeyWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetWorkspaceEncryptionKey(ctx context.Context, workspace WorkspaceId, body SetWorkspaceEncryptionKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetWorkspaceAsSuperAdmin request
+	GetWorkspaceAsSuperAdmin(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCopilotInfo request
 	GetCopilotInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19557,6 +19562,18 @@ func (c *Client) SetWorkspaceEncryptionKeyWithBody(ctx context.Context, workspac
 
 func (c *Client) SetWorkspaceEncryptionKey(ctx context.Context, workspace WorkspaceId, body SetWorkspaceEncryptionKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetWorkspaceEncryptionKeyRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetWorkspaceAsSuperAdmin(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetWorkspaceAsSuperAdminRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -52527,6 +52544,40 @@ func NewSetWorkspaceEncryptionKeyRequestWithBody(server string, workspace Worksp
 	return req, nil
 }
 
+// NewGetWorkspaceAsSuperAdminRequest generates requests for GetWorkspaceAsSuperAdmin
+func NewGetWorkspaceAsSuperAdminRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_as_superadmin", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetCopilotInfoRequest generates requests for GetCopilotInfo
 func NewGetCopilotInfoRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -56142,6 +56193,9 @@ type ClientWithResponsesInterface interface {
 	SetWorkspaceEncryptionKeyWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWorkspaceEncryptionKeyResponse, error)
 
 	SetWorkspaceEncryptionKeyWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceEncryptionKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceEncryptionKeyResponse, error)
+
+	// GetWorkspaceAsSuperAdminWithResponse request
+	GetWorkspaceAsSuperAdminWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceAsSuperAdminResponse, error)
 
 	// GetCopilotInfoWithResponse request
 	GetCopilotInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCopilotInfoResponse, error)
@@ -67639,6 +67693,28 @@ func (r SetWorkspaceEncryptionKeyResponse) StatusCode() int {
 	return 0
 }
 
+type GetWorkspaceAsSuperAdminResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Workspace
+}
+
+// Status returns HTTPResponse.Status
+func (r GetWorkspaceAsSuperAdminResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetWorkspaceAsSuperAdminResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetCopilotInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -74793,6 +74869,15 @@ func (c *ClientWithResponses) SetWorkspaceEncryptionKeyWithResponse(ctx context.
 		return nil, err
 	}
 	return ParseSetWorkspaceEncryptionKeyResponse(rsp)
+}
+
+// GetWorkspaceAsSuperAdminWithResponse request returning *GetWorkspaceAsSuperAdminResponse
+func (c *ClientWithResponses) GetWorkspaceAsSuperAdminWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceAsSuperAdminResponse, error) {
+	rsp, err := c.GetWorkspaceAsSuperAdmin(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetWorkspaceAsSuperAdminResponse(rsp)
 }
 
 // GetCopilotInfoWithResponse request returning *GetCopilotInfoResponse
@@ -86440,6 +86525,32 @@ func ParseSetWorkspaceEncryptionKeyResponse(rsp *http.Response) (*SetWorkspaceEn
 	response := &SetWorkspaceEncryptionKeyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetWorkspaceAsSuperAdminResponse parses an HTTP response from a GetWorkspaceAsSuperAdminWithResponse call
+func ParseGetWorkspaceAsSuperAdminResponse(rsp *http.Response) (*GetWorkspaceAsSuperAdminResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetWorkspaceAsSuperAdminResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Workspace
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
