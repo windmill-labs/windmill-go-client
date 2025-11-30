@@ -226,6 +226,13 @@ const (
 	Push DeliveryType = "push"
 )
 
+// Defines values for DependencyDependentImporterKind.
+const (
+	DependencyDependentImporterKindApp    DependencyDependentImporterKind = "app"
+	DependencyDependentImporterKindFlow   DependencyDependentImporterKind = "flow"
+	DependencyDependentImporterKindScript DependencyDependentImporterKind = "script"
+)
+
 // Defines values for DucklakeSettingsDucklakesCatalogResourceType.
 const (
 	DucklakeSettingsDucklakesCatalogResourceTypeInstance   DucklakeSettingsDucklakesCatalogResourceType = "instance"
@@ -1261,6 +1268,16 @@ type DeleteGcpSubscription struct {
 // DeliveryType defines model for DeliveryType.
 type DeliveryType string
 
+// DependencyDependent defines model for DependencyDependent.
+type DependencyDependent struct {
+	ImporterKind    DependencyDependentImporterKind `json:"importer_kind"`
+	ImporterNodeIds *[]string                       `json:"importer_node_ids"`
+	ImporterPath    string                          `json:"importer_path"`
+}
+
+// DependencyDependentImporterKind defines model for DependencyDependent.ImporterKind.
+type DependencyDependentImporterKind string
+
 // DependencyMap defines model for DependencyMap.
 type DependencyMap struct {
 	ImportedPath   *string `json:"imported_path"`
@@ -1268,6 +1285,12 @@ type DependencyMap struct {
 	ImporterNodeId *string `json:"importer_node_id"`
 	ImporterPath   *string `json:"importer_path"`
 	WorkspaceId    *string `json:"workspace_id"`
+}
+
+// DependentsAmount defines model for DependentsAmount.
+type DependentsAmount struct {
+	Count        int64  `json:"count"`
+	ImportedPath string `json:"imported_path"`
 }
 
 // DucklakeInstanceCatalogDbStatus defines model for DucklakeInstanceCatalogDbStatus.
@@ -2688,6 +2711,15 @@ type NewWebsocketTrigger struct {
 	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
 }
 
+// NewWorkspaceDependencies defines model for NewWorkspaceDependencies.
+type NewWorkspaceDependencies struct {
+	Content     string     `json:"content"`
+	Description *string    `json:"description,omitempty"`
+	Language    ScriptLang `json:"language"`
+	Name        *string    `json:"name,omitempty"`
+	WorkspaceId string     `json:"workspace_id"`
+}
+
 // ObscuredJob defines model for ObscuredJob.
 type ObscuredJob struct {
 	DurationMs *float32   `json:"duration_ms,omitempty"`
@@ -3419,6 +3451,18 @@ type WorkspaceDefaultScripts struct {
 	DefaultScriptContent *map[string]string `json:"default_script_content,omitempty"`
 	Hidden               *[]string          `json:"hidden,omitempty"`
 	Order                *[]string          `json:"order,omitempty"`
+}
+
+// WorkspaceDependencies defines model for WorkspaceDependencies.
+type WorkspaceDependencies struct {
+	Archived    bool       `json:"archived"`
+	Content     string     `json:"content"`
+	CreatedAt   time.Time  `json:"created_at"`
+	Description *string    `json:"description,omitempty"`
+	Id          int        `json:"id"`
+	Language    ScriptLang `json:"language"`
+	Name        *string    `json:"name,omitempty"`
+	WorkspaceId string     `json:"workspace_id"`
 }
 
 // WorkspaceDeployUISettings defines model for WorkspaceDeployUISettings.
@@ -6830,6 +6874,21 @@ type TestWebsocketConnectionJSONBody struct {
 	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
 }
 
+// ArchiveWorkspaceDependenciesParams defines parameters for ArchiveWorkspaceDependencies.
+type ArchiveWorkspaceDependenciesParams struct {
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
+// DeleteWorkspaceDependenciesParams defines parameters for DeleteWorkspaceDependencies.
+type DeleteWorkspaceDependenciesParams struct {
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
+// GetLatestWorkspaceDependenciesParams defines parameters for GetLatestWorkspaceDependencies.
+type GetLatestWorkspaceDependenciesParams struct {
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+}
+
 // AddUserJSONBody defines parameters for AddUser.
 type AddUserJSONBody struct {
 	Email    string  `json:"email"`
@@ -6980,6 +7039,9 @@ type SetWorkspaceEncryptionKeyJSONBody struct {
 	NewKey        string `json:"new_key"`
 	SkipReencrypt *bool  `json:"skip_reencrypt,omitempty"`
 }
+
+// GetDependentsAmountsJSONBody defines parameters for GetDependentsAmounts.
+type GetDependentsAmountsJSONBody = []string
 
 // InviteUserJSONBody defines parameters for InviteUser.
 type InviteUserJSONBody struct {
@@ -7600,6 +7662,9 @@ type TestWebsocketConnectionJSONRequestBody TestWebsocketConnectionJSONBody
 // UpdateWebsocketTriggerJSONRequestBody defines body for UpdateWebsocketTrigger for application/json ContentType.
 type UpdateWebsocketTriggerJSONRequestBody = EditWebsocketTrigger
 
+// CreateWorkspaceDependenciesJSONRequestBody defines body for CreateWorkspaceDependencies for application/json ContentType.
+type CreateWorkspaceDependenciesJSONRequestBody = NewWorkspaceDependencies
+
 // AddUserJSONRequestBody defines body for AddUser for application/json ContentType.
 type AddUserJSONRequestBody AddUserJSONBody
 
@@ -7677,6 +7742,9 @@ type EditWebhookJSONRequestBody EditWebhookJSONBody
 
 // SetWorkspaceEncryptionKeyJSONRequestBody defines body for SetWorkspaceEncryptionKey for application/json ContentType.
 type SetWorkspaceEncryptionKeyJSONRequestBody SetWorkspaceEncryptionKeyJSONBody
+
+// GetDependentsAmountsJSONRequestBody defines body for GetDependentsAmounts for application/json ContentType.
+type GetDependentsAmountsJSONRequestBody = GetDependentsAmountsJSONBody
 
 // InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
 type InviteUserJSONRequestBody InviteUserJSONBody
@@ -10757,6 +10825,23 @@ type ClientInterface interface {
 
 	UpdateWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ArchiveWorkspaceDependencies request
+	ArchiveWorkspaceDependencies(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *ArchiveWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateWorkspaceDependenciesWithBody request with any body
+	CreateWorkspaceDependenciesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateWorkspaceDependencies(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteWorkspaceDependencies request
+	DeleteWorkspaceDependencies(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *DeleteWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetLatestWorkspaceDependencies request
+	GetLatestWorkspaceDependencies(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *GetLatestWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListWorkspaceDependencies request
+	ListWorkspaceDependencies(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AddUserWithBody request with any body
 	AddUserWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10922,6 +11007,14 @@ type ClientInterface interface {
 
 	// GetDependencyMap request
 	GetDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDependents request
+	GetDependents(ctx context.Context, workspace WorkspaceId, importedPath string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDependentsAmountsWithBody request with any body
+	GetDependentsAmountsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GetDependentsAmounts(ctx context.Context, workspace WorkspaceId, body GetDependentsAmountsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetDeployTo request
 	GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18840,6 +18933,78 @@ func (c *Client) UpdateWebsocketTrigger(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
+func (c *Client) ArchiveWorkspaceDependencies(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *ArchiveWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewArchiveWorkspaceDependenciesRequest(c.Server, workspace, language, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateWorkspaceDependenciesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateWorkspaceDependenciesRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateWorkspaceDependencies(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateWorkspaceDependenciesRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteWorkspaceDependencies(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *DeleteWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteWorkspaceDependenciesRequest(c.Server, workspace, language, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetLatestWorkspaceDependencies(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *GetLatestWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLatestWorkspaceDependenciesRequest(c.Server, workspace, language, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListWorkspaceDependencies(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListWorkspaceDependenciesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) AddUserWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAddUserRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -19598,6 +19763,42 @@ func (c *Client) GetCopilotInfo(ctx context.Context, workspace WorkspaceId, reqE
 
 func (c *Client) GetDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetDependencyMapRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDependents(ctx context.Context, workspace WorkspaceId, importedPath string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDependentsRequest(c.Server, workspace, importedPath)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDependentsAmountsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDependentsAmountsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDependentsAmounts(ctx context.Context, workspace WorkspaceId, body GetDependentsAmountsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDependentsAmountsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -50899,6 +51100,276 @@ func NewUpdateWebsocketTriggerRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewArchiveWorkspaceDependenciesRequest generates requests for ArchiveWorkspaceDependencies
+func NewArchiveWorkspaceDependenciesRequest(server string, workspace WorkspaceId, language ScriptLang, params *ArchiveWorkspaceDependenciesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "language", runtime.ParamLocationPath, language)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspace_dependencies/archive/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Name != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, *params.Name); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateWorkspaceDependenciesRequest calls the generic CreateWorkspaceDependencies builder with application/json body
+func NewCreateWorkspaceDependenciesRequest(server string, workspace WorkspaceId, body CreateWorkspaceDependenciesJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateWorkspaceDependenciesRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateWorkspaceDependenciesRequestWithBody generates requests for CreateWorkspaceDependencies with any type of body
+func NewCreateWorkspaceDependenciesRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspace_dependencies/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteWorkspaceDependenciesRequest generates requests for DeleteWorkspaceDependencies
+func NewDeleteWorkspaceDependenciesRequest(server string, workspace WorkspaceId, language ScriptLang, params *DeleteWorkspaceDependenciesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "language", runtime.ParamLocationPath, language)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspace_dependencies/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Name != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, *params.Name); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetLatestWorkspaceDependenciesRequest generates requests for GetLatestWorkspaceDependencies
+func NewGetLatestWorkspaceDependenciesRequest(server string, workspace WorkspaceId, language ScriptLang, params *GetLatestWorkspaceDependenciesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "language", runtime.ParamLocationPath, language)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspace_dependencies/get_latest/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Name != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, *params.Name); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListWorkspaceDependenciesRequest generates requests for ListWorkspaceDependencies
+func NewListWorkspaceDependenciesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspace_dependencies/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewAddUserRequest calls the generic AddUser builder with application/json body
 func NewAddUserRequest(server string, workspace WorkspaceId, body AddUserJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -52642,6 +53113,94 @@ func NewGetDependencyMapRequest(server string, workspace WorkspaceId) (*http.Req
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGetDependentsRequest generates requests for GetDependents
+func NewGetDependentsRequest(server string, workspace WorkspaceId, importedPath string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "imported_path", runtime.ParamLocationPath, importedPath)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_dependents/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetDependentsAmountsRequest calls the generic GetDependentsAmounts builder with application/json body
+func NewGetDependentsAmountsRequest(server string, workspace WorkspaceId, body GetDependentsAmountsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGetDependentsAmountsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewGetDependentsAmountsRequestWithBody generates requests for GetDependentsAmounts with any type of body
+func NewGetDependentsAmountsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_dependents_amounts", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -56037,6 +56596,23 @@ type ClientWithResponsesInterface interface {
 
 	UpdateWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateWebsocketTriggerResponse, error)
 
+	// ArchiveWorkspaceDependenciesWithResponse request
+	ArchiveWorkspaceDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *ArchiveWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*ArchiveWorkspaceDependenciesResponse, error)
+
+	// CreateWorkspaceDependenciesWithBodyWithResponse request with any body
+	CreateWorkspaceDependenciesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceDependenciesResponse, error)
+
+	CreateWorkspaceDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceDependenciesResponse, error)
+
+	// DeleteWorkspaceDependenciesWithResponse request
+	DeleteWorkspaceDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *DeleteWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*DeleteWorkspaceDependenciesResponse, error)
+
+	// GetLatestWorkspaceDependenciesWithResponse request
+	GetLatestWorkspaceDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *GetLatestWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*GetLatestWorkspaceDependenciesResponse, error)
+
+	// ListWorkspaceDependenciesWithResponse request
+	ListWorkspaceDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListWorkspaceDependenciesResponse, error)
+
 	// AddUserWithBodyWithResponse request with any body
 	AddUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserResponse, error)
 
@@ -56202,6 +56778,14 @@ type ClientWithResponsesInterface interface {
 
 	// GetDependencyMapWithResponse request
 	GetDependencyMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDependencyMapResponse, error)
+
+	// GetDependentsWithResponse request
+	GetDependentsWithResponse(ctx context.Context, workspace WorkspaceId, importedPath string, reqEditors ...RequestEditorFn) (*GetDependentsResponse, error)
+
+	// GetDependentsAmountsWithBodyWithResponse request with any body
+	GetDependentsAmountsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetDependentsAmountsResponse, error)
+
+	GetDependentsAmountsWithResponse(ctx context.Context, workspace WorkspaceId, body GetDependentsAmountsJSONRequestBody, reqEditors ...RequestEditorFn) (*GetDependentsAmountsResponse, error)
 
 	// GetDeployToWithResponse request
 	GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error)
@@ -66924,6 +67508,115 @@ func (r UpdateWebsocketTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type ArchiveWorkspaceDependenciesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r ArchiveWorkspaceDependenciesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ArchiveWorkspaceDependenciesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateWorkspaceDependenciesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateWorkspaceDependenciesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateWorkspaceDependenciesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteWorkspaceDependenciesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteWorkspaceDependenciesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteWorkspaceDependenciesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetLatestWorkspaceDependenciesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *WorkspaceDependencies
+}
+
+// Status returns HTTPResponse.Status
+func (r GetLatestWorkspaceDependenciesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetLatestWorkspaceDependenciesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListWorkspaceDependenciesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]WorkspaceDependencies
+}
+
+// Status returns HTTPResponse.Status
+func (r ListWorkspaceDependenciesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListWorkspaceDependenciesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AddUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -67753,6 +68446,50 @@ func (r GetDependencyMapResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetDependencyMapResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDependentsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]DependencyDependent
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDependentsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDependentsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDependentsAmountsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]DependentsAmount
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDependentsAmountsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDependentsAmountsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -74348,6 +75085,59 @@ func (c *ClientWithResponses) UpdateWebsocketTriggerWithResponse(ctx context.Con
 	return ParseUpdateWebsocketTriggerResponse(rsp)
 }
 
+// ArchiveWorkspaceDependenciesWithResponse request returning *ArchiveWorkspaceDependenciesResponse
+func (c *ClientWithResponses) ArchiveWorkspaceDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *ArchiveWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*ArchiveWorkspaceDependenciesResponse, error) {
+	rsp, err := c.ArchiveWorkspaceDependencies(ctx, workspace, language, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseArchiveWorkspaceDependenciesResponse(rsp)
+}
+
+// CreateWorkspaceDependenciesWithBodyWithResponse request with arbitrary body returning *CreateWorkspaceDependenciesResponse
+func (c *ClientWithResponses) CreateWorkspaceDependenciesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceDependenciesResponse, error) {
+	rsp, err := c.CreateWorkspaceDependenciesWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateWorkspaceDependenciesResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateWorkspaceDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceDependenciesResponse, error) {
+	rsp, err := c.CreateWorkspaceDependencies(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateWorkspaceDependenciesResponse(rsp)
+}
+
+// DeleteWorkspaceDependenciesWithResponse request returning *DeleteWorkspaceDependenciesResponse
+func (c *ClientWithResponses) DeleteWorkspaceDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *DeleteWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*DeleteWorkspaceDependenciesResponse, error) {
+	rsp, err := c.DeleteWorkspaceDependencies(ctx, workspace, language, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteWorkspaceDependenciesResponse(rsp)
+}
+
+// GetLatestWorkspaceDependenciesWithResponse request returning *GetLatestWorkspaceDependenciesResponse
+func (c *ClientWithResponses) GetLatestWorkspaceDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *GetLatestWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*GetLatestWorkspaceDependenciesResponse, error) {
+	rsp, err := c.GetLatestWorkspaceDependencies(ctx, workspace, language, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetLatestWorkspaceDependenciesResponse(rsp)
+}
+
+// ListWorkspaceDependenciesWithResponse request returning *ListWorkspaceDependenciesResponse
+func (c *ClientWithResponses) ListWorkspaceDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListWorkspaceDependenciesResponse, error) {
+	rsp, err := c.ListWorkspaceDependencies(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListWorkspaceDependenciesResponse(rsp)
+}
+
 // AddUserWithBodyWithResponse request with arbitrary body returning *AddUserResponse
 func (c *ClientWithResponses) AddUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserResponse, error) {
 	rsp, err := c.AddUserWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -74896,6 +75686,32 @@ func (c *ClientWithResponses) GetDependencyMapWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseGetDependencyMapResponse(rsp)
+}
+
+// GetDependentsWithResponse request returning *GetDependentsResponse
+func (c *ClientWithResponses) GetDependentsWithResponse(ctx context.Context, workspace WorkspaceId, importedPath string, reqEditors ...RequestEditorFn) (*GetDependentsResponse, error) {
+	rsp, err := c.GetDependents(ctx, workspace, importedPath, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDependentsResponse(rsp)
+}
+
+// GetDependentsAmountsWithBodyWithResponse request with arbitrary body returning *GetDependentsAmountsResponse
+func (c *ClientWithResponses) GetDependentsAmountsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetDependentsAmountsResponse, error) {
+	rsp, err := c.GetDependentsAmountsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDependentsAmountsResponse(rsp)
+}
+
+func (c *ClientWithResponses) GetDependentsAmountsWithResponse(ctx context.Context, workspace WorkspaceId, body GetDependentsAmountsJSONRequestBody, reqEditors ...RequestEditorFn) (*GetDependentsAmountsResponse, error) {
+	rsp, err := c.GetDependentsAmounts(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDependentsAmountsResponse(rsp)
 }
 
 // GetDeployToWithResponse request returning *GetDeployToResponse
@@ -85792,6 +86608,126 @@ func ParseUpdateWebsocketTriggerResponse(rsp *http.Response) (*UpdateWebsocketTr
 	return response, nil
 }
 
+// ParseArchiveWorkspaceDependenciesResponse parses an HTTP response from a ArchiveWorkspaceDependenciesWithResponse call
+func ParseArchiveWorkspaceDependenciesResponse(rsp *http.Response) (*ArchiveWorkspaceDependenciesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ArchiveWorkspaceDependenciesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateWorkspaceDependenciesResponse parses an HTTP response from a CreateWorkspaceDependenciesWithResponse call
+func ParseCreateWorkspaceDependenciesResponse(rsp *http.Response) (*CreateWorkspaceDependenciesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateWorkspaceDependenciesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteWorkspaceDependenciesResponse parses an HTTP response from a DeleteWorkspaceDependenciesWithResponse call
+func ParseDeleteWorkspaceDependenciesResponse(rsp *http.Response) (*DeleteWorkspaceDependenciesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteWorkspaceDependenciesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetLatestWorkspaceDependenciesResponse parses an HTTP response from a GetLatestWorkspaceDependenciesWithResponse call
+func ParseGetLatestWorkspaceDependenciesResponse(rsp *http.Response) (*GetLatestWorkspaceDependenciesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetLatestWorkspaceDependenciesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WorkspaceDependencies
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListWorkspaceDependenciesResponse parses an HTTP response from a ListWorkspaceDependenciesWithResponse call
+func ParseListWorkspaceDependenciesResponse(rsp *http.Response) (*ListWorkspaceDependenciesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListWorkspaceDependenciesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []WorkspaceDependencies
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseAddUserResponse parses an HTTP response from a AddUserWithResponse call
 func ParseAddUserResponse(rsp *http.Response) (*AddUserResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -86598,6 +87534,58 @@ func ParseGetDependencyMapResponse(rsp *http.Response) (*GetDependencyMapRespons
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []DependencyMap
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDependentsResponse parses an HTTP response from a GetDependentsWithResponse call
+func ParseGetDependentsResponse(rsp *http.Response) (*GetDependentsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDependentsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []DependencyDependent
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDependentsAmountsResponse parses an HTTP response from a GetDependentsAmountsWithResponse call
+func ParseGetDependentsAmountsResponse(rsp *http.Response) (*GetDependentsAmountsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDependentsAmountsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []DependentsAmount
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
