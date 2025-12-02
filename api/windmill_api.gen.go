@@ -250,6 +250,74 @@ const (
 	Inline DynamicInputDataRunnableRef1Source = "inline"
 )
 
+// Defines values for ExportableCompletedJobJobKind.
+const (
+	ExportableCompletedJobJobKindAppdependencies    ExportableCompletedJobJobKind = "appdependencies"
+	ExportableCompletedJobJobKindAppscript          ExportableCompletedJobJobKind = "appscript"
+	ExportableCompletedJobJobKindDependencies       ExportableCompletedJobJobKind = "dependencies"
+	ExportableCompletedJobJobKindDeploymentcallback ExportableCompletedJobJobKind = "deploymentcallback"
+	ExportableCompletedJobJobKindFlow               ExportableCompletedJobJobKind = "flow"
+	ExportableCompletedJobJobKindFlowdependencies   ExportableCompletedJobJobKind = "flowdependencies"
+	ExportableCompletedJobJobKindFlownode           ExportableCompletedJobJobKind = "flownode"
+	ExportableCompletedJobJobKindFlowpreview        ExportableCompletedJobJobKind = "flowpreview"
+	ExportableCompletedJobJobKindFlowscript         ExportableCompletedJobJobKind = "flowscript"
+	ExportableCompletedJobJobKindIdentity           ExportableCompletedJobJobKind = "identity"
+	ExportableCompletedJobJobKindPreview            ExportableCompletedJobJobKind = "preview"
+	ExportableCompletedJobJobKindScript             ExportableCompletedJobJobKind = "script"
+	ExportableCompletedJobJobKindScriptHub          ExportableCompletedJobJobKind = "script_hub"
+	ExportableCompletedJobJobKindSinglestepflow     ExportableCompletedJobJobKind = "singlestepflow"
+)
+
+// Defines values for ExportableCompletedJobTriggerKind.
+const (
+	ExportableCompletedJobTriggerKindApp       ExportableCompletedJobTriggerKind = "app"
+	ExportableCompletedJobTriggerKindEmail     ExportableCompletedJobTriggerKind = "email"
+	ExportableCompletedJobTriggerKindGcp       ExportableCompletedJobTriggerKind = "gcp"
+	ExportableCompletedJobTriggerKindHttp      ExportableCompletedJobTriggerKind = "http"
+	ExportableCompletedJobTriggerKindKafka     ExportableCompletedJobTriggerKind = "kafka"
+	ExportableCompletedJobTriggerKindNats      ExportableCompletedJobTriggerKind = "nats"
+	ExportableCompletedJobTriggerKindPostgres  ExportableCompletedJobTriggerKind = "postgres"
+	ExportableCompletedJobTriggerKindSchedule  ExportableCompletedJobTriggerKind = "schedule"
+	ExportableCompletedJobTriggerKindSqs       ExportableCompletedJobTriggerKind = "sqs"
+	ExportableCompletedJobTriggerKindUi        ExportableCompletedJobTriggerKind = "ui"
+	ExportableCompletedJobTriggerKindWebhook   ExportableCompletedJobTriggerKind = "webhook"
+	ExportableCompletedJobTriggerKindWebsocket ExportableCompletedJobTriggerKind = "websocket"
+)
+
+// Defines values for ExportableQueuedJobJobKind.
+const (
+	ExportableQueuedJobJobKindAppdependencies    ExportableQueuedJobJobKind = "appdependencies"
+	ExportableQueuedJobJobKindAppscript          ExportableQueuedJobJobKind = "appscript"
+	ExportableQueuedJobJobKindDependencies       ExportableQueuedJobJobKind = "dependencies"
+	ExportableQueuedJobJobKindDeploymentcallback ExportableQueuedJobJobKind = "deploymentcallback"
+	ExportableQueuedJobJobKindFlow               ExportableQueuedJobJobKind = "flow"
+	ExportableQueuedJobJobKindFlowdependencies   ExportableQueuedJobJobKind = "flowdependencies"
+	ExportableQueuedJobJobKindFlownode           ExportableQueuedJobJobKind = "flownode"
+	ExportableQueuedJobJobKindFlowpreview        ExportableQueuedJobJobKind = "flowpreview"
+	ExportableQueuedJobJobKindFlowscript         ExportableQueuedJobJobKind = "flowscript"
+	ExportableQueuedJobJobKindIdentity           ExportableQueuedJobJobKind = "identity"
+	ExportableQueuedJobJobKindPreview            ExportableQueuedJobJobKind = "preview"
+	ExportableQueuedJobJobKindScript             ExportableQueuedJobJobKind = "script"
+	ExportableQueuedJobJobKindScriptHub          ExportableQueuedJobJobKind = "script_hub"
+	ExportableQueuedJobJobKindSinglestepflow     ExportableQueuedJobJobKind = "singlestepflow"
+)
+
+// Defines values for ExportableQueuedJobTriggerKind.
+const (
+	ExportableQueuedJobTriggerKindApp       ExportableQueuedJobTriggerKind = "app"
+	ExportableQueuedJobTriggerKindEmail     ExportableQueuedJobTriggerKind = "email"
+	ExportableQueuedJobTriggerKindGcp       ExportableQueuedJobTriggerKind = "gcp"
+	ExportableQueuedJobTriggerKindHttp      ExportableQueuedJobTriggerKind = "http"
+	ExportableQueuedJobTriggerKindKafka     ExportableQueuedJobTriggerKind = "kafka"
+	ExportableQueuedJobTriggerKindNats      ExportableQueuedJobTriggerKind = "nats"
+	ExportableQueuedJobTriggerKindPostgres  ExportableQueuedJobTriggerKind = "postgres"
+	ExportableQueuedJobTriggerKindSchedule  ExportableQueuedJobTriggerKind = "schedule"
+	ExportableQueuedJobTriggerKindSqs       ExportableQueuedJobTriggerKind = "sqs"
+	ExportableQueuedJobTriggerKindUi        ExportableQueuedJobTriggerKind = "ui"
+	ExportableQueuedJobTriggerKindWebhook   ExportableQueuedJobTriggerKind = "webhook"
+	ExportableQueuedJobTriggerKindWebsocket ExportableQueuedJobTriggerKind = "websocket"
+)
+
 // Defines values for FlowConversationMessageMessageType.
 const (
 	FlowConversationMessageMessageTypeAssistant FlowConversationMessageMessageType = "assistant"
@@ -1652,6 +1720,133 @@ type EndpointTool struct {
 	// QueryParamsSchema JSON schema for query parameters
 	QueryParamsSchema *map[string]interface{} `json:"query_params_schema"`
 }
+
+// ExportableCompletedJob Completed job with full data for export/import operations
+type ExportableCompletedJob struct {
+	AggregateWaitTimeMs *int `json:"aggregate_wait_time_ms,omitempty"`
+
+	// Args Full job arguments without size restrictions
+	Args                   *map[string]interface{} `json:"args,omitempty"`
+	CacheTtl               *int                    `json:"cache_ttl,omitempty"`
+	CanceledBy             *string                 `json:"canceled_by,omitempty"`
+	CanceledReason         *string                 `json:"canceled_reason,omitempty"`
+	CompletedAt            *time.Time              `json:"completed_at,omitempty"`
+	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
+	CreatedAt              time.Time               `json:"created_at"`
+	CreatedBy              string                  `json:"created_by"`
+	DurationMs             *int                    `json:"duration_ms,omitempty"`
+	Email                  string                  `json:"email"`
+	FlowInnermostRootJob   *openapi_types.UUID     `json:"flow_innermost_root_job,omitempty"`
+
+	// FlowStatus Flow status from v2_job_status table
+	FlowStatus *map[string]interface{}       `json:"flow_status,omitempty"`
+	FlowStepId *string                       `json:"flow_step_id,omitempty"`
+	Id         openapi_types.UUID            `json:"id"`
+	IsFlowStep *bool                         `json:"is_flow_step,omitempty"`
+	IsSkipped  *bool                         `json:"is_skipped,omitempty"`
+	JobKind    ExportableCompletedJobJobKind `json:"job_kind"`
+	Labels     *[]string                     `json:"labels,omitempty"`
+	Language   *ScriptLang                   `json:"language,omitempty"`
+
+	// Logs Complete job logs from v2_job table
+	Logs                *string                 `json:"logs,omitempty"`
+	MemPeak             *int                    `json:"mem_peak,omitempty"`
+	ParentJob           *openapi_types.UUID     `json:"parent_job,omitempty"`
+	PermissionedAs      string                  `json:"permissioned_as"`
+	PermissionedAsEmail *string                 `json:"permissioned_as_email,omitempty"`
+	Preprocessed        *bool                   `json:"preprocessed,omitempty"`
+	Priority            *int                    `json:"priority,omitempty"`
+	RawCode             *string                 `json:"raw_code,omitempty"`
+	RawFlow             *map[string]interface{} `json:"raw_flow,omitempty"`
+	RawLock             *string                 `json:"raw_lock,omitempty"`
+
+	// Result Full job result without size restrictions
+	Result         *map[string]interface{} `json:"result,omitempty"`
+	SameWorker     *bool                   `json:"same_worker,omitempty"`
+	ScriptHash     *string                 `json:"script_hash,omitempty"`
+	ScriptPath     *string                 `json:"script_path,omitempty"`
+	SelfWaitTimeMs *int                    `json:"self_wait_time_ms,omitempty"`
+	StartedAt      *time.Time              `json:"started_at,omitempty"`
+
+	// Status Actual job status from database
+	Status  *string `json:"status,omitempty"`
+	Tag     *string `json:"tag,omitempty"`
+	Timeout *int    `json:"timeout,omitempty"`
+
+	// Trigger Trigger path for the job (replaces schedule_path)
+	Trigger              *string                            `json:"trigger,omitempty"`
+	TriggerKind          *ExportableCompletedJobTriggerKind `json:"trigger_kind,omitempty"`
+	VisibleToOwner       bool                               `json:"visible_to_owner"`
+	Worker               *string                            `json:"worker,omitempty"`
+	WorkflowAsCodeStatus *map[string]interface{}            `json:"workflow_as_code_status,omitempty"`
+}
+
+// ExportableCompletedJobJobKind defines model for ExportableCompletedJob.JobKind.
+type ExportableCompletedJobJobKind string
+
+// ExportableCompletedJobTriggerKind defines model for ExportableCompletedJob.TriggerKind.
+type ExportableCompletedJobTriggerKind string
+
+// ExportableQueuedJob Queued job with full data for export/import operations
+type ExportableQueuedJob struct {
+	AggregateWaitTimeMs *int `json:"aggregate_wait_time_ms,omitempty"`
+
+	// Args Full job arguments without size restrictions
+	Args                   *map[string]interface{} `json:"args,omitempty"`
+	CacheTtl               *int                    `json:"cache_ttl,omitempty"`
+	CanceledBy             *string                 `json:"canceled_by,omitempty"`
+	CanceledReason         *string                 `json:"canceled_reason,omitempty"`
+	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
+	CreatedAt              time.Time               `json:"created_at"`
+	CreatedBy              string                  `json:"created_by"`
+	Email                  string                  `json:"email"`
+	FlowInnermostRootJob   *openapi_types.UUID     `json:"flow_innermost_root_job,omitempty"`
+
+	// FlowStatus Flow status from v2_job_status table
+	FlowStatus *map[string]interface{}    `json:"flow_status,omitempty"`
+	FlowStepId *string                    `json:"flow_step_id,omitempty"`
+	Id         openapi_types.UUID         `json:"id"`
+	IsFlowStep *bool                      `json:"is_flow_step,omitempty"`
+	JobKind    ExportableQueuedJobJobKind `json:"job_kind"`
+	Labels     *[]string                  `json:"labels,omitempty"`
+	Language   *ScriptLang                `json:"language,omitempty"`
+
+	// Logs Complete job logs from v2_job table
+	Logs                *string                 `json:"logs,omitempty"`
+	MemPeak             *int                    `json:"mem_peak,omitempty"`
+	ParentJob           *openapi_types.UUID     `json:"parent_job,omitempty"`
+	PermissionedAs      string                  `json:"permissioned_as"`
+	PermissionedAsEmail *string                 `json:"permissioned_as_email,omitempty"`
+	Preprocessed        *bool                   `json:"preprocessed,omitempty"`
+	Priority            *int                    `json:"priority,omitempty"`
+	RawCode             *string                 `json:"raw_code,omitempty"`
+	RawFlow             *map[string]interface{} `json:"raw_flow,omitempty"`
+	RawLock             *string                 `json:"raw_lock,omitempty"`
+	SameWorker          *bool                   `json:"same_worker,omitempty"`
+	ScheduledFor        *time.Time              `json:"scheduled_for,omitempty"`
+	ScriptHash          *string                 `json:"script_hash,omitempty"`
+	ScriptPath          *string                 `json:"script_path,omitempty"`
+	SelfWaitTimeMs      *int                    `json:"self_wait_time_ms,omitempty"`
+	StartedAt           *time.Time              `json:"started_at,omitempty"`
+	Suspend             *int                    `json:"suspend,omitempty"`
+	SuspendUntil        *time.Time              `json:"suspend_until,omitempty"`
+	Tag                 *string                 `json:"tag,omitempty"`
+	Timeout             *int                    `json:"timeout,omitempty"`
+
+	// Trigger Trigger path for the job (replaces schedule_path)
+	Trigger              *string                         `json:"trigger,omitempty"`
+	TriggerKind          *ExportableQueuedJobTriggerKind `json:"trigger_kind,omitempty"`
+	VisibleToOwner       bool                            `json:"visible_to_owner"`
+	WorkflowAsCodeStatus *map[string]interface{}         `json:"workflow_as_code_status,omitempty"`
+}
+
+// ExportableQueuedJobJobKind defines model for ExportableQueuedJob.JobKind.
+type ExportableQueuedJobJobKind string
+
+// ExportableQueuedJobTriggerKind defines model for ExportableQueuedJob.TriggerKind.
+type ExportableQueuedJobTriggerKind string
 
 // ExportedInstanceGroup defines model for ExportedInstanceGroup.
 type ExportedInstanceGroup struct {
@@ -5309,6 +5504,18 @@ type CountCompletedJobsParams struct {
 	AllWorkspaces      *bool   `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 }
 
+// ExportCompletedJobsParams defines parameters for ExportCompletedJobs.
+type ExportCompletedJobsParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// ImportCompletedJobsJSONBody defines parameters for ImportCompletedJobs.
+type ImportCompletedJobsJSONBody = []ExportableCompletedJob
+
 // ListCompletedJobsParams defines parameters for ListCompletedJobs.
 type ListCompletedJobsParams struct {
 	// OrderDesc order by desc order (default true)
@@ -5380,6 +5587,9 @@ type ListCompletedJobsParams struct {
 	// IsNotSchedule is not a scheduled job
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
+
+// DeleteJobsJSONBody defines parameters for DeleteJobs.
+type DeleteJobsJSONBody = []openapi_types.UUID
 
 // ResumeSuspendedFlowAsOwnerJSONBody defines parameters for ResumeSuspendedFlowAsOwner.
 type ResumeSuspendedFlowAsOwnerJSONBody = map[string]interface{}
@@ -5606,6 +5816,18 @@ type GetQueueCountParams struct {
 	// AllWorkspaces get jobs from all workspaces (only valid if request come from the `admins` workspace)
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 }
+
+// ExportQueuedJobsParams defines parameters for ExportQueuedJobs.
+type ExportQueuedJobsParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// ImportQueuedJobsJSONBody defines parameters for ImportQueuedJobs.
+type ImportQueuedJobsJSONBody = []ExportableQueuedJob
 
 // ListQueueParams defines parameters for ListQueue.
 type ListQueueParams struct {
@@ -7407,6 +7629,12 @@ type GetJobMetricsJSONRequestBody GetJobMetricsJSONBody
 // SetJobProgressJSONRequestBody defines body for SetJobProgress for application/json ContentType.
 type SetJobProgressJSONRequestBody SetJobProgressJSONBody
 
+// ImportCompletedJobsJSONRequestBody defines body for ImportCompletedJobs for application/json ContentType.
+type ImportCompletedJobsJSONRequestBody = ImportCompletedJobsJSONBody
+
+// DeleteJobsJSONRequestBody defines body for DeleteJobs for application/json ContentType.
+type DeleteJobsJSONRequestBody = DeleteJobsJSONBody
+
 // ResumeSuspendedFlowAsOwnerJSONRequestBody defines body for ResumeSuspendedFlowAsOwner for application/json ContentType.
 type ResumeSuspendedFlowAsOwnerJSONRequestBody = ResumeSuspendedFlowAsOwnerJSONBody
 
@@ -7418,6 +7646,9 @@ type ListSelectedJobGroupsJSONRequestBody = ListSelectedJobGroupsJSONBody
 
 // CancelSelectionJSONRequestBody defines body for CancelSelection for application/json ContentType.
 type CancelSelectionJSONRequestBody = CancelSelectionJSONBody
+
+// ImportQueuedJobsJSONRequestBody defines body for ImportQueuedJobs for application/json ContentType.
+type ImportQueuedJobsJSONRequestBody = ImportQueuedJobsJSONBody
 
 // RestartFlowAtStepJSONRequestBody defines body for RestartFlowAtStep for application/json ContentType.
 type RestartFlowAtStepJSONRequestBody = ScriptArgs
@@ -10013,8 +10244,21 @@ type ClientInterface interface {
 	// DeleteCompletedJob request
 	DeleteCompletedJob(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ExportCompletedJobs request
+	ExportCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ExportCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ImportCompletedJobsWithBody request with any body
+	ImportCompletedJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ImportCompletedJobs(ctx context.Context, workspace WorkspaceId, body ImportCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListCompletedJobs request
 	ListCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteJobsWithBody request with any body
+	DeleteJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DeleteJobs(ctx context.Context, workspace WorkspaceId, body DeleteJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResumeSuspendedFlowAsOwnerWithBody request with any body
 	ResumeSuspendedFlowAsOwnerWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10050,6 +10294,14 @@ type ClientInterface interface {
 
 	// GetQueueCount request
 	GetQueueCount(ctx context.Context, workspace WorkspaceId, params *GetQueueCountParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExportQueuedJobs request
+	ExportQueuedJobs(ctx context.Context, workspace WorkspaceId, params *ExportQueuedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ImportQueuedJobsWithBody request with any body
+	ImportQueuedJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ImportQueuedJobs(ctx context.Context, workspace WorkspaceId, body ImportQueuedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListQueue request
 	ListQueue(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15345,8 +15597,68 @@ func (c *Client) DeleteCompletedJob(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
+func (c *Client) ExportCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ExportCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExportCompletedJobsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ImportCompletedJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewImportCompletedJobsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ImportCompletedJobs(ctx context.Context, workspace WorkspaceId, body ImportCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewImportCompletedJobsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListCompletedJobsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteJobsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteJobs(ctx context.Context, workspace WorkspaceId, body DeleteJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteJobsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15503,6 +15815,42 @@ func (c *Client) CancelSelection(ctx context.Context, workspace WorkspaceId, par
 
 func (c *Client) GetQueueCount(ctx context.Context, workspace WorkspaceId, params *GetQueueCountParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetQueueCountRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExportQueuedJobs(ctx context.Context, workspace WorkspaceId, params *ExportQueuedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExportQueuedJobsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ImportQueuedJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewImportQueuedJobsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ImportQueuedJobs(ctx context.Context, workspace WorkspaceId, body ImportQueuedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewImportQueuedJobsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -34777,6 +35125,125 @@ func NewDeleteCompletedJobRequest(server string, workspace WorkspaceId, id JobId
 	return req, nil
 }
 
+// NewExportCompletedJobsRequest generates requests for ExportCompletedJobs
+func NewExportCompletedJobsRequest(server string, workspace WorkspaceId, params *ExportCompletedJobsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/completed/export", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewImportCompletedJobsRequest calls the generic ImportCompletedJobs builder with application/json body
+func NewImportCompletedJobsRequest(server string, workspace WorkspaceId, body ImportCompletedJobsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewImportCompletedJobsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewImportCompletedJobsRequestWithBody generates requests for ImportCompletedJobs with any type of body
+func NewImportCompletedJobsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/completed/import", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewListCompletedJobsRequest generates requests for ListCompletedJobs
 func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *ListCompletedJobsParams) (*http.Request, error) {
 	var err error
@@ -35181,6 +35648,53 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewDeleteJobsRequest calls the generic DeleteJobs builder with application/json body
+func NewDeleteJobsRequest(server string, workspace WorkspaceId, body DeleteJobsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDeleteJobsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewDeleteJobsRequestWithBody generates requests for DeleteJobs with any type of body
+func NewDeleteJobsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/delete", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -36674,6 +37188,125 @@ func NewGetQueueCountRequest(server string, workspace WorkspaceId, params *GetQu
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewExportQueuedJobsRequest generates requests for ExportQueuedJobs
+func NewExportQueuedJobsRequest(server string, workspace WorkspaceId, params *ExportQueuedJobsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/queue/export", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewImportQueuedJobsRequest calls the generic ImportQueuedJobs builder with application/json body
+func NewImportQueuedJobsRequest(server string, workspace WorkspaceId, body ImportQueuedJobsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewImportQueuedJobsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewImportQueuedJobsRequestWithBody generates requests for ImportQueuedJobs with any type of body
+func NewImportQueuedJobsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/queue/import", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -55784,8 +56417,21 @@ type ClientWithResponsesInterface interface {
 	// DeleteCompletedJobWithResponse request
 	DeleteCompletedJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*DeleteCompletedJobResponse, error)
 
+	// ExportCompletedJobsWithResponse request
+	ExportCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ExportCompletedJobsParams, reqEditors ...RequestEditorFn) (*ExportCompletedJobsResponse, error)
+
+	// ImportCompletedJobsWithBodyWithResponse request with any body
+	ImportCompletedJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportCompletedJobsResponse, error)
+
+	ImportCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, body ImportCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*ImportCompletedJobsResponse, error)
+
 	// ListCompletedJobsWithResponse request
 	ListCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*ListCompletedJobsResponse, error)
+
+	// DeleteJobsWithBodyWithResponse request with any body
+	DeleteJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteJobsResponse, error)
+
+	DeleteJobsWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteJobsResponse, error)
 
 	// ResumeSuspendedFlowAsOwnerWithBodyWithResponse request with any body
 	ResumeSuspendedFlowAsOwnerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedFlowAsOwnerResponse, error)
@@ -55821,6 +56467,14 @@ type ClientWithResponsesInterface interface {
 
 	// GetQueueCountWithResponse request
 	GetQueueCountWithResponse(ctx context.Context, workspace WorkspaceId, params *GetQueueCountParams, reqEditors ...RequestEditorFn) (*GetQueueCountResponse, error)
+
+	// ExportQueuedJobsWithResponse request
+	ExportQueuedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ExportQueuedJobsParams, reqEditors ...RequestEditorFn) (*ExportQueuedJobsResponse, error)
+
+	// ImportQueuedJobsWithBodyWithResponse request with any body
+	ImportQueuedJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportQueuedJobsResponse, error)
+
+	ImportQueuedJobsWithResponse(ctx context.Context, workspace WorkspaceId, body ImportQueuedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*ImportQueuedJobsResponse, error)
 
 	// ListQueueWithResponse request
 	ListQueueWithResponse(ctx context.Context, workspace WorkspaceId, params *ListQueueParams, reqEditors ...RequestEditorFn) (*ListQueueResponse, error)
@@ -62858,6 +63512,49 @@ func (r DeleteCompletedJobResponse) StatusCode() int {
 	return 0
 }
 
+type ExportCompletedJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]ExportableCompletedJob
+}
+
+// Status returns HTTPResponse.Status
+func (r ExportCompletedJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExportCompletedJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ImportCompletedJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ImportCompletedJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ImportCompletedJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListCompletedJobsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -62874,6 +63571,27 @@ func (r ListCompletedJobsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListCompletedJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteJobsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -63071,6 +63789,49 @@ func (r GetQueueCountResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetQueueCountResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExportQueuedJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]ExportableQueuedJob
+}
+
+// Status returns HTTPResponse.Status
+func (r ExportQueuedJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExportQueuedJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ImportQueuedJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ImportQueuedJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ImportQueuedJobsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -72479,6 +73240,32 @@ func (c *ClientWithResponses) DeleteCompletedJobWithResponse(ctx context.Context
 	return ParseDeleteCompletedJobResponse(rsp)
 }
 
+// ExportCompletedJobsWithResponse request returning *ExportCompletedJobsResponse
+func (c *ClientWithResponses) ExportCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ExportCompletedJobsParams, reqEditors ...RequestEditorFn) (*ExportCompletedJobsResponse, error) {
+	rsp, err := c.ExportCompletedJobs(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExportCompletedJobsResponse(rsp)
+}
+
+// ImportCompletedJobsWithBodyWithResponse request with arbitrary body returning *ImportCompletedJobsResponse
+func (c *ClientWithResponses) ImportCompletedJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportCompletedJobsResponse, error) {
+	rsp, err := c.ImportCompletedJobsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseImportCompletedJobsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ImportCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, body ImportCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*ImportCompletedJobsResponse, error) {
+	rsp, err := c.ImportCompletedJobs(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseImportCompletedJobsResponse(rsp)
+}
+
 // ListCompletedJobsWithResponse request returning *ListCompletedJobsResponse
 func (c *ClientWithResponses) ListCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*ListCompletedJobsResponse, error) {
 	rsp, err := c.ListCompletedJobs(ctx, workspace, params, reqEditors...)
@@ -72486,6 +73273,23 @@ func (c *ClientWithResponses) ListCompletedJobsWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseListCompletedJobsResponse(rsp)
+}
+
+// DeleteJobsWithBodyWithResponse request with arbitrary body returning *DeleteJobsResponse
+func (c *ClientWithResponses) DeleteJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteJobsResponse, error) {
+	rsp, err := c.DeleteJobsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteJobsResponse(rsp)
+}
+
+func (c *ClientWithResponses) DeleteJobsWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteJobsResponse, error) {
+	rsp, err := c.DeleteJobs(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteJobsResponse(rsp)
 }
 
 // ResumeSuspendedFlowAsOwnerWithBodyWithResponse request with arbitrary body returning *ResumeSuspendedFlowAsOwnerResponse
@@ -72599,6 +73403,32 @@ func (c *ClientWithResponses) GetQueueCountWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseGetQueueCountResponse(rsp)
+}
+
+// ExportQueuedJobsWithResponse request returning *ExportQueuedJobsResponse
+func (c *ClientWithResponses) ExportQueuedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ExportQueuedJobsParams, reqEditors ...RequestEditorFn) (*ExportQueuedJobsResponse, error) {
+	rsp, err := c.ExportQueuedJobs(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExportQueuedJobsResponse(rsp)
+}
+
+// ImportQueuedJobsWithBodyWithResponse request with arbitrary body returning *ImportQueuedJobsResponse
+func (c *ClientWithResponses) ImportQueuedJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportQueuedJobsResponse, error) {
+	rsp, err := c.ImportQueuedJobsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseImportQueuedJobsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ImportQueuedJobsWithResponse(ctx context.Context, workspace WorkspaceId, body ImportQueuedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*ImportQueuedJobsResponse, error) {
+	rsp, err := c.ImportQueuedJobs(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseImportQueuedJobsResponse(rsp)
 }
 
 // ListQueueWithResponse request returning *ListQueueResponse
@@ -82101,6 +82931,48 @@ func ParseDeleteCompletedJobResponse(rsp *http.Response) (*DeleteCompletedJobRes
 	return response, nil
 }
 
+// ParseExportCompletedJobsResponse parses an HTTP response from a ExportCompletedJobsWithResponse call
+func ParseExportCompletedJobsResponse(rsp *http.Response) (*ExportCompletedJobsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExportCompletedJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ExportableCompletedJob
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseImportCompletedJobsResponse parses an HTTP response from a ImportCompletedJobsWithResponse call
+func ParseImportCompletedJobsResponse(rsp *http.Response) (*ImportCompletedJobsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ImportCompletedJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseListCompletedJobsResponse parses an HTTP response from a ListCompletedJobsWithResponse call
 func ParseListCompletedJobsResponse(rsp *http.Response) (*ListCompletedJobsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -82122,6 +82994,22 @@ func ParseListCompletedJobsResponse(rsp *http.Response) (*ListCompletedJobsRespo
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseDeleteJobsResponse parses an HTTP response from a DeleteJobsWithResponse call
+func ParseDeleteJobsResponse(rsp *http.Response) (*DeleteJobsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -82319,6 +83207,48 @@ func ParseGetQueueCountResponse(rsp *http.Response) (*GetQueueCountResponse, err
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseExportQueuedJobsResponse parses an HTTP response from a ExportQueuedJobsWithResponse call
+func ParseExportQueuedJobsResponse(rsp *http.Response) (*ExportQueuedJobsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExportQueuedJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ExportableQueuedJob
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseImportQueuedJobsResponse parses an HTTP response from a ImportQueuedJobsWithResponse call
+func ParseImportQueuedJobsResponse(rsp *http.Response) (*ImportQueuedJobsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ImportQueuedJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
