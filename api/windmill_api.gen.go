@@ -9295,6 +9295,9 @@ type ClientInterface interface {
 
 	CreateAgentToken(ctx context.Context, body CreateAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetMinVersion request
+	GetMinVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListBlacklistedAgentTokens request
 	ListBlacklistedAgentTokens(ctx context.Context, params *ListBlacklistedAgentTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9907,7 +9910,7 @@ type ClientInterface interface {
 	GetFlowByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFlowVersion request
-	GetFlowVersion(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetFlowVersion(ctx context.Context, workspace WorkspaceId, version float32, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFlowByPath request
 	GetFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9922,9 +9925,9 @@ type ClientInterface interface {
 	GetFlowHistory(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateFlowHistoryWithBody request with any body
-	UpdateFlowHistoryWithBody(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateFlowHistoryWithBody(ctx context.Context, workspace WorkspaceId, version float32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	UpdateFlowHistory(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateFlowHistory(ctx context.Context, workspace WorkspaceId, version float32, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListFlows request
 	ListFlows(ctx context.Context, workspace WorkspaceId, params *ListFlowsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11447,6 +11450,18 @@ func (c *Client) CreateAgentTokenWithBody(ctx context.Context, contentType strin
 
 func (c *Client) CreateAgentToken(ctx context.Context, body CreateAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateAgentTokenRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMinVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMinVersionRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -14109,8 +14124,8 @@ func (c *Client) GetFlowByPathWithDraft(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetFlowVersion(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetFlowVersionRequest(c.Server, workspace, version, path)
+func (c *Client) GetFlowVersion(ctx context.Context, workspace WorkspaceId, version float32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowVersionRequest(c.Server, workspace, version)
 	if err != nil {
 		return nil, err
 	}
@@ -14169,8 +14184,8 @@ func (c *Client) GetFlowHistory(ctx context.Context, workspace WorkspaceId, path
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateFlowHistoryWithBody(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateFlowHistoryRequestWithBody(c.Server, workspace, version, path, contentType, body)
+func (c *Client) UpdateFlowHistoryWithBody(ctx context.Context, workspace WorkspaceId, version float32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateFlowHistoryRequestWithBody(c.Server, workspace, version, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -14181,8 +14196,8 @@ func (c *Client) UpdateFlowHistoryWithBody(ctx context.Context, workspace Worksp
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateFlowHistory(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateFlowHistoryRequest(c.Server, workspace, version, path, body)
+func (c *Client) UpdateFlowHistory(ctx context.Context, workspace WorkspaceId, version float32, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateFlowHistoryRequest(c.Server, workspace, version, body)
 	if err != nil {
 		return nil, err
 	}
@@ -20833,6 +20848,33 @@ func NewCreateAgentTokenRequestWithBody(server string, contentType string, body 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetMinVersionRequest generates requests for GetMinVersion
+func NewGetMinVersionRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/agent_workers/get_min_version")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -29203,7 +29245,7 @@ func NewGetFlowByPathWithDraftRequest(server string, workspace WorkspaceId, path
 }
 
 // NewGetFlowVersionRequest generates requests for GetFlowVersion
-func NewGetFlowVersionRequest(server string, workspace WorkspaceId, version float32, path ScriptPath) (*http.Request, error) {
+func NewGetFlowVersionRequest(server string, workspace WorkspaceId, version float32) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -29220,19 +29262,12 @@ func NewGetFlowVersionRequest(server string, workspace WorkspaceId, version floa
 		return nil, err
 	}
 
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/flows/get/v/%s/p/%s", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/w/%s/flows/get/v/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -29437,18 +29472,18 @@ func NewGetFlowHistoryRequest(server string, workspace WorkspaceId, path ScriptP
 }
 
 // NewUpdateFlowHistoryRequest calls the generic UpdateFlowHistory builder with application/json body
-func NewUpdateFlowHistoryRequest(server string, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody) (*http.Request, error) {
+func NewUpdateFlowHistoryRequest(server string, workspace WorkspaceId, version float32, body UpdateFlowHistoryJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewUpdateFlowHistoryRequestWithBody(server, workspace, version, path, "application/json", bodyReader)
+	return NewUpdateFlowHistoryRequestWithBody(server, workspace, version, "application/json", bodyReader)
 }
 
 // NewUpdateFlowHistoryRequestWithBody generates requests for UpdateFlowHistory with any type of body
-func NewUpdateFlowHistoryRequestWithBody(server string, workspace WorkspaceId, version float32, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+func NewUpdateFlowHistoryRequestWithBody(server string, workspace WorkspaceId, version float32, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -29465,19 +29500,12 @@ func NewUpdateFlowHistoryRequestWithBody(server string, workspace WorkspaceId, v
 		return nil, err
 	}
 
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/flows/history_update/v/%s/p/%s", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/w/%s/flows/history_update/v/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -55468,6 +55496,9 @@ type ClientWithResponsesInterface interface {
 
 	CreateAgentTokenWithResponse(ctx context.Context, body CreateAgentTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAgentTokenResponse, error)
 
+	// GetMinVersionWithResponse request
+	GetMinVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMinVersionResponse, error)
+
 	// ListBlacklistedAgentTokensWithResponse request
 	ListBlacklistedAgentTokensWithResponse(ctx context.Context, params *ListBlacklistedAgentTokensParams, reqEditors ...RequestEditorFn) (*ListBlacklistedAgentTokensResponse, error)
 
@@ -56080,7 +56111,7 @@ type ClientWithResponsesInterface interface {
 	GetFlowByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathWithDraftResponse, error)
 
 	// GetFlowVersionWithResponse request
-	GetFlowVersionWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowVersionResponse, error)
+	GetFlowVersionWithResponse(ctx context.Context, workspace WorkspaceId, version float32, reqEditors ...RequestEditorFn) (*GetFlowVersionResponse, error)
 
 	// GetFlowByPathWithResponse request
 	GetFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowByPathParams, reqEditors ...RequestEditorFn) (*GetFlowByPathResponse, error)
@@ -56095,9 +56126,9 @@ type ClientWithResponsesInterface interface {
 	GetFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowHistoryResponse, error)
 
 	// UpdateFlowHistoryWithBodyWithResponse request with any body
-	UpdateFlowHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error)
+	UpdateFlowHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version float32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error)
 
-	UpdateFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error)
+	UpdateFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, version float32, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error)
 
 	// ListFlowsWithResponse request
 	ListFlowsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFlowsParams, reqEditors ...RequestEditorFn) (*ListFlowsResponse, error)
@@ -57619,6 +57650,28 @@ func (r CreateAgentTokenResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateAgentTokenResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetMinVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMinVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMinVersionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -70221,6 +70274,15 @@ func (c *ClientWithResponses) CreateAgentTokenWithResponse(ctx context.Context, 
 	return ParseCreateAgentTokenResponse(rsp)
 }
 
+// GetMinVersionWithResponse request returning *GetMinVersionResponse
+func (c *ClientWithResponses) GetMinVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMinVersionResponse, error) {
+	rsp, err := c.GetMinVersion(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMinVersionResponse(rsp)
+}
+
 // ListBlacklistedAgentTokensWithResponse request returning *ListBlacklistedAgentTokensResponse
 func (c *ClientWithResponses) ListBlacklistedAgentTokensWithResponse(ctx context.Context, params *ListBlacklistedAgentTokensParams, reqEditors ...RequestEditorFn) (*ListBlacklistedAgentTokensResponse, error) {
 	rsp, err := c.ListBlacklistedAgentTokens(ctx, params, reqEditors...)
@@ -72159,8 +72221,8 @@ func (c *ClientWithResponses) GetFlowByPathWithDraftWithResponse(ctx context.Con
 }
 
 // GetFlowVersionWithResponse request returning *GetFlowVersionResponse
-func (c *ClientWithResponses) GetFlowVersionWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowVersionResponse, error) {
-	rsp, err := c.GetFlowVersion(ctx, workspace, version, path, reqEditors...)
+func (c *ClientWithResponses) GetFlowVersionWithResponse(ctx context.Context, workspace WorkspaceId, version float32, reqEditors ...RequestEditorFn) (*GetFlowVersionResponse, error) {
+	rsp, err := c.GetFlowVersion(ctx, workspace, version, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -72204,16 +72266,16 @@ func (c *ClientWithResponses) GetFlowHistoryWithResponse(ctx context.Context, wo
 }
 
 // UpdateFlowHistoryWithBodyWithResponse request with arbitrary body returning *UpdateFlowHistoryResponse
-func (c *ClientWithResponses) UpdateFlowHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error) {
-	rsp, err := c.UpdateFlowHistoryWithBody(ctx, workspace, version, path, contentType, body, reqEditors...)
+func (c *ClientWithResponses) UpdateFlowHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version float32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error) {
+	rsp, err := c.UpdateFlowHistoryWithBody(ctx, workspace, version, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseUpdateFlowHistoryResponse(rsp)
 }
 
-func (c *ClientWithResponses) UpdateFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, version float32, path ScriptPath, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error) {
-	rsp, err := c.UpdateFlowHistory(ctx, workspace, version, path, body, reqEditors...)
+func (c *ClientWithResponses) UpdateFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, version float32, body UpdateFlowHistoryJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error) {
+	rsp, err := c.UpdateFlowHistory(ctx, workspace, version, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -77009,6 +77071,32 @@ func ParseCreateAgentTokenResponse(rsp *http.Response) (*CreateAgentTokenRespons
 	}
 
 	response := &CreateAgentTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetMinVersionResponse parses an HTTP response from a GetMinVersionWithResponse call
+func ParseGetMinVersionResponse(rsp *http.Response) (*GetMinVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMinVersionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
