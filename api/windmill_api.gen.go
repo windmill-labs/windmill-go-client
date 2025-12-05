@@ -61442,7 +61442,8 @@ type GetFlowDeploymentStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		LockErrorLogs *string `json:"lock_error_logs,omitempty"`
+		JobId         *openapi_types.UUID `json:"job_id,omitempty"`
+		LockErrorLogs *string             `json:"lock_error_logs,omitempty"`
 	}
 }
 
@@ -67155,8 +67156,9 @@ type GetScriptDeploymentStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Lock          *string `json:"lock,omitempty"`
-		LockErrorLogs *string `json:"lock_error_logs,omitempty"`
+		JobId         *openapi_types.UUID `json:"job_id,omitempty"`
+		Lock          *string             `json:"lock,omitempty"`
+		LockErrorLogs *string             `json:"lock_error_logs,omitempty"`
 	}
 }
 
@@ -80851,7 +80853,8 @@ func ParseGetFlowDeploymentStatusResponse(rsp *http.Response) (*GetFlowDeploymen
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			LockErrorLogs *string `json:"lock_error_logs,omitempty"`
+			JobId         *openapi_types.UUID `json:"job_id,omitempty"`
+			LockErrorLogs *string             `json:"lock_error_logs,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -86462,8 +86465,9 @@ func ParseGetScriptDeploymentStatusResponse(rsp *http.Response) (*GetScriptDeplo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Lock          *string `json:"lock,omitempty"`
-			LockErrorLogs *string `json:"lock_error_logs,omitempty"`
+			JobId         *openapi_types.UUID `json:"job_id,omitempty"`
+			Lock          *string             `json:"lock,omitempty"`
+			LockErrorLogs *string             `json:"lock_error_logs,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
