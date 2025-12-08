@@ -55,9 +55,10 @@ const (
 
 // Defines values for AssetKind.
 const (
-	AssetKindDucklake AssetKind = "ducklake"
-	AssetKindResource AssetKind = "resource"
-	AssetKindS3object AssetKind = "s3object"
+	AssetKindDatatable AssetKind = "datatable"
+	AssetKindDucklake  AssetKind = "ducklake"
+	AssetKindResource  AssetKind = "resource"
+	AssetKindS3object  AssetKind = "s3object"
 )
 
 // Defines values for AssetUsageAccessType.
@@ -203,21 +204,36 @@ const (
 
 // Defines values for CompletedJobJobKind.
 const (
-	CompletedJobJobKindAiagent            CompletedJobJobKind = "aiagent"
-	CompletedJobJobKindAppdependencies    CompletedJobJobKind = "appdependencies"
-	CompletedJobJobKindAppscript          CompletedJobJobKind = "appscript"
-	CompletedJobJobKindDependencies       CompletedJobJobKind = "dependencies"
-	CompletedJobJobKindDeploymentcallback CompletedJobJobKind = "deploymentcallback"
-	CompletedJobJobKindFlow               CompletedJobJobKind = "flow"
-	CompletedJobJobKindFlowdependencies   CompletedJobJobKind = "flowdependencies"
-	CompletedJobJobKindFlownode           CompletedJobJobKind = "flownode"
-	CompletedJobJobKindFlowpreview        CompletedJobJobKind = "flowpreview"
-	CompletedJobJobKindFlowscript         CompletedJobJobKind = "flowscript"
-	CompletedJobJobKindIdentity           CompletedJobJobKind = "identity"
-	CompletedJobJobKindPreview            CompletedJobJobKind = "preview"
-	CompletedJobJobKindScript             CompletedJobJobKind = "script"
-	CompletedJobJobKindScriptHub          CompletedJobJobKind = "script_hub"
-	CompletedJobJobKindSinglestepflow     CompletedJobJobKind = "singlestepflow"
+	CompletedJobJobKindAiagent                  CompletedJobJobKind = "aiagent"
+	CompletedJobJobKindAppdependencies          CompletedJobJobKind = "appdependencies"
+	CompletedJobJobKindAppscript                CompletedJobJobKind = "appscript"
+	CompletedJobJobKindDependencies             CompletedJobJobKind = "dependencies"
+	CompletedJobJobKindDeploymentcallback       CompletedJobJobKind = "deploymentcallback"
+	CompletedJobJobKindFlow                     CompletedJobJobKind = "flow"
+	CompletedJobJobKindFlowdependencies         CompletedJobJobKind = "flowdependencies"
+	CompletedJobJobKindFlownode                 CompletedJobJobKind = "flownode"
+	CompletedJobJobKindFlowpreview              CompletedJobJobKind = "flowpreview"
+	CompletedJobJobKindFlowscript               CompletedJobJobKind = "flowscript"
+	CompletedJobJobKindIdentity                 CompletedJobJobKind = "identity"
+	CompletedJobJobKindPreview                  CompletedJobJobKind = "preview"
+	CompletedJobJobKindScript                   CompletedJobJobKind = "script"
+	CompletedJobJobKindScriptHub                CompletedJobJobKind = "script_hub"
+	CompletedJobJobKindSinglestepflow           CompletedJobJobKind = "singlestepflow"
+	CompletedJobJobKindUnassignedFlow           CompletedJobJobKind = "unassigned_flow"
+	CompletedJobJobKindUnassignedScript         CompletedJobJobKind = "unassigned_script"
+	CompletedJobJobKindUnassignedSinglestepflow CompletedJobJobKind = "unassigned_singlestepflow"
+)
+
+// Defines values for CustomInstanceDbTag.
+const (
+	CustomInstanceDbTagDatatable CustomInstanceDbTag = "datatable"
+	CustomInstanceDbTagDucklake  CustomInstanceDbTag = "ducklake"
+)
+
+// Defines values for DataTableSettingsDatatablesDatabaseResourceType.
+const (
+	DataTableSettingsDatatablesDatabaseResourceTypeInstance   DataTableSettingsDatatablesDatabaseResourceType = "instance"
+	DataTableSettingsDatatablesDatabaseResourceTypePostgresql DataTableSettingsDatatablesDatabaseResourceType = "postgresql"
 )
 
 // Defines values for DeliveryType.
@@ -252,20 +268,24 @@ const (
 
 // Defines values for ExportableCompletedJobJobKind.
 const (
-	ExportableCompletedJobJobKindAppdependencies    ExportableCompletedJobJobKind = "appdependencies"
-	ExportableCompletedJobJobKindAppscript          ExportableCompletedJobJobKind = "appscript"
-	ExportableCompletedJobJobKindDependencies       ExportableCompletedJobJobKind = "dependencies"
-	ExportableCompletedJobJobKindDeploymentcallback ExportableCompletedJobJobKind = "deploymentcallback"
-	ExportableCompletedJobJobKindFlow               ExportableCompletedJobJobKind = "flow"
-	ExportableCompletedJobJobKindFlowdependencies   ExportableCompletedJobJobKind = "flowdependencies"
-	ExportableCompletedJobJobKindFlownode           ExportableCompletedJobJobKind = "flownode"
-	ExportableCompletedJobJobKindFlowpreview        ExportableCompletedJobJobKind = "flowpreview"
-	ExportableCompletedJobJobKindFlowscript         ExportableCompletedJobJobKind = "flowscript"
-	ExportableCompletedJobJobKindIdentity           ExportableCompletedJobJobKind = "identity"
-	ExportableCompletedJobJobKindPreview            ExportableCompletedJobJobKind = "preview"
-	ExportableCompletedJobJobKindScript             ExportableCompletedJobJobKind = "script"
-	ExportableCompletedJobJobKindScriptHub          ExportableCompletedJobJobKind = "script_hub"
-	ExportableCompletedJobJobKindSinglestepflow     ExportableCompletedJobJobKind = "singlestepflow"
+	ExportableCompletedJobJobKindAiagent                  ExportableCompletedJobJobKind = "aiagent"
+	ExportableCompletedJobJobKindAppdependencies          ExportableCompletedJobJobKind = "appdependencies"
+	ExportableCompletedJobJobKindAppscript                ExportableCompletedJobJobKind = "appscript"
+	ExportableCompletedJobJobKindDependencies             ExportableCompletedJobJobKind = "dependencies"
+	ExportableCompletedJobJobKindDeploymentcallback       ExportableCompletedJobJobKind = "deploymentcallback"
+	ExportableCompletedJobJobKindFlow                     ExportableCompletedJobJobKind = "flow"
+	ExportableCompletedJobJobKindFlowdependencies         ExportableCompletedJobJobKind = "flowdependencies"
+	ExportableCompletedJobJobKindFlownode                 ExportableCompletedJobJobKind = "flownode"
+	ExportableCompletedJobJobKindFlowpreview              ExportableCompletedJobJobKind = "flowpreview"
+	ExportableCompletedJobJobKindFlowscript               ExportableCompletedJobJobKind = "flowscript"
+	ExportableCompletedJobJobKindIdentity                 ExportableCompletedJobJobKind = "identity"
+	ExportableCompletedJobJobKindPreview                  ExportableCompletedJobJobKind = "preview"
+	ExportableCompletedJobJobKindScript                   ExportableCompletedJobJobKind = "script"
+	ExportableCompletedJobJobKindScriptHub                ExportableCompletedJobJobKind = "script_hub"
+	ExportableCompletedJobJobKindSinglestepflow           ExportableCompletedJobJobKind = "singlestepflow"
+	ExportableCompletedJobJobKindUnassignedFlow           ExportableCompletedJobJobKind = "unassigned_flow"
+	ExportableCompletedJobJobKindUnassignedScript         ExportableCompletedJobJobKind = "unassigned_script"
+	ExportableCompletedJobJobKindUnassignedSinglestepflow ExportableCompletedJobJobKind = "unassigned_singlestepflow"
 )
 
 // Defines values for ExportableCompletedJobTriggerKind.
@@ -286,20 +306,24 @@ const (
 
 // Defines values for ExportableQueuedJobJobKind.
 const (
-	ExportableQueuedJobJobKindAppdependencies    ExportableQueuedJobJobKind = "appdependencies"
-	ExportableQueuedJobJobKindAppscript          ExportableQueuedJobJobKind = "appscript"
-	ExportableQueuedJobJobKindDependencies       ExportableQueuedJobJobKind = "dependencies"
-	ExportableQueuedJobJobKindDeploymentcallback ExportableQueuedJobJobKind = "deploymentcallback"
-	ExportableQueuedJobJobKindFlow               ExportableQueuedJobJobKind = "flow"
-	ExportableQueuedJobJobKindFlowdependencies   ExportableQueuedJobJobKind = "flowdependencies"
-	ExportableQueuedJobJobKindFlownode           ExportableQueuedJobJobKind = "flownode"
-	ExportableQueuedJobJobKindFlowpreview        ExportableQueuedJobJobKind = "flowpreview"
-	ExportableQueuedJobJobKindFlowscript         ExportableQueuedJobJobKind = "flowscript"
-	ExportableQueuedJobJobKindIdentity           ExportableQueuedJobJobKind = "identity"
-	ExportableQueuedJobJobKindPreview            ExportableQueuedJobJobKind = "preview"
-	ExportableQueuedJobJobKindScript             ExportableQueuedJobJobKind = "script"
-	ExportableQueuedJobJobKindScriptHub          ExportableQueuedJobJobKind = "script_hub"
-	ExportableQueuedJobJobKindSinglestepflow     ExportableQueuedJobJobKind = "singlestepflow"
+	ExportableQueuedJobJobKindAiagent                  ExportableQueuedJobJobKind = "aiagent"
+	ExportableQueuedJobJobKindAppdependencies          ExportableQueuedJobJobKind = "appdependencies"
+	ExportableQueuedJobJobKindAppscript                ExportableQueuedJobJobKind = "appscript"
+	ExportableQueuedJobJobKindDependencies             ExportableQueuedJobJobKind = "dependencies"
+	ExportableQueuedJobJobKindDeploymentcallback       ExportableQueuedJobJobKind = "deploymentcallback"
+	ExportableQueuedJobJobKindFlow                     ExportableQueuedJobJobKind = "flow"
+	ExportableQueuedJobJobKindFlowdependencies         ExportableQueuedJobJobKind = "flowdependencies"
+	ExportableQueuedJobJobKindFlownode                 ExportableQueuedJobJobKind = "flownode"
+	ExportableQueuedJobJobKindFlowpreview              ExportableQueuedJobJobKind = "flowpreview"
+	ExportableQueuedJobJobKindFlowscript               ExportableQueuedJobJobKind = "flowscript"
+	ExportableQueuedJobJobKindIdentity                 ExportableQueuedJobJobKind = "identity"
+	ExportableQueuedJobJobKindPreview                  ExportableQueuedJobJobKind = "preview"
+	ExportableQueuedJobJobKindScript                   ExportableQueuedJobJobKind = "script"
+	ExportableQueuedJobJobKindScriptHub                ExportableQueuedJobJobKind = "script_hub"
+	ExportableQueuedJobJobKindSinglestepflow           ExportableQueuedJobJobKind = "singlestepflow"
+	ExportableQueuedJobJobKindUnassignedFlow           ExportableQueuedJobJobKind = "unassigned_flow"
+	ExportableQueuedJobJobKindUnassignedScript         ExportableQueuedJobJobKind = "unassigned_script"
+	ExportableQueuedJobJobKindUnassignedSinglestepflow ExportableQueuedJobJobKind = "unassigned_singlestepflow"
 )
 
 // Defines values for ExportableQueuedJobTriggerKind.
@@ -412,21 +436,24 @@ const (
 
 // Defines values for Job0JobKind.
 const (
-	Job0JobKindAiagent            Job0JobKind = "aiagent"
-	Job0JobKindAppdependencies    Job0JobKind = "appdependencies"
-	Job0JobKindAppscript          Job0JobKind = "appscript"
-	Job0JobKindDependencies       Job0JobKind = "dependencies"
-	Job0JobKindDeploymentcallback Job0JobKind = "deploymentcallback"
-	Job0JobKindFlow               Job0JobKind = "flow"
-	Job0JobKindFlowdependencies   Job0JobKind = "flowdependencies"
-	Job0JobKindFlownode           Job0JobKind = "flownode"
-	Job0JobKindFlowpreview        Job0JobKind = "flowpreview"
-	Job0JobKindFlowscript         Job0JobKind = "flowscript"
-	Job0JobKindIdentity           Job0JobKind = "identity"
-	Job0JobKindPreview            Job0JobKind = "preview"
-	Job0JobKindScript             Job0JobKind = "script"
-	Job0JobKindScriptHub          Job0JobKind = "script_hub"
-	Job0JobKindSinglestepflow     Job0JobKind = "singlestepflow"
+	Job0JobKindAiagent                  Job0JobKind = "aiagent"
+	Job0JobKindAppdependencies          Job0JobKind = "appdependencies"
+	Job0JobKindAppscript                Job0JobKind = "appscript"
+	Job0JobKindDependencies             Job0JobKind = "dependencies"
+	Job0JobKindDeploymentcallback       Job0JobKind = "deploymentcallback"
+	Job0JobKindFlow                     Job0JobKind = "flow"
+	Job0JobKindFlowdependencies         Job0JobKind = "flowdependencies"
+	Job0JobKindFlownode                 Job0JobKind = "flownode"
+	Job0JobKindFlowpreview              Job0JobKind = "flowpreview"
+	Job0JobKindFlowscript               Job0JobKind = "flowscript"
+	Job0JobKindIdentity                 Job0JobKind = "identity"
+	Job0JobKindPreview                  Job0JobKind = "preview"
+	Job0JobKindScript                   Job0JobKind = "script"
+	Job0JobKindScriptHub                Job0JobKind = "script_hub"
+	Job0JobKindSinglestepflow           Job0JobKind = "singlestepflow"
+	Job0JobKindUnassignedFlow           Job0JobKind = "unassigned_flow"
+	Job0JobKindUnassignedScript         Job0JobKind = "unassigned_script"
+	Job0JobKindUnassignedSinglestepflow Job0JobKind = "unassigned_singlestepflow"
 )
 
 // Defines values for Job0Type.
@@ -436,26 +463,45 @@ const (
 
 // Defines values for Job1JobKind.
 const (
-	Job1JobKindAiagent            Job1JobKind = "aiagent"
-	Job1JobKindAppdependencies    Job1JobKind = "appdependencies"
-	Job1JobKindAppscript          Job1JobKind = "appscript"
-	Job1JobKindDependencies       Job1JobKind = "dependencies"
-	Job1JobKindDeploymentcallback Job1JobKind = "deploymentcallback"
-	Job1JobKindFlow               Job1JobKind = "flow"
-	Job1JobKindFlowdependencies   Job1JobKind = "flowdependencies"
-	Job1JobKindFlownode           Job1JobKind = "flownode"
-	Job1JobKindFlowpreview        Job1JobKind = "flowpreview"
-	Job1JobKindFlowscript         Job1JobKind = "flowscript"
-	Job1JobKindIdentity           Job1JobKind = "identity"
-	Job1JobKindPreview            Job1JobKind = "preview"
-	Job1JobKindScript             Job1JobKind = "script"
-	Job1JobKindScriptHub          Job1JobKind = "script_hub"
-	Job1JobKindSinglestepflow     Job1JobKind = "singlestepflow"
+	Job1JobKindAiagent                  Job1JobKind = "aiagent"
+	Job1JobKindAppdependencies          Job1JobKind = "appdependencies"
+	Job1JobKindAppscript                Job1JobKind = "appscript"
+	Job1JobKindDependencies             Job1JobKind = "dependencies"
+	Job1JobKindDeploymentcallback       Job1JobKind = "deploymentcallback"
+	Job1JobKindFlow                     Job1JobKind = "flow"
+	Job1JobKindFlowdependencies         Job1JobKind = "flowdependencies"
+	Job1JobKindFlownode                 Job1JobKind = "flownode"
+	Job1JobKindFlowpreview              Job1JobKind = "flowpreview"
+	Job1JobKindFlowscript               Job1JobKind = "flowscript"
+	Job1JobKindIdentity                 Job1JobKind = "identity"
+	Job1JobKindPreview                  Job1JobKind = "preview"
+	Job1JobKindScript                   Job1JobKind = "script"
+	Job1JobKindScriptHub                Job1JobKind = "script_hub"
+	Job1JobKindSinglestepflow           Job1JobKind = "singlestepflow"
+	Job1JobKindUnassignedFlow           Job1JobKind = "unassigned_flow"
+	Job1JobKindUnassignedScript         Job1JobKind = "unassigned_script"
+	Job1JobKindUnassignedSinglestepflow Job1JobKind = "unassigned_singlestepflow"
 )
 
 // Defines values for Job1Type.
 const (
 	Job1TypeQueuedJob Job1Type = "QueuedJob"
+)
+
+// Defines values for JobTriggerKind.
+const (
+	JobTriggerKindDefaultEmail JobTriggerKind = "default_email"
+	JobTriggerKindEmail        JobTriggerKind = "email"
+	JobTriggerKindGcp          JobTriggerKind = "gcp"
+	JobTriggerKindHttp         JobTriggerKind = "http"
+	JobTriggerKindKafka        JobTriggerKind = "kafka"
+	JobTriggerKindMqtt         JobTriggerKind = "mqtt"
+	JobTriggerKindNats         JobTriggerKind = "nats"
+	JobTriggerKindPostgres     JobTriggerKind = "postgres"
+	JobTriggerKindSchedule     JobTriggerKind = "schedule"
+	JobTriggerKindSqs          JobTriggerKind = "sqs"
+	JobTriggerKindWebhook      JobTriggerKind = "webhook"
+	JobTriggerKindWebsocket    JobTriggerKind = "websocket"
 )
 
 // Defines values for Language.
@@ -583,21 +629,24 @@ const (
 
 // Defines values for QueuedJobJobKind.
 const (
-	QueuedJobJobKindAiagent            QueuedJobJobKind = "aiagent"
-	QueuedJobJobKindAppdependencies    QueuedJobJobKind = "appdependencies"
-	QueuedJobJobKindAppscript          QueuedJobJobKind = "appscript"
-	QueuedJobJobKindDependencies       QueuedJobJobKind = "dependencies"
-	QueuedJobJobKindDeploymentcallback QueuedJobJobKind = "deploymentcallback"
-	QueuedJobJobKindFlow               QueuedJobJobKind = "flow"
-	QueuedJobJobKindFlowdependencies   QueuedJobJobKind = "flowdependencies"
-	QueuedJobJobKindFlownode           QueuedJobJobKind = "flownode"
-	QueuedJobJobKindFlowpreview        QueuedJobJobKind = "flowpreview"
-	QueuedJobJobKindFlowscript         QueuedJobJobKind = "flowscript"
-	QueuedJobJobKindIdentity           QueuedJobJobKind = "identity"
-	QueuedJobJobKindPreview            QueuedJobJobKind = "preview"
-	QueuedJobJobKindScript             QueuedJobJobKind = "script"
-	QueuedJobJobKindScriptHub          QueuedJobJobKind = "script_hub"
-	QueuedJobJobKindSinglestepflow     QueuedJobJobKind = "singlestepflow"
+	QueuedJobJobKindAiagent                  QueuedJobJobKind = "aiagent"
+	QueuedJobJobKindAppdependencies          QueuedJobJobKind = "appdependencies"
+	QueuedJobJobKindAppscript                QueuedJobJobKind = "appscript"
+	QueuedJobJobKindDependencies             QueuedJobJobKind = "dependencies"
+	QueuedJobJobKindDeploymentcallback       QueuedJobJobKind = "deploymentcallback"
+	QueuedJobJobKindFlow                     QueuedJobJobKind = "flow"
+	QueuedJobJobKindFlowdependencies         QueuedJobJobKind = "flowdependencies"
+	QueuedJobJobKindFlownode                 QueuedJobJobKind = "flownode"
+	QueuedJobJobKindFlowpreview              QueuedJobJobKind = "flowpreview"
+	QueuedJobJobKindFlowscript               QueuedJobJobKind = "flowscript"
+	QueuedJobJobKindIdentity                 QueuedJobJobKind = "identity"
+	QueuedJobJobKindPreview                  QueuedJobJobKind = "preview"
+	QueuedJobJobKindScript                   QueuedJobJobKind = "script"
+	QueuedJobJobKindScriptHub                QueuedJobJobKind = "script_hub"
+	QueuedJobJobKindSinglestepflow           QueuedJobJobKind = "singlestepflow"
+	QueuedJobJobKindUnassignedFlow           QueuedJobJobKind = "unassigned_flow"
+	QueuedJobJobKindUnassignedScript         QueuedJobJobKind = "unassigned_script"
+	QueuedJobJobKindUnassignedSinglestepflow QueuedJobJobKind = "unassigned_singlestepflow"
 )
 
 // Defines values for RunnableKind.
@@ -653,6 +702,13 @@ const (
 const (
 	CreateUpdate SubscriptionMode = "create_update"
 	Existing     SubscriptionMode = "existing"
+)
+
+// Defines values for TriggerMode.
+const (
+	TriggerModeDisabled  TriggerMode = "disabled"
+	TriggerModeEnabled   TriggerMode = "enabled"
+	TriggerModeSuspended TriggerMode = "suspended"
 )
 
 // Defines values for UserSourceSource.
@@ -770,28 +826,29 @@ const (
 
 // Defines values for SchemasRawScriptAssetsKind.
 const (
-	SchemasRawScriptAssetsKindDucklake SchemasRawScriptAssetsKind = "ducklake"
-	SchemasRawScriptAssetsKindResource SchemasRawScriptAssetsKind = "resource"
-	SchemasRawScriptAssetsKindS3object SchemasRawScriptAssetsKind = "s3object"
+	SchemasRawScriptAssetsKindDatatable SchemasRawScriptAssetsKind = "datatable"
+	SchemasRawScriptAssetsKindDucklake  SchemasRawScriptAssetsKind = "ducklake"
+	SchemasRawScriptAssetsKindResource  SchemasRawScriptAssetsKind = "resource"
+	SchemasRawScriptAssetsKindS3object  SchemasRawScriptAssetsKind = "s3object"
 )
 
 // Defines values for SchemasRawScriptLanguage.
 const (
-	Bash       SchemasRawScriptLanguage = "bash"
-	Bigquery   SchemasRawScriptLanguage = "bigquery"
-	Bun        SchemasRawScriptLanguage = "bun"
-	Deno       SchemasRawScriptLanguage = "deno"
-	Go         SchemasRawScriptLanguage = "go"
-	Graphql    SchemasRawScriptLanguage = "graphql"
-	Mssql      SchemasRawScriptLanguage = "mssql"
-	Mysql      SchemasRawScriptLanguage = "mysql"
-	Nativets   SchemasRawScriptLanguage = "nativets"
-	Oracledb   SchemasRawScriptLanguage = "oracledb"
-	Php        SchemasRawScriptLanguage = "php"
-	Postgresql SchemasRawScriptLanguage = "postgresql"
-	Powershell SchemasRawScriptLanguage = "powershell"
-	Python3    SchemasRawScriptLanguage = "python3"
-	Snowflake  SchemasRawScriptLanguage = "snowflake"
+	SchemasRawScriptLanguageBash       SchemasRawScriptLanguage = "bash"
+	SchemasRawScriptLanguageBigquery   SchemasRawScriptLanguage = "bigquery"
+	SchemasRawScriptLanguageBun        SchemasRawScriptLanguage = "bun"
+	SchemasRawScriptLanguageDeno       SchemasRawScriptLanguage = "deno"
+	SchemasRawScriptLanguageGo         SchemasRawScriptLanguage = "go"
+	SchemasRawScriptLanguageGraphql    SchemasRawScriptLanguage = "graphql"
+	SchemasRawScriptLanguageMssql      SchemasRawScriptLanguage = "mssql"
+	SchemasRawScriptLanguageMysql      SchemasRawScriptLanguage = "mysql"
+	SchemasRawScriptLanguageNativets   SchemasRawScriptLanguage = "nativets"
+	SchemasRawScriptLanguageOracledb   SchemasRawScriptLanguage = "oracledb"
+	SchemasRawScriptLanguagePhp        SchemasRawScriptLanguage = "php"
+	SchemasRawScriptLanguagePostgresql SchemasRawScriptLanguage = "postgresql"
+	SchemasRawScriptLanguagePowershell SchemasRawScriptLanguage = "powershell"
+	SchemasRawScriptLanguagePython3    SchemasRawScriptLanguage = "python3"
+	SchemasRawScriptLanguageSnowflake  SchemasRawScriptLanguage = "snowflake"
 )
 
 // Defines values for SchemasRawScriptType.
@@ -815,24 +872,6 @@ const (
 	ActionKindDelete  ActionKind = "Delete"
 	ActionKindExecute ActionKind = "Execute"
 	ActionKindUpdate  ActionKind = "Update"
-)
-
-// Defines values for JobTriggerKind.
-const (
-	JobTriggerKindCli          JobTriggerKind = "cli"
-	JobTriggerKindDefaultEmail JobTriggerKind = "default_email"
-	JobTriggerKindEmail        JobTriggerKind = "email"
-	JobTriggerKindGcp          JobTriggerKind = "gcp"
-	JobTriggerKindHttp         JobTriggerKind = "http"
-	JobTriggerKindKafka        JobTriggerKind = "kafka"
-	JobTriggerKindMqtt         JobTriggerKind = "mqtt"
-	JobTriggerKindNats         JobTriggerKind = "nats"
-	JobTriggerKindPoll         JobTriggerKind = "poll"
-	JobTriggerKindPostgres     JobTriggerKind = "postgres"
-	JobTriggerKindSchedule     JobTriggerKind = "schedule"
-	JobTriggerKindSqs          JobTriggerKind = "sqs"
-	JobTriggerKindWebhook      JobTriggerKind = "webhook"
-	JobTriggerKindWebsocket    JobTriggerKind = "websocket"
 )
 
 // Defines values for ClearIndexParamsIdxName.
@@ -945,24 +984,6 @@ const (
 	PingCaptureConfigParamsRunnableKindScript PingCaptureConfigParamsRunnableKind = "script"
 )
 
-// Defines values for ListExtendedJobsParamsTriggerKind.
-const (
-	ListExtendedJobsParamsTriggerKindCli          ListExtendedJobsParamsTriggerKind = "cli"
-	ListExtendedJobsParamsTriggerKindDefaultEmail ListExtendedJobsParamsTriggerKind = "default_email"
-	ListExtendedJobsParamsTriggerKindEmail        ListExtendedJobsParamsTriggerKind = "email"
-	ListExtendedJobsParamsTriggerKindGcp          ListExtendedJobsParamsTriggerKind = "gcp"
-	ListExtendedJobsParamsTriggerKindHttp         ListExtendedJobsParamsTriggerKind = "http"
-	ListExtendedJobsParamsTriggerKindKafka        ListExtendedJobsParamsTriggerKind = "kafka"
-	ListExtendedJobsParamsTriggerKindMqtt         ListExtendedJobsParamsTriggerKind = "mqtt"
-	ListExtendedJobsParamsTriggerKindNats         ListExtendedJobsParamsTriggerKind = "nats"
-	ListExtendedJobsParamsTriggerKindPoll         ListExtendedJobsParamsTriggerKind = "poll"
-	ListExtendedJobsParamsTriggerKindPostgres     ListExtendedJobsParamsTriggerKind = "postgres"
-	ListExtendedJobsParamsTriggerKindSchedule     ListExtendedJobsParamsTriggerKind = "schedule"
-	ListExtendedJobsParamsTriggerKindSqs          ListExtendedJobsParamsTriggerKind = "sqs"
-	ListExtendedJobsParamsTriggerKindWebhook      ListExtendedJobsParamsTriggerKind = "webhook"
-	ListExtendedJobsParamsTriggerKindWebsocket    ListExtendedJobsParamsTriggerKind = "websocket"
-)
-
 // Defines values for CreateDraftJSONBodyTyp.
 const (
 	CreateDraftJSONBodyTypApp    CreateDraftJSONBodyTyp = "app"
@@ -999,24 +1020,6 @@ const (
 	ListFlowPathsFromWorkspaceRunnableParamsRunnableKindScript ListFlowPathsFromWorkspaceRunnableParamsRunnableKind = "script"
 )
 
-// Defines values for ListJobsParamsTriggerKind.
-const (
-	ListJobsParamsTriggerKindCli          ListJobsParamsTriggerKind = "cli"
-	ListJobsParamsTriggerKindDefaultEmail ListJobsParamsTriggerKind = "default_email"
-	ListJobsParamsTriggerKindEmail        ListJobsParamsTriggerKind = "email"
-	ListJobsParamsTriggerKindGcp          ListJobsParamsTriggerKind = "gcp"
-	ListJobsParamsTriggerKindHttp         ListJobsParamsTriggerKind = "http"
-	ListJobsParamsTriggerKindKafka        ListJobsParamsTriggerKind = "kafka"
-	ListJobsParamsTriggerKindMqtt         ListJobsParamsTriggerKind = "mqtt"
-	ListJobsParamsTriggerKindNats         ListJobsParamsTriggerKind = "nats"
-	ListJobsParamsTriggerKindPoll         ListJobsParamsTriggerKind = "poll"
-	ListJobsParamsTriggerKindPostgres     ListJobsParamsTriggerKind = "postgres"
-	ListJobsParamsTriggerKindSchedule     ListJobsParamsTriggerKind = "schedule"
-	ListJobsParamsTriggerKindSqs          ListJobsParamsTriggerKind = "sqs"
-	ListJobsParamsTriggerKindWebhook      ListJobsParamsTriggerKind = "webhook"
-	ListJobsParamsTriggerKindWebsocket    ListJobsParamsTriggerKind = "websocket"
-)
-
 // Defines values for SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType.
 const (
 	SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerTypeError    SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType = "error"
@@ -1048,11 +1051,16 @@ type AIProviderModel struct {
 	Provider AIProvider `json:"provider"`
 }
 
-// AgentTool defines model for AgentTool.
+// AgentTool A tool available to an AI agent. Can be a flow module or an external MCP (Model Context Protocol) tool
 type AgentTool struct {
-	Id      string    `json:"id"`
-	Summary *string   `json:"summary,omitempty"`
-	Value   ToolValue `json:"value"`
+	// Id Unique identifier for this tool. Cannot contain spaces - use underscores instead (e.g., 'get_user_data' not 'get user data')
+	Id string `json:"id"`
+
+	// Summary Short description of what this tool does (shown to the AI)
+	Summary *string `json:"summary,omitempty"`
+
+	// Value The implementation of a tool. Can be a flow module (script/flow) or an MCP tool reference
+	Value ToolValue `json:"value"`
 }
 
 // Alert defines model for Alert.
@@ -1202,10 +1210,12 @@ type CompletedJob struct {
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
-	PermissionedAs       string          `json:"permissioned_as"`
-	Preprocessed         *bool           `json:"preprocessed,omitempty"`
-	Priority             *int            `json:"priority,omitempty"`
-	RawCode              *string         `json:"raw_code,omitempty"`
+	PermissionedAs string  `json:"permissioned_as"`
+	Preprocessed   *bool   `json:"preprocessed,omitempty"`
+	Priority       *int    `json:"priority,omitempty"`
+	RawCode        *string `json:"raw_code,omitempty"`
+
+	// RawFlow The flow structure containing modules and optional preprocessor/failure handlers
 	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
 	Result               *interface{}    `json:"result,omitempty"`
 	SchedulePath         *string         `json:"schedule_path,omitempty"`
@@ -1328,6 +1338,43 @@ type CriticalAlert struct {
 	WorkspaceId *string `json:"workspace_id"`
 }
 
+// CustomInstanceDb defines model for CustomInstanceDb.
+type CustomInstanceDb struct {
+	// Error Error message if the operation failed
+	Error *string              `json:"error"`
+	Logs  CustomInstanceDbLogs `json:"logs"`
+
+	// Success Whether the operation completed successfully
+	Success bool                 `json:"success"`
+	Tag     *CustomInstanceDbTag `json:"tag,omitempty"`
+}
+
+// CustomInstanceDbLogs defines model for CustomInstanceDbLogs.
+type CustomInstanceDbLogs struct {
+	CreatedDatabase     *LoggedWizardStatus `json:"created_database,omitempty"`
+	DatabaseCredentials *LoggedWizardStatus `json:"database_credentials,omitempty"`
+	DbConnect           *LoggedWizardStatus `json:"db_connect,omitempty"`
+	GrantPermissions    *LoggedWizardStatus `json:"grant_permissions,omitempty"`
+	SuperAdmin          *LoggedWizardStatus `json:"super_admin,omitempty"`
+	ValidDbname         *LoggedWizardStatus `json:"valid_dbname,omitempty"`
+}
+
+// CustomInstanceDbTag defines model for CustomInstanceDbTag.
+type CustomInstanceDbTag string
+
+// DataTableSettings defines model for DataTableSettings.
+type DataTableSettings struct {
+	Datatables map[string]struct {
+		Database struct {
+			ResourcePath *string                                         `json:"resource_path,omitempty"`
+			ResourceType DataTableSettingsDatatablesDatabaseResourceType `json:"resource_type"`
+		} `json:"database"`
+	} `json:"datatables"`
+}
+
+// DataTableSettingsDatatablesDatabaseResourceType defines model for DataTableSettings.Datatables.Database.ResourceType.
+type DataTableSettingsDatatablesDatabaseResourceType string
+
 // DeleteGcpSubscription defines model for DeleteGcpSubscription.
 type DeleteGcpSubscription struct {
 	SubscriptionId string `json:"subscription_id"`
@@ -1359,26 +1406,6 @@ type DependencyMap struct {
 type DependentsAmount struct {
 	Count        int64  `json:"count"`
 	ImportedPath string `json:"imported_path"`
-}
-
-// DucklakeInstanceCatalogDbStatus defines model for DucklakeInstanceCatalogDbStatus.
-type DucklakeInstanceCatalogDbStatus struct {
-	// Error Error message if the operation failed
-	Error *string                             `json:"error"`
-	Logs  DucklakeInstanceCatalogDbStatusLogs `json:"logs"`
-
-	// Success Whether the operation completed successfully
-	Success bool `json:"success"`
-}
-
-// DucklakeInstanceCatalogDbStatusLogs defines model for DucklakeInstanceCatalogDbStatusLogs.
-type DucklakeInstanceCatalogDbStatusLogs struct {
-	CreatedDatabase     *LoggedWizardStatus `json:"created_database,omitempty"`
-	DatabaseCredentials *LoggedWizardStatus `json:"database_credentials,omitempty"`
-	DbConnect           *LoggedWizardStatus `json:"db_connect,omitempty"`
-	GrantPermissions    *LoggedWizardStatus `json:"grant_permissions,omitempty"`
-	SuperAdmin          *LoggedWizardStatus `json:"super_admin,omitempty"`
-	ValidDbname         *LoggedWizardStatus `json:"valid_dbname,omitempty"`
 }
 
 // DucklakeSettings defines model for DucklakeSettings.
@@ -1438,14 +1465,16 @@ type DynamicInputData_RunnableRef struct {
 // EditEmailTrigger defines model for EditEmailTrigger.
 type EditEmailTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs    *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath    *string     `json:"error_handler_path,omitempty"`
-	IsFlow              bool        `json:"is_flow"`
-	LocalPart           *string     `json:"local_part,omitempty"`
-	Path                string      `json:"path"`
-	Retry               *Retry      `json:"retry,omitempty"`
-	ScriptPath          string      `json:"script_path"`
-	WorkspacedLocalPart *bool       `json:"workspaced_local_part,omitempty"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	IsFlow           bool        `json:"is_flow"`
+	LocalPart        *string     `json:"local_part,omitempty"`
+	Path             string      `json:"path"`
+
+	// Retry Retry configuration for failed module executions
+	Retry               *Retry `json:"retry,omitempty"`
+	ScriptPath          string `json:"script_path"`
+	WorkspacedLocalPart *bool  `json:"workspaced_local_part,omitempty"`
 }
 
 // EditHttpTrigger defines model for EditHttpTrigger.
@@ -1460,15 +1489,17 @@ type EditHttpTrigger struct {
 	HttpMethod       HttpMethod  `json:"http_method"`
 
 	// IsAsync Deprecated, use request_type instead
-	IsAsync           *bool            `json:"is_async,omitempty"`
-	IsFlow            bool             `json:"is_flow"`
-	IsStaticWebsite   bool             `json:"is_static_website"`
-	Path              string           `json:"path"`
-	RawString         *bool            `json:"raw_string,omitempty"`
-	RequestType       *HttpRequestType `json:"request_type,omitempty"`
-	Retry             *Retry           `json:"retry,omitempty"`
-	RoutePath         *string          `json:"route_path,omitempty"`
-	ScriptPath        string           `json:"script_path"`
+	IsAsync         *bool            `json:"is_async,omitempty"`
+	IsFlow          bool             `json:"is_flow"`
+	IsStaticWebsite bool             `json:"is_static_website"`
+	Path            string           `json:"path"`
+	RawString       *bool            `json:"raw_string,omitempty"`
+	RequestType     *HttpRequestType `json:"request_type,omitempty"`
+
+	// Retry Retry configuration for failed module executions
+	Retry             *Retry  `json:"retry,omitempty"`
+	RoutePath         *string `json:"route_path,omitempty"`
+	ScriptPath        string  `json:"script_path"`
 	StaticAssetConfig *struct {
 		Filename *string `json:"filename,omitempty"`
 		S3       string  `json:"s3"`
@@ -1488,28 +1519,34 @@ type EditKafkaTrigger struct {
 	IsFlow            bool        `json:"is_flow"`
 	KafkaResourcePath string      `json:"kafka_resource_path"`
 	Path              string      `json:"path"`
-	Retry             *Retry      `json:"retry,omitempty"`
-	ScriptPath        string      `json:"script_path"`
-	Topics            []string    `json:"topics"`
+
+	// Retry Retry configuration for failed module executions
+	Retry      *Retry   `json:"retry,omitempty"`
+	ScriptPath string   `json:"script_path"`
+	Topics     []string `json:"topics"`
 }
 
 // EditMqttTrigger defines model for EditMqttTrigger.
 type EditMqttTrigger struct {
 	ClientId      *string            `json:"client_id,omitempty"`
 	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
-	Enabled       bool               `json:"enabled"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs *ScriptArgs          `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string              `json:"error_handler_path,omitempty"`
-	IsFlow           bool                 `json:"is_flow"`
-	MqttResourcePath string               `json:"mqtt_resource_path"`
-	Path             string               `json:"path"`
-	Retry            *Retry               `json:"retry,omitempty"`
-	ScriptPath       string               `json:"script_path"`
-	SubscribeTopics  []MqttSubscribeTopic `json:"subscribe_topics"`
-	V3Config         *MqttV3Config        `json:"v3_config,omitempty"`
-	V5Config         *MqttV5Config        `json:"v5_config,omitempty"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	IsFlow           bool        `json:"is_flow"`
+
+	// Mode job trigger mode
+	Mode             *TriggerMode `json:"mode,omitempty"`
+	MqttResourcePath string       `json:"mqtt_resource_path"`
+	Path             string       `json:"path"`
+
+	// Retry Retry configuration for failed module executions
+	Retry           *Retry               `json:"retry,omitempty"`
+	ScriptPath      string               `json:"script_path"`
+	SubscribeTopics []MqttSubscribeTopic `json:"subscribe_topics"`
+	V3Config        *MqttV3Config        `json:"v3_config,omitempty"`
+	V5Config        *MqttV5Config        `json:"v5_config,omitempty"`
 }
 
 // EditNatsTrigger defines model for EditNatsTrigger.
@@ -1522,28 +1559,33 @@ type EditNatsTrigger struct {
 	IsFlow           bool        `json:"is_flow"`
 	NatsResourcePath string      `json:"nats_resource_path"`
 	Path             string      `json:"path"`
-	Retry            *Retry      `json:"retry,omitempty"`
-	ScriptPath       string      `json:"script_path"`
-	StreamName       *string     `json:"stream_name,omitempty"`
-	Subjects         []string    `json:"subjects"`
-	UseJetstream     bool        `json:"use_jetstream"`
+
+	// Retry Retry configuration for failed module executions
+	Retry        *Retry   `json:"retry,omitempty"`
+	ScriptPath   string   `json:"script_path"`
+	StreamName   *string  `json:"stream_name,omitempty"`
+	Subjects     []string `json:"subjects"`
+	UseJetstream bool     `json:"use_jetstream"`
 }
 
 // EditPostgresTrigger defines model for EditPostgresTrigger.
 type EditPostgresTrigger struct {
-	Enabled bool `json:"enabled"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs     *ScriptArgs      `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath     *string          `json:"error_handler_path,omitempty"`
-	IsFlow               bool             `json:"is_flow"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	IsFlow           bool        `json:"is_flow"`
+
+	// Mode job trigger mode
+	Mode                 *TriggerMode     `json:"mode,omitempty"`
 	Path                 string           `json:"path"`
 	PostgresResourcePath string           `json:"postgres_resource_path"`
 	Publication          *PublicationData `json:"publication,omitempty"`
 	PublicationName      string           `json:"publication_name"`
 	ReplicationSlotName  string           `json:"replication_slot_name"`
-	Retry                *Retry           `json:"retry,omitempty"`
-	ScriptPath           string           `json:"script_path"`
+
+	// Retry Retry configuration for failed module executions
+	Retry      *Retry `json:"retry,omitempty"`
+	ScriptPath string `json:"script_path"`
 }
 
 // EditResource defines model for EditResource.
@@ -1611,7 +1653,9 @@ type EditSchedule struct {
 
 	// PausedUntil The date and time the schedule will be paused until
 	PausedUntil *time.Time `json:"paused_until,omitempty"`
-	Retry       *Retry     `json:"retry,omitempty"`
+
+	// Retry Retry configuration for failed module executions
+	Retry *Retry `json:"retry,omitempty"`
 
 	// Schedule The cron schedule to trigger the script or flow. Should include seconds.
 	Schedule string `json:"schedule"`
@@ -1633,17 +1677,21 @@ type EditSchedule struct {
 type EditSqsTrigger struct {
 	AwsAuthResourceType AwsAuthResourceType `json:"aws_auth_resource_type"`
 	AwsResourcePath     string              `json:"aws_resource_path"`
-	Enabled             bool                `json:"enabled"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
 	IsFlow            bool        `json:"is_flow"`
 	MessageAttributes *[]string   `json:"message_attributes,omitempty"`
-	Path              string      `json:"path"`
-	QueueUrl          string      `json:"queue_url"`
-	Retry             *Retry      `json:"retry,omitempty"`
-	ScriptPath        string      `json:"script_path"`
+
+	// Mode job trigger mode
+	Mode     *TriggerMode `json:"mode,omitempty"`
+	Path     string       `json:"path"`
+	QueueUrl string       `json:"queue_url"`
+
+	// Retry Retry configuration for failed module executions
+	Retry      *Retry `json:"retry,omitempty"`
+	ScriptPath string `json:"script_path"`
 }
 
 // EditVariable defines model for EditVariable.
@@ -1676,9 +1724,11 @@ type EditWebsocketTrigger struct {
 	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
 	IsFlow          bool                              `json:"is_flow"`
 	Path            string                            `json:"path"`
-	Retry           *Retry                            `json:"retry,omitempty"`
-	ScriptPath      string                            `json:"script_path"`
-	Url             string                            `json:"url"`
+
+	// Retry Retry configuration for failed module executions
+	Retry      *Retry `json:"retry,omitempty"`
+	ScriptPath string `json:"script_path"`
+	Url        string `json:"url"`
 
 	// UrlRunnableArgs The arguments to pass to the script or flow
 	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
@@ -1884,27 +1934,35 @@ type ExtraPerms map[string]bool
 
 // Flow defines model for Flow.
 type Flow struct {
-	Archived            bool                    `json:"archived"`
-	DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
-	Description         *string                 `json:"description,omitempty"`
-	DraftOnly           *bool                   `json:"draft_only,omitempty"`
-	EditedAt            time.Time               `json:"edited_at"`
-	EditedBy            string                  `json:"edited_by"`
-	ExtraPerms          ExtraPerms              `json:"extra_perms"`
-	LockErrorLogs       *string                 `json:"lock_error_logs,omitempty"`
-	OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
-	Path                string                  `json:"path"`
-	Priority            *int                    `json:"priority,omitempty"`
-	Schema              *map[string]interface{} `json:"schema,omitempty"`
-	Starred             *bool                   `json:"starred,omitempty"`
-	Summary             string                  `json:"summary"`
-	Tag                 *string                 `json:"tag,omitempty"`
-	Timeout             *float32                `json:"timeout,omitempty"`
-	Value               SchemasFlowValue        `json:"value"`
-	VersionId           *float32                `json:"version_id,omitempty"`
-	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
-	WorkspaceId         *string                 `json:"workspace_id,omitempty"`
-	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+	Archived        bool  `json:"archived"`
+	DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
+
+	// Description Detailed documentation for this flow
+	Description     *string    `json:"description,omitempty"`
+	DraftOnly       *bool      `json:"draft_only,omitempty"`
+	EditedAt        time.Time  `json:"edited_at"`
+	EditedBy        string     `json:"edited_by"`
+	ExtraPerms      ExtraPerms `json:"extra_perms"`
+	LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
+	OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
+	Path            string     `json:"path"`
+	Priority        *int       `json:"priority,omitempty"`
+
+	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+	Schema  *map[string]interface{} `json:"schema,omitempty"`
+	Starred *bool                   `json:"starred,omitempty"`
+
+	// Summary Short description of what this flow does
+	Summary string   `json:"summary"`
+	Tag     *string  `json:"tag,omitempty"`
+	Timeout *float32 `json:"timeout,omitempty"`
+
+	// Value The flow structure containing modules and optional preprocessor/failure handlers
+	Value               SchemasFlowValue `json:"value"`
+	VersionId           *float32         `json:"version_id,omitempty"`
+	VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
+	WorkspaceId         *string          `json:"workspace_id,omitempty"`
+	WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
 }
 
 // FlowConversation defines model for FlowConversation.
@@ -1996,7 +2054,9 @@ type FlowPreview struct {
 	Path          *string        `json:"path,omitempty"`
 	RestartedFrom *RestartedFrom `json:"restarted_from,omitempty"`
 	Tag           *string        `json:"tag,omitempty"`
-	Value         FlowValue      `json:"value"`
+
+	// Value The flow structure containing modules and optional preprocessor/failure handlers
+	Value FlowValue `json:"value"`
 }
 
 // FlowStatus defines model for FlowStatus.
@@ -2088,28 +2148,57 @@ type FlowStatusFailureModuleBranchChosenType string
 // FlowStatusFailureModuleType defines model for FlowStatus.FailureModule.Type.
 type FlowStatusFailureModuleType string
 
-// FlowValue defines model for FlowValue.
+// FlowValue The flow structure containing modules and optional preprocessor/failure handlers
 type FlowValue struct {
+	CacheIgnoreS3Path *bool `json:"cache_ignore_s3_path,omitempty"`
+
+	// CacheTtl Cache duration in seconds for flow results
 	CacheTtl *float32 `json:"cache_ttl,omitempty"`
 
 	// ChatInputEnabled Whether this flow accepts chat-style input
-	ChatInputEnabled       *bool               `json:"chat_input_enabled,omitempty"`
-	ConcurrencyKey         *string             `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS *float32            `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *float32            `json:"concurrent_limit,omitempty"`
-	DebounceDelayS         *float32            `json:"debounce_delay_s,omitempty"`
-	DebounceKey            *string             `json:"debounce_key,omitempty"`
-	EarlyReturn            *string             `json:"early_return,omitempty"`
-	FailureModule          *SchemasFlowModule  `json:"failure_module,omitempty"`
-	FlowEnv                *map[string]string  `json:"flow_env,omitempty"`
-	Modules                []SchemasFlowModule `json:"modules"`
+	ChatInputEnabled *bool `json:"chat_input_enabled,omitempty"`
+
+	// ConcurrencyKey Expression to group concurrent executions (e.g., by user ID)
+	ConcurrencyKey *string `json:"concurrency_key,omitempty"`
+
+	// ConcurrencyTimeWindowS Time window in seconds for concurrent_limit
+	ConcurrencyTimeWindowS *float32 `json:"concurrency_time_window_s,omitempty"`
+
+	// ConcurrentLimit Maximum number of concurrent executions of this flow
+	ConcurrentLimit *float32 `json:"concurrent_limit,omitempty"`
+
+	// DebounceDelayS Delay in seconds to debounce flow executions
+	DebounceDelayS *float32 `json:"debounce_delay_s,omitempty"`
+
+	// DebounceKey Expression to group debounced executions
+	DebounceKey *string `json:"debounce_key,omitempty"`
+
+	// EarlyReturn JavaScript expression to return early from the flow
+	EarlyReturn *string `json:"early_return,omitempty"`
+
+	// FailureModule A single step in a flow. Can be a script, subflow, loop, or branch
+	FailureModule *SchemasFlowModule `json:"failure_module,omitempty"`
+
+	// FlowEnv Environment variables available to all steps
+	FlowEnv *map[string]string `json:"flow_env,omitempty"`
+
+	// Modules Array of steps that execute in sequence. Each step can be a script, subflow, loop, or branch
+	Modules []SchemasFlowModule `json:"modules"`
 
 	// Notes Sticky notes attached to the flow
-	Notes              *[]SchemasFlowNote `json:"notes,omitempty"`
+	Notes *[]SchemasFlowNote `json:"notes,omitempty"`
+
+	// PreprocessorModule A single step in a flow. Can be a script, subflow, loop, or branch
 	PreprocessorModule *SchemasFlowModule `json:"preprocessor_module,omitempty"`
-	Priority           *float32           `json:"priority,omitempty"`
-	SameWorker         *bool              `json:"same_worker,omitempty"`
-	SkipExpr           *string            `json:"skip_expr,omitempty"`
+
+	// Priority Execution priority (higher numbers run first)
+	Priority *float32 `json:"priority,omitempty"`
+
+	// SameWorker If true, all steps run on the same worker for better performance
+	SameWorker *bool `json:"same_worker,omitempty"`
+
+	// SkipExpr JavaScript expression to conditionally skip the entire flow
+	SkipExpr *string `json:"skip_expr,omitempty"`
 }
 
 // FlowVersion defines model for FlowVersion.
@@ -2140,17 +2229,21 @@ type GcpTriggerData struct {
 	BaseEndpoint       *string       `json:"base_endpoint,omitempty"`
 	DeliveryConfig     *PushConfig   `json:"delivery_config,omitempty"`
 	DeliveryType       *DeliveryType `json:"delivery_type,omitempty"`
-	Enabled            *bool         `json:"enabled,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
 	GcpResourcePath  string      `json:"gcp_resource_path"`
 	IsFlow           bool        `json:"is_flow"`
-	Path             string      `json:"path"`
-	Retry            *Retry      `json:"retry,omitempty"`
-	ScriptPath       string      `json:"script_path"`
-	SubscriptionId   *string     `json:"subscription_id,omitempty"`
+
+	// Mode job trigger mode
+	Mode *TriggerMode `json:"mode,omitempty"`
+	Path string       `json:"path"`
+
+	// Retry Retry configuration for failed module executions
+	Retry          *Retry  `json:"retry,omitempty"`
+	ScriptPath     string  `json:"script_path"`
+	SubscriptionId *string `json:"subscription_id,omitempty"`
 
 	// SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
 	SubscriptionMode SubscriptionMode `json:"subscription_mode"`
@@ -2260,7 +2353,7 @@ type Input struct {
 	Success   *bool     `json:"success,omitempty"`
 }
 
-// InputTransform defines model for InputTransform.
+// InputTransform Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
 type InputTransform struct {
 	union json.RawMessage
 }
@@ -2313,10 +2406,12 @@ type Job0 struct {
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
-	PermissionedAs       string          `json:"permissioned_as"`
-	Preprocessed         *bool           `json:"preprocessed,omitempty"`
-	Priority             *int            `json:"priority,omitempty"`
-	RawCode              *string         `json:"raw_code,omitempty"`
+	PermissionedAs string  `json:"permissioned_as"`
+	Preprocessed   *bool   `json:"preprocessed,omitempty"`
+	Priority       *int    `json:"priority,omitempty"`
+	RawCode        *string `json:"raw_code,omitempty"`
+
+	// RawFlow The flow structure containing modules and optional preprocessor/failure handlers
 	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
 	Result               *interface{}    `json:"result,omitempty"`
 	SchedulePath         *string         `json:"schedule_path,omitempty"`
@@ -2363,10 +2458,12 @@ type Job1 struct {
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
-	PermissionedAs       string          `json:"permissioned_as"`
-	Preprocessed         *bool           `json:"preprocessed,omitempty"`
-	Priority             *int            `json:"priority,omitempty"`
-	RawCode              *string         `json:"raw_code,omitempty"`
+	PermissionedAs string  `json:"permissioned_as"`
+	Preprocessed   *bool   `json:"preprocessed,omitempty"`
+	Priority       *int    `json:"priority,omitempty"`
+	RawCode        *string `json:"raw_code,omitempty"`
+
+	// RawFlow The flow structure containing modules and optional preprocessor/failure handlers
 	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
 	Running              bool            `json:"running"`
 	SchedulePath         *string         `json:"schedule_path,omitempty"`
@@ -2394,6 +2491,9 @@ type Job1Type string
 type JobSearchHit struct {
 	Dancer *string `json:"dancer,omitempty"`
 }
+
+// JobTriggerKind job trigger kind (schedule, http, websocket...)
+type JobTriggerKind string
 
 // KafkaTrigger defines model for KafkaTrigger.
 type KafkaTrigger = TriggerExtraProperty
@@ -2501,10 +2601,15 @@ type Login struct {
 	Password string `json:"password"`
 }
 
-// McpToolValue defines model for McpToolValue.
+// McpToolValue Reference to an external MCP (Model Context Protocol) tool. The AI can call tools from MCP servers
 type McpToolValue struct {
-	ExcludeTools *[]string            `json:"exclude_tools,omitempty"`
-	IncludeTools *[]string            `json:"include_tools,omitempty"`
+	// ExcludeTools Blacklist of tools to exclude from this MCP server
+	ExcludeTools *[]string `json:"exclude_tools,omitempty"`
+
+	// IncludeTools Whitelist of specific tools to include from this MCP server
+	IncludeTools *[]string `json:"include_tools,omitempty"`
+
+	// ResourcePath Path to the MCP resource/server configuration
 	ResourcePath string               `json:"resource_path"`
 	ToolType     McpToolValueToolType `json:"tool_type"`
 }
@@ -2556,17 +2661,20 @@ type NatsTrigger = TriggerExtraProperty
 
 // NewEmailTrigger defines model for NewEmailTrigger.
 type NewEmailTrigger struct {
-	Enabled *bool `json:"enabled,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs    *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath    *string     `json:"error_handler_path,omitempty"`
-	IsFlow              bool        `json:"is_flow"`
-	LocalPart           string      `json:"local_part"`
-	Path                string      `json:"path"`
-	Retry               *Retry      `json:"retry,omitempty"`
-	ScriptPath          string      `json:"script_path"`
-	WorkspacedLocalPart *bool       `json:"workspaced_local_part,omitempty"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	IsFlow           bool        `json:"is_flow"`
+	LocalPart        string      `json:"local_part"`
+
+	// Mode job trigger mode
+	Mode *TriggerMode `json:"mode,omitempty"`
+	Path string       `json:"path"`
+
+	// Retry Retry configuration for failed module executions
+	Retry               *Retry `json:"retry,omitempty"`
+	ScriptPath          string `json:"script_path"`
+	WorkspacedLocalPart *bool  `json:"workspaced_local_part,omitempty"`
 }
 
 // NewHttpTrigger defines model for NewHttpTrigger.
@@ -2574,7 +2682,6 @@ type NewHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
 	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
 	Description                *string              `json:"description,omitempty"`
-	Enabled                    *bool                `json:"enabled,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -2582,15 +2689,20 @@ type NewHttpTrigger struct {
 	HttpMethod       HttpMethod  `json:"http_method"`
 
 	// IsAsync Deprecated, use request_type instead
-	IsAsync           *bool            `json:"is_async,omitempty"`
-	IsFlow            bool             `json:"is_flow"`
-	IsStaticWebsite   bool             `json:"is_static_website"`
-	Path              string           `json:"path"`
-	RawString         *bool            `json:"raw_string,omitempty"`
-	RequestType       *HttpRequestType `json:"request_type,omitempty"`
-	Retry             *Retry           `json:"retry,omitempty"`
-	RoutePath         string           `json:"route_path"`
-	ScriptPath        string           `json:"script_path"`
+	IsAsync         *bool `json:"is_async,omitempty"`
+	IsFlow          bool  `json:"is_flow"`
+	IsStaticWebsite bool  `json:"is_static_website"`
+
+	// Mode job trigger mode
+	Mode        *TriggerMode     `json:"mode,omitempty"`
+	Path        string           `json:"path"`
+	RawString   *bool            `json:"raw_string,omitempty"`
+	RequestType *HttpRequestType `json:"request_type,omitempty"`
+
+	// Retry Retry configuration for failed module executions
+	Retry             *Retry `json:"retry,omitempty"`
+	RoutePath         string `json:"route_path"`
+	ScriptPath        string `json:"script_path"`
 	StaticAssetConfig *struct {
 		Filename *string `json:"filename,omitempty"`
 		S3       string  `json:"s3"`
@@ -2603,72 +2715,86 @@ type NewHttpTrigger struct {
 
 // NewKafkaTrigger defines model for NewKafkaTrigger.
 type NewKafkaTrigger struct {
-	Enabled *bool `json:"enabled,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
 	GroupId           string      `json:"group_id"`
 	IsFlow            bool        `json:"is_flow"`
 	KafkaResourcePath string      `json:"kafka_resource_path"`
-	Path              string      `json:"path"`
-	Retry             *Retry      `json:"retry,omitempty"`
-	ScriptPath        string      `json:"script_path"`
-	Topics            []string    `json:"topics"`
+
+	// Mode job trigger mode
+	Mode *TriggerMode `json:"mode,omitempty"`
+	Path string       `json:"path"`
+
+	// Retry Retry configuration for failed module executions
+	Retry      *Retry   `json:"retry,omitempty"`
+	ScriptPath string   `json:"script_path"`
+	Topics     []string `json:"topics"`
 }
 
 // NewMqttTrigger defines model for NewMqttTrigger.
 type NewMqttTrigger struct {
 	ClientId      *string            `json:"client_id,omitempty"`
 	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
-	Enabled       *bool              `json:"enabled,omitempty"`
-
-	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs *ScriptArgs          `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string              `json:"error_handler_path,omitempty"`
-	IsFlow           bool                 `json:"is_flow"`
-	MqttResourcePath string               `json:"mqtt_resource_path"`
-	Path             string               `json:"path"`
-	Retry            *Retry               `json:"retry,omitempty"`
-	ScriptPath       string               `json:"script_path"`
-	SubscribeTopics  []MqttSubscribeTopic `json:"subscribe_topics"`
-	V3Config         *MqttV3Config        `json:"v3_config,omitempty"`
-	V5Config         *MqttV5Config        `json:"v5_config,omitempty"`
-}
-
-// NewNatsTrigger defines model for NewNatsTrigger.
-type NewNatsTrigger struct {
-	ConsumerName *string `json:"consumer_name,omitempty"`
-	Enabled      *bool   `json:"enabled,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
 	IsFlow           bool        `json:"is_flow"`
-	NatsResourcePath string      `json:"nats_resource_path"`
-	Path             string      `json:"path"`
-	Retry            *Retry      `json:"retry,omitempty"`
-	ScriptPath       string      `json:"script_path"`
-	StreamName       *string     `json:"stream_name,omitempty"`
-	Subjects         []string    `json:"subjects"`
-	UseJetstream     bool        `json:"use_jetstream"`
+
+	// Mode job trigger mode
+	Mode             *TriggerMode `json:"mode,omitempty"`
+	MqttResourcePath string       `json:"mqtt_resource_path"`
+	Path             string       `json:"path"`
+
+	// Retry Retry configuration for failed module executions
+	Retry           *Retry               `json:"retry,omitempty"`
+	ScriptPath      string               `json:"script_path"`
+	SubscribeTopics []MqttSubscribeTopic `json:"subscribe_topics"`
+	V3Config        *MqttV3Config        `json:"v3_config,omitempty"`
+	V5Config        *MqttV5Config        `json:"v5_config,omitempty"`
+}
+
+// NewNatsTrigger defines model for NewNatsTrigger.
+type NewNatsTrigger struct {
+	ConsumerName *string `json:"consumer_name,omitempty"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	IsFlow           bool        `json:"is_flow"`
+
+	// Mode job trigger mode
+	Mode             *TriggerMode `json:"mode,omitempty"`
+	NatsResourcePath string       `json:"nats_resource_path"`
+	Path             string       `json:"path"`
+
+	// Retry Retry configuration for failed module executions
+	Retry        *Retry   `json:"retry,omitempty"`
+	ScriptPath   string   `json:"script_path"`
+	StreamName   *string  `json:"stream_name,omitempty"`
+	Subjects     []string `json:"subjects"`
+	UseJetstream bool     `json:"use_jetstream"`
 }
 
 // NewPostgresTrigger defines model for NewPostgresTrigger.
 type NewPostgresTrigger struct {
-	Enabled bool `json:"enabled"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs     *ScriptArgs      `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath     *string          `json:"error_handler_path,omitempty"`
-	IsFlow               bool             `json:"is_flow"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	IsFlow           bool        `json:"is_flow"`
+
+	// Mode job trigger mode
+	Mode                 *TriggerMode     `json:"mode,omitempty"`
 	Path                 string           `json:"path"`
 	PostgresResourcePath string           `json:"postgres_resource_path"`
 	Publication          *PublicationData `json:"publication,omitempty"`
 	PublicationName      *string          `json:"publication_name,omitempty"`
 	ReplicationSlotName  *string          `json:"replication_slot_name,omitempty"`
-	Retry                *Retry           `json:"retry,omitempty"`
-	ScriptPath           string           `json:"script_path"`
+
+	// Retry Retry configuration for failed module executions
+	Retry      *Retry `json:"retry,omitempty"`
+	ScriptPath string `json:"script_path"`
 }
 
 // NewSchedule defines model for NewSchedule.
@@ -2726,7 +2852,9 @@ type NewSchedule struct {
 
 	// PausedUntil The date and time the schedule will be paused until
 	PausedUntil *time.Time `json:"paused_until,omitempty"`
-	Retry       *Retry     `json:"retry,omitempty"`
+
+	// Retry Retry configuration for failed module executions
+	Retry *Retry `json:"retry,omitempty"`
 
 	// Schedule The cron schedule to trigger the script or flow. Should include seconds.
 	Schedule string `json:"schedule"`
@@ -2755,6 +2883,7 @@ type NewScript struct {
 		Kind          AssetKind                     `json:"kind"`
 		Path          string                        `json:"path"`
 	} `json:"assets,omitempty"`
+	CacheIgnoreS3Path      *bool                   `json:"cache_ignore_s3_path,omitempty"`
 	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
 	Codebase               *string                 `json:"codebase,omitempty"`
 	ConcurrencyKey         *string                 `json:"concurrency_key,omitempty"`
@@ -2805,6 +2934,7 @@ type NewScriptWithDraft struct {
 		Kind          AssetKind                              `json:"kind"`
 		Path          string                                 `json:"path"`
 	} `json:"assets,omitempty"`
+	CacheIgnoreS3Path      *bool                   `json:"cache_ignore_s3_path,omitempty"`
 	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
 	Codebase               *string                 `json:"codebase,omitempty"`
 	ConcurrencyKey         *string                 `json:"concurrency_key,omitempty"`
@@ -2853,17 +2983,21 @@ type NewScriptWithDraftKind string
 type NewSqsTrigger struct {
 	AwsAuthResourceType AwsAuthResourceType `json:"aws_auth_resource_type"`
 	AwsResourcePath     string              `json:"aws_resource_path"`
-	Enabled             *bool               `json:"enabled,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
 	IsFlow            bool        `json:"is_flow"`
 	MessageAttributes *[]string   `json:"message_attributes,omitempty"`
-	Path              string      `json:"path"`
-	QueueUrl          string      `json:"queue_url"`
-	Retry             *Retry      `json:"retry,omitempty"`
-	ScriptPath        string      `json:"script_path"`
+
+	// Mode job trigger mode
+	Mode     *TriggerMode `json:"mode,omitempty"`
+	Path     string       `json:"path"`
+	QueueUrl string       `json:"queue_url"`
+
+	// Retry Retry configuration for failed module executions
+	Retry      *Retry `json:"retry,omitempty"`
+	ScriptPath string `json:"script_path"`
 }
 
 // NewToken defines model for NewToken.
@@ -2884,9 +3018,8 @@ type NewTokenImpersonate struct {
 
 // NewWebsocketTrigger defines model for NewWebsocketTrigger.
 type NewWebsocketTrigger struct {
-	CanReturnErrorResult bool  `json:"can_return_error_result"`
-	CanReturnMessage     bool  `json:"can_return_message"`
-	Enabled              *bool `json:"enabled,omitempty"`
+	CanReturnErrorResult bool `json:"can_return_error_result"`
+	CanReturnMessage     bool `json:"can_return_message"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -2897,10 +3030,15 @@ type NewWebsocketTrigger struct {
 	} `json:"filters"`
 	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
 	IsFlow          bool                              `json:"is_flow"`
-	Path            string                            `json:"path"`
-	Retry           *Retry                            `json:"retry,omitempty"`
-	ScriptPath      string                            `json:"script_path"`
-	Url             string                            `json:"url"`
+
+	// Mode job trigger mode
+	Mode *TriggerMode `json:"mode,omitempty"`
+	Path string       `json:"path"`
+
+	// Retry Retry configuration for failed module executions
+	Retry      *Retry `json:"retry,omitempty"`
+	ScriptPath string `json:"script_path"`
+	Url        string `json:"url"`
 
 	// UrlRunnableArgs The arguments to pass to the script or flow
 	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
@@ -2922,28 +3060,43 @@ type ObscuredJob struct {
 	Typ        *string    `json:"typ,omitempty"`
 }
 
-// OpenFlow defines model for OpenFlow.
+// OpenFlow Top-level flow definition containing metadata, configuration, and the flow structure
 type OpenFlow struct {
-	Description *string                 `json:"description,omitempty"`
-	Schema      *map[string]interface{} `json:"schema,omitempty"`
-	Summary     string                  `json:"summary"`
-	Value       SchemasFlowValue        `json:"value"`
+	// Description Detailed documentation for this flow
+	Description *string `json:"description,omitempty"`
+
+	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+	Schema *map[string]interface{} `json:"schema,omitempty"`
+
+	// Summary Short description of what this flow does
+	Summary string `json:"summary"`
+
+	// Value The flow structure containing modules and optional preprocessor/failure handlers
+	Value SchemasFlowValue `json:"value"`
 }
 
 // OpenFlowWPath defines model for OpenFlowWPath.
 type OpenFlowWPath struct {
-	DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
-	Description         *string                 `json:"description,omitempty"`
-	OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
-	Path                string                  `json:"path"`
-	Priority            *int                    `json:"priority,omitempty"`
-	Schema              *map[string]interface{} `json:"schema,omitempty"`
-	Summary             string                  `json:"summary"`
-	Tag                 *string                 `json:"tag,omitempty"`
-	Timeout             *float32                `json:"timeout,omitempty"`
-	Value               SchemasFlowValue        `json:"value"`
-	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
-	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+	DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
+
+	// Description Detailed documentation for this flow
+	Description     *string `json:"description,omitempty"`
+	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+	Path            string  `json:"path"`
+	Priority        *int    `json:"priority,omitempty"`
+
+	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+	Schema *map[string]interface{} `json:"schema,omitempty"`
+
+	// Summary Short description of what this flow does
+	Summary string   `json:"summary"`
+	Tag     *string  `json:"tag,omitempty"`
+	Timeout *float32 `json:"timeout,omitempty"`
+
+	// Value The flow structure containing modules and optional preprocessor/failure handlers
+	Value               SchemasFlowValue `json:"value"`
+	VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
+	WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
 }
 
 // OpenapiHttpRouteFilters defines model for OpenapiHttpRouteFilters.
@@ -3055,6 +3208,16 @@ type Preview struct {
 // PreviewKind defines model for Preview.Kind.
 type PreviewKind string
 
+// PreviewInline defines model for PreviewInline.
+type PreviewInline struct {
+	// Args The arguments to pass to the script or flow
+	Args ScriptArgs `json:"args"`
+
+	// Content The code to run
+	Content  string     `json:"content"`
+	Language ScriptLang `json:"language"`
+}
+
 // PublicationData defines model for PublicationData.
 type PublicationData struct {
 	TableToTrack       *[]Relations `json:"table_to_track,omitempty"`
@@ -3091,10 +3254,12 @@ type QueuedJob struct {
 
 	// PermissionedAs The user (u/userfoo) or group (g/groupfoo) whom
 	// the execution of this script will be permissioned_as and by extension its DT_TOKEN.
-	PermissionedAs       string          `json:"permissioned_as"`
-	Preprocessed         *bool           `json:"preprocessed,omitempty"`
-	Priority             *int            `json:"priority,omitempty"`
-	RawCode              *string         `json:"raw_code,omitempty"`
+	PermissionedAs string  `json:"permissioned_as"`
+	Preprocessed   *bool   `json:"preprocessed,omitempty"`
+	Priority       *int    `json:"priority,omitempty"`
+	RawCode        *string `json:"raw_code,omitempty"`
+
+	// RawFlow The flow structure containing modules and optional preprocessor/failure handlers
 	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
 	Running              bool            `json:"running"`
 	SchedulePath         *string         `json:"schedule_path,omitempty"`
@@ -3158,23 +3323,39 @@ type RestartedFrom struct {
 	StepId             *string             `json:"step_id,omitempty"`
 }
 
-// Retry defines model for Retry.
+// Retry Retry configuration for failed module executions
 type Retry struct {
+	// Constant Retry with constant delay between attempts
 	Constant *struct {
+		// Attempts Number of retry attempts
 		Attempts *int `json:"attempts,omitempty"`
-		Seconds  *int `json:"seconds,omitempty"`
+
+		// Seconds Seconds to wait between retries
+		Seconds *int `json:"seconds,omitempty"`
 	} `json:"constant,omitempty"`
+
+	// Exponential Retry with exponential backoff (delay doubles each time)
 	Exponential *struct {
-		Attempts     *int `json:"attempts,omitempty"`
-		Multiplier   *int `json:"multiplier,omitempty"`
+		// Attempts Number of retry attempts
+		Attempts *int `json:"attempts,omitempty"`
+
+		// Multiplier Multiplier for exponential backoff
+		Multiplier *int `json:"multiplier,omitempty"`
+
+		// RandomFactor Random jitter percentage (0-100) to avoid thundering herd
 		RandomFactor *int `json:"random_factor,omitempty"`
-		Seconds      *int `json:"seconds,omitempty"`
+
+		// Seconds Initial delay in seconds
+		Seconds *int `json:"seconds,omitempty"`
 	} `json:"exponential,omitempty"`
+
+	// RetryIf Conditional retry based on error or result
 	RetryIf *RetryIf `json:"retry_if,omitempty"`
 }
 
-// RetryIf defines model for RetryIf.
+// RetryIf Conditional retry based on error or result
 type RetryIf struct {
+	// Expr JavaScript expression that returns true to retry. Has access to 'result' and 'error' variables
 	Expr string `json:"expr"`
 }
 
@@ -3246,16 +3427,18 @@ type Schedule struct {
 	OnSuccess           *string     `json:"on_success,omitempty"`
 
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
-	OnSuccessExtraArgs  *ScriptArgs `json:"on_success_extra_args,omitempty"`
-	Path                string      `json:"path"`
-	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
-	Retry               *Retry      `json:"retry,omitempty"`
-	Schedule            string      `json:"schedule"`
-	ScriptPath          string      `json:"script_path"`
-	Summary             *string     `json:"summary,omitempty"`
-	Tag                 *string     `json:"tag,omitempty"`
-	Timezone            string      `json:"timezone"`
-	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
+	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
+	Path               string      `json:"path"`
+	PausedUntil        *time.Time  `json:"paused_until,omitempty"`
+
+	// Retry Retry configuration for failed module executions
+	Retry               *Retry  `json:"retry,omitempty"`
+	Schedule            string  `json:"schedule"`
+	ScriptPath          string  `json:"script_path"`
+	Summary             *string `json:"summary,omitempty"`
+	Tag                 *string `json:"tag,omitempty"`
+	Timezone            string  `json:"timezone"`
+	WsErrorHandlerMuted *bool   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // ScheduleWJobs defines model for ScheduleWJobs.
@@ -3294,16 +3477,18 @@ type ScheduleWJobs struct {
 	OnSuccess           *string     `json:"on_success,omitempty"`
 
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
-	OnSuccessExtraArgs  *ScriptArgs `json:"on_success_extra_args,omitempty"`
-	Path                string      `json:"path"`
-	PausedUntil         *time.Time  `json:"paused_until,omitempty"`
-	Retry               *Retry      `json:"retry,omitempty"`
-	Schedule            string      `json:"schedule"`
-	ScriptPath          string      `json:"script_path"`
-	Summary             *string     `json:"summary,omitempty"`
-	Tag                 *string     `json:"tag,omitempty"`
-	Timezone            string      `json:"timezone"`
-	WsErrorHandlerMuted *bool       `json:"ws_error_handler_muted,omitempty"`
+	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
+	Path               string      `json:"path"`
+	PausedUntil        *time.Time  `json:"paused_until,omitempty"`
+
+	// Retry Retry configuration for failed module executions
+	Retry               *Retry  `json:"retry,omitempty"`
+	Schedule            string  `json:"schedule"`
+	ScriptPath          string  `json:"script_path"`
+	Summary             *string `json:"summary,omitempty"`
+	Tag                 *string `json:"tag,omitempty"`
+	Timezone            string  `json:"timezone"`
+	WsErrorHandlerMuted *bool   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // ScopeDefinition defines model for ScopeDefinition.
@@ -3428,23 +3613,28 @@ type TokenResponse struct {
 	Scope        *[]string `json:"scope,omitempty"`
 }
 
-// ToolValue defines model for ToolValue.
+// ToolValue The implementation of a tool. Can be a flow module (script/flow) or an MCP tool reference
 type ToolValue struct {
 	union json.RawMessage
 }
 
 // TriggerExtraProperty defines model for TriggerExtraProperty.
 type TriggerExtraProperty struct {
-	EditedAt    time.Time       `json:"edited_at"`
-	EditedBy    string          `json:"edited_by"`
-	Email       string          `json:"email"`
-	Enabled     bool            `json:"enabled"`
-	ExtraPerms  map[string]bool `json:"extra_perms"`
-	IsFlow      bool            `json:"is_flow"`
-	Path        string          `json:"path"`
-	ScriptPath  string          `json:"script_path"`
-	WorkspaceId string          `json:"workspace_id"`
+	EditedAt   time.Time       `json:"edited_at"`
+	EditedBy   string          `json:"edited_by"`
+	Email      string          `json:"email"`
+	ExtraPerms map[string]bool `json:"extra_perms"`
+	IsFlow     bool            `json:"is_flow"`
+
+	// Mode job trigger mode
+	Mode        TriggerMode `json:"mode"`
+	Path        string      `json:"path"`
+	ScriptPath  string      `json:"script_path"`
+	WorkspaceId string      `json:"workspace_id"`
 }
+
+// TriggerMode job trigger mode
+type TriggerMode string
 
 // TriggersCount defines model for TriggersCount.
 type TriggersCount struct {
@@ -3687,24 +3877,67 @@ type WorkspaceInvite struct {
 	WorkspaceId       string  `json:"workspace_id"`
 }
 
-// SchemasAiAgent defines model for schemas-AiAgent.
+// SchemasAiAgent AI agent step that can use tools to accomplish tasks. The agent receives inputs and can call any of its configured tools to complete the task
 type SchemasAiAgent struct {
-	InputTransforms map[string]SchemasInputTransform `json:"input_transforms"`
-	Parallel        *bool                            `json:"parallel,omitempty"`
-	Tools           []AgentTool                      `json:"tools"`
-	Type            SchemasAiAgentType               `json:"type"`
+	// InputTransforms Input parameters for the AI agent mapped to their values
+	InputTransforms struct {
+		// MaxCompletionTokens Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		MaxCompletionTokens *SchemasInputTransform `json:"max_completion_tokens,omitempty"`
+
+		// MessagesContextLength Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		MessagesContextLength *SchemasInputTransform `json:"messages_context_length,omitempty"`
+
+		// OutputSchema Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		OutputSchema *SchemasInputTransform `json:"output_schema,omitempty"`
+
+		// OutputType Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		OutputType SchemasInputTransform `json:"output_type"`
+
+		// Provider Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		Provider SchemasInputTransform `json:"provider"`
+
+		// Streaming Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		Streaming *SchemasInputTransform `json:"streaming,omitempty"`
+
+		// SystemPrompt Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		SystemPrompt *SchemasInputTransform `json:"system_prompt,omitempty"`
+
+		// Temperature Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		Temperature *SchemasInputTransform `json:"temperature,omitempty"`
+
+		// UserImages Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		UserImages *SchemasInputTransform `json:"user_images,omitempty"`
+
+		// UserMessage Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		UserMessage SchemasInputTransform `json:"user_message"`
+	} `json:"input_transforms"`
+
+	// Parallel If true, the agent can execute multiple tool calls in parallel
+	Parallel *bool `json:"parallel,omitempty"`
+
+	// Tools Array of tools the agent can use. The agent decides which tools to call based on the task
+	Tools []AgentTool        `json:"tools"`
+	Type  SchemasAiAgentType `json:"type"`
 }
 
 // SchemasAiAgentType defines model for SchemasAiAgent.Type.
 type SchemasAiAgentType string
 
-// SchemasBranchAll defines model for schemas-BranchAll.
+// SchemasBranchAll Parallel branching where all branches execute simultaneously. Unlike BranchOne, all branches run regardless of conditions. Useful for executing independent tasks concurrently
 type SchemasBranchAll struct {
+	// Branches Array of branches that all execute (either in parallel or sequentially)
 	Branches []struct {
-		Modules     []SchemasFlowModule `json:"modules"`
-		SkipFailure *bool               `json:"skip_failure,omitempty"`
-		Summary     *string             `json:"summary,omitempty"`
+		// Modules Steps to execute in this branch
+		Modules []SchemasFlowModule `json:"modules"`
+
+		// SkipFailure If true, failure in this branch doesn't fail the entire flow
+		SkipFailure *bool `json:"skip_failure,omitempty"`
+
+		// Summary Short description of this branch's purpose
+		Summary *string `json:"summary,omitempty"`
 	} `json:"branches"`
+
+	// Parallel If true, all branches execute concurrently. If false, they execute sequentially
 	Parallel *bool                `json:"parallel,omitempty"`
 	Type     SchemasBranchAllType `json:"type"`
 }
@@ -3712,13 +3945,21 @@ type SchemasBranchAll struct {
 // SchemasBranchAllType defines model for SchemasBranchAll.Type.
 type SchemasBranchAllType string
 
-// SchemasBranchOne defines model for schemas-BranchOne.
+// SchemasBranchOne Conditional branching where only the first matching branch executes. Branches are evaluated in order, and the first one with a true expression runs. If no branches match, the default branch executes
 type SchemasBranchOne struct {
+	// Branches Array of branches to evaluate in order. The first branch with expr evaluating to true executes
 	Branches []struct {
-		Expr    string              `json:"expr"`
+		// Expr JavaScript expression that returns boolean. Can use 'results.step_id' or 'flow_input'. First true expr wins
+		Expr string `json:"expr"`
+
+		// Modules Steps to execute if this branch's expr is true
 		Modules []SchemasFlowModule `json:"modules"`
-		Summary *string             `json:"summary,omitempty"`
+
+		// Summary Short description of this branch condition
+		Summary *string `json:"summary,omitempty"`
 	} `json:"branches"`
+
+	// Default Steps to execute if no branch expressions match
 	Default []SchemasFlowModule  `json:"default"`
 	Type    SchemasBranchOneType `json:"type"`
 }
@@ -3726,42 +3967,93 @@ type SchemasBranchOne struct {
 // SchemasBranchOneType defines model for SchemasBranchOne.Type.
 type SchemasBranchOneType string
 
-// SchemasFlowModule defines model for schemas-FlowModule.
+// SchemasFlowModule A single step in a flow. Can be a script, subflow, loop, or branch
 type SchemasFlowModule struct {
-	CacheTtl        *float32 `json:"cache_ttl,omitempty"`
-	ContinueOnError *bool    `json:"continue_on_error,omitempty"`
-	DeleteAfterUse  *bool    `json:"delete_after_use,omitempty"`
-	Id              string   `json:"id"`
-	Mock            *struct {
-		Enabled     *bool        `json:"enabled,omitempty"`
+	CacheIgnoreS3Path *bool `json:"cache_ignore_s3_path,omitempty"`
+
+	// CacheTtl Cache duration in seconds for this step's results
+	CacheTtl *float32 `json:"cache_ttl,omitempty"`
+
+	// ContinueOnError If true, flow continues even if this step fails
+	ContinueOnError *bool `json:"continue_on_error,omitempty"`
+
+	// DeleteAfterUse If true, this step's result is deleted after use to save memory
+	DeleteAfterUse *bool `json:"delete_after_use,omitempty"`
+
+	// Id Unique identifier for this step. Used to reference results via 'results.step_id'. Must be a valid identifier (alphanumeric, underscore, hyphen)
+	Id string `json:"id"`
+
+	// Mock Mock configuration for testing without executing the actual step
+	Mock *struct {
+		// Enabled If true, return mock value instead of executing
+		Enabled *bool `json:"enabled,omitempty"`
+
+		// ReturnValue Value to return when mocked
 		ReturnValue *interface{} `json:"return_value,omitempty"`
 	} `json:"mock,omitempty"`
-	Priority *float32      `json:"priority,omitempty"`
-	Retry    *SchemasRetry `json:"retry,omitempty"`
-	SkipIf   *struct {
+
+	// Priority Execution priority for this step (higher numbers run first)
+	Priority *float32 `json:"priority,omitempty"`
+
+	// Retry Retry configuration for failed module executions
+	Retry *SchemasRetry `json:"retry,omitempty"`
+
+	// SkipIf Conditionally skip this step based on previous results or flow inputs
+	SkipIf *struct {
+		// Expr JavaScript expression that returns true to skip. Can use 'flow_input' or 'results.<step_id>'
 		Expr string `json:"expr"`
 	} `json:"skip_if,omitempty"`
-	Sleep               *SchemasInputTransform `json:"sleep,omitempty"`
-	StopAfterAllItersIf *SchemasStopAfterIf    `json:"stop_after_all_iters_if,omitempty"`
-	StopAfterIf         *SchemasStopAfterIf    `json:"stop_after_if,omitempty"`
-	Summary             *string                `json:"summary,omitempty"`
-	Suspend             *struct {
+
+	// Sleep Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+	Sleep *SchemasInputTransform `json:"sleep,omitempty"`
+
+	// StopAfterAllItersIf Early termination condition for a module
+	StopAfterAllItersIf *SchemasStopAfterIf `json:"stop_after_all_iters_if,omitempty"`
+
+	// StopAfterIf Early termination condition for a module
+	StopAfterIf *SchemasStopAfterIf `json:"stop_after_if,omitempty"`
+
+	// Summary Short description of what this step does
+	Summary *string `json:"summary,omitempty"`
+
+	// Suspend Configuration for approval/resume steps that wait for user input
+	Suspend *struct {
+		// ContinueOnDisapproveTimeout If true, continue flow on timeout instead of canceling
 		ContinueOnDisapproveTimeout *bool `json:"continue_on_disapprove_timeout,omitempty"`
-		HideCancel                  *bool `json:"hide_cancel,omitempty"`
-		RequiredEvents              *int  `json:"required_events,omitempty"`
-		ResumeForm                  *struct {
+
+		// HideCancel If true, hide the cancel button on the approval form
+		HideCancel *bool `json:"hide_cancel,omitempty"`
+
+		// RequiredEvents Number of approvals required before continuing
+		RequiredEvents *int `json:"required_events,omitempty"`
+
+		// ResumeForm Form schema for collecting input when resuming
+		ResumeForm *struct {
+			// Schema JSON Schema for the resume form
 			Schema *map[string]interface{} `json:"schema,omitempty"`
 		} `json:"resume_form,omitempty"`
-		SelfApprovalDisabled *bool                  `json:"self_approval_disabled,omitempty"`
-		Timeout              *int                   `json:"timeout,omitempty"`
-		UserAuthRequired     *bool                  `json:"user_auth_required,omitempty"`
-		UserGroupsRequired   *SchemasInputTransform `json:"user_groups_required,omitempty"`
+
+		// SelfApprovalDisabled If true, the user who started the flow cannot approve
+		SelfApprovalDisabled *bool `json:"self_approval_disabled,omitempty"`
+
+		// Timeout Timeout in seconds before auto-continuing or canceling
+		Timeout *int `json:"timeout,omitempty"`
+
+		// UserAuthRequired If true, only authenticated users can approve
+		UserAuthRequired *bool `json:"user_auth_required,omitempty"`
+
+		// UserGroupsRequired Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		UserGroupsRequired *SchemasInputTransform `json:"user_groups_required,omitempty"`
 	} `json:"suspend,omitempty"`
+
+	// Timeout Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
 	Timeout *SchemasInputTransform `json:"timeout,omitempty"`
-	Value   SchemasFlowModuleValue `json:"value"`
+
+	// Value The actual implementation of a flow step. Can be a script (inline or referenced), subflow, loop, branch, or special module type
+	Value SchemasFlowModuleValue `json:"value"`
 }
 
-// SchemasFlowModuleValue defines model for schemas-FlowModuleValue.
+// SchemasFlowModuleValue The actual implementation of a flow step. Can be a script (inline or referenced), subflow, loop, branch, or special module type
 type SchemasFlowModuleValue struct {
 	union json.RawMessage
 }
@@ -3886,36 +4178,74 @@ type SchemasFlowStatusModuleBranchChosenType string
 // SchemasFlowStatusModuleType defines model for SchemasFlowStatusModule.Type.
 type SchemasFlowStatusModuleType string
 
-// SchemasFlowValue defines model for schemas-FlowValue.
+// SchemasFlowValue The flow structure containing modules and optional preprocessor/failure handlers
 type SchemasFlowValue struct {
+	CacheIgnoreS3Path *bool `json:"cache_ignore_s3_path,omitempty"`
+
+	// CacheTtl Cache duration in seconds for flow results
 	CacheTtl *float32 `json:"cache_ttl,omitempty"`
 
 	// ChatInputEnabled Whether this flow accepts chat-style input
-	ChatInputEnabled       *bool               `json:"chat_input_enabled,omitempty"`
-	ConcurrencyKey         *string             `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS *float32            `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *float32            `json:"concurrent_limit,omitempty"`
-	DebounceDelayS         *float32            `json:"debounce_delay_s,omitempty"`
-	DebounceKey            *string             `json:"debounce_key,omitempty"`
-	EarlyReturn            *string             `json:"early_return,omitempty"`
-	FailureModule          *SchemasFlowModule  `json:"failure_module,omitempty"`
-	FlowEnv                *map[string]string  `json:"flow_env,omitempty"`
-	Modules                []SchemasFlowModule `json:"modules"`
+	ChatInputEnabled *bool `json:"chat_input_enabled,omitempty"`
+
+	// ConcurrencyKey Expression to group concurrent executions (e.g., by user ID)
+	ConcurrencyKey *string `json:"concurrency_key,omitempty"`
+
+	// ConcurrencyTimeWindowS Time window in seconds for concurrent_limit
+	ConcurrencyTimeWindowS *float32 `json:"concurrency_time_window_s,omitempty"`
+
+	// ConcurrentLimit Maximum number of concurrent executions of this flow
+	ConcurrentLimit *float32 `json:"concurrent_limit,omitempty"`
+
+	// DebounceDelayS Delay in seconds to debounce flow executions
+	DebounceDelayS *float32 `json:"debounce_delay_s,omitempty"`
+
+	// DebounceKey Expression to group debounced executions
+	DebounceKey *string `json:"debounce_key,omitempty"`
+
+	// EarlyReturn JavaScript expression to return early from the flow
+	EarlyReturn *string `json:"early_return,omitempty"`
+
+	// FailureModule A single step in a flow. Can be a script, subflow, loop, or branch
+	FailureModule *SchemasFlowModule `json:"failure_module,omitempty"`
+
+	// FlowEnv Environment variables available to all steps
+	FlowEnv *map[string]string `json:"flow_env,omitempty"`
+
+	// Modules Array of steps that execute in sequence. Each step can be a script, subflow, loop, or branch
+	Modules []SchemasFlowModule `json:"modules"`
 
 	// Notes Sticky notes attached to the flow
-	Notes              *[]SchemasFlowNote `json:"notes,omitempty"`
+	Notes *[]SchemasFlowNote `json:"notes,omitempty"`
+
+	// PreprocessorModule A single step in a flow. Can be a script, subflow, loop, or branch
 	PreprocessorModule *SchemasFlowModule `json:"preprocessor_module,omitempty"`
-	Priority           *float32           `json:"priority,omitempty"`
-	SameWorker         *bool              `json:"same_worker,omitempty"`
-	SkipExpr           *string            `json:"skip_expr,omitempty"`
+
+	// Priority Execution priority (higher numbers run first)
+	Priority *float32 `json:"priority,omitempty"`
+
+	// SameWorker If true, all steps run on the same worker for better performance
+	SameWorker *bool `json:"same_worker,omitempty"`
+
+	// SkipExpr JavaScript expression to conditionally skip the entire flow
+	SkipExpr *string `json:"skip_expr,omitempty"`
 }
 
-// SchemasForloopFlow defines model for schemas-ForloopFlow.
+// SchemasForloopFlow Executes nested modules in a loop over an iterator. Inside the loop, use 'flow_input.iter.value' to access the current iteration value, and 'flow_input.iter.index' for the index. Supports parallel execution for better performance on I/O-bound operations
 type SchemasForloopFlow struct {
-	Iterator     SchemasInputTransform  `json:"iterator"`
-	Modules      []SchemasFlowModule    `json:"modules"`
-	Parallel     *bool                  `json:"parallel,omitempty"`
-	Parallelism  *SchemasInputTransform `json:"parallelism,omitempty"`
+	// Iterator Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+	Iterator SchemasInputTransform `json:"iterator"`
+
+	// Modules Steps to execute for each iteration. These can reference the iteration value via 'flow_input.iter.value'
+	Modules []SchemasFlowModule `json:"modules"`
+
+	// Parallel If true, iterations run concurrently (faster for I/O-bound operations). Use with parallelism to control concurrency
+	Parallel *bool `json:"parallel,omitempty"`
+
+	// Parallelism Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+	Parallelism *SchemasInputTransform `json:"parallelism,omitempty"`
+
+	// SkipFailures If true, iteration failures don't stop the loop. Failed iterations return null
 	SkipFailures bool                   `json:"skip_failures"`
 	Squash       *bool                  `json:"squash,omitempty"`
 	Type         SchemasForloopFlowType `json:"type"`
@@ -3924,8 +4254,9 @@ type SchemasForloopFlow struct {
 // SchemasForloopFlowType defines model for SchemasForloopFlow.Type.
 type SchemasForloopFlowType string
 
-// SchemasIdentity defines model for schemas-Identity.
+// SchemasIdentity Pass-through module that returns its input unchanged. Useful for flow structure or as a placeholder
 type SchemasIdentity struct {
+	// Flow If true, marks this as a flow identity (special handling)
 	Flow *bool               `json:"flow,omitempty"`
 	Type SchemasIdentityType `json:"type"`
 }
@@ -3933,13 +4264,14 @@ type SchemasIdentity struct {
 // SchemasIdentityType defines model for SchemasIdentity.Type.
 type SchemasIdentityType string
 
-// SchemasInputTransform defines model for schemas-InputTransform.
+// SchemasInputTransform Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
 type SchemasInputTransform struct {
 	union json.RawMessage
 }
 
-// SchemasJavascriptTransform defines model for schemas-JavascriptTransform.
+// SchemasJavascriptTransform JavaScript expression evaluated at runtime. Can reference previous step results via 'results.step_id' or flow inputs via 'flow_input.property'. Inside loops, use 'flow_input.iter.value' for the current iteration value
 type SchemasJavascriptTransform struct {
+	// Expr JavaScript expression returning the value. Available variables - results (object with all previous step results), flow_input (flow inputs), flow_input.iter (in loops)
 	Expr string                         `json:"expr"`
 	Type SchemasJavascriptTransformType `json:"type"`
 }
@@ -3947,101 +4279,170 @@ type SchemasJavascriptTransform struct {
 // SchemasJavascriptTransformType defines model for SchemasJavascriptTransform.Type.
 type SchemasJavascriptTransformType string
 
-// SchemasPathFlow defines model for schemas-PathFlow.
+// SchemasPathFlow Reference to an existing flow by path. Use this to call another flow as a subflow
 type SchemasPathFlow struct {
+	// InputTransforms Map of parameter names to their values (static or JavaScript expressions). These become the subflow's input arguments
 	InputTransforms map[string]SchemasInputTransform `json:"input_transforms"`
-	Path            string                           `json:"path"`
-	Type            SchemasPathFlowType              `json:"type"`
+
+	// Path Path to the flow in the workspace (e.g., 'f/flows/process_user')
+	Path string              `json:"path"`
+	Type SchemasPathFlowType `json:"type"`
 }
 
 // SchemasPathFlowType defines model for SchemasPathFlow.Type.
 type SchemasPathFlowType string
 
-// SchemasPathScript defines model for schemas-PathScript.
+// SchemasPathScript Reference to an existing script by path. Use this when calling a previously saved script instead of writing inline code
 type SchemasPathScript struct {
-	Hash            *string                          `json:"hash,omitempty"`
+	// Hash Optional specific version hash of the script to use
+	Hash *string `json:"hash,omitempty"`
+
+	// InputTransforms Map of parameter names to their values (static or JavaScript expressions). These become the script's input arguments
 	InputTransforms map[string]SchemasInputTransform `json:"input_transforms"`
-	IsTrigger       *bool                            `json:"is_trigger,omitempty"`
-	Path            string                           `json:"path"`
-	TagOverride     *string                          `json:"tag_override,omitempty"`
-	Type            SchemasPathScriptType            `json:"type"`
+
+	// IsTrigger If true, this script is a trigger that can start the flow
+	IsTrigger *bool `json:"is_trigger,omitempty"`
+
+	// Path Path to the script in the workspace (e.g., 'f/scripts/send_email')
+	Path string `json:"path"`
+
+	// TagOverride Override the script's default worker group tag
+	TagOverride *string               `json:"tag_override,omitempty"`
+	Type        SchemasPathScriptType `json:"type"`
 }
 
 // SchemasPathScriptType defines model for SchemasPathScript.Type.
 type SchemasPathScriptType string
 
-// SchemasRawScript defines model for schemas-RawScript.
+// SchemasRawScript Inline script with code defined directly in the flow. Use 'bun' as default language if unspecified. The script receives arguments from input_transforms
 type SchemasRawScript struct {
+	// Assets External resources this script accesses (S3 objects, resources, etc.)
 	Assets *[]struct {
-		AccessType    *SchemasRawScriptAssetsAccessType    `json:"access_type,omitempty"`
+		// AccessType Access level for this asset
+		AccessType *SchemasRawScriptAssetsAccessType `json:"access_type,omitempty"`
+
+		// AltAccessType Alternative access level
 		AltAccessType *SchemasRawScriptAssetsAltAccessType `json:"alt_access_type,omitempty"`
-		Kind          SchemasRawScriptAssetsKind           `json:"kind"`
-		Path          string                               `json:"path"`
+
+		// Kind Type of asset
+		Kind SchemasRawScriptAssetsKind `json:"kind"`
+
+		// Path Path to the asset
+		Path string `json:"path"`
 	} `json:"assets,omitempty"`
-	ConcurrencyTimeWindowS *float32                         `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *float32                         `json:"concurrent_limit,omitempty"`
-	Content                string                           `json:"content"`
-	CustomConcurrencyKey   *string                          `json:"custom_concurrency_key,omitempty"`
-	InputTransforms        map[string]SchemasInputTransform `json:"input_transforms"`
-	IsTrigger              *bool                            `json:"is_trigger,omitempty"`
-	Language               SchemasRawScriptLanguage         `json:"language"`
-	Lock                   *string                          `json:"lock,omitempty"`
-	Path                   *string                          `json:"path,omitempty"`
-	Tag                    *string                          `json:"tag,omitempty"`
-	Type                   SchemasRawScriptType             `json:"type"`
+
+	// ConcurrencyTimeWindowS Time window for concurrent_limit
+	ConcurrencyTimeWindowS *float32 `json:"concurrency_time_window_s,omitempty"`
+
+	// ConcurrentLimit Maximum concurrent executions of this script
+	ConcurrentLimit *float32 `json:"concurrent_limit,omitempty"`
+
+	// Content The script source code. Should export a 'main' function
+	Content string `json:"content"`
+
+	// CustomConcurrencyKey Custom key for grouping concurrent executions
+	CustomConcurrencyKey *string `json:"custom_concurrency_key,omitempty"`
+
+	// InputTransforms Map of parameter names to their values (static or JavaScript expressions). These become the script's input arguments
+	InputTransforms map[string]SchemasInputTransform `json:"input_transforms"`
+
+	// IsTrigger If true, this script is a trigger that can start the flow
+	IsTrigger *bool `json:"is_trigger,omitempty"`
+
+	// Language Programming language for this script
+	Language SchemasRawScriptLanguage `json:"language"`
+
+	// Lock Lock file content for dependencies
+	Lock *string `json:"lock,omitempty"`
+
+	// Path Optional path for saving this script
+	Path *string `json:"path,omitempty"`
+
+	// Tag Worker group tag for execution routing
+	Tag  *string              `json:"tag,omitempty"`
+	Type SchemasRawScriptType `json:"type"`
 }
 
-// SchemasRawScriptAssetsAccessType defines model for SchemasRawScript.Assets.AccessType.
+// SchemasRawScriptAssetsAccessType Access level for this asset
 type SchemasRawScriptAssetsAccessType string
 
-// SchemasRawScriptAssetsAltAccessType defines model for SchemasRawScript.Assets.AltAccessType.
+// SchemasRawScriptAssetsAltAccessType Alternative access level
 type SchemasRawScriptAssetsAltAccessType string
 
-// SchemasRawScriptAssetsKind defines model for SchemasRawScript.Assets.Kind.
+// SchemasRawScriptAssetsKind Type of asset
 type SchemasRawScriptAssetsKind string
 
-// SchemasRawScriptLanguage defines model for SchemasRawScript.Language.
+// SchemasRawScriptLanguage Programming language for this script
 type SchemasRawScriptLanguage string
 
 // SchemasRawScriptType defines model for SchemasRawScript.Type.
 type SchemasRawScriptType string
 
-// SchemasRetry defines model for schemas-Retry.
+// SchemasRetry Retry configuration for failed module executions
 type SchemasRetry struct {
+	// Constant Retry with constant delay between attempts
 	Constant *struct {
+		// Attempts Number of retry attempts
 		Attempts *int `json:"attempts,omitempty"`
-		Seconds  *int `json:"seconds,omitempty"`
+
+		// Seconds Seconds to wait between retries
+		Seconds *int `json:"seconds,omitempty"`
 	} `json:"constant,omitempty"`
+
+	// Exponential Retry with exponential backoff (delay doubles each time)
 	Exponential *struct {
-		Attempts     *int `json:"attempts,omitempty"`
-		Multiplier   *int `json:"multiplier,omitempty"`
+		// Attempts Number of retry attempts
+		Attempts *int `json:"attempts,omitempty"`
+
+		// Multiplier Multiplier for exponential backoff
+		Multiplier *int `json:"multiplier,omitempty"`
+
+		// RandomFactor Random jitter percentage (0-100) to avoid thundering herd
 		RandomFactor *int `json:"random_factor,omitempty"`
-		Seconds      *int `json:"seconds,omitempty"`
+
+		// Seconds Initial delay in seconds
+		Seconds *int `json:"seconds,omitempty"`
 	} `json:"exponential,omitempty"`
+
+	// RetryIf Conditional retry based on error or result
 	RetryIf *RetryIf `json:"retry_if,omitempty"`
 }
 
-// SchemasStaticTransform defines model for schemas-StaticTransform.
+// SchemasStaticTransform Static value passed directly to the step. Use for hardcoded values or resource references like '$res:path/to/resource'
 type SchemasStaticTransform struct {
-	Type  SchemasStaticTransformType `json:"type"`
-	Value *interface{}               `json:"value,omitempty"`
+	Type SchemasStaticTransformType `json:"type"`
+
+	// Value The static value. For resources, use format '$res:path/to/resource'
+	Value *interface{} `json:"value,omitempty"`
 }
 
 // SchemasStaticTransformType defines model for SchemasStaticTransform.Type.
 type SchemasStaticTransformType string
 
-// SchemasStopAfterIf defines model for schemas-StopAfterIf.
+// SchemasStopAfterIf Early termination condition for a module
 type SchemasStopAfterIf struct {
-	ErrorMessage  *string `json:"error_message,omitempty"`
-	Expr          string  `json:"expr"`
-	SkipIfStopped *bool   `json:"skip_if_stopped,omitempty"`
+	// ErrorMessage Custom error message shown when stopping
+	ErrorMessage *string `json:"error_message,omitempty"`
+
+	// Expr JavaScript expression evaluated after the module runs. Can use 'result' (step's result) or 'flow_input'. Return true to stop
+	Expr string `json:"expr"`
+
+	// SkipIfStopped If true, following steps are skipped when this condition triggers
+	SkipIfStopped *bool `json:"skip_if_stopped,omitempty"`
 }
 
-// SchemasWhileloopFlow defines model for schemas-WhileloopFlow.
+// SchemasWhileloopFlow Executes nested modules repeatedly while a condition is true. The loop checks the condition after each iteration. Use stop_after_if on modules to control loop termination
 type SchemasWhileloopFlow struct {
-	Modules      []SchemasFlowModule      `json:"modules"`
-	Parallel     *bool                    `json:"parallel,omitempty"`
-	Parallelism  *SchemasInputTransform   `json:"parallelism,omitempty"`
+	// Modules Steps to execute in each iteration. Use stop_after_if to control when the loop ends
+	Modules []SchemasFlowModule `json:"modules"`
+
+	// Parallel If true, iterations run concurrently (use with caution in while loops)
+	Parallel *bool `json:"parallel,omitempty"`
+
+	// Parallelism Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+	Parallelism *SchemasInputTransform `json:"parallelism,omitempty"`
+
+	// SkipFailures If true, iteration failures don't stop the loop. Failed iterations return null
 	SkipFailures bool                     `json:"skip_failures"`
 	Squash       *bool                    `json:"squash,omitempty"`
 	Type         SchemasWhileloopFlowType `json:"type"`
@@ -4118,9 +4519,6 @@ type JobId = openapi_types.UUID
 
 // JobKinds defines model for JobKinds.
 type JobKinds = string
-
-// JobTriggerKind defines model for JobTriggerKind.
-type JobTriggerKind string
 
 // Key defines model for Key.
 type Key = string
@@ -4223,6 +4621,9 @@ type Tag = string
 
 // Token defines model for Token.
 type Token = string
+
+// TriggerPath defines model for TriggerPath.
+type TriggerPath = string
 
 // Username defines model for Username.
 type Username = string
@@ -4424,6 +4825,11 @@ type RenewLicenseKeyParams struct {
 	LicenseKey *string `form:"license_key,omitempty" json:"license_key,omitempty"`
 }
 
+// SetupCustomInstanceDbJSONBody defines parameters for SetupCustomInstanceDb.
+type SetupCustomInstanceDbJSONBody struct {
+	Tag *CustomInstanceDbTag `json:"tag,omitempty"`
+}
+
 // TestCriticalChannelsJSONBody defines parameters for TestCriticalChannels.
 type TestCriticalChannelsJSONBody = []struct {
 	Email        *string `json:"email,omitempty"`
@@ -4575,7 +4981,8 @@ type ListTokensParams struct {
 
 // UpdateTutorialProgressJSONBody defines parameters for UpdateTutorialProgress.
 type UpdateTutorialProgressJSONBody struct {
-	Progress *int `json:"progress,omitempty"`
+	Progress   *int  `json:"progress,omitempty"`
+	SkippedAll *bool `json:"skipped_all,omitempty"`
 }
 
 // GlobalUserUpdateJSONBody defines parameters for GlobalUserUpdate.
@@ -4899,7 +5306,7 @@ type ListExtendedJobsParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
 	// TriggerKind trigger kind (schedule, http, websocket...)
-	TriggerKind *ListExtendedJobsParamsTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
+	TriggerKind *JobTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
 
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
@@ -4919,9 +5326,6 @@ type ListExtendedJobsParams struct {
 	// IsNotSchedule is not a scheduled job
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
-
-// ListExtendedJobsParamsTriggerKind defines parameters for ListExtendedJobs.
-type ListExtendedJobsParamsTriggerKind string
 
 // CreateDraftJSONBody defines parameters for CreateDraft.
 type CreateDraftJSONBody struct {
@@ -4957,9 +5361,10 @@ type ExistsEmailLocalPartJSONBody struct {
 	WorkspacedLocalPart *bool   `json:"workspaced_local_part,omitempty"`
 }
 
-// SetEmailTriggerEnabledJSONBody defines parameters for SetEmailTriggerEnabled.
-type SetEmailTriggerEnabledJSONBody struct {
-	Enabled bool `json:"enabled"`
+// SetEmailTriggerModeJSONBody defines parameters for SetEmailTriggerMode.
+type SetEmailTriggerModeJSONBody struct {
+	// Mode job trigger mode
+	Mode TriggerMode `json:"mode"`
 }
 
 // QueryResourceTypesParams defines parameters for QueryResourceTypes.
@@ -5020,20 +5425,28 @@ type ArchiveFlowByPathJSONBody struct {
 
 // CreateFlowJSONBody defines parameters for CreateFlow.
 type CreateFlowJSONBody struct {
-	DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
-	DeploymentMessage   *string                 `json:"deployment_message,omitempty"`
-	Description         *string                 `json:"description,omitempty"`
-	DraftOnly           *bool                   `json:"draft_only,omitempty"`
-	OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
-	Path                string                  `json:"path"`
-	Priority            *int                    `json:"priority,omitempty"`
-	Schema              *map[string]interface{} `json:"schema,omitempty"`
-	Summary             string                  `json:"summary"`
-	Tag                 *string                 `json:"tag,omitempty"`
-	Timeout             *float32                `json:"timeout,omitempty"`
-	Value               SchemasFlowValue        `json:"value"`
-	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
-	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+	DedicatedWorker   *bool   `json:"dedicated_worker,omitempty"`
+	DeploymentMessage *string `json:"deployment_message,omitempty"`
+
+	// Description Detailed documentation for this flow
+	Description     *string `json:"description,omitempty"`
+	DraftOnly       *bool   `json:"draft_only,omitempty"`
+	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+	Path            string  `json:"path"`
+	Priority        *int    `json:"priority,omitempty"`
+
+	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+	Schema *map[string]interface{} `json:"schema,omitempty"`
+
+	// Summary Short description of what this flow does
+	Summary string   `json:"summary"`
+	Tag     *string  `json:"tag,omitempty"`
+	Timeout *float32 `json:"timeout,omitempty"`
+
+	// Value The flow structure containing modules and optional preprocessor/failure handlers
+	Value               SchemasFlowValue `json:"value"`
+	VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
+	WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
 }
 
 // DeleteFlowByPathParams defines parameters for DeleteFlowByPath.
@@ -5110,19 +5523,27 @@ type ToggleWorkspaceErrorHandlerForFlowJSONBody struct {
 
 // UpdateFlowJSONBody defines parameters for UpdateFlow.
 type UpdateFlowJSONBody struct {
-	DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
-	DeploymentMessage   *string                 `json:"deployment_message,omitempty"`
-	Description         *string                 `json:"description,omitempty"`
-	OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
-	Path                string                  `json:"path"`
-	Priority            *int                    `json:"priority,omitempty"`
-	Schema              *map[string]interface{} `json:"schema,omitempty"`
-	Summary             string                  `json:"summary"`
-	Tag                 *string                 `json:"tag,omitempty"`
-	Timeout             *float32                `json:"timeout,omitempty"`
-	Value               SchemasFlowValue        `json:"value"`
-	VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
-	WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+	DedicatedWorker   *bool   `json:"dedicated_worker,omitempty"`
+	DeploymentMessage *string `json:"deployment_message,omitempty"`
+
+	// Description Detailed documentation for this flow
+	Description     *string `json:"description,omitempty"`
+	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+	Path            string  `json:"path"`
+	Priority        *int    `json:"priority,omitempty"`
+
+	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+	Schema *map[string]interface{} `json:"schema,omitempty"`
+
+	// Summary Short description of what this flow does
+	Summary string   `json:"summary"`
+	Tag     *string  `json:"tag,omitempty"`
+	Timeout *float32 `json:"timeout,omitempty"`
+
+	// Value The flow structure containing modules and optional preprocessor/failure handlers
+	Value               SchemasFlowValue `json:"value"`
+	VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
+	WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
 }
 
 // AddOwnerToFolderJSONBody defines parameters for AddOwnerToFolder.
@@ -5180,9 +5601,10 @@ type ListGcpTriggersParams struct {
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
-// SetGcpTriggerEnabledJSONBody defines parameters for SetGcpTriggerEnabled.
-type SetGcpTriggerEnabledJSONBody struct {
-	Enabled bool `json:"enabled"`
+// SetGcpTriggerModeJSONBody defines parameters for SetGcpTriggerMode.
+type SetGcpTriggerModeJSONBody struct {
+	// Mode job trigger mode
+	Mode TriggerMode `json:"mode"`
 }
 
 // TestGcpConnectionJSONBody defines parameters for TestGcpConnection.
@@ -5270,9 +5692,10 @@ type ExistsRouteJSONBody struct {
 	WorkspacedRoute *bool      `json:"workspaced_route,omitempty"`
 }
 
-// SetHttpTriggerEnabledJSONBody defines parameters for SetHttpTriggerEnabled.
-type SetHttpTriggerEnabledJSONBody struct {
-	Enabled bool `json:"enabled"`
+// SetHttpTriggerModeJSONBody defines parameters for SetHttpTriggerMode.
+type SetHttpTriggerModeJSONBody struct {
+	// Mode job trigger mode
+	Mode TriggerMode `json:"mode"`
 }
 
 // CreateInputParams defines parameters for CreateInput.
@@ -5680,7 +6103,7 @@ type ListJobsParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
 	// TriggerKind trigger kind (schedule, http, websocket...)
-	TriggerKind *ListJobsParamsTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
+	TriggerKind *JobTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
 
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
@@ -5700,9 +6123,6 @@ type ListJobsParams struct {
 	// IsNotSchedule is not a scheduled job
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
-
-// ListJobsParamsTriggerKind defines parameters for ListJobs.
-type ListJobsParamsTriggerKind string
 
 // ListFilteredJobsUuidsParams defines parameters for ListFilteredJobsUuids.
 type ListFilteredJobsUuidsParams struct {
@@ -5851,6 +6271,12 @@ type ListQueueParams struct {
 
 	// SchedulePath mask to filter by schedule path
 	SchedulePath *SchedulePath `form:"schedule_path,omitempty" json:"schedule_path,omitempty"`
+
+	// TriggerPath mask to filter by trigger path
+	TriggerPath *TriggerPath `form:"trigger_path,omitempty" json:"trigger_path,omitempty"`
+
+	// TriggerKind trigger kind (schedule, http, websocket...)
+	TriggerKind *JobTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
 
 	// ScriptHash mask to filter exact matching path
 	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
@@ -6640,9 +7066,10 @@ type ListKafkaTriggersParams struct {
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
-// SetKafkaTriggerEnabledJSONBody defines parameters for SetKafkaTriggerEnabled.
-type SetKafkaTriggerEnabledJSONBody struct {
-	Enabled bool `json:"enabled"`
+// SetKafkaTriggerModeJSONBody defines parameters for SetKafkaTriggerMode.
+type SetKafkaTriggerModeJSONBody struct {
+	// Mode job trigger mode
+	Mode TriggerMode `json:"mode"`
 }
 
 // TestKafkaConnectionJSONBody defines parameters for TestKafkaConnection.
@@ -6664,9 +7091,10 @@ type ListMqttTriggersParams struct {
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
-// SetMqttTriggerEnabledJSONBody defines parameters for SetMqttTriggerEnabled.
-type SetMqttTriggerEnabledJSONBody struct {
-	Enabled bool `json:"enabled"`
+// SetMqttTriggerModeJSONBody defines parameters for SetMqttTriggerMode.
+type SetMqttTriggerModeJSONBody struct {
+	// Mode job trigger mode
+	Mode TriggerMode `json:"mode"`
 }
 
 // TestMqttConnectionJSONBody defines parameters for TestMqttConnection.
@@ -6688,9 +7116,10 @@ type ListNatsTriggersParams struct {
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
-// SetNatsTriggerEnabledJSONBody defines parameters for SetNatsTriggerEnabled.
-type SetNatsTriggerEnabledJSONBody struct {
-	Enabled bool `json:"enabled"`
+// SetNatsTriggerModeJSONBody defines parameters for SetNatsTriggerMode.
+type SetNatsTriggerModeJSONBody struct {
+	// Mode job trigger mode
+	Mode TriggerMode `json:"mode"`
 }
 
 // TestNatsConnectionJSONBody defines parameters for TestNatsConnection.
@@ -6727,6 +7156,11 @@ type RefreshTokenJSONBody struct {
 	Path string `json:"path"`
 }
 
+// GetOidcTokenParams defines parameters for GetOidcToken.
+type GetOidcTokenParams struct {
+	ExpiresIn *float32 `form:"expires_in,omitempty" json:"expires_in,omitempty"`
+}
+
 // ListPostgresTriggersParams defines parameters for ListPostgresTriggers.
 type ListPostgresTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -6741,9 +7175,10 @@ type ListPostgresTriggersParams struct {
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
-// SetPostgresTriggerEnabledJSONBody defines parameters for SetPostgresTriggerEnabled.
-type SetPostgresTriggerEnabledJSONBody struct {
-	Enabled bool `json:"enabled"`
+// SetPostgresTriggerModeJSONBody defines parameters for SetPostgresTriggerMode.
+type SetPostgresTriggerModeJSONBody struct {
+	// Mode job trigger mode
+	Mode TriggerMode `json:"mode"`
 }
 
 // TestPostgresConnectionJSONBody defines parameters for TestPostgresConnection.
@@ -7010,14 +7445,27 @@ type ListSqsTriggersParams struct {
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
-// SetSqsTriggerEnabledJSONBody defines parameters for SetSqsTriggerEnabled.
-type SetSqsTriggerEnabledJSONBody struct {
-	Enabled bool `json:"enabled"`
+// SetSqsTriggerModeJSONBody defines parameters for SetSqsTriggerMode.
+type SetSqsTriggerModeJSONBody struct {
+	// Mode job trigger mode
+	Mode TriggerMode `json:"mode"`
 }
 
 // TestSqsConnectionJSONBody defines parameters for TestSqsConnection.
 type TestSqsConnectionJSONBody struct {
 	Connection map[string]interface{} `json:"connection"`
+}
+
+// CancelSuspendedTriggerJobsJSONBody defines parameters for CancelSuspendedTriggerJobs.
+type CancelSuspendedTriggerJobsJSONBody struct {
+	// JobIds Optional list of specific job UUIDs to cancel. If not provided, all suspended jobs for the trigger will be canceled.
+	JobIds *[]openapi_types.UUID `json:"job_ids,omitempty"`
+}
+
+// ResumeSuspendedTriggerJobsJSONBody defines parameters for ResumeSuspendedTriggerJobs.
+type ResumeSuspendedTriggerJobsJSONBody struct {
+	// JobIds Optional list of specific job UUIDs to reassign. If not provided, all suspended jobs for the trigger will be reassigned.
+	JobIds *[]openapi_types.UUID `json:"job_ids,omitempty"`
 }
 
 // CreateVariableParams defines parameters for CreateVariable.
@@ -7082,9 +7530,10 @@ type ListWebsocketTriggersParams struct {
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 }
 
-// SetWebsocketTriggerEnabledJSONBody defines parameters for SetWebsocketTriggerEnabled.
-type SetWebsocketTriggerEnabledJSONBody struct {
-	Enabled bool `json:"enabled"`
+// SetWebsocketTriggerModeJSONBody defines parameters for SetWebsocketTriggerMode.
+type SetWebsocketTriggerModeJSONBody struct {
+	// Mode job trigger mode
+	Mode TriggerMode `json:"mode"`
 }
 
 // TestWebsocketConnectionJSONBody defines parameters for TestWebsocketConnection.
@@ -7187,6 +7636,11 @@ type EditAutoInviteJSONBody struct {
 	AutoAdd   *bool `json:"auto_add,omitempty"`
 	InviteAll *bool `json:"invite_all,omitempty"`
 	Operator  *bool `json:"operator,omitempty"`
+}
+
+// EditDataTableConfigJSONBody defines parameters for EditDataTableConfig.
+type EditDataTableConfigJSONBody struct {
+	Settings DataTableSettings `json:"settings"`
 }
 
 // EditWorkspaceDefaultAppJSONBody defines parameters for EditWorkspaceDefaultApp.
@@ -7410,6 +7864,9 @@ type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
 // SetGlobalJSONRequestBody defines body for SetGlobal for application/json ContentType.
 type SetGlobalJSONRequestBody SetGlobalJSONBody
 
+// SetupCustomInstanceDbJSONRequestBody defines body for SetupCustomInstanceDb for application/json ContentType.
+type SetupCustomInstanceDbJSONRequestBody SetupCustomInstanceDbJSONBody
+
 // TestCriticalChannelsJSONRequestBody defines body for TestCriticalChannels for application/json ContentType.
 type TestCriticalChannelsJSONRequestBody = TestCriticalChannelsJSONBody
 
@@ -7509,8 +7966,8 @@ type CreateEmailTriggerJSONRequestBody = NewEmailTrigger
 // ExistsEmailLocalPartJSONRequestBody defines body for ExistsEmailLocalPart for application/json ContentType.
 type ExistsEmailLocalPartJSONRequestBody ExistsEmailLocalPartJSONBody
 
-// SetEmailTriggerEnabledJSONRequestBody defines body for SetEmailTriggerEnabled for application/json ContentType.
-type SetEmailTriggerEnabledJSONRequestBody SetEmailTriggerEnabledJSONBody
+// SetEmailTriggerModeJSONRequestBody defines body for SetEmailTriggerMode for application/json ContentType.
+type SetEmailTriggerModeJSONRequestBody SetEmailTriggerModeJSONBody
 
 // UpdateEmailTriggerJSONRequestBody defines body for UpdateEmailTrigger for application/json ContentType.
 type UpdateEmailTriggerJSONRequestBody = EditEmailTrigger
@@ -7551,8 +8008,8 @@ type UpdateFolderJSONRequestBody UpdateFolderJSONBody
 // CreateGcpTriggerJSONRequestBody defines body for CreateGcpTrigger for application/json ContentType.
 type CreateGcpTriggerJSONRequestBody = GcpTriggerData
 
-// SetGcpTriggerEnabledJSONRequestBody defines body for SetGcpTriggerEnabled for application/json ContentType.
-type SetGcpTriggerEnabledJSONRequestBody SetGcpTriggerEnabledJSONBody
+// SetGcpTriggerModeJSONRequestBody defines body for SetGcpTriggerMode for application/json ContentType.
+type SetGcpTriggerModeJSONRequestBody SetGcpTriggerModeJSONBody
 
 // DeleteGcpSubscriptionJSONRequestBody defines body for DeleteGcpSubscription for application/json ContentType.
 type DeleteGcpSubscriptionJSONRequestBody = DeleteGcpSubscription
@@ -7596,8 +8053,8 @@ type CreateHttpTriggersJSONRequestBody = CreateHttpTriggersJSONBody
 // ExistsRouteJSONRequestBody defines body for ExistsRoute for application/json ContentType.
 type ExistsRouteJSONRequestBody ExistsRouteJSONBody
 
-// SetHttpTriggerEnabledJSONRequestBody defines body for SetHttpTriggerEnabled for application/json ContentType.
-type SetHttpTriggerEnabledJSONRequestBody SetHttpTriggerEnabledJSONBody
+// SetHttpTriggerModeJSONRequestBody defines body for SetHttpTriggerMode for application/json ContentType.
+type SetHttpTriggerModeJSONRequestBody SetHttpTriggerModeJSONBody
 
 // UpdateHttpTriggerJSONRequestBody defines body for UpdateHttpTrigger for application/json ContentType.
 type UpdateHttpTriggerJSONRequestBody = EditHttpTrigger
@@ -7692,6 +8149,9 @@ type RunAndStreamScriptByHashJSONRequestBody = ScriptArgs
 // RunAndStreamScriptByPathJSONRequestBody defines body for RunAndStreamScriptByPath for application/json ContentType.
 type RunAndStreamScriptByPathJSONRequestBody = ScriptArgs
 
+// RunScriptPreviewInlineJSONRequestBody defines body for RunScriptPreviewInline for application/json ContentType.
+type RunScriptPreviewInlineJSONRequestBody = PreviewInline
+
 // RunWaitResultFlowByPathJSONRequestBody defines body for RunWaitResultFlowByPath for application/json ContentType.
 type RunWaitResultFlowByPathJSONRequestBody = ScriptArgs
 
@@ -7731,8 +8191,8 @@ type ResumeSuspendedJobPostJSONRequestBody = ResumeSuspendedJobPostJSONBody
 // CreateKafkaTriggerJSONRequestBody defines body for CreateKafkaTrigger for application/json ContentType.
 type CreateKafkaTriggerJSONRequestBody = NewKafkaTrigger
 
-// SetKafkaTriggerEnabledJSONRequestBody defines body for SetKafkaTriggerEnabled for application/json ContentType.
-type SetKafkaTriggerEnabledJSONRequestBody SetKafkaTriggerEnabledJSONBody
+// SetKafkaTriggerModeJSONRequestBody defines body for SetKafkaTriggerMode for application/json ContentType.
+type SetKafkaTriggerModeJSONRequestBody SetKafkaTriggerModeJSONBody
 
 // TestKafkaConnectionJSONRequestBody defines body for TestKafkaConnection for application/json ContentType.
 type TestKafkaConnectionJSONRequestBody TestKafkaConnectionJSONBody
@@ -7743,8 +8203,8 @@ type UpdateKafkaTriggerJSONRequestBody = EditKafkaTrigger
 // CreateMqttTriggerJSONRequestBody defines body for CreateMqttTrigger for application/json ContentType.
 type CreateMqttTriggerJSONRequestBody = NewMqttTrigger
 
-// SetMqttTriggerEnabledJSONRequestBody defines body for SetMqttTriggerEnabled for application/json ContentType.
-type SetMqttTriggerEnabledJSONRequestBody SetMqttTriggerEnabledJSONBody
+// SetMqttTriggerModeJSONRequestBody defines body for SetMqttTriggerMode for application/json ContentType.
+type SetMqttTriggerModeJSONRequestBody SetMqttTriggerModeJSONBody
 
 // TestMqttConnectionJSONRequestBody defines body for TestMqttConnection for application/json ContentType.
 type TestMqttConnectionJSONRequestBody TestMqttConnectionJSONBody
@@ -7755,8 +8215,8 @@ type UpdateMqttTriggerJSONRequestBody = EditMqttTrigger
 // CreateNatsTriggerJSONRequestBody defines body for CreateNatsTrigger for application/json ContentType.
 type CreateNatsTriggerJSONRequestBody = NewNatsTrigger
 
-// SetNatsTriggerEnabledJSONRequestBody defines body for SetNatsTriggerEnabled for application/json ContentType.
-type SetNatsTriggerEnabledJSONRequestBody SetNatsTriggerEnabledJSONBody
+// SetNatsTriggerModeJSONRequestBody defines body for SetNatsTriggerMode for application/json ContentType.
+type SetNatsTriggerModeJSONRequestBody SetNatsTriggerModeJSONBody
 
 // TestNatsConnectionJSONRequestBody defines body for TestNatsConnection for application/json ContentType.
 type TestNatsConnectionJSONRequestBody TestNatsConnectionJSONBody
@@ -7791,8 +8251,8 @@ type CreatePostgresPublicationJSONRequestBody = PublicationData
 // UpdatePostgresPublicationJSONRequestBody defines body for UpdatePostgresPublication for application/json ContentType.
 type UpdatePostgresPublicationJSONRequestBody = PublicationData
 
-// SetPostgresTriggerEnabledJSONRequestBody defines body for SetPostgresTriggerEnabled for application/json ContentType.
-type SetPostgresTriggerEnabledJSONRequestBody SetPostgresTriggerEnabledJSONBody
+// SetPostgresTriggerModeJSONRequestBody defines body for SetPostgresTriggerMode for application/json ContentType.
+type SetPostgresTriggerModeJSONRequestBody SetPostgresTriggerModeJSONBody
 
 // CreatePostgresReplicationSlotJSONRequestBody defines body for CreatePostgresReplicationSlot for application/json ContentType.
 type CreatePostgresReplicationSlotJSONRequestBody = Slot
@@ -7857,14 +8317,20 @@ type ToggleWorkspaceErrorHandlerForScriptJSONRequestBody ToggleWorkspaceErrorHan
 // CreateSqsTriggerJSONRequestBody defines body for CreateSqsTrigger for application/json ContentType.
 type CreateSqsTriggerJSONRequestBody = NewSqsTrigger
 
-// SetSqsTriggerEnabledJSONRequestBody defines body for SetSqsTriggerEnabled for application/json ContentType.
-type SetSqsTriggerEnabledJSONRequestBody SetSqsTriggerEnabledJSONBody
+// SetSqsTriggerModeJSONRequestBody defines body for SetSqsTriggerMode for application/json ContentType.
+type SetSqsTriggerModeJSONRequestBody SetSqsTriggerModeJSONBody
 
 // TestSqsConnectionJSONRequestBody defines body for TestSqsConnection for application/json ContentType.
 type TestSqsConnectionJSONRequestBody TestSqsConnectionJSONBody
 
 // UpdateSqsTriggerJSONRequestBody defines body for UpdateSqsTrigger for application/json ContentType.
 type UpdateSqsTriggerJSONRequestBody = EditSqsTrigger
+
+// CancelSuspendedTriggerJobsJSONRequestBody defines body for CancelSuspendedTriggerJobs for application/json ContentType.
+type CancelSuspendedTriggerJobsJSONRequestBody CancelSuspendedTriggerJobsJSONBody
+
+// ResumeSuspendedTriggerJobsJSONRequestBody defines body for ResumeSuspendedTriggerJobs for application/json ContentType.
+type ResumeSuspendedTriggerJobsJSONRequestBody ResumeSuspendedTriggerJobsJSONBody
 
 // UpdateUserJSONRequestBody defines body for UpdateUser for application/json ContentType.
 type UpdateUserJSONRequestBody = EditWorkspaceUser
@@ -7884,8 +8350,8 @@ type UpdateVariableJSONRequestBody = EditVariable
 // CreateWebsocketTriggerJSONRequestBody defines body for CreateWebsocketTrigger for application/json ContentType.
 type CreateWebsocketTriggerJSONRequestBody = NewWebsocketTrigger
 
-// SetWebsocketTriggerEnabledJSONRequestBody defines body for SetWebsocketTriggerEnabled for application/json ContentType.
-type SetWebsocketTriggerEnabledJSONRequestBody SetWebsocketTriggerEnabledJSONBody
+// SetWebsocketTriggerModeJSONRequestBody defines body for SetWebsocketTriggerMode for application/json ContentType.
+type SetWebsocketTriggerModeJSONRequestBody SetWebsocketTriggerModeJSONBody
 
 // TestWebsocketConnectionJSONRequestBody defines body for TestWebsocketConnection for application/json ContentType.
 type TestWebsocketConnectionJSONRequestBody TestWebsocketConnectionJSONBody
@@ -7934,6 +8400,9 @@ type EditAutoInviteJSONRequestBody EditAutoInviteJSONBody
 
 // EditCopilotConfigJSONRequestBody defines body for EditCopilotConfig for application/json ContentType.
 type EditCopilotConfigJSONRequestBody = AIConfig
+
+// EditDataTableConfigJSONRequestBody defines body for EditDataTableConfig for application/json ContentType.
+type EditDataTableConfigJSONRequestBody EditDataTableConfigJSONBody
 
 // EditWorkspaceDefaultAppJSONRequestBody defines body for EditWorkspaceDefaultApp for application/json ContentType.
 type EditWorkspaceDefaultAppJSONRequestBody EditWorkspaceDefaultAppJSONBody
@@ -9497,9 +9966,6 @@ type ClientInterface interface {
 	// CreateCustomerPortalSession request
 	CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetDucklakeInstanceCatalogDbStatus request
-	GetDucklakeInstanceCatalogDbStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetGlobal request
 	GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -9511,11 +9977,17 @@ type ClientInterface interface {
 	// GetLatestKeyRenewalAttempt request
 	GetLatestKeyRenewalAttempt(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListCustomInstanceDbs request
+	ListCustomInstanceDbs(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListGlobalSettings request
 	ListGlobalSettings(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetLocal request
 	GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RefreshCustomInstanceUserPwd request
+	RefreshCustomInstanceUserPwd(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RenewLicenseKey request
 	RenewLicenseKey(ctx context.Context, params *RenewLicenseKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9523,8 +9995,10 @@ type ClientInterface interface {
 	// SendStats request
 	SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SetupDucklakeCatalogDb request
-	SetupDucklakeCatalogDb(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SetupCustomInstanceDbWithBody request with any body
+	SetupCustomInstanceDbWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetupCustomInstanceDb(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestCriticalChannelsWithBody request with any body
 	TestCriticalChannelsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9855,10 +10329,10 @@ type ClientInterface interface {
 
 	ExistsEmailLocalPart(ctx context.Context, workspace WorkspaceId, body ExistsEmailLocalPartJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SetEmailTriggerEnabledWithBody request with any body
-	SetEmailTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SetEmailTriggerModeWithBody request with any body
+	SetEmailTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SetEmailTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SetEmailTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateEmailTriggerWithBody request with any body
 	UpdateEmailTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10009,10 +10483,10 @@ type ClientInterface interface {
 	// ListGcpTriggers request
 	ListGcpTriggers(ctx context.Context, workspace WorkspaceId, params *ListGcpTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SetGcpTriggerEnabledWithBody request with any body
-	SetGcpTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SetGcpTriggerModeWithBody request with any body
+	SetGcpTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SetGcpTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SetGcpTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteGcpSubscriptionWithBody request with any body
 	DeleteGcpSubscriptionWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10117,10 +10591,10 @@ type ClientInterface interface {
 
 	ExistsRoute(ctx context.Context, workspace WorkspaceId, body ExistsRouteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SetHttpTriggerEnabledWithBody request with any body
-	SetHttpTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SetHttpTriggerModeWithBody request with any body
+	SetHttpTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SetHttpTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SetHttpTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateHttpTriggerWithBody request with any body
 	UpdateHttpTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10406,6 +10880,11 @@ type ClientInterface interface {
 
 	RunAndStreamScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RunScriptPreviewInlineWithBody request with any body
+	RunScriptPreviewInlineWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunScriptPreviewInline(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RunWaitResultFlowByPathWithBody request with any body
 	RunWaitResultFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10540,10 +11019,10 @@ type ClientInterface interface {
 	// ListKafkaTriggers request
 	ListKafkaTriggers(ctx context.Context, workspace WorkspaceId, params *ListKafkaTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SetKafkaTriggerEnabledWithBody request with any body
-	SetKafkaTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SetKafkaTriggerModeWithBody request with any body
+	SetKafkaTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SetKafkaTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SetKafkaTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestKafkaConnectionWithBody request with any body
 	TestKafkaConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10572,10 +11051,10 @@ type ClientInterface interface {
 	// ListMqttTriggers request
 	ListMqttTriggers(ctx context.Context, workspace WorkspaceId, params *ListMqttTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SetMqttTriggerEnabledWithBody request with any body
-	SetMqttTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SetMqttTriggerModeWithBody request with any body
+	SetMqttTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SetMqttTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SetMqttTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestMqttConnectionWithBody request with any body
 	TestMqttConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10604,10 +11083,10 @@ type ClientInterface interface {
 	// ListNatsTriggers request
 	ListNatsTriggers(ctx context.Context, workspace WorkspaceId, params *ListNatsTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SetNatsTriggerEnabledWithBody request with any body
-	SetNatsTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SetNatsTriggerModeWithBody request with any body
+	SetNatsTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SetNatsTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SetNatsTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestNatsConnectionWithBody request with any body
 	TestNatsConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10644,7 +11123,7 @@ type ClientInterface interface {
 	RefreshToken(ctx context.Context, workspace WorkspaceId, id AccountId, body RefreshTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetOidcToken request
-	GetOidcToken(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetOidcToken(ctx context.Context, workspace WorkspaceId, audience string, params *GetOidcTokenParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DownloadOpenapiSpecWithBody request with any body
 	DownloadOpenapiSpecWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10706,10 +11185,10 @@ type ClientInterface interface {
 
 	UpdatePostgresPublication(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, body UpdatePostgresPublicationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SetPostgresTriggerEnabledWithBody request with any body
-	SetPostgresTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SetPostgresTriggerModeWithBody request with any body
+	SetPostgresTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SetPostgresTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SetPostgresTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreatePostgresReplicationSlotWithBody request with any body
 	CreatePostgresReplicationSlotWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10960,10 +11439,10 @@ type ClientInterface interface {
 	// ListSqsTriggers request
 	ListSqsTriggers(ctx context.Context, workspace WorkspaceId, params *ListSqsTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SetSqsTriggerEnabledWithBody request with any body
-	SetSqsTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SetSqsTriggerModeWithBody request with any body
+	SetSqsTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SetSqsTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SetSqsTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestSqsConnectionWithBody request with any body
 	TestSqsConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -10974,6 +11453,16 @@ type ClientInterface interface {
 	UpdateSqsTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CancelSuspendedTriggerJobsWithBody request with any body
+	CancelSuspendedTriggerJobsWithBody(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CancelSuspendedTriggerJobs(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body CancelSuspendedTriggerJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResumeSuspendedTriggerJobsWithBody request with any body
+	ResumeSuspendedTriggerJobsWithBody(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ResumeSuspendedTriggerJobs(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body ResumeSuspendedTriggerJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ConvertUserToGroup request
 	ConvertUserToGroup(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11065,10 +11554,10 @@ type ClientInterface interface {
 	// ListWebsocketTriggers request
 	ListWebsocketTriggers(ctx context.Context, workspace WorkspaceId, params *ListWebsocketTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// SetWebsocketTriggerEnabledWithBody request with any body
-	SetWebsocketTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// SetWebsocketTriggerModeWithBody request with any body
+	SetWebsocketTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	SetWebsocketTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	SetWebsocketTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestWebsocketConnectionWithBody request with any body
 	TestWebsocketConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11186,6 +11675,11 @@ type ClientInterface interface {
 
 	EditCopilotConfig(ctx context.Context, workspace WorkspaceId, body EditCopilotConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditDataTableConfigWithBody request with any body
+	EditDataTableConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditDataTableConfig(ctx context.Context, workspace WorkspaceId, body EditDataTableConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditWorkspaceDefaultAppWithBody request with any body
 	EditWorkspaceDefaultAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -11296,6 +11790,9 @@ type ClientInterface interface {
 
 	// LeaveWorkspace request
 	LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListDataTables request
+	ListDataTables(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListDucklakes request
 	ListDucklakes(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12324,18 +12821,6 @@ func (c *Client) CreateCustomerPortalSession(ctx context.Context, params *Create
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetDucklakeInstanceCatalogDbStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetDucklakeInstanceCatalogDbStatusRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetGlobalRequest(c.Server, key)
 	if err != nil {
@@ -12384,6 +12869,18 @@ func (c *Client) GetLatestKeyRenewalAttempt(ctx context.Context, reqEditors ...R
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListCustomInstanceDbs(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListCustomInstanceDbsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListGlobalSettings(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListGlobalSettingsRequest(c.Server)
 	if err != nil {
@@ -12398,6 +12895,18 @@ func (c *Client) ListGlobalSettings(ctx context.Context, reqEditors ...RequestEd
 
 func (c *Client) GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetLocalRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RefreshCustomInstanceUserPwd(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRefreshCustomInstanceUserPwdRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -12432,8 +12941,20 @@ func (c *Client) SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetupDucklakeCatalogDb(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetupDucklakeCatalogDbRequest(c.Server, name)
+func (c *Client) SetupCustomInstanceDbWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetupCustomInstanceDbRequestWithBody(c.Server, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetupCustomInstanceDb(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetupCustomInstanceDbRequest(c.Server, name, body)
 	if err != nil {
 		return nil, err
 	}
@@ -13884,8 +14405,8 @@ func (c *Client) ExistsEmailLocalPart(ctx context.Context, workspace WorkspaceId
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetEmailTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetEmailTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) SetEmailTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetEmailTriggerModeRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -13896,8 +14417,8 @@ func (c *Client) SetEmailTriggerEnabledWithBody(ctx context.Context, workspace W
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetEmailTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetEmailTriggerEnabledRequest(c.Server, workspace, path, body)
+func (c *Client) SetEmailTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetEmailTriggerModeRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -14556,8 +15077,8 @@ func (c *Client) ListGcpTriggers(ctx context.Context, workspace WorkspaceId, par
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetGcpTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetGcpTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) SetGcpTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetGcpTriggerModeRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -14568,8 +15089,8 @@ func (c *Client) SetGcpTriggerEnabledWithBody(ctx context.Context, workspace Wor
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetGcpTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetGcpTriggerEnabledRequest(c.Server, workspace, path, body)
+func (c *Client) SetGcpTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetGcpTriggerModeRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15048,8 +15569,8 @@ func (c *Client) ExistsRoute(ctx context.Context, workspace WorkspaceId, body Ex
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetHttpTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetHttpTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) SetHttpTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetHttpTriggerModeRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -15060,8 +15581,8 @@ func (c *Client) SetHttpTriggerEnabledWithBody(ctx context.Context, workspace Wo
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetHttpTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetHttpTriggerEnabledRequest(c.Server, workspace, path, body)
+func (c *Client) SetHttpTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetHttpTriggerModeRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16332,6 +16853,30 @@ func (c *Client) RunAndStreamScriptByPath(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
+func (c *Client) RunScriptPreviewInlineWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunScriptPreviewInlineRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunScriptPreviewInline(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunScriptPreviewInlineRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) RunWaitResultFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunWaitResultFlowByPathRequestWithBody(c.Server, workspace, path, params, contentType, body)
 	if err != nil {
@@ -16920,8 +17465,8 @@ func (c *Client) ListKafkaTriggers(ctx context.Context, workspace WorkspaceId, p
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetKafkaTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetKafkaTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) SetKafkaTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetKafkaTriggerModeRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16932,8 +17477,8 @@ func (c *Client) SetKafkaTriggerEnabledWithBody(ctx context.Context, workspace W
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetKafkaTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetKafkaTriggerEnabledRequest(c.Server, workspace, path, body)
+func (c *Client) SetKafkaTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetKafkaTriggerModeRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -17064,8 +17609,8 @@ func (c *Client) ListMqttTriggers(ctx context.Context, workspace WorkspaceId, pa
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetMqttTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetMqttTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) SetMqttTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetMqttTriggerModeRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -17076,8 +17621,8 @@ func (c *Client) SetMqttTriggerEnabledWithBody(ctx context.Context, workspace Wo
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetMqttTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetMqttTriggerEnabledRequest(c.Server, workspace, path, body)
+func (c *Client) SetMqttTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetMqttTriggerModeRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -17208,8 +17753,8 @@ func (c *Client) ListNatsTriggers(ctx context.Context, workspace WorkspaceId, pa
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetNatsTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetNatsTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) SetNatsTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetNatsTriggerModeRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -17220,8 +17765,8 @@ func (c *Client) SetNatsTriggerEnabledWithBody(ctx context.Context, workspace Wo
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetNatsTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetNatsTriggerEnabledRequest(c.Server, workspace, path, body)
+func (c *Client) SetNatsTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetNatsTriggerModeRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -17388,8 +17933,8 @@ func (c *Client) RefreshToken(ctx context.Context, workspace WorkspaceId, id Acc
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetOidcToken(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetOidcTokenRequest(c.Server, workspace, audience)
+func (c *Client) GetOidcToken(ctx context.Context, workspace WorkspaceId, audience string, params *GetOidcTokenParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOidcTokenRequest(c.Server, workspace, audience, params)
 	if err != nil {
 		return nil, err
 	}
@@ -17664,8 +18209,8 @@ func (c *Client) UpdatePostgresPublication(ctx context.Context, workspace Worksp
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetPostgresTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetPostgresTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) SetPostgresTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetPostgresTriggerModeRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -17676,8 +18221,8 @@ func (c *Client) SetPostgresTriggerEnabledWithBody(ctx context.Context, workspac
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetPostgresTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetPostgresTriggerEnabledRequest(c.Server, workspace, path, body)
+func (c *Client) SetPostgresTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetPostgresTriggerModeRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -18768,8 +19313,8 @@ func (c *Client) ListSqsTriggers(ctx context.Context, workspace WorkspaceId, par
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetSqsTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetSqsTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) SetSqsTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetSqsTriggerModeRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -18780,8 +19325,8 @@ func (c *Client) SetSqsTriggerEnabledWithBody(ctx context.Context, workspace Wor
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetSqsTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetSqsTriggerEnabledRequest(c.Server, workspace, path, body)
+func (c *Client) SetSqsTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetSqsTriggerModeRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -18830,6 +19375,54 @@ func (c *Client) UpdateSqsTriggerWithBody(ctx context.Context, workspace Workspa
 
 func (c *Client) UpdateSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateSqsTriggerRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelSuspendedTriggerJobsWithBody(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelSuspendedTriggerJobsRequestWithBody(c.Server, workspace, triggerKind, triggerPath, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelSuspendedTriggerJobs(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body CancelSuspendedTriggerJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelSuspendedTriggerJobsRequest(c.Server, workspace, triggerKind, triggerPath, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResumeSuspendedTriggerJobsWithBody(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResumeSuspendedTriggerJobsRequestWithBody(c.Server, workspace, triggerKind, triggerPath, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResumeSuspendedTriggerJobs(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body ResumeSuspendedTriggerJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResumeSuspendedTriggerJobsRequest(c.Server, workspace, triggerKind, triggerPath, body)
 	if err != nil {
 		return nil, err
 	}
@@ -19224,8 +19817,8 @@ func (c *Client) ListWebsocketTriggers(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetWebsocketTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetWebsocketTriggerEnabledRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) SetWebsocketTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWebsocketTriggerModeRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -19236,8 +19829,8 @@ func (c *Client) SetWebsocketTriggerEnabledWithBody(ctx context.Context, workspa
 	return c.Client.Do(req)
 }
 
-func (c *Client) SetWebsocketTriggerEnabled(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetWebsocketTriggerEnabledRequest(c.Server, workspace, path, body)
+func (c *Client) SetWebsocketTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWebsocketTriggerModeRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -19776,6 +20369,30 @@ func (c *Client) EditCopilotConfig(ctx context.Context, workspace WorkspaceId, b
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditDataTableConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditDataTableConfigRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditDataTableConfig(ctx context.Context, workspace WorkspaceId, body EditDataTableConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditDataTableConfigRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditWorkspaceDefaultAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditWorkspaceDefaultAppRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -20270,6 +20887,18 @@ func (c *Client) GetIsPremium(ctx context.Context, workspace WorkspaceId, reqEdi
 
 func (c *Client) LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLeaveWorkspaceRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListDataTables(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDataTablesRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -23181,33 +23810,6 @@ func NewCreateCustomerPortalSessionRequest(server string, params *CreateCustomer
 	return req, nil
 }
 
-// NewGetDucklakeInstanceCatalogDbStatusRequest generates requests for GetDucklakeInstanceCatalogDbStatus
-func NewGetDucklakeInstanceCatalogDbStatusRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/settings/get_ducklake_instance_catalog_db_status")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewGetGlobalRequest generates requests for GetGlobal
 func NewGetGlobalRequest(server string, key Key) (*http.Request, error) {
 	var err error
@@ -23316,6 +23918,33 @@ func NewGetLatestKeyRenewalAttemptRequest(server string) (*http.Request, error) 
 	return req, nil
 }
 
+// NewListCustomInstanceDbsRequest generates requests for ListCustomInstanceDbs
+func NewListCustomInstanceDbsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/list_custom_instance_pg_databases")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListGlobalSettingsRequest generates requests for ListGlobalSettings
 func NewListGlobalSettingsRequest(server string) (*http.Request, error) {
 	var err error
@@ -23363,6 +23992,33 @@ func NewGetLocalRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRefreshCustomInstanceUserPwdRequest generates requests for RefreshCustomInstanceUserPwd
+func NewRefreshCustomInstanceUserPwdRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/refresh_custom_instance_user_pwd")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -23446,8 +24102,19 @@ func NewSendStatsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewSetupDucklakeCatalogDbRequest generates requests for SetupDucklakeCatalogDb
-func NewSetupDucklakeCatalogDbRequest(server string, name string) (*http.Request, error) {
+// NewSetupCustomInstanceDbRequest calls the generic SetupCustomInstanceDb builder with application/json body
+func NewSetupCustomInstanceDbRequest(server string, name string, body SetupCustomInstanceDbJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetupCustomInstanceDbRequestWithBody(server, name, "application/json", bodyReader)
+}
+
+// NewSetupCustomInstanceDbRequestWithBody generates requests for SetupCustomInstanceDb with any type of body
+func NewSetupCustomInstanceDbRequestWithBody(server string, name string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -23462,7 +24129,7 @@ func NewSetupDucklakeCatalogDbRequest(server string, name string) (*http.Request
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/settings/setup_ducklake_catalog_db/%s", pathParam0)
+	operationPath := fmt.Sprintf("/settings/setup_custom_instance_pg_database/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -23472,10 +24139,12 @@ func NewSetupDucklakeCatalogDbRequest(server string, name string) (*http.Request
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -28463,19 +29132,19 @@ func NewExistsEmailLocalPartRequestWithBody(server string, workspace WorkspaceId
 	return req, nil
 }
 
-// NewSetEmailTriggerEnabledRequest calls the generic SetEmailTriggerEnabled builder with application/json body
-func NewSetEmailTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetEmailTriggerEnabledJSONRequestBody) (*http.Request, error) {
+// NewSetEmailTriggerModeRequest calls the generic SetEmailTriggerMode builder with application/json body
+func NewSetEmailTriggerModeRequest(server string, workspace WorkspaceId, path Path, body SetEmailTriggerModeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewSetEmailTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewSetEmailTriggerModeRequestWithBody(server, workspace, path, "application/json", bodyReader)
 }
 
-// NewSetEmailTriggerEnabledRequestWithBody generates requests for SetEmailTriggerEnabled with any type of body
-func NewSetEmailTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+// NewSetEmailTriggerModeRequestWithBody generates requests for SetEmailTriggerMode with any type of body
+func NewSetEmailTriggerModeRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -28497,7 +29166,7 @@ func NewSetEmailTriggerEnabledRequestWithBody(server string, workspace Workspace
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/email_triggers/setenabled/%s", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/w/%s/email_triggers/setmode/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -30819,19 +31488,19 @@ func NewListGcpTriggersRequest(server string, workspace WorkspaceId, params *Lis
 	return req, nil
 }
 
-// NewSetGcpTriggerEnabledRequest calls the generic SetGcpTriggerEnabled builder with application/json body
-func NewSetGcpTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetGcpTriggerEnabledJSONRequestBody) (*http.Request, error) {
+// NewSetGcpTriggerModeRequest calls the generic SetGcpTriggerMode builder with application/json body
+func NewSetGcpTriggerModeRequest(server string, workspace WorkspaceId, path Path, body SetGcpTriggerModeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewSetGcpTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewSetGcpTriggerModeRequestWithBody(server, workspace, path, "application/json", bodyReader)
 }
 
-// NewSetGcpTriggerEnabledRequestWithBody generates requests for SetGcpTriggerEnabled with any type of body
-func NewSetGcpTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+// NewSetGcpTriggerModeRequestWithBody generates requests for SetGcpTriggerMode with any type of body
+func NewSetGcpTriggerModeRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -30853,7 +31522,7 @@ func NewSetGcpTriggerEnabledRequestWithBody(server string, workspace WorkspaceId
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/setenabled/%s", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/setmode/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -32149,19 +32818,19 @@ func NewExistsRouteRequestWithBody(server string, workspace WorkspaceId, content
 	return req, nil
 }
 
-// NewSetHttpTriggerEnabledRequest calls the generic SetHttpTriggerEnabled builder with application/json body
-func NewSetHttpTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetHttpTriggerEnabledJSONRequestBody) (*http.Request, error) {
+// NewSetHttpTriggerModeRequest calls the generic SetHttpTriggerMode builder with application/json body
+func NewSetHttpTriggerModeRequest(server string, workspace WorkspaceId, path Path, body SetHttpTriggerModeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewSetHttpTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewSetHttpTriggerModeRequestWithBody(server, workspace, path, "application/json", bodyReader)
 }
 
-// NewSetHttpTriggerEnabledRequestWithBody generates requests for SetHttpTriggerEnabled with any type of body
-func NewSetHttpTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+// NewSetHttpTriggerModeRequestWithBody generates requests for SetHttpTriggerMode with any type of body
+func NewSetHttpTriggerModeRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -32183,7 +32852,7 @@ func NewSetHttpTriggerEnabledRequestWithBody(server string, workspace WorkspaceI
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/http_triggers/setenabled/%s", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/w/%s/http_triggers/setmode/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -37480,6 +38149,38 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 
 		}
 
+		if params.TriggerPath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_path", runtime.ParamLocationQuery, *params.TriggerPath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.TriggerKind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_kind", runtime.ParamLocationQuery, *params.TriggerKind); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.ScriptHash != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "script_hash", runtime.ParamLocationQuery, *params.ScriptHash); err != nil {
@@ -41088,6 +41789,53 @@ func NewRunAndStreamScriptByPathRequestWithBody(server string, workspace Workspa
 	return req, nil
 }
 
+// NewRunScriptPreviewInlineRequest calls the generic RunScriptPreviewInline builder with application/json body
+func NewRunScriptPreviewInlineRequest(server string, workspace WorkspaceId, body RunScriptPreviewInlineJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunScriptPreviewInlineRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRunScriptPreviewInlineRequestWithBody generates requests for RunScriptPreviewInline with any type of body
+func NewRunScriptPreviewInlineRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_inline/preview", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRunWaitResultFlowByPathRequest calls the generic RunWaitResultFlowByPath builder with application/json body
 func NewRunWaitResultFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, body RunWaitResultFlowByPathJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -44087,19 +44835,19 @@ func NewListKafkaTriggersRequest(server string, workspace WorkspaceId, params *L
 	return req, nil
 }
 
-// NewSetKafkaTriggerEnabledRequest calls the generic SetKafkaTriggerEnabled builder with application/json body
-func NewSetKafkaTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody) (*http.Request, error) {
+// NewSetKafkaTriggerModeRequest calls the generic SetKafkaTriggerMode builder with application/json body
+func NewSetKafkaTriggerModeRequest(server string, workspace WorkspaceId, path Path, body SetKafkaTriggerModeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewSetKafkaTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewSetKafkaTriggerModeRequestWithBody(server, workspace, path, "application/json", bodyReader)
 }
 
-// NewSetKafkaTriggerEnabledRequestWithBody generates requests for SetKafkaTriggerEnabled with any type of body
-func NewSetKafkaTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+// NewSetKafkaTriggerModeRequestWithBody generates requests for SetKafkaTriggerMode with any type of body
+func NewSetKafkaTriggerModeRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -44121,7 +44869,7 @@ func NewSetKafkaTriggerEnabledRequestWithBody(server string, workspace Workspace
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/setenabled/%s", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/setmode/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -44532,19 +45280,19 @@ func NewListMqttTriggersRequest(server string, workspace WorkspaceId, params *Li
 	return req, nil
 }
 
-// NewSetMqttTriggerEnabledRequest calls the generic SetMqttTriggerEnabled builder with application/json body
-func NewSetMqttTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetMqttTriggerEnabledJSONRequestBody) (*http.Request, error) {
+// NewSetMqttTriggerModeRequest calls the generic SetMqttTriggerMode builder with application/json body
+func NewSetMqttTriggerModeRequest(server string, workspace WorkspaceId, path Path, body SetMqttTriggerModeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewSetMqttTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewSetMqttTriggerModeRequestWithBody(server, workspace, path, "application/json", bodyReader)
 }
 
-// NewSetMqttTriggerEnabledRequestWithBody generates requests for SetMqttTriggerEnabled with any type of body
-func NewSetMqttTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+// NewSetMqttTriggerModeRequestWithBody generates requests for SetMqttTriggerMode with any type of body
+func NewSetMqttTriggerModeRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -44566,7 +45314,7 @@ func NewSetMqttTriggerEnabledRequestWithBody(server string, workspace WorkspaceI
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/mqtt_triggers/setenabled/%s", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/w/%s/mqtt_triggers/setmode/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -44977,19 +45725,19 @@ func NewListNatsTriggersRequest(server string, workspace WorkspaceId, params *Li
 	return req, nil
 }
 
-// NewSetNatsTriggerEnabledRequest calls the generic SetNatsTriggerEnabled builder with application/json body
-func NewSetNatsTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody) (*http.Request, error) {
+// NewSetNatsTriggerModeRequest calls the generic SetNatsTriggerMode builder with application/json body
+func NewSetNatsTriggerModeRequest(server string, workspace WorkspaceId, path Path, body SetNatsTriggerModeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewSetNatsTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewSetNatsTriggerModeRequestWithBody(server, workspace, path, "application/json", bodyReader)
 }
 
-// NewSetNatsTriggerEnabledRequestWithBody generates requests for SetNatsTriggerEnabled with any type of body
-func NewSetNatsTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+// NewSetNatsTriggerModeRequestWithBody generates requests for SetNatsTriggerMode with any type of body
+func NewSetNatsTriggerModeRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -45011,7 +45759,7 @@ func NewSetNatsTriggerEnabledRequestWithBody(server string, workspace WorkspaceI
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/nats_triggers/setenabled/%s", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/w/%s/nats_triggers/setmode/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -45390,7 +46138,7 @@ func NewRefreshTokenRequestWithBody(server string, workspace WorkspaceId, id Acc
 }
 
 // NewGetOidcTokenRequest generates requests for GetOidcToken
-func NewGetOidcTokenRequest(server string, workspace WorkspaceId, audience string) (*http.Request, error) {
+func NewGetOidcTokenRequest(server string, workspace WorkspaceId, audience string, params *GetOidcTokenParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -45420,6 +46168,28 @@ func NewGetOidcTokenRequest(server string, workspace WorkspaceId, audience strin
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ExpiresIn != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "expires_in", runtime.ParamLocationQuery, *params.ExpiresIn); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
@@ -46243,19 +47013,19 @@ func NewUpdatePostgresPublicationRequestWithBody(server string, workspace Worksp
 	return req, nil
 }
 
-// NewSetPostgresTriggerEnabledRequest calls the generic SetPostgresTriggerEnabled builder with application/json body
-func NewSetPostgresTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetPostgresTriggerEnabledJSONRequestBody) (*http.Request, error) {
+// NewSetPostgresTriggerModeRequest calls the generic SetPostgresTriggerMode builder with application/json body
+func NewSetPostgresTriggerModeRequest(server string, workspace WorkspaceId, path Path, body SetPostgresTriggerModeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewSetPostgresTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewSetPostgresTriggerModeRequestWithBody(server, workspace, path, "application/json", bodyReader)
 }
 
-// NewSetPostgresTriggerEnabledRequestWithBody generates requests for SetPostgresTriggerEnabled with any type of body
-func NewSetPostgresTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+// NewSetPostgresTriggerModeRequestWithBody generates requests for SetPostgresTriggerMode with any type of body
+func NewSetPostgresTriggerModeRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -46277,7 +47047,7 @@ func NewSetPostgresTriggerEnabledRequestWithBody(server string, workspace Worksp
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/setenabled/%s", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/w/%s/postgres_triggers/setmode/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -50140,19 +50910,19 @@ func NewListSqsTriggersRequest(server string, workspace WorkspaceId, params *Lis
 	return req, nil
 }
 
-// NewSetSqsTriggerEnabledRequest calls the generic SetSqsTriggerEnabled builder with application/json body
-func NewSetSqsTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetSqsTriggerEnabledJSONRequestBody) (*http.Request, error) {
+// NewSetSqsTriggerModeRequest calls the generic SetSqsTriggerMode builder with application/json body
+func NewSetSqsTriggerModeRequest(server string, workspace WorkspaceId, path Path, body SetSqsTriggerModeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewSetSqsTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewSetSqsTriggerModeRequestWithBody(server, workspace, path, "application/json", bodyReader)
 }
 
-// NewSetSqsTriggerEnabledRequestWithBody generates requests for SetSqsTriggerEnabled with any type of body
-func NewSetSqsTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+// NewSetSqsTriggerModeRequestWithBody generates requests for SetSqsTriggerMode with any type of body
+func NewSetSqsTriggerModeRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -50174,7 +50944,7 @@ func NewSetSqsTriggerEnabledRequestWithBody(server string, workspace WorkspaceId
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/sqs_triggers/setenabled/%s", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/w/%s/sqs_triggers/setmode/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -50276,6 +51046,128 @@ func NewUpdateSqsTriggerRequestWithBody(server string, workspace WorkspaceId, pa
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/sqs_triggers/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCancelSuspendedTriggerJobsRequest calls the generic CancelSuspendedTriggerJobs builder with application/json body
+func NewCancelSuspendedTriggerJobsRequest(server string, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body CancelSuspendedTriggerJobsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCancelSuspendedTriggerJobsRequestWithBody(server, workspace, triggerKind, triggerPath, "application/json", bodyReader)
+}
+
+// NewCancelSuspendedTriggerJobsRequestWithBody generates requests for CancelSuspendedTriggerJobs with any type of body
+func NewCancelSuspendedTriggerJobsRequestWithBody(server string, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "trigger_kind", runtime.ParamLocationPath, triggerKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "trigger_path", runtime.ParamLocationPath, triggerPath)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/trigger/%s/cancel_suspended_trigger_jobs/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewResumeSuspendedTriggerJobsRequest calls the generic ResumeSuspendedTriggerJobs builder with application/json body
+func NewResumeSuspendedTriggerJobsRequest(server string, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body ResumeSuspendedTriggerJobsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewResumeSuspendedTriggerJobsRequestWithBody(server, workspace, triggerKind, triggerPath, "application/json", bodyReader)
+}
+
+// NewResumeSuspendedTriggerJobsRequestWithBody generates requests for ResumeSuspendedTriggerJobs with any type of body
+func NewResumeSuspendedTriggerJobsRequestWithBody(server string, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "trigger_kind", runtime.ParamLocationPath, triggerKind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "trigger_path", runtime.ParamLocationPath, triggerPath)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/trigger/%s/resume_suspended_trigger_jobs/%s", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -51606,19 +52498,19 @@ func NewListWebsocketTriggersRequest(server string, workspace WorkspaceId, param
 	return req, nil
 }
 
-// NewSetWebsocketTriggerEnabledRequest calls the generic SetWebsocketTriggerEnabled builder with application/json body
-func NewSetWebsocketTriggerEnabledRequest(server string, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody) (*http.Request, error) {
+// NewSetWebsocketTriggerModeRequest calls the generic SetWebsocketTriggerMode builder with application/json body
+func NewSetWebsocketTriggerModeRequest(server string, workspace WorkspaceId, path Path, body SetWebsocketTriggerModeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewSetWebsocketTriggerEnabledRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewSetWebsocketTriggerModeRequestWithBody(server, workspace, path, "application/json", bodyReader)
 }
 
-// NewSetWebsocketTriggerEnabledRequestWithBody generates requests for SetWebsocketTriggerEnabled with any type of body
-func NewSetWebsocketTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+// NewSetWebsocketTriggerModeRequestWithBody generates requests for SetWebsocketTriggerMode with any type of body
+func NewSetWebsocketTriggerModeRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -51640,7 +52532,7 @@ func NewSetWebsocketTriggerEnabledRequestWithBody(server string, workspace Works
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/websocket_triggers/setenabled/%s", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/w/%s/websocket_triggers/setmode/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -53031,6 +53923,53 @@ func NewEditCopilotConfigRequestWithBody(server string, workspace WorkspaceId, c
 	return req, nil
 }
 
+// NewEditDataTableConfigRequest calls the generic EditDataTableConfig builder with application/json body
+func NewEditDataTableConfigRequest(server string, workspace WorkspaceId, body EditDataTableConfigJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditDataTableConfigRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditDataTableConfigRequestWithBody generates requests for EditDataTableConfig with any type of body
+func NewEditDataTableConfigRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_datatable_config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditWorkspaceDefaultAppRequest calls the generic EditWorkspaceDefaultApp builder with application/json body
 func NewEditWorkspaceDefaultAppRequest(server string, workspace WorkspaceId, body EditWorkspaceDefaultAppJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -54144,6 +55083,40 @@ func NewLeaveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Reque
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListDataTablesRequest generates requests for ListDataTables
+func NewListDataTablesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/list_datatables", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -55698,9 +56671,6 @@ type ClientWithResponsesInterface interface {
 	// CreateCustomerPortalSessionWithResponse request
 	CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
 
-	// GetDucklakeInstanceCatalogDbStatusWithResponse request
-	GetDucklakeInstanceCatalogDbStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDucklakeInstanceCatalogDbStatusResponse, error)
-
 	// GetGlobalWithResponse request
 	GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error)
 
@@ -55712,11 +56682,17 @@ type ClientWithResponsesInterface interface {
 	// GetLatestKeyRenewalAttemptWithResponse request
 	GetLatestKeyRenewalAttemptWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLatestKeyRenewalAttemptResponse, error)
 
+	// ListCustomInstanceDbsWithResponse request
+	ListCustomInstanceDbsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListCustomInstanceDbsResponse, error)
+
 	// ListGlobalSettingsWithResponse request
 	ListGlobalSettingsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListGlobalSettingsResponse, error)
 
 	// GetLocalWithResponse request
 	GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error)
+
+	// RefreshCustomInstanceUserPwdWithResponse request
+	RefreshCustomInstanceUserPwdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshCustomInstanceUserPwdResponse, error)
 
 	// RenewLicenseKeyWithResponse request
 	RenewLicenseKeyWithResponse(ctx context.Context, params *RenewLicenseKeyParams, reqEditors ...RequestEditorFn) (*RenewLicenseKeyResponse, error)
@@ -55724,8 +56700,10 @@ type ClientWithResponsesInterface interface {
 	// SendStatsWithResponse request
 	SendStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SendStatsResponse, error)
 
-	// SetupDucklakeCatalogDbWithResponse request
-	SetupDucklakeCatalogDbWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*SetupDucklakeCatalogDbResponse, error)
+	// SetupCustomInstanceDbWithBodyWithResponse request with any body
+	SetupCustomInstanceDbWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetupCustomInstanceDbResponse, error)
+
+	SetupCustomInstanceDbWithResponse(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*SetupCustomInstanceDbResponse, error)
 
 	// TestCriticalChannelsWithBodyWithResponse request with any body
 	TestCriticalChannelsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestCriticalChannelsResponse, error)
@@ -56056,10 +57034,10 @@ type ClientWithResponsesInterface interface {
 
 	ExistsEmailLocalPartWithResponse(ctx context.Context, workspace WorkspaceId, body ExistsEmailLocalPartJSONRequestBody, reqEditors ...RequestEditorFn) (*ExistsEmailLocalPartResponse, error)
 
-	// SetEmailTriggerEnabledWithBodyWithResponse request with any body
-	SetEmailTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEmailTriggerEnabledResponse, error)
+	// SetEmailTriggerModeWithBodyWithResponse request with any body
+	SetEmailTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEmailTriggerModeResponse, error)
 
-	SetEmailTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetEmailTriggerEnabledResponse, error)
+	SetEmailTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetEmailTriggerModeResponse, error)
 
 	// UpdateEmailTriggerWithBodyWithResponse request with any body
 	UpdateEmailTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateEmailTriggerResponse, error)
@@ -56210,10 +57188,10 @@ type ClientWithResponsesInterface interface {
 	// ListGcpTriggersWithResponse request
 	ListGcpTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListGcpTriggersParams, reqEditors ...RequestEditorFn) (*ListGcpTriggersResponse, error)
 
-	// SetGcpTriggerEnabledWithBodyWithResponse request with any body
-	SetGcpTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetGcpTriggerEnabledResponse, error)
+	// SetGcpTriggerModeWithBodyWithResponse request with any body
+	SetGcpTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetGcpTriggerModeResponse, error)
 
-	SetGcpTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGcpTriggerEnabledResponse, error)
+	SetGcpTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGcpTriggerModeResponse, error)
 
 	// DeleteGcpSubscriptionWithBodyWithResponse request with any body
 	DeleteGcpSubscriptionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionResponse, error)
@@ -56318,10 +57296,10 @@ type ClientWithResponsesInterface interface {
 
 	ExistsRouteWithResponse(ctx context.Context, workspace WorkspaceId, body ExistsRouteJSONRequestBody, reqEditors ...RequestEditorFn) (*ExistsRouteResponse, error)
 
-	// SetHttpTriggerEnabledWithBodyWithResponse request with any body
-	SetHttpTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetHttpTriggerEnabledResponse, error)
+	// SetHttpTriggerModeWithBodyWithResponse request with any body
+	SetHttpTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetHttpTriggerModeResponse, error)
 
-	SetHttpTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetHttpTriggerEnabledResponse, error)
+	SetHttpTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetHttpTriggerModeResponse, error)
 
 	// UpdateHttpTriggerWithBodyWithResponse request with any body
 	UpdateHttpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateHttpTriggerResponse, error)
@@ -56607,6 +57585,11 @@ type ClientWithResponsesInterface interface {
 
 	RunAndStreamScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByPathResponse, error)
 
+	// RunScriptPreviewInlineWithBodyWithResponse request with any body
+	RunScriptPreviewInlineWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptPreviewInlineResponse, error)
+
+	RunScriptPreviewInlineWithResponse(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptPreviewInlineResponse, error)
+
 	// RunWaitResultFlowByPathWithBodyWithResponse request with any body
 	RunWaitResultFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error)
 
@@ -56741,10 +57724,10 @@ type ClientWithResponsesInterface interface {
 	// ListKafkaTriggersWithResponse request
 	ListKafkaTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListKafkaTriggersParams, reqEditors ...RequestEditorFn) (*ListKafkaTriggersResponse, error)
 
-	// SetKafkaTriggerEnabledWithBodyWithResponse request with any body
-	SetKafkaTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetKafkaTriggerEnabledResponse, error)
+	// SetKafkaTriggerModeWithBodyWithResponse request with any body
+	SetKafkaTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetKafkaTriggerModeResponse, error)
 
-	SetKafkaTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetKafkaTriggerEnabledResponse, error)
+	SetKafkaTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetKafkaTriggerModeResponse, error)
 
 	// TestKafkaConnectionWithBodyWithResponse request with any body
 	TestKafkaConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestKafkaConnectionResponse, error)
@@ -56773,10 +57756,10 @@ type ClientWithResponsesInterface interface {
 	// ListMqttTriggersWithResponse request
 	ListMqttTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListMqttTriggersParams, reqEditors ...RequestEditorFn) (*ListMqttTriggersResponse, error)
 
-	// SetMqttTriggerEnabledWithBodyWithResponse request with any body
-	SetMqttTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetMqttTriggerEnabledResponse, error)
+	// SetMqttTriggerModeWithBodyWithResponse request with any body
+	SetMqttTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetMqttTriggerModeResponse, error)
 
-	SetMqttTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetMqttTriggerEnabledResponse, error)
+	SetMqttTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetMqttTriggerModeResponse, error)
 
 	// TestMqttConnectionWithBodyWithResponse request with any body
 	TestMqttConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestMqttConnectionResponse, error)
@@ -56805,10 +57788,10 @@ type ClientWithResponsesInterface interface {
 	// ListNatsTriggersWithResponse request
 	ListNatsTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListNatsTriggersParams, reqEditors ...RequestEditorFn) (*ListNatsTriggersResponse, error)
 
-	// SetNatsTriggerEnabledWithBodyWithResponse request with any body
-	SetNatsTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNatsTriggerEnabledResponse, error)
+	// SetNatsTriggerModeWithBodyWithResponse request with any body
+	SetNatsTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNatsTriggerModeResponse, error)
 
-	SetNatsTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetNatsTriggerEnabledResponse, error)
+	SetNatsTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetNatsTriggerModeResponse, error)
 
 	// TestNatsConnectionWithBodyWithResponse request with any body
 	TestNatsConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestNatsConnectionResponse, error)
@@ -56845,7 +57828,7 @@ type ClientWithResponsesInterface interface {
 	RefreshTokenWithResponse(ctx context.Context, workspace WorkspaceId, id AccountId, body RefreshTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*RefreshTokenResponse, error)
 
 	// GetOidcTokenWithResponse request
-	GetOidcTokenWithResponse(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*GetOidcTokenResponse, error)
+	GetOidcTokenWithResponse(ctx context.Context, workspace WorkspaceId, audience string, params *GetOidcTokenParams, reqEditors ...RequestEditorFn) (*GetOidcTokenResponse, error)
 
 	// DownloadOpenapiSpecWithBodyWithResponse request with any body
 	DownloadOpenapiSpecWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DownloadOpenapiSpecResponse, error)
@@ -56907,10 +57890,10 @@ type ClientWithResponsesInterface interface {
 
 	UpdatePostgresPublicationWithResponse(ctx context.Context, workspace WorkspaceId, publication PublicationName, path Path, body UpdatePostgresPublicationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePostgresPublicationResponse, error)
 
-	// SetPostgresTriggerEnabledWithBodyWithResponse request with any body
-	SetPostgresTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPostgresTriggerEnabledResponse, error)
+	// SetPostgresTriggerModeWithBodyWithResponse request with any body
+	SetPostgresTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPostgresTriggerModeResponse, error)
 
-	SetPostgresTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetPostgresTriggerEnabledResponse, error)
+	SetPostgresTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetPostgresTriggerModeResponse, error)
 
 	// CreatePostgresReplicationSlotWithBodyWithResponse request with any body
 	CreatePostgresReplicationSlotWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePostgresReplicationSlotResponse, error)
@@ -57161,10 +58144,10 @@ type ClientWithResponsesInterface interface {
 	// ListSqsTriggersWithResponse request
 	ListSqsTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListSqsTriggersParams, reqEditors ...RequestEditorFn) (*ListSqsTriggersResponse, error)
 
-	// SetSqsTriggerEnabledWithBodyWithResponse request with any body
-	SetSqsTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetSqsTriggerEnabledResponse, error)
+	// SetSqsTriggerModeWithBodyWithResponse request with any body
+	SetSqsTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetSqsTriggerModeResponse, error)
 
-	SetSqsTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetSqsTriggerEnabledResponse, error)
+	SetSqsTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetSqsTriggerModeResponse, error)
 
 	// TestSqsConnectionWithBodyWithResponse request with any body
 	TestSqsConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSqsConnectionResponse, error)
@@ -57175,6 +58158,16 @@ type ClientWithResponsesInterface interface {
 	UpdateSqsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateSqsTriggerResponse, error)
 
 	UpdateSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateSqsTriggerResponse, error)
+
+	// CancelSuspendedTriggerJobsWithBodyWithResponse request with any body
+	CancelSuspendedTriggerJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSuspendedTriggerJobsResponse, error)
+
+	CancelSuspendedTriggerJobsWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body CancelSuspendedTriggerJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSuspendedTriggerJobsResponse, error)
+
+	// ResumeSuspendedTriggerJobsWithBodyWithResponse request with any body
+	ResumeSuspendedTriggerJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedTriggerJobsResponse, error)
+
+	ResumeSuspendedTriggerJobsWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body ResumeSuspendedTriggerJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedTriggerJobsResponse, error)
 
 	// ConvertUserToGroupWithResponse request
 	ConvertUserToGroupWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*ConvertUserToGroupResponse, error)
@@ -57266,10 +58259,10 @@ type ClientWithResponsesInterface interface {
 	// ListWebsocketTriggersWithResponse request
 	ListWebsocketTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListWebsocketTriggersParams, reqEditors ...RequestEditorFn) (*ListWebsocketTriggersResponse, error)
 
-	// SetWebsocketTriggerEnabledWithBodyWithResponse request with any body
-	SetWebsocketTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerEnabledResponse, error)
+	// SetWebsocketTriggerModeWithBodyWithResponse request with any body
+	SetWebsocketTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerModeResponse, error)
 
-	SetWebsocketTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerEnabledResponse, error)
+	SetWebsocketTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerModeResponse, error)
 
 	// TestWebsocketConnectionWithBodyWithResponse request with any body
 	TestWebsocketConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestWebsocketConnectionResponse, error)
@@ -57387,6 +58380,11 @@ type ClientWithResponsesInterface interface {
 
 	EditCopilotConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditCopilotConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditCopilotConfigResponse, error)
 
+	// EditDataTableConfigWithBodyWithResponse request with any body
+	EditDataTableConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDataTableConfigResponse, error)
+
+	EditDataTableConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditDataTableConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDataTableConfigResponse, error)
+
 	// EditWorkspaceDefaultAppWithBodyWithResponse request with any body
 	EditWorkspaceDefaultAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceDefaultAppResponse, error)
 
@@ -57497,6 +58495,9 @@ type ClientWithResponsesInterface interface {
 
 	// LeaveWorkspaceWithResponse request
 	LeaveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*LeaveWorkspaceResponse, error)
+
+	// ListDataTablesWithResponse request
+	ListDataTablesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTablesResponse, error)
 
 	// ListDucklakesWithResponse request
 	ListDucklakesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDucklakesResponse, error)
@@ -58166,6 +59167,7 @@ type GetHubFlowByIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
+		// Flow Top-level flow definition containing metadata, configuration, and the flow structure
 		Flow *OpenFlow `json:"flow,omitempty"`
 	}
 }
@@ -59024,28 +60026,6 @@ func (r CreateCustomerPortalSessionResponse) StatusCode() int {
 	return 0
 }
 
-type GetDucklakeInstanceCatalogDbStatusResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *map[string]DucklakeInstanceCatalogDbStatus
-}
-
-// Status returns HTTPResponse.Status
-func (r GetDucklakeInstanceCatalogDbStatusResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetDucklakeInstanceCatalogDbStatusResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetGlobalResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -59114,6 +60094,28 @@ func (r GetLatestKeyRenewalAttemptResponse) StatusCode() int {
 	return 0
 }
 
+type ListCustomInstanceDbsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]CustomInstanceDb
+}
+
+// Status returns HTTPResponse.Status
+func (r ListCustomInstanceDbsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListCustomInstanceDbsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListGlobalSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -59152,6 +60154,28 @@ func (r GetLocalResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetLocalResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RefreshCustomInstanceUserPwdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r RefreshCustomInstanceUserPwdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RefreshCustomInstanceUserPwdResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -59200,14 +60224,14 @@ func (r SendStatsResponse) StatusCode() int {
 	return 0
 }
 
-type SetupDucklakeCatalogDbResponse struct {
+type SetupCustomInstanceDbResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *DucklakeInstanceCatalogDbStatus
+	JSON200      *CustomInstanceDb
 }
 
 // Status returns HTTPResponse.Status
-func (r SetupDucklakeCatalogDbResponse) Status() string {
+func (r SetupCustomInstanceDbResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -59215,7 +60239,7 @@ func (r SetupDucklakeCatalogDbResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SetupDucklakeCatalogDbResponse) StatusCode() int {
+func (r SetupCustomInstanceDbResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -59967,7 +60991,8 @@ type GetTutorialProgressResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Progress *int `json:"progress,omitempty"`
+		Progress   *int  `json:"progress,omitempty"`
+		SkippedAll *bool `json:"skipped_all,omitempty"`
 	}
 }
 
@@ -61200,13 +62225,13 @@ func (r ExistsEmailLocalPartResponse) StatusCode() int {
 	return 0
 }
 
-type SetEmailTriggerEnabledResponse struct {
+type SetEmailTriggerModeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r SetEmailTriggerEnabledResponse) Status() string {
+func (r SetEmailTriggerModeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -61214,7 +62239,7 @@ func (r SetEmailTriggerEnabledResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SetEmailTriggerEnabledResponse) StatusCode() int {
+func (r SetEmailTriggerModeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -61489,28 +62514,36 @@ type GetFlowByPathWithDraftResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Archived            bool                    `json:"archived"`
-		DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
-		Description         *string                 `json:"description,omitempty"`
-		Draft               *Flow                   `json:"draft,omitempty"`
-		DraftOnly           *bool                   `json:"draft_only,omitempty"`
-		EditedAt            time.Time               `json:"edited_at"`
-		EditedBy            string                  `json:"edited_by"`
-		ExtraPerms          ExtraPerms              `json:"extra_perms"`
-		LockErrorLogs       *string                 `json:"lock_error_logs,omitempty"`
-		OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
-		Path                string                  `json:"path"`
-		Priority            *int                    `json:"priority,omitempty"`
-		Schema              *map[string]interface{} `json:"schema,omitempty"`
-		Starred             *bool                   `json:"starred,omitempty"`
-		Summary             string                  `json:"summary"`
-		Tag                 *string                 `json:"tag,omitempty"`
-		Timeout             *float32                `json:"timeout,omitempty"`
-		Value               SchemasFlowValue        `json:"value"`
-		VersionId           *float32                `json:"version_id,omitempty"`
-		VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
-		WorkspaceId         *string                 `json:"workspace_id,omitempty"`
-		WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+		Archived        bool  `json:"archived"`
+		DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
+
+		// Description Detailed documentation for this flow
+		Description     *string    `json:"description,omitempty"`
+		Draft           *Flow      `json:"draft,omitempty"`
+		DraftOnly       *bool      `json:"draft_only,omitempty"`
+		EditedAt        time.Time  `json:"edited_at"`
+		EditedBy        string     `json:"edited_by"`
+		ExtraPerms      ExtraPerms `json:"extra_perms"`
+		LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
+		OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
+		Path            string     `json:"path"`
+		Priority        *int       `json:"priority,omitempty"`
+
+		// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+		Schema  *map[string]interface{} `json:"schema,omitempty"`
+		Starred *bool                   `json:"starred,omitempty"`
+
+		// Summary Short description of what this flow does
+		Summary string   `json:"summary"`
+		Tag     *string  `json:"tag,omitempty"`
+		Timeout *float32 `json:"timeout,omitempty"`
+
+		// Value The flow structure containing modules and optional preprocessor/failure handlers
+		Value               SchemasFlowValue `json:"value"`
+		VersionId           *float32         `json:"version_id,omitempty"`
+		VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
+		WorkspaceId         *string          `json:"workspace_id,omitempty"`
+		WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
 	}
 }
 
@@ -61665,28 +62698,36 @@ type ListFlowsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]struct {
-		Archived            bool                    `json:"archived"`
-		DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
-		Description         *string                 `json:"description,omitempty"`
-		DraftOnly           *bool                   `json:"draft_only,omitempty"`
-		EditedAt            time.Time               `json:"edited_at"`
-		EditedBy            string                  `json:"edited_by"`
-		ExtraPerms          ExtraPerms              `json:"extra_perms"`
-		HasDraft            *bool                   `json:"has_draft,omitempty"`
-		LockErrorLogs       *string                 `json:"lock_error_logs,omitempty"`
-		OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
-		Path                string                  `json:"path"`
-		Priority            *int                    `json:"priority,omitempty"`
-		Schema              *map[string]interface{} `json:"schema,omitempty"`
-		Starred             *bool                   `json:"starred,omitempty"`
-		Summary             string                  `json:"summary"`
-		Tag                 *string                 `json:"tag,omitempty"`
-		Timeout             *float32                `json:"timeout,omitempty"`
-		Value               SchemasFlowValue        `json:"value"`
-		VersionId           *float32                `json:"version_id,omitempty"`
-		VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
-		WorkspaceId         *string                 `json:"workspace_id,omitempty"`
-		WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+		Archived        bool  `json:"archived"`
+		DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
+
+		// Description Detailed documentation for this flow
+		Description     *string    `json:"description,omitempty"`
+		DraftOnly       *bool      `json:"draft_only,omitempty"`
+		EditedAt        time.Time  `json:"edited_at"`
+		EditedBy        string     `json:"edited_by"`
+		ExtraPerms      ExtraPerms `json:"extra_perms"`
+		HasDraft        *bool      `json:"has_draft,omitempty"`
+		LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
+		OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
+		Path            string     `json:"path"`
+		Priority        *int       `json:"priority,omitempty"`
+
+		// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+		Schema  *map[string]interface{} `json:"schema,omitempty"`
+		Starred *bool                   `json:"starred,omitempty"`
+
+		// Summary Short description of what this flow does
+		Summary string   `json:"summary"`
+		Tag     *string  `json:"tag,omitempty"`
+		Timeout *float32 `json:"timeout,omitempty"`
+
+		// Value The flow structure containing modules and optional preprocessor/failure handlers
+		Value               SchemasFlowValue `json:"value"`
+		VersionId           *float32         `json:"version_id,omitempty"`
+		VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
+		WorkspaceId         *string          `json:"workspace_id,omitempty"`
+		WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
 	}
 }
 
@@ -62168,13 +63209,13 @@ func (r ListGcpTriggersResponse) StatusCode() int {
 	return 0
 }
 
-type SetGcpTriggerEnabledResponse struct {
+type SetGcpTriggerModeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r SetGcpTriggerEnabledResponse) Status() string {
+func (r SetGcpTriggerModeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -62182,7 +63223,7 @@ func (r SetGcpTriggerEnabledResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SetGcpTriggerEnabledResponse) StatusCode() int {
+func (r SetGcpTriggerModeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -62729,13 +63770,13 @@ func (r ExistsRouteResponse) StatusCode() int {
 	return 0
 }
 
-type SetHttpTriggerEnabledResponse struct {
+type SetHttpTriggerModeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r SetHttpTriggerEnabledResponse) Status() string {
+func (r SetHttpTriggerModeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -62743,7 +63784,7 @@ func (r SetHttpTriggerEnabledResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SetHttpTriggerEnabledResponse) StatusCode() int {
+func (r SetHttpTriggerModeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -64412,6 +65453,28 @@ func (r RunAndStreamScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
+type RunScriptPreviewInlineResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r RunScriptPreviewInlineResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunScriptPreviewInlineResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RunWaitResultFlowByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -65210,13 +66273,13 @@ func (r ListKafkaTriggersResponse) StatusCode() int {
 	return 0
 }
 
-type SetKafkaTriggerEnabledResponse struct {
+type SetKafkaTriggerModeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r SetKafkaTriggerEnabledResponse) Status() string {
+func (r SetKafkaTriggerModeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -65224,7 +66287,7 @@ func (r SetKafkaTriggerEnabledResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SetKafkaTriggerEnabledResponse) StatusCode() int {
+func (r SetKafkaTriggerModeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -65381,13 +66444,13 @@ func (r ListMqttTriggersResponse) StatusCode() int {
 	return 0
 }
 
-type SetMqttTriggerEnabledResponse struct {
+type SetMqttTriggerModeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r SetMqttTriggerEnabledResponse) Status() string {
+func (r SetMqttTriggerModeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -65395,7 +66458,7 @@ func (r SetMqttTriggerEnabledResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SetMqttTriggerEnabledResponse) StatusCode() int {
+func (r SetMqttTriggerModeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -65552,13 +66615,13 @@ func (r ListNatsTriggersResponse) StatusCode() int {
 	return 0
 }
 
-type SetNatsTriggerEnabledResponse struct {
+type SetNatsTriggerModeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r SetNatsTriggerEnabledResponse) Status() string {
+func (r SetNatsTriggerModeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -65566,7 +66629,7 @@ func (r SetNatsTriggerEnabledResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SetNatsTriggerEnabledResponse) StatusCode() int {
+func (r SetNatsTriggerModeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -66105,13 +67168,13 @@ func (r UpdatePostgresPublicationResponse) StatusCode() int {
 	return 0
 }
 
-type SetPostgresTriggerEnabledResponse struct {
+type SetPostgresTriggerModeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r SetPostgresTriggerEnabledResponse) Status() string {
+func (r SetPostgresTriggerModeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -66119,7 +67182,7 @@ func (r SetPostgresTriggerEnabledResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SetPostgresTriggerEnabledResponse) StatusCode() int {
+func (r SetPostgresTriggerModeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -67636,13 +68699,13 @@ func (r ListSqsTriggersResponse) StatusCode() int {
 	return 0
 }
 
-type SetSqsTriggerEnabledResponse struct {
+type SetSqsTriggerModeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r SetSqsTriggerEnabledResponse) Status() string {
+func (r SetSqsTriggerModeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -67650,7 +68713,7 @@ func (r SetSqsTriggerEnabledResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SetSqsTriggerEnabledResponse) StatusCode() int {
+func (r SetSqsTriggerModeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -67693,6 +68756,50 @@ func (r UpdateSqsTriggerResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateSqsTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CancelSuspendedTriggerJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r CancelSuspendedTriggerJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CancelSuspendedTriggerJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ResumeSuspendedTriggerJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r ResumeSuspendedTriggerJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResumeSuspendedTriggerJobsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -68261,13 +69368,13 @@ func (r ListWebsocketTriggersResponse) StatusCode() int {
 	return 0
 }
 
-type SetWebsocketTriggerEnabledResponse struct {
+type SetWebsocketTriggerModeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r SetWebsocketTriggerEnabledResponse) Status() string {
+func (r SetWebsocketTriggerModeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -68275,7 +69382,7 @@ func (r SetWebsocketTriggerEnabledResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SetWebsocketTriggerEnabledResponse) StatusCode() int {
+func (r SetWebsocketTriggerModeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -68900,6 +70007,28 @@ func (r EditCopilotConfigResponse) StatusCode() int {
 	return 0
 }
 
+type EditDataTableConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r EditDataTableConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditDataTableConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditWorkspaceDefaultAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -69392,6 +70521,7 @@ type GetSettingsResponse struct {
 		AutoInviteOperator         *bool                      `json:"auto_invite_operator,omitempty"`
 		Color                      *string                    `json:"color,omitempty"`
 		CustomerId                 *string                    `json:"customer_id,omitempty"`
+		Datatable                  *DataTableSettings         `json:"datatable,omitempty"`
 		DefaultApp                 *string                    `json:"default_app,omitempty"`
 		DefaultScripts             *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
 		DeployTo                   *string                    `json:"deploy_to,omitempty"`
@@ -69515,6 +70645,28 @@ func (r LeaveWorkspaceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LeaveWorkspaceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListDataTablesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListDataTablesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListDataTablesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -70910,15 +72062,6 @@ func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx contex
 	return ParseCreateCustomerPortalSessionResponse(rsp)
 }
 
-// GetDucklakeInstanceCatalogDbStatusWithResponse request returning *GetDucklakeInstanceCatalogDbStatusResponse
-func (c *ClientWithResponses) GetDucklakeInstanceCatalogDbStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDucklakeInstanceCatalogDbStatusResponse, error) {
-	rsp, err := c.GetDucklakeInstanceCatalogDbStatus(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetDucklakeInstanceCatalogDbStatusResponse(rsp)
-}
-
 // GetGlobalWithResponse request returning *GetGlobalResponse
 func (c *ClientWithResponses) GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error) {
 	rsp, err := c.GetGlobal(ctx, key, reqEditors...)
@@ -70954,6 +72097,15 @@ func (c *ClientWithResponses) GetLatestKeyRenewalAttemptWithResponse(ctx context
 	return ParseGetLatestKeyRenewalAttemptResponse(rsp)
 }
 
+// ListCustomInstanceDbsWithResponse request returning *ListCustomInstanceDbsResponse
+func (c *ClientWithResponses) ListCustomInstanceDbsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListCustomInstanceDbsResponse, error) {
+	rsp, err := c.ListCustomInstanceDbs(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListCustomInstanceDbsResponse(rsp)
+}
+
 // ListGlobalSettingsWithResponse request returning *ListGlobalSettingsResponse
 func (c *ClientWithResponses) ListGlobalSettingsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListGlobalSettingsResponse, error) {
 	rsp, err := c.ListGlobalSettings(ctx, reqEditors...)
@@ -70970,6 +72122,15 @@ func (c *ClientWithResponses) GetLocalWithResponse(ctx context.Context, reqEdito
 		return nil, err
 	}
 	return ParseGetLocalResponse(rsp)
+}
+
+// RefreshCustomInstanceUserPwdWithResponse request returning *RefreshCustomInstanceUserPwdResponse
+func (c *ClientWithResponses) RefreshCustomInstanceUserPwdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshCustomInstanceUserPwdResponse, error) {
+	rsp, err := c.RefreshCustomInstanceUserPwd(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRefreshCustomInstanceUserPwdResponse(rsp)
 }
 
 // RenewLicenseKeyWithResponse request returning *RenewLicenseKeyResponse
@@ -70990,13 +72151,21 @@ func (c *ClientWithResponses) SendStatsWithResponse(ctx context.Context, reqEdit
 	return ParseSendStatsResponse(rsp)
 }
 
-// SetupDucklakeCatalogDbWithResponse request returning *SetupDucklakeCatalogDbResponse
-func (c *ClientWithResponses) SetupDucklakeCatalogDbWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*SetupDucklakeCatalogDbResponse, error) {
-	rsp, err := c.SetupDucklakeCatalogDb(ctx, name, reqEditors...)
+// SetupCustomInstanceDbWithBodyWithResponse request with arbitrary body returning *SetupCustomInstanceDbResponse
+func (c *ClientWithResponses) SetupCustomInstanceDbWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetupCustomInstanceDbResponse, error) {
+	rsp, err := c.SetupCustomInstanceDbWithBody(ctx, name, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetupDucklakeCatalogDbResponse(rsp)
+	return ParseSetupCustomInstanceDbResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetupCustomInstanceDbWithResponse(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*SetupCustomInstanceDbResponse, error) {
+	rsp, err := c.SetupCustomInstanceDb(ctx, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetupCustomInstanceDbResponse(rsp)
 }
 
 // TestCriticalChannelsWithBodyWithResponse request with arbitrary body returning *TestCriticalChannelsResponse
@@ -72048,21 +73217,21 @@ func (c *ClientWithResponses) ExistsEmailLocalPartWithResponse(ctx context.Conte
 	return ParseExistsEmailLocalPartResponse(rsp)
 }
 
-// SetEmailTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetEmailTriggerEnabledResponse
-func (c *ClientWithResponses) SetEmailTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEmailTriggerEnabledResponse, error) {
-	rsp, err := c.SetEmailTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+// SetEmailTriggerModeWithBodyWithResponse request with arbitrary body returning *SetEmailTriggerModeResponse
+func (c *ClientWithResponses) SetEmailTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEmailTriggerModeResponse, error) {
+	rsp, err := c.SetEmailTriggerModeWithBody(ctx, workspace, path, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetEmailTriggerEnabledResponse(rsp)
+	return ParseSetEmailTriggerModeResponse(rsp)
 }
 
-func (c *ClientWithResponses) SetEmailTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetEmailTriggerEnabledResponse, error) {
-	rsp, err := c.SetEmailTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) SetEmailTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetEmailTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetEmailTriggerModeResponse, error) {
+	rsp, err := c.SetEmailTriggerMode(ctx, workspace, path, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetEmailTriggerEnabledResponse(rsp)
+	return ParseSetEmailTriggerModeResponse(rsp)
 }
 
 // UpdateEmailTriggerWithBodyWithResponse request with arbitrary body returning *UpdateEmailTriggerResponse
@@ -72538,21 +73707,21 @@ func (c *ClientWithResponses) ListGcpTriggersWithResponse(ctx context.Context, w
 	return ParseListGcpTriggersResponse(rsp)
 }
 
-// SetGcpTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetGcpTriggerEnabledResponse
-func (c *ClientWithResponses) SetGcpTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetGcpTriggerEnabledResponse, error) {
-	rsp, err := c.SetGcpTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+// SetGcpTriggerModeWithBodyWithResponse request with arbitrary body returning *SetGcpTriggerModeResponse
+func (c *ClientWithResponses) SetGcpTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetGcpTriggerModeResponse, error) {
+	rsp, err := c.SetGcpTriggerModeWithBody(ctx, workspace, path, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetGcpTriggerEnabledResponse(rsp)
+	return ParseSetGcpTriggerModeResponse(rsp)
 }
 
-func (c *ClientWithResponses) SetGcpTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGcpTriggerEnabledResponse, error) {
-	rsp, err := c.SetGcpTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) SetGcpTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGcpTriggerModeResponse, error) {
+	rsp, err := c.SetGcpTriggerMode(ctx, workspace, path, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetGcpTriggerEnabledResponse(rsp)
+	return ParseSetGcpTriggerModeResponse(rsp)
 }
 
 // DeleteGcpSubscriptionWithBodyWithResponse request with arbitrary body returning *DeleteGcpSubscriptionResponse
@@ -72892,21 +74061,21 @@ func (c *ClientWithResponses) ExistsRouteWithResponse(ctx context.Context, works
 	return ParseExistsRouteResponse(rsp)
 }
 
-// SetHttpTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetHttpTriggerEnabledResponse
-func (c *ClientWithResponses) SetHttpTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetHttpTriggerEnabledResponse, error) {
-	rsp, err := c.SetHttpTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+// SetHttpTriggerModeWithBodyWithResponse request with arbitrary body returning *SetHttpTriggerModeResponse
+func (c *ClientWithResponses) SetHttpTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetHttpTriggerModeResponse, error) {
+	rsp, err := c.SetHttpTriggerModeWithBody(ctx, workspace, path, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetHttpTriggerEnabledResponse(rsp)
+	return ParseSetHttpTriggerModeResponse(rsp)
 }
 
-func (c *ClientWithResponses) SetHttpTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetHttpTriggerEnabledResponse, error) {
-	rsp, err := c.SetHttpTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) SetHttpTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetHttpTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetHttpTriggerModeResponse, error) {
+	rsp, err := c.SetHttpTriggerMode(ctx, workspace, path, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetHttpTriggerEnabledResponse(rsp)
+	return ParseSetHttpTriggerModeResponse(rsp)
 }
 
 // UpdateHttpTriggerWithBodyWithResponse request with arbitrary body returning *UpdateHttpTriggerResponse
@@ -73823,6 +74992,23 @@ func (c *ClientWithResponses) RunAndStreamScriptByPathWithResponse(ctx context.C
 	return ParseRunAndStreamScriptByPathResponse(rsp)
 }
 
+// RunScriptPreviewInlineWithBodyWithResponse request with arbitrary body returning *RunScriptPreviewInlineResponse
+func (c *ClientWithResponses) RunScriptPreviewInlineWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptPreviewInlineResponse, error) {
+	rsp, err := c.RunScriptPreviewInlineWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunScriptPreviewInlineResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunScriptPreviewInlineWithResponse(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptPreviewInlineResponse, error) {
+	rsp, err := c.RunScriptPreviewInline(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunScriptPreviewInlineResponse(rsp)
+}
+
 // RunWaitResultFlowByPathWithBodyWithResponse request with arbitrary body returning *RunWaitResultFlowByPathResponse
 func (c *ClientWithResponses) RunWaitResultFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error) {
 	rsp, err := c.RunWaitResultFlowByPathWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
@@ -74251,21 +75437,21 @@ func (c *ClientWithResponses) ListKafkaTriggersWithResponse(ctx context.Context,
 	return ParseListKafkaTriggersResponse(rsp)
 }
 
-// SetKafkaTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetKafkaTriggerEnabledResponse
-func (c *ClientWithResponses) SetKafkaTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetKafkaTriggerEnabledResponse, error) {
-	rsp, err := c.SetKafkaTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+// SetKafkaTriggerModeWithBodyWithResponse request with arbitrary body returning *SetKafkaTriggerModeResponse
+func (c *ClientWithResponses) SetKafkaTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetKafkaTriggerModeResponse, error) {
+	rsp, err := c.SetKafkaTriggerModeWithBody(ctx, workspace, path, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetKafkaTriggerEnabledResponse(rsp)
+	return ParseSetKafkaTriggerModeResponse(rsp)
 }
 
-func (c *ClientWithResponses) SetKafkaTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetKafkaTriggerEnabledResponse, error) {
-	rsp, err := c.SetKafkaTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) SetKafkaTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetKafkaTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetKafkaTriggerModeResponse, error) {
+	rsp, err := c.SetKafkaTriggerMode(ctx, workspace, path, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetKafkaTriggerEnabledResponse(rsp)
+	return ParseSetKafkaTriggerModeResponse(rsp)
 }
 
 // TestKafkaConnectionWithBodyWithResponse request with arbitrary body returning *TestKafkaConnectionResponse
@@ -74355,21 +75541,21 @@ func (c *ClientWithResponses) ListMqttTriggersWithResponse(ctx context.Context, 
 	return ParseListMqttTriggersResponse(rsp)
 }
 
-// SetMqttTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetMqttTriggerEnabledResponse
-func (c *ClientWithResponses) SetMqttTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetMqttTriggerEnabledResponse, error) {
-	rsp, err := c.SetMqttTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+// SetMqttTriggerModeWithBodyWithResponse request with arbitrary body returning *SetMqttTriggerModeResponse
+func (c *ClientWithResponses) SetMqttTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetMqttTriggerModeResponse, error) {
+	rsp, err := c.SetMqttTriggerModeWithBody(ctx, workspace, path, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetMqttTriggerEnabledResponse(rsp)
+	return ParseSetMqttTriggerModeResponse(rsp)
 }
 
-func (c *ClientWithResponses) SetMqttTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetMqttTriggerEnabledResponse, error) {
-	rsp, err := c.SetMqttTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) SetMqttTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetMqttTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetMqttTriggerModeResponse, error) {
+	rsp, err := c.SetMqttTriggerMode(ctx, workspace, path, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetMqttTriggerEnabledResponse(rsp)
+	return ParseSetMqttTriggerModeResponse(rsp)
 }
 
 // TestMqttConnectionWithBodyWithResponse request with arbitrary body returning *TestMqttConnectionResponse
@@ -74459,21 +75645,21 @@ func (c *ClientWithResponses) ListNatsTriggersWithResponse(ctx context.Context, 
 	return ParseListNatsTriggersResponse(rsp)
 }
 
-// SetNatsTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetNatsTriggerEnabledResponse
-func (c *ClientWithResponses) SetNatsTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNatsTriggerEnabledResponse, error) {
-	rsp, err := c.SetNatsTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+// SetNatsTriggerModeWithBodyWithResponse request with arbitrary body returning *SetNatsTriggerModeResponse
+func (c *ClientWithResponses) SetNatsTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNatsTriggerModeResponse, error) {
+	rsp, err := c.SetNatsTriggerModeWithBody(ctx, workspace, path, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetNatsTriggerEnabledResponse(rsp)
+	return ParseSetNatsTriggerModeResponse(rsp)
 }
 
-func (c *ClientWithResponses) SetNatsTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetNatsTriggerEnabledResponse, error) {
-	rsp, err := c.SetNatsTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) SetNatsTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetNatsTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetNatsTriggerModeResponse, error) {
+	rsp, err := c.SetNatsTriggerMode(ctx, workspace, path, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetNatsTriggerEnabledResponse(rsp)
+	return ParseSetNatsTriggerModeResponse(rsp)
 }
 
 // TestNatsConnectionWithBodyWithResponse request with arbitrary body returning *TestNatsConnectionResponse
@@ -74589,8 +75775,8 @@ func (c *ClientWithResponses) RefreshTokenWithResponse(ctx context.Context, work
 }
 
 // GetOidcTokenWithResponse request returning *GetOidcTokenResponse
-func (c *ClientWithResponses) GetOidcTokenWithResponse(ctx context.Context, workspace WorkspaceId, audience string, reqEditors ...RequestEditorFn) (*GetOidcTokenResponse, error) {
-	rsp, err := c.GetOidcToken(ctx, workspace, audience, reqEditors...)
+func (c *ClientWithResponses) GetOidcTokenWithResponse(ctx context.Context, workspace WorkspaceId, audience string, params *GetOidcTokenParams, reqEditors ...RequestEditorFn) (*GetOidcTokenResponse, error) {
+	rsp, err := c.GetOidcToken(ctx, workspace, audience, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -74789,21 +75975,21 @@ func (c *ClientWithResponses) UpdatePostgresPublicationWithResponse(ctx context.
 	return ParseUpdatePostgresPublicationResponse(rsp)
 }
 
-// SetPostgresTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetPostgresTriggerEnabledResponse
-func (c *ClientWithResponses) SetPostgresTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPostgresTriggerEnabledResponse, error) {
-	rsp, err := c.SetPostgresTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+// SetPostgresTriggerModeWithBodyWithResponse request with arbitrary body returning *SetPostgresTriggerModeResponse
+func (c *ClientWithResponses) SetPostgresTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPostgresTriggerModeResponse, error) {
+	rsp, err := c.SetPostgresTriggerModeWithBody(ctx, workspace, path, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetPostgresTriggerEnabledResponse(rsp)
+	return ParseSetPostgresTriggerModeResponse(rsp)
 }
 
-func (c *ClientWithResponses) SetPostgresTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetPostgresTriggerEnabledResponse, error) {
-	rsp, err := c.SetPostgresTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) SetPostgresTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetPostgresTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetPostgresTriggerModeResponse, error) {
+	rsp, err := c.SetPostgresTriggerMode(ctx, workspace, path, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetPostgresTriggerEnabledResponse(rsp)
+	return ParseSetPostgresTriggerModeResponse(rsp)
 }
 
 // CreatePostgresReplicationSlotWithBodyWithResponse request with arbitrary body returning *CreatePostgresReplicationSlotResponse
@@ -75595,21 +76781,21 @@ func (c *ClientWithResponses) ListSqsTriggersWithResponse(ctx context.Context, w
 	return ParseListSqsTriggersResponse(rsp)
 }
 
-// SetSqsTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetSqsTriggerEnabledResponse
-func (c *ClientWithResponses) SetSqsTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetSqsTriggerEnabledResponse, error) {
-	rsp, err := c.SetSqsTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+// SetSqsTriggerModeWithBodyWithResponse request with arbitrary body returning *SetSqsTriggerModeResponse
+func (c *ClientWithResponses) SetSqsTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetSqsTriggerModeResponse, error) {
+	rsp, err := c.SetSqsTriggerModeWithBody(ctx, workspace, path, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetSqsTriggerEnabledResponse(rsp)
+	return ParseSetSqsTriggerModeResponse(rsp)
 }
 
-func (c *ClientWithResponses) SetSqsTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetSqsTriggerEnabledResponse, error) {
-	rsp, err := c.SetSqsTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) SetSqsTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetSqsTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetSqsTriggerModeResponse, error) {
+	rsp, err := c.SetSqsTriggerMode(ctx, workspace, path, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetSqsTriggerEnabledResponse(rsp)
+	return ParseSetSqsTriggerModeResponse(rsp)
 }
 
 // TestSqsConnectionWithBodyWithResponse request with arbitrary body returning *TestSqsConnectionResponse
@@ -75644,6 +76830,40 @@ func (c *ClientWithResponses) UpdateSqsTriggerWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseUpdateSqsTriggerResponse(rsp)
+}
+
+// CancelSuspendedTriggerJobsWithBodyWithResponse request with arbitrary body returning *CancelSuspendedTriggerJobsResponse
+func (c *ClientWithResponses) CancelSuspendedTriggerJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSuspendedTriggerJobsResponse, error) {
+	rsp, err := c.CancelSuspendedTriggerJobsWithBody(ctx, workspace, triggerKind, triggerPath, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelSuspendedTriggerJobsResponse(rsp)
+}
+
+func (c *ClientWithResponses) CancelSuspendedTriggerJobsWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body CancelSuspendedTriggerJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*CancelSuspendedTriggerJobsResponse, error) {
+	rsp, err := c.CancelSuspendedTriggerJobs(ctx, workspace, triggerKind, triggerPath, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelSuspendedTriggerJobsResponse(rsp)
+}
+
+// ResumeSuspendedTriggerJobsWithBodyWithResponse request with arbitrary body returning *ResumeSuspendedTriggerJobsResponse
+func (c *ClientWithResponses) ResumeSuspendedTriggerJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedTriggerJobsResponse, error) {
+	rsp, err := c.ResumeSuspendedTriggerJobsWithBody(ctx, workspace, triggerKind, triggerPath, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResumeSuspendedTriggerJobsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ResumeSuspendedTriggerJobsWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body ResumeSuspendedTriggerJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedTriggerJobsResponse, error) {
+	rsp, err := c.ResumeSuspendedTriggerJobs(ctx, workspace, triggerKind, triggerPath, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResumeSuspendedTriggerJobsResponse(rsp)
 }
 
 // ConvertUserToGroupWithResponse request returning *ConvertUserToGroupResponse
@@ -75928,21 +77148,21 @@ func (c *ClientWithResponses) ListWebsocketTriggersWithResponse(ctx context.Cont
 	return ParseListWebsocketTriggersResponse(rsp)
 }
 
-// SetWebsocketTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetWebsocketTriggerEnabledResponse
-func (c *ClientWithResponses) SetWebsocketTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerEnabledResponse, error) {
-	rsp, err := c.SetWebsocketTriggerEnabledWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+// SetWebsocketTriggerModeWithBodyWithResponse request with arbitrary body returning *SetWebsocketTriggerModeResponse
+func (c *ClientWithResponses) SetWebsocketTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerModeResponse, error) {
+	rsp, err := c.SetWebsocketTriggerModeWithBody(ctx, workspace, path, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetWebsocketTriggerEnabledResponse(rsp)
+	return ParseSetWebsocketTriggerModeResponse(rsp)
 }
 
-func (c *ClientWithResponses) SetWebsocketTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerEnabledResponse, error) {
-	rsp, err := c.SetWebsocketTriggerEnabled(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) SetWebsocketTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetWebsocketTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWebsocketTriggerModeResponse, error) {
+	rsp, err := c.SetWebsocketTriggerMode(ctx, workspace, path, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSetWebsocketTriggerEnabledResponse(rsp)
+	return ParseSetWebsocketTriggerModeResponse(rsp)
 }
 
 // TestWebsocketConnectionWithBodyWithResponse request with arbitrary body returning *TestWebsocketConnectionResponse
@@ -76325,6 +77545,23 @@ func (c *ClientWithResponses) EditCopilotConfigWithResponse(ctx context.Context,
 	return ParseEditCopilotConfigResponse(rsp)
 }
 
+// EditDataTableConfigWithBodyWithResponse request with arbitrary body returning *EditDataTableConfigResponse
+func (c *ClientWithResponses) EditDataTableConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDataTableConfigResponse, error) {
+	rsp, err := c.EditDataTableConfigWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditDataTableConfigResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditDataTableConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditDataTableConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDataTableConfigResponse, error) {
+	rsp, err := c.EditDataTableConfig(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditDataTableConfigResponse(rsp)
+}
+
 // EditWorkspaceDefaultAppWithBodyWithResponse request with arbitrary body returning *EditWorkspaceDefaultAppResponse
 func (c *ClientWithResponses) EditWorkspaceDefaultAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceDefaultAppResponse, error) {
 	rsp, err := c.EditWorkspaceDefaultAppWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -76686,6 +77923,15 @@ func (c *ClientWithResponses) LeaveWorkspaceWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseLeaveWorkspaceResponse(rsp)
+}
+
+// ListDataTablesWithResponse request returning *ListDataTablesResponse
+func (c *ClientWithResponses) ListDataTablesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTablesResponse, error) {
+	rsp, err := c.ListDataTables(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListDataTablesResponse(rsp)
 }
 
 // ListDucklakesWithResponse request returning *ListDucklakesResponse
@@ -77632,6 +78878,7 @@ func ParseGetHubFlowByIdResponse(rsp *http.Response) (*GetHubFlowByIdResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
+			// Flow Top-level flow definition containing metadata, configuration, and the flow structure
 			Flow *OpenFlow `json:"flow,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -78500,32 +79747,6 @@ func ParseCreateCustomerPortalSessionResponse(rsp *http.Response) (*CreateCustom
 	return response, nil
 }
 
-// ParseGetDucklakeInstanceCatalogDbStatusResponse parses an HTTP response from a GetDucklakeInstanceCatalogDbStatusWithResponse call
-func ParseGetDucklakeInstanceCatalogDbStatusResponse(rsp *http.Response) (*GetDucklakeInstanceCatalogDbStatusResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetDucklakeInstanceCatalogDbStatusResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest map[string]DucklakeInstanceCatalogDbStatus
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseGetGlobalResponse parses an HTTP response from a GetGlobalWithResponse call
 func ParseGetGlobalResponse(rsp *http.Response) (*GetGlobalResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -78597,6 +79818,32 @@ func ParseGetLatestKeyRenewalAttemptResponse(rsp *http.Response) (*GetLatestKeyR
 	return response, nil
 }
 
+// ParseListCustomInstanceDbsResponse parses an HTTP response from a ListCustomInstanceDbsWithResponse call
+func ParseListCustomInstanceDbsResponse(rsp *http.Response) (*ListCustomInstanceDbsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListCustomInstanceDbsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]CustomInstanceDb
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListGlobalSettingsResponse parses an HTTP response from a ListGlobalSettingsWithResponse call
 func ParseListGlobalSettingsResponse(rsp *http.Response) (*ListGlobalSettingsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -78649,6 +79896,32 @@ func ParseGetLocalResponse(rsp *http.Response) (*GetLocalResponse, error) {
 	return response, nil
 }
 
+// ParseRefreshCustomInstanceUserPwdResponse parses an HTTP response from a RefreshCustomInstanceUserPwdWithResponse call
+func ParseRefreshCustomInstanceUserPwdResponse(rsp *http.Response) (*RefreshCustomInstanceUserPwdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RefreshCustomInstanceUserPwdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseRenewLicenseKeyResponse parses an HTTP response from a RenewLicenseKeyWithResponse call
 func ParseRenewLicenseKeyResponse(rsp *http.Response) (*RenewLicenseKeyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -78681,22 +79954,22 @@ func ParseSendStatsResponse(rsp *http.Response) (*SendStatsResponse, error) {
 	return response, nil
 }
 
-// ParseSetupDucklakeCatalogDbResponse parses an HTTP response from a SetupDucklakeCatalogDbWithResponse call
-func ParseSetupDucklakeCatalogDbResponse(rsp *http.Response) (*SetupDucklakeCatalogDbResponse, error) {
+// ParseSetupCustomInstanceDbResponse parses an HTTP response from a SetupCustomInstanceDbWithResponse call
+func ParseSetupCustomInstanceDbResponse(rsp *http.Response) (*SetupCustomInstanceDbResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SetupDucklakeCatalogDbResponse{
+	response := &SetupCustomInstanceDbResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest DucklakeInstanceCatalogDbStatus
+		var dest CustomInstanceDb
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -79398,7 +80671,8 @@ func ParseGetTutorialProgressResponse(rsp *http.Response) (*GetTutorialProgressR
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Progress *int `json:"progress,omitempty"`
+			Progress   *int  `json:"progress,omitempty"`
+			SkippedAll *bool `json:"skipped_all,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -80627,15 +81901,15 @@ func ParseExistsEmailLocalPartResponse(rsp *http.Response) (*ExistsEmailLocalPar
 	return response, nil
 }
 
-// ParseSetEmailTriggerEnabledResponse parses an HTTP response from a SetEmailTriggerEnabledWithResponse call
-func ParseSetEmailTriggerEnabledResponse(rsp *http.Response) (*SetEmailTriggerEnabledResponse, error) {
+// ParseSetEmailTriggerModeResponse parses an HTTP response from a SetEmailTriggerModeWithResponse call
+func ParseSetEmailTriggerModeResponse(rsp *http.Response) (*SetEmailTriggerModeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SetEmailTriggerEnabledResponse{
+	response := &SetEmailTriggerModeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -80908,28 +82182,36 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Archived            bool                    `json:"archived"`
-			DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
-			Description         *string                 `json:"description,omitempty"`
-			Draft               *Flow                   `json:"draft,omitempty"`
-			DraftOnly           *bool                   `json:"draft_only,omitempty"`
-			EditedAt            time.Time               `json:"edited_at"`
-			EditedBy            string                  `json:"edited_by"`
-			ExtraPerms          ExtraPerms              `json:"extra_perms"`
-			LockErrorLogs       *string                 `json:"lock_error_logs,omitempty"`
-			OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
-			Path                string                  `json:"path"`
-			Priority            *int                    `json:"priority,omitempty"`
-			Schema              *map[string]interface{} `json:"schema,omitempty"`
-			Starred             *bool                   `json:"starred,omitempty"`
-			Summary             string                  `json:"summary"`
-			Tag                 *string                 `json:"tag,omitempty"`
-			Timeout             *float32                `json:"timeout,omitempty"`
-			Value               SchemasFlowValue        `json:"value"`
-			VersionId           *float32                `json:"version_id,omitempty"`
-			VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
-			WorkspaceId         *string                 `json:"workspace_id,omitempty"`
-			WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+			Archived        bool  `json:"archived"`
+			DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
+
+			// Description Detailed documentation for this flow
+			Description     *string    `json:"description,omitempty"`
+			Draft           *Flow      `json:"draft,omitempty"`
+			DraftOnly       *bool      `json:"draft_only,omitempty"`
+			EditedAt        time.Time  `json:"edited_at"`
+			EditedBy        string     `json:"edited_by"`
+			ExtraPerms      ExtraPerms `json:"extra_perms"`
+			LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
+			OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
+			Path            string     `json:"path"`
+			Priority        *int       `json:"priority,omitempty"`
+
+			// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+			Schema  *map[string]interface{} `json:"schema,omitempty"`
+			Starred *bool                   `json:"starred,omitempty"`
+
+			// Summary Short description of what this flow does
+			Summary string   `json:"summary"`
+			Tag     *string  `json:"tag,omitempty"`
+			Timeout *float32 `json:"timeout,omitempty"`
+
+			// Value The flow structure containing modules and optional preprocessor/failure handlers
+			Value               SchemasFlowValue `json:"value"`
+			VersionId           *float32         `json:"version_id,omitempty"`
+			VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
+			WorkspaceId         *string          `json:"workspace_id,omitempty"`
+			WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -81103,28 +82385,36 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
-			Archived            bool                    `json:"archived"`
-			DedicatedWorker     *bool                   `json:"dedicated_worker,omitempty"`
-			Description         *string                 `json:"description,omitempty"`
-			DraftOnly           *bool                   `json:"draft_only,omitempty"`
-			EditedAt            time.Time               `json:"edited_at"`
-			EditedBy            string                  `json:"edited_by"`
-			ExtraPerms          ExtraPerms              `json:"extra_perms"`
-			HasDraft            *bool                   `json:"has_draft,omitempty"`
-			LockErrorLogs       *string                 `json:"lock_error_logs,omitempty"`
-			OnBehalfOfEmail     *string                 `json:"on_behalf_of_email,omitempty"`
-			Path                string                  `json:"path"`
-			Priority            *int                    `json:"priority,omitempty"`
-			Schema              *map[string]interface{} `json:"schema,omitempty"`
-			Starred             *bool                   `json:"starred,omitempty"`
-			Summary             string                  `json:"summary"`
-			Tag                 *string                 `json:"tag,omitempty"`
-			Timeout             *float32                `json:"timeout,omitempty"`
-			Value               SchemasFlowValue        `json:"value"`
-			VersionId           *float32                `json:"version_id,omitempty"`
-			VisibleToRunnerOnly *bool                   `json:"visible_to_runner_only,omitempty"`
-			WorkspaceId         *string                 `json:"workspace_id,omitempty"`
-			WsErrorHandlerMuted *bool                   `json:"ws_error_handler_muted,omitempty"`
+			Archived        bool  `json:"archived"`
+			DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
+
+			// Description Detailed documentation for this flow
+			Description     *string    `json:"description,omitempty"`
+			DraftOnly       *bool      `json:"draft_only,omitempty"`
+			EditedAt        time.Time  `json:"edited_at"`
+			EditedBy        string     `json:"edited_by"`
+			ExtraPerms      ExtraPerms `json:"extra_perms"`
+			HasDraft        *bool      `json:"has_draft,omitempty"`
+			LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
+			OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
+			Path            string     `json:"path"`
+			Priority        *int       `json:"priority,omitempty"`
+
+			// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+			Schema  *map[string]interface{} `json:"schema,omitempty"`
+			Starred *bool                   `json:"starred,omitempty"`
+
+			// Summary Short description of what this flow does
+			Summary string   `json:"summary"`
+			Tag     *string  `json:"tag,omitempty"`
+			Timeout *float32 `json:"timeout,omitempty"`
+
+			// Value The flow structure containing modules and optional preprocessor/failure handlers
+			Value               SchemasFlowValue `json:"value"`
+			VersionId           *float32         `json:"version_id,omitempty"`
+			VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
+			WorkspaceId         *string          `json:"workspace_id,omitempty"`
+			WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -81592,15 +82882,15 @@ func ParseListGcpTriggersResponse(rsp *http.Response) (*ListGcpTriggersResponse,
 	return response, nil
 }
 
-// ParseSetGcpTriggerEnabledResponse parses an HTTP response from a SetGcpTriggerEnabledWithResponse call
-func ParseSetGcpTriggerEnabledResponse(rsp *http.Response) (*SetGcpTriggerEnabledResponse, error) {
+// ParseSetGcpTriggerModeResponse parses an HTTP response from a SetGcpTriggerModeWithResponse call
+func ParseSetGcpTriggerModeResponse(rsp *http.Response) (*SetGcpTriggerModeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SetGcpTriggerEnabledResponse{
+	response := &SetGcpTriggerModeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -82122,15 +83412,15 @@ func ParseExistsRouteResponse(rsp *http.Response) (*ExistsRouteResponse, error) 
 	return response, nil
 }
 
-// ParseSetHttpTriggerEnabledResponse parses an HTTP response from a SetHttpTriggerEnabledWithResponse call
-func ParseSetHttpTriggerEnabledResponse(rsp *http.Response) (*SetHttpTriggerEnabledResponse, error) {
+// ParseSetHttpTriggerModeResponse parses an HTTP response from a SetHttpTriggerModeWithResponse call
+func ParseSetHttpTriggerModeResponse(rsp *http.Response) (*SetHttpTriggerModeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SetHttpTriggerEnabledResponse{
+	response := &SetHttpTriggerModeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -83808,6 +85098,32 @@ func ParseRunAndStreamScriptByPathResponse(rsp *http.Response) (*RunAndStreamScr
 	return response, nil
 }
 
+// ParseRunScriptPreviewInlineResponse parses an HTTP response from a RunScriptPreviewInlineWithResponse call
+func ParseRunScriptPreviewInlineResponse(rsp *http.Response) (*RunScriptPreviewInlineResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunScriptPreviewInlineResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseRunWaitResultFlowByPathResponse parses an HTTP response from a RunWaitResultFlowByPathWithResponse call
 func ParseRunWaitResultFlowByPathResponse(rsp *http.Response) (*RunWaitResultFlowByPathResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -84606,15 +85922,15 @@ func ParseListKafkaTriggersResponse(rsp *http.Response) (*ListKafkaTriggersRespo
 	return response, nil
 }
 
-// ParseSetKafkaTriggerEnabledResponse parses an HTTP response from a SetKafkaTriggerEnabledWithResponse call
-func ParseSetKafkaTriggerEnabledResponse(rsp *http.Response) (*SetKafkaTriggerEnabledResponse, error) {
+// ParseSetKafkaTriggerModeResponse parses an HTTP response from a SetKafkaTriggerModeWithResponse call
+func ParseSetKafkaTriggerModeResponse(rsp *http.Response) (*SetKafkaTriggerModeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SetKafkaTriggerEnabledResponse{
+	response := &SetKafkaTriggerModeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -84764,15 +86080,15 @@ func ParseListMqttTriggersResponse(rsp *http.Response) (*ListMqttTriggersRespons
 	return response, nil
 }
 
-// ParseSetMqttTriggerEnabledResponse parses an HTTP response from a SetMqttTriggerEnabledWithResponse call
-func ParseSetMqttTriggerEnabledResponse(rsp *http.Response) (*SetMqttTriggerEnabledResponse, error) {
+// ParseSetMqttTriggerModeResponse parses an HTTP response from a SetMqttTriggerModeWithResponse call
+func ParseSetMqttTriggerModeResponse(rsp *http.Response) (*SetMqttTriggerModeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SetMqttTriggerEnabledResponse{
+	response := &SetMqttTriggerModeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -84922,15 +86238,15 @@ func ParseListNatsTriggersResponse(rsp *http.Response) (*ListNatsTriggersRespons
 	return response, nil
 }
 
-// ParseSetNatsTriggerEnabledResponse parses an HTTP response from a SetNatsTriggerEnabledWithResponse call
-func ParseSetNatsTriggerEnabledResponse(rsp *http.Response) (*SetNatsTriggerEnabledResponse, error) {
+// ParseSetNatsTriggerModeResponse parses an HTTP response from a SetNatsTriggerModeWithResponse call
+func ParseSetNatsTriggerModeResponse(rsp *http.Response) (*SetNatsTriggerModeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SetNatsTriggerEnabledResponse{
+	response := &SetNatsTriggerModeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -85408,15 +86724,15 @@ func ParseUpdatePostgresPublicationResponse(rsp *http.Response) (*UpdatePostgres
 	return response, nil
 }
 
-// ParseSetPostgresTriggerEnabledResponse parses an HTTP response from a SetPostgresTriggerEnabledWithResponse call
-func ParseSetPostgresTriggerEnabledResponse(rsp *http.Response) (*SetPostgresTriggerEnabledResponse, error) {
+// ParseSetPostgresTriggerModeResponse parses an HTTP response from a SetPostgresTriggerModeWithResponse call
+func ParseSetPostgresTriggerModeResponse(rsp *http.Response) (*SetPostgresTriggerModeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SetPostgresTriggerEnabledResponse{
+	response := &SetPostgresTriggerModeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -86958,15 +88274,15 @@ func ParseListSqsTriggersResponse(rsp *http.Response) (*ListSqsTriggersResponse,
 	return response, nil
 }
 
-// ParseSetSqsTriggerEnabledResponse parses an HTTP response from a SetSqsTriggerEnabledWithResponse call
-func ParseSetSqsTriggerEnabledResponse(rsp *http.Response) (*SetSqsTriggerEnabledResponse, error) {
+// ParseSetSqsTriggerModeResponse parses an HTTP response from a SetSqsTriggerModeWithResponse call
+func ParseSetSqsTriggerModeResponse(rsp *http.Response) (*SetSqsTriggerModeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SetSqsTriggerEnabledResponse{
+	response := &SetSqsTriggerModeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -87001,6 +88317,58 @@ func ParseUpdateSqsTriggerResponse(rsp *http.Response) (*UpdateSqsTriggerRespons
 	response := &UpdateSqsTriggerResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCancelSuspendedTriggerJobsResponse parses an HTTP response from a CancelSuspendedTriggerJobsWithResponse call
+func ParseCancelSuspendedTriggerJobsResponse(rsp *http.Response) (*CancelSuspendedTriggerJobsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CancelSuspendedTriggerJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseResumeSuspendedTriggerJobsResponse parses an HTTP response from a ResumeSuspendedTriggerJobsWithResponse call
+func ParseResumeSuspendedTriggerJobsResponse(rsp *http.Response) (*ResumeSuspendedTriggerJobsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResumeSuspendedTriggerJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -87582,15 +88950,15 @@ func ParseListWebsocketTriggersResponse(rsp *http.Response) (*ListWebsocketTrigg
 	return response, nil
 }
 
-// ParseSetWebsocketTriggerEnabledResponse parses an HTTP response from a SetWebsocketTriggerEnabledWithResponse call
-func ParseSetWebsocketTriggerEnabledResponse(rsp *http.Response) (*SetWebsocketTriggerEnabledResponse, error) {
+// ParseSetWebsocketTriggerModeResponse parses an HTTP response from a SetWebsocketTriggerModeWithResponse call
+func ParseSetWebsocketTriggerModeResponse(rsp *http.Response) (*SetWebsocketTriggerModeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SetWebsocketTriggerEnabledResponse{
+	response := &SetWebsocketTriggerModeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -88202,6 +89570,32 @@ func ParseEditCopilotConfigResponse(rsp *http.Response) (*EditCopilotConfigRespo
 	return response, nil
 }
 
+// ParseEditDataTableConfigResponse parses an HTTP response from a EditDataTableConfigWithResponse call
+func ParseEditDataTableConfigResponse(rsp *http.Response) (*EditDataTableConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditDataTableConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseEditWorkspaceDefaultAppResponse parses an HTTP response from a EditWorkspaceDefaultAppWithResponse call
 func ParseEditWorkspaceDefaultAppResponse(rsp *http.Response) (*EditWorkspaceDefaultAppResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -88722,6 +90116,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			AutoInviteOperator         *bool                      `json:"auto_invite_operator,omitempty"`
 			Color                      *string                    `json:"color,omitempty"`
 			CustomerId                 *string                    `json:"customer_id,omitempty"`
+			Datatable                  *DataTableSettings         `json:"datatable,omitempty"`
 			DefaultApp                 *string                    `json:"default_app,omitempty"`
 			DefaultScripts             *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
 			DeployTo                   *string                    `json:"deploy_to,omitempty"`
@@ -88827,6 +90222,32 @@ func ParseLeaveWorkspaceResponse(rsp *http.Response) (*LeaveWorkspaceResponse, e
 	response := &LeaveWorkspaceResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListDataTablesResponse parses an HTTP response from a ListDataTablesWithResponse call
+func ParseListDataTablesResponse(rsp *http.Response) (*ListDataTablesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListDataTablesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
