@@ -4725,6 +4725,12 @@ type UpdateInstanceGroupJSONBody struct {
 	NewSummary string `json:"new_summary"`
 }
 
+// QueryDocumentationJSONBody defines parameters for QueryDocumentation.
+type QueryDocumentationJSONBody struct {
+	// Query The documentation query to send to the AI assistant
+	Query string `json:"query"`
+}
+
 // ListHubIntegrationsParams defines parameters for ListHubIntegrations.
 type ListHubIntegrationsParams struct {
 	// Kind query integrations kind
@@ -7843,6 +7849,9 @@ type RemoveUserFromInstanceGroupJSONRequestBody RemoveUserFromInstanceGroupJSONB
 // UpdateInstanceGroupJSONRequestBody defines body for UpdateInstanceGroup for application/json ContentType.
 type UpdateInstanceGroupJSONRequestBody UpdateInstanceGroupJSONBody
 
+// QueryDocumentationJSONRequestBody defines body for QueryDocumentation for application/json ContentType.
+type QueryDocumentationJSONRequestBody QueryDocumentationJSONBody
+
 // ConnectCallbackJSONRequestBody defines body for ConnectCallback for application/json ContentType.
 type ConnectCallbackJSONRequestBody ConnectCallbackJSONBody
 
@@ -9881,6 +9890,11 @@ type ClientInterface interface {
 	UpdateInstanceGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateInstanceGroup(ctx context.Context, name Name, body UpdateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// QueryDocumentationWithBody request with any body
+	QueryDocumentationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	QueryDocumentation(ctx context.Context, body QueryDocumentationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListHubIntegrations request
 	ListHubIntegrations(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12451,6 +12465,30 @@ func (c *Client) UpdateInstanceGroupWithBody(ctx context.Context, name Name, con
 
 func (c *Client) UpdateInstanceGroup(ctx context.Context, name Name, body UpdateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateInstanceGroupRequest(c.Server, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) QueryDocumentationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewQueryDocumentationRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) QueryDocumentation(ctx context.Context, body QueryDocumentationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewQueryDocumentationRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -22730,6 +22768,46 @@ func NewUpdateInstanceGroupRequestWithBody(server string, name Name, contentType
 	}
 
 	operationPath := fmt.Sprintf("/groups/update/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewQueryDocumentationRequest calls the generic QueryDocumentation builder with application/json body
+func NewQueryDocumentationRequest(server string, body QueryDocumentationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewQueryDocumentationRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewQueryDocumentationRequestWithBody generates requests for QueryDocumentation with any type of body
+func NewQueryDocumentationRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/inkeep")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -56587,6 +56665,11 @@ type ClientWithResponsesInterface interface {
 
 	UpdateInstanceGroupWithResponse(ctx context.Context, name Name, body UpdateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInstanceGroupResponse, error)
 
+	// QueryDocumentationWithBodyWithResponse request with any body
+	QueryDocumentationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error)
+
+	QueryDocumentationWithResponse(ctx context.Context, body QueryDocumentationJSONRequestBody, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error)
+
 	// ListHubIntegrationsWithResponse request
 	ListHubIntegrationsWithResponse(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*ListHubIntegrationsResponse, error)
 
@@ -59449,6 +59532,28 @@ func (r UpdateInstanceGroupResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateInstanceGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type QueryDocumentationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r QueryDocumentationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r QueryDocumentationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -71798,6 +71903,23 @@ func (c *ClientWithResponses) UpdateInstanceGroupWithResponse(ctx context.Contex
 	return ParseUpdateInstanceGroupResponse(rsp)
 }
 
+// QueryDocumentationWithBodyWithResponse request with arbitrary body returning *QueryDocumentationResponse
+func (c *ClientWithResponses) QueryDocumentationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error) {
+	rsp, err := c.QueryDocumentationWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseQueryDocumentationResponse(rsp)
+}
+
+func (c *ClientWithResponses) QueryDocumentationWithResponse(ctx context.Context, body QueryDocumentationJSONRequestBody, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error) {
+	rsp, err := c.QueryDocumentation(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseQueryDocumentationResponse(rsp)
+}
+
 // ListHubIntegrationsWithResponse request returning *ListHubIntegrationsResponse
 func (c *ClientWithResponses) ListHubIntegrationsWithResponse(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*ListHubIntegrationsResponse, error) {
 	rsp, err := c.ListHubIntegrations(ctx, params, reqEditors...)
@@ -79147,6 +79269,32 @@ func ParseUpdateInstanceGroupResponse(rsp *http.Response) (*UpdateInstanceGroupR
 	response := &UpdateInstanceGroupResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseQueryDocumentationResponse parses an HTTP response from a QueryDocumentationWithResponse call
+func ParseQueryDocumentationResponse(rsp *http.Response) (*QueryDocumentationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &QueryDocumentationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
