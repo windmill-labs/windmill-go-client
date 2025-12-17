@@ -733,6 +733,15 @@ const (
 	Unknown WindmillFilePreviewContentType = "Unknown"
 )
 
+// Defines values for WorkspaceItemDiffKind.
+const (
+	WorkspaceItemDiffKindApp      WorkspaceItemDiffKind = "app"
+	WorkspaceItemDiffKindFlow     WorkspaceItemDiffKind = "flow"
+	WorkspaceItemDiffKindResource WorkspaceItemDiffKind = "resource"
+	WorkspaceItemDiffKindScript   WorkspaceItemDiffKind = "script"
+	WorkspaceItemDiffKindVariable WorkspaceItemDiffKind = "variable"
+)
+
 // Defines values for SchemasAiAgentType.
 const (
 	Aiagent SchemasAiAgentType = "aiagent"
@@ -1181,6 +1190,36 @@ type CaptureConfig struct {
 
 // CaptureTriggerKind defines model for CaptureTriggerKind.
 type CaptureTriggerKind string
+
+// CompareSummary defines model for CompareSummary.
+type CompareSummary struct {
+	// AppsChanged Number of apps with differences
+	AppsChanged int `json:"apps_changed"`
+
+	// Conflicts Number of items that are both ahead and behind (conflicts)
+	Conflicts int `json:"conflicts"`
+
+	// FlowsChanged Number of flows with differences
+	FlowsChanged int `json:"flows_changed"`
+
+	// ResourcesChanged Number of resources with differences
+	ResourcesChanged int `json:"resources_changed"`
+
+	// ScriptsChanged Number of scripts with differences
+	ScriptsChanged int `json:"scripts_changed"`
+
+	// TotalAhead Total number of ahead changes
+	TotalAhead int `json:"total_ahead"`
+
+	// TotalBehind Total number of behind changes
+	TotalBehind int `json:"total_behind"`
+
+	// TotalDiffs Total number of items with differences
+	TotalDiffs int `json:"total_diffs"`
+
+	// VariablesChanged Number of variables with differences
+	VariablesChanged int `json:"variables_changed"`
+}
 
 // CompletedJob defines model for CompletedJob.
 type CompletedJob struct {
@@ -2285,7 +2324,10 @@ type GitSyncObjectType string
 
 // GithubInstallations defines model for GithubInstallations.
 type GithubInstallations = []struct {
-	AccountId      string  `json:"account_id"`
+	AccountId string `json:"account_id"`
+
+	// Error Error message if token retrieval failed
+	Error          *string `json:"error,omitempty"`
 	InstallationId float32 `json:"installation_id"`
 
 	// PerPage Number of repositories loaded per page
@@ -3831,6 +3873,22 @@ type Workspace struct {
 	ParentWorkspaceId *string `json:"parent_workspace_id"`
 }
 
+// WorkspaceComparison defines model for WorkspaceComparison.
+type WorkspaceComparison struct {
+	// AllAheadItemsVisible All items with changes ahead are visible by the user of the request.
+	AllAheadItemsVisible bool `json:"all_ahead_items_visible"`
+
+	// AllBehindItemsVisible All items with changes behind are visible by the user of the request.
+	AllBehindItemsVisible bool `json:"all_behind_items_visible"`
+
+	// Diffs List of differences found between workspaces
+	Diffs []WorkspaceItemDiff `json:"diffs"`
+
+	// SkippedComparison Whether the comparison was skipped. This happens with old forks that where not being kept track of
+	SkippedComparison bool           `json:"skipped_comparison"`
+	Summary           CompareSummary `json:"summary"`
+}
+
 // WorkspaceDefaultScripts defines model for WorkspaceDefaultScripts.
 type WorkspaceDefaultScripts struct {
 	DefaultScriptContent *map[string]string `json:"default_script_content,omitempty"`
@@ -3876,6 +3934,33 @@ type WorkspaceInvite struct {
 	ParentWorkspaceId *string `json:"parent_workspace_id"`
 	WorkspaceId       string  `json:"workspace_id"`
 }
+
+// WorkspaceItemDiff defines model for WorkspaceItemDiff.
+type WorkspaceItemDiff struct {
+	// Ahead Number of versions source is ahead of target
+	Ahead int `json:"ahead"`
+
+	// Behind Number of versions source is behind target
+	Behind int `json:"behind"`
+
+	// ExistsInFork If the item exists in the fork workspace
+	ExistsInFork bool `json:"exists_in_fork"`
+
+	// ExistsInSource If the item exists in the source workspace
+	ExistsInSource bool `json:"exists_in_source"`
+
+	// HasChanges Whether the item has any differences
+	HasChanges bool `json:"has_changes"`
+
+	// Kind Type of the item
+	Kind WorkspaceItemDiffKind `json:"kind"`
+
+	// Path Path of the item in the workspace
+	Path string `json:"path"`
+}
+
+// WorkspaceItemDiffKind Type of the item
+type WorkspaceItemDiffKind string
 
 // SchemasAiAgent AI agent step that can use tools to accomplish tasks. The agent receives inputs and can call any of its configured tools to complete the task
 type SchemasAiAgent struct {
@@ -5593,6 +5678,15 @@ type UpdateFolderJSONBody struct {
 	Summary    *string          `json:"summary,omitempty"`
 }
 
+// GetFolderPermissionHistoryParams defines parameters for GetFolderPermissionHistory.
+type GetFolderPermissionHistoryParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
 // ListGcpTriggersParams defines parameters for ListGcpTriggers.
 type ListGcpTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -5671,6 +5765,15 @@ type RemoveUserToGroupJSONBody struct {
 // UpdateGroupJSONBody defines parameters for UpdateGroup.
 type UpdateGroupJSONBody struct {
 	Summary *string `json:"summary,omitempty"`
+}
+
+// GetGroupPermissionHistoryParams defines parameters for GetGroupPermissionHistory.
+type GetGroupPermissionHistoryParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
 // CreateHttpTriggersJSONBody defines parameters for CreateHttpTriggers.
@@ -10480,6 +10583,9 @@ type ClientInterface interface {
 
 	UpdateFolder(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetFolderPermissionHistory request
+	GetFolderPermissionHistory(ctx context.Context, workspace WorkspaceId, name Name, params *GetFolderPermissionHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateGcpTriggerWithBody request with any body
 	CreateGcpTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10577,6 +10683,9 @@ type ClientInterface interface {
 	UpdateGroupWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateGroup(ctx context.Context, workspace WorkspaceId, name Name, body UpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetGroupPermissionHistory request
+	GetGroupPermissionHistory(ctx context.Context, workspace WorkspaceId, name Name, params *GetGroupPermissionHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateHttpTriggerWithBody request with any body
 	CreateHttpTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -11629,6 +11738,9 @@ type ClientInterface interface {
 
 	ChangeWorkspaceName(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CompareWorkspaces request
+	CompareWorkspaces(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ConnectTeamsWithBody request with any body
 	ConnectTeamsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -11824,6 +11936,9 @@ type ClientInterface interface {
 
 	// RebuildDependencyMap request
 	RebuildDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResetDiffTally request
+	ResetDiffTally(ctx context.Context, workspace WorkspaceId, forkWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunSlackMessageTestJobWithBody request with any body
 	RunSlackMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15043,6 +15158,18 @@ func (c *Client) UpdateFolder(ctx context.Context, workspace WorkspaceId, name N
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetFolderPermissionHistory(ctx context.Context, workspace WorkspaceId, name Name, params *GetFolderPermissionHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFolderPermissionHistoryRequest(c.Server, workspace, name, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateGcpTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateGcpTriggerRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -15477,6 +15604,18 @@ func (c *Client) UpdateGroupWithBody(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) UpdateGroup(ctx context.Context, workspace WorkspaceId, name Name, body UpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateGroupRequest(c.Server, workspace, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGroupPermissionHistory(ctx context.Context, workspace WorkspaceId, name Name, params *GetGroupPermissionHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGroupPermissionHistoryRequest(c.Server, workspace, name, params)
 	if err != nil {
 		return nil, err
 	}
@@ -20131,6 +20270,18 @@ func (c *Client) ChangeWorkspaceName(ctx context.Context, workspace WorkspaceId,
 	return c.Client.Do(req)
 }
 
+func (c *Client) CompareWorkspaces(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCompareWorkspacesRequest(c.Server, workspace, targetWorkspaceId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ConnectTeamsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConnectTeamsRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -21009,6 +21160,18 @@ func (c *Client) GetPremiumInfo(ctx context.Context, workspace WorkspaceId, para
 
 func (c *Client) RebuildDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRebuildDependencyMapRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResetDiffTally(ctx context.Context, workspace WorkspaceId, forkWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResetDiffTallyRequest(c.Server, workspace, forkWorkspaceId)
 	if err != nil {
 		return nil, err
 	}
@@ -31276,6 +31439,85 @@ func NewUpdateFolderRequestWithBody(server string, workspace WorkspaceId, name N
 	return req, nil
 }
 
+// NewGetFolderPermissionHistoryRequest generates requests for GetFolderPermissionHistory
+func NewGetFolderPermissionHistoryRequest(server string, workspace WorkspaceId, name Name, params *GetFolderPermissionHistoryParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/folders_history/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateGcpTriggerRequest calls the generic CreateGcpTrigger builder with application/json body
 func NewCreateGcpTriggerRequest(server string, workspace WorkspaceId, body CreateGcpTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -32508,6 +32750,85 @@ func NewUpdateGroupRequestWithBody(server string, workspace WorkspaceId, name Na
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetGroupPermissionHistoryRequest generates requests for GetGroupPermissionHistory
+func NewGetGroupPermissionHistoryRequest(server string, workspace WorkspaceId, name Name, params *GetGroupPermissionHistoryParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/groups_history/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -53347,6 +53668,47 @@ func NewChangeWorkspaceNameRequestWithBody(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewCompareWorkspacesRequest generates requests for CompareWorkspaces
+func NewCompareWorkspacesRequest(server string, workspace WorkspaceId, targetWorkspaceId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "target_workspace_id", runtime.ParamLocationPath, targetWorkspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/compare/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewConnectTeamsRequest calls the generic ConnectTeams builder with application/json body
 func NewConnectTeamsRequest(server string, workspace WorkspaceId, body ConnectTeamsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -55407,6 +55769,47 @@ func NewRebuildDependencyMapRequest(server string, workspace WorkspaceId) (*http
 	return req, nil
 }
 
+// NewResetDiffTallyRequest generates requests for ResetDiffTally
+func NewResetDiffTallyRequest(server string, workspace WorkspaceId, forkWorkspaceId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "fork_workspace_id", runtime.ParamLocationPath, forkWorkspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/reset_diff_tally/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewRunSlackMessageTestJobRequest calls the generic RunSlackMessageTestJob builder with application/json body
 func NewRunSlackMessageTestJobRequest(server string, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -57254,6 +57657,9 @@ type ClientWithResponsesInterface interface {
 
 	UpdateFolderWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body UpdateFolderJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFolderResponse, error)
 
+	// GetFolderPermissionHistoryWithResponse request
+	GetFolderPermissionHistoryWithResponse(ctx context.Context, workspace WorkspaceId, name Name, params *GetFolderPermissionHistoryParams, reqEditors ...RequestEditorFn) (*GetFolderPermissionHistoryResponse, error)
+
 	// CreateGcpTriggerWithBodyWithResponse request with any body
 	CreateGcpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateGcpTriggerResponse, error)
 
@@ -57351,6 +57757,9 @@ type ClientWithResponsesInterface interface {
 	UpdateGroupWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateGroupResponse, error)
 
 	UpdateGroupWithResponse(ctx context.Context, workspace WorkspaceId, name Name, body UpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateGroupResponse, error)
+
+	// GetGroupPermissionHistoryWithResponse request
+	GetGroupPermissionHistoryWithResponse(ctx context.Context, workspace WorkspaceId, name Name, params *GetGroupPermissionHistoryParams, reqEditors ...RequestEditorFn) (*GetGroupPermissionHistoryResponse, error)
 
 	// CreateHttpTriggerWithBodyWithResponse request with any body
 	CreateHttpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateHttpTriggerResponse, error)
@@ -58403,6 +58812,9 @@ type ClientWithResponsesInterface interface {
 
 	ChangeWorkspaceNameWithResponse(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeWorkspaceNameResponse, error)
 
+	// CompareWorkspacesWithResponse request
+	CompareWorkspacesWithResponse(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*CompareWorkspacesResponse, error)
+
 	// ConnectTeamsWithBodyWithResponse request with any body
 	ConnectTeamsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectTeamsResponse, error)
 
@@ -58598,6 +59010,9 @@ type ClientWithResponsesInterface interface {
 
 	// RebuildDependencyMapWithResponse request
 	RebuildDependencyMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*RebuildDependencyMapResponse, error)
+
+	// ResetDiffTallyWithResponse request
+	ResetDiffTallyWithResponse(ctx context.Context, workspace WorkspaceId, forkWorkspaceId string, reqEditors ...RequestEditorFn) (*ResetDiffTallyResponse, error)
 
 	// RunSlackMessageTestJobWithBodyWithResponse request with any body
 	RunSlackMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error)
@@ -63206,6 +63621,34 @@ func (r UpdateFolderResponse) StatusCode() int {
 	return 0
 }
 
+type GetFolderPermissionHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Affected   *string    `json:"affected"`
+		ChangeType *string    `json:"change_type,omitempty"`
+		ChangedAt  *time.Time `json:"changed_at,omitempty"`
+		ChangedBy  *string    `json:"changed_by,omitempty"`
+		Id         *int       `json:"id,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetFolderPermissionHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFolderPermissionHistoryResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateGcpTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -63718,6 +64161,34 @@ func (r UpdateGroupResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGroupPermissionHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		ChangeType     *string    `json:"change_type,omitempty"`
+		ChangedAt      *time.Time `json:"changed_at,omitempty"`
+		ChangedBy      *string    `json:"changed_by,omitempty"`
+		Id             *int       `json:"id,omitempty"`
+		MemberAffected *string    `json:"member_affected"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGroupPermissionHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGroupPermissionHistoryResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -69800,6 +70271,28 @@ func (r ChangeWorkspaceNameResponse) StatusCode() int {
 	return 0
 }
 
+type CompareWorkspacesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *WorkspaceComparison
+}
+
+// Status returns HTTPResponse.Status
+func (r CompareWorkspacesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CompareWorkspacesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ConnectTeamsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -70887,6 +71380,28 @@ func (r RebuildDependencyMapResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RebuildDependencyMapResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ResetDiffTallyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r ResetDiffTallyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResetDiffTallyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -73776,6 +74291,15 @@ func (c *ClientWithResponses) UpdateFolderWithResponse(ctx context.Context, work
 	return ParseUpdateFolderResponse(rsp)
 }
 
+// GetFolderPermissionHistoryWithResponse request returning *GetFolderPermissionHistoryResponse
+func (c *ClientWithResponses) GetFolderPermissionHistoryWithResponse(ctx context.Context, workspace WorkspaceId, name Name, params *GetFolderPermissionHistoryParams, reqEditors ...RequestEditorFn) (*GetFolderPermissionHistoryResponse, error) {
+	rsp, err := c.GetFolderPermissionHistory(ctx, workspace, name, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFolderPermissionHistoryResponse(rsp)
+}
+
 // CreateGcpTriggerWithBodyWithResponse request with arbitrary body returning *CreateGcpTriggerResponse
 func (c *ClientWithResponses) CreateGcpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateGcpTriggerResponse, error) {
 	rsp, err := c.CreateGcpTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -74094,6 +74618,15 @@ func (c *ClientWithResponses) UpdateGroupWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseUpdateGroupResponse(rsp)
+}
+
+// GetGroupPermissionHistoryWithResponse request returning *GetGroupPermissionHistoryResponse
+func (c *ClientWithResponses) GetGroupPermissionHistoryWithResponse(ctx context.Context, workspace WorkspaceId, name Name, params *GetGroupPermissionHistoryParams, reqEditors ...RequestEditorFn) (*GetGroupPermissionHistoryResponse, error) {
+	rsp, err := c.GetGroupPermissionHistory(ctx, workspace, name, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGroupPermissionHistoryResponse(rsp)
 }
 
 // CreateHttpTriggerWithBodyWithResponse request with arbitrary body returning *CreateHttpTriggerResponse
@@ -77469,6 +78002,15 @@ func (c *ClientWithResponses) ChangeWorkspaceNameWithResponse(ctx context.Contex
 	return ParseChangeWorkspaceNameResponse(rsp)
 }
 
+// CompareWorkspacesWithResponse request returning *CompareWorkspacesResponse
+func (c *ClientWithResponses) CompareWorkspacesWithResponse(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*CompareWorkspacesResponse, error) {
+	rsp, err := c.CompareWorkspaces(ctx, workspace, targetWorkspaceId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCompareWorkspacesResponse(rsp)
+}
+
 // ConnectTeamsWithBodyWithResponse request with arbitrary body returning *ConnectTeamsResponse
 func (c *ClientWithResponses) ConnectTeamsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectTeamsResponse, error) {
 	rsp, err := c.ConnectTeamsWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -78107,6 +78649,15 @@ func (c *ClientWithResponses) RebuildDependencyMapWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseRebuildDependencyMapResponse(rsp)
+}
+
+// ResetDiffTallyWithResponse request returning *ResetDiffTallyResponse
+func (c *ClientWithResponses) ResetDiffTallyWithResponse(ctx context.Context, workspace WorkspaceId, forkWorkspaceId string, reqEditors ...RequestEditorFn) (*ResetDiffTallyResponse, error) {
+	rsp, err := c.ResetDiffTally(ctx, workspace, forkWorkspaceId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResetDiffTallyResponse(rsp)
 }
 
 // RunSlackMessageTestJobWithBodyWithResponse request with arbitrary body returning *RunSlackMessageTestJobResponse
@@ -82920,6 +83471,38 @@ func ParseUpdateFolderResponse(rsp *http.Response) (*UpdateFolderResponse, error
 	return response, nil
 }
 
+// ParseGetFolderPermissionHistoryResponse parses an HTTP response from a GetFolderPermissionHistoryWithResponse call
+func ParseGetFolderPermissionHistoryResponse(rsp *http.Response) (*GetFolderPermissionHistoryResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFolderPermissionHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Affected   *string    `json:"affected"`
+			ChangeType *string    `json:"change_type,omitempty"`
+			ChangedAt  *time.Time `json:"changed_at,omitempty"`
+			ChangedBy  *string    `json:"changed_by,omitempty"`
+			Id         *int       `json:"id,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateGcpTriggerResponse parses an HTTP response from a CreateGcpTriggerWithResponse call
 func ParseCreateGcpTriggerResponse(rsp *http.Response) (*CreateGcpTriggerResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -83403,6 +83986,38 @@ func ParseUpdateGroupResponse(rsp *http.Response) (*UpdateGroupResponse, error) 
 	response := &UpdateGroupResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetGroupPermissionHistoryResponse parses an HTTP response from a GetGroupPermissionHistoryWithResponse call
+func ParseGetGroupPermissionHistoryResponse(rsp *http.Response) (*GetGroupPermissionHistoryResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGroupPermissionHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			ChangeType     *string    `json:"change_type,omitempty"`
+			ChangedAt      *time.Time `json:"changed_at,omitempty"`
+			ChangedBy      *string    `json:"changed_by,omitempty"`
+			Id             *int       `json:"id,omitempty"`
+			MemberAffected *string    `json:"member_affected"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -89404,6 +90019,32 @@ func ParseChangeWorkspaceNameResponse(rsp *http.Response) (*ChangeWorkspaceNameR
 	return response, nil
 }
 
+// ParseCompareWorkspacesResponse parses an HTTP response from a CompareWorkspacesWithResponse call
+func ParseCompareWorkspacesResponse(rsp *http.Response) (*CompareWorkspacesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CompareWorkspacesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WorkspaceComparison
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseConnectTeamsResponse parses an HTTP response from a ConnectTeamsWithResponse call
 func ParseConnectTeamsResponse(rsp *http.Response) (*ConnectTeamsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -90513,6 +91154,32 @@ func ParseRebuildDependencyMapResponse(rsp *http.Response) (*RebuildDependencyMa
 	response := &RebuildDependencyMapResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseResetDiffTallyResponse parses an HTTP response from a ResetDiffTallyWithResponse call
+func ParseResetDiffTallyResponse(rsp *http.Response) (*ResetDiffTallyResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResetDiffTallyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
