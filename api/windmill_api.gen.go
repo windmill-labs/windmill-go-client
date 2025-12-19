@@ -2125,9 +2125,10 @@ type FlowStatus struct {
 		FlowJobsSuccess *[]bool `json:"flow_jobs_success,omitempty"`
 		Id              *string `json:"id,omitempty"`
 		Iterator        *struct {
-			Args   *interface{}   `json:"args,omitempty"`
-			Index  *int           `json:"index,omitempty"`
-			Itered *[]interface{} `json:"itered,omitempty"`
+			Args      *interface{}   `json:"args,omitempty"`
+			Index     *int           `json:"index,omitempty"`
+			Itered    *[]interface{} `json:"itered,omitempty"`
+			IteredLen *int           `json:"itered_len,omitempty"`
 		} `json:"iterator,omitempty"`
 		Job          *openapi_types.UUID         `json:"job,omitempty"`
 		ParentModule *string                     `json:"parent_module,omitempty"`
@@ -4212,9 +4213,10 @@ type SchemasFlowStatusModule struct {
 	FlowJobsSuccess *[]bool `json:"flow_jobs_success,omitempty"`
 	Id              *string `json:"id,omitempty"`
 	Iterator        *struct {
-		Args   *interface{}   `json:"args,omitempty"`
-		Index  *int           `json:"index,omitempty"`
-		Itered *[]interface{} `json:"itered,omitempty"`
+		Args      *interface{}   `json:"args,omitempty"`
+		Index     *int           `json:"index,omitempty"`
+		Itered    *[]interface{} `json:"itered,omitempty"`
+		IteredLen *int           `json:"itered_len,omitempty"`
 	} `json:"iterator,omitempty"`
 	Job      *openapi_types.UUID         `json:"job,omitempty"`
 	Progress *int                        `json:"progress,omitempty"`
@@ -71153,6 +71155,7 @@ type GetSettingsResponse struct {
 		SlackOauthClientSecret    *string                   `json:"slack_oauth_client_secret,omitempty"`
 		SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
 		TeamsCommandScript        *string                   `json:"teams_command_script,omitempty"`
+		TeamsTeamGuid             *string                   `json:"teams_team_guid,omitempty"`
 		TeamsTeamId               *string                   `json:"teams_team_id,omitempty"`
 		TeamsTeamName             *string                   `json:"teams_team_name,omitempty"`
 		Webhook                   *string                   `json:"webhook,omitempty"`
@@ -90952,6 +90955,7 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			SlackOauthClientSecret    *string                   `json:"slack_oauth_client_secret,omitempty"`
 			SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
 			TeamsCommandScript        *string                   `json:"teams_command_script,omitempty"`
+			TeamsTeamGuid             *string                   `json:"teams_team_guid,omitempty"`
 			TeamsTeamId               *string                   `json:"teams_team_id,omitempty"`
 			TeamsTeamName             *string                   `json:"teams_team_name,omitempty"`
 			Webhook                   *string                   `json:"webhook,omitempty"`
