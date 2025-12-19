@@ -3362,6 +3362,7 @@ type ResourceType struct {
 type RestartedFrom struct {
 	BranchOrIterationN *int                `json:"branch_or_iteration_n,omitempty"`
 	FlowJobId          *openapi_types.UUID `json:"flow_job_id,omitempty"`
+	FlowVersion        *int                `json:"flow_version,omitempty"`
 	StepId             *string             `json:"step_id,omitempty"`
 }
 
@@ -6506,6 +6507,18 @@ type ListFilteredQueueUuidsParams struct {
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
 
+// RestartFlowAtStepJSONBody defines parameters for RestartFlowAtStep.
+type RestartFlowAtStepJSONBody struct {
+	// BranchOrIterationN for branchall or loop, the iteration at which the flow should restart (optional)
+	BranchOrIterationN *int `json:"branch_or_iteration_n,omitempty"`
+
+	// FlowVersion specific flow version to use for restart (optional, uses current version if not specified)
+	FlowVersion *int `json:"flow_version,omitempty"`
+
+	// StepId step id to restart the flow from
+	StepId string `json:"step_id"`
+}
+
 // RestartFlowAtStepParams defines parameters for RestartFlowAtStep.
 type RestartFlowAtStepParams struct {
 	// ScheduledFor when to schedule this job (leave empty for immediate run)
@@ -7681,15 +7694,15 @@ type AddUserJSONBody struct {
 type ListAvailableTeamsChannelsParams struct {
 	// TeamId Microsoft Teams team ID
 	TeamId string `form:"team_id" json:"team_id"`
-
-	// Search Search channels by name
-	Search *string `form:"search,omitempty" json:"search,omitempty"`
 }
 
 // ListAvailableTeamsIdsParams defines parameters for ListAvailableTeamsIds.
 type ListAvailableTeamsIdsParams struct {
-	// Search Search teams by name
+	// Search Search teams by name. If omitted, returns first page of all teams.
 	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// NextLink Pagination cursor URL from previous response. Pass this to fetch the next page of results.
+	NextLink *string `form:"next_link,omitempty" json:"next_link,omitempty"`
 }
 
 // ChangeWorkspaceColorJSONBody defines parameters for ChangeWorkspaceColor.
@@ -8220,7 +8233,7 @@ type CancelSelectionJSONRequestBody = CancelSelectionJSONBody
 type ImportQueuedJobsJSONRequestBody = ImportQueuedJobsJSONBody
 
 // RestartFlowAtStepJSONRequestBody defines body for RestartFlowAtStep for application/json ContentType.
-type RestartFlowAtStepJSONRequestBody = ScriptArgs
+type RestartFlowAtStepJSONRequestBody RestartFlowAtStepJSONBody
 
 // BatchReRunJobsJSONRequestBody defines body for BatchReRunJobs for application/json ContentType.
 type BatchReRunJobsJSONRequestBody BatchReRunJobsJSONBody
@@ -10916,9 +10929,9 @@ type ClientInterface interface {
 	GetScheduledFor(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RestartFlowAtStepWithBody request with any body
-	RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	RestartFlowAtStep(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RestartFlowAtStep(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResultById request
 	ResultById(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16622,8 +16635,8 @@ func (c *Client) GetScheduledFor(ctx context.Context, workspace WorkspaceId, id 
 	return c.Client.Do(req)
 }
 
-func (c *Client) RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRestartFlowAtStepRequestWithBody(c.Server, workspace, id, stepId, branchOrIterationN, params, contentType, body)
+func (c *Client) RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestartFlowAtStepRequestWithBody(c.Server, workspace, id, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16634,8 +16647,8 @@ func (c *Client) RestartFlowAtStepWithBody(ctx context.Context, workspace Worksp
 	return c.Client.Do(req)
 }
 
-func (c *Client) RestartFlowAtStep(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRestartFlowAtStepRequest(c.Server, workspace, id, stepId, branchOrIterationN, params, body)
+func (c *Client) RestartFlowAtStep(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestartFlowAtStepRequest(c.Server, workspace, id, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -39338,18 +39351,18 @@ func NewGetScheduledForRequest(server string, workspace WorkspaceId, id JobId) (
 }
 
 // NewRestartFlowAtStepRequest calls the generic RestartFlowAtStep builder with application/json body
-func NewRestartFlowAtStepRequest(server string, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody) (*http.Request, error) {
+func NewRestartFlowAtStepRequest(server string, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewRestartFlowAtStepRequestWithBody(server, workspace, id, stepId, branchOrIterationN, params, "application/json", bodyReader)
+	return NewRestartFlowAtStepRequestWithBody(server, workspace, id, params, "application/json", bodyReader)
 }
 
 // NewRestartFlowAtStepRequestWithBody generates requests for RestartFlowAtStep with any type of body
-func NewRestartFlowAtStepRequestWithBody(server string, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader) (*http.Request, error) {
+func NewRestartFlowAtStepRequestWithBody(server string, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -39366,26 +39379,12 @@ func NewRestartFlowAtStepRequestWithBody(server string, workspace WorkspaceId, i
 		return nil, err
 	}
 
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "step_id", runtime.ParamLocationPath, stepId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam3 string
-
-	pathParam3, err = runtime.StyleParamWithLocation("simple", false, "branch_or_iteration_n", runtime.ParamLocationPath, branchOrIterationN)
-	if err != nil {
-		return nil, err
-	}
-
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/jobs/restart/f/%s/from/%s/%s", pathParam0, pathParam1, pathParam2, pathParam3)
+	operationPath := fmt.Sprintf("/w/%s/jobs/restart/f/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -53444,22 +53443,6 @@ func NewListAvailableTeamsChannelsRequest(server string, workspace WorkspaceId, 
 			}
 		}
 
-		if params.Search != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -53503,6 +53486,22 @@ func NewListAvailableTeamsIdsRequest(server string, workspace WorkspaceId, param
 		if params.Search != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.NextLink != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "next_link", runtime.ParamLocationQuery, *params.NextLink); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -57990,9 +57989,9 @@ type ClientWithResponsesInterface interface {
 	GetScheduledForWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetScheduledForResponse, error)
 
 	// RestartFlowAtStepWithBodyWithResponse request with any body
-	RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
+	RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
 
-	RestartFlowAtStepWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
+	RestartFlowAtStepWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
 
 	// ResultByIdWithResponse request
 	ResultByIdWithResponse(ctx context.Context, workspace WorkspaceId, flowJobId string, nodeId string, reqEditors ...RequestEditorFn) (*ResultByIdResponse, error)
@@ -70161,9 +70160,12 @@ func (r ArchiveWorkspaceResponse) StatusCode() int {
 type ListAvailableTeamsChannelsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]struct {
-		ChannelId   *string `json:"channel_id,omitempty"`
-		ChannelName *string `json:"channel_name,omitempty"`
+	JSON200      *struct {
+		Channels *[]struct {
+			ChannelId   *string `json:"channel_id,omitempty"`
+			ChannelName *string `json:"channel_name,omitempty"`
+		} `json:"channels,omitempty"`
+		TotalCount *int `json:"total_count,omitempty"`
 	}
 }
 
@@ -70186,9 +70188,19 @@ func (r ListAvailableTeamsChannelsResponse) StatusCode() int {
 type ListAvailableTeamsIdsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]struct {
-		TeamId   *string `json:"team_id,omitempty"`
-		TeamName *string `json:"team_name,omitempty"`
+	JSON200      *struct {
+		// NextLink URL to fetch next page of results. Null if no more pages.
+		NextLink *string `json:"next_link"`
+
+		// PerPage Number of teams per page (configurable via TEAMS_PER_PAGE env var)
+		PerPage *int `json:"per_page,omitempty"`
+		Teams   *[]struct {
+			TeamId   *string `json:"team_id,omitempty"`
+			TeamName *string `json:"team_name,omitempty"`
+		} `json:"teams,omitempty"`
+
+		// TotalCount Total number of teams across all pages
+		TotalCount *int `json:"total_count,omitempty"`
 	}
 }
 
@@ -75356,16 +75368,16 @@ func (c *ClientWithResponses) GetScheduledForWithResponse(ctx context.Context, w
 }
 
 // RestartFlowAtStepWithBodyWithResponse request with arbitrary body returning *RestartFlowAtStepResponse
-func (c *ClientWithResponses) RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error) {
-	rsp, err := c.RestartFlowAtStepWithBody(ctx, workspace, id, stepId, branchOrIterationN, params, contentType, body, reqEditors...)
+func (c *ClientWithResponses) RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error) {
+	rsp, err := c.RestartFlowAtStepWithBody(ctx, workspace, id, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseRestartFlowAtStepResponse(rsp)
 }
 
-func (c *ClientWithResponses) RestartFlowAtStepWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepId string, branchOrIterationN int, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error) {
-	rsp, err := c.RestartFlowAtStep(ctx, workspace, id, stepId, branchOrIterationN, params, body, reqEditors...)
+func (c *ClientWithResponses) RestartFlowAtStepWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error) {
+	rsp, err := c.RestartFlowAtStep(ctx, workspace, id, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -89928,9 +89940,12 @@ func ParseListAvailableTeamsChannelsResponse(rsp *http.Response) (*ListAvailable
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []struct {
-			ChannelId   *string `json:"channel_id,omitempty"`
-			ChannelName *string `json:"channel_name,omitempty"`
+		var dest struct {
+			Channels *[]struct {
+				ChannelId   *string `json:"channel_id,omitempty"`
+				ChannelName *string `json:"channel_name,omitempty"`
+			} `json:"channels,omitempty"`
+			TotalCount *int `json:"total_count,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -89957,9 +89972,19 @@ func ParseListAvailableTeamsIdsResponse(rsp *http.Response) (*ListAvailableTeams
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []struct {
-			TeamId   *string `json:"team_id,omitempty"`
-			TeamName *string `json:"team_name,omitempty"`
+		var dest struct {
+			// NextLink URL to fetch next page of results. Null if no more pages.
+			NextLink *string `json:"next_link"`
+
+			// PerPage Number of teams per page (configurable via TEAMS_PER_PAGE env var)
+			PerPage *int `json:"per_page,omitempty"`
+			Teams   *[]struct {
+				TeamId   *string `json:"team_id,omitempty"`
+				TeamName *string `json:"team_name,omitempty"`
+			} `json:"teams,omitempty"`
+
+			// TotalCount Total number of teams across all pages
+			TotalCount *int `json:"total_count,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
