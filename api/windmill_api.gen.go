@@ -367,7 +367,12 @@ const (
 
 // Defines values for FlowStatusFailureModuleAgentActions2Type.
 const (
-	FlowStatusFailureModuleAgentActions2TypeMessage FlowStatusFailureModuleAgentActions2Type = "message"
+	FlowStatusFailureModuleAgentActions2TypeWebSearch FlowStatusFailureModuleAgentActions2Type = "web_search"
+)
+
+// Defines values for FlowStatusFailureModuleAgentActions3Type.
+const (
+	FlowStatusFailureModuleAgentActions3TypeMessage FlowStatusFailureModuleAgentActions3Type = "message"
 )
 
 // Defines values for FlowStatusFailureModuleBranchChosenType.
@@ -725,6 +730,11 @@ const (
 	U        WebhookFiltersUserOrFolderRegex = "u"
 )
 
+// Defines values for WebsearchToolValueToolType.
+const (
+	Websearch WebsearchToolValueToolType = "websearch"
+)
+
 // Defines values for WindmillFilePreviewContentType.
 const (
 	Csv     WindmillFilePreviewContentType = "Csv"
@@ -775,7 +785,12 @@ const (
 
 // Defines values for SchemasFlowStatusModuleAgentActions2Type.
 const (
-	SchemasFlowStatusModuleAgentActions2TypeMessage SchemasFlowStatusModuleAgentActions2Type = "message"
+	SchemasFlowStatusModuleAgentActions2TypeWebSearch SchemasFlowStatusModuleAgentActions2Type = "web_search"
+)
+
+// Defines values for SchemasFlowStatusModuleAgentActions3Type.
+const (
+	SchemasFlowStatusModuleAgentActions3TypeMessage SchemasFlowStatusModuleAgentActions3Type = "message"
 )
 
 // Defines values for SchemasFlowStatusModuleBranchChosenType.
@@ -2177,6 +2192,14 @@ type FlowStatusFailureModuleAgentActions2 struct {
 // FlowStatusFailureModuleAgentActions2Type defines model for FlowStatus.FailureModule.AgentActions.2.Type.
 type FlowStatusFailureModuleAgentActions2Type string
 
+// FlowStatusFailureModuleAgentActions3 defines model for .
+type FlowStatusFailureModuleAgentActions3 struct {
+	Type FlowStatusFailureModuleAgentActions3Type `json:"type"`
+}
+
+// FlowStatusFailureModuleAgentActions3Type defines model for FlowStatus.FailureModule.AgentActions.3.Type.
+type FlowStatusFailureModuleAgentActions3Type string
+
 // FlowStatus_FailureModule_AgentActions_Item defines model for FlowStatus.FailureModule.AgentActions.Item.
 type FlowStatus_FailureModule_AgentActions_Item struct {
 	union json.RawMessage
@@ -2207,6 +2230,9 @@ type FlowValue struct {
 	// ConcurrentLimit Maximum number of concurrent executions of this flow
 	ConcurrentLimit *float32 `json:"concurrent_limit,omitempty"`
 
+	// DebounceArgsToAccumulate Arguments to accumulate across debounced executions
+	DebounceArgsToAccumulate *[]string `json:"debounce_args_to_accumulate,omitempty"`
+
 	// DebounceDelayS Delay in seconds to debounce flow executions
 	DebounceDelayS *float32 `json:"debounce_delay_s,omitempty"`
 
@@ -2221,6 +2247,12 @@ type FlowValue struct {
 
 	// FlowEnv Environment variables available to all steps
 	FlowEnv *map[string]string `json:"flow_env,omitempty"`
+
+	// MaxTotalDebouncesAmount Maximum number of times a job can be debounced
+	MaxTotalDebouncesAmount *float32 `json:"max_total_debounces_amount,omitempty"`
+
+	// MaxTotalDebouncingTime Maximum total time in seconds that a job can be debounced
+	MaxTotalDebouncingTime *float32 `json:"max_total_debouncing_time,omitempty"`
 
 	// Modules Array of steps that execute in sequence. Each step can be a script, subflow, loop, or branch
 	Modules []SchemasFlowModule `json:"modules"`
@@ -2926,38 +2958,41 @@ type NewScript struct {
 		Kind          AssetKind                     `json:"kind"`
 		Path          string                        `json:"path"`
 	} `json:"assets,omitempty"`
-	CacheIgnoreS3Path      *bool                   `json:"cache_ignore_s3_path,omitempty"`
-	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
-	Codebase               *string                 `json:"codebase,omitempty"`
-	ConcurrencyKey         *string                 `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
-	Content                string                  `json:"content"`
-	DebounceDelayS         *int                    `json:"debounce_delay_s,omitempty"`
-	DebounceKey            *string                 `json:"debounce_key,omitempty"`
-	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse         *bool                   `json:"delete_after_use,omitempty"`
-	DeploymentMessage      *string                 `json:"deployment_message,omitempty"`
-	Description            string                  `json:"description"`
-	DraftOnly              *bool                   `json:"draft_only,omitempty"`
-	Envs                   *[]string               `json:"envs,omitempty"`
-	HasPreprocessor        *bool                   `json:"has_preprocessor,omitempty"`
-	IsTemplate             *bool                   `json:"is_template,omitempty"`
-	Kind                   *NewScriptKind          `json:"kind,omitempty"`
-	Language               ScriptLang              `json:"language"`
-	Lock                   *string                 `json:"lock,omitempty"`
-	NoMainFunc             *bool                   `json:"no_main_func,omitempty"`
-	OnBehalfOfEmail        *string                 `json:"on_behalf_of_email,omitempty"`
-	ParentHash             *string                 `json:"parent_hash,omitempty"`
-	Path                   string                  `json:"path"`
-	Priority               *int                    `json:"priority,omitempty"`
-	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
-	Schema                 *map[string]interface{} `json:"schema,omitempty"`
-	Summary                string                  `json:"summary"`
-	Tag                    *string                 `json:"tag,omitempty"`
-	Timeout                *int                    `json:"timeout,omitempty"`
-	VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
-	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
+	CacheIgnoreS3Path        *bool                   `json:"cache_ignore_s3_path,omitempty"`
+	CacheTtl                 *float32                `json:"cache_ttl,omitempty"`
+	Codebase                 *string                 `json:"codebase,omitempty"`
+	ConcurrencyKey           *string                 `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS   *int                    `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit          *int                    `json:"concurrent_limit,omitempty"`
+	Content                  string                  `json:"content"`
+	DebounceArgsToAccumulate *[]string               `json:"debounce_args_to_accumulate,omitempty"`
+	DebounceDelayS           *int                    `json:"debounce_delay_s,omitempty"`
+	DebounceKey              *string                 `json:"debounce_key,omitempty"`
+	DedicatedWorker          *bool                   `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse           *bool                   `json:"delete_after_use,omitempty"`
+	DeploymentMessage        *string                 `json:"deployment_message,omitempty"`
+	Description              string                  `json:"description"`
+	DraftOnly                *bool                   `json:"draft_only,omitempty"`
+	Envs                     *[]string               `json:"envs,omitempty"`
+	HasPreprocessor          *bool                   `json:"has_preprocessor,omitempty"`
+	IsTemplate               *bool                   `json:"is_template,omitempty"`
+	Kind                     *NewScriptKind          `json:"kind,omitempty"`
+	Language                 ScriptLang              `json:"language"`
+	Lock                     *string                 `json:"lock,omitempty"`
+	MaxTotalDebouncesAmount  *int                    `json:"max_total_debounces_amount,omitempty"`
+	MaxTotalDebouncingTime   *int                    `json:"max_total_debouncing_time,omitempty"`
+	NoMainFunc               *bool                   `json:"no_main_func,omitempty"`
+	OnBehalfOfEmail          *string                 `json:"on_behalf_of_email,omitempty"`
+	ParentHash               *string                 `json:"parent_hash,omitempty"`
+	Path                     string                  `json:"path"`
+	Priority                 *int                    `json:"priority,omitempty"`
+	RestartUnlessCancelled   *bool                   `json:"restart_unless_cancelled,omitempty"`
+	Schema                   *map[string]interface{} `json:"schema,omitempty"`
+	Summary                  string                  `json:"summary"`
+	Tag                      *string                 `json:"tag,omitempty"`
+	Timeout                  *int                    `json:"timeout,omitempty"`
+	VisibleToRunnerOnly      *bool                   `json:"visible_to_runner_only,omitempty"`
+	WsErrorHandlerMuted      *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // NewScriptAssetsAccessType defines model for NewScript.Assets.AccessType.
@@ -2977,40 +3012,43 @@ type NewScriptWithDraft struct {
 		Kind          AssetKind                              `json:"kind"`
 		Path          string                                 `json:"path"`
 	} `json:"assets,omitempty"`
-	CacheIgnoreS3Path      *bool                   `json:"cache_ignore_s3_path,omitempty"`
-	CacheTtl               *float32                `json:"cache_ttl,omitempty"`
-	Codebase               *string                 `json:"codebase,omitempty"`
-	ConcurrencyKey         *string                 `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS *int                    `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *int                    `json:"concurrent_limit,omitempty"`
-	Content                string                  `json:"content"`
-	DebounceDelayS         *int                    `json:"debounce_delay_s,omitempty"`
-	DebounceKey            *string                 `json:"debounce_key,omitempty"`
-	DedicatedWorker        *bool                   `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse         *bool                   `json:"delete_after_use,omitempty"`
-	DeploymentMessage      *string                 `json:"deployment_message,omitempty"`
-	Description            string                  `json:"description"`
-	Draft                  *NewScript              `json:"draft,omitempty"`
-	DraftOnly              *bool                   `json:"draft_only,omitempty"`
-	Envs                   *[]string               `json:"envs,omitempty"`
-	HasPreprocessor        *bool                   `json:"has_preprocessor,omitempty"`
-	Hash                   string                  `json:"hash"`
-	IsTemplate             *bool                   `json:"is_template,omitempty"`
-	Kind                   *NewScriptWithDraftKind `json:"kind,omitempty"`
-	Language               ScriptLang              `json:"language"`
-	Lock                   *string                 `json:"lock,omitempty"`
-	NoMainFunc             *bool                   `json:"no_main_func,omitempty"`
-	OnBehalfOfEmail        *string                 `json:"on_behalf_of_email,omitempty"`
-	ParentHash             *string                 `json:"parent_hash,omitempty"`
-	Path                   string                  `json:"path"`
-	Priority               *int                    `json:"priority,omitempty"`
-	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
-	Schema                 *map[string]interface{} `json:"schema,omitempty"`
-	Summary                string                  `json:"summary"`
-	Tag                    *string                 `json:"tag,omitempty"`
-	Timeout                *int                    `json:"timeout,omitempty"`
-	VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
-	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
+	CacheIgnoreS3Path        *bool                   `json:"cache_ignore_s3_path,omitempty"`
+	CacheTtl                 *float32                `json:"cache_ttl,omitempty"`
+	Codebase                 *string                 `json:"codebase,omitempty"`
+	ConcurrencyKey           *string                 `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS   *int                    `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit          *int                    `json:"concurrent_limit,omitempty"`
+	Content                  string                  `json:"content"`
+	DebounceArgsToAccumulate *[]string               `json:"debounce_args_to_accumulate,omitempty"`
+	DebounceDelayS           *int                    `json:"debounce_delay_s,omitempty"`
+	DebounceKey              *string                 `json:"debounce_key,omitempty"`
+	DedicatedWorker          *bool                   `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse           *bool                   `json:"delete_after_use,omitempty"`
+	DeploymentMessage        *string                 `json:"deployment_message,omitempty"`
+	Description              string                  `json:"description"`
+	Draft                    *NewScript              `json:"draft,omitempty"`
+	DraftOnly                *bool                   `json:"draft_only,omitempty"`
+	Envs                     *[]string               `json:"envs,omitempty"`
+	HasPreprocessor          *bool                   `json:"has_preprocessor,omitempty"`
+	Hash                     string                  `json:"hash"`
+	IsTemplate               *bool                   `json:"is_template,omitempty"`
+	Kind                     *NewScriptWithDraftKind `json:"kind,omitempty"`
+	Language                 ScriptLang              `json:"language"`
+	Lock                     *string                 `json:"lock,omitempty"`
+	MaxTotalDebouncesAmount  *int                    `json:"max_total_debounces_amount,omitempty"`
+	MaxTotalDebouncingTime   *int                    `json:"max_total_debouncing_time,omitempty"`
+	NoMainFunc               *bool                   `json:"no_main_func,omitempty"`
+	OnBehalfOfEmail          *string                 `json:"on_behalf_of_email,omitempty"`
+	ParentHash               *string                 `json:"parent_hash,omitempty"`
+	Path                     string                  `json:"path"`
+	Priority                 *int                    `json:"priority,omitempty"`
+	RestartUnlessCancelled   *bool                   `json:"restart_unless_cancelled,omitempty"`
+	Schema                   *map[string]interface{} `json:"schema,omitempty"`
+	Summary                  string                  `json:"summary"`
+	Tag                      *string                 `json:"tag,omitempty"`
+	Timeout                  *int                    `json:"timeout,omitempty"`
+	VisibleToRunnerOnly      *bool                   `json:"visible_to_runner_only,omitempty"`
+	WsErrorHandlerMuted      *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // NewScriptWithDraftAssetsAccessType defines model for NewScriptWithDraft.Assets.AccessType.
@@ -3552,34 +3590,37 @@ type ScopeDomain struct {
 
 // Script defines model for Script.
 type Script struct {
-	Archived               bool            `json:"archived"`
-	CacheTtl               *float32        `json:"cache_ttl,omitempty"`
-	Codebase               *string         `json:"codebase,omitempty"`
-	ConcurrencyKey         *string         `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS *int            `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit        *int            `json:"concurrent_limit,omitempty"`
-	Content                string          `json:"content"`
-	CreatedAt              time.Time       `json:"created_at"`
-	CreatedBy              string          `json:"created_by"`
-	DebounceDelayS         *int            `json:"debounce_delay_s,omitempty"`
-	DebounceKey            *string         `json:"debounce_key,omitempty"`
-	DedicatedWorker        *bool           `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse         *bool           `json:"delete_after_use,omitempty"`
-	Deleted                bool            `json:"deleted"`
-	Description            string          `json:"description"`
-	DraftOnly              *bool           `json:"draft_only,omitempty"`
-	Envs                   *[]string       `json:"envs,omitempty"`
-	ExtraPerms             map[string]bool `json:"extra_perms"`
-	HasDraft               *bool           `json:"has_draft,omitempty"`
-	HasPreprocessor        bool            `json:"has_preprocessor"`
-	Hash                   string          `json:"hash"`
-	IsTemplate             bool            `json:"is_template"`
-	Kind                   ScriptKind      `json:"kind"`
-	Language               ScriptLang      `json:"language"`
-	Lock                   *string         `json:"lock,omitempty"`
-	LockErrorLogs          *string         `json:"lock_error_logs,omitempty"`
-	NoMainFunc             bool            `json:"no_main_func"`
-	OnBehalfOfEmail        *string         `json:"on_behalf_of_email,omitempty"`
+	Archived                 bool            `json:"archived"`
+	CacheTtl                 *float32        `json:"cache_ttl,omitempty"`
+	Codebase                 *string         `json:"codebase,omitempty"`
+	ConcurrencyKey           *string         `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS   *int            `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit          *int            `json:"concurrent_limit,omitempty"`
+	Content                  string          `json:"content"`
+	CreatedAt                time.Time       `json:"created_at"`
+	CreatedBy                string          `json:"created_by"`
+	DebounceArgsToAccumulate *[]string       `json:"debounce_args_to_accumulate,omitempty"`
+	DebounceDelayS           *int            `json:"debounce_delay_s,omitempty"`
+	DebounceKey              *string         `json:"debounce_key,omitempty"`
+	DedicatedWorker          *bool           `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse           *bool           `json:"delete_after_use,omitempty"`
+	Deleted                  bool            `json:"deleted"`
+	Description              string          `json:"description"`
+	DraftOnly                *bool           `json:"draft_only,omitempty"`
+	Envs                     *[]string       `json:"envs,omitempty"`
+	ExtraPerms               map[string]bool `json:"extra_perms"`
+	HasDraft                 *bool           `json:"has_draft,omitempty"`
+	HasPreprocessor          bool            `json:"has_preprocessor"`
+	Hash                     string          `json:"hash"`
+	IsTemplate               bool            `json:"is_template"`
+	Kind                     ScriptKind      `json:"kind"`
+	Language                 ScriptLang      `json:"language"`
+	Lock                     *string         `json:"lock,omitempty"`
+	LockErrorLogs            *string         `json:"lock_error_logs,omitempty"`
+	MaxTotalDebouncesAmount  *int            `json:"max_total_debounces_amount,omitempty"`
+	MaxTotalDebouncingTime   *int            `json:"max_total_debouncing_time,omitempty"`
+	NoMainFunc               bool            `json:"no_main_func"`
+	OnBehalfOfEmail          *string         `json:"on_behalf_of_email,omitempty"`
 
 	// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
 	ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
@@ -3780,6 +3821,14 @@ type WebhookFilters struct {
 // WebhookFiltersUserOrFolderRegex defines model for WebhookFilters.UserOrFolderRegex.
 type WebhookFiltersUserOrFolderRegex string
 
+// WebsearchToolValue A tool implemented as a websearch tool. The AI can call this like any other websearch tool
+type WebsearchToolValue struct {
+	ToolType WebsearchToolValueToolType `json:"tool_type"`
+}
+
+// WebsearchToolValueToolType defines model for WebsearchToolValue.ToolType.
+type WebsearchToolValueToolType string
+
 // WebsocketTrigger defines model for WebsocketTrigger.
 type WebsocketTrigger = TriggerExtraProperty
 
@@ -3971,8 +4020,8 @@ type SchemasAiAgent struct {
 		// MaxCompletionTokens Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
 		MaxCompletionTokens *SchemasInputTransform `json:"max_completion_tokens,omitempty"`
 
-		// MessagesContextLength Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
-		MessagesContextLength *SchemasInputTransform `json:"messages_context_length,omitempty"`
+		// Memory Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		Memory *SchemasInputTransform `json:"memory,omitempty"`
 
 		// OutputSchema Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
 		OutputSchema *SchemasInputTransform `json:"output_schema,omitempty"`
@@ -4255,6 +4304,14 @@ type SchemasFlowStatusModuleAgentActions2 struct {
 // SchemasFlowStatusModuleAgentActions2Type defines model for SchemasFlowStatusModule.AgentActions.2.Type.
 type SchemasFlowStatusModuleAgentActions2Type string
 
+// SchemasFlowStatusModuleAgentActions3 defines model for .
+type SchemasFlowStatusModuleAgentActions3 struct {
+	Type SchemasFlowStatusModuleAgentActions3Type `json:"type"`
+}
+
+// SchemasFlowStatusModuleAgentActions3Type defines model for SchemasFlowStatusModule.AgentActions.3.Type.
+type SchemasFlowStatusModuleAgentActions3Type string
+
 // SchemasFlowStatusModule_AgentActions_Item defines model for schemas-FlowStatusModule.agent_actions.Item.
 type SchemasFlowStatusModule_AgentActions_Item struct {
 	union json.RawMessage
@@ -4285,6 +4342,9 @@ type SchemasFlowValue struct {
 	// ConcurrentLimit Maximum number of concurrent executions of this flow
 	ConcurrentLimit *float32 `json:"concurrent_limit,omitempty"`
 
+	// DebounceArgsToAccumulate Arguments to accumulate across debounced executions
+	DebounceArgsToAccumulate *[]string `json:"debounce_args_to_accumulate,omitempty"`
+
 	// DebounceDelayS Delay in seconds to debounce flow executions
 	DebounceDelayS *float32 `json:"debounce_delay_s,omitempty"`
 
@@ -4299,6 +4359,12 @@ type SchemasFlowValue struct {
 
 	// FlowEnv Environment variables available to all steps
 	FlowEnv *map[string]string `json:"flow_env,omitempty"`
+
+	// MaxTotalDebouncesAmount Maximum number of times a job can be debounced
+	MaxTotalDebouncesAmount *float32 `json:"max_total_debounces_amount,omitempty"`
+
+	// MaxTotalDebouncingTime Maximum total time in seconds that a job can be debounced
+	MaxTotalDebouncingTime *float32 `json:"max_total_debouncing_time,omitempty"`
 
 	// Modules Array of steps that execute in sequence. Each step can be a script, subflow, loop, or branch
 	Modules []SchemasFlowModule `json:"modules"`
@@ -9020,6 +9086,32 @@ func (t *FlowStatus_FailureModule_AgentActions_Item) MergeFlowStatusFailureModul
 	return err
 }
 
+// AsFlowStatusFailureModuleAgentActions3 returns the union data inside the FlowStatus_FailureModule_AgentActions_Item as a FlowStatusFailureModuleAgentActions3
+func (t FlowStatus_FailureModule_AgentActions_Item) AsFlowStatusFailureModuleAgentActions3() (FlowStatusFailureModuleAgentActions3, error) {
+	var body FlowStatusFailureModuleAgentActions3
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFlowStatusFailureModuleAgentActions3 overwrites any union data inside the FlowStatus_FailureModule_AgentActions_Item as the provided FlowStatusFailureModuleAgentActions3
+func (t *FlowStatus_FailureModule_AgentActions_Item) FromFlowStatusFailureModuleAgentActions3(v FlowStatusFailureModuleAgentActions3) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFlowStatusFailureModuleAgentActions3 performs a merge with any union data inside the FlowStatus_FailureModule_AgentActions_Item, using the provided FlowStatusFailureModuleAgentActions3
+func (t *FlowStatus_FailureModule_AgentActions_Item) MergeFlowStatusFailureModuleAgentActions3(v FlowStatusFailureModuleAgentActions3) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t FlowStatus_FailureModule_AgentActions_Item) MarshalJSON() ([]byte, error) {
 	b, err := t.union.MarshalJSON()
 	return b, err
@@ -9237,6 +9329,34 @@ func (t *ToolValue) MergeMcpToolValue(v McpToolValue) error {
 	return err
 }
 
+// AsWebsearchToolValue returns the union data inside the ToolValue as a WebsearchToolValue
+func (t ToolValue) AsWebsearchToolValue() (WebsearchToolValue, error) {
+	var body WebsearchToolValue
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromWebsearchToolValue overwrites any union data inside the ToolValue as the provided WebsearchToolValue
+func (t *ToolValue) FromWebsearchToolValue(v WebsearchToolValue) error {
+	v.ToolType = "websearch"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeWebsearchToolValue performs a merge with any union data inside the ToolValue, using the provided WebsearchToolValue
+func (t *ToolValue) MergeWebsearchToolValue(v WebsearchToolValue) error {
+	v.ToolType = "websearch"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t ToolValue) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"tool_type"`
@@ -9255,6 +9375,8 @@ func (t ToolValue) ValueByDiscriminator() (interface{}, error) {
 		return t.AsFlowModuleTool()
 	case "mcp":
 		return t.AsMcpToolValue()
+	case "websearch":
+		return t.AsWebsearchToolValue()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -9699,6 +9821,32 @@ func (t *SchemasFlowStatusModule_AgentActions_Item) FromSchemasFlowStatusModuleA
 
 // MergeSchemasFlowStatusModuleAgentActions2 performs a merge with any union data inside the SchemasFlowStatusModule_AgentActions_Item, using the provided SchemasFlowStatusModuleAgentActions2
 func (t *SchemasFlowStatusModule_AgentActions_Item) MergeSchemasFlowStatusModuleAgentActions2(v SchemasFlowStatusModuleAgentActions2) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasFlowStatusModuleAgentActions3 returns the union data inside the SchemasFlowStatusModule_AgentActions_Item as a SchemasFlowStatusModuleAgentActions3
+func (t SchemasFlowStatusModule_AgentActions_Item) AsSchemasFlowStatusModuleAgentActions3() (SchemasFlowStatusModuleAgentActions3, error) {
+	var body SchemasFlowStatusModuleAgentActions3
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasFlowStatusModuleAgentActions3 overwrites any union data inside the SchemasFlowStatusModule_AgentActions_Item as the provided SchemasFlowStatusModuleAgentActions3
+func (t *SchemasFlowStatusModule_AgentActions_Item) FromSchemasFlowStatusModuleAgentActions3(v SchemasFlowStatusModuleAgentActions3) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasFlowStatusModuleAgentActions3 performs a merge with any union data inside the SchemasFlowStatusModule_AgentActions_Item, using the provided SchemasFlowStatusModuleAgentActions3
+func (t *SchemasFlowStatusModule_AgentActions_Item) MergeSchemasFlowStatusModuleAgentActions3(v SchemasFlowStatusModuleAgentActions3) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -11081,6 +11229,9 @@ type ClientInterface interface {
 
 	// GetCompletedJobResultMaybe request
 	GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCompletedJobTiming request
+	GetCompletedJobTiming(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetJob request
 	GetJob(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17323,6 +17474,18 @@ func (c *Client) GetCompletedJobResult(ctx context.Context, workspace WorkspaceI
 
 func (c *Client) GetCompletedJobResultMaybe(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCompletedJobResultMaybeRequest(c.Server, workspace, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCompletedJobTiming(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCompletedJobTimingRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -43859,6 +44022,47 @@ func NewGetCompletedJobResultMaybeRequest(server string, workspace WorkspaceId, 
 	return req, nil
 }
 
+// NewGetCompletedJobTimingRequest generates requests for GetCompletedJobTiming
+func NewGetCompletedJobTimingRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/completed/get_timing/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetJobRequest generates requests for GetJob
 func NewGetJobRequest(server string, workspace WorkspaceId, id JobId, params *GetJobParams) (*http.Request, error) {
 	var err error
@@ -58142,6 +58346,9 @@ type ClientWithResponsesInterface interface {
 	// GetCompletedJobResultMaybeWithResponse request
 	GetCompletedJobResultMaybeWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetCompletedJobResultMaybeParams, reqEditors ...RequestEditorFn) (*GetCompletedJobResultMaybeResponse, error)
 
+	// GetCompletedJobTimingWithResponse request
+	GetCompletedJobTimingWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobTimingResponse, error)
+
 	// GetJobWithResponse request
 	GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*GetJobResponse, error)
 
@@ -66376,6 +66583,32 @@ func (r GetCompletedJobResultMaybeResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetCompletedJobResultMaybeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCompletedJobTimingResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		CreatedAt  time.Time  `json:"created_at"`
+		DurationMs *int       `json:"duration_ms,omitempty"`
+		StartedAt  *time.Time `json:"started_at,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCompletedJobTimingResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCompletedJobTimingResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -75868,6 +76101,15 @@ func (c *ClientWithResponses) GetCompletedJobResultMaybeWithResponse(ctx context
 		return nil, err
 	}
 	return ParseGetCompletedJobResultMaybeResponse(rsp)
+}
+
+// GetCompletedJobTimingWithResponse request returning *GetCompletedJobTimingResponse
+func (c *ClientWithResponses) GetCompletedJobTimingWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobTimingResponse, error) {
+	rsp, err := c.GetCompletedJobTiming(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCompletedJobTimingResponse(rsp)
 }
 
 // GetJobWithResponse request returning *GetJobResponse
@@ -86236,6 +86478,36 @@ func ParseGetCompletedJobResultMaybeResponse(rsp *http.Response) (*GetCompletedJ
 			Result    interface{} `json:"result"`
 			Started   *bool       `json:"started,omitempty"`
 			Success   *bool       `json:"success,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCompletedJobTimingResponse parses an HTTP response from a GetCompletedJobTimingWithResponse call
+func ParseGetCompletedJobTimingResponse(rsp *http.Response) (*GetCompletedJobTimingResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCompletedJobTimingResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CreatedAt  time.Time  `json:"created_at"`
+			DurationMs *int       `json:"duration_ms,omitempty"`
+			StartedAt  *time.Time `json:"started_at,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
