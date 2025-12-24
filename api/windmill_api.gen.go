@@ -1416,6 +1416,15 @@ type CustomInstanceDbLogs struct {
 // CustomInstanceDbTag defines model for CustomInstanceDbTag.
 type CustomInstanceDbTag string
 
+// DataTableSchema defines model for DataTableSchema.
+type DataTableSchema struct {
+	DatatableName string  `json:"datatable_name"`
+	Error         *string `json:"error,omitempty"`
+
+	// Schemas Hierarchical schema: schema_name -> table_name -> column_name -> compact_type (e.g. 'int4', 'text?', 'int4?=0')
+	Schemas map[string]map[string]map[string]string `json:"schemas"`
+}
+
 // DataTableSettings defines model for DataTableSettings.
 type DataTableSettings struct {
 	Datatables map[string]struct {
@@ -12083,6 +12092,9 @@ type ClientInterface interface {
 	// LeaveWorkspace request
 	LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListDataTableSchemas request
+	ListDataTableSchemas(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListDataTables request
 	ListDataTables(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -21254,6 +21266,18 @@ func (c *Client) GetIsPremium(ctx context.Context, workspace WorkspaceId, reqEdi
 
 func (c *Client) LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLeaveWorkspaceRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListDataTableSchemas(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDataTableSchemasRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -55735,6 +55759,40 @@ func NewLeaveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Reque
 	return req, nil
 }
 
+// NewListDataTableSchemasRequest generates requests for ListDataTableSchemas
+func NewListDataTableSchemasRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/list_datatable_schemas", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListDataTablesRequest generates requests for ListDataTables
 func NewListDataTablesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -59198,6 +59256,9 @@ type ClientWithResponsesInterface interface {
 
 	// LeaveWorkspaceWithResponse request
 	LeaveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*LeaveWorkspaceResponse, error)
+
+	// ListDataTableSchemasWithResponse request
+	ListDataTableSchemasWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTableSchemasResponse, error)
 
 	// ListDataTablesWithResponse request
 	ListDataTablesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTablesResponse, error)
@@ -71497,6 +71558,28 @@ func (r LeaveWorkspaceResponse) StatusCode() int {
 	return 0
 }
 
+type ListDataTableSchemasResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]DataTableSchema
+}
+
+// Status returns HTTPResponse.Status
+func (r ListDataTableSchemasResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListDataTableSchemasResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListDataTablesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -78844,6 +78927,15 @@ func (c *ClientWithResponses) LeaveWorkspaceWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseLeaveWorkspaceResponse(rsp)
+}
+
+// ListDataTableSchemasWithResponse request returning *ListDataTableSchemasResponse
+func (c *ClientWithResponses) ListDataTableSchemasWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTableSchemasResponse, error) {
+	rsp, err := c.ListDataTableSchemas(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListDataTableSchemasResponse(rsp)
 }
 
 // ListDataTablesWithResponse request returning *ListDataTablesResponse
@@ -91312,6 +91404,32 @@ func ParseLeaveWorkspaceResponse(rsp *http.Response) (*LeaveWorkspaceResponse, e
 	response := &LeaveWorkspaceResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListDataTableSchemasResponse parses an HTTP response from a ListDataTableSchemasWithResponse call
+func ParseListDataTableSchemasResponse(rsp *http.Response) (*ListDataTableSchemasResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListDataTableSchemasResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []DataTableSchema
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
