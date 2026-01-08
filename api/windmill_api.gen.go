@@ -1478,7 +1478,8 @@ type DucklakeSettings struct {
 			ResourcePath *string                                      `json:"resource_path,omitempty"`
 			ResourceType DucklakeSettingsDucklakesCatalogResourceType `json:"resource_type"`
 		} `json:"catalog"`
-		Storage struct {
+		ExtraArgs *string `json:"extra_args,omitempty"`
+		Storage   struct {
 			Path    string  `json:"path"`
 			Storage *string `json:"storage,omitempty"`
 		} `json:"storage"`
