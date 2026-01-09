@@ -7990,6 +7990,9 @@ type GetCustomTagsParams struct {
 type ExistsWorkersWithTagsParams struct {
 	// Tags comma separated list of tags
 	Tags string `form:"tags" json:"tags"`
+
+	// Workspace workspace to filter tags visibility (required when TAGS_ARE_SENSITIVE is enabled for non-superadmins)
+	Workspace *string `form:"workspace,omitempty" json:"workspace,omitempty"`
 }
 
 // ListWorkersParams defines parameters for ListWorkers.
@@ -56778,6 +56781,22 @@ func NewExistsWorkersWithTagsRequest(server string, params *ExistsWorkersWithTag
 					queryValues.Add(k, v2)
 				}
 			}
+		}
+
+		if params.Workspace != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "workspace", runtime.ParamLocationQuery, *params.Workspace); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
