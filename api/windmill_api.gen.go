@@ -3251,6 +3251,11 @@ type OperatorSettings struct {
 	Workers bool `json:"workers"`
 }
 
+// PasswordResetResponse defines model for PasswordResetResponse.
+type PasswordResetResponse struct {
+	Message string `json:"message"`
+}
+
 // PolarsClientKwargs defines model for PolarsClientKwargs.
 type PolarsClientKwargs struct {
 	RegionName string `json:"region_name"`
@@ -4830,6 +4835,17 @@ type ListBlacklistedAgentTokensParams struct {
 type RemoveBlacklistAgentTokenJSONBody struct {
 	// Token The agent token to remove from blacklist
 	Token string `json:"token"`
+}
+
+// RequestPasswordResetJSONBody defines parameters for RequestPasswordReset.
+type RequestPasswordResetJSONBody struct {
+	Email openapi_types.Email `json:"email"`
+}
+
+// ResetPasswordJSONBody defines parameters for ResetPassword.
+type ResetPasswordJSONBody struct {
+	NewPassword string `json:"new_password"`
+	Token       string `json:"token"`
 }
 
 // ListAutoscalingEventsParams defines parameters for ListAutoscalingEvents.
@@ -8025,6 +8041,12 @@ type RemoveBlacklistAgentTokenJSONRequestBody RemoveBlacklistAgentTokenJSONBody
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = Login
 
+// RequestPasswordResetJSONRequestBody defines body for RequestPasswordReset for application/json ContentType.
+type RequestPasswordResetJSONRequestBody RequestPasswordResetJSONBody
+
+// ResetPasswordJSONRequestBody defines body for ResetPassword for application/json ContentType.
+type ResetPasswordJSONRequestBody ResetPasswordJSONBody
+
 // UpdateConfigJSONRequestBody defines body for UpdateConfig for application/json ContentType.
 type UpdateConfigJSONRequestBody = UpdateConfigJSONBody
 
@@ -10069,6 +10091,9 @@ type ClientInterface interface {
 	// GetPublicAppByCustomPath request
 	GetPublicAppByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// IsSmtpConfigured request
+	IsSmtpConfigured(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// LoginWithBody request with any body
 	LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10076,6 +10101,16 @@ type ClientInterface interface {
 
 	// Logout request
 	Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RequestPasswordResetWithBody request with any body
+	RequestPasswordResetWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RequestPasswordReset(ctx context.Context, body RequestPasswordResetJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResetPasswordWithBody request with any body
+	ResetPasswordWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ResetPassword(ctx context.Context, body ResetPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListConcurrencyGroups request
 	ListConcurrencyGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12349,6 +12384,18 @@ func (c *Client) GetPublicAppByCustomPath(ctx context.Context, customPath Custom
 	return c.Client.Do(req)
 }
 
+func (c *Client) IsSmtpConfigured(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewIsSmtpConfiguredRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLoginRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -12375,6 +12422,54 @@ func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditor
 
 func (c *Client) Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLogoutRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RequestPasswordResetWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRequestPasswordResetRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RequestPasswordReset(ctx context.Context, body RequestPasswordResetJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRequestPasswordResetRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResetPasswordWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResetPasswordRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResetPassword(ctx context.Context, body ResetPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResetPasswordRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -22096,6 +22191,33 @@ func NewGetPublicAppByCustomPathRequest(server string, customPath CustomPath) (*
 	return req, nil
 }
 
+// NewIsSmtpConfiguredRequest generates requests for IsSmtpConfigured
+func NewIsSmtpConfiguredRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/auth/is_smtp_configured")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewLoginRequest calls the generic Login builder with application/json body
 func NewLoginRequest(server string, body LoginJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -22159,6 +22281,86 @@ func NewLogoutRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewRequestPasswordResetRequest calls the generic RequestPasswordReset builder with application/json body
+func NewRequestPasswordResetRequest(server string, body RequestPasswordResetJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRequestPasswordResetRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewRequestPasswordResetRequestWithBody generates requests for RequestPasswordReset with any type of body
+func NewRequestPasswordResetRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/auth/request_password_reset")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewResetPasswordRequest calls the generic ResetPassword builder with application/json body
+func NewResetPasswordRequest(server string, body ResetPasswordJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewResetPasswordRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewResetPasswordRequestWithBody generates requests for ResetPassword with any type of body
+func NewResetPasswordRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/auth/reset_password")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -57234,6 +57436,9 @@ type ClientWithResponsesInterface interface {
 	// GetPublicAppByCustomPathWithResponse request
 	GetPublicAppByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetPublicAppByCustomPathResponse, error)
 
+	// IsSmtpConfiguredWithResponse request
+	IsSmtpConfiguredWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsSmtpConfiguredResponse, error)
+
 	// LoginWithBodyWithResponse request with any body
 	LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginResponse, error)
 
@@ -57241,6 +57446,16 @@ type ClientWithResponsesInterface interface {
 
 	// LogoutWithResponse request
 	LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error)
+
+	// RequestPasswordResetWithBodyWithResponse request with any body
+	RequestPasswordResetWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RequestPasswordResetResponse, error)
+
+	RequestPasswordResetWithResponse(ctx context.Context, body RequestPasswordResetJSONRequestBody, reqEditors ...RequestEditorFn) (*RequestPasswordResetResponse, error)
+
+	// ResetPasswordWithBodyWithResponse request with any body
+	ResetPasswordWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResetPasswordResponse, error)
+
+	ResetPasswordWithResponse(ctx context.Context, body ResetPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*ResetPasswordResponse, error)
 
 	// ListConcurrencyGroupsWithResponse request
 	ListConcurrencyGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListConcurrencyGroupsResponse, error)
@@ -59596,6 +59811,28 @@ func (r GetPublicAppByCustomPathResponse) StatusCode() int {
 	return 0
 }
 
+type IsSmtpConfiguredResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r IsSmtpConfiguredResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r IsSmtpConfiguredResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type LoginResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -59632,6 +59869,50 @@ func (r LogoutResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LogoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RequestPasswordResetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PasswordResetResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r RequestPasswordResetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RequestPasswordResetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ResetPasswordResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PasswordResetResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ResetPasswordResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResetPasswordResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -72442,6 +72723,15 @@ func (c *ClientWithResponses) GetPublicAppByCustomPathWithResponse(ctx context.C
 	return ParseGetPublicAppByCustomPathResponse(rsp)
 }
 
+// IsSmtpConfiguredWithResponse request returning *IsSmtpConfiguredResponse
+func (c *ClientWithResponses) IsSmtpConfiguredWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsSmtpConfiguredResponse, error) {
+	rsp, err := c.IsSmtpConfigured(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseIsSmtpConfiguredResponse(rsp)
+}
+
 // LoginWithBodyWithResponse request with arbitrary body returning *LoginResponse
 func (c *ClientWithResponses) LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginResponse, error) {
 	rsp, err := c.LoginWithBody(ctx, contentType, body, reqEditors...)
@@ -72466,6 +72756,40 @@ func (c *ClientWithResponses) LogoutWithResponse(ctx context.Context, reqEditors
 		return nil, err
 	}
 	return ParseLogoutResponse(rsp)
+}
+
+// RequestPasswordResetWithBodyWithResponse request with arbitrary body returning *RequestPasswordResetResponse
+func (c *ClientWithResponses) RequestPasswordResetWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RequestPasswordResetResponse, error) {
+	rsp, err := c.RequestPasswordResetWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRequestPasswordResetResponse(rsp)
+}
+
+func (c *ClientWithResponses) RequestPasswordResetWithResponse(ctx context.Context, body RequestPasswordResetJSONRequestBody, reqEditors ...RequestEditorFn) (*RequestPasswordResetResponse, error) {
+	rsp, err := c.RequestPasswordReset(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRequestPasswordResetResponse(rsp)
+}
+
+// ResetPasswordWithBodyWithResponse request with arbitrary body returning *ResetPasswordResponse
+func (c *ClientWithResponses) ResetPasswordWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResetPasswordResponse, error) {
+	rsp, err := c.ResetPasswordWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResetPasswordResponse(rsp)
+}
+
+func (c *ClientWithResponses) ResetPasswordWithResponse(ctx context.Context, body ResetPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*ResetPasswordResponse, error) {
+	rsp, err := c.ResetPassword(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResetPasswordResponse(rsp)
 }
 
 // ListConcurrencyGroupsWithResponse request returning *ListConcurrencyGroupsResponse
@@ -79544,6 +79868,32 @@ func ParseGetPublicAppByCustomPathResponse(rsp *http.Response) (*GetPublicAppByC
 	return response, nil
 }
 
+// ParseIsSmtpConfiguredResponse parses an HTTP response from a IsSmtpConfiguredWithResponse call
+func ParseIsSmtpConfiguredResponse(rsp *http.Response) (*IsSmtpConfiguredResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &IsSmtpConfiguredResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseLoginResponse parses an HTTP response from a LoginWithResponse call
 func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -79571,6 +79921,58 @@ func ParseLogoutResponse(rsp *http.Response) (*LogoutResponse, error) {
 	response := &LogoutResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRequestPasswordResetResponse parses an HTTP response from a RequestPasswordResetWithResponse call
+func ParseRequestPasswordResetResponse(rsp *http.Response) (*RequestPasswordResetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RequestPasswordResetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PasswordResetResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseResetPasswordResponse parses an HTTP response from a ResetPasswordWithResponse call
+func ParseResetPasswordResponse(rsp *http.Response) (*ResetPasswordResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResetPasswordResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PasswordResetResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
