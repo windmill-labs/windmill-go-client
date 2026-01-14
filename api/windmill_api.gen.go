@@ -4926,6 +4926,30 @@ type CountJobsByTagParams struct {
 	WorkspaceId *string `form:"workspace_id,omitempty" json:"workspace_id,omitempty"`
 }
 
+// McpOAuthCallbackParams defines parameters for McpOAuthCallback.
+type McpOAuthCallbackParams struct {
+	// Code OAuth authorization code
+	Code string `form:"code" json:"code"`
+
+	// State CSRF state token
+	State string `form:"state" json:"state"`
+}
+
+// DiscoverMcpOAuthJSONBody defines parameters for DiscoverMcpOAuth.
+type DiscoverMcpOAuthJSONBody struct {
+	// McpServerUrl URL of the MCP server to discover OAuth metadata from
+	McpServerUrl string `json:"mcp_server_url"`
+}
+
+// StartMcpOAuthPopupParams defines parameters for StartMcpOAuthPopup.
+type StartMcpOAuthPopupParams struct {
+	// McpServerUrl URL of the MCP server to connect to
+	McpServerUrl string `form:"mcp_server_url" json:"mcp_server_url"`
+
+	// Scopes Comma-separated list of OAuth scopes to request
+	Scopes *string `form:"scopes,omitempty" json:"scopes,omitempty"`
+}
+
 // ConnectCallbackJSONBody defines parameters for ConnectCallback.
 type ConnectCallbackJSONBody struct {
 	Code  string `json:"code"`
@@ -7363,6 +7387,9 @@ type CreateAccountJSONBody struct {
 	ExpiresIn  int     `json:"expires_in"`
 	GrantType  *string `json:"grant_type,omitempty"`
 
+	// McpServerUrl MCP server URL for MCP OAuth token refresh
+	McpServerUrl *string `json:"mcp_server_url,omitempty"`
+
 	// RefreshToken OAuth refresh token. For authorization_code flow, this contains the actual refresh token. For client_credentials flow, this must be set to an empty string.
 	RefreshToken string `json:"refresh_token"`
 }
@@ -8070,6 +8097,9 @@ type UpdateInstanceGroupJSONRequestBody UpdateInstanceGroupJSONBody
 
 // QueryDocumentationJSONRequestBody defines body for QueryDocumentation for application/json ContentType.
 type QueryDocumentationJSONRequestBody QueryDocumentationJSONBody
+
+// DiscoverMcpOAuthJSONRequestBody defines body for DiscoverMcpOAuth for application/json ContentType.
+type DiscoverMcpOAuthJSONRequestBody DiscoverMcpOAuthJSONBody
 
 // ConnectCallbackJSONRequestBody defines body for ConnectCallback for application/json ContentType.
 type ConnectCallbackJSONRequestBody ConnectCallbackJSONBody
@@ -10218,6 +10248,17 @@ type ClientInterface interface {
 
 	// GetDbClock request
 	GetDbClock(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// McpOAuthCallback request
+	McpOAuthCallback(ctx context.Context, params *McpOAuthCallbackParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DiscoverMcpOAuthWithBody request with any body
+	DiscoverMcpOAuthWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DiscoverMcpOAuth(ctx context.Context, body DiscoverMcpOAuthJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// StartMcpOAuthPopup request
+	StartMcpOAuthPopup(ctx context.Context, params *StartMcpOAuthPopupParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListMcpTools request
 	ListMcpTools(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12917,6 +12958,54 @@ func (c *Client) CountJobsByTag(ctx context.Context, params *CountJobsByTagParam
 
 func (c *Client) GetDbClock(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetDbClockRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) McpOAuthCallback(ctx context.Context, params *McpOAuthCallbackParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMcpOAuthCallbackRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DiscoverMcpOAuthWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDiscoverMcpOAuthRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DiscoverMcpOAuth(ctx context.Context, body DiscoverMcpOAuthJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDiscoverMcpOAuthRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) StartMcpOAuthPopup(ctx context.Context, params *StartMcpOAuthPopupParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewStartMcpOAuthPopupRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -23529,6 +23618,164 @@ func NewGetDbClockRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewMcpOAuthCallbackRequest generates requests for McpOAuthCallback
+func NewMcpOAuthCallbackRequest(server string, params *McpOAuthCallbackParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/mcp/oauth/callback")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "code", runtime.ParamLocationQuery, params.Code); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "state", runtime.ParamLocationQuery, params.State); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDiscoverMcpOAuthRequest calls the generic DiscoverMcpOAuth builder with application/json body
+func NewDiscoverMcpOAuthRequest(server string, body DiscoverMcpOAuthJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDiscoverMcpOAuthRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewDiscoverMcpOAuthRequestWithBody generates requests for DiscoverMcpOAuth with any type of body
+func NewDiscoverMcpOAuthRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/mcp/oauth/discover")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewStartMcpOAuthPopupRequest generates requests for StartMcpOAuthPopup
+func NewStartMcpOAuthPopupRequest(server string, params *StartMcpOAuthPopupParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/mcp/oauth/start")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "mcp_server_url", runtime.ParamLocationQuery, params.McpServerUrl); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Scopes != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scopes", runtime.ParamLocationQuery, *params.Scopes); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -57580,6 +57827,17 @@ type ClientWithResponsesInterface interface {
 	// GetDbClockWithResponse request
 	GetDbClockWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDbClockResponse, error)
 
+	// McpOAuthCallbackWithResponse request
+	McpOAuthCallbackWithResponse(ctx context.Context, params *McpOAuthCallbackParams, reqEditors ...RequestEditorFn) (*McpOAuthCallbackResponse, error)
+
+	// DiscoverMcpOAuthWithBodyWithResponse request with any body
+	DiscoverMcpOAuthWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DiscoverMcpOAuthResponse, error)
+
+	DiscoverMcpOAuthWithResponse(ctx context.Context, body DiscoverMcpOAuthJSONRequestBody, reqEditors ...RequestEditorFn) (*DiscoverMcpOAuthResponse, error)
+
+	// StartMcpOAuthPopupWithResponse request
+	StartMcpOAuthPopupWithResponse(ctx context.Context, params *StartMcpOAuthPopupParams, reqEditors ...RequestEditorFn) (*StartMcpOAuthPopupResponse, error)
+
 	// ListMcpToolsWithResponse request
 	ListMcpToolsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListMcpToolsResponse, error)
 
@@ -60610,6 +60868,76 @@ func (r GetDbClockResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetDbClockResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type McpOAuthCallbackResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r McpOAuthCallbackResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r McpOAuthCallbackResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DiscoverMcpOAuthResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		AuthorizationEndpoint       *string   `json:"authorization_endpoint,omitempty"`
+		RegistrationEndpoint        *string   `json:"registration_endpoint,omitempty"`
+		ScopesSupported             *[]string `json:"scopes_supported,omitempty"`
+		SupportsDynamicRegistration *bool     `json:"supports_dynamic_registration,omitempty"`
+		TokenEndpoint               *string   `json:"token_endpoint,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r DiscoverMcpOAuthResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DiscoverMcpOAuthResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type StartMcpOAuthPopupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r StartMcpOAuthPopupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r StartMcpOAuthPopupResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -73137,6 +73465,41 @@ func (c *ClientWithResponses) GetDbClockWithResponse(ctx context.Context, reqEdi
 	return ParseGetDbClockResponse(rsp)
 }
 
+// McpOAuthCallbackWithResponse request returning *McpOAuthCallbackResponse
+func (c *ClientWithResponses) McpOAuthCallbackWithResponse(ctx context.Context, params *McpOAuthCallbackParams, reqEditors ...RequestEditorFn) (*McpOAuthCallbackResponse, error) {
+	rsp, err := c.McpOAuthCallback(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMcpOAuthCallbackResponse(rsp)
+}
+
+// DiscoverMcpOAuthWithBodyWithResponse request with arbitrary body returning *DiscoverMcpOAuthResponse
+func (c *ClientWithResponses) DiscoverMcpOAuthWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DiscoverMcpOAuthResponse, error) {
+	rsp, err := c.DiscoverMcpOAuthWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDiscoverMcpOAuthResponse(rsp)
+}
+
+func (c *ClientWithResponses) DiscoverMcpOAuthWithResponse(ctx context.Context, body DiscoverMcpOAuthJSONRequestBody, reqEditors ...RequestEditorFn) (*DiscoverMcpOAuthResponse, error) {
+	rsp, err := c.DiscoverMcpOAuth(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDiscoverMcpOAuthResponse(rsp)
+}
+
+// StartMcpOAuthPopupWithResponse request returning *StartMcpOAuthPopupResponse
+func (c *ClientWithResponses) StartMcpOAuthPopupWithResponse(ctx context.Context, params *StartMcpOAuthPopupParams, reqEditors ...RequestEditorFn) (*StartMcpOAuthPopupResponse, error) {
+	rsp, err := c.StartMcpOAuthPopup(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseStartMcpOAuthPopupResponse(rsp)
+}
+
 // ListMcpToolsWithResponse request returning *ListMcpToolsResponse
 func (c *ClientWithResponses) ListMcpToolsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListMcpToolsResponse, error) {
 	rsp, err := c.ListMcpTools(ctx, workspace, reqEditors...)
@@ -80700,6 +81063,70 @@ func ParseGetDbClockResponse(rsp *http.Response) (*GetDbClockResponse, error) {
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseMcpOAuthCallbackResponse parses an HTTP response from a McpOAuthCallbackWithResponse call
+func ParseMcpOAuthCallbackResponse(rsp *http.Response) (*McpOAuthCallbackResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &McpOAuthCallbackResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDiscoverMcpOAuthResponse parses an HTTP response from a DiscoverMcpOAuthWithResponse call
+func ParseDiscoverMcpOAuthResponse(rsp *http.Response) (*DiscoverMcpOAuthResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DiscoverMcpOAuthResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			AuthorizationEndpoint       *string   `json:"authorization_endpoint,omitempty"`
+			RegistrationEndpoint        *string   `json:"registration_endpoint,omitempty"`
+			ScopesSupported             *[]string `json:"scopes_supported,omitempty"`
+			SupportsDynamicRegistration *bool     `json:"supports_dynamic_registration,omitempty"`
+			TokenEndpoint               *string   `json:"token_endpoint,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseStartMcpOAuthPopupResponse parses an HTTP response from a StartMcpOAuthPopupWithResponse call
+func ParseStartMcpOAuthPopupResponse(rsp *http.Response) (*StartMcpOAuthPopupResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &StartMcpOAuthPopupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
