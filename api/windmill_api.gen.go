@@ -6665,6 +6665,9 @@ type RestartFlowAtStepParams struct {
 // GetResumeUrlsParams defines parameters for GetResumeUrls.
 type GetResumeUrlsParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
+
+	// FlowLevel If true, generate resume URLs for the parent flow instead of the specific step. This allows pre-approvals that can be consumed by any later suspend step in the same flow.
+	FlowLevel *bool `form:"flow_level,omitempty" json:"flow_level,omitempty"`
 }
 
 // BatchReRunJobsJSONBody defines parameters for BatchReRunJobs.
@@ -40258,6 +40261,22 @@ func NewGetResumeUrlsRequest(server string, workspace WorkspaceId, id JobId, res
 		if params.Approver != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approver", runtime.ParamLocationQuery, *params.Approver); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.FlowLevel != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "flow_level", runtime.ParamLocationQuery, *params.FlowLevel); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
