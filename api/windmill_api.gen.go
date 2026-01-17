@@ -7370,6 +7370,12 @@ type TestNatsConnectionJSONBody struct {
 	Connection map[string]interface{} `json:"connection"`
 }
 
+// ResolveNpmPackageVersionParams defines parameters for ResolveNpmPackageVersion.
+type ResolveNpmPackageVersionParams struct {
+	// Tag version tag or reference
+	Tag *string `form:"tag,omitempty" json:"tag,omitempty"`
+}
+
 // ConnectSlackCallbackJSONBody defines parameters for ConnectSlackCallback.
 type ConnectSlackCallbackJSONBody struct {
 	Code  string `json:"code"`
@@ -7944,6 +7950,14 @@ type EditLargeFileStorageConfigJSONBody struct {
 // EditSlackCommandJSONBody defines parameters for EditSlackCommand.
 type EditSlackCommandJSONBody struct {
 	SlackCommandScript *string `json:"slack_command_script,omitempty"`
+}
+
+// EditSuccessHandlerJSONBody defines parameters for EditSuccessHandler.
+type EditSuccessHandlerJSONBody struct {
+	SuccessHandler *string `json:"success_handler,omitempty"`
+
+	// SuccessHandlerExtraArgs The arguments to pass to the script or flow
+	SuccessHandlerExtraArgs *ScriptArgs `json:"success_handler_extra_args,omitempty"`
 }
 
 // EditTeamsCommandJSONBody defines parameters for EditTeamsCommand.
@@ -8694,6 +8708,9 @@ type EditLargeFileStorageConfigJSONRequestBody EditLargeFileStorageConfigJSONBod
 
 // EditSlackCommandJSONRequestBody defines body for EditSlackCommand for application/json ContentType.
 type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
+
+// EditSuccessHandlerJSONRequestBody defines body for EditSuccessHandler for application/json ContentType.
+type EditSuccessHandlerJSONRequestBody EditSuccessHandlerJSONBody
 
 // EditTeamsCommandJSONRequestBody defines body for EditTeamsCommand for application/json ContentType.
 type EditTeamsCommandJSONRequestBody EditTeamsCommandJSONBody
@@ -11479,6 +11496,18 @@ type ClientInterface interface {
 
 	UpdateNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetNpmPackageFile request
+	GetNpmPackageFile(ctx context.Context, workspace WorkspaceId, pPackage string, version string, filepath string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetNpmPackageFiletree request
+	GetNpmPackageFiletree(ctx context.Context, workspace WorkspaceId, pPackage string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetNpmPackageMetadata request
+	GetNpmPackageMetadata(ctx context.Context, workspace WorkspaceId, pPackage string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResolveNpmPackageVersion request
+	ResolveNpmPackageVersion(ctx context.Context, workspace WorkspaceId, pPackage string, params *ResolveNpmPackageVersionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ConnectSlackCallbackWithBody request with any body
 	ConnectSlackCallbackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -12113,6 +12142,11 @@ type ClientInterface interface {
 	EditSlackCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditSlackCommand(ctx context.Context, workspace WorkspaceId, body EditSlackCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EditSuccessHandlerWithBody request with any body
+	EditSuccessHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditSuccessHandler(ctx context.Context, workspace WorkspaceId, body EditSuccessHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditTeamsCommandWithBody request with any body
 	EditTeamsCommandWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18383,6 +18417,54 @@ func (c *Client) UpdateNatsTrigger(ctx context.Context, workspace WorkspaceId, p
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetNpmPackageFile(ctx context.Context, workspace WorkspaceId, pPackage string, version string, filepath string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNpmPackageFileRequest(c.Server, workspace, pPackage, version, filepath)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetNpmPackageFiletree(ctx context.Context, workspace WorkspaceId, pPackage string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNpmPackageFiletreeRequest(c.Server, workspace, pPackage, version)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetNpmPackageMetadata(ctx context.Context, workspace WorkspaceId, pPackage string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNpmPackageMetadataRequest(c.Server, workspace, pPackage)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResolveNpmPackageVersion(ctx context.Context, workspace WorkspaceId, pPackage string, params *ResolveNpmPackageVersionParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResolveNpmPackageVersionRequest(c.Server, workspace, pPackage, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ConnectSlackCallbackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConnectSlackCallbackRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -21193,6 +21275,30 @@ func (c *Client) EditSlackCommandWithBody(ctx context.Context, workspace Workspa
 
 func (c *Client) EditSlackCommand(ctx context.Context, workspace WorkspaceId, body EditSlackCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditSlackCommandRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditSuccessHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditSuccessHandlerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditSuccessHandler(ctx context.Context, workspace WorkspaceId, body EditSuccessHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditSuccessHandlerRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -46980,6 +47086,213 @@ func NewUpdateNatsTriggerRequestWithBody(server string, workspace WorkspaceId, p
 	return req, nil
 }
 
+// NewGetNpmPackageFileRequest generates requests for GetNpmPackageFile
+func NewGetNpmPackageFileRequest(server string, workspace WorkspaceId, pPackage string, version string, filepath string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "package", runtime.ParamLocationPath, pPackage)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam3 string
+
+	pathParam3, err = runtime.StyleParamWithLocation("simple", false, "filepath", runtime.ParamLocationPath, filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/npm_proxy/file/%s/%s/%s", pathParam0, pathParam1, pathParam2, pathParam3)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetNpmPackageFiletreeRequest generates requests for GetNpmPackageFiletree
+func NewGetNpmPackageFiletreeRequest(server string, workspace WorkspaceId, pPackage string, version string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "package", runtime.ParamLocationPath, pPackage)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/npm_proxy/filetree/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetNpmPackageMetadataRequest generates requests for GetNpmPackageMetadata
+func NewGetNpmPackageMetadataRequest(server string, workspace WorkspaceId, pPackage string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "package", runtime.ParamLocationPath, pPackage)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/npm_proxy/metadata/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewResolveNpmPackageVersionRequest generates requests for ResolveNpmPackageVersion
+func NewResolveNpmPackageVersionRequest(server string, workspace WorkspaceId, pPackage string, params *ResolveNpmPackageVersionParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "package", runtime.ParamLocationPath, pPackage)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/npm_proxy/resolve/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Tag != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tag", runtime.ParamLocationQuery, *params.Tag); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewConnectSlackCallbackRequest calls the generic ConnectSlackCallback builder with application/json body
 func NewConnectSlackCallbackRequest(server string, workspace WorkspaceId, body ConnectSlackCallbackJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -55581,6 +55894,53 @@ func NewEditSlackCommandRequestWithBody(server string, workspace WorkspaceId, co
 	return req, nil
 }
 
+// NewEditSuccessHandlerRequest calls the generic EditSuccessHandler builder with application/json body
+func NewEditSuccessHandlerRequest(server string, workspace WorkspaceId, body EditSuccessHandlerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditSuccessHandlerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditSuccessHandlerRequestWithBody generates requests for EditSuccessHandler with any type of body
+func NewEditSuccessHandlerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_success_handler", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditTeamsCommandRequest calls the generic EditTeamsCommand builder with application/json body
 func NewEditTeamsCommandRequest(server string, workspace WorkspaceId, body EditTeamsCommandJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -59073,6 +59433,18 @@ type ClientWithResponsesInterface interface {
 
 	UpdateNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateNatsTriggerResponse, error)
 
+	// GetNpmPackageFileWithResponse request
+	GetNpmPackageFileWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, version string, filepath string, reqEditors ...RequestEditorFn) (*GetNpmPackageFileResponse, error)
+
+	// GetNpmPackageFiletreeWithResponse request
+	GetNpmPackageFiletreeWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, version string, reqEditors ...RequestEditorFn) (*GetNpmPackageFiletreeResponse, error)
+
+	// GetNpmPackageMetadataWithResponse request
+	GetNpmPackageMetadataWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, reqEditors ...RequestEditorFn) (*GetNpmPackageMetadataResponse, error)
+
+	// ResolveNpmPackageVersionWithResponse request
+	ResolveNpmPackageVersionWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, params *ResolveNpmPackageVersionParams, reqEditors ...RequestEditorFn) (*ResolveNpmPackageVersionResponse, error)
+
 	// ConnectSlackCallbackWithBodyWithResponse request with any body
 	ConnectSlackCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error)
 
@@ -59707,6 +60079,11 @@ type ClientWithResponsesInterface interface {
 	EditSlackCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
 
 	EditSlackCommandWithResponse(ctx context.Context, workspace WorkspaceId, body EditSlackCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*EditSlackCommandResponse, error)
+
+	// EditSuccessHandlerWithBodyWithResponse request with any body
+	EditSuccessHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSuccessHandlerResponse, error)
+
+	EditSuccessHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body EditSuccessHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*EditSuccessHandlerResponse, error)
 
 	// EditTeamsCommandWithBodyWithResponse request with any body
 	EditTeamsCommandWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditTeamsCommandResponse, error)
@@ -68197,6 +68574,103 @@ func (r UpdateNatsTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type GetNpmPackageFileResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNpmPackageFileResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNpmPackageFileResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetNpmPackageFiletreeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Default *string `json:"default,omitempty"`
+		Files   *[]struct {
+			Name *string `json:"name,omitempty"`
+		} `json:"files,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNpmPackageFiletreeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNpmPackageFiletreeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetNpmPackageMetadataResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Tags     *map[string]string `json:"tags,omitempty"`
+		Versions *[]string          `json:"versions,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNpmPackageMetadataResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNpmPackageMetadataResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ResolveNpmPackageVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Version *string `json:"version"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ResolveNpmPackageVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResolveNpmPackageVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ConnectSlackCallbackResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -71798,6 +72272,27 @@ func (r EditSlackCommandResponse) StatusCode() int {
 	return 0
 }
 
+type EditSuccessHandlerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditSuccessHandlerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditSuccessHandlerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditTeamsCommandResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -72096,12 +72591,16 @@ type GetSettingsResponse struct {
 		SlackOauthClientId        *string                   `json:"slack_oauth_client_id,omitempty"`
 		SlackOauthClientSecret    *string                   `json:"slack_oauth_client_secret,omitempty"`
 		SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
-		TeamsCommandScript        *string                   `json:"teams_command_script,omitempty"`
-		TeamsTeamGuid             *string                   `json:"teams_team_guid,omitempty"`
-		TeamsTeamId               *string                   `json:"teams_team_id,omitempty"`
-		TeamsTeamName             *string                   `json:"teams_team_name,omitempty"`
-		Webhook                   *string                   `json:"webhook,omitempty"`
-		WorkspaceId               *string                   `json:"workspace_id,omitempty"`
+		SuccessHandler            *string                   `json:"success_handler,omitempty"`
+
+		// SuccessHandlerExtraArgs The arguments to pass to the script or flow
+		SuccessHandlerExtraArgs *ScriptArgs `json:"success_handler_extra_args,omitempty"`
+		TeamsCommandScript      *string     `json:"teams_command_script,omitempty"`
+		TeamsTeamGuid           *string     `json:"teams_team_guid,omitempty"`
+		TeamsTeamId             *string     `json:"teams_team_id,omitempty"`
+		TeamsTeamName           *string     `json:"teams_team_name,omitempty"`
+		Webhook                 *string     `json:"webhook,omitempty"`
+		WorkspaceId             *string     `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -77417,6 +77916,42 @@ func (c *ClientWithResponses) UpdateNatsTriggerWithResponse(ctx context.Context,
 	return ParseUpdateNatsTriggerResponse(rsp)
 }
 
+// GetNpmPackageFileWithResponse request returning *GetNpmPackageFileResponse
+func (c *ClientWithResponses) GetNpmPackageFileWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, version string, filepath string, reqEditors ...RequestEditorFn) (*GetNpmPackageFileResponse, error) {
+	rsp, err := c.GetNpmPackageFile(ctx, workspace, pPackage, version, filepath, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNpmPackageFileResponse(rsp)
+}
+
+// GetNpmPackageFiletreeWithResponse request returning *GetNpmPackageFiletreeResponse
+func (c *ClientWithResponses) GetNpmPackageFiletreeWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, version string, reqEditors ...RequestEditorFn) (*GetNpmPackageFiletreeResponse, error) {
+	rsp, err := c.GetNpmPackageFiletree(ctx, workspace, pPackage, version, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNpmPackageFiletreeResponse(rsp)
+}
+
+// GetNpmPackageMetadataWithResponse request returning *GetNpmPackageMetadataResponse
+func (c *ClientWithResponses) GetNpmPackageMetadataWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, reqEditors ...RequestEditorFn) (*GetNpmPackageMetadataResponse, error) {
+	rsp, err := c.GetNpmPackageMetadata(ctx, workspace, pPackage, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNpmPackageMetadataResponse(rsp)
+}
+
+// ResolveNpmPackageVersionWithResponse request returning *ResolveNpmPackageVersionResponse
+func (c *ClientWithResponses) ResolveNpmPackageVersionWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, params *ResolveNpmPackageVersionParams, reqEditors ...RequestEditorFn) (*ResolveNpmPackageVersionResponse, error) {
+	rsp, err := c.ResolveNpmPackageVersion(ctx, workspace, pPackage, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResolveNpmPackageVersionResponse(rsp)
+}
+
 // ConnectSlackCallbackWithBodyWithResponse request with arbitrary body returning *ConnectSlackCallbackResponse
 func (c *ClientWithResponses) ConnectSlackCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error) {
 	rsp, err := c.ConnectSlackCallbackWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -79460,6 +79995,23 @@ func (c *ClientWithResponses) EditSlackCommandWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseEditSlackCommandResponse(rsp)
+}
+
+// EditSuccessHandlerWithBodyWithResponse request with arbitrary body returning *EditSuccessHandlerResponse
+func (c *ClientWithResponses) EditSuccessHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditSuccessHandlerResponse, error) {
+	rsp, err := c.EditSuccessHandlerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditSuccessHandlerResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditSuccessHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body EditSuccessHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*EditSuccessHandlerResponse, error) {
+	rsp, err := c.EditSuccessHandler(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditSuccessHandlerResponse(rsp)
 }
 
 // EditTeamsCommandWithBodyWithResponse request with arbitrary body returning *EditTeamsCommandResponse
@@ -88296,6 +88848,110 @@ func ParseUpdateNatsTriggerResponse(rsp *http.Response) (*UpdateNatsTriggerRespo
 	return response, nil
 }
 
+// ParseGetNpmPackageFileResponse parses an HTTP response from a GetNpmPackageFileWithResponse call
+func ParseGetNpmPackageFileResponse(rsp *http.Response) (*GetNpmPackageFileResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNpmPackageFileResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetNpmPackageFiletreeResponse parses an HTTP response from a GetNpmPackageFiletreeWithResponse call
+func ParseGetNpmPackageFiletreeResponse(rsp *http.Response) (*GetNpmPackageFiletreeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNpmPackageFiletreeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Default *string `json:"default,omitempty"`
+			Files   *[]struct {
+				Name *string `json:"name,omitempty"`
+			} `json:"files,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetNpmPackageMetadataResponse parses an HTTP response from a GetNpmPackageMetadataWithResponse call
+func ParseGetNpmPackageMetadataResponse(rsp *http.Response) (*GetNpmPackageMetadataResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNpmPackageMetadataResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Tags     *map[string]string `json:"tags,omitempty"`
+			Versions *[]string          `json:"versions,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseResolveNpmPackageVersionResponse parses an HTTP response from a ResolveNpmPackageVersionWithResponse call
+func ParseResolveNpmPackageVersionResponse(rsp *http.Response) (*ResolveNpmPackageVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResolveNpmPackageVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Version *string `json:"version"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseConnectSlackCallbackResponse parses an HTTP response from a ConnectSlackCallbackWithResponse call
 func ParseConnectSlackCallbackResponse(rsp *http.Response) (*ConnectSlackCallbackResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -91855,6 +92511,22 @@ func ParseEditSlackCommandResponse(rsp *http.Response) (*EditSlackCommandRespons
 	return response, nil
 }
 
+// ParseEditSuccessHandlerResponse parses an HTTP response from a EditSuccessHandlerWithResponse call
+func ParseEditSuccessHandlerResponse(rsp *http.Response) (*EditSuccessHandlerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditSuccessHandlerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseEditTeamsCommandResponse parses an HTTP response from a EditTeamsCommandWithResponse call
 func ParseEditTeamsCommandResponse(rsp *http.Response) (*EditTeamsCommandResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -92186,12 +92858,16 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			SlackOauthClientId        *string                   `json:"slack_oauth_client_id,omitempty"`
 			SlackOauthClientSecret    *string                   `json:"slack_oauth_client_secret,omitempty"`
 			SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
-			TeamsCommandScript        *string                   `json:"teams_command_script,omitempty"`
-			TeamsTeamGuid             *string                   `json:"teams_team_guid,omitempty"`
-			TeamsTeamId               *string                   `json:"teams_team_id,omitempty"`
-			TeamsTeamName             *string                   `json:"teams_team_name,omitempty"`
-			Webhook                   *string                   `json:"webhook,omitempty"`
-			WorkspaceId               *string                   `json:"workspace_id,omitempty"`
+			SuccessHandler            *string                   `json:"success_handler,omitempty"`
+
+			// SuccessHandlerExtraArgs The arguments to pass to the script or flow
+			SuccessHandlerExtraArgs *ScriptArgs `json:"success_handler_extra_args,omitempty"`
+			TeamsCommandScript      *string     `json:"teams_command_script,omitempty"`
+			TeamsTeamGuid           *string     `json:"teams_team_guid,omitempty"`
+			TeamsTeamId             *string     `json:"teams_team_id,omitempty"`
+			TeamsTeamName           *string     `json:"teams_team_name,omitempty"`
+			Webhook                 *string     `json:"webhook,omitempty"`
+			WorkspaceId             *string     `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
