@@ -8077,8 +8077,7 @@ type SetThresholdAlertJSONBody struct {
 
 // GetCustomTagsParams defines parameters for GetCustomTags.
 type GetCustomTagsParams struct {
-	Workspace                *string `form:"workspace,omitempty" json:"workspace,omitempty"`
-	ShowWorkspaceRestriction *bool   `form:"show_workspace_restriction,omitempty" json:"show_workspace_restriction,omitempty"`
+	ShowWorkspaceRestriction *bool `form:"show_workspace_restriction,omitempty" json:"show_workspace_restriction,omitempty"`
 }
 
 // ExistsWorkersWithTagsParams defines parameters for ExistsWorkersWithTags.
@@ -12056,6 +12055,9 @@ type ClientInterface interface {
 	UpdateWebsocketTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCustomTagsForWorkspace request
+	GetCustomTagsForWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ArchiveWorkspaceDependencies request
 	ArchiveWorkspaceDependencies(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *ArchiveWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20681,6 +20683,18 @@ func (c *Client) UpdateWebsocketTriggerWithBody(ctx context.Context, workspace W
 
 func (c *Client) UpdateWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateWebsocketTriggerRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCustomTagsForWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCustomTagsForWorkspaceRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -54375,6 +54389,40 @@ func NewUpdateWebsocketTriggerRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewGetCustomTagsForWorkspaceRequest generates requests for GetCustomTagsForWorkspace
+func NewGetCustomTagsForWorkspaceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workers/custom_tags", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewArchiveWorkspaceDependenciesRequest generates requests for ArchiveWorkspaceDependencies
 func NewArchiveWorkspaceDependenciesRequest(server string, workspace WorkspaceId, language ScriptLang, params *ArchiveWorkspaceDependenciesParams) (*http.Request, error) {
 	var err error
@@ -57641,22 +57689,6 @@ func NewGetCustomTagsRequest(server string, params *GetCustomTagsParams) (*http.
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.Workspace != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "workspace", runtime.ParamLocationQuery, *params.Workspace); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
 		if params.ShowWorkspaceRestriction != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "show_workspace_restriction", runtime.ParamLocationQuery, *params.ShowWorkspaceRestriction); err != nil {
@@ -60242,6 +60274,9 @@ type ClientWithResponsesInterface interface {
 	UpdateWebsocketTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateWebsocketTriggerResponse, error)
 
 	UpdateWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateWebsocketTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateWebsocketTriggerResponse, error)
+
+	// GetCustomTagsForWorkspaceWithResponse request
+	GetCustomTagsForWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCustomTagsForWorkspaceResponse, error)
 
 	// ArchiveWorkspaceDependenciesWithResponse request
 	ArchiveWorkspaceDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, language ScriptLang, params *ArchiveWorkspaceDependenciesParams, reqEditors ...RequestEditorFn) (*ArchiveWorkspaceDependenciesResponse, error)
@@ -71838,6 +71873,28 @@ func (r UpdateWebsocketTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type GetCustomTagsForWorkspaceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCustomTagsForWorkspaceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCustomTagsForWorkspaceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ArchiveWorkspaceDependenciesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -79927,6 +79984,15 @@ func (c *ClientWithResponses) UpdateWebsocketTriggerWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseUpdateWebsocketTriggerResponse(rsp)
+}
+
+// GetCustomTagsForWorkspaceWithResponse request returning *GetCustomTagsForWorkspaceResponse
+func (c *ClientWithResponses) GetCustomTagsForWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCustomTagsForWorkspaceResponse, error) {
+	rsp, err := c.GetCustomTagsForWorkspace(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCustomTagsForWorkspaceResponse(rsp)
 }
 
 // ArchiveWorkspaceDependenciesWithResponse request returning *ArchiveWorkspaceDependenciesResponse
@@ -92227,6 +92293,32 @@ func ParseUpdateWebsocketTriggerResponse(rsp *http.Response) (*UpdateWebsocketTr
 	response := &UpdateWebsocketTriggerResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetCustomTagsForWorkspaceResponse parses an HTTP response from a GetCustomTagsForWorkspaceWithResponse call
+func ParseGetCustomTagsForWorkspaceResponse(rsp *http.Response) (*GetCustomTagsForWorkspaceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCustomTagsForWorkspaceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
