@@ -2580,6 +2580,12 @@ type JobSearchHit struct {
 // JobTriggerKind job trigger kind (schedule, http, websocket...)
 type JobTriggerKind string
 
+// JwksResponse defines model for JwksResponse.
+type JwksResponse struct {
+	// Keys Array of JSON Web Keys for JWT verification
+	Keys []map[string]interface{} `json:"keys"`
+}
+
 // KafkaTrigger defines model for KafkaTrigger.
 type KafkaTrigger = TriggerExtraProperty
 
@@ -3667,6 +3673,33 @@ type ScriptHistory struct {
 // ScriptLang defines model for ScriptLang.
 type ScriptLang string
 
+// SecretMigrationFailure defines model for SecretMigrationFailure.
+type SecretMigrationFailure struct {
+	// Error Error message
+	Error string `json:"error"`
+
+	// Path Path of the secret that failed to migrate
+	Path string `json:"path"`
+
+	// WorkspaceId Workspace ID where the secret is located
+	WorkspaceId string `json:"workspace_id"`
+}
+
+// SecretMigrationReport defines model for SecretMigrationReport.
+type SecretMigrationReport struct {
+	// FailedCount Number of secrets that failed to migrate
+	FailedCount int64 `json:"failed_count"`
+
+	// Failures Details of any failures encountered during migration
+	Failures []SecretMigrationFailure `json:"failures"`
+
+	// MigratedCount Number of secrets successfully migrated
+	MigratedCount int64 `json:"migrated_count"`
+
+	// TotalSecrets Total number of secrets found
+	TotalSecrets int64 `json:"total_secrets"`
+}
+
 // Slot defines model for Slot.
 type Slot struct {
 	Name *string `json:"name,omitempty"`
@@ -3823,6 +3856,24 @@ type UserWorkspaceList struct {
 		ParentWorkspaceId *string           `json:"parent_workspace_id"`
 		Username          string            `json:"username"`
 	} `json:"workspaces"`
+}
+
+// VaultSettings defines model for VaultSettings.
+type VaultSettings struct {
+	// Address HashiCorp Vault server address (e.g., https://vault.company.com:8200)
+	Address string `json:"address"`
+
+	// JwtRole Vault JWT auth role name for Windmill (optional, if not provided token auth is used)
+	JwtRole *string `json:"jwt_role,omitempty"`
+
+	// MountPath KV v2 secrets engine mount path (e.g., windmill)
+	MountPath string `json:"mount_path"`
+
+	// Namespace Vault Enterprise namespace (optional)
+	Namespace *string `json:"namespace,omitempty"`
+
+	// Token Static Vault token for testing/development (optional, if provided this is used instead of JWT authentication)
+	Token *string `json:"token,omitempty"`
 }
 
 // WebhookFilters defines model for WebhookFilters.
@@ -8139,6 +8190,12 @@ type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
 // SetGlobalJSONRequestBody defines body for SetGlobal for application/json ContentType.
 type SetGlobalJSONRequestBody SetGlobalJSONBody
 
+// MigrateSecretsToDatabaseJSONRequestBody defines body for MigrateSecretsToDatabase for application/json ContentType.
+type MigrateSecretsToDatabaseJSONRequestBody = VaultSettings
+
+// MigrateSecretsToVaultJSONRequestBody defines body for MigrateSecretsToVault for application/json ContentType.
+type MigrateSecretsToVaultJSONRequestBody = VaultSettings
+
 // SetupCustomInstanceDbJSONRequestBody defines body for SetupCustomInstanceDb for application/json ContentType.
 type SetupCustomInstanceDbJSONRequestBody SetupCustomInstanceDbJSONBody
 
@@ -8150,6 +8207,9 @@ type TestLicenseKeyJSONRequestBody TestLicenseKeyJSONBody
 
 // TestObjectStorageConfigJSONRequestBody defines body for TestObjectStorageConfig for application/json ContentType.
 type TestObjectStorageConfigJSONRequestBody TestObjectStorageConfigJSONBody
+
+// TestSecretBackendJSONRequestBody defines body for TestSecretBackend for application/json ContentType.
+type TestSecretBackendJSONRequestBody = VaultSettings
 
 // TestSmtpJSONRequestBody defines body for TestSmtp for application/json ContentType.
 type TestSmtpJSONRequestBody TestSmtpJSONBody
@@ -10114,6 +10174,9 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetJwks request
+	GetJwks(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// BlacklistAgentTokenWithBody request with any body
 	BlacklistAgentTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10375,6 +10438,16 @@ type ClientInterface interface {
 	// GetLocal request
 	GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// MigrateSecretsToDatabaseWithBody request with any body
+	MigrateSecretsToDatabaseWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MigrateSecretsToDatabase(ctx context.Context, body MigrateSecretsToDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// MigrateSecretsToVaultWithBody request with any body
+	MigrateSecretsToVaultWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MigrateSecretsToVault(ctx context.Context, body MigrateSecretsToVaultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RefreshCustomInstanceUserPwd request
 	RefreshCustomInstanceUserPwd(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10403,6 +10476,11 @@ type ClientInterface interface {
 	TestObjectStorageConfigWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	TestObjectStorageConfig(ctx context.Context, body TestObjectStorageConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestSecretBackendWithBody request with any body
+	TestSecretBackendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestSecretBackend(ctx context.Context, body TestSecretBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestSmtpWithBody request with any body
 	TestSmtpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12333,6 +12411,18 @@ type ClientInterface interface {
 	ListUserWorkspaces(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
+func (c *Client) GetJwks(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetJwksRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) BlacklistAgentTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewBlacklistAgentTokenRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -13461,6 +13551,54 @@ func (c *Client) GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*
 	return c.Client.Do(req)
 }
 
+func (c *Client) MigrateSecretsToDatabaseWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsToDatabaseRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateSecretsToDatabase(ctx context.Context, body MigrateSecretsToDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsToDatabaseRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateSecretsToVaultWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsToVaultRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateSecretsToVault(ctx context.Context, body MigrateSecretsToVaultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsToVaultRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) RefreshCustomInstanceUserPwd(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRefreshCustomInstanceUserPwdRequest(c.Server)
 	if err != nil {
@@ -13583,6 +13721,30 @@ func (c *Client) TestObjectStorageConfigWithBody(ctx context.Context, contentTyp
 
 func (c *Client) TestObjectStorageConfig(ctx context.Context, body TestObjectStorageConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewTestObjectStorageConfigRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestSecretBackendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestSecretBackendRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestSecretBackend(ctx context.Context, body TestSecretBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestSecretBackendRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -22101,6 +22263,33 @@ func (c *Client) ListUserWorkspaces(ctx context.Context, reqEditors ...RequestEd
 	return c.Client.Do(req)
 }
 
+// NewGetJwksRequest generates requests for GetJwks
+func NewGetJwksRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/.well-known/jwks.json")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewBlacklistAgentTokenRequest calls the generic BlacklistAgentToken builder with application/json body
 func NewBlacklistAgentTokenRequest(server string, body BlacklistAgentTokenJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -25004,6 +25193,86 @@ func NewGetLocalRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewMigrateSecretsToDatabaseRequest calls the generic MigrateSecretsToDatabase builder with application/json body
+func NewMigrateSecretsToDatabaseRequest(server string, body MigrateSecretsToDatabaseJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMigrateSecretsToDatabaseRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewMigrateSecretsToDatabaseRequestWithBody generates requests for MigrateSecretsToDatabase with any type of body
+func NewMigrateSecretsToDatabaseRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/migrate_secrets_to_database")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewMigrateSecretsToVaultRequest calls the generic MigrateSecretsToVault builder with application/json body
+func NewMigrateSecretsToVaultRequest(server string, body MigrateSecretsToVaultJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMigrateSecretsToVaultRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewMigrateSecretsToVaultRequestWithBody generates requests for MigrateSecretsToVault with any type of body
+func NewMigrateSecretsToVaultRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/migrate_secrets_to_vault")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRefreshCustomInstanceUserPwdRequest generates requests for RefreshCustomInstanceUserPwd
 func NewRefreshCustomInstanceUserPwdRequest(server string) (*http.Request, error) {
 	var err error
@@ -25255,6 +25524,46 @@ func NewTestObjectStorageConfigRequestWithBody(server string, contentType string
 	}
 
 	operationPath := fmt.Sprintf("/settings/test_object_storage_config")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestSecretBackendRequest calls the generic TestSecretBackend builder with application/json body
+func NewTestSecretBackendRequest(server string, body TestSecretBackendJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestSecretBackendRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewTestSecretBackendRequestWithBody generates requests for TestSecretBackend with any type of body
+func NewTestSecretBackendRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/test_secret_backend")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -58051,6 +58360,9 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetJwksWithResponse request
+	GetJwksWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetJwksResponse, error)
+
 	// BlacklistAgentTokenWithBodyWithResponse request with any body
 	BlacklistAgentTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BlacklistAgentTokenResponse, error)
 
@@ -58312,6 +58624,16 @@ type ClientWithResponsesInterface interface {
 	// GetLocalWithResponse request
 	GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error)
 
+	// MigrateSecretsToDatabaseWithBodyWithResponse request with any body
+	MigrateSecretsToDatabaseWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToDatabaseResponse, error)
+
+	MigrateSecretsToDatabaseWithResponse(ctx context.Context, body MigrateSecretsToDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsToDatabaseResponse, error)
+
+	// MigrateSecretsToVaultWithBodyWithResponse request with any body
+	MigrateSecretsToVaultWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToVaultResponse, error)
+
+	MigrateSecretsToVaultWithResponse(ctx context.Context, body MigrateSecretsToVaultJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsToVaultResponse, error)
+
 	// RefreshCustomInstanceUserPwdWithResponse request
 	RefreshCustomInstanceUserPwdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshCustomInstanceUserPwdResponse, error)
 
@@ -58340,6 +58662,11 @@ type ClientWithResponsesInterface interface {
 	TestObjectStorageConfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestObjectStorageConfigResponse, error)
 
 	TestObjectStorageConfigWithResponse(ctx context.Context, body TestObjectStorageConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*TestObjectStorageConfigResponse, error)
+
+	// TestSecretBackendWithBodyWithResponse request with any body
+	TestSecretBackendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSecretBackendResponse, error)
+
+	TestSecretBackendWithResponse(ctx context.Context, body TestSecretBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*TestSecretBackendResponse, error)
 
 	// TestSmtpWithBodyWithResponse request with any body
 	TestSmtpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error)
@@ -60270,6 +60597,28 @@ type ClientWithResponsesInterface interface {
 	ListUserWorkspacesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListUserWorkspacesResponse, error)
 }
 
+type GetJwksResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *JwksResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetJwksResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetJwksResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type BlacklistAgentTokenResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -61974,6 +62323,50 @@ func (r GetLocalResponse) StatusCode() int {
 	return 0
 }
 
+type MigrateSecretsToDatabaseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SecretMigrationReport
+}
+
+// Status returns HTTPResponse.Status
+func (r MigrateSecretsToDatabaseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MigrateSecretsToDatabaseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type MigrateSecretsToVaultResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SecretMigrationReport
+}
+
+// Status returns HTTPResponse.Status
+func (r MigrateSecretsToVaultResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MigrateSecretsToVaultResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RefreshCustomInstanceUserPwdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -62117,6 +62510,27 @@ func (r TestObjectStorageConfigResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r TestObjectStorageConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestSecretBackendResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestSecretBackendResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestSecretBackendResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -73492,6 +73906,15 @@ func (r ListUserWorkspacesResponse) StatusCode() int {
 	return 0
 }
 
+// GetJwksWithResponse request returning *GetJwksResponse
+func (c *ClientWithResponses) GetJwksWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetJwksResponse, error) {
+	rsp, err := c.GetJwks(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetJwksResponse(rsp)
+}
+
 // BlacklistAgentTokenWithBodyWithResponse request with arbitrary body returning *BlacklistAgentTokenResponse
 func (c *ClientWithResponses) BlacklistAgentTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BlacklistAgentTokenResponse, error) {
 	rsp, err := c.BlacklistAgentTokenWithBody(ctx, contentType, body, reqEditors...)
@@ -74317,6 +74740,40 @@ func (c *ClientWithResponses) GetLocalWithResponse(ctx context.Context, reqEdito
 	return ParseGetLocalResponse(rsp)
 }
 
+// MigrateSecretsToDatabaseWithBodyWithResponse request with arbitrary body returning *MigrateSecretsToDatabaseResponse
+func (c *ClientWithResponses) MigrateSecretsToDatabaseWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToDatabaseResponse, error) {
+	rsp, err := c.MigrateSecretsToDatabaseWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsToDatabaseResponse(rsp)
+}
+
+func (c *ClientWithResponses) MigrateSecretsToDatabaseWithResponse(ctx context.Context, body MigrateSecretsToDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsToDatabaseResponse, error) {
+	rsp, err := c.MigrateSecretsToDatabase(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsToDatabaseResponse(rsp)
+}
+
+// MigrateSecretsToVaultWithBodyWithResponse request with arbitrary body returning *MigrateSecretsToVaultResponse
+func (c *ClientWithResponses) MigrateSecretsToVaultWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToVaultResponse, error) {
+	rsp, err := c.MigrateSecretsToVaultWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsToVaultResponse(rsp)
+}
+
+func (c *ClientWithResponses) MigrateSecretsToVaultWithResponse(ctx context.Context, body MigrateSecretsToVaultJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsToVaultResponse, error) {
+	rsp, err := c.MigrateSecretsToVault(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsToVaultResponse(rsp)
+}
+
 // RefreshCustomInstanceUserPwdWithResponse request returning *RefreshCustomInstanceUserPwdResponse
 func (c *ClientWithResponses) RefreshCustomInstanceUserPwdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshCustomInstanceUserPwdResponse, error) {
 	rsp, err := c.RefreshCustomInstanceUserPwd(ctx, reqEditors...)
@@ -74410,6 +74867,23 @@ func (c *ClientWithResponses) TestObjectStorageConfigWithResponse(ctx context.Co
 		return nil, err
 	}
 	return ParseTestObjectStorageConfigResponse(rsp)
+}
+
+// TestSecretBackendWithBodyWithResponse request with arbitrary body returning *TestSecretBackendResponse
+func (c *ClientWithResponses) TestSecretBackendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSecretBackendResponse, error) {
+	rsp, err := c.TestSecretBackendWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestSecretBackendResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestSecretBackendWithResponse(ctx context.Context, body TestSecretBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*TestSecretBackendResponse, error) {
+	rsp, err := c.TestSecretBackend(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestSecretBackendResponse(rsp)
 }
 
 // TestSmtpWithBodyWithResponse request with arbitrary body returning *TestSmtpResponse
@@ -80594,6 +81068,32 @@ func (c *ClientWithResponses) ListUserWorkspacesWithResponse(ctx context.Context
 	return ParseListUserWorkspacesResponse(rsp)
 }
 
+// ParseGetJwksResponse parses an HTTP response from a GetJwksWithResponse call
+func ParseGetJwksResponse(rsp *http.Response) (*GetJwksResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetJwksResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest JwksResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseBlacklistAgentTokenResponse parses an HTTP response from a BlacklistAgentTokenWithResponse call
 func ParseBlacklistAgentTokenResponse(rsp *http.Response) (*BlacklistAgentTokenResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -82364,6 +82864,58 @@ func ParseGetLocalResponse(rsp *http.Response) (*GetLocalResponse, error) {
 	return response, nil
 }
 
+// ParseMigrateSecretsToDatabaseResponse parses an HTTP response from a MigrateSecretsToDatabaseWithResponse call
+func ParseMigrateSecretsToDatabaseResponse(rsp *http.Response) (*MigrateSecretsToDatabaseResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MigrateSecretsToDatabaseResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SecretMigrationReport
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseMigrateSecretsToVaultResponse parses an HTTP response from a MigrateSecretsToVaultWithResponse call
+func ParseMigrateSecretsToVaultResponse(rsp *http.Response) (*MigrateSecretsToVaultResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MigrateSecretsToVaultResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SecretMigrationReport
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseRefreshCustomInstanceUserPwdResponse parses an HTTP response from a RefreshCustomInstanceUserPwdWithResponse call
 func ParseRefreshCustomInstanceUserPwdResponse(rsp *http.Response) (*RefreshCustomInstanceUserPwdResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -82489,6 +83041,22 @@ func ParseTestObjectStorageConfigResponse(rsp *http.Response) (*TestObjectStorag
 	}
 
 	response := &TestObjectStorageConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestSecretBackendResponse parses an HTTP response from a TestSecretBackendWithResponse call
+func ParseTestSecretBackendResponse(rsp *http.Response) (*TestSecretBackendResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestSecretBackendResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
