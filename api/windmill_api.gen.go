@@ -1104,6 +1104,7 @@ type AppHistory struct {
 
 // AppWithLastVersion defines model for AppWithLastVersion.
 type AppWithLastVersion struct {
+	BundleSecret  *string                         `json:"bundle_secret,omitempty"`
 	CreatedAt     time.Time                       `json:"created_at"`
 	CreatedBy     string                          `json:"created_by"`
 	CustomPath    *string                         `json:"custom_path,omitempty"`
@@ -1112,6 +1113,7 @@ type AppWithLastVersion struct {
 	Id            int                             `json:"id"`
 	Path          string                          `json:"path"`
 	Policy        Policy                          `json:"policy"`
+	RawApp        bool                            `json:"raw_app"`
 	Summary       string                          `json:"summary"`
 	Value         map[string]interface{}          `json:"value"`
 	Versions      []int                           `json:"versions"`
@@ -1123,6 +1125,7 @@ type AppWithLastVersionExecutionMode string
 
 // AppWithLastVersionWDraft defines model for AppWithLastVersionWDraft.
 type AppWithLastVersionWDraft struct {
+	BundleSecret  *string                               `json:"bundle_secret,omitempty"`
 	CreatedAt     time.Time                             `json:"created_at"`
 	CreatedBy     string                                `json:"created_by"`
 	CustomPath    *string                               `json:"custom_path,omitempty"`
@@ -1133,6 +1136,7 @@ type AppWithLastVersionWDraft struct {
 	Id            int                                   `json:"id"`
 	Path          string                                `json:"path"`
 	Policy        Policy                                `json:"policy"`
+	RawApp        bool                                  `json:"raw_app"`
 	Summary       string                                `json:"summary"`
 	Value         map[string]interface{}                `json:"value"`
 	Versions      []int                                 `json:"versions"`
@@ -11222,6 +11226,9 @@ type ClientInterface interface {
 
 	SetFlowUserState(ctx context.Context, workspace WorkspaceId, id JobId, key string, body SetFlowUserStateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetJobOtelTraces request
+	GetJobOtelTraces(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateJobSignature request
 	CreateJobSignature(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -12265,9 +12272,6 @@ type ClientInterface interface {
 
 	// GetDeployTo request
 	GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetLargeFileStorageConfig request
-	GetLargeFileStorageConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSecondaryStorageNames request
 	GetSecondaryStorageNames(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17009,6 +17013,18 @@ func (c *Client) SetFlowUserState(ctx context.Context, workspace WorkspaceId, id
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetJobOtelTraces(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetJobOtelTracesRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateJobSignature(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateJobSignatureRequest(c.Server, workspace, id, resumeId, params)
 	if err != nil {
@@ -21643,18 +21659,6 @@ func (c *Client) GetDependentsAmounts(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetDeployToRequest(c.Server, workspace)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetLargeFileStorageConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetLargeFileStorageConfigRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -38041,6 +38045,47 @@ func NewSetFlowUserStateRequestWithBody(server string, workspace WorkspaceId, id
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetJobOtelTracesRequest generates requests for GetJobOtelTraces
+func NewGetJobOtelTracesRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/get_otel_traces/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -56697,40 +56742,6 @@ func NewGetDeployToRequest(server string, workspace WorkspaceId) (*http.Request,
 	return req, nil
 }
 
-// NewGetLargeFileStorageConfigRequest generates requests for GetLargeFileStorageConfig
-func NewGetLargeFileStorageConfigRequest(server string, workspace WorkspaceId) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/workspaces/get_large_file_storage_config", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewGetSecondaryStorageNamesRequest generates requests for GetSecondaryStorageNames
 func NewGetSecondaryStorageNamesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -59441,6 +59452,9 @@ type ClientWithResponsesInterface interface {
 
 	SetFlowUserStateWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, key string, body SetFlowUserStateJSONRequestBody, reqEditors ...RequestEditorFn) (*SetFlowUserStateResponse, error)
 
+	// GetJobOtelTracesWithResponse request
+	GetJobOtelTracesWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobOtelTracesResponse, error)
+
 	// CreateJobSignatureWithResponse request
 	CreateJobSignatureWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*CreateJobSignatureResponse, error)
 
@@ -60485,9 +60499,6 @@ type ClientWithResponsesInterface interface {
 	// GetDeployToWithResponse request
 	GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error)
 
-	// GetLargeFileStorageConfigWithResponse request
-	GetLargeFileStorageConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetLargeFileStorageConfigResponse, error)
-
 	// GetSecondaryStorageNamesWithResponse request
 	GetSecondaryStorageNamesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSecondaryStorageNamesResponse, error)
 
@@ -60836,6 +60847,7 @@ type GetPublicAppByCustomPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
+		BundleSecret  *string                                  `json:"bundle_secret,omitempty"`
 		CreatedAt     time.Time                                `json:"created_at"`
 		CreatedBy     string                                   `json:"created_by"`
 		CustomPath    *string                                  `json:"custom_path,omitempty"`
@@ -60844,6 +60856,7 @@ type GetPublicAppByCustomPathResponse struct {
 		Id            int                                      `json:"id"`
 		Path          string                                   `json:"path"`
 		Policy        Policy                                   `json:"policy"`
+		RawApp        bool                                     `json:"raw_app"`
 		Summary       string                                   `json:"summary"`
 		Value         map[string]interface{}                   `json:"value"`
 		Versions      []int                                    `json:"versions"`
@@ -67076,6 +67089,28 @@ func (r SetFlowUserStateResponse) StatusCode() int {
 	return 0
 }
 
+type GetJobOtelTracesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]map[string]interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetJobOtelTracesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetJobOtelTracesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateJobSignatureResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -72985,28 +73020,6 @@ func (r GetDeployToResponse) StatusCode() int {
 	return 0
 }
 
-type GetLargeFileStorageConfigResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *LargeFileStorage
-}
-
-// Status returns HTTPResponse.Status
-func (r GetLargeFileStorageConfigResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetLargeFileStorageConfigResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetSecondaryStorageNamesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -77310,6 +77323,15 @@ func (c *ClientWithResponses) SetFlowUserStateWithResponse(ctx context.Context, 
 	return ParseSetFlowUserStateResponse(rsp)
 }
 
+// GetJobOtelTracesWithResponse request returning *GetJobOtelTracesResponse
+func (c *ClientWithResponses) GetJobOtelTracesWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobOtelTracesResponse, error) {
+	rsp, err := c.GetJobOtelTraces(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetJobOtelTracesResponse(rsp)
+}
+
 // CreateJobSignatureWithResponse request returning *CreateJobSignatureResponse
 func (c *ClientWithResponses) CreateJobSignatureWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*CreateJobSignatureResponse, error) {
 	rsp, err := c.CreateJobSignature(ctx, workspace, id, resumeId, params, reqEditors...)
@@ -80676,15 +80698,6 @@ func (c *ClientWithResponses) GetDeployToWithResponse(ctx context.Context, works
 	return ParseGetDeployToResponse(rsp)
 }
 
-// GetLargeFileStorageConfigWithResponse request returning *GetLargeFileStorageConfigResponse
-func (c *ClientWithResponses) GetLargeFileStorageConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetLargeFileStorageConfigResponse, error) {
-	rsp, err := c.GetLargeFileStorageConfig(ctx, workspace, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetLargeFileStorageConfigResponse(rsp)
-}
-
 // GetSecondaryStorageNamesWithResponse request returning *GetSecondaryStorageNamesResponse
 func (c *ClientWithResponses) GetSecondaryStorageNamesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSecondaryStorageNamesResponse, error) {
 	rsp, err := c.GetSecondaryStorageNames(ctx, workspace, reqEditors...)
@@ -81364,6 +81377,7 @@ func ParseGetPublicAppByCustomPathResponse(rsp *http.Response) (*GetPublicAppByC
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
+			BundleSecret  *string                                  `json:"bundle_secret,omitempty"`
 			CreatedAt     time.Time                                `json:"created_at"`
 			CreatedBy     string                                   `json:"created_by"`
 			CustomPath    *string                                  `json:"custom_path,omitempty"`
@@ -81372,6 +81386,7 @@ func ParseGetPublicAppByCustomPathResponse(rsp *http.Response) (*GetPublicAppByC
 			Id            int                                      `json:"id"`
 			Path          string                                   `json:"path"`
 			Policy        Policy                                   `json:"policy"`
+			RawApp        bool                                     `json:"raw_app"`
 			Summary       string                                   `json:"summary"`
 			Value         map[string]interface{}                   `json:"value"`
 			Versions      []int                                    `json:"versions"`
@@ -87620,6 +87635,32 @@ func ParseSetFlowUserStateResponse(rsp *http.Response) (*SetFlowUserStateRespons
 	return response, nil
 }
 
+// ParseGetJobOtelTracesResponse parses an HTTP response from a GetJobOtelTracesWithResponse call
+func ParseGetJobOtelTracesResponse(rsp *http.Response) (*GetJobOtelTracesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetJobOtelTracesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateJobSignatureResponse parses an HTTP response from a CreateJobSignatureWithResponse call
 func ParseCreateJobSignatureResponse(rsp *http.Response) (*CreateJobSignatureResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -93411,32 +93452,6 @@ func ParseGetDeployToResponse(rsp *http.Response) (*GetDeployToResponse, error) 
 		var dest struct {
 			DeployTo *string `json:"deploy_to,omitempty"`
 		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetLargeFileStorageConfigResponse parses an HTTP response from a GetLargeFileStorageConfigWithResponse call
-func ParseGetLargeFileStorageConfigResponse(rsp *http.Response) (*GetLargeFileStorageConfigResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetLargeFileStorageConfigResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest LargeFileStorage
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
