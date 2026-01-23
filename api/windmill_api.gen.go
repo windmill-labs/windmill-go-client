@@ -10349,6 +10349,9 @@ type ClientInterface interface {
 	// ListMcpTools request
 	ListMcpTools(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetMinKeepAliveVersion request
+	GetMinKeepAliveVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ConnectCallbackWithBody request with any body
 	ConnectCallbackWithBody(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -13151,6 +13154,18 @@ func (c *Client) StartMcpOAuthPopup(ctx context.Context, params *StartMcpOAuthPo
 
 func (c *Client) ListMcpTools(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListMcpToolsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMinKeepAliveVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMinKeepAliveVersionRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -24119,6 +24134,33 @@ func NewListMcpToolsRequest(server string, workspace WorkspaceId) (*http.Request
 	}
 
 	operationPath := fmt.Sprintf("/mcp/w/%s/list_tools", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetMinKeepAliveVersionRequest generates requests for GetMinKeepAliveVersion
+func NewGetMinKeepAliveVersionRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/min_keep_alive_version")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -58575,6 +58617,9 @@ type ClientWithResponsesInterface interface {
 	// ListMcpToolsWithResponse request
 	ListMcpToolsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListMcpToolsResponse, error)
 
+	// GetMinKeepAliveVersionWithResponse request
+	GetMinKeepAliveVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMinKeepAliveVersionResponse, error)
+
 	// ConnectCallbackWithBodyWithResponse request with any body
 	ConnectCallbackWithBodyWithResponse(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error)
 
@@ -61753,6 +61798,27 @@ func (r ListMcpToolsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListMcpToolsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetMinKeepAliveVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMinKeepAliveVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMinKeepAliveVersionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -74520,6 +74586,15 @@ func (c *ClientWithResponses) ListMcpToolsWithResponse(ctx context.Context, work
 	return ParseListMcpToolsResponse(rsp)
 }
 
+// GetMinKeepAliveVersionWithResponse request returning *GetMinKeepAliveVersionResponse
+func (c *ClientWithResponses) GetMinKeepAliveVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMinKeepAliveVersionResponse, error) {
+	rsp, err := c.GetMinKeepAliveVersion(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMinKeepAliveVersionResponse(rsp)
+}
+
 // ConnectCallbackWithBodyWithResponse request with arbitrary body returning *ConnectCallbackResponse
 func (c *ClientWithResponses) ConnectCallbackWithBodyWithResponse(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error) {
 	rsp, err := c.ConnectCallbackWithBody(ctx, clientName, contentType, body, reqEditors...)
@@ -82305,6 +82380,22 @@ func ParseListMcpToolsResponse(rsp *http.Response) (*ListMcpToolsResponse, error
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetMinKeepAliveVersionResponse parses an HTTP response from a GetMinKeepAliveVersionWithResponse call
+func ParseGetMinKeepAliveVersionResponse(rsp *http.Response) (*GetMinKeepAliveVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMinKeepAliveVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
