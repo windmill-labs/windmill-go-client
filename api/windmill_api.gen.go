@@ -62004,6 +62004,13 @@ func (r ListMcpToolsResponse) StatusCode() int {
 type GetMinKeepAliveVersionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Agent minimum version for agent workers
+		Agent string `json:"agent"`
+
+		// Worker minimum version for normal workers
+		Worker string `json:"worker"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -82588,6 +82595,22 @@ func ParseGetMinKeepAliveVersionResponse(rsp *http.Response) (*GetMinKeepAliveVe
 	response := &GetMinKeepAliveVersionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Agent minimum version for agent workers
+			Agent string `json:"agent"`
+
+			// Worker minimum version for normal workers
+			Worker string `json:"worker"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
