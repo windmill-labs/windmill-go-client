@@ -181,6 +181,12 @@ const (
 	Windmill     AuthenticationMethod = "windmill"
 )
 
+// Defines values for AutoInviteConfigMode.
+const (
+	Add    AutoInviteConfigMode = "add"
+	Invite AutoInviteConfigMode = "invite"
+)
+
 // Defines values for AwsAuthResourceType.
 const (
 	Credentials AwsAuthResourceType = "credentials"
@@ -1177,6 +1183,21 @@ type AuditLogOperation string
 // AuthenticationMethod defines model for AuthenticationMethod.
 type AuthenticationMethod string
 
+// AutoInviteConfig Configuration for auto-inviting users to the workspace
+type AutoInviteConfig struct {
+	Domain              *string               `json:"domain,omitempty"`
+	Enabled             *bool                 `json:"enabled,omitempty"`
+	InstanceGroups      *[]string             `json:"instance_groups,omitempty"`
+	InstanceGroupsRoles *map[string]string    `json:"instance_groups_roles,omitempty"`
+	Mode                *AutoInviteConfigMode `json:"mode,omitempty"`
+
+	// Operator If true, auto-invited users are added as operators. If false, they are added as developers.
+	Operator *bool `json:"operator,omitempty"`
+}
+
+// AutoInviteConfigMode defines model for AutoInviteConfig.Mode.
+type AutoInviteConfigMode string
+
 // AutoscalingEvent defines model for AutoscalingEvent.
 type AutoscalingEvent struct {
 	AppliedAt      *time.Time `json:"applied_at,omitempty"`
@@ -1545,6 +1566,32 @@ type EditEmailTrigger struct {
 	WorkspacedLocalPart *bool  `json:"workspaced_local_part,omitempty"`
 }
 
+// EditErrorHandler Request body for editing the workspace error handler. Accepts both new grouped format and legacy flat format for backward compatibility.
+type EditErrorHandler struct {
+	union json.RawMessage
+}
+
+// EditErrorHandlerLegacy Legacy flat format for editing error handler (deprecated, use new format)
+type EditErrorHandlerLegacy struct {
+	// ErrorHandler Path to the error handler script or flow
+	ErrorHandler *string `json:"error_handler,omitempty"`
+
+	// ErrorHandlerExtraArgs The arguments to pass to the script or flow
+	ErrorHandlerExtraArgs     *ScriptArgs `json:"error_handler_extra_args,omitempty"`
+	ErrorHandlerMutedOnCancel *bool       `json:"error_handler_muted_on_cancel,omitempty"`
+}
+
+// EditErrorHandlerNew New grouped format for editing error handler
+type EditErrorHandlerNew struct {
+	// ExtraArgs The arguments to pass to the script or flow
+	ExtraArgs       *ScriptArgs `json:"extra_args,omitempty"`
+	MutedOnCancel   *bool       `json:"muted_on_cancel,omitempty"`
+	MutedOnUserPath *bool       `json:"muted_on_user_path,omitempty"`
+
+	// Path Path to the error handler script or flow
+	Path *string `json:"path,omitempty"`
+}
+
 // EditHttpTrigger defines model for EditHttpTrigger.
 type EditHttpTrigger struct {
 	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
@@ -1762,6 +1809,29 @@ type EditSqsTrigger struct {
 	ScriptPath string `json:"script_path"`
 }
 
+// EditSuccessHandler Request body for editing the workspace success handler. Accepts both new grouped format and legacy flat format for backward compatibility.
+type EditSuccessHandler struct {
+	union json.RawMessage
+}
+
+// EditSuccessHandlerLegacy Legacy flat format for editing success handler (deprecated, use new format)
+type EditSuccessHandlerLegacy struct {
+	// SuccessHandler Path to the success handler script or flow
+	SuccessHandler *string `json:"success_handler,omitempty"`
+
+	// SuccessHandlerExtraArgs The arguments to pass to the script or flow
+	SuccessHandlerExtraArgs *ScriptArgs `json:"success_handler_extra_args,omitempty"`
+}
+
+// EditSuccessHandlerNew New grouped format for editing success handler
+type EditSuccessHandlerNew struct {
+	// ExtraArgs The arguments to pass to the script or flow
+	ExtraArgs *ScriptArgs `json:"extra_args,omitempty"`
+
+	// Path Path to the success handler script or flow
+	Path *string `json:"path,omitempty"`
+}
+
 // EditVariable defines model for EditVariable.
 type EditVariable struct {
 	// Description The new description of the variable
@@ -1837,6 +1907,17 @@ type EndpointTool struct {
 
 	// QueryParamsSchema JSON schema for query parameters
 	QueryParamsSchema *map[string]interface{} `json:"query_params_schema"`
+}
+
+// ErrorHandlerConfig Configuration for the workspace error handler
+type ErrorHandlerConfig struct {
+	// ExtraArgs The arguments to pass to the script or flow
+	ExtraArgs       *ScriptArgs `json:"extra_args,omitempty"`
+	MutedOnCancel   *bool       `json:"muted_on_cancel,omitempty"`
+	MutedOnUserPath *bool       `json:"muted_on_user_path,omitempty"`
+
+	// Path Path to the error handler script or flow
+	Path *string `json:"path,omitempty"`
 }
 
 // ExportableCompletedJob Completed job with full data for export/import operations
@@ -3720,6 +3801,15 @@ type SqsTrigger = TriggerExtraProperty
 
 // SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
 type SubscriptionMode string
+
+// SuccessHandlerConfig Configuration for the workspace success handler
+type SuccessHandlerConfig struct {
+	// ExtraArgs The arguments to pass to the script or flow
+	ExtraArgs *ScriptArgs `json:"extra_args,omitempty"`
+
+	// Path Path to the success handler script or flow
+	Path *string `json:"path,omitempty"`
+}
 
 // TableToTrack defines model for TableToTrack.
 type TableToTrack = []struct {
@@ -7970,15 +8060,6 @@ type EditDucklakeConfigJSONBody struct {
 	Settings DucklakeSettings `json:"settings"`
 }
 
-// EditErrorHandlerJSONBody defines parameters for EditErrorHandler.
-type EditErrorHandlerJSONBody struct {
-	ErrorHandler *string `json:"error_handler,omitempty"`
-
-	// ErrorHandlerExtraArgs The arguments to pass to the script or flow
-	ErrorHandlerExtraArgs     *ScriptArgs `json:"error_handler_extra_args,omitempty"`
-	ErrorHandlerMutedOnCancel *bool       `json:"error_handler_muted_on_cancel,omitempty"`
-}
-
 // EditWorkspaceGitSyncConfigJSONBody defines parameters for EditWorkspaceGitSyncConfig.
 type EditWorkspaceGitSyncConfigJSONBody struct {
 	GitSyncSettings *WorkspaceGitSyncSettings `json:"git_sync_settings,omitempty"`
@@ -8005,14 +8086,6 @@ type EditLargeFileStorageConfigJSONBody struct {
 // EditSlackCommandJSONBody defines parameters for EditSlackCommand.
 type EditSlackCommandJSONBody struct {
 	SlackCommandScript *string `json:"slack_command_script,omitempty"`
-}
-
-// EditSuccessHandlerJSONBody defines parameters for EditSuccessHandler.
-type EditSuccessHandlerJSONBody struct {
-	SuccessHandler *string `json:"success_handler,omitempty"`
-
-	// SuccessHandlerExtraArgs The arguments to pass to the script or flow
-	SuccessHandlerExtraArgs *ScriptArgs `json:"success_handler_extra_args,omitempty"`
 }
 
 // EditTeamsCommandJSONBody defines parameters for EditTeamsCommand.
@@ -8755,7 +8828,7 @@ type EditWorkspaceDeployUISettingsJSONRequestBody EditWorkspaceDeployUISettingsJ
 type EditDucklakeConfigJSONRequestBody EditDucklakeConfigJSONBody
 
 // EditErrorHandlerJSONRequestBody defines body for EditErrorHandler for application/json ContentType.
-type EditErrorHandlerJSONRequestBody EditErrorHandlerJSONBody
+type EditErrorHandlerJSONRequestBody = EditErrorHandler
 
 // EditWorkspaceGitSyncConfigJSONRequestBody defines body for EditWorkspaceGitSyncConfig for application/json ContentType.
 type EditWorkspaceGitSyncConfigJSONRequestBody EditWorkspaceGitSyncConfigJSONBody
@@ -8773,7 +8846,7 @@ type EditLargeFileStorageConfigJSONRequestBody EditLargeFileStorageConfigJSONBod
 type EditSlackCommandJSONRequestBody EditSlackCommandJSONBody
 
 // EditSuccessHandlerJSONRequestBody defines body for EditSuccessHandler for application/json ContentType.
-type EditSuccessHandlerJSONRequestBody EditSuccessHandlerJSONBody
+type EditSuccessHandlerJSONRequestBody = EditSuccessHandler
 
 // EditTeamsCommandJSONRequestBody defines body for EditTeamsCommand for application/json ContentType.
 type EditTeamsCommandJSONRequestBody EditTeamsCommandJSONBody
@@ -8875,6 +8948,130 @@ func (t DynamicInputData_RunnableRef) MarshalJSON() ([]byte, error) {
 }
 
 func (t *DynamicInputData_RunnableRef) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsEditErrorHandlerNew returns the union data inside the EditErrorHandler as a EditErrorHandlerNew
+func (t EditErrorHandler) AsEditErrorHandlerNew() (EditErrorHandlerNew, error) {
+	var body EditErrorHandlerNew
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromEditErrorHandlerNew overwrites any union data inside the EditErrorHandler as the provided EditErrorHandlerNew
+func (t *EditErrorHandler) FromEditErrorHandlerNew(v EditErrorHandlerNew) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeEditErrorHandlerNew performs a merge with any union data inside the EditErrorHandler, using the provided EditErrorHandlerNew
+func (t *EditErrorHandler) MergeEditErrorHandlerNew(v EditErrorHandlerNew) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsEditErrorHandlerLegacy returns the union data inside the EditErrorHandler as a EditErrorHandlerLegacy
+func (t EditErrorHandler) AsEditErrorHandlerLegacy() (EditErrorHandlerLegacy, error) {
+	var body EditErrorHandlerLegacy
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromEditErrorHandlerLegacy overwrites any union data inside the EditErrorHandler as the provided EditErrorHandlerLegacy
+func (t *EditErrorHandler) FromEditErrorHandlerLegacy(v EditErrorHandlerLegacy) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeEditErrorHandlerLegacy performs a merge with any union data inside the EditErrorHandler, using the provided EditErrorHandlerLegacy
+func (t *EditErrorHandler) MergeEditErrorHandlerLegacy(v EditErrorHandlerLegacy) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t EditErrorHandler) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *EditErrorHandler) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsEditSuccessHandlerNew returns the union data inside the EditSuccessHandler as a EditSuccessHandlerNew
+func (t EditSuccessHandler) AsEditSuccessHandlerNew() (EditSuccessHandlerNew, error) {
+	var body EditSuccessHandlerNew
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromEditSuccessHandlerNew overwrites any union data inside the EditSuccessHandler as the provided EditSuccessHandlerNew
+func (t *EditSuccessHandler) FromEditSuccessHandlerNew(v EditSuccessHandlerNew) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeEditSuccessHandlerNew performs a merge with any union data inside the EditSuccessHandler, using the provided EditSuccessHandlerNew
+func (t *EditSuccessHandler) MergeEditSuccessHandlerNew(v EditSuccessHandlerNew) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsEditSuccessHandlerLegacy returns the union data inside the EditSuccessHandler as a EditSuccessHandlerLegacy
+func (t EditSuccessHandler) AsEditSuccessHandlerLegacy() (EditSuccessHandlerLegacy, error) {
+	var body EditSuccessHandlerLegacy
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromEditSuccessHandlerLegacy overwrites any union data inside the EditSuccessHandler as the provided EditSuccessHandlerLegacy
+func (t *EditSuccessHandler) FromEditSuccessHandlerLegacy(v EditSuccessHandlerLegacy) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeEditSuccessHandlerLegacy performs a merge with any union data inside the EditSuccessHandler, using the provided EditSuccessHandlerLegacy
+func (t *EditSuccessHandler) MergeEditSuccessHandlerLegacy(v EditSuccessHandlerLegacy) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t EditSuccessHandler) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *EditSuccessHandler) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -73112,45 +73309,40 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AiConfig                   *AIConfig                  `json:"ai_config,omitempty"`
-		AutoAdd                    *bool                      `json:"auto_add,omitempty"`
-		AutoAddInstanceGroups      *[]string                  `json:"auto_add_instance_groups,omitempty"`
-		AutoAddInstanceGroupsRoles *map[string]string         `json:"auto_add_instance_groups_roles,omitempty"`
-		AutoInviteDomain           *string                    `json:"auto_invite_domain,omitempty"`
-		AutoInviteOperator         *bool                      `json:"auto_invite_operator,omitempty"`
-		Color                      *string                    `json:"color,omitempty"`
-		CustomerId                 *string                    `json:"customer_id,omitempty"`
-		Datatable                  *DataTableSettings         `json:"datatable,omitempty"`
-		DefaultApp                 *string                    `json:"default_app,omitempty"`
-		DefaultScripts             *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
-		DeployTo                   *string                    `json:"deploy_to,omitempty"`
-		DeployUi                   *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
-		Ducklake                   *DucklakeSettings          `json:"ducklake,omitempty"`
-		ErrorHandler               *string                    `json:"error_handler,omitempty"`
+		AiConfig *AIConfig `json:"ai_config,omitempty"`
 
-		// ErrorHandlerExtraArgs The arguments to pass to the script or flow
-		ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
-		ErrorHandlerMutedOnCancel bool                      `json:"error_handler_muted_on_cancel"`
-		GitSync                   *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
-		LargeFileStorage          *LargeFileStorage         `json:"large_file_storage,omitempty"`
-		MuteCriticalAlerts        *bool                     `json:"mute_critical_alerts,omitempty"`
-		OperatorSettings          *OperatorSettings         `json:"operator_settings"`
-		Plan                      *string                   `json:"plan,omitempty"`
-		SlackCommandScript        *string                   `json:"slack_command_script,omitempty"`
-		SlackName                 *string                   `json:"slack_name,omitempty"`
-		SlackOauthClientId        *string                   `json:"slack_oauth_client_id,omitempty"`
-		SlackOauthClientSecret    *string                   `json:"slack_oauth_client_secret,omitempty"`
-		SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
-		SuccessHandler            *string                   `json:"success_handler,omitempty"`
+		// AutoInvite Configuration for auto-inviting users to the workspace
+		AutoInvite     *AutoInviteConfig          `json:"auto_invite,omitempty"`
+		Color          *string                    `json:"color,omitempty"`
+		CustomerId     *string                    `json:"customer_id,omitempty"`
+		Datatable      *DataTableSettings         `json:"datatable,omitempty"`
+		DefaultApp     *string                    `json:"default_app,omitempty"`
+		DefaultScripts *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
+		DeployTo       *string                    `json:"deploy_to,omitempty"`
+		DeployUi       *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+		Ducklake       *DucklakeSettings          `json:"ducklake,omitempty"`
 
-		// SuccessHandlerExtraArgs The arguments to pass to the script or flow
-		SuccessHandlerExtraArgs *ScriptArgs `json:"success_handler_extra_args,omitempty"`
-		TeamsCommandScript      *string     `json:"teams_command_script,omitempty"`
-		TeamsTeamGuid           *string     `json:"teams_team_guid,omitempty"`
-		TeamsTeamId             *string     `json:"teams_team_id,omitempty"`
-		TeamsTeamName           *string     `json:"teams_team_name,omitempty"`
-		Webhook                 *string     `json:"webhook,omitempty"`
-		WorkspaceId             *string     `json:"workspace_id,omitempty"`
+		// ErrorHandler Configuration for the workspace error handler
+		ErrorHandler           *ErrorHandlerConfig       `json:"error_handler,omitempty"`
+		GitSync                *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
+		LargeFileStorage       *LargeFileStorage         `json:"large_file_storage,omitempty"`
+		MuteCriticalAlerts     *bool                     `json:"mute_critical_alerts,omitempty"`
+		OperatorSettings       *OperatorSettings         `json:"operator_settings"`
+		Plan                   *string                   `json:"plan,omitempty"`
+		SlackCommandScript     *string                   `json:"slack_command_script,omitempty"`
+		SlackName              *string                   `json:"slack_name,omitempty"`
+		SlackOauthClientId     *string                   `json:"slack_oauth_client_id,omitempty"`
+		SlackOauthClientSecret *string                   `json:"slack_oauth_client_secret,omitempty"`
+		SlackTeamId            *string                   `json:"slack_team_id,omitempty"`
+
+		// SuccessHandler Configuration for the workspace success handler
+		SuccessHandler     *SuccessHandlerConfig `json:"success_handler,omitempty"`
+		TeamsCommandScript *string               `json:"teams_command_script,omitempty"`
+		TeamsTeamGuid      *string               `json:"teams_team_guid,omitempty"`
+		TeamsTeamId        *string               `json:"teams_team_id,omitempty"`
+		TeamsTeamName      *string               `json:"teams_team_name,omitempty"`
+		Webhook            *string               `json:"webhook,omitempty"`
+		WorkspaceId        *string               `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -93595,45 +93787,40 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AiConfig                   *AIConfig                  `json:"ai_config,omitempty"`
-			AutoAdd                    *bool                      `json:"auto_add,omitempty"`
-			AutoAddInstanceGroups      *[]string                  `json:"auto_add_instance_groups,omitempty"`
-			AutoAddInstanceGroupsRoles *map[string]string         `json:"auto_add_instance_groups_roles,omitempty"`
-			AutoInviteDomain           *string                    `json:"auto_invite_domain,omitempty"`
-			AutoInviteOperator         *bool                      `json:"auto_invite_operator,omitempty"`
-			Color                      *string                    `json:"color,omitempty"`
-			CustomerId                 *string                    `json:"customer_id,omitempty"`
-			Datatable                  *DataTableSettings         `json:"datatable,omitempty"`
-			DefaultApp                 *string                    `json:"default_app,omitempty"`
-			DefaultScripts             *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
-			DeployTo                   *string                    `json:"deploy_to,omitempty"`
-			DeployUi                   *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
-			Ducklake                   *DucklakeSettings          `json:"ducklake,omitempty"`
-			ErrorHandler               *string                    `json:"error_handler,omitempty"`
+			AiConfig *AIConfig `json:"ai_config,omitempty"`
 
-			// ErrorHandlerExtraArgs The arguments to pass to the script or flow
-			ErrorHandlerExtraArgs     *ScriptArgs               `json:"error_handler_extra_args,omitempty"`
-			ErrorHandlerMutedOnCancel bool                      `json:"error_handler_muted_on_cancel"`
-			GitSync                   *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
-			LargeFileStorage          *LargeFileStorage         `json:"large_file_storage,omitempty"`
-			MuteCriticalAlerts        *bool                     `json:"mute_critical_alerts,omitempty"`
-			OperatorSettings          *OperatorSettings         `json:"operator_settings"`
-			Plan                      *string                   `json:"plan,omitempty"`
-			SlackCommandScript        *string                   `json:"slack_command_script,omitempty"`
-			SlackName                 *string                   `json:"slack_name,omitempty"`
-			SlackOauthClientId        *string                   `json:"slack_oauth_client_id,omitempty"`
-			SlackOauthClientSecret    *string                   `json:"slack_oauth_client_secret,omitempty"`
-			SlackTeamId               *string                   `json:"slack_team_id,omitempty"`
-			SuccessHandler            *string                   `json:"success_handler,omitempty"`
+			// AutoInvite Configuration for auto-inviting users to the workspace
+			AutoInvite     *AutoInviteConfig          `json:"auto_invite,omitempty"`
+			Color          *string                    `json:"color,omitempty"`
+			CustomerId     *string                    `json:"customer_id,omitempty"`
+			Datatable      *DataTableSettings         `json:"datatable,omitempty"`
+			DefaultApp     *string                    `json:"default_app,omitempty"`
+			DefaultScripts *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
+			DeployTo       *string                    `json:"deploy_to,omitempty"`
+			DeployUi       *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+			Ducklake       *DucklakeSettings          `json:"ducklake,omitempty"`
 
-			// SuccessHandlerExtraArgs The arguments to pass to the script or flow
-			SuccessHandlerExtraArgs *ScriptArgs `json:"success_handler_extra_args,omitempty"`
-			TeamsCommandScript      *string     `json:"teams_command_script,omitempty"`
-			TeamsTeamGuid           *string     `json:"teams_team_guid,omitempty"`
-			TeamsTeamId             *string     `json:"teams_team_id,omitempty"`
-			TeamsTeamName           *string     `json:"teams_team_name,omitempty"`
-			Webhook                 *string     `json:"webhook,omitempty"`
-			WorkspaceId             *string     `json:"workspace_id,omitempty"`
+			// ErrorHandler Configuration for the workspace error handler
+			ErrorHandler           *ErrorHandlerConfig       `json:"error_handler,omitempty"`
+			GitSync                *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
+			LargeFileStorage       *LargeFileStorage         `json:"large_file_storage,omitempty"`
+			MuteCriticalAlerts     *bool                     `json:"mute_critical_alerts,omitempty"`
+			OperatorSettings       *OperatorSettings         `json:"operator_settings"`
+			Plan                   *string                   `json:"plan,omitempty"`
+			SlackCommandScript     *string                   `json:"slack_command_script,omitempty"`
+			SlackName              *string                   `json:"slack_name,omitempty"`
+			SlackOauthClientId     *string                   `json:"slack_oauth_client_id,omitempty"`
+			SlackOauthClientSecret *string                   `json:"slack_oauth_client_secret,omitempty"`
+			SlackTeamId            *string                   `json:"slack_team_id,omitempty"`
+
+			// SuccessHandler Configuration for the workspace success handler
+			SuccessHandler     *SuccessHandlerConfig `json:"success_handler,omitempty"`
+			TeamsCommandScript *string               `json:"teams_command_script,omitempty"`
+			TeamsTeamGuid      *string               `json:"teams_team_guid,omitempty"`
+			TeamsTeamId        *string               `json:"teams_team_id,omitempty"`
+			TeamsTeamName      *string               `json:"teams_team_name,omitempty"`
+			Webhook            *string               `json:"webhook,omitempty"`
+			WorkspaceId        *string               `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
