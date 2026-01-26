@@ -570,6 +570,11 @@ const (
 	Qos2 MqttQoS = "qos2"
 )
 
+// Defines values for NativeServiceName.
+const (
+	Nextcloud NativeServiceName = "nextcloud"
+)
+
 // Defines values for NewScriptAssetsAccessType.
 const (
 	NewScriptAssetsAccessTypeR  NewScriptAssetsAccessType = "r"
@@ -1355,6 +1360,12 @@ type CreateResource struct {
 	// ResourceType The resource_type associated with the resource
 	ResourceType string      `json:"resource_type"`
 	Value        interface{} `json:"value"`
+}
+
+// CreateTriggerResponse Response returned when a native trigger is created
+type CreateTriggerResponse struct {
+	// ExternalId The external ID of the created trigger from the external service
+	ExternalId string `json:"external_id"`
 }
 
 // CreateVariable defines model for CreateVariable.
@@ -2832,6 +2843,68 @@ type MqttV5Config struct {
 	TopicAliasMaximum     *float32 `json:"topic_alias_maximum,omitempty"`
 }
 
+// NativeServiceName defines model for NativeServiceName.
+type NativeServiceName string
+
+// NativeTrigger A native trigger stored in Windmill
+type NativeTrigger struct {
+	// Error Error message if the trigger is in an error state
+	Error *string `json:"error"`
+
+	// ExternalId The unique identifier from the external service
+	ExternalId string `json:"external_id"`
+
+	// IsFlow Whether the trigger targets a flow (true) or a script (false)
+	IsFlow bool `json:"is_flow"`
+
+	// ScriptPath The path to the script or flow that will be triggered
+	ScriptPath string `json:"script_path"`
+
+	// ServiceConfig Configuration for the trigger including event_type and service_config
+	ServiceConfig map[string]interface{} `json:"service_config"`
+	ServiceName   NativeServiceName      `json:"service_name"`
+
+	// WorkspaceId The workspace this trigger belongs to
+	WorkspaceId string `json:"workspace_id"`
+}
+
+// NativeTriggerData Data for creating or updating a native trigger
+type NativeTriggerData struct {
+	// IsFlow Whether the trigger targets a flow (true) or a script (false)
+	IsFlow bool `json:"is_flow"`
+
+	// ScriptPath The path to the script or flow that will be triggered
+	ScriptPath string `json:"script_path"`
+
+	// ServiceConfig Service-specific configuration (e.g., event types, filters)
+	ServiceConfig map[string]interface{} `json:"service_config"`
+}
+
+// NativeTriggerWithExternal Full trigger response containing both Windmill data and external service data
+type NativeTriggerWithExternal struct {
+	// Error Error message if the trigger is in an error state
+	Error *string `json:"error"`
+
+	// ExternalData Configuration data from the external service
+	ExternalData map[string]interface{} `json:"external_data"`
+
+	// ExternalId The unique identifier from the external service
+	ExternalId string `json:"external_id"`
+
+	// IsFlow Whether the trigger targets a flow (true) or a script (false)
+	IsFlow bool `json:"is_flow"`
+
+	// ScriptPath The path to the script or flow that will be triggered
+	ScriptPath string `json:"script_path"`
+
+	// ServiceConfig Configuration for the trigger including event_type and service_config
+	ServiceConfig map[string]interface{} `json:"service_config"`
+	ServiceName   NativeServiceName      `json:"service_name"`
+
+	// WorkspaceId The workspace this trigger belongs to
+	WorkspaceId string `json:"workspace_id"`
+}
+
 // NatsTrigger defines model for NatsTrigger.
 type NatsTrigger = TriggerExtraProperty
 
@@ -3235,6 +3308,15 @@ type NewWorkspaceDependencies struct {
 	WorkspaceId string     `json:"workspace_id"`
 }
 
+// NextCloudEventType defines model for NextCloudEventType.
+type NextCloudEventType struct {
+	Category    *string `json:"category,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Id          string  `json:"id"`
+	Name        string  `json:"name"`
+	Path        string  `json:"path"`
+}
+
 // ObscuredJob defines model for ObscuredJob.
 type ObscuredJob struct {
 	DurationMs *float32   `json:"duration_ms,omitempty"`
@@ -3471,6 +3553,11 @@ type RawScriptForDependencies struct {
 	Language ScriptLang `json:"language"`
 	Path     string     `json:"path"`
 	RawCode  string     `json:"raw_code"`
+}
+
+// RedirectUri defines model for RedirectUri.
+type RedirectUri struct {
+	RedirectUri string `json:"redirect_uri"`
 }
 
 // Relations defines model for Relations.
@@ -3872,6 +3959,7 @@ type TriggersCount struct {
 	KafkaCount        *float32 `json:"kafka_count,omitempty"`
 	MqttCount         *float32 `json:"mqtt_count,omitempty"`
 	NatsCount         *float32 `json:"nats_count,omitempty"`
+	NextcloudCount    *float32 `json:"nextcloud_count,omitempty"`
 	PostgresCount     *float32 `json:"postgres_count,omitempty"`
 	PrimarySchedule   *struct {
 		Schedule *string `json:"schedule,omitempty"`
@@ -4137,6 +4225,12 @@ type WorkspaceInfo struct {
 	WorkspaceName *string `json:"workspace_name,omitempty"`
 }
 
+// WorkspaceIntegrations defines model for WorkspaceIntegrations.
+type WorkspaceIntegrations struct {
+	OauthData   *WorkspaceOAuthConfig `json:"oauth_data,omitempty"`
+	ServiceName NativeServiceName     `json:"service_name"`
+}
+
 // WorkspaceInvite defines model for WorkspaceInvite.
 type WorkspaceInvite struct {
 	Email             string  `json:"email"`
@@ -4172,6 +4266,21 @@ type WorkspaceItemDiff struct {
 
 // WorkspaceItemDiffKind Type of the item
 type WorkspaceItemDiffKind string
+
+// WorkspaceOAuthConfig defines model for WorkspaceOAuthConfig.
+type WorkspaceOAuthConfig struct {
+	// BaseUrl The base URL of the workspace
+	BaseUrl string `json:"base_url"`
+
+	// ClientId The OAuth client ID for the workspace
+	ClientId string `json:"client_id"`
+
+	// ClientSecret The OAuth client secret for the workspace
+	ClientSecret string `json:"client_secret"`
+
+	// RedirectUri The OAuth redirect URI
+	RedirectUri string `json:"redirect_uri"`
+}
 
 // SchemasAiAgent AI agent step that can use tools to accomplish tasks. The agent receives inputs and can call any of its configured tools to complete the task
 type SchemasAiAgent struct {
@@ -5094,6 +5203,12 @@ type StartMcpOAuthPopupParams struct {
 	// Scopes Comma-separated list of OAuth scopes to request
 	Scopes *string `form:"scopes,omitempty" json:"scopes,omitempty"`
 }
+
+// NativeTriggerWebhookJSONBody defines parameters for NativeTriggerWebhook.
+type NativeTriggerWebhookJSONBody map[string]interface{}
+
+// NativeTriggerWebhookTextBody defines parameters for NativeTriggerWebhook.
+type NativeTriggerWebhookTextBody = string
 
 // ConnectCallbackJSONBody defines parameters for ConnectCallback.
 type ConnectCallbackJSONBody struct {
@@ -7490,6 +7605,15 @@ type TestMqttConnectionJSONBody struct {
 	Connection map[string]interface{} `json:"connection"`
 }
 
+// ListNativeTriggersParams defines parameters for ListNativeTriggers.
+type ListNativeTriggersParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
 // ListNatsTriggersParams defines parameters for ListNatsTriggers.
 type ListNatsTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -8245,6 +8369,12 @@ type QueryDocumentationJSONRequestBody QueryDocumentationJSONBody
 // DiscoverMcpOAuthJSONRequestBody defines body for DiscoverMcpOAuth for application/json ContentType.
 type DiscoverMcpOAuthJSONRequestBody DiscoverMcpOAuthJSONBody
 
+// NativeTriggerWebhookJSONRequestBody defines body for NativeTriggerWebhook for application/json ContentType.
+type NativeTriggerWebhookJSONRequestBody NativeTriggerWebhookJSONBody
+
+// NativeTriggerWebhookTextRequestBody defines body for NativeTriggerWebhook for text/plain ContentType.
+type NativeTriggerWebhookTextRequestBody = NativeTriggerWebhookTextBody
+
 // ConnectCallbackJSONRequestBody defines body for ConnectCallback for application/json ContentType.
 type ConnectCallbackJSONRequestBody ConnectCallbackJSONBody
 
@@ -8622,6 +8752,21 @@ type TestMqttConnectionJSONRequestBody TestMqttConnectionJSONBody
 
 // UpdateMqttTriggerJSONRequestBody defines body for UpdateMqttTrigger for application/json ContentType.
 type UpdateMqttTriggerJSONRequestBody = EditMqttTrigger
+
+// NativeTriggerServiceCallbackJSONRequestBody defines body for NativeTriggerServiceCallback for application/json ContentType.
+type NativeTriggerServiceCallbackJSONRequestBody = RedirectUri
+
+// CreateNativeTriggerServiceJSONRequestBody defines body for CreateNativeTriggerService for application/json ContentType.
+type CreateNativeTriggerServiceJSONRequestBody = WorkspaceOAuthConfig
+
+// GenerateNativeTriggerServiceConnectUrlJSONRequestBody defines body for GenerateNativeTriggerServiceConnectUrl for application/json ContentType.
+type GenerateNativeTriggerServiceConnectUrlJSONRequestBody = RedirectUri
+
+// CreateNativeTriggerJSONRequestBody defines body for CreateNativeTrigger for application/json ContentType.
+type CreateNativeTriggerJSONRequestBody = NativeTriggerData
+
+// UpdateNativeTriggerJSONRequestBody defines body for UpdateNativeTrigger for application/json ContentType.
+type UpdateNativeTriggerJSONRequestBody = NativeTriggerData
 
 // CreateNatsTriggerJSONRequestBody defines body for CreateNatsTrigger for application/json ContentType.
 type CreateNatsTriggerJSONRequestBody = NewNatsTrigger
@@ -10549,6 +10694,13 @@ type ClientInterface interface {
 	// GetMinKeepAliveVersion request
 	GetMinKeepAliveVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// NativeTriggerWebhookWithBody request with any body
+	NativeTriggerWebhookWithBody(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	NativeTriggerWebhook(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, body NativeTriggerWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	NativeTriggerWebhookWithTextBody(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, body NativeTriggerWebhookTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ConnectCallbackWithBody request with any body
 	ConnectCallbackWithBody(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -11747,6 +11899,58 @@ type ClientInterface interface {
 	UpdateMqttTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListNativeTriggerServices request
+	ListNativeTriggerServices(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// NativeTriggerServiceCallbackWithBody request with any body
+	NativeTriggerServiceCallbackWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	NativeTriggerServiceCallback(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateNativeTriggerServiceWithBody request with any body
+	CreateNativeTriggerServiceWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateNativeTriggerService(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body CreateNativeTriggerServiceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteNativeTriggerService request
+	DeleteNativeTriggerService(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CheckIfNativeTriggersServiceExists request
+	CheckIfNativeTriggersServiceExists(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GenerateNativeTriggerServiceConnectUrlWithBody request with any body
+	GenerateNativeTriggerServiceConnectUrlWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GenerateNativeTriggerServiceConnectUrl(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateNativeTriggerServiceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListNextCloudEvents request
+	ListNextCloudEvents(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateNativeTriggerWithBody request with any body
+	CreateNativeTriggerWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateNativeTrigger(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body CreateNativeTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteNativeTrigger request
+	DeleteNativeTrigger(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsNativeTrigger request
+	ExistsNativeTrigger(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetNativeTrigger request
+	GetNativeTrigger(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListNativeTriggers request
+	ListNativeTriggers(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, params *ListNativeTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SyncNativeTriggers request
+	SyncNativeTriggers(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateNativeTriggerWithBody request with any body
+	UpdateNativeTriggerWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateNativeTrigger(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, body UpdateNativeTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateNatsTriggerWithBody request with any body
 	CreateNatsTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -13363,6 +13567,42 @@ func (c *Client) ListMcpTools(ctx context.Context, workspace WorkspaceId, reqEdi
 
 func (c *Client) GetMinKeepAliveVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetMinKeepAliveVersionRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NativeTriggerWebhookWithBody(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNativeTriggerWebhookRequestWithBody(c.Server, serviceName, workspaceId, internalId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NativeTriggerWebhook(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, body NativeTriggerWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNativeTriggerWebhookRequest(c.Server, serviceName, workspaceId, internalId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NativeTriggerWebhookWithTextBody(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, body NativeTriggerWebhookTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNativeTriggerWebhookRequestWithTextBody(c.Server, serviceName, workspaceId, internalId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -18655,6 +18895,234 @@ func (c *Client) UpdateMqttTriggerWithBody(ctx context.Context, workspace Worksp
 
 func (c *Client) UpdateMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateMqttTriggerRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListNativeTriggerServices(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNativeTriggerServicesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NativeTriggerServiceCallbackWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNativeTriggerServiceCallbackRequestWithBody(c.Server, workspace, serviceName, code, state, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) NativeTriggerServiceCallback(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNativeTriggerServiceCallbackRequest(c.Server, workspace, serviceName, code, state, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateNativeTriggerServiceWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateNativeTriggerServiceRequestWithBody(c.Server, workspace, serviceName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateNativeTriggerService(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body CreateNativeTriggerServiceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateNativeTriggerServiceRequest(c.Server, workspace, serviceName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteNativeTriggerService(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteNativeTriggerServiceRequest(c.Server, workspace, serviceName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CheckIfNativeTriggersServiceExists(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCheckIfNativeTriggersServiceExistsRequest(c.Server, workspace, serviceName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GenerateNativeTriggerServiceConnectUrlWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGenerateNativeTriggerServiceConnectUrlRequestWithBody(c.Server, workspace, serviceName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GenerateNativeTriggerServiceConnectUrl(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateNativeTriggerServiceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGenerateNativeTriggerServiceConnectUrlRequest(c.Server, workspace, serviceName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListNextCloudEvents(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNextCloudEventsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateNativeTriggerWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateNativeTriggerRequestWithBody(c.Server, workspace, serviceName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateNativeTrigger(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body CreateNativeTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateNativeTriggerRequest(c.Server, workspace, serviceName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteNativeTrigger(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteNativeTriggerRequest(c.Server, workspace, serviceName, externalId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsNativeTrigger(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsNativeTriggerRequest(c.Server, workspace, serviceName, externalId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetNativeTrigger(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNativeTriggerRequest(c.Server, workspace, serviceName, externalId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListNativeTriggers(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, params *ListNativeTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNativeTriggersRequest(c.Server, workspace, serviceName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SyncNativeTriggers(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSyncNativeTriggersRequest(c.Server, workspace, serviceName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateNativeTriggerWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateNativeTriggerRequestWithBody(c.Server, workspace, serviceName, externalId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateNativeTrigger(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, body UpdateNativeTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateNativeTriggerRequest(c.Server, workspace, serviceName, externalId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -24371,6 +24839,74 @@ func NewGetMinKeepAliveVersionRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewNativeTriggerWebhookRequest calls the generic NativeTriggerWebhook builder with application/json body
+func NewNativeTriggerWebhookRequest(server string, serviceName NativeServiceName, workspaceId string, internalId int64, body NativeTriggerWebhookJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewNativeTriggerWebhookRequestWithBody(server, serviceName, workspaceId, internalId, "application/json", bodyReader)
+}
+
+// NewNativeTriggerWebhookRequestWithTextBody calls the generic NativeTriggerWebhook builder with text/plain body
+func NewNativeTriggerWebhookRequestWithTextBody(server string, serviceName NativeServiceName, workspaceId string, internalId int64, body NativeTriggerWebhookTextRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	bodyReader = strings.NewReader(string(body))
+	return NewNativeTriggerWebhookRequestWithBody(server, serviceName, workspaceId, internalId, "text/plain", bodyReader)
+}
+
+// NewNativeTriggerWebhookRequestWithBody generates requests for NativeTriggerWebhook with any type of body
+func NewNativeTriggerWebhookRequestWithBody(server string, serviceName NativeServiceName, workspaceId string, internalId int64, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "workspace_id", runtime.ParamLocationPath, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "internal_id", runtime.ParamLocationPath, internalId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/native_triggers/%s/w/%s/webhook/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -47248,6 +47784,711 @@ func NewUpdateMqttTriggerRequestWithBody(server string, workspace WorkspaceId, p
 	return req, nil
 }
 
+// NewListNativeTriggerServicesRequest generates requests for ListNativeTriggerServices
+func NewListNativeTriggerServicesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewNativeTriggerServiceCallbackRequest calls the generic NativeTriggerServiceCallback builder with application/json body
+func NewNativeTriggerServiceCallbackRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, body NativeTriggerServiceCallbackJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewNativeTriggerServiceCallbackRequestWithBody(server, workspace, serviceName, code, state, "application/json", bodyReader)
+}
+
+// NewNativeTriggerServiceCallbackRequestWithBody generates requests for NativeTriggerServiceCallback with any type of body
+func NewNativeTriggerServiceCallbackRequestWithBody(server string, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "code", runtime.ParamLocationPath, code)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam3 string
+
+	pathParam3, err = runtime.StyleParamWithLocation("simple", false, "state", runtime.ParamLocationPath, state)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/callback/%s/%s", pathParam0, pathParam1, pathParam2, pathParam3)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateNativeTriggerServiceRequest calls the generic CreateNativeTriggerService builder with application/json body
+func NewCreateNativeTriggerServiceRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, body CreateNativeTriggerServiceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateNativeTriggerServiceRequestWithBody(server, workspace, serviceName, "application/json", bodyReader)
+}
+
+// NewCreateNativeTriggerServiceRequestWithBody generates requests for CreateNativeTriggerService with any type of body
+func NewCreateNativeTriggerServiceRequestWithBody(server string, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/create", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteNativeTriggerServiceRequest generates requests for DeleteNativeTriggerService
+func NewDeleteNativeTriggerServiceRequest(server string, workspace WorkspaceId, serviceName NativeServiceName) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/delete", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCheckIfNativeTriggersServiceExistsRequest generates requests for CheckIfNativeTriggersServiceExists
+func NewCheckIfNativeTriggersServiceExistsRequest(server string, workspace WorkspaceId, serviceName NativeServiceName) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/exists", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGenerateNativeTriggerServiceConnectUrlRequest calls the generic GenerateNativeTriggerServiceConnectUrl builder with application/json body
+func NewGenerateNativeTriggerServiceConnectUrlRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, body GenerateNativeTriggerServiceConnectUrlJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGenerateNativeTriggerServiceConnectUrlRequestWithBody(server, workspace, serviceName, "application/json", bodyReader)
+}
+
+// NewGenerateNativeTriggerServiceConnectUrlRequestWithBody generates requests for GenerateNativeTriggerServiceConnectUrl with any type of body
+func NewGenerateNativeTriggerServiceConnectUrlRequestWithBody(server string, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/generate_connect_url", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListNextCloudEventsRequest generates requests for ListNextCloudEvents
+func NewListNextCloudEventsRequest(server string, workspace string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/nextcloud/events", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateNativeTriggerRequest calls the generic CreateNativeTrigger builder with application/json body
+func NewCreateNativeTriggerRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, body CreateNativeTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateNativeTriggerRequestWithBody(server, workspace, serviceName, "application/json", bodyReader)
+}
+
+// NewCreateNativeTriggerRequestWithBody generates requests for CreateNativeTrigger with any type of body
+func NewCreateNativeTriggerRequestWithBody(server string, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/%s/create", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteNativeTriggerRequest generates requests for DeleteNativeTrigger
+func NewDeleteNativeTriggerRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, externalId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "external_id", runtime.ParamLocationPath, externalId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/%s/delete/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsNativeTriggerRequest generates requests for ExistsNativeTrigger
+func NewExistsNativeTriggerRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, externalId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "external_id", runtime.ParamLocationPath, externalId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/%s/exists/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetNativeTriggerRequest generates requests for GetNativeTrigger
+func NewGetNativeTriggerRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, externalId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "external_id", runtime.ParamLocationPath, externalId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/%s/get/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListNativeTriggersRequest generates requests for ListNativeTriggers
+func NewListNativeTriggersRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, params *ListNativeTriggersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/%s/list", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSyncNativeTriggersRequest generates requests for SyncNativeTriggers
+func NewSyncNativeTriggersRequest(server string, workspace WorkspaceId, serviceName NativeServiceName) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/%s/sync", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateNativeTriggerRequest calls the generic UpdateNativeTrigger builder with application/json body
+func NewUpdateNativeTriggerRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, externalId string, body UpdateNativeTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateNativeTriggerRequestWithBody(server, workspace, serviceName, externalId, "application/json", bodyReader)
+}
+
+// NewUpdateNativeTriggerRequestWithBody generates requests for UpdateNativeTrigger with any type of body
+func NewUpdateNativeTriggerRequestWithBody(server string, workspace WorkspaceId, serviceName NativeServiceName, externalId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "external_id", runtime.ParamLocationPath, externalId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/%s/update/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateNatsTriggerRequest calls the generic CreateNatsTrigger builder with application/json body
 func NewCreateNatsTriggerRequest(server string, workspace WorkspaceId, body CreateNatsTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -58817,6 +60058,13 @@ type ClientWithResponsesInterface interface {
 	// GetMinKeepAliveVersionWithResponse request
 	GetMinKeepAliveVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMinKeepAliveVersionResponse, error)
 
+	// NativeTriggerWebhookWithBodyWithResponse request with any body
+	NativeTriggerWebhookWithBodyWithResponse(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NativeTriggerWebhookResponse, error)
+
+	NativeTriggerWebhookWithResponse(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, body NativeTriggerWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*NativeTriggerWebhookResponse, error)
+
+	NativeTriggerWebhookWithTextBodyWithResponse(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, body NativeTriggerWebhookTextRequestBody, reqEditors ...RequestEditorFn) (*NativeTriggerWebhookResponse, error)
+
 	// ConnectCallbackWithBodyWithResponse request with any body
 	ConnectCallbackWithBodyWithResponse(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error)
 
@@ -60015,6 +61263,58 @@ type ClientWithResponsesInterface interface {
 	UpdateMqttTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateMqttTriggerResponse, error)
 
 	UpdateMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMqttTriggerResponse, error)
+
+	// ListNativeTriggerServicesWithResponse request
+	ListNativeTriggerServicesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListNativeTriggerServicesResponse, error)
+
+	// NativeTriggerServiceCallbackWithBodyWithResponse request with any body
+	NativeTriggerServiceCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error)
+
+	NativeTriggerServiceCallbackWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error)
+
+	// CreateNativeTriggerServiceWithBodyWithResponse request with any body
+	CreateNativeTriggerServiceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNativeTriggerServiceResponse, error)
+
+	CreateNativeTriggerServiceWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body CreateNativeTriggerServiceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNativeTriggerServiceResponse, error)
+
+	// DeleteNativeTriggerServiceWithResponse request
+	DeleteNativeTriggerServiceWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*DeleteNativeTriggerServiceResponse, error)
+
+	// CheckIfNativeTriggersServiceExistsWithResponse request
+	CheckIfNativeTriggersServiceExistsWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*CheckIfNativeTriggersServiceExistsResponse, error)
+
+	// GenerateNativeTriggerServiceConnectUrlWithBodyWithResponse request with any body
+	GenerateNativeTriggerServiceConnectUrlWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GenerateNativeTriggerServiceConnectUrlResponse, error)
+
+	GenerateNativeTriggerServiceConnectUrlWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateNativeTriggerServiceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateNativeTriggerServiceConnectUrlResponse, error)
+
+	// ListNextCloudEventsWithResponse request
+	ListNextCloudEventsWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListNextCloudEventsResponse, error)
+
+	// CreateNativeTriggerWithBodyWithResponse request with any body
+	CreateNativeTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNativeTriggerResponse, error)
+
+	CreateNativeTriggerWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body CreateNativeTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNativeTriggerResponse, error)
+
+	// DeleteNativeTriggerWithResponse request
+	DeleteNativeTriggerWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*DeleteNativeTriggerResponse, error)
+
+	// ExistsNativeTriggerWithResponse request
+	ExistsNativeTriggerWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*ExistsNativeTriggerResponse, error)
+
+	// GetNativeTriggerWithResponse request
+	GetNativeTriggerWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*GetNativeTriggerResponse, error)
+
+	// ListNativeTriggersWithResponse request
+	ListNativeTriggersWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, params *ListNativeTriggersParams, reqEditors ...RequestEditorFn) (*ListNativeTriggersResponse, error)
+
+	// SyncNativeTriggersWithResponse request
+	SyncNativeTriggersWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*SyncNativeTriggersResponse, error)
+
+	// UpdateNativeTriggerWithBodyWithResponse request with any body
+	UpdateNativeTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateNativeTriggerResponse, error)
+
+	UpdateNativeTriggerWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, body UpdateNativeTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateNativeTriggerResponse, error)
 
 	// CreateNatsTriggerWithBodyWithResponse request with any body
 	CreateNatsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNatsTriggerResponse, error)
@@ -62023,6 +63323,27 @@ func (r GetMinKeepAliveVersionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetMinKeepAliveVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type NativeTriggerWebhookResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r NativeTriggerWebhookResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r NativeTriggerWebhookResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -69157,6 +70478,308 @@ func (r UpdateMqttTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type ListNativeTriggerServicesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]WorkspaceIntegrations
+}
+
+// Status returns HTTPResponse.Status
+func (r ListNativeTriggerServicesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListNativeTriggerServicesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type NativeTriggerServiceCallbackResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r NativeTriggerServiceCallbackResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r NativeTriggerServiceCallbackResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateNativeTriggerServiceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateNativeTriggerServiceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateNativeTriggerServiceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteNativeTriggerServiceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteNativeTriggerServiceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteNativeTriggerServiceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CheckIfNativeTriggersServiceExistsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r CheckIfNativeTriggersServiceExistsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CheckIfNativeTriggersServiceExistsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GenerateNativeTriggerServiceConnectUrlResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r GenerateNativeTriggerServiceConnectUrlResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GenerateNativeTriggerServiceConnectUrlResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListNextCloudEventsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]NextCloudEventType
+}
+
+// Status returns HTTPResponse.Status
+func (r ListNextCloudEventsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListNextCloudEventsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateNativeTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *CreateTriggerResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateNativeTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateNativeTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteNativeTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteNativeTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteNativeTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsNativeTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsNativeTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsNativeTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetNativeTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *NativeTriggerWithExternal
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNativeTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNativeTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListNativeTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]NativeTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r ListNativeTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListNativeTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SyncNativeTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SyncNativeTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SyncNativeTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateNativeTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateNativeTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateNativeTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateNatsTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -73844,6 +75467,7 @@ type GetUsedTriggersResponse struct {
 		KafkaUsed      bool `json:"kafka_used"`
 		MqttUsed       bool `json:"mqtt_used"`
 		NatsUsed       bool `json:"nats_used"`
+		NextcloudUsed  bool `json:"nextcloud_used"`
 		PostgresUsed   bool `json:"postgres_used"`
 		SqsUsed        bool `json:"sqs_used"`
 		WebsocketUsed  bool `json:"websocket_used"`
@@ -74792,6 +76416,31 @@ func (c *ClientWithResponses) GetMinKeepAliveVersionWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseGetMinKeepAliveVersionResponse(rsp)
+}
+
+// NativeTriggerWebhookWithBodyWithResponse request with arbitrary body returning *NativeTriggerWebhookResponse
+func (c *ClientWithResponses) NativeTriggerWebhookWithBodyWithResponse(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NativeTriggerWebhookResponse, error) {
+	rsp, err := c.NativeTriggerWebhookWithBody(ctx, serviceName, workspaceId, internalId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNativeTriggerWebhookResponse(rsp)
+}
+
+func (c *ClientWithResponses) NativeTriggerWebhookWithResponse(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, body NativeTriggerWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*NativeTriggerWebhookResponse, error) {
+	rsp, err := c.NativeTriggerWebhook(ctx, serviceName, workspaceId, internalId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNativeTriggerWebhookResponse(rsp)
+}
+
+func (c *ClientWithResponses) NativeTriggerWebhookWithTextBodyWithResponse(ctx context.Context, serviceName NativeServiceName, workspaceId string, internalId int64, body NativeTriggerWebhookTextRequestBody, reqEditors ...RequestEditorFn) (*NativeTriggerWebhookResponse, error) {
+	rsp, err := c.NativeTriggerWebhookWithTextBody(ctx, serviceName, workspaceId, internalId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNativeTriggerWebhookResponse(rsp)
 }
 
 // ConnectCallbackWithBodyWithResponse request with arbitrary body returning *ConnectCallbackResponse
@@ -78637,6 +80286,172 @@ func (c *ClientWithResponses) UpdateMqttTriggerWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseUpdateMqttTriggerResponse(rsp)
+}
+
+// ListNativeTriggerServicesWithResponse request returning *ListNativeTriggerServicesResponse
+func (c *ClientWithResponses) ListNativeTriggerServicesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListNativeTriggerServicesResponse, error) {
+	rsp, err := c.ListNativeTriggerServices(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListNativeTriggerServicesResponse(rsp)
+}
+
+// NativeTriggerServiceCallbackWithBodyWithResponse request with arbitrary body returning *NativeTriggerServiceCallbackResponse
+func (c *ClientWithResponses) NativeTriggerServiceCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error) {
+	rsp, err := c.NativeTriggerServiceCallbackWithBody(ctx, workspace, serviceName, code, state, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNativeTriggerServiceCallbackResponse(rsp)
+}
+
+func (c *ClientWithResponses) NativeTriggerServiceCallbackWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error) {
+	rsp, err := c.NativeTriggerServiceCallback(ctx, workspace, serviceName, code, state, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseNativeTriggerServiceCallbackResponse(rsp)
+}
+
+// CreateNativeTriggerServiceWithBodyWithResponse request with arbitrary body returning *CreateNativeTriggerServiceResponse
+func (c *ClientWithResponses) CreateNativeTriggerServiceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNativeTriggerServiceResponse, error) {
+	rsp, err := c.CreateNativeTriggerServiceWithBody(ctx, workspace, serviceName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateNativeTriggerServiceResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateNativeTriggerServiceWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body CreateNativeTriggerServiceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNativeTriggerServiceResponse, error) {
+	rsp, err := c.CreateNativeTriggerService(ctx, workspace, serviceName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateNativeTriggerServiceResponse(rsp)
+}
+
+// DeleteNativeTriggerServiceWithResponse request returning *DeleteNativeTriggerServiceResponse
+func (c *ClientWithResponses) DeleteNativeTriggerServiceWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*DeleteNativeTriggerServiceResponse, error) {
+	rsp, err := c.DeleteNativeTriggerService(ctx, workspace, serviceName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteNativeTriggerServiceResponse(rsp)
+}
+
+// CheckIfNativeTriggersServiceExistsWithResponse request returning *CheckIfNativeTriggersServiceExistsResponse
+func (c *ClientWithResponses) CheckIfNativeTriggersServiceExistsWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*CheckIfNativeTriggersServiceExistsResponse, error) {
+	rsp, err := c.CheckIfNativeTriggersServiceExists(ctx, workspace, serviceName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCheckIfNativeTriggersServiceExistsResponse(rsp)
+}
+
+// GenerateNativeTriggerServiceConnectUrlWithBodyWithResponse request with arbitrary body returning *GenerateNativeTriggerServiceConnectUrlResponse
+func (c *ClientWithResponses) GenerateNativeTriggerServiceConnectUrlWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GenerateNativeTriggerServiceConnectUrlResponse, error) {
+	rsp, err := c.GenerateNativeTriggerServiceConnectUrlWithBody(ctx, workspace, serviceName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGenerateNativeTriggerServiceConnectUrlResponse(rsp)
+}
+
+func (c *ClientWithResponses) GenerateNativeTriggerServiceConnectUrlWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateNativeTriggerServiceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateNativeTriggerServiceConnectUrlResponse, error) {
+	rsp, err := c.GenerateNativeTriggerServiceConnectUrl(ctx, workspace, serviceName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGenerateNativeTriggerServiceConnectUrlResponse(rsp)
+}
+
+// ListNextCloudEventsWithResponse request returning *ListNextCloudEventsResponse
+func (c *ClientWithResponses) ListNextCloudEventsWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListNextCloudEventsResponse, error) {
+	rsp, err := c.ListNextCloudEvents(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListNextCloudEventsResponse(rsp)
+}
+
+// CreateNativeTriggerWithBodyWithResponse request with arbitrary body returning *CreateNativeTriggerResponse
+func (c *ClientWithResponses) CreateNativeTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNativeTriggerResponse, error) {
+	rsp, err := c.CreateNativeTriggerWithBody(ctx, workspace, serviceName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateNativeTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateNativeTriggerWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body CreateNativeTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNativeTriggerResponse, error) {
+	rsp, err := c.CreateNativeTrigger(ctx, workspace, serviceName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateNativeTriggerResponse(rsp)
+}
+
+// DeleteNativeTriggerWithResponse request returning *DeleteNativeTriggerResponse
+func (c *ClientWithResponses) DeleteNativeTriggerWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*DeleteNativeTriggerResponse, error) {
+	rsp, err := c.DeleteNativeTrigger(ctx, workspace, serviceName, externalId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteNativeTriggerResponse(rsp)
+}
+
+// ExistsNativeTriggerWithResponse request returning *ExistsNativeTriggerResponse
+func (c *ClientWithResponses) ExistsNativeTriggerWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*ExistsNativeTriggerResponse, error) {
+	rsp, err := c.ExistsNativeTrigger(ctx, workspace, serviceName, externalId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsNativeTriggerResponse(rsp)
+}
+
+// GetNativeTriggerWithResponse request returning *GetNativeTriggerResponse
+func (c *ClientWithResponses) GetNativeTriggerWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, reqEditors ...RequestEditorFn) (*GetNativeTriggerResponse, error) {
+	rsp, err := c.GetNativeTrigger(ctx, workspace, serviceName, externalId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNativeTriggerResponse(rsp)
+}
+
+// ListNativeTriggersWithResponse request returning *ListNativeTriggersResponse
+func (c *ClientWithResponses) ListNativeTriggersWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, params *ListNativeTriggersParams, reqEditors ...RequestEditorFn) (*ListNativeTriggersResponse, error) {
+	rsp, err := c.ListNativeTriggers(ctx, workspace, serviceName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListNativeTriggersResponse(rsp)
+}
+
+// SyncNativeTriggersWithResponse request returning *SyncNativeTriggersResponse
+func (c *ClientWithResponses) SyncNativeTriggersWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*SyncNativeTriggersResponse, error) {
+	rsp, err := c.SyncNativeTriggers(ctx, workspace, serviceName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSyncNativeTriggersResponse(rsp)
+}
+
+// UpdateNativeTriggerWithBodyWithResponse request with arbitrary body returning *UpdateNativeTriggerResponse
+func (c *ClientWithResponses) UpdateNativeTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateNativeTriggerResponse, error) {
+	rsp, err := c.UpdateNativeTriggerWithBody(ctx, workspace, serviceName, externalId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateNativeTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateNativeTriggerWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, body UpdateNativeTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateNativeTriggerResponse, error) {
+	rsp, err := c.UpdateNativeTrigger(ctx, workspace, serviceName, externalId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateNativeTriggerResponse(rsp)
 }
 
 // CreateNatsTriggerWithBodyWithResponse request with arbitrary body returning *CreateNatsTriggerResponse
@@ -82611,6 +84426,22 @@ func ParseGetMinKeepAliveVersionResponse(rsp *http.Response) (*GetMinKeepAliveVe
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseNativeTriggerWebhookResponse parses an HTTP response from a NativeTriggerWebhookWithResponse call
+func ParseNativeTriggerWebhookResponse(rsp *http.Response) (*NativeTriggerWebhookResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &NativeTriggerWebhookResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -89671,6 +91502,310 @@ func ParseUpdateMqttTriggerResponse(rsp *http.Response) (*UpdateMqttTriggerRespo
 	return response, nil
 }
 
+// ParseListNativeTriggerServicesResponse parses an HTTP response from a ListNativeTriggerServicesWithResponse call
+func ParseListNativeTriggerServicesResponse(rsp *http.Response) (*ListNativeTriggerServicesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListNativeTriggerServicesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []WorkspaceIntegrations
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseNativeTriggerServiceCallbackResponse parses an HTTP response from a NativeTriggerServiceCallbackWithResponse call
+func ParseNativeTriggerServiceCallbackResponse(rsp *http.Response) (*NativeTriggerServiceCallbackResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &NativeTriggerServiceCallbackResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateNativeTriggerServiceResponse parses an HTTP response from a CreateNativeTriggerServiceWithResponse call
+func ParseCreateNativeTriggerServiceResponse(rsp *http.Response) (*CreateNativeTriggerServiceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateNativeTriggerServiceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteNativeTriggerServiceResponse parses an HTTP response from a DeleteNativeTriggerServiceWithResponse call
+func ParseDeleteNativeTriggerServiceResponse(rsp *http.Response) (*DeleteNativeTriggerServiceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteNativeTriggerServiceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCheckIfNativeTriggersServiceExistsResponse parses an HTTP response from a CheckIfNativeTriggersServiceExistsWithResponse call
+func ParseCheckIfNativeTriggersServiceExistsResponse(rsp *http.Response) (*CheckIfNativeTriggersServiceExistsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CheckIfNativeTriggersServiceExistsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGenerateNativeTriggerServiceConnectUrlResponse parses an HTTP response from a GenerateNativeTriggerServiceConnectUrlWithResponse call
+func ParseGenerateNativeTriggerServiceConnectUrlResponse(rsp *http.Response) (*GenerateNativeTriggerServiceConnectUrlResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GenerateNativeTriggerServiceConnectUrlResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListNextCloudEventsResponse parses an HTTP response from a ListNextCloudEventsWithResponse call
+func ParseListNextCloudEventsResponse(rsp *http.Response) (*ListNextCloudEventsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListNextCloudEventsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []NextCloudEventType
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateNativeTriggerResponse parses an HTTP response from a CreateNativeTriggerWithResponse call
+func ParseCreateNativeTriggerResponse(rsp *http.Response) (*CreateNativeTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateNativeTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest CreateTriggerResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteNativeTriggerResponse parses an HTTP response from a DeleteNativeTriggerWithResponse call
+func ParseDeleteNativeTriggerResponse(rsp *http.Response) (*DeleteNativeTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteNativeTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsNativeTriggerResponse parses an HTTP response from a ExistsNativeTriggerWithResponse call
+func ParseExistsNativeTriggerResponse(rsp *http.Response) (*ExistsNativeTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsNativeTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetNativeTriggerResponse parses an HTTP response from a GetNativeTriggerWithResponse call
+func ParseGetNativeTriggerResponse(rsp *http.Response) (*GetNativeTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNativeTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest NativeTriggerWithExternal
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListNativeTriggersResponse parses an HTTP response from a ListNativeTriggersWithResponse call
+func ParseListNativeTriggersResponse(rsp *http.Response) (*ListNativeTriggersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListNativeTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []NativeTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSyncNativeTriggersResponse parses an HTTP response from a SyncNativeTriggersWithResponse call
+func ParseSyncNativeTriggersResponse(rsp *http.Response) (*SyncNativeTriggersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SyncNativeTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateNativeTriggerResponse parses an HTTP response from a UpdateNativeTriggerWithResponse call
+func ParseUpdateNativeTriggerResponse(rsp *http.Response) (*UpdateNativeTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateNativeTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCreateNatsTriggerResponse parses an HTTP response from a CreateNatsTriggerWithResponse call
 func ParseCreateNatsTriggerResponse(rsp *http.Response) (*CreateNatsTriggerResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -94318,6 +96453,7 @@ func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse,
 			KafkaUsed      bool `json:"kafka_used"`
 			MqttUsed       bool `json:"mqtt_used"`
 			NatsUsed       bool `json:"nats_used"`
+			NextcloudUsed  bool `json:"nextcloud_used"`
 			PostgresUsed   bool `json:"postgres_used"`
 			SqsUsed        bool `json:"sqs_used"`
 			WebsocketUsed  bool `json:"websocket_used"`
