@@ -5051,9 +5051,6 @@ type TriggerPath = string
 // Username defines model for Username.
 type Username = string
 
-// VersionId defines model for VersionId.
-type VersionId = float32
-
 // Worker defines model for Worker.
 type Worker = string
 
@@ -11027,7 +11024,7 @@ type ClientInterface interface {
 	GetAppByVersion(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetRawAppData request
-	GetRawAppData(ctx context.Context, workspace WorkspaceId, version VersionId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetRawAppData(ctx context.Context, workspace WorkspaceId, secretWithExtension string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAppLatestVersion request
 	GetAppLatestVersion(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15023,8 +15020,8 @@ func (c *Client) GetAppByVersion(ctx context.Context, workspace WorkspaceId, id 
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetRawAppData(ctx context.Context, workspace WorkspaceId, version VersionId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetRawAppDataRequest(c.Server, workspace, version, path)
+func (c *Client) GetRawAppData(ctx context.Context, workspace WorkspaceId, secretWithExtension string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRawAppDataRequest(c.Server, workspace, secretWithExtension)
 	if err != nil {
 		return nil, err
 	}
@@ -28513,7 +28510,7 @@ func NewGetAppByVersionRequest(server string, workspace WorkspaceId, id PathId) 
 }
 
 // NewGetRawAppDataRequest generates requests for GetRawAppData
-func NewGetRawAppDataRequest(server string, workspace WorkspaceId, version VersionId, path ScriptPath) (*http.Request, error) {
+func NewGetRawAppDataRequest(server string, workspace WorkspaceId, secretWithExtension string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -28525,14 +28522,7 @@ func NewGetRawAppDataRequest(server string, workspace WorkspaceId, version Versi
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "secretWithExtension", runtime.ParamLocationPath, secretWithExtension)
 	if err != nil {
 		return nil, err
 	}
@@ -28542,7 +28532,7 @@ func NewGetRawAppDataRequest(server string, workspace WorkspaceId, version Versi
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/apps/get_data/%s/%s", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/w/%s/apps/get_data/v/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -60423,7 +60413,7 @@ type ClientWithResponsesInterface interface {
 	GetAppByVersionWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAppByVersionResponse, error)
 
 	// GetRawAppDataWithResponse request
-	GetRawAppDataWithResponse(ctx context.Context, workspace WorkspaceId, version VersionId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetRawAppDataResponse, error)
+	GetRawAppDataWithResponse(ctx context.Context, workspace WorkspaceId, secretWithExtension string, reqEditors ...RequestEditorFn) (*GetRawAppDataResponse, error)
 
 	// GetAppLatestVersionWithResponse request
 	GetAppLatestVersionWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppLatestVersionResponse, error)
@@ -77503,8 +77493,8 @@ func (c *ClientWithResponses) GetAppByVersionWithResponse(ctx context.Context, w
 }
 
 // GetRawAppDataWithResponse request returning *GetRawAppDataResponse
-func (c *ClientWithResponses) GetRawAppDataWithResponse(ctx context.Context, workspace WorkspaceId, version VersionId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetRawAppDataResponse, error) {
-	rsp, err := c.GetRawAppData(ctx, workspace, version, path, reqEditors...)
+func (c *ClientWithResponses) GetRawAppDataWithResponse(ctx context.Context, workspace WorkspaceId, secretWithExtension string, reqEditors ...RequestEditorFn) (*GetRawAppDataResponse, error) {
+	rsp, err := c.GetRawAppData(ctx, workspace, secretWithExtension, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
