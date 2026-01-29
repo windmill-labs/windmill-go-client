@@ -1247,6 +1247,12 @@ type CompareSummary struct {
 	// FlowsChanged Number of flows with differences
 	FlowsChanged int `json:"flows_changed"`
 
+	// FoldersChanged Number of folders with differences
+	FoldersChanged int `json:"folders_changed"`
+
+	// ResourceTypesChanged Number of resource types with differences
+	ResourceTypesChanged int `json:"resource_types_changed"`
+
 	// ResourcesChanged Number of resources with differences
 	ResourcesChanged int `json:"resources_changed"`
 
@@ -5973,6 +5979,11 @@ type ListFlowsParams struct {
 	// WithoutDescription (default false)
 	// If true, the description field will be omitted from the response.
 	WithoutDescription *bool `form:"without_description,omitempty" json:"without_description,omitempty"`
+
+	// DedicatedWorker (default regardless)
+	// If true, show only flows with dedicated_worker enabled.
+	// If false, show only flows with dedicated_worker disabled.
+	DedicatedWorker *bool `form:"dedicated_worker,omitempty" json:"dedicated_worker,omitempty"`
 }
 
 // ListFlowPathsFromWorkspaceRunnableParams defines parameters for ListFlowPathsFromWorkspaceRunnable.
@@ -7948,6 +7959,11 @@ type ListScriptsParams struct {
 	// WithoutDescription (default false)
 	// If true, the description field will be omitted from the response.
 	WithoutDescription *bool `form:"without_description,omitempty" json:"without_description,omitempty"`
+
+	// DedicatedWorker (default regardless)
+	// If true, show only scripts with dedicated_worker enabled.
+	// If false, show only scripts with dedicated_worker disabled.
+	DedicatedWorker *bool `form:"dedicated_worker,omitempty" json:"dedicated_worker,omitempty"`
 }
 
 // ToggleWorkspaceErrorHandlerForScriptJSONBody defines parameters for ToggleWorkspaceErrorHandlerForScript.
@@ -32502,6 +32518,22 @@ func NewListFlowsRequest(server string, workspace WorkspaceId, params *ListFlows
 
 		}
 
+		if params.DedicatedWorker != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dedicated_worker", runtime.ParamLocationQuery, *params.DedicatedWorker); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -53599,6 +53631,22 @@ func NewListScriptsRequest(server string, workspace WorkspaceId, params *ListScr
 		if params.WithoutDescription != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "without_description", runtime.ParamLocationQuery, *params.WithoutDescription); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.DedicatedWorker != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dedicated_worker", runtime.ParamLocationQuery, *params.DedicatedWorker); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
