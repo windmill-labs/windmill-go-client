@@ -756,11 +756,12 @@ const (
 
 // Defines values for WorkspaceItemDiffKind.
 const (
-	WorkspaceItemDiffKindApp      WorkspaceItemDiffKind = "app"
-	WorkspaceItemDiffKindFlow     WorkspaceItemDiffKind = "flow"
-	WorkspaceItemDiffKindResource WorkspaceItemDiffKind = "resource"
-	WorkspaceItemDiffKindScript   WorkspaceItemDiffKind = "script"
-	WorkspaceItemDiffKindVariable WorkspaceItemDiffKind = "variable"
+	WorkspaceItemDiffKindApp          WorkspaceItemDiffKind = "app"
+	WorkspaceItemDiffKindFlow         WorkspaceItemDiffKind = "flow"
+	WorkspaceItemDiffKindResource     WorkspaceItemDiffKind = "resource"
+	WorkspaceItemDiffKindResourceType WorkspaceItemDiffKind = "resource_type"
+	WorkspaceItemDiffKindScript       WorkspaceItemDiffKind = "script"
+	WorkspaceItemDiffKindVariable     WorkspaceItemDiffKind = "variable"
 )
 
 // Defines values for SchemasAiAgentType.
