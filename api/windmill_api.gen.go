@@ -39,6 +39,11 @@ const (
 	Togetherai  AIProvider = "togetherai"
 )
 
+// Defines values for AiTransformType.
+const (
+	Ai AiTransformType = "ai"
+)
+
 // Defines values for AppWithLastVersionExecutionMode.
 const (
 	AppWithLastVersionExecutionModeAnonymous AppWithLastVersionExecutionMode = "anonymous"
@@ -71,6 +76,7 @@ const (
 // Defines values for AssetUsageKind.
 const (
 	AssetUsageKindFlow   AssetUsageKind = "flow"
+	AssetUsageKindJob    AssetUsageKind = "job"
 	AssetUsageKindScript AssetUsageKind = "script"
 )
 
@@ -1098,6 +1104,14 @@ type AgentTool struct {
 	// Value The implementation of a tool. Can be a flow module (script/flow) or an MCP tool reference
 	Value ToolValue `json:"value"`
 }
+
+// AiTransform Value resolved by the AI runtime for this input. The AI engine decides how to satisfy the parameter.
+type AiTransform struct {
+	Type AiTransformType `json:"type"`
+}
+
+// AiTransformType defines model for AiTransform.Type.
+type AiTransformType string
 
 // Alert defines model for Alert.
 type Alert struct {
@@ -5625,6 +5639,27 @@ type UploadS3FileFromAppParams struct {
 	ContentDisposition *string `form:"content_disposition,omitempty" json:"content_disposition,omitempty"`
 }
 
+// ListAssetsParams defines parameters for ListAssets.
+type ListAssetsParams struct {
+	// PerPage Number of items per page (max 1000, default 50)
+	PerPage *int `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// CursorCreatedAt Cursor timestamp for pagination (created_at of last item from previous page)
+	CursorCreatedAt *time.Time `form:"cursor_created_at,omitempty" json:"cursor_created_at,omitempty"`
+
+	// CursorId Cursor ID for pagination (id of last item from previous page)
+	CursorId *int64 `form:"cursor_id,omitempty" json:"cursor_id,omitempty"`
+
+	// AssetPath Filter by asset path (case-insensitive partial match)
+	AssetPath *string `form:"asset_path,omitempty" json:"asset_path,omitempty"`
+
+	// UsagePath Filter by usage path (case-insensitive partial match)
+	UsagePath *string `form:"usage_path,omitempty" json:"usage_path,omitempty"`
+
+	// AssetKinds Filter by asset kinds (multiple values allowed)
+	AssetKinds *string `form:"asset_kinds,omitempty" json:"asset_kinds,omitempty"`
+}
+
 // ListAssetsByUsageJSONBody defines parameters for ListAssetsByUsage.
 type ListAssetsByUsageJSONBody struct {
 	Usages []struct {
@@ -9688,6 +9723,34 @@ func (t *InputTransform) MergeSchemasJavascriptTransform(v SchemasJavascriptTran
 	return err
 }
 
+// AsAiTransform returns the union data inside the InputTransform as a AiTransform
+func (t InputTransform) AsAiTransform() (AiTransform, error) {
+	var body AiTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAiTransform overwrites any union data inside the InputTransform as the provided AiTransform
+func (t *InputTransform) FromAiTransform(v AiTransform) error {
+	v.Type = "ai"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAiTransform performs a merge with any union data inside the InputTransform, using the provided AiTransform
+func (t *InputTransform) MergeAiTransform(v AiTransform) error {
+	v.Type = "ai"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t InputTransform) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -9702,6 +9765,8 @@ func (t InputTransform) ValueByDiscriminator() (interface{}, error) {
 		return nil, err
 	}
 	switch discriminator {
+	case "ai":
+		return t.AsAiTransform()
 	case "javascript":
 		return t.AsSchemasJavascriptTransform()
 	case "static":
@@ -10433,6 +10498,34 @@ func (t *SchemasInputTransform) MergeSchemasJavascriptTransform(v SchemasJavascr
 	return err
 }
 
+// AsAiTransform returns the union data inside the SchemasInputTransform as a AiTransform
+func (t SchemasInputTransform) AsAiTransform() (AiTransform, error) {
+	var body AiTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAiTransform overwrites any union data inside the SchemasInputTransform as the provided AiTransform
+func (t *SchemasInputTransform) FromAiTransform(v AiTransform) error {
+	v.Type = "ai"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAiTransform performs a merge with any union data inside the SchemasInputTransform, using the provided AiTransform
+func (t *SchemasInputTransform) MergeAiTransform(v AiTransform) error {
+	v.Type = "ai"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t SchemasInputTransform) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -10447,6 +10540,8 @@ func (t SchemasInputTransform) ValueByDiscriminator() (interface{}, error) {
 		return nil, err
 	}
 	switch discriminator {
+	case "ai":
+		return t.AsAiTransform()
 	case "javascript":
 		return t.AsSchemasJavascriptTransform()
 	case "static":
@@ -11100,7 +11195,7 @@ type ClientInterface interface {
 	UploadS3FileFromAppWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAssets request
-	ListAssets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListAssets(ctx context.Context, workspace WorkspaceId, params *ListAssetsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAssetsByUsageWithBody request with any body
 	ListAssetsByUsageWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15289,8 +15384,8 @@ func (c *Client) UploadS3FileFromAppWithBody(ctx context.Context, workspace Work
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListAssets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListAssetsRequest(c.Server, workspace)
+func (c *Client) ListAssets(ctx context.Context, workspace WorkspaceId, params *ListAssetsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAssetsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -29552,7 +29647,7 @@ func NewUploadS3FileFromAppRequestWithBody(server string, workspace WorkspaceId,
 }
 
 // NewListAssetsRequest generates requests for ListAssets
-func NewListAssetsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewListAssetsRequest(server string, workspace WorkspaceId, params *ListAssetsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -29575,6 +29670,108 @@ func NewListAssetsRequest(server string, workspace WorkspaceId) (*http.Request, 
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CursorCreatedAt != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cursor_created_at", runtime.ParamLocationQuery, *params.CursorCreatedAt); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CursorId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cursor_id", runtime.ParamLocationQuery, *params.CursorId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.AssetPath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "asset_path", runtime.ParamLocationQuery, *params.AssetPath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.UsagePath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "usage_path", runtime.ParamLocationQuery, *params.UsagePath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.AssetKinds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "asset_kinds", runtime.ParamLocationQuery, *params.AssetKinds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -60521,7 +60718,7 @@ type ClientWithResponsesInterface interface {
 	UploadS3FileFromAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadS3FileFromAppResponse, error)
 
 	// ListAssetsWithResponse request
-	ListAssetsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAssetsResponse, error)
+	ListAssetsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetsParams, reqEditors ...RequestEditorFn) (*ListAssetsResponse, error)
 
 	// ListAssetsByUsageWithBodyWithResponse request with any body
 	ListAssetsByUsageWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAssetsByUsageResponse, error)
@@ -65724,17 +65921,39 @@ func (r UploadS3FileFromAppResponse) StatusCode() int {
 type ListAssetsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]struct {
-		Kind     AssetKind `json:"kind"`
-		Metadata *struct {
-			ResourceType *string `json:"resource_type,omitempty"`
-		} `json:"metadata,omitempty"`
-		Path   string `json:"path"`
-		Usages []struct {
-			AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
-			Kind       AssetUsageKind        `json:"kind"`
-			Path       string                `json:"path"`
-		} `json:"usages"`
+	JSON200      *struct {
+		Assets []struct {
+			Kind     AssetKind `json:"kind"`
+			Metadata *struct {
+				// ResourceType The type of the resource (only present when kind is 'resource')
+				ResourceType *string `json:"resource_type,omitempty"`
+			} `json:"metadata,omitempty"`
+			Path   string `json:"path"`
+			Usages []struct {
+				AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
+
+				// CreatedAt When the asset was detected
+				CreatedAt *time.Time     `json:"created_at,omitempty"`
+				Kind      AssetUsageKind `json:"kind"`
+				Metadata  *struct {
+					// JobKind The kind of job (script, flow, preview, etc.) (only present when kind is 'job')
+					JobKind *string `json:"job_kind,omitempty"`
+
+					// RunnablePath The path of the script/flow that was run (only present when kind is 'job')
+					RunnablePath *string `json:"runnable_path,omitempty"`
+				} `json:"metadata,omitempty"`
+				Path string `json:"path"`
+			} `json:"usages"`
+		} `json:"assets"`
+
+		// NextCursor Cursor for the next page (null if no more pages)
+		NextCursor *struct {
+			// CreatedAt Timestamp to use for next page
+			CreatedAt *time.Time `json:"created_at,omitempty"`
+
+			// Id ID to use for next page
+			Id *int64 `json:"id,omitempty"`
+		} `json:"next_cursor"`
 	}
 }
 
@@ -77727,8 +77946,8 @@ func (c *ClientWithResponses) UploadS3FileFromAppWithBodyWithResponse(ctx contex
 }
 
 // ListAssetsWithResponse request returning *ListAssetsResponse
-func (c *ClientWithResponses) ListAssetsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAssetsResponse, error) {
-	rsp, err := c.ListAssets(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListAssetsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetsParams, reqEditors ...RequestEditorFn) (*ListAssetsResponse, error) {
+	rsp, err := c.ListAssets(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -86782,17 +87001,39 @@ func ParseListAssetsResponse(rsp *http.Response) (*ListAssetsResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []struct {
-			Kind     AssetKind `json:"kind"`
-			Metadata *struct {
-				ResourceType *string `json:"resource_type,omitempty"`
-			} `json:"metadata,omitempty"`
-			Path   string `json:"path"`
-			Usages []struct {
-				AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
-				Kind       AssetUsageKind        `json:"kind"`
-				Path       string                `json:"path"`
-			} `json:"usages"`
+		var dest struct {
+			Assets []struct {
+				Kind     AssetKind `json:"kind"`
+				Metadata *struct {
+					// ResourceType The type of the resource (only present when kind is 'resource')
+					ResourceType *string `json:"resource_type,omitempty"`
+				} `json:"metadata,omitempty"`
+				Path   string `json:"path"`
+				Usages []struct {
+					AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
+
+					// CreatedAt When the asset was detected
+					CreatedAt *time.Time     `json:"created_at,omitempty"`
+					Kind      AssetUsageKind `json:"kind"`
+					Metadata  *struct {
+						// JobKind The kind of job (script, flow, preview, etc.) (only present when kind is 'job')
+						JobKind *string `json:"job_kind,omitempty"`
+
+						// RunnablePath The path of the script/flow that was run (only present when kind is 'job')
+						RunnablePath *string `json:"runnable_path,omitempty"`
+					} `json:"metadata,omitempty"`
+					Path string `json:"path"`
+				} `json:"usages"`
+			} `json:"assets"`
+
+			// NextCursor Cursor for the next page (null if no more pages)
+			NextCursor *struct {
+				// CreatedAt Timestamp to use for next page
+				CreatedAt *time.Time `json:"created_at,omitempty"`
+
+				// Id ID to use for next page
+				Id *int64 `json:"id,omitempty"`
+			} `json:"next_cursor"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
