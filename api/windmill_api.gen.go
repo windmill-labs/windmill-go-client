@@ -1043,6 +1043,7 @@ const (
 // Defines values for StarJSONBodyFavoriteKind.
 const (
 	StarJSONBodyFavoriteKindApp    StarJSONBodyFavoriteKind = "app"
+	StarJSONBodyFavoriteKindAsset  StarJSONBodyFavoriteKind = "asset"
 	StarJSONBodyFavoriteKindFlow   StarJSONBodyFavoriteKind = "flow"
 	StarJSONBodyFavoriteKindRawApp StarJSONBodyFavoriteKind = "raw_app"
 	StarJSONBodyFavoriteKindScript StarJSONBodyFavoriteKind = "script"
@@ -1051,6 +1052,7 @@ const (
 // Defines values for UnstarJSONBodyFavoriteKind.
 const (
 	UnstarJSONBodyFavoriteKindApp    UnstarJSONBodyFavoriteKind = "app"
+	UnstarJSONBodyFavoriteKindAsset  UnstarJSONBodyFavoriteKind = "asset"
 	UnstarJSONBodyFavoriteKindFlow   UnstarJSONBodyFavoriteKind = "flow"
 	UnstarJSONBodyFavoriteKindRawApp UnstarJSONBodyFavoriteKind = "raw_app"
 	UnstarJSONBodyFavoriteKindScript UnstarJSONBodyFavoriteKind = "script"
@@ -1660,12 +1662,16 @@ type EditHttpTrigger struct {
 // EditKafkaTrigger defines model for EditKafkaTrigger.
 type EditKafkaTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
-	GroupId           string      `json:"group_id"`
-	IsFlow            bool        `json:"is_flow"`
-	KafkaResourcePath string      `json:"kafka_resource_path"`
-	Path              string      `json:"path"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	Filters          []struct {
+		Key   string      `json:"key"`
+		Value interface{} `json:"value"`
+	} `json:"filters"`
+	GroupId           string `json:"group_id"`
+	IsFlow            bool   `json:"is_flow"`
+	KafkaResourcePath string `json:"kafka_resource_path"`
+	Path              string `json:"path"`
 
 	// Retry Retry configuration for failed module executions
 	Retry      *Retry   `json:"retry,omitempty"`
@@ -2986,11 +2992,15 @@ type NewHttpTrigger struct {
 // NewKafkaTrigger defines model for NewKafkaTrigger.
 type NewKafkaTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
-	GroupId           string      `json:"group_id"`
-	IsFlow            bool        `json:"is_flow"`
-	KafkaResourcePath string      `json:"kafka_resource_path"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	Filters          []struct {
+		Key   string      `json:"key"`
+		Value interface{} `json:"value"`
+	} `json:"filters"`
+	GroupId           string `json:"group_id"`
+	IsFlow            bool   `json:"is_flow"`
+	KafkaResourcePath string `json:"kafka_resource_path"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -8286,6 +8296,12 @@ type SetWorkspaceEncryptionKeyJSONBody struct {
 // GetDependentsAmountsJSONBody defines parameters for GetDependentsAmounts.
 type GetDependentsAmountsJSONBody = []string
 
+// GetSecondaryStorageNamesParams defines parameters for GetSecondaryStorageNames.
+type GetSecondaryStorageNamesParams struct {
+	// IncludeDefault If true, include "_default_" in the list if primary workspace storage is set
+	IncludeDefault *bool `form:"include_default,omitempty" json:"include_default,omitempty"`
+}
+
 // InviteUserJSONBody defines parameters for InviteUser.
 type InviteUserJSONBody struct {
 	Email             string  `json:"email"`
@@ -8298,6 +8314,12 @@ type InviteUserJSONBody struct {
 type GetPremiumInfoParams struct {
 	// SkipSubscriptionFetch skip fetching subscription status from stripe
 	SkipSubscriptionFetch *bool `form:"skip_subscription_fetch,omitempty" json:"skip_subscription_fetch,omitempty"`
+}
+
+// SetPublicAppRateLimitJSONBody defines parameters for SetPublicAppRateLimit.
+type SetPublicAppRateLimitJSONBody struct {
+	// PublicAppExecutionLimitPerMinute Rate limit for public app executions per minute per server. NULL or 0 to disable.
+	PublicAppExecutionLimitPerMinute *int `json:"public_app_execution_limit_per_minute,omitempty"`
 }
 
 // RunSlackMessageTestJobJSONBody defines parameters for RunSlackMessageTestJob.
@@ -9065,6 +9087,9 @@ type InviteUserJSONRequestBody InviteUserJSONBody
 
 // UpdateOperatorSettingsJSONRequestBody defines body for UpdateOperatorSettings for application/json ContentType.
 type UpdateOperatorSettingsJSONRequestBody = OperatorSettings
+
+// SetPublicAppRateLimitJSONRequestBody defines body for SetPublicAppRateLimit for application/json ContentType.
+type SetPublicAppRateLimitJSONRequestBody SetPublicAppRateLimitJSONBody
 
 // RunSlackMessageTestJobJSONRequestBody defines body for RunSlackMessageTestJob for application/json ContentType.
 type RunSlackMessageTestJobJSONRequestBody RunSlackMessageTestJobJSONBody
@@ -10661,6 +10686,9 @@ type ClientInterface interface {
 	// GetHubAppById request
 	GetHubAppById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetHubRawAppById request
+	GetHubRawAppById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListHubApps request
 	ListHubApps(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -11201,6 +11229,9 @@ type ClientInterface interface {
 	ListAssetsByUsageWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ListAssetsByUsage(ctx context.Context, workspace WorkspaceId, body ListAssetsByUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListFavoriteAssets request
+	ListFavoriteAssets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAuditLog request
 	GetAuditLog(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12793,7 +12824,7 @@ type ClientInterface interface {
 	GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSecondaryStorageNames request
-	GetSecondaryStorageNames(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetSecondaryStorageNames(ctx context.Context, workspace WorkspaceId, params *GetSecondaryStorageNamesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSettings request
 	GetSettings(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12831,6 +12862,11 @@ type ClientInterface interface {
 
 	// GetPremiumInfo request
 	GetPremiumInfo(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetPublicAppRateLimitWithBody request with any body
+	SetPublicAppRateLimitWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetPublicAppRateLimit(ctx context.Context, workspace WorkspaceId, body SetPublicAppRateLimitJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RebuildDependencyMap request
 	RebuildDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -13046,6 +13082,18 @@ func (c *Client) RemoveBlacklistAgentToken(ctx context.Context, body RemoveBlack
 
 func (c *Client) GetHubAppById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetHubAppByIdRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetHubRawAppById(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetHubRawAppByIdRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -15410,6 +15458,18 @@ func (c *Client) ListAssetsByUsageWithBody(ctx context.Context, workspace Worksp
 
 func (c *Client) ListAssetsByUsage(ctx context.Context, workspace WorkspaceId, body ListAssetsByUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAssetsByUsageRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListFavoriteAssets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListFavoriteAssetsRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -22464,8 +22524,8 @@ func (c *Client) GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEdit
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetSecondaryStorageNames(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetSecondaryStorageNamesRequest(c.Server, workspace)
+func (c *Client) GetSecondaryStorageNames(ctx context.Context, workspace WorkspaceId, params *GetSecondaryStorageNamesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSecondaryStorageNamesRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -22622,6 +22682,30 @@ func (c *Client) UpdateOperatorSettings(ctx context.Context, workspace Workspace
 
 func (c *Client) GetPremiumInfo(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPremiumInfoRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetPublicAppRateLimitWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetPublicAppRateLimitRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetPublicAppRateLimit(ctx context.Context, workspace WorkspaceId, body SetPublicAppRateLimitJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetPublicAppRateLimitRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -23316,6 +23400,40 @@ func NewGetHubAppByIdRequest(server string, id PathId) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/apps/hub/get/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetHubRawAppByIdRequest generates requests for GetHubRawAppById
+func NewGetHubRawAppByIdRequest(server string, id PathId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/apps/hub/get_raw/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -29825,6 +29943,40 @@ func NewListAssetsByUsageRequestWithBody(server string, workspace WorkspaceId, c
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListFavoriteAssetsRequest generates requests for ListFavoriteAssets
+func NewListFavoriteAssetsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/assets/list_favorites", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -58497,7 +58649,7 @@ func NewGetDeployToRequest(server string, workspace WorkspaceId) (*http.Request,
 }
 
 // NewGetSecondaryStorageNamesRequest generates requests for GetSecondaryStorageNames
-func NewGetSecondaryStorageNamesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewGetSecondaryStorageNamesRequest(server string, workspace WorkspaceId, params *GetSecondaryStorageNamesParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -58520,6 +58672,28 @@ func NewGetSecondaryStorageNamesRequest(server string, workspace WorkspaceId) (*
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeDefault != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_default", runtime.ParamLocationQuery, *params.IncludeDefault); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -58948,6 +59122,53 @@ func NewGetPremiumInfoRequest(server string, workspace WorkspaceId, params *GetP
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewSetPublicAppRateLimitRequest calls the generic SetPublicAppRateLimit builder with application/json body
+func NewSetPublicAppRateLimitRequest(server string, workspace WorkspaceId, body SetPublicAppRateLimitJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetPublicAppRateLimitRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetPublicAppRateLimitRequestWithBody generates requests for SetPublicAppRateLimit with any type of body
+func NewSetPublicAppRateLimitRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/public_app_rate_limit", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -60184,6 +60405,9 @@ type ClientWithResponsesInterface interface {
 	// GetHubAppByIdWithResponse request
 	GetHubAppByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubAppByIdResponse, error)
 
+	// GetHubRawAppByIdWithResponse request
+	GetHubRawAppByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubRawAppByIdResponse, error)
+
 	// ListHubAppsWithResponse request
 	ListHubAppsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubAppsResponse, error)
 
@@ -60724,6 +60948,9 @@ type ClientWithResponsesInterface interface {
 	ListAssetsByUsageWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAssetsByUsageResponse, error)
 
 	ListAssetsByUsageWithResponse(ctx context.Context, workspace WorkspaceId, body ListAssetsByUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*ListAssetsByUsageResponse, error)
+
+	// ListFavoriteAssetsWithResponse request
+	ListFavoriteAssetsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListFavoriteAssetsResponse, error)
 
 	// GetAuditLogWithResponse request
 	GetAuditLogWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAuditLogResponse, error)
@@ -62316,7 +62543,7 @@ type ClientWithResponsesInterface interface {
 	GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error)
 
 	// GetSecondaryStorageNamesWithResponse request
-	GetSecondaryStorageNamesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSecondaryStorageNamesResponse, error)
+	GetSecondaryStorageNamesWithResponse(ctx context.Context, workspace WorkspaceId, params *GetSecondaryStorageNamesParams, reqEditors ...RequestEditorFn) (*GetSecondaryStorageNamesResponse, error)
 
 	// GetSettingsWithResponse request
 	GetSettingsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSettingsResponse, error)
@@ -62354,6 +62581,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetPremiumInfoWithResponse request
 	GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error)
+
+	// SetPublicAppRateLimitWithBodyWithResponse request with any body
+	SetPublicAppRateLimitWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPublicAppRateLimitResponse, error)
+
+	SetPublicAppRateLimitWithResponse(ctx context.Context, workspace WorkspaceId, body SetPublicAppRateLimitJSONRequestBody, reqEditors ...RequestEditorFn) (*SetPublicAppRateLimitResponse, error)
 
 	// RebuildDependencyMapWithResponse request
 	RebuildDependencyMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*RebuildDependencyMapResponse, error)
@@ -62622,6 +62854,33 @@ func (r GetHubAppByIdResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetHubAppByIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetHubRawAppByIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		App struct {
+			Summary string      `json:"summary"`
+			Value   interface{} `json:"value"`
+		} `json:"app"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetHubRawAppByIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetHubRawAppByIdResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -65932,6 +66191,9 @@ type ListAssetsResponse struct {
 			Usages []struct {
 				AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
 
+				// Columns The columns used (for tables)
+				Columns *map[string]AssetUsageAccessType `json:"columns,omitempty"`
+
 				// CreatedAt When the asset was detected
 				CreatedAt *time.Time     `json:"created_at,omitempty"`
 				Kind      AssetUsageKind `json:"kind"`
@@ -65993,6 +66255,31 @@ func (r ListAssetsByUsageResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListAssetsByUsageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListFavoriteAssetsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		// Path The asset path
+		Path string `json:"path"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListFavoriteAssetsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListFavoriteAssetsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -75249,17 +75536,20 @@ type GetSettingsResponse struct {
 		Ducklake       *DucklakeSettings          `json:"ducklake,omitempty"`
 
 		// ErrorHandler Configuration for the workspace error handler
-		ErrorHandler           *ErrorHandlerConfig       `json:"error_handler,omitempty"`
-		GitSync                *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
-		LargeFileStorage       *LargeFileStorage         `json:"large_file_storage,omitempty"`
-		MuteCriticalAlerts     *bool                     `json:"mute_critical_alerts,omitempty"`
-		OperatorSettings       *OperatorSettings         `json:"operator_settings"`
-		Plan                   *string                   `json:"plan,omitempty"`
-		SlackCommandScript     *string                   `json:"slack_command_script,omitempty"`
-		SlackName              *string                   `json:"slack_name,omitempty"`
-		SlackOauthClientId     *string                   `json:"slack_oauth_client_id,omitempty"`
-		SlackOauthClientSecret *string                   `json:"slack_oauth_client_secret,omitempty"`
-		SlackTeamId            *string                   `json:"slack_team_id,omitempty"`
+		ErrorHandler       *ErrorHandlerConfig       `json:"error_handler,omitempty"`
+		GitSync            *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
+		LargeFileStorage   *LargeFileStorage         `json:"large_file_storage,omitempty"`
+		MuteCriticalAlerts *bool                     `json:"mute_critical_alerts,omitempty"`
+		OperatorSettings   *OperatorSettings         `json:"operator_settings"`
+		Plan               *string                   `json:"plan,omitempty"`
+
+		// PublicAppExecutionLimitPerMinute Rate limit for public app executions per minute per server. NULL or 0 means disabled.
+		PublicAppExecutionLimitPerMinute *int    `json:"public_app_execution_limit_per_minute,omitempty"`
+		SlackCommandScript               *string `json:"slack_command_script,omitempty"`
+		SlackName                        *string `json:"slack_name,omitempty"`
+		SlackOauthClientId               *string `json:"slack_oauth_client_id,omitempty"`
+		SlackOauthClientSecret           *string `json:"slack_oauth_client_secret,omitempty"`
+		SlackTeamId                      *string `json:"slack_team_id,omitempty"`
 
 		// SuccessHandler Configuration for the workspace success handler
 		SuccessHandler     *SuccessHandlerConfig `json:"success_handler,omitempty"`
@@ -75505,6 +75795,28 @@ func (r GetPremiumInfoResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetPremiumInfoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetPublicAppRateLimitResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r SetPublicAppRateLimitResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetPublicAppRateLimitResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -76246,6 +76558,15 @@ func (c *ClientWithResponses) GetHubAppByIdWithResponse(ctx context.Context, id 
 		return nil, err
 	}
 	return ParseGetHubAppByIdResponse(rsp)
+}
+
+// GetHubRawAppByIdWithResponse request returning *GetHubRawAppByIdResponse
+func (c *ClientWithResponses) GetHubRawAppByIdWithResponse(ctx context.Context, id PathId, reqEditors ...RequestEditorFn) (*GetHubRawAppByIdResponse, error) {
+	rsp, err := c.GetHubRawAppById(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetHubRawAppByIdResponse(rsp)
 }
 
 // ListHubAppsWithResponse request returning *ListHubAppsResponse
@@ -77969,6 +78290,15 @@ func (c *ClientWithResponses) ListAssetsByUsageWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseListAssetsByUsageResponse(rsp)
+}
+
+// ListFavoriteAssetsWithResponse request returning *ListFavoriteAssetsResponse
+func (c *ClientWithResponses) ListFavoriteAssetsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListFavoriteAssetsResponse, error) {
+	rsp, err := c.ListFavoriteAssets(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListFavoriteAssetsResponse(rsp)
 }
 
 // GetAuditLogWithResponse request returning *GetAuditLogResponse
@@ -83084,8 +83414,8 @@ func (c *ClientWithResponses) GetDeployToWithResponse(ctx context.Context, works
 }
 
 // GetSecondaryStorageNamesWithResponse request returning *GetSecondaryStorageNamesResponse
-func (c *ClientWithResponses) GetSecondaryStorageNamesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSecondaryStorageNamesResponse, error) {
-	rsp, err := c.GetSecondaryStorageNames(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) GetSecondaryStorageNamesWithResponse(ctx context.Context, workspace WorkspaceId, params *GetSecondaryStorageNamesParams, reqEditors ...RequestEditorFn) (*GetSecondaryStorageNamesResponse, error) {
+	rsp, err := c.GetSecondaryStorageNames(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -83205,6 +83535,23 @@ func (c *ClientWithResponses) GetPremiumInfoWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseGetPremiumInfoResponse(rsp)
+}
+
+// SetPublicAppRateLimitWithBodyWithResponse request with arbitrary body returning *SetPublicAppRateLimitResponse
+func (c *ClientWithResponses) SetPublicAppRateLimitWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPublicAppRateLimitResponse, error) {
+	rsp, err := c.SetPublicAppRateLimitWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetPublicAppRateLimitResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetPublicAppRateLimitWithResponse(ctx context.Context, workspace WorkspaceId, body SetPublicAppRateLimitJSONRequestBody, reqEditors ...RequestEditorFn) (*SetPublicAppRateLimitResponse, error) {
+	rsp, err := c.SetPublicAppRateLimit(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetPublicAppRateLimitResponse(rsp)
 }
 
 // RebuildDependencyMapWithResponse request returning *RebuildDependencyMapResponse
@@ -83689,6 +84036,37 @@ func ParseGetHubAppByIdResponse(rsp *http.Response) (*GetHubAppByIdResponse, err
 	}
 
 	response := &GetHubAppByIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			App struct {
+				Summary string      `json:"summary"`
+				Value   interface{} `json:"value"`
+			} `json:"app"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetHubRawAppByIdResponse parses an HTTP response from a GetHubRawAppByIdWithResponse call
+func ParseGetHubRawAppByIdResponse(rsp *http.Response) (*GetHubRawAppByIdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetHubRawAppByIdResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -87012,6 +87390,9 @@ func ParseListAssetsResponse(rsp *http.Response) (*ListAssetsResponse, error) {
 				Usages []struct {
 					AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
 
+					// Columns The columns used (for tables)
+					Columns *map[string]AssetUsageAccessType `json:"columns,omitempty"`
+
 					// CreatedAt When the asset was detected
 					CreatedAt *time.Time     `json:"created_at,omitempty"`
 					Kind      AssetUsageKind `json:"kind"`
@@ -87064,6 +87445,35 @@ func ParseListAssetsByUsageResponse(rsp *http.Response) (*ListAssetsByUsageRespo
 			AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
 			Kind       AssetKind             `json:"kind"`
 			Path       string                `json:"path"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListFavoriteAssetsResponse parses an HTTP response from a ListFavoriteAssetsWithResponse call
+func ParseListFavoriteAssetsResponse(rsp *http.Response) (*ListFavoriteAssetsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListFavoriteAssetsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			// Path The asset path
+			Path string `json:"path"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -96277,17 +96687,20 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			Ducklake       *DucklakeSettings          `json:"ducklake,omitempty"`
 
 			// ErrorHandler Configuration for the workspace error handler
-			ErrorHandler           *ErrorHandlerConfig       `json:"error_handler,omitempty"`
-			GitSync                *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
-			LargeFileStorage       *LargeFileStorage         `json:"large_file_storage,omitempty"`
-			MuteCriticalAlerts     *bool                     `json:"mute_critical_alerts,omitempty"`
-			OperatorSettings       *OperatorSettings         `json:"operator_settings"`
-			Plan                   *string                   `json:"plan,omitempty"`
-			SlackCommandScript     *string                   `json:"slack_command_script,omitempty"`
-			SlackName              *string                   `json:"slack_name,omitempty"`
-			SlackOauthClientId     *string                   `json:"slack_oauth_client_id,omitempty"`
-			SlackOauthClientSecret *string                   `json:"slack_oauth_client_secret,omitempty"`
-			SlackTeamId            *string                   `json:"slack_team_id,omitempty"`
+			ErrorHandler       *ErrorHandlerConfig       `json:"error_handler,omitempty"`
+			GitSync            *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
+			LargeFileStorage   *LargeFileStorage         `json:"large_file_storage,omitempty"`
+			MuteCriticalAlerts *bool                     `json:"mute_critical_alerts,omitempty"`
+			OperatorSettings   *OperatorSettings         `json:"operator_settings"`
+			Plan               *string                   `json:"plan,omitempty"`
+
+			// PublicAppExecutionLimitPerMinute Rate limit for public app executions per minute per server. NULL or 0 means disabled.
+			PublicAppExecutionLimitPerMinute *int    `json:"public_app_execution_limit_per_minute,omitempty"`
+			SlackCommandScript               *string `json:"slack_command_script,omitempty"`
+			SlackName                        *string `json:"slack_name,omitempty"`
+			SlackOauthClientId               *string `json:"slack_oauth_client_id,omitempty"`
+			SlackOauthClientSecret           *string `json:"slack_oauth_client_secret,omitempty"`
+			SlackTeamId                      *string `json:"slack_team_id,omitempty"`
 
 			// SuccessHandler Configuration for the workspace success handler
 			SuccessHandler     *SuccessHandlerConfig `json:"success_handler,omitempty"`
@@ -96525,6 +96938,32 @@ func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, e
 			Status                 *string  `json:"status,omitempty"`
 			Usage                  *float32 `json:"usage,omitempty"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetPublicAppRateLimitResponse parses an HTTP response from a SetPublicAppRateLimitWithResponse call
+func ParseSetPublicAppRateLimitResponse(rsp *http.Response) (*SetPublicAppRateLimitResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetPublicAppRateLimitResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
