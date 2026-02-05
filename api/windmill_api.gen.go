@@ -26,22 +26,32 @@ const (
 
 // Defines values for AIProvider.
 const (
-	Anthropic   AIProvider = "anthropic"
-	AwsBedrock  AIProvider = "aws_bedrock"
-	AzureOpenai AIProvider = "azure_openai"
-	Customai    AIProvider = "customai"
-	Deepseek    AIProvider = "deepseek"
-	Googleai    AIProvider = "googleai"
-	Groq        AIProvider = "groq"
-	Mistral     AIProvider = "mistral"
-	Openai      AIProvider = "openai"
-	Openrouter  AIProvider = "openrouter"
-	Togetherai  AIProvider = "togetherai"
+	AIProviderAnthropic   AIProvider = "anthropic"
+	AIProviderAwsBedrock  AIProvider = "aws_bedrock"
+	AIProviderAzureOpenai AIProvider = "azure_openai"
+	AIProviderCustomai    AIProvider = "customai"
+	AIProviderDeepseek    AIProvider = "deepseek"
+	AIProviderGoogleai    AIProvider = "googleai"
+	AIProviderGroq        AIProvider = "groq"
+	AIProviderMistral     AIProvider = "mistral"
+	AIProviderOpenai      AIProvider = "openai"
+	AIProviderOpenrouter  AIProvider = "openrouter"
+	AIProviderTogetherai  AIProvider = "togetherai"
 )
 
-// Defines values for AiTransformType.
+// Defines values for AIProviderKind.
 const (
-	Ai AiTransformType = "ai"
+	AIProviderKindAnthropic   AIProviderKind = "anthropic"
+	AIProviderKindAwsBedrock  AIProviderKind = "aws_bedrock"
+	AIProviderKindAzureOpenai AIProviderKind = "azure_openai"
+	AIProviderKindCustomai    AIProviderKind = "customai"
+	AIProviderKindDeepseek    AIProviderKind = "deepseek"
+	AIProviderKindGoogleai    AIProviderKind = "googleai"
+	AIProviderKindGroq        AIProviderKind = "groq"
+	AIProviderKindMistral     AIProviderKind = "mistral"
+	AIProviderKindOpenai      AIProviderKind = "openai"
+	AIProviderKindOpenrouter  AIProviderKind = "openrouter"
+	AIProviderKindTogetherai  AIProviderKind = "togetherai"
 )
 
 // Defines values for AppWithLastVersionExecutionMode.
@@ -563,6 +573,28 @@ const (
 	Mcp McpToolValueToolType = "mcp"
 )
 
+// Defines values for MemoryAutoKind.
+const (
+	Auto MemoryAutoKind = "auto"
+)
+
+// Defines values for MemoryManualKind.
+const (
+	MemoryManualKindManual MemoryManualKind = "manual"
+)
+
+// Defines values for MemoryMessageRole.
+const (
+	MemoryMessageRoleAssistant MemoryMessageRole = "assistant"
+	MemoryMessageRoleSystem    MemoryMessageRole = "system"
+	MemoryMessageRoleUser      MemoryMessageRole = "user"
+)
+
+// Defines values for MemoryOffKind.
+const (
+	Off MemoryOffKind = "off"
+)
+
 // Defines values for MqttClientVersion.
 const (
 	V3 MqttClientVersion = "v3"
@@ -700,6 +732,7 @@ const (
 	ScriptLangBash       ScriptLang = "bash"
 	ScriptLangBigquery   ScriptLang = "bigquery"
 	ScriptLangBun        ScriptLang = "bun"
+	ScriptLangBunnative  ScriptLang = "bunnative"
 	ScriptLangCsharp     ScriptLang = "csharp"
 	ScriptLangDeno       ScriptLang = "deno"
 	ScriptLangDuckdb     ScriptLang = "duckdb"
@@ -718,6 +751,16 @@ const (
 	ScriptLangRuby       ScriptLang = "ruby"
 	ScriptLangRust       ScriptLang = "rust"
 	ScriptLangSnowflake  ScriptLang = "snowflake"
+)
+
+// Defines values for StaticMemoryTransformType.
+const (
+	StaticMemoryTransformTypeStatic StaticMemoryTransformType = "static"
+)
+
+// Defines values for StaticProviderTransformType.
+const (
+	StaticProviderTransformTypeStatic StaticProviderTransformType = "static"
 )
 
 // Defines values for SubscriptionMode.
@@ -773,6 +816,11 @@ const (
 // Defines values for SchemasAiAgentType.
 const (
 	Aiagent SchemasAiAgentType = "aiagent"
+)
+
+// Defines values for SchemasAiTransformType.
+const (
+	Ai SchemasAiTransformType = "ai"
 )
 
 // Defines values for SchemasBranchAllType.
@@ -876,20 +924,27 @@ const (
 
 // Defines values for SchemasRawScriptLanguage.
 const (
+	SchemasRawScriptLanguageAnsible    SchemasRawScriptLanguage = "ansible"
 	SchemasRawScriptLanguageBash       SchemasRawScriptLanguage = "bash"
 	SchemasRawScriptLanguageBigquery   SchemasRawScriptLanguage = "bigquery"
 	SchemasRawScriptLanguageBun        SchemasRawScriptLanguage = "bun"
+	SchemasRawScriptLanguageCsharp     SchemasRawScriptLanguage = "csharp"
 	SchemasRawScriptLanguageDeno       SchemasRawScriptLanguage = "deno"
+	SchemasRawScriptLanguageDuckdb     SchemasRawScriptLanguage = "duckdb"
 	SchemasRawScriptLanguageGo         SchemasRawScriptLanguage = "go"
 	SchemasRawScriptLanguageGraphql    SchemasRawScriptLanguage = "graphql"
+	SchemasRawScriptLanguageJava       SchemasRawScriptLanguage = "java"
 	SchemasRawScriptLanguageMssql      SchemasRawScriptLanguage = "mssql"
 	SchemasRawScriptLanguageMysql      SchemasRawScriptLanguage = "mysql"
 	SchemasRawScriptLanguageNativets   SchemasRawScriptLanguage = "nativets"
+	SchemasRawScriptLanguageNu         SchemasRawScriptLanguage = "nu"
 	SchemasRawScriptLanguageOracledb   SchemasRawScriptLanguage = "oracledb"
 	SchemasRawScriptLanguagePhp        SchemasRawScriptLanguage = "php"
 	SchemasRawScriptLanguagePostgresql SchemasRawScriptLanguage = "postgresql"
 	SchemasRawScriptLanguagePowershell SchemasRawScriptLanguage = "powershell"
 	SchemasRawScriptLanguagePython3    SchemasRawScriptLanguage = "python3"
+	SchemasRawScriptLanguageRuby       SchemasRawScriptLanguage = "ruby"
+	SchemasRawScriptLanguageRust       SchemasRawScriptLanguage = "rust"
 	SchemasRawScriptLanguageSnowflake  SchemasRawScriptLanguage = "snowflake"
 )
 
@@ -1089,6 +1144,9 @@ type AIProviderConfig struct {
 	ResourcePath string   `json:"resource_path"`
 }
 
+// AIProviderKind Supported AI provider types
+type AIProviderKind string
+
 // AIProviderModel defines model for AIProviderModel.
 type AIProviderModel struct {
 	Model    string     `json:"model"`
@@ -1106,14 +1164,6 @@ type AgentTool struct {
 	// Value The implementation of a tool. Can be a flow module (script/flow) or an MCP tool reference
 	Value ToolValue `json:"value"`
 }
-
-// AiTransform Value resolved by the AI runtime for this input. The AI engine decides how to satisfy the parameter.
-type AiTransform struct {
-	Type AiTransformType `json:"type"`
-}
-
-// AiTransformType defines model for AiTransform.Type.
-type AiTransformType string
 
 // Alert defines model for Alert.
 type Alert struct {
@@ -1502,7 +1552,7 @@ type DeleteGcpSubscription struct {
 	SubscriptionId string `json:"subscription_id"`
 }
 
-// DeliveryType defines model for DeliveryType.
+// DeliveryType Delivery mode for messages. 'push' for HTTP push delivery where messages are sent to a webhook endpoint, 'pull' for polling where the trigger actively fetches messages.
 type DeliveryType string
 
 // DependencyDependent defines model for DependencyDependent.
@@ -1628,75 +1678,133 @@ type EditErrorHandlerNew struct {
 
 // EditHttpTrigger defines model for EditHttpTrigger.
 type EditHttpTrigger struct {
-	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
-	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
-	Description                *string              `json:"description,omitempty"`
+	AuthenticationMethod AuthenticationMethod `json:"authentication_method"`
+
+	// AuthenticationResourcePath Path to the resource containing authentication configuration (for api_key, basic_http, custom_script, signature methods)
+	AuthenticationResourcePath *string `json:"authentication_resource_path,omitempty"`
+
+	// Description Detailed description of what this trigger does
+	Description *string `json:"description,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
-	HttpMethod       HttpMethod  `json:"http_method"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string    `json:"error_handler_path,omitempty"`
+	HttpMethod       HttpMethod `json:"http_method"`
 
 	// IsAsync Deprecated, use request_type instead
-	IsAsync         *bool            `json:"is_async,omitempty"`
-	IsFlow          bool             `json:"is_flow"`
-	IsStaticWebsite bool             `json:"is_static_website"`
-	Path            string           `json:"path"`
-	RawString       *bool            `json:"raw_string,omitempty"`
-	RequestType     *HttpRequestType `json:"request_type,omitempty"`
+	IsAsync *bool `json:"is_async,omitempty"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
+
+	// IsStaticWebsite If true, serves static files from S3/storage instead of running a script
+	IsStaticWebsite bool `json:"is_static_website"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
+
+	// RawString If true, passes the request body as a raw string instead of parsing as JSON
+	RawString   *bool            `json:"raw_string,omitempty"`
+	RequestType *HttpRequestType `json:"request_type,omitempty"`
 
 	// Retry Retry configuration for failed module executions
-	Retry             *Retry  `json:"retry,omitempty"`
-	RoutePath         *string `json:"route_path,omitempty"`
-	ScriptPath        string  `json:"script_path"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// RoutePath The URL route path that will trigger this endpoint (e.g., 'api/myendpoint'). Must NOT start with a /.
+	RoutePath *string `json:"route_path,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when triggered
+	ScriptPath string `json:"script_path"`
+
+	// StaticAssetConfig Configuration for serving static assets (s3 bucket, storage path, filename)
 	StaticAssetConfig *struct {
+		// Filename Filename for the static asset
 		Filename *string `json:"filename,omitempty"`
-		S3       string  `json:"s3"`
-		Storage  *string `json:"storage,omitempty"`
+
+		// S3 S3 bucket path for static assets
+		S3 string `json:"s3"`
+
+		// Storage Storage path for static assets
+		Storage *string `json:"storage,omitempty"`
 	} `json:"static_asset_config,omitempty"`
-	Summary         *string `json:"summary,omitempty"`
-	WorkspacedRoute *bool   `json:"workspaced_route,omitempty"`
-	WrapBody        *bool   `json:"wrap_body,omitempty"`
+
+	// Summary Short summary describing the purpose of this trigger
+	Summary *string `json:"summary,omitempty"`
+
+	// WorkspacedRoute If true, the route includes the workspace ID in the path
+	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
+
+	// WrapBody If true, wraps the request body in a 'body' parameter
+	WrapBody *bool `json:"wrap_body,omitempty"`
 }
 
 // EditKafkaTrigger defines model for EditKafkaTrigger.
 type EditKafkaTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 	Filters          []struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
-	GroupId           string `json:"group_id"`
-	IsFlow            bool   `json:"is_flow"`
+
+	// GroupId Kafka consumer group ID for this trigger
+	GroupId string `json:"group_id"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
+
+	// KafkaResourcePath Path to the Kafka resource containing connection configuration
 	KafkaResourcePath string `json:"kafka_resource_path"`
-	Path              string `json:"path"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
 
 	// Retry Retry configuration for failed module executions
-	Retry      *Retry   `json:"retry,omitempty"`
-	ScriptPath string   `json:"script_path"`
-	Topics     []string `json:"topics"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when a message is received
+	ScriptPath string `json:"script_path"`
+
+	// Topics Array of Kafka topic names to subscribe to
+	Topics []string `json:"topics"`
 }
 
 // EditMqttTrigger defines model for EditMqttTrigger.
 type EditMqttTrigger struct {
+	// ClientId MQTT client ID for this connection
 	ClientId      *string            `json:"client_id,omitempty"`
 	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
-	IsFlow           bool        `json:"is_flow"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
 
 	// Mode job trigger mode
-	Mode             *TriggerMode `json:"mode,omitempty"`
-	MqttResourcePath string       `json:"mqtt_resource_path"`
-	Path             string       `json:"path"`
+	Mode *TriggerMode `json:"mode,omitempty"`
+
+	// MqttResourcePath Path to the MQTT resource containing broker connection configuration
+	MqttResourcePath string `json:"mqtt_resource_path"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
 
 	// Retry Retry configuration for failed module executions
-	Retry           *Retry               `json:"retry,omitempty"`
-	ScriptPath      string               `json:"script_path"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when a message is received
+	ScriptPath string `json:"script_path"`
+
+	// SubscribeTopics Array of MQTT topics to subscribe to, each with topic name and QoS level
 	SubscribeTopics []MqttSubscribeTopic `json:"subscribe_topics"`
 	V3Config        *MqttV3Config        `json:"v3_config,omitempty"`
 	V5Config        *MqttV5Config        `json:"v5_config,omitempty"`
@@ -1704,40 +1812,71 @@ type EditMqttTrigger struct {
 
 // EditNatsTrigger defines model for EditNatsTrigger.
 type EditNatsTrigger struct {
+	// ConsumerName JetStream consumer name (required when use_jetstream is true)
 	ConsumerName *string `json:"consumer_name,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
-	IsFlow           bool        `json:"is_flow"`
-	NatsResourcePath string      `json:"nats_resource_path"`
-	Path             string      `json:"path"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
+
+	// NatsResourcePath Path to the NATS resource containing connection configuration
+	NatsResourcePath string `json:"nats_resource_path"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
 
 	// Retry Retry configuration for failed module executions
-	Retry        *Retry   `json:"retry,omitempty"`
-	ScriptPath   string   `json:"script_path"`
-	StreamName   *string  `json:"stream_name,omitempty"`
-	Subjects     []string `json:"subjects"`
-	UseJetstream bool     `json:"use_jetstream"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when a message is received
+	ScriptPath string `json:"script_path"`
+
+	// StreamName JetStream stream name (required when use_jetstream is true)
+	StreamName *string `json:"stream_name,omitempty"`
+
+	// Subjects Array of NATS subjects to subscribe to
+	Subjects []string `json:"subjects"`
+
+	// UseJetstream If true, uses NATS JetStream for durable message delivery
+	UseJetstream bool `json:"use_jetstream"`
 }
 
 // EditPostgresTrigger defines model for EditPostgresTrigger.
 type EditPostgresTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
-	IsFlow           bool        `json:"is_flow"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
 
 	// Mode job trigger mode
-	Mode                 *TriggerMode     `json:"mode,omitempty"`
-	Path                 string           `json:"path"`
+	Mode *TriggerMode `json:"mode,omitempty"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
+
+	// PostgresResourcePath Path to the PostgreSQL resource containing connection configuration
 	PostgresResourcePath string           `json:"postgres_resource_path"`
 	Publication          *PublicationData `json:"publication,omitempty"`
-	PublicationName      string           `json:"publication_name"`
-	ReplicationSlotName  string           `json:"replication_slot_name"`
+
+	// PublicationName Name of the PostgreSQL publication to subscribe to for change data capture
+	PublicationName string `json:"publication_name"`
+
+	// ReplicationSlotName Name of the PostgreSQL logical replication slot to use
+	ReplicationSlotName string `json:"replication_slot_name"`
 
 	// Retry Retry configuration for failed module executions
-	Retry      *Retry `json:"retry,omitempty"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when database changes are detected
 	ScriptPath string `json:"script_path"`
 }
 
@@ -1765,85 +1904,99 @@ type EditSchedule struct {
 	// Args The arguments to pass to the script or flow
 	Args ScriptArgs `json:"args"`
 
-	// CronVersion The version of the cron schedule to use (last is v2)
+	// CronVersion Cron parser version. Use 'v2' for extended syntax with additional features
 	CronVersion *string `json:"cron_version,omitempty"`
 
-	// Description The description of the schedule
+	// Description Detailed description of what this schedule does
 	Description *string `json:"description,omitempty"`
 
-	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean.
+	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
 	DynamicSkip *string `json:"dynamic_skip,omitempty"`
 
-	// NoFlowOverlap Whether the schedule should not run if a flow is already running
+	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
 
-	// OnFailure The path to the script or flow to trigger on failure
+	// OnFailure Path to a script or flow to run when the scheduled job fails
 	OnFailure *string `json:"on_failure,omitempty"`
 
-	// OnFailureExact Whether the schedule should only run on the exact time
+	// OnFailureExact If true, trigger on_failure handler only on exactly N failures, not on every failure after N
 	OnFailureExact *bool `json:"on_failure_exact,omitempty"`
 
 	// OnFailureExtraArgs The arguments to pass to the script or flow
 	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
 
-	// OnFailureTimes The number of times to retry on failure
+	// OnFailureTimes Number of consecutive failures before the on_failure handler is triggered (default 1)
 	OnFailureTimes *float32 `json:"on_failure_times,omitempty"`
 
-	// OnRecovery The path to the script or flow to trigger on recovery
+	// OnRecovery Path to a script or flow to run when the schedule recovers after failures
 	OnRecovery *string `json:"on_recovery,omitempty"`
 
 	// OnRecoveryExtraArgs The arguments to pass to the script or flow
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 
-	// OnRecoveryTimes The number of times to retry on recovery
+	// OnRecoveryTimes Number of consecutive successes before the on_recovery handler is triggered (default 1)
 	OnRecoveryTimes *float32 `json:"on_recovery_times,omitempty"`
 
-	// OnSuccess The path to the script or flow to trigger on success
+	// OnSuccess Path to a script or flow to run after each successful execution
 	OnSuccess *string `json:"on_success,omitempty"`
 
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
 
-	// PausedUntil The date and time the schedule will be paused until
+	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
 	PausedUntil *time.Time `json:"paused_until,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
-	// Schedule The cron schedule to trigger the script or flow. Should include seconds.
+	// Schedule Cron expression with 6 fields (seconds, minutes, hours, day of month, month, day of week). Example '0 0 12 * * *' for daily at noon
 	Schedule string `json:"schedule"`
 
-	// Summary The summary of the schedule
+	// Summary Short summary describing the purpose of this schedule
 	Summary *string `json:"summary,omitempty"`
 
-	// Tag The tag of the schedule
+	// Tag Worker tag to route jobs to specific worker groups
 	Tag *string `json:"tag,omitempty"`
 
-	// Timezone The timezone to use for the cron schedule
+	// Timezone IANA timezone for the schedule (e.g., 'UTC', 'Europe/Paris', 'America/New_York')
 	Timezone string `json:"timezone"`
 
-	// WsErrorHandlerMuted Whether the WebSocket error handler is muted
+	// WsErrorHandlerMuted If true, the workspace-level error handler will not be triggered for this schedule's failures
 	WsErrorHandlerMuted *bool `json:"ws_error_handler_muted,omitempty"`
 }
 
 // EditSqsTrigger defines model for EditSqsTrigger.
 type EditSqsTrigger struct {
 	AwsAuthResourceType AwsAuthResourceType `json:"aws_auth_resource_type"`
-	AwsResourcePath     string              `json:"aws_resource_path"`
+
+	// AwsResourcePath Path to the AWS resource containing credentials or OIDC configuration
+	AwsResourcePath string `json:"aws_resource_path"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
-	IsFlow            bool        `json:"is_flow"`
-	MessageAttributes *[]string   `json:"message_attributes,omitempty"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
+
+	// MessageAttributes Array of SQS message attribute names to include with each message
+	MessageAttributes *[]string `json:"message_attributes,omitempty"`
 
 	// Mode job trigger mode
-	Mode     *TriggerMode `json:"mode,omitempty"`
-	Path     string       `json:"path"`
-	QueueUrl string       `json:"queue_url"`
+	Mode *TriggerMode `json:"mode,omitempty"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
+
+	// QueueUrl The full URL of the AWS SQS queue to poll for messages
+	QueueUrl string `json:"queue_url"`
 
 	// Retry Retry configuration for failed module executions
-	Retry      *Retry `json:"retry,omitempty"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when a message is received
 	ScriptPath string `json:"script_path"`
 }
 
@@ -1887,24 +2040,41 @@ type EditVariable struct {
 
 // EditWebsocketTrigger defines model for EditWebsocketTrigger.
 type EditWebsocketTrigger struct {
+	// CanReturnErrorResult If true, error results are sent back through the WebSocket
 	CanReturnErrorResult bool `json:"can_return_error_result"`
-	CanReturnMessage     bool `json:"can_return_message"`
+
+	// CanReturnMessage If true, the script can return a message to send back through the WebSocket
+	CanReturnMessage bool `json:"can_return_message"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
-	Filters          []struct {
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
+
+	// Filters Array of key-value filters to match incoming messages (only matching messages trigger the script)
+	Filters []struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
+
+	// InitialMessages Messages to send immediately after connecting (can be raw strings or computed by runnables)
 	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
-	IsFlow          bool                              `json:"is_flow"`
-	Path            string                            `json:"path"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
 
 	// Retry Retry configuration for failed module executions
-	Retry      *Retry `json:"retry,omitempty"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when a message is received
 	ScriptPath string `json:"script_path"`
-	Url        string `json:"url"`
+
+	// Url The WebSocket URL to connect to (can be a static URL or computed by a runnable)
+	Url string `json:"url"`
 
 	// UrlRunnableArgs The arguments to pass to the script or flow
 	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
@@ -2426,33 +2596,55 @@ type Folder struct {
 // GcpTrigger defines model for GcpTrigger.
 type GcpTrigger = TriggerExtraProperty
 
-// GcpTriggerData defines model for GcpTriggerData.
+// GcpTriggerData Data for creating or updating a Google Cloud Pub/Sub trigger.
 type GcpTriggerData struct {
 	// AckDeadline Time in seconds within which the message must be acknowledged. If not provided, defaults to the subscription's acknowledgment deadline (600 seconds).
-	AckDeadline        *int32        `json:"ack_deadline,omitempty"`
-	AutoAcknowledgeMsg *bool         `json:"auto_acknowledge_msg,omitempty"`
-	BaseEndpoint       *string       `json:"base_endpoint,omitempty"`
-	DeliveryConfig     *PushConfig   `json:"delivery_config,omitempty"`
-	DeliveryType       *DeliveryType `json:"delivery_type,omitempty"`
+	AckDeadline *int32 `json:"ack_deadline,omitempty"`
+
+	// AutoAcknowledgeMsg If true, automatically acknowledge messages after processing.
+	AutoAcknowledgeMsg *bool `json:"auto_acknowledge_msg,omitempty"`
+
+	// BaseEndpoint Base URL for push delivery endpoint.
+	BaseEndpoint *string `json:"base_endpoint,omitempty"`
+
+	// DeliveryConfig Configuration for push delivery mode.
+	DeliveryConfig *PushConfig `json:"delivery_config,omitempty"`
+
+	// DeliveryType Delivery mode for messages. 'push' for HTTP push delivery where messages are sent to a webhook endpoint, 'pull' for polling where the trigger actively fetches messages.
+	DeliveryType *DeliveryType `json:"delivery_type,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
-	GcpResourcePath  string      `json:"gcp_resource_path"`
-	IsFlow           bool        `json:"is_flow"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails.
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
+
+	// GcpResourcePath Path to the GCP resource containing service account credentials for authentication.
+	GcpResourcePath string `json:"gcp_resource_path"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script.
+	IsFlow bool `json:"is_flow"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
-	Path string       `json:"path"`
+
+	// Path The unique path identifier for this trigger.
+	Path string `json:"path"`
 
 	// Retry Retry configuration for failed module executions
-	Retry          *Retry  `json:"retry,omitempty"`
-	ScriptPath     string  `json:"script_path"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when a message is received.
+	ScriptPath string `json:"script_path"`
+
+	// SubscriptionId Google Cloud Pub/Sub subscription ID.
 	SubscriptionId *string `json:"subscription_id,omitempty"`
 
 	// SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
 	SubscriptionMode SubscriptionMode `json:"subscription_mode"`
-	TopicId          string           `json:"topic_id"`
+
+	// TopicId Google Cloud Pub/Sub topic ID to subscribe to.
+	TopicId string `json:"topic_id"`
 }
 
 // GenerateOpenapiSpec defines model for GenerateOpenapiSpec.
@@ -2831,6 +3023,50 @@ type McpToolValue struct {
 // McpToolValueToolType defines model for McpToolValue.ToolType.
 type McpToolValueToolType string
 
+// MemoryAuto Automatic context management
+type MemoryAuto struct {
+	// ContextLength Maximum number of messages to retain in context
+	ContextLength *int           `json:"context_length,omitempty"`
+	Kind          MemoryAutoKind `json:"kind"`
+
+	// MemoryId Identifier for persistent memory across agent invocations
+	MemoryId *string `json:"memory_id,omitempty"`
+}
+
+// MemoryAutoKind defines model for MemoryAuto.Kind.
+type MemoryAutoKind string
+
+// MemoryManual Explicit message history
+type MemoryManual struct {
+	Kind     MemoryManualKind `json:"kind"`
+	Messages []MemoryMessage  `json:"messages"`
+}
+
+// MemoryManualKind defines model for MemoryManual.Kind.
+type MemoryManualKind string
+
+// MemoryMessage A single message in conversation history
+type MemoryMessage struct {
+	Content string            `json:"content"`
+	Role    MemoryMessageRole `json:"role"`
+}
+
+// MemoryMessageRole defines model for MemoryMessage.Role.
+type MemoryMessageRole string
+
+// MemoryOff No conversation memory/context
+type MemoryOff struct {
+	Kind MemoryOffKind `json:"kind"`
+}
+
+// MemoryOffKind defines model for MemoryOff.Kind.
+type MemoryOffKind string
+
+// MemoryTransform Memory configuration - can be static (MemoryConfig), JavaScript expression, or AI-determined
+type MemoryTransform struct {
+	union json.RawMessage
+}
+
 // MetricDataPoint defines model for MetricDataPoint.
 type MetricDataPoint struct {
 	Timestamp time.Time `json:"timestamp"`
@@ -2955,81 +3191,139 @@ type NewEmailTrigger struct {
 
 // NewHttpTrigger defines model for NewHttpTrigger.
 type NewHttpTrigger struct {
-	AuthenticationMethod       AuthenticationMethod `json:"authentication_method"`
-	AuthenticationResourcePath *string              `json:"authentication_resource_path,omitempty"`
-	Description                *string              `json:"description,omitempty"`
+	AuthenticationMethod AuthenticationMethod `json:"authentication_method"`
+
+	// AuthenticationResourcePath Path to the resource containing authentication configuration (for api_key, basic_http, custom_script, signature methods)
+	AuthenticationResourcePath *string `json:"authentication_resource_path,omitempty"`
+
+	// Description Detailed description of what this trigger does
+	Description *string `json:"description,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
-	HttpMethod       HttpMethod  `json:"http_method"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string    `json:"error_handler_path,omitempty"`
+	HttpMethod       HttpMethod `json:"http_method"`
 
 	// IsAsync Deprecated, use request_type instead
-	IsAsync         *bool `json:"is_async,omitempty"`
-	IsFlow          bool  `json:"is_flow"`
-	IsStaticWebsite bool  `json:"is_static_website"`
+	IsAsync *bool `json:"is_async,omitempty"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
+
+	// IsStaticWebsite If true, serves static files from S3/storage instead of running a script
+	IsStaticWebsite bool `json:"is_static_website"`
 
 	// Mode job trigger mode
-	Mode        *TriggerMode     `json:"mode,omitempty"`
-	Path        string           `json:"path"`
+	Mode *TriggerMode `json:"mode,omitempty"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
+
+	// RawString If true, passes the request body as a raw string instead of parsing as JSON
 	RawString   *bool            `json:"raw_string,omitempty"`
 	RequestType *HttpRequestType `json:"request_type,omitempty"`
 
 	// Retry Retry configuration for failed module executions
-	Retry             *Retry `json:"retry,omitempty"`
-	RoutePath         string `json:"route_path"`
-	ScriptPath        string `json:"script_path"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// RoutePath The URL route path that will trigger this endpoint (e.g., 'api/myendpoint'). Must NOT start with a /.
+	RoutePath string `json:"route_path"`
+
+	// ScriptPath Path to the script or flow to execute when triggered
+	ScriptPath string `json:"script_path"`
+
+	// StaticAssetConfig Configuration for serving static assets (s3 bucket, storage path, filename)
 	StaticAssetConfig *struct {
+		// Filename Filename for the static asset
 		Filename *string `json:"filename,omitempty"`
-		S3       string  `json:"s3"`
-		Storage  *string `json:"storage,omitempty"`
+
+		// S3 S3 bucket path for static assets
+		S3 string `json:"s3"`
+
+		// Storage Storage path for static assets
+		Storage *string `json:"storage,omitempty"`
 	} `json:"static_asset_config,omitempty"`
-	Summary         *string `json:"summary,omitempty"`
-	WorkspacedRoute *bool   `json:"workspaced_route,omitempty"`
-	WrapBody        *bool   `json:"wrap_body,omitempty"`
+
+	// Summary Short summary describing the purpose of this trigger
+	Summary *string `json:"summary,omitempty"`
+
+	// WorkspacedRoute If true, the route includes the workspace ID in the path
+	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
+
+	// WrapBody If true, wraps the request body in a 'body' parameter
+	WrapBody *bool `json:"wrap_body,omitempty"`
 }
 
 // NewKafkaTrigger defines model for NewKafkaTrigger.
 type NewKafkaTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 	Filters          []struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
-	GroupId           string `json:"group_id"`
-	IsFlow            bool   `json:"is_flow"`
+
+	// GroupId Kafka consumer group ID for this trigger
+	GroupId string `json:"group_id"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
+
+	// KafkaResourcePath Path to the Kafka resource containing connection configuration
 	KafkaResourcePath string `json:"kafka_resource_path"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
-	Path string       `json:"path"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
 
 	// Retry Retry configuration for failed module executions
-	Retry      *Retry   `json:"retry,omitempty"`
-	ScriptPath string   `json:"script_path"`
-	Topics     []string `json:"topics"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when a message is received
+	ScriptPath string `json:"script_path"`
+
+	// Topics Array of Kafka topic names to subscribe to
+	Topics []string `json:"topics"`
 }
 
 // NewMqttTrigger defines model for NewMqttTrigger.
 type NewMqttTrigger struct {
+	// ClientId MQTT client ID for this connection
 	ClientId      *string            `json:"client_id,omitempty"`
 	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
-	IsFlow           bool        `json:"is_flow"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
 
 	// Mode job trigger mode
-	Mode             *TriggerMode `json:"mode,omitempty"`
-	MqttResourcePath string       `json:"mqtt_resource_path"`
-	Path             string       `json:"path"`
+	Mode *TriggerMode `json:"mode,omitempty"`
+
+	// MqttResourcePath Path to the MQTT resource containing broker connection configuration
+	MqttResourcePath string `json:"mqtt_resource_path"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
 
 	// Retry Retry configuration for failed module executions
-	Retry           *Retry               `json:"retry,omitempty"`
-	ScriptPath      string               `json:"script_path"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when a message is received
+	ScriptPath string `json:"script_path"`
+
+	// SubscribeTopics Array of MQTT topics to subscribe to, each with topic name and QoS level
 	SubscribeTopics []MqttSubscribeTopic `json:"subscribe_topics"`
 	V3Config        *MqttV3Config        `json:"v3_config,omitempty"`
 	V5Config        *MqttV5Config        `json:"v5_config,omitempty"`
@@ -3037,43 +3331,74 @@ type NewMqttTrigger struct {
 
 // NewNatsTrigger defines model for NewNatsTrigger.
 type NewNatsTrigger struct {
+	// ConsumerName JetStream consumer name (required when use_jetstream is true)
 	ConsumerName *string `json:"consumer_name,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
-	IsFlow           bool        `json:"is_flow"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
 
 	// Mode job trigger mode
-	Mode             *TriggerMode `json:"mode,omitempty"`
-	NatsResourcePath string       `json:"nats_resource_path"`
-	Path             string       `json:"path"`
+	Mode *TriggerMode `json:"mode,omitempty"`
+
+	// NatsResourcePath Path to the NATS resource containing connection configuration
+	NatsResourcePath string `json:"nats_resource_path"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
 
 	// Retry Retry configuration for failed module executions
-	Retry        *Retry   `json:"retry,omitempty"`
-	ScriptPath   string   `json:"script_path"`
-	StreamName   *string  `json:"stream_name,omitempty"`
-	Subjects     []string `json:"subjects"`
-	UseJetstream bool     `json:"use_jetstream"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when a message is received
+	ScriptPath string `json:"script_path"`
+
+	// StreamName JetStream stream name (required when use_jetstream is true)
+	StreamName *string `json:"stream_name,omitempty"`
+
+	// Subjects Array of NATS subjects to subscribe to
+	Subjects []string `json:"subjects"`
+
+	// UseJetstream If true, uses NATS JetStream for durable message delivery
+	UseJetstream bool `json:"use_jetstream"`
 }
 
 // NewPostgresTrigger defines model for NewPostgresTrigger.
 type NewPostgresTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
-	IsFlow           bool        `json:"is_flow"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
 
 	// Mode job trigger mode
-	Mode                 *TriggerMode     `json:"mode,omitempty"`
-	Path                 string           `json:"path"`
+	Mode *TriggerMode `json:"mode,omitempty"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
+
+	// PostgresResourcePath Path to the PostgreSQL resource containing connection configuration
 	PostgresResourcePath string           `json:"postgres_resource_path"`
 	Publication          *PublicationData `json:"publication,omitempty"`
-	PublicationName      *string          `json:"publication_name,omitempty"`
-	ReplicationSlotName  *string          `json:"replication_slot_name,omitempty"`
+
+	// PublicationName Name of the PostgreSQL publication to subscribe to for change data capture
+	PublicationName *string `json:"publication_name,omitempty"`
+
+	// ReplicationSlotName Name of the PostgreSQL logical replication slot to use
+	ReplicationSlotName *string `json:"replication_slot_name,omitempty"`
 
 	// Retry Retry configuration for failed module executions
-	Retry      *Retry `json:"retry,omitempty"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when database changes are detected
 	ScriptPath string `json:"script_path"`
 }
 
@@ -3082,76 +3407,76 @@ type NewSchedule struct {
 	// Args The arguments to pass to the script or flow
 	Args ScriptArgs `json:"args"`
 
-	// CronVersion The version of the cron schedule to use (last is v2)
+	// CronVersion Cron parser version. Use 'v2' for extended syntax with additional features
 	CronVersion *string `json:"cron_version,omitempty"`
 
-	// Description The description of the schedule
+	// Description Detailed description of what this schedule does
 	Description *string `json:"description,omitempty"`
 
-	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean.
+	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
 	DynamicSkip *string `json:"dynamic_skip,omitempty"`
 
-	// Enabled Whether the schedule is enabled
+	// Enabled Whether the schedule is currently active and will trigger jobs
 	Enabled *bool `json:"enabled,omitempty"`
 
-	// IsFlow Whether the schedule is for a flow
+	// IsFlow True if script_path points to a flow, false if it points to a script
 	IsFlow bool `json:"is_flow"`
 
-	// NoFlowOverlap Whether the schedule should not run if a flow is already running
+	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
 
-	// OnFailure The path to the script or flow to trigger on failure
+	// OnFailure Path to a script or flow to run when the scheduled job fails
 	OnFailure *string `json:"on_failure,omitempty"`
 
-	// OnFailureExact Whether the schedule should only run on the exact time
+	// OnFailureExact If true, trigger on_failure handler only on exactly N failures, not on every failure after N
 	OnFailureExact *bool `json:"on_failure_exact,omitempty"`
 
 	// OnFailureExtraArgs The arguments to pass to the script or flow
 	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
 
-	// OnFailureTimes The number of times to retry on failure
+	// OnFailureTimes Number of consecutive failures before the on_failure handler is triggered (default 1)
 	OnFailureTimes *float32 `json:"on_failure_times,omitempty"`
 
-	// OnRecovery The path to the script or flow to trigger on recovery
+	// OnRecovery Path to a script or flow to run when the schedule recovers after failures
 	OnRecovery *string `json:"on_recovery,omitempty"`
 
 	// OnRecoveryExtraArgs The arguments to pass to the script or flow
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 
-	// OnRecoveryTimes The number of times to retry on recovery
+	// OnRecoveryTimes Number of consecutive successes before the on_recovery handler is triggered (default 1)
 	OnRecoveryTimes *float32 `json:"on_recovery_times,omitempty"`
 
-	// OnSuccess The path to the script or flow to trigger on success
+	// OnSuccess Path to a script or flow to run after each successful execution
 	OnSuccess *string `json:"on_success,omitempty"`
 
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
 
-	// Path The path where the schedule will be created
+	// Path The unique path identifier for this schedule
 	Path string `json:"path"`
 
-	// PausedUntil The date and time the schedule will be paused until
+	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
 	PausedUntil *time.Time `json:"paused_until,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
-	// Schedule The cron schedule to trigger the script or flow. Should include seconds.
+	// Schedule Cron expression with 6 fields (seconds, minutes, hours, day of month, month, day of week). Example '0 0 12 * * *' for daily at noon
 	Schedule string `json:"schedule"`
 
-	// ScriptPath The path to the script or flow to trigger
+	// ScriptPath Path to the script or flow to execute when triggered
 	ScriptPath string `json:"script_path"`
 
-	// Summary The summary of the schedule
+	// Summary Short summary describing the purpose of this schedule
 	Summary *string `json:"summary,omitempty"`
 
-	// Tag The tag of the schedule
+	// Tag Worker tag to route jobs to specific worker groups
 	Tag *string `json:"tag,omitempty"`
 
-	// Timezone The timezone to use for the cron schedule
+	// Timezone IANA timezone for the schedule (e.g., 'UTC', 'Europe/Paris', 'America/New_York')
 	Timezone string `json:"timezone"`
 
-	// WsErrorHandlerMuted Whether the WebSocket error handler is muted
+	// WsErrorHandlerMuted If true, the workspace-level error handler will not be triggered for this schedule's failures
 	WsErrorHandlerMuted *bool `json:"ws_error_handler_muted,omitempty"`
 }
 
@@ -3268,21 +3593,35 @@ type NewScriptWithDraftKind string
 // NewSqsTrigger defines model for NewSqsTrigger.
 type NewSqsTrigger struct {
 	AwsAuthResourceType AwsAuthResourceType `json:"aws_auth_resource_type"`
-	AwsResourcePath     string              `json:"aws_resource_path"`
+
+	// AwsResourcePath Path to the AWS resource containing credentials or OIDC configuration
+	AwsResourcePath string `json:"aws_resource_path"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
-	ErrorHandlerArgs  *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath  *string     `json:"error_handler_path,omitempty"`
-	IsFlow            bool        `json:"is_flow"`
-	MessageAttributes *[]string   `json:"message_attributes,omitempty"`
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
+
+	// MessageAttributes Array of SQS message attribute names to include with each message
+	MessageAttributes *[]string `json:"message_attributes,omitempty"`
 
 	// Mode job trigger mode
-	Mode     *TriggerMode `json:"mode,omitempty"`
-	Path     string       `json:"path"`
-	QueueUrl string       `json:"queue_url"`
+	Mode *TriggerMode `json:"mode,omitempty"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
+
+	// QueueUrl The full URL of the AWS SQS queue to poll for messages
+	QueueUrl string `json:"queue_url"`
 
 	// Retry Retry configuration for failed module executions
-	Retry      *Retry `json:"retry,omitempty"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when a message is received
 	ScriptPath string `json:"script_path"`
 }
 
@@ -3304,27 +3643,44 @@ type NewTokenImpersonate struct {
 
 // NewWebsocketTrigger defines model for NewWebsocketTrigger.
 type NewWebsocketTrigger struct {
+	// CanReturnErrorResult If true, error results are sent back through the WebSocket
 	CanReturnErrorResult bool `json:"can_return_error_result"`
-	CanReturnMessage     bool `json:"can_return_message"`
+
+	// CanReturnMessage If true, the script can return a message to send back through the WebSocket
+	CanReturnMessage bool `json:"can_return_message"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
-	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
-	Filters          []struct {
+
+	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
+
+	// Filters Array of key-value filters to match incoming messages (only matching messages trigger the script)
+	Filters []struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
+
+	// InitialMessages Messages to send immediately after connecting (can be raw strings or computed by runnables)
 	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
-	IsFlow          bool                              `json:"is_flow"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
-	Path string       `json:"path"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
 
 	// Retry Retry configuration for failed module executions
-	Retry      *Retry `json:"retry,omitempty"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// ScriptPath Path to the script or flow to execute when a message is received
 	ScriptPath string `json:"script_path"`
-	Url        string `json:"url"`
+
+	// Url The WebSocket URL to connect to (can be a static URL or computed by a runnable)
+	Url string `json:"url"`
 
 	// UrlRunnableArgs The arguments to pass to the script or flow
 	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
@@ -3518,16 +3874,24 @@ type PreviewInline struct {
 	Language ScriptLang `json:"language"`
 }
 
+// ProviderTransform Provider configuration - can be static (ProviderConfig), JavaScript expression, or AI-determined
+type ProviderTransform struct {
+	union json.RawMessage
+}
+
 // PublicationData defines model for PublicationData.
 type PublicationData struct {
 	TableToTrack       *[]Relations `json:"table_to_track,omitempty"`
 	TransactionToTrack []string     `json:"transaction_to_track"`
 }
 
-// PushConfig defines model for PushConfig.
+// PushConfig Configuration for push delivery mode.
 type PushConfig struct {
-	Audience     *string `json:"audience,omitempty"`
-	Authenticate bool    `json:"authenticate"`
+	// Audience The audience claim for OIDC tokens used in push authentication.
+	Audience *string `json:"audience,omitempty"`
+
+	// Authenticate If true, push messages will include OIDC authentication tokens.
+	Authenticate bool `json:"authenticate"`
 }
 
 // QueuedJob defines model for QueuedJob.
@@ -3705,96 +4069,192 @@ type ScalarMetric struct {
 // Schedule defines model for Schedule.
 type Schedule struct {
 	// Args The arguments to pass to the script or flow
-	Args        *ScriptArgs `json:"args,omitempty"`
-	CronVersion *string     `json:"cron_version,omitempty"`
-	Description *string     `json:"description,omitempty"`
+	Args *ScriptArgs `json:"args,omitempty"`
 
-	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean.
-	DynamicSkip    *string         `json:"dynamic_skip,omitempty"`
-	EditedAt       time.Time       `json:"edited_at"`
-	EditedBy       string          `json:"edited_by"`
-	Email          string          `json:"email"`
-	Enabled        bool            `json:"enabled"`
-	Error          *string         `json:"error,omitempty"`
-	ExtraPerms     map[string]bool `json:"extra_perms"`
-	IsFlow         bool            `json:"is_flow"`
-	NoFlowOverlap  *bool           `json:"no_flow_overlap,omitempty"`
-	OnFailure      *string         `json:"on_failure,omitempty"`
-	OnFailureExact *bool           `json:"on_failure_exact,omitempty"`
+	// CronVersion Cron parser version. Use 'v2' for extended syntax with additional features
+	CronVersion *string `json:"cron_version,omitempty"`
+
+	// Description Detailed description of what this schedule does
+	Description *string `json:"description,omitempty"`
+
+	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
+	DynamicSkip *string `json:"dynamic_skip,omitempty"`
+
+	// EditedAt Timestamp of the last edit
+	EditedAt time.Time `json:"edited_at"`
+
+	// EditedBy Username of the last person who edited this schedule
+	EditedBy string `json:"edited_by"`
+
+	// Email Email of the user who owns this schedule, used for permissioned_as
+	Email string `json:"email"`
+
+	// Enabled Whether the schedule is currently active and will trigger jobs
+	Enabled bool `json:"enabled"`
+
+	// Error Last error message if the schedule failed to trigger
+	Error *string `json:"error,omitempty"`
+
+	// ExtraPerms Additional permissions for this schedule
+	ExtraPerms map[string]bool `json:"extra_perms"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
+
+	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
+	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
+
+	// OnFailure Path to a script or flow to run when the scheduled job fails
+	OnFailure *string `json:"on_failure,omitempty"`
+
+	// OnFailureExact If true, trigger on_failure handler only on exactly N failures, not on every failure after N
+	OnFailureExact *bool `json:"on_failure_exact,omitempty"`
 
 	// OnFailureExtraArgs The arguments to pass to the script or flow
 	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
-	OnFailureTimes     *float32    `json:"on_failure_times,omitempty"`
-	OnRecovery         *string     `json:"on_recovery,omitempty"`
+
+	// OnFailureTimes Number of consecutive failures before the on_failure handler is triggered (default 1)
+	OnFailureTimes *float32 `json:"on_failure_times,omitempty"`
+
+	// OnRecovery Path to a script or flow to run when the schedule recovers after failures
+	OnRecovery *string `json:"on_recovery,omitempty"`
 
 	// OnRecoveryExtraArgs The arguments to pass to the script or flow
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
-	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
-	OnSuccess           *string     `json:"on_success,omitempty"`
+
+	// OnRecoveryTimes Number of consecutive successes before the on_recovery handler is triggered (default 1)
+	OnRecoveryTimes *float32 `json:"on_recovery_times,omitempty"`
+
+	// OnSuccess Path to a script or flow to run after each successful execution
+	OnSuccess *string `json:"on_success,omitempty"`
 
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
-	Path               string      `json:"path"`
-	PausedUntil        *time.Time  `json:"paused_until,omitempty"`
+
+	// Path The unique path identifier for this schedule
+	Path string `json:"path"`
+
+	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
+	PausedUntil *time.Time `json:"paused_until,omitempty"`
 
 	// Retry Retry configuration for failed module executions
-	Retry               *Retry  `json:"retry,omitempty"`
-	Schedule            string  `json:"schedule"`
-	ScriptPath          string  `json:"script_path"`
-	Summary             *string `json:"summary,omitempty"`
-	Tag                 *string `json:"tag,omitempty"`
-	Timezone            string  `json:"timezone"`
-	WsErrorHandlerMuted *bool   `json:"ws_error_handler_muted,omitempty"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// Schedule Cron expression with 6 fields (seconds, minutes, hours, day of month, month, day of week). Example '0 0 12 * * *' for daily at noon
+	Schedule string `json:"schedule"`
+
+	// ScriptPath Path to the script or flow to execute when triggered
+	ScriptPath string `json:"script_path"`
+
+	// Summary Short summary describing the purpose of this schedule
+	Summary *string `json:"summary,omitempty"`
+
+	// Tag Worker tag to route jobs to specific worker groups
+	Tag *string `json:"tag,omitempty"`
+
+	// Timezone IANA timezone for the schedule (e.g., 'UTC', 'Europe/Paris', 'America/New_York')
+	Timezone string `json:"timezone"`
+
+	// WsErrorHandlerMuted If true, the workspace-level error handler will not be triggered for this schedule's failures
+	WsErrorHandlerMuted *bool `json:"ws_error_handler_muted,omitempty"`
 }
 
 // ScheduleWJobs defines model for ScheduleWJobs.
 type ScheduleWJobs struct {
 	// Args The arguments to pass to the script or flow
-	Args        *ScriptArgs `json:"args,omitempty"`
-	CronVersion *string     `json:"cron_version,omitempty"`
-	Description *string     `json:"description,omitempty"`
+	Args *ScriptArgs `json:"args,omitempty"`
 
-	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean.
-	DynamicSkip *string         `json:"dynamic_skip,omitempty"`
-	EditedAt    time.Time       `json:"edited_at"`
-	EditedBy    string          `json:"edited_by"`
-	Email       string          `json:"email"`
-	Enabled     bool            `json:"enabled"`
-	Error       *string         `json:"error,omitempty"`
-	ExtraPerms  map[string]bool `json:"extra_perms"`
-	IsFlow      bool            `json:"is_flow"`
-	Jobs        *[]struct {
+	// CronVersion Cron parser version. Use 'v2' for extended syntax with additional features
+	CronVersion *string `json:"cron_version,omitempty"`
+
+	// Description Detailed description of what this schedule does
+	Description *string `json:"description,omitempty"`
+
+	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
+	DynamicSkip *string `json:"dynamic_skip,omitempty"`
+
+	// EditedAt Timestamp of the last edit
+	EditedAt time.Time `json:"edited_at"`
+
+	// EditedBy Username of the last person who edited this schedule
+	EditedBy string `json:"edited_by"`
+
+	// Email Email of the user who owns this schedule, used for permissioned_as
+	Email string `json:"email"`
+
+	// Enabled Whether the schedule is currently active and will trigger jobs
+	Enabled bool `json:"enabled"`
+
+	// Error Last error message if the schedule failed to trigger
+	Error *string `json:"error,omitempty"`
+
+	// ExtraPerms Additional permissions for this schedule
+	ExtraPerms map[string]bool `json:"extra_perms"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
+	Jobs   *[]struct {
 		DurationMs float32 `json:"duration_ms"`
 		Id         string  `json:"id"`
 		Success    bool    `json:"success"`
 	} `json:"jobs,omitempty"`
-	NoFlowOverlap  *bool   `json:"no_flow_overlap,omitempty"`
-	OnFailure      *string `json:"on_failure,omitempty"`
-	OnFailureExact *bool   `json:"on_failure_exact,omitempty"`
+
+	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
+	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
+
+	// OnFailure Path to a script or flow to run when the scheduled job fails
+	OnFailure *string `json:"on_failure,omitempty"`
+
+	// OnFailureExact If true, trigger on_failure handler only on exactly N failures, not on every failure after N
+	OnFailureExact *bool `json:"on_failure_exact,omitempty"`
 
 	// OnFailureExtraArgs The arguments to pass to the script or flow
 	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
-	OnFailureTimes     *float32    `json:"on_failure_times,omitempty"`
-	OnRecovery         *string     `json:"on_recovery,omitempty"`
+
+	// OnFailureTimes Number of consecutive failures before the on_failure handler is triggered (default 1)
+	OnFailureTimes *float32 `json:"on_failure_times,omitempty"`
+
+	// OnRecovery Path to a script or flow to run when the schedule recovers after failures
+	OnRecovery *string `json:"on_recovery,omitempty"`
 
 	// OnRecoveryExtraArgs The arguments to pass to the script or flow
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
-	OnRecoveryTimes     *float32    `json:"on_recovery_times,omitempty"`
-	OnSuccess           *string     `json:"on_success,omitempty"`
+
+	// OnRecoveryTimes Number of consecutive successes before the on_recovery handler is triggered (default 1)
+	OnRecoveryTimes *float32 `json:"on_recovery_times,omitempty"`
+
+	// OnSuccess Path to a script or flow to run after each successful execution
+	OnSuccess *string `json:"on_success,omitempty"`
 
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
-	Path               string      `json:"path"`
-	PausedUntil        *time.Time  `json:"paused_until,omitempty"`
+
+	// Path The unique path identifier for this schedule
+	Path string `json:"path"`
+
+	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
+	PausedUntil *time.Time `json:"paused_until,omitempty"`
 
 	// Retry Retry configuration for failed module executions
-	Retry               *Retry  `json:"retry,omitempty"`
-	Schedule            string  `json:"schedule"`
-	ScriptPath          string  `json:"script_path"`
-	Summary             *string `json:"summary,omitempty"`
-	Tag                 *string `json:"tag,omitempty"`
-	Timezone            string  `json:"timezone"`
-	WsErrorHandlerMuted *bool   `json:"ws_error_handler_muted,omitempty"`
+	Retry *Retry `json:"retry,omitempty"`
+
+	// Schedule Cron expression with 6 fields (seconds, minutes, hours, day of month, month, day of week). Example '0 0 12 * * *' for daily at noon
+	Schedule string `json:"schedule"`
+
+	// ScriptPath Path to the script or flow to execute when triggered
+	ScriptPath string `json:"script_path"`
+
+	// Summary Short summary describing the purpose of this schedule
+	Summary *string `json:"summary,omitempty"`
+
+	// Tag Worker tag to route jobs to specific worker groups
+	Tag *string `json:"tag,omitempty"`
+
+	// Timezone IANA timezone for the schedule (e.g., 'UTC', 'Europe/Paris', 'America/New_York')
+	Timezone string `json:"timezone"`
+
+	// WsErrorHandlerMuted If true, the workspace-level error handler will not be triggered for this schedule's failures
+	WsErrorHandlerMuted *bool `json:"ws_error_handler_muted,omitempty"`
 }
 
 // ScopeDefinition defines model for ScopeDefinition.
@@ -3917,6 +4377,28 @@ type SlotList struct {
 // SqsTrigger defines model for SqsTrigger.
 type SqsTrigger = TriggerExtraProperty
 
+// StaticMemoryTransform Static memory configuration passed directly to the AI agent
+type StaticMemoryTransform struct {
+	Type StaticMemoryTransformType `json:"type"`
+
+	// Value Conversation memory configuration
+	Value SchemasMemoryConfig `json:"value"`
+}
+
+// StaticMemoryTransformType defines model for StaticMemoryTransform.Type.
+type StaticMemoryTransformType string
+
+// StaticProviderTransform Static provider configuration passed directly to the AI agent
+type StaticProviderTransform struct {
+	Type StaticProviderTransformType `json:"type"`
+
+	// Value Complete AI provider configuration with resource reference and model selection
+	Value SchemasProviderConfig `json:"value"`
+}
+
+// StaticProviderTransformType defines model for StaticProviderTransform.Type.
+type StaticProviderTransformType string
+
 // SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
 type SubscriptionMode string
 
@@ -3965,17 +4447,32 @@ type ToolValue struct {
 
 // TriggerExtraProperty defines model for TriggerExtraProperty.
 type TriggerExtraProperty struct {
-	EditedAt   time.Time       `json:"edited_at"`
-	EditedBy   string          `json:"edited_by"`
-	Email      string          `json:"email"`
+	// EditedAt Timestamp of the last edit
+	EditedAt time.Time `json:"edited_at"`
+
+	// EditedBy Username of the last person who edited this trigger
+	EditedBy string `json:"edited_by"`
+
+	// Email Email of the user who owns this trigger, used for permissioned_as
+	Email string `json:"email"`
+
+	// ExtraPerms Additional permissions for this trigger
 	ExtraPerms map[string]bool `json:"extra_perms"`
-	IsFlow     bool            `json:"is_flow"`
+
+	// IsFlow True if script_path points to a flow, false if it points to a script
+	IsFlow bool `json:"is_flow"`
 
 	// Mode job trigger mode
-	Mode        TriggerMode `json:"mode"`
-	Path        string      `json:"path"`
-	ScriptPath  string      `json:"script_path"`
-	WorkspaceId string      `json:"workspace_id"`
+	Mode TriggerMode `json:"mode"`
+
+	// Path The unique path identifier for this trigger
+	Path string `json:"path"`
+
+	// ScriptPath Path to the script or flow to execute when triggered
+	ScriptPath string `json:"script_path"`
+
+	// WorkspaceId The workspace this trigger belongs to
+	WorkspaceId string `json:"workspace_id"`
 }
 
 // TriggerMode job trigger mode
@@ -4317,34 +4814,45 @@ type WorkspaceOAuthConfig struct {
 type SchemasAiAgent struct {
 	// InputTransforms Input parameters for the AI agent mapped to their values
 	InputTransforms struct {
-		// MaxCompletionTokens Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		// MaxCompletionTokens Integer. Maximum number of tokens the AI will generate in its response.
+		// Range: 1 to 4,294,967,295. Typical values: 256-4096 for most use cases.
 		MaxCompletionTokens *SchemasInputTransform `json:"max_completion_tokens,omitempty"`
 
-		// Memory Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
-		Memory *SchemasInputTransform `json:"memory,omitempty"`
+		// Memory Memory configuration - can be static (MemoryConfig), JavaScript expression, or AI-determined
+		Memory *MemoryTransform `json:"memory,omitempty"`
 
-		// OutputSchema Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		// OutputSchema JSON Schema object defining structured output format. Used when you need the AI to return data in a specific shape.
+		// Supports standard JSON Schema properties: type, properties, required, items, enum, pattern, minLength, maxLength, minimum, maximum, etc.
+		// Example: { type: 'object', properties: { name: { type: 'string' }, age: { type: 'integer' } }, required: ['name'] }
 		OutputSchema *SchemasInputTransform `json:"output_schema,omitempty"`
 
-		// OutputType Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		// OutputType Output format type.
+		// Valid values: 'text' (default) - plain text response, 'image' - image generation
 		OutputType SchemasInputTransform `json:"output_type"`
 
-		// Provider Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
-		Provider SchemasInputTransform `json:"provider"`
+		// Provider Provider configuration - can be static (ProviderConfig), JavaScript expression, or AI-determined
+		Provider ProviderTransform `json:"provider"`
 
-		// Streaming Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		// Streaming Boolean. If true, stream the AI response incrementally.
+		// Streaming events include: token_delta, tool_call, tool_call_arguments, tool_execution, tool_result
 		Streaming *SchemasInputTransform `json:"streaming,omitempty"`
 
-		// SystemPrompt Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		// SystemPrompt System instructions that guide the AI's behavior, persona, and response style. Optional.
 		SystemPrompt *SchemasInputTransform `json:"system_prompt,omitempty"`
 
-		// Temperature Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		// Temperature Float. Controls randomness/creativity of responses.
+		// Range: 0.0 to 2.0 (provider-dependent)
+		// - 0.0 = deterministic, focused responses
+		// - 0.7 = balanced (common default)
+		// - 1.0+ = more creative/random
 		Temperature *SchemasInputTransform `json:"temperature,omitempty"`
 
-		// UserImages Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		// UserImages Array of image references for vision-capable models.
+		// Format: Array<{ bucket: string, key: string }> - S3 object references
+		// Example: [{ bucket: 'my-bucket', key: 'images/photo.jpg' }]
 		UserImages *SchemasInputTransform `json:"user_images,omitempty"`
 
-		// UserMessage Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+		// UserMessage The user's prompt/message to the AI agent. Supports variable interpolation with flow.input syntax.
 		UserMessage SchemasInputTransform `json:"user_message"`
 	} `json:"input_transforms"`
 
@@ -4358,6 +4866,14 @@ type SchemasAiAgent struct {
 
 // SchemasAiAgentType defines model for SchemasAiAgent.Type.
 type SchemasAiAgentType string
+
+// SchemasAiTransform Value resolved by the AI runtime for this input. The AI engine decides how to satisfy the parameter.
+type SchemasAiTransform struct {
+	Type SchemasAiTransformType `json:"type"`
+}
+
+// SchemasAiTransformType defines model for SchemasAiTransform.Type.
+type SchemasAiTransformType string
 
 // SchemasBranchAll Parallel branching where all branches execute simultaneously. Unlike BranchOne, all branches run regardless of conditions. Useful for executing independent tasks concurrently
 type SchemasBranchAll struct {
@@ -4733,6 +5249,11 @@ type SchemasJavascriptTransform struct {
 // SchemasJavascriptTransformType defines model for SchemasJavascriptTransform.Type.
 type SchemasJavascriptTransformType string
 
+// SchemasMemoryConfig Conversation memory configuration
+type SchemasMemoryConfig struct {
+	union json.RawMessage
+}
+
 // SchemasPathFlow Reference to an existing flow by path. Use this to call another flow as a subflow
 type SchemasPathFlow struct {
 	// InputTransforms Map of parameter names to their values (static or JavaScript expressions). These become the subflow's input arguments
@@ -4768,15 +5289,27 @@ type SchemasPathScript struct {
 // SchemasPathScriptType defines model for SchemasPathScript.Type.
 type SchemasPathScriptType string
 
+// SchemasProviderConfig Complete AI provider configuration with resource reference and model selection
+type SchemasProviderConfig struct {
+	// Kind Supported AI provider types
+	Kind AIProviderKind `json:"kind"`
+
+	// Model Model identifier (e.g., 'gpt-4', 'claude-3-opus-20240229', 'gemini-pro')
+	Model string `json:"model"`
+
+	// Resource Resource reference in format '$res:{resource_path}' pointing to provider credentials
+	Resource string `json:"resource"`
+}
+
 // SchemasRawScript Inline script with code defined directly in the flow. Use 'bun' as default language if unspecified. The script receives arguments from input_transforms
 type SchemasRawScript struct {
 	// Assets External resources this script accesses (S3 objects, resources, etc.)
 	Assets *[]struct {
 		// AccessType Access level for this asset
-		AccessType *SchemasRawScriptAssetsAccessType `json:"access_type,omitempty"`
+		AccessType *SchemasRawScriptAssetsAccessType `json:"access_type"`
 
 		// AltAccessType Alternative access level
-		AltAccessType *SchemasRawScriptAssetsAltAccessType `json:"alt_access_type,omitempty"`
+		AltAccessType *SchemasRawScriptAssetsAltAccessType `json:"alt_access_type"`
 
 		// Kind Type of asset
 		Kind SchemasRawScriptAssetsKind `json:"kind"`
@@ -9748,23 +10281,23 @@ func (t *InputTransform) MergeSchemasJavascriptTransform(v SchemasJavascriptTran
 	return err
 }
 
-// AsAiTransform returns the union data inside the InputTransform as a AiTransform
-func (t InputTransform) AsAiTransform() (AiTransform, error) {
-	var body AiTransform
+// AsSchemasAiTransform returns the union data inside the InputTransform as a SchemasAiTransform
+func (t InputTransform) AsSchemasAiTransform() (SchemasAiTransform, error) {
+	var body SchemasAiTransform
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromAiTransform overwrites any union data inside the InputTransform as the provided AiTransform
-func (t *InputTransform) FromAiTransform(v AiTransform) error {
+// FromSchemasAiTransform overwrites any union data inside the InputTransform as the provided SchemasAiTransform
+func (t *InputTransform) FromSchemasAiTransform(v SchemasAiTransform) error {
 	v.Type = "ai"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeAiTransform performs a merge with any union data inside the InputTransform, using the provided AiTransform
-func (t *InputTransform) MergeAiTransform(v AiTransform) error {
+// MergeSchemasAiTransform performs a merge with any union data inside the InputTransform, using the provided SchemasAiTransform
+func (t *InputTransform) MergeSchemasAiTransform(v SchemasAiTransform) error {
 	v.Type = "ai"
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -9791,7 +10324,7 @@ func (t InputTransform) ValueByDiscriminator() (interface{}, error) {
 	}
 	switch discriminator {
 	case "ai":
-		return t.AsAiTransform()
+		return t.AsSchemasAiTransform()
 	case "javascript":
 		return t.AsSchemasJavascriptTransform()
 	case "static":
@@ -9869,6 +10402,244 @@ func (t Job) MarshalJSON() ([]byte, error) {
 }
 
 func (t *Job) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsStaticMemoryTransform returns the union data inside the MemoryTransform as a StaticMemoryTransform
+func (t MemoryTransform) AsStaticMemoryTransform() (StaticMemoryTransform, error) {
+	var body StaticMemoryTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromStaticMemoryTransform overwrites any union data inside the MemoryTransform as the provided StaticMemoryTransform
+func (t *MemoryTransform) FromStaticMemoryTransform(v StaticMemoryTransform) error {
+	v.Type = "static"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeStaticMemoryTransform performs a merge with any union data inside the MemoryTransform, using the provided StaticMemoryTransform
+func (t *MemoryTransform) MergeStaticMemoryTransform(v StaticMemoryTransform) error {
+	v.Type = "static"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasJavascriptTransform returns the union data inside the MemoryTransform as a SchemasJavascriptTransform
+func (t MemoryTransform) AsSchemasJavascriptTransform() (SchemasJavascriptTransform, error) {
+	var body SchemasJavascriptTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasJavascriptTransform overwrites any union data inside the MemoryTransform as the provided SchemasJavascriptTransform
+func (t *MemoryTransform) FromSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
+	v.Type = "javascript"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasJavascriptTransform performs a merge with any union data inside the MemoryTransform, using the provided SchemasJavascriptTransform
+func (t *MemoryTransform) MergeSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
+	v.Type = "javascript"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasAiTransform returns the union data inside the MemoryTransform as a SchemasAiTransform
+func (t MemoryTransform) AsSchemasAiTransform() (SchemasAiTransform, error) {
+	var body SchemasAiTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasAiTransform overwrites any union data inside the MemoryTransform as the provided SchemasAiTransform
+func (t *MemoryTransform) FromSchemasAiTransform(v SchemasAiTransform) error {
+	v.Type = "ai"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasAiTransform performs a merge with any union data inside the MemoryTransform, using the provided SchemasAiTransform
+func (t *MemoryTransform) MergeSchemasAiTransform(v SchemasAiTransform) error {
+	v.Type = "ai"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t MemoryTransform) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t MemoryTransform) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ai":
+		return t.AsSchemasAiTransform()
+	case "javascript":
+		return t.AsSchemasJavascriptTransform()
+	case "static":
+		return t.AsStaticMemoryTransform()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t MemoryTransform) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *MemoryTransform) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsStaticProviderTransform returns the union data inside the ProviderTransform as a StaticProviderTransform
+func (t ProviderTransform) AsStaticProviderTransform() (StaticProviderTransform, error) {
+	var body StaticProviderTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromStaticProviderTransform overwrites any union data inside the ProviderTransform as the provided StaticProviderTransform
+func (t *ProviderTransform) FromStaticProviderTransform(v StaticProviderTransform) error {
+	v.Type = "static"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeStaticProviderTransform performs a merge with any union data inside the ProviderTransform, using the provided StaticProviderTransform
+func (t *ProviderTransform) MergeStaticProviderTransform(v StaticProviderTransform) error {
+	v.Type = "static"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasJavascriptTransform returns the union data inside the ProviderTransform as a SchemasJavascriptTransform
+func (t ProviderTransform) AsSchemasJavascriptTransform() (SchemasJavascriptTransform, error) {
+	var body SchemasJavascriptTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasJavascriptTransform overwrites any union data inside the ProviderTransform as the provided SchemasJavascriptTransform
+func (t *ProviderTransform) FromSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
+	v.Type = "javascript"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasJavascriptTransform performs a merge with any union data inside the ProviderTransform, using the provided SchemasJavascriptTransform
+func (t *ProviderTransform) MergeSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
+	v.Type = "javascript"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasAiTransform returns the union data inside the ProviderTransform as a SchemasAiTransform
+func (t ProviderTransform) AsSchemasAiTransform() (SchemasAiTransform, error) {
+	var body SchemasAiTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasAiTransform overwrites any union data inside the ProviderTransform as the provided SchemasAiTransform
+func (t *ProviderTransform) FromSchemasAiTransform(v SchemasAiTransform) error {
+	v.Type = "ai"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasAiTransform performs a merge with any union data inside the ProviderTransform, using the provided SchemasAiTransform
+func (t *ProviderTransform) MergeSchemasAiTransform(v SchemasAiTransform) error {
+	v.Type = "ai"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t ProviderTransform) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t ProviderTransform) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ai":
+		return t.AsSchemasAiTransform()
+	case "javascript":
+		return t.AsSchemasJavascriptTransform()
+	case "static":
+		return t.AsStaticProviderTransform()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t ProviderTransform) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ProviderTransform) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -10523,23 +11294,23 @@ func (t *SchemasInputTransform) MergeSchemasJavascriptTransform(v SchemasJavascr
 	return err
 }
 
-// AsAiTransform returns the union data inside the SchemasInputTransform as a AiTransform
-func (t SchemasInputTransform) AsAiTransform() (AiTransform, error) {
-	var body AiTransform
+// AsSchemasAiTransform returns the union data inside the SchemasInputTransform as a SchemasAiTransform
+func (t SchemasInputTransform) AsSchemasAiTransform() (SchemasAiTransform, error) {
+	var body SchemasAiTransform
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromAiTransform overwrites any union data inside the SchemasInputTransform as the provided AiTransform
-func (t *SchemasInputTransform) FromAiTransform(v AiTransform) error {
+// FromSchemasAiTransform overwrites any union data inside the SchemasInputTransform as the provided SchemasAiTransform
+func (t *SchemasInputTransform) FromSchemasAiTransform(v SchemasAiTransform) error {
 	v.Type = "ai"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeAiTransform performs a merge with any union data inside the SchemasInputTransform, using the provided AiTransform
-func (t *SchemasInputTransform) MergeAiTransform(v AiTransform) error {
+// MergeSchemasAiTransform performs a merge with any union data inside the SchemasInputTransform, using the provided SchemasAiTransform
+func (t *SchemasInputTransform) MergeSchemasAiTransform(v SchemasAiTransform) error {
 	v.Type = "ai"
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -10566,7 +11337,7 @@ func (t SchemasInputTransform) ValueByDiscriminator() (interface{}, error) {
 	}
 	switch discriminator {
 	case "ai":
-		return t.AsAiTransform()
+		return t.AsSchemasAiTransform()
 	case "javascript":
 		return t.AsSchemasJavascriptTransform()
 	case "static":
@@ -10582,6 +11353,125 @@ func (t SchemasInputTransform) MarshalJSON() ([]byte, error) {
 }
 
 func (t *SchemasInputTransform) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsMemoryOff returns the union data inside the SchemasMemoryConfig as a MemoryOff
+func (t SchemasMemoryConfig) AsMemoryOff() (MemoryOff, error) {
+	var body MemoryOff
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromMemoryOff overwrites any union data inside the SchemasMemoryConfig as the provided MemoryOff
+func (t *SchemasMemoryConfig) FromMemoryOff(v MemoryOff) error {
+	v.Kind = "off"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeMemoryOff performs a merge with any union data inside the SchemasMemoryConfig, using the provided MemoryOff
+func (t *SchemasMemoryConfig) MergeMemoryOff(v MemoryOff) error {
+	v.Kind = "off"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsMemoryAuto returns the union data inside the SchemasMemoryConfig as a MemoryAuto
+func (t SchemasMemoryConfig) AsMemoryAuto() (MemoryAuto, error) {
+	var body MemoryAuto
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromMemoryAuto overwrites any union data inside the SchemasMemoryConfig as the provided MemoryAuto
+func (t *SchemasMemoryConfig) FromMemoryAuto(v MemoryAuto) error {
+	v.Kind = "auto"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeMemoryAuto performs a merge with any union data inside the SchemasMemoryConfig, using the provided MemoryAuto
+func (t *SchemasMemoryConfig) MergeMemoryAuto(v MemoryAuto) error {
+	v.Kind = "auto"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsMemoryManual returns the union data inside the SchemasMemoryConfig as a MemoryManual
+func (t SchemasMemoryConfig) AsMemoryManual() (MemoryManual, error) {
+	var body MemoryManual
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromMemoryManual overwrites any union data inside the SchemasMemoryConfig as the provided MemoryManual
+func (t *SchemasMemoryConfig) FromMemoryManual(v MemoryManual) error {
+	v.Kind = "manual"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeMemoryManual performs a merge with any union data inside the SchemasMemoryConfig, using the provided MemoryManual
+func (t *SchemasMemoryConfig) MergeMemoryManual(v MemoryManual) error {
+	v.Kind = "manual"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t SchemasMemoryConfig) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"kind"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t SchemasMemoryConfig) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "auto":
+		return t.AsMemoryAuto()
+	case "manual":
+		return t.AsMemoryManual()
+	case "off":
+		return t.AsMemoryOff()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t SchemasMemoryConfig) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *SchemasMemoryConfig) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -66189,10 +67079,10 @@ type ListAssetsResponse struct {
 			} `json:"metadata,omitempty"`
 			Path   string `json:"path"`
 			Usages []struct {
-				AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
+				AccessType *AssetUsageAccessType `json:"access_type"`
 
 				// Columns The columns used (for tables)
-				Columns *map[string]AssetUsageAccessType `json:"columns,omitempty"`
+				Columns *map[string]*AssetUsageAccessType `json:"columns,omitempty"`
 
 				// CreatedAt When the asset was detected
 				CreatedAt *time.Time     `json:"created_at,omitempty"`
@@ -66239,7 +67129,7 @@ type ListAssetsByUsageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[][]struct {
-		AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
+		AccessType *AssetUsageAccessType `json:"access_type"`
 		Kind       AssetKind             `json:"kind"`
 		Path       string                `json:"path"`
 	}
@@ -87388,10 +88278,10 @@ func ParseListAssetsResponse(rsp *http.Response) (*ListAssetsResponse, error) {
 				} `json:"metadata,omitempty"`
 				Path   string `json:"path"`
 				Usages []struct {
-					AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
+					AccessType *AssetUsageAccessType `json:"access_type"`
 
 					// Columns The columns used (for tables)
-					Columns *map[string]AssetUsageAccessType `json:"columns,omitempty"`
+					Columns *map[string]*AssetUsageAccessType `json:"columns,omitempty"`
 
 					// CreatedAt When the asset was detected
 					CreatedAt *time.Time     `json:"created_at,omitempty"`
@@ -87442,7 +88332,7 @@ func ParseListAssetsByUsageResponse(rsp *http.Response) (*ListAssetsByUsageRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest [][]struct {
-			AccessType *AssetUsageAccessType `json:"access_type,omitempty"`
+			AccessType *AssetUsageAccessType `json:"access_type"`
 			Kind       AssetKind             `json:"kind"`
 			Path       string                `json:"path"`
 		}
