@@ -8300,13 +8300,6 @@ type TestPostgresConnectionJSONBody struct {
 	Database string `json:"database"`
 }
 
-// CreateRawAppJSONBody defines parameters for CreateRawApp.
-type CreateRawAppJSONBody struct {
-	Path    string `json:"path"`
-	Summary string `json:"summary"`
-	Value   string `json:"value"`
-}
-
 // ListRawAppsParams defines parameters for ListRawApps.
 type ListRawAppsParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -8330,13 +8323,6 @@ type ListRawAppsParams struct {
 	// StarredOnly (default false)
 	// show only the starred items
 	StarredOnly *bool `form:"starred_only,omitempty" json:"starred_only,omitempty"`
-}
-
-// UpdateRawAppJSONBody defines parameters for UpdateRawApp.
-type UpdateRawAppJSONBody struct {
-	Path    *string `json:"path,omitempty"`
-	Summary *string `json:"summary,omitempty"`
-	Value   *string `json:"value,omitempty"`
 }
 
 // CreateResourceParams defines parameters for CreateResource.
@@ -9431,12 +9417,6 @@ type TestPostgresConnectionJSONRequestBody TestPostgresConnectionJSONBody
 
 // UpdatePostgresTriggerJSONRequestBody defines body for UpdatePostgresTrigger for application/json ContentType.
 type UpdatePostgresTriggerJSONRequestBody = EditPostgresTrigger
-
-// CreateRawAppJSONRequestBody defines body for CreateRawApp for application/json ContentType.
-type CreateRawAppJSONRequestBody CreateRawAppJSONBody
-
-// UpdateRawAppJSONRequestBody defines body for UpdateRawApp for application/json ContentType.
-type UpdateRawAppJSONRequestBody UpdateRawAppJSONBody
 
 // CreateResourceJSONRequestBody defines body for CreateResource for application/json ContentType.
 type CreateResourceJSONRequestBody = CreateResource
@@ -13147,24 +13127,8 @@ type ClientInterface interface {
 
 	UpdatePostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdatePostgresTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// CreateRawAppWithBody request with any body
-	CreateRawAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	CreateRawApp(ctx context.Context, workspace WorkspaceId, body CreateRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DeleteRawApp request
-	DeleteRawApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// ExistsRawApp request
-	ExistsRawApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ListRawApps request
 	ListRawApps(ctx context.Context, workspace WorkspaceId, params *ListRawAppsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UpdateRawAppWithBody request with any body
-	UpdateRawAppWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UpdateRawApp(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateResourceWithBody request with any body
 	CreateResourceWithBody(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20906,80 +20870,8 @@ func (c *Client) UpdatePostgresTrigger(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateRawAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateRawAppRequestWithBody(c.Server, workspace, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CreateRawApp(ctx context.Context, workspace WorkspaceId, body CreateRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateRawAppRequest(c.Server, workspace, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DeleteRawApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteRawAppRequest(c.Server, workspace, path)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ExistsRawApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewExistsRawAppRequest(c.Server, workspace, path)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) ListRawApps(ctx context.Context, workspace WorkspaceId, params *ListRawAppsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListRawAppsRequest(c.Server, workspace, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdateRawAppWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateRawAppRequestWithBody(c.Server, workspace, path, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdateRawApp(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateRawAppRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -51878,135 +51770,6 @@ func NewUpdatePostgresTriggerRequestWithBody(server string, workspace WorkspaceI
 	return req, nil
 }
 
-// NewCreateRawAppRequest calls the generic CreateRawApp builder with application/json body
-func NewCreateRawAppRequest(server string, workspace WorkspaceId, body CreateRawAppJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewCreateRawAppRequestWithBody(server, workspace, "application/json", bodyReader)
-}
-
-// NewCreateRawAppRequestWithBody generates requests for CreateRawApp with any type of body
-func NewCreateRawAppRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/raw_apps/create", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeleteRawAppRequest generates requests for DeleteRawApp
-func NewDeleteRawAppRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/raw_apps/delete/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewExistsRawAppRequest generates requests for ExistsRawApp
-func NewExistsRawAppRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/raw_apps/exists/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewListRawAppsRequest generates requests for ListRawApps
 func NewListRawAppsRequest(server string, workspace WorkspaceId, params *ListRawAppsParams) (*http.Request, error) {
 	var err error
@@ -52155,60 +51918,6 @@ func NewListRawAppsRequest(server string, workspace WorkspaceId, params *ListRaw
 	if err != nil {
 		return nil, err
 	}
-
-	return req, nil
-}
-
-// NewUpdateRawAppRequest calls the generic UpdateRawApp builder with application/json body
-func NewUpdateRawAppRequest(server string, workspace WorkspaceId, path ScriptPath, body UpdateRawAppJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUpdateRawAppRequestWithBody(server, workspace, path, "application/json", bodyReader)
-}
-
-// NewUpdateRawAppRequestWithBody generates requests for UpdateRawApp with any type of body
-func NewUpdateRawAppRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/raw_apps/update/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -62866,24 +62575,8 @@ type ClientWithResponsesInterface interface {
 
 	UpdatePostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdatePostgresTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePostgresTriggerResponse, error)
 
-	// CreateRawAppWithBodyWithResponse request with any body
-	CreateRawAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateRawAppResponse, error)
-
-	CreateRawAppWithResponse(ctx context.Context, workspace WorkspaceId, body CreateRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateRawAppResponse, error)
-
-	// DeleteRawAppWithResponse request
-	DeleteRawAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteRawAppResponse, error)
-
-	// ExistsRawAppWithResponse request
-	ExistsRawAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsRawAppResponse, error)
-
 	// ListRawAppsWithResponse request
 	ListRawAppsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListRawAppsParams, reqEditors ...RequestEditorFn) (*ListRawAppsResponse, error)
-
-	// UpdateRawAppWithBodyWithResponse request with any body
-	UpdateRawAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateRawAppResponse, error)
-
-	UpdateRawAppWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateRawAppResponse, error)
 
 	// CreateResourceWithBodyWithResponse request with any body
 	CreateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResourceResponse, error)
@@ -73138,70 +72831,6 @@ func (r UpdatePostgresTriggerResponse) StatusCode() int {
 	return 0
 }
 
-type CreateRawAppResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r CreateRawAppResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CreateRawAppResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DeleteRawAppResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r DeleteRawAppResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DeleteRawAppResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type ExistsRawAppResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *bool
-}
-
-// Status returns HTTPResponse.Status
-func (r ExistsRawAppResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ExistsRawAppResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type ListRawAppsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -73218,27 +72847,6 @@ func (r ListRawAppsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListRawAppsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UpdateRawAppResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r UpdateRawAppResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UpdateRawAppResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -82483,41 +82091,6 @@ func (c *ClientWithResponses) UpdatePostgresTriggerWithResponse(ctx context.Cont
 	return ParseUpdatePostgresTriggerResponse(rsp)
 }
 
-// CreateRawAppWithBodyWithResponse request with arbitrary body returning *CreateRawAppResponse
-func (c *ClientWithResponses) CreateRawAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateRawAppResponse, error) {
-	rsp, err := c.CreateRawAppWithBody(ctx, workspace, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateRawAppResponse(rsp)
-}
-
-func (c *ClientWithResponses) CreateRawAppWithResponse(ctx context.Context, workspace WorkspaceId, body CreateRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateRawAppResponse, error) {
-	rsp, err := c.CreateRawApp(ctx, workspace, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateRawAppResponse(rsp)
-}
-
-// DeleteRawAppWithResponse request returning *DeleteRawAppResponse
-func (c *ClientWithResponses) DeleteRawAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteRawAppResponse, error) {
-	rsp, err := c.DeleteRawApp(ctx, workspace, path, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteRawAppResponse(rsp)
-}
-
-// ExistsRawAppWithResponse request returning *ExistsRawAppResponse
-func (c *ClientWithResponses) ExistsRawAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsRawAppResponse, error) {
-	rsp, err := c.ExistsRawApp(ctx, workspace, path, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseExistsRawAppResponse(rsp)
-}
-
 // ListRawAppsWithResponse request returning *ListRawAppsResponse
 func (c *ClientWithResponses) ListRawAppsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListRawAppsParams, reqEditors ...RequestEditorFn) (*ListRawAppsResponse, error) {
 	rsp, err := c.ListRawApps(ctx, workspace, params, reqEditors...)
@@ -82525,23 +82098,6 @@ func (c *ClientWithResponses) ListRawAppsWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseListRawAppsResponse(rsp)
-}
-
-// UpdateRawAppWithBodyWithResponse request with arbitrary body returning *UpdateRawAppResponse
-func (c *ClientWithResponses) UpdateRawAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateRawAppResponse, error) {
-	rsp, err := c.UpdateRawAppWithBody(ctx, workspace, path, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdateRawAppResponse(rsp)
-}
-
-func (c *ClientWithResponses) UpdateRawAppWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateRawAppResponse, error) {
-	rsp, err := c.UpdateRawApp(ctx, workspace, path, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdateRawAppResponse(rsp)
 }
 
 // CreateResourceWithBodyWithResponse request with arbitrary body returning *CreateResourceResponse
@@ -94230,64 +93786,6 @@ func ParseUpdatePostgresTriggerResponse(rsp *http.Response) (*UpdatePostgresTrig
 	return response, nil
 }
 
-// ParseCreateRawAppResponse parses an HTTP response from a CreateRawAppWithResponse call
-func ParseCreateRawAppResponse(rsp *http.Response) (*CreateRawAppResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CreateRawAppResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseDeleteRawAppResponse parses an HTTP response from a DeleteRawAppWithResponse call
-func ParseDeleteRawAppResponse(rsp *http.Response) (*DeleteRawAppResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeleteRawAppResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseExistsRawAppResponse parses an HTTP response from a ExistsRawAppWithResponse call
-func ParseExistsRawAppResponse(rsp *http.Response) (*ExistsRawAppResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ExistsRawAppResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest bool
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseListRawAppsResponse parses an HTTP response from a ListRawAppsWithResponse call
 func ParseListRawAppsResponse(rsp *http.Response) (*ListRawAppsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -94309,22 +93807,6 @@ func ParseListRawAppsResponse(rsp *http.Response) (*ListRawAppsResponse, error) 
 		}
 		response.JSON200 = &dest
 
-	}
-
-	return response, nil
-}
-
-// ParseUpdateRawAppResponse parses an HTTP response from a UpdateRawAppWithResponse call
-func ParseUpdateRawAppResponse(rsp *http.Response) (*UpdateRawAppResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UpdateRawAppResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
 	}
 
 	return response, nil
