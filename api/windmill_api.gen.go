@@ -681,6 +681,12 @@ const (
 	PreviewKindIdentity PreviewKind = "identity"
 )
 
+// Defines values for ProtectionRuleKind.
+const (
+	DisableDirectDeployment ProtectionRuleKind = "DisableDirectDeployment"
+	DisableWorkspaceForking ProtectionRuleKind = "DisableWorkspaceForking"
+)
+
 // Defines values for QueuedJobJobKind.
 const (
 	QueuedJobJobKindAiagent                  QueuedJobJobKind = "aiagent"
@@ -1193,7 +1199,7 @@ type AppWithLastVersion struct {
 	Policy        Policy                          `json:"policy"`
 	RawApp        bool                            `json:"raw_app"`
 	Summary       string                          `json:"summary"`
-	Value         map[string]interface{}          `json:"value"`
+	Value         interface{}                     `json:"value"`
 	Versions      []int                           `json:"versions"`
 	WorkspaceId   string                          `json:"workspace_id"`
 }
@@ -1216,7 +1222,7 @@ type AppWithLastVersionWDraft struct {
 	Policy        Policy                                `json:"policy"`
 	RawApp        bool                                  `json:"raw_app"`
 	Summary       string                                `json:"summary"`
-	Value         map[string]interface{}                `json:"value"`
+	Value         interface{}                           `json:"value"`
 	Versions      []int                                 `json:"versions"`
 	WorkspaceId   string                                `json:"workspace_id"`
 }
@@ -2702,8 +2708,8 @@ type GithubInstallations = []struct {
 
 // GlobalSetting defines model for GlobalSetting.
 type GlobalSetting struct {
-	Name  string                 `json:"name"`
-	Value map[string]interface{} `json:"value"`
+	Name  string      `json:"name"`
+	Value interface{} `json:"value"`
 }
 
 // GlobalUserInfo defines model for GlobalUserInfo.
@@ -3716,6 +3722,9 @@ type OpenFlow struct {
 	// Description Detailed documentation for this flow
 	Description *string `json:"description,omitempty"`
 
+	// OnBehalfOfEmail The flow will be run with the permissions of the user with this email.
+	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+
 	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 	Schema *map[string]interface{} `json:"schema,omitempty"`
 
@@ -3874,6 +3883,28 @@ type PreviewInline struct {
 	Language ScriptLang `json:"language"`
 }
 
+// ProtectionRuleKind defines model for ProtectionRuleKind.
+type ProtectionRuleKind string
+
+// ProtectionRules Configuration of protection restrictions
+type ProtectionRules = []ProtectionRuleKind
+
+// ProtectionRuleset A workspace protection rule defining restrictions and bypass permissions
+type ProtectionRuleset struct {
+	// BypassGroups Groups that can bypass this ruleset
+	BypassGroups RuleBypasserGroups `json:"bypass_groups"`
+
+	// BypassUsers Users that can bypass this ruleset
+	BypassUsers RuleBypasserUsers `json:"bypass_users"`
+
+	// Name Unique name for the protection rule
+	Name string `json:"name"`
+
+	// Rules Configuration of protection restrictions
+	Rules       ProtectionRules `json:"rules"`
+	WorkspaceId *string         `json:"workspace_id,omitempty"`
+}
+
 // ProviderTransform Provider configuration - can be static (ProviderConfig), JavaScript expression, or AI-determined
 type ProviderTransform struct {
 	union json.RawMessage
@@ -4028,6 +4059,12 @@ type RetryIf struct {
 	// Expr JavaScript expression that returns true to retry. Has access to 'result' and 'error' variables
 	Expr string `json:"expr"`
 }
+
+// RuleBypasserGroups Groups that can bypass this ruleset
+type RuleBypasserGroups = []string
+
+// RuleBypasserUsers Users that can bypass this ruleset
+type RuleBypasserUsers = []string
 
 // RunnableKind defines model for RunnableKind.
 type RunnableKind string
@@ -8835,6 +8872,33 @@ type GetPremiumInfoParams struct {
 	SkipSubscriptionFetch *bool `form:"skip_subscription_fetch,omitempty" json:"skip_subscription_fetch,omitempty"`
 }
 
+// CreateProtectionRuleJSONBody defines parameters for CreateProtectionRule.
+type CreateProtectionRuleJSONBody struct {
+	// BypassGroups Groups that can bypass this ruleset
+	BypassGroups RuleBypasserGroups `json:"bypass_groups"`
+
+	// BypassUsers Users that can bypass this ruleset
+	BypassUsers RuleBypasserUsers `json:"bypass_users"`
+
+	// Name Unique name for the protection rule
+	Name string `json:"name"`
+
+	// Rules Configuration of protection restrictions
+	Rules ProtectionRules `json:"rules"`
+}
+
+// UpdateProtectionRuleJSONBody defines parameters for UpdateProtectionRule.
+type UpdateProtectionRuleJSONBody struct {
+	// BypassGroups Groups that can bypass this ruleset
+	BypassGroups RuleBypasserGroups `json:"bypass_groups"`
+
+	// BypassUsers Users that can bypass this ruleset
+	BypassUsers RuleBypasserUsers `json:"bypass_users"`
+
+	// Rules Configuration of protection restrictions
+	Rules ProtectionRules `json:"rules"`
+}
+
 // SetPublicAppRateLimitJSONBody defines parameters for SetPublicAppRateLimit.
 type SetPublicAppRateLimitJSONBody struct {
 	// PublicAppExecutionLimitPerMinute Rate limit for public app executions per minute per server. NULL or 0 to disable.
@@ -9600,6 +9664,12 @@ type InviteUserJSONRequestBody InviteUserJSONBody
 
 // UpdateOperatorSettingsJSONRequestBody defines body for UpdateOperatorSettings for application/json ContentType.
 type UpdateOperatorSettingsJSONRequestBody = OperatorSettings
+
+// CreateProtectionRuleJSONRequestBody defines body for CreateProtectionRule for application/json ContentType.
+type CreateProtectionRuleJSONRequestBody CreateProtectionRuleJSONBody
+
+// UpdateProtectionRuleJSONRequestBody defines body for UpdateProtectionRule for application/json ContentType.
+type UpdateProtectionRuleJSONRequestBody UpdateProtectionRuleJSONBody
 
 // SetPublicAppRateLimitJSONRequestBody defines body for SetPublicAppRateLimit for application/json ContentType.
 type SetPublicAppRateLimitJSONRequestBody SetPublicAppRateLimitJSONBody
@@ -11786,6 +11856,9 @@ type ClientInterface interface {
 	// CreateCustomerPortalSession request
 	CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetStats request
+	GetStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetGlobal request
 	GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -13717,6 +13790,22 @@ type ClientInterface interface {
 	// GetPremiumInfo request
 	GetPremiumInfo(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListProtectionRules request
+	ListProtectionRules(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateProtectionRuleWithBody request with any body
+	CreateProtectionRuleWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateProtectionRule(ctx context.Context, workspace WorkspaceId, body CreateProtectionRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteProtectionRule request
+	DeleteProtectionRule(ctx context.Context, workspace WorkspaceId, ruleName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateProtectionRuleWithBody request with any body
+	UpdateProtectionRuleWithBody(ctx context.Context, workspace WorkspaceId, ruleName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateProtectionRule(ctx context.Context, workspace WorkspaceId, ruleName string, body UpdateProtectionRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SetPublicAppRateLimitWithBody request with any body
 	SetPublicAppRateLimitWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14932,6 +15021,18 @@ func (c *Client) AcknowledgeCriticalAlert(ctx context.Context, id int, reqEditor
 
 func (c *Client) CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateCustomerPortalSessionRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStatsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -23474,6 +23575,78 @@ func (c *Client) GetPremiumInfo(ctx context.Context, workspace WorkspaceId, para
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListProtectionRules(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListProtectionRulesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateProtectionRuleWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateProtectionRuleRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateProtectionRule(ctx context.Context, workspace WorkspaceId, body CreateProtectionRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateProtectionRuleRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteProtectionRule(ctx context.Context, workspace WorkspaceId, ruleName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteProtectionRuleRequest(c.Server, workspace, ruleName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateProtectionRuleWithBody(ctx context.Context, workspace WorkspaceId, ruleName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateProtectionRuleRequestWithBody(c.Server, workspace, ruleName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateProtectionRule(ctx context.Context, workspace WorkspaceId, ruleName string, body UpdateProtectionRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateProtectionRuleRequest(c.Server, workspace, ruleName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) SetPublicAppRateLimitWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetPublicAppRateLimitRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -26805,6 +26978,33 @@ func NewCreateCustomerPortalSessionRequest(server string, params *CreateCustomer
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetStatsRequest generates requests for GetStats
+func NewGetStatsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/get_stats")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -59725,6 +59925,182 @@ func NewGetPremiumInfoRequest(server string, workspace WorkspaceId, params *GetP
 	return req, nil
 }
 
+// NewListProtectionRulesRequest generates requests for ListProtectionRules
+func NewListProtectionRulesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/protection_rules", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateProtectionRuleRequest calls the generic CreateProtectionRule builder with application/json body
+func NewCreateProtectionRuleRequest(server string, workspace WorkspaceId, body CreateProtectionRuleJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateProtectionRuleRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateProtectionRuleRequestWithBody generates requests for CreateProtectionRule with any type of body
+func NewCreateProtectionRuleRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/protection_rules", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteProtectionRuleRequest generates requests for DeleteProtectionRule
+func NewDeleteProtectionRuleRequest(server string, workspace WorkspaceId, ruleName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "rule_name", runtime.ParamLocationPath, ruleName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/protection_rules/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateProtectionRuleRequest calls the generic UpdateProtectionRule builder with application/json body
+func NewUpdateProtectionRuleRequest(server string, workspace WorkspaceId, ruleName string, body UpdateProtectionRuleJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateProtectionRuleRequestWithBody(server, workspace, ruleName, "application/json", bodyReader)
+}
+
+// NewUpdateProtectionRuleRequestWithBody generates requests for UpdateProtectionRule with any type of body
+func NewUpdateProtectionRuleRequestWithBody(server string, workspace WorkspaceId, ruleName string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "rule_name", runtime.ParamLocationPath, ruleName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/protection_rules/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewSetPublicAppRateLimitRequest calls the generic SetPublicAppRateLimit builder with application/json body
 func NewSetPublicAppRateLimitRequest(server string, workspace WorkspaceId, body SetPublicAppRateLimitJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -61233,6 +61609,9 @@ type ClientWithResponsesInterface interface {
 
 	// CreateCustomerPortalSessionWithResponse request
 	CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
+
+	// GetStatsWithResponse request
+	GetStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetStatsResponse, error)
 
 	// GetGlobalWithResponse request
 	GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error)
@@ -63165,6 +63544,22 @@ type ClientWithResponsesInterface interface {
 	// GetPremiumInfoWithResponse request
 	GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error)
 
+	// ListProtectionRulesWithResponse request
+	ListProtectionRulesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListProtectionRulesResponse, error)
+
+	// CreateProtectionRuleWithBodyWithResponse request with any body
+	CreateProtectionRuleWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateProtectionRuleResponse, error)
+
+	CreateProtectionRuleWithResponse(ctx context.Context, workspace WorkspaceId, body CreateProtectionRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateProtectionRuleResponse, error)
+
+	// DeleteProtectionRuleWithResponse request
+	DeleteProtectionRuleWithResponse(ctx context.Context, workspace WorkspaceId, ruleName string, reqEditors ...RequestEditorFn) (*DeleteProtectionRuleResponse, error)
+
+	// UpdateProtectionRuleWithBodyWithResponse request with any body
+	UpdateProtectionRuleWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, ruleName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProtectionRuleResponse, error)
+
+	UpdateProtectionRuleWithResponse(ctx context.Context, workspace WorkspaceId, ruleName string, body UpdateProtectionRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProtectionRuleResponse, error)
+
 	// SetPublicAppRateLimitWithBodyWithResponse request with any body
 	SetPublicAppRateLimitWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPublicAppRateLimitResponse, error)
 
@@ -63516,7 +63911,7 @@ type GetPublicAppByCustomPathResponse struct {
 		Policy        Policy                                   `json:"policy"`
 		RawApp        bool                                     `json:"raw_app"`
 		Summary       string                                   `json:"summary"`
-		Value         map[string]interface{}                   `json:"value"`
+		Value         interface{}                              `json:"value"`
 		Versions      []int                                    `json:"versions"`
 		WorkspaceId   string                                   `json:"workspace_id"`
 	}
@@ -64938,6 +65333,27 @@ func (r CreateCustomerPortalSessionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateCustomerPortalSessionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetStatsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetStatsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetStatsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -76299,6 +76715,91 @@ func (r GetPremiumInfoResponse) StatusCode() int {
 	return 0
 }
 
+type ListProtectionRulesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]ProtectionRuleset
+}
+
+// Status returns HTTPResponse.Status
+func (r ListProtectionRulesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListProtectionRulesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateProtectionRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateProtectionRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateProtectionRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteProtectionRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteProtectionRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteProtectionRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateProtectionRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateProtectionRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateProtectionRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type SetPublicAppRateLimitResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -77784,6 +78285,15 @@ func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx contex
 		return nil, err
 	}
 	return ParseCreateCustomerPortalSessionResponse(rsp)
+}
+
+// GetStatsWithResponse request returning *GetStatsResponse
+func (c *ClientWithResponses) GetStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetStatsResponse, error) {
+	rsp, err := c.GetStats(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetStatsResponse(rsp)
 }
 
 // GetGlobalWithResponse request returning *GetGlobalResponse
@@ -83983,6 +84493,58 @@ func (c *ClientWithResponses) GetPremiumInfoWithResponse(ctx context.Context, wo
 	return ParseGetPremiumInfoResponse(rsp)
 }
 
+// ListProtectionRulesWithResponse request returning *ListProtectionRulesResponse
+func (c *ClientWithResponses) ListProtectionRulesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListProtectionRulesResponse, error) {
+	rsp, err := c.ListProtectionRules(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListProtectionRulesResponse(rsp)
+}
+
+// CreateProtectionRuleWithBodyWithResponse request with arbitrary body returning *CreateProtectionRuleResponse
+func (c *ClientWithResponses) CreateProtectionRuleWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateProtectionRuleResponse, error) {
+	rsp, err := c.CreateProtectionRuleWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateProtectionRuleResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateProtectionRuleWithResponse(ctx context.Context, workspace WorkspaceId, body CreateProtectionRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateProtectionRuleResponse, error) {
+	rsp, err := c.CreateProtectionRule(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateProtectionRuleResponse(rsp)
+}
+
+// DeleteProtectionRuleWithResponse request returning *DeleteProtectionRuleResponse
+func (c *ClientWithResponses) DeleteProtectionRuleWithResponse(ctx context.Context, workspace WorkspaceId, ruleName string, reqEditors ...RequestEditorFn) (*DeleteProtectionRuleResponse, error) {
+	rsp, err := c.DeleteProtectionRule(ctx, workspace, ruleName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteProtectionRuleResponse(rsp)
+}
+
+// UpdateProtectionRuleWithBodyWithResponse request with arbitrary body returning *UpdateProtectionRuleResponse
+func (c *ClientWithResponses) UpdateProtectionRuleWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, ruleName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProtectionRuleResponse, error) {
+	rsp, err := c.UpdateProtectionRuleWithBody(ctx, workspace, ruleName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateProtectionRuleResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateProtectionRuleWithResponse(ctx context.Context, workspace WorkspaceId, ruleName string, body UpdateProtectionRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProtectionRuleResponse, error) {
+	rsp, err := c.UpdateProtectionRule(ctx, workspace, ruleName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateProtectionRuleResponse(rsp)
+}
+
 // SetPublicAppRateLimitWithBodyWithResponse request with arbitrary body returning *SetPublicAppRateLimitResponse
 func (c *ClientWithResponses) SetPublicAppRateLimitWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPublicAppRateLimitResponse, error) {
 	rsp, err := c.SetPublicAppRateLimitWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -84597,7 +85159,7 @@ func ParseGetPublicAppByCustomPathResponse(rsp *http.Response) (*GetPublicAppByC
 			Policy        Policy                                   `json:"policy"`
 			RawApp        bool                                     `json:"raw_app"`
 			Summary       string                                   `json:"summary"`
-			Value         map[string]interface{}                   `json:"value"`
+			Value         interface{}                              `json:"value"`
 			Versions      []int                                    `json:"versions"`
 			WorkspaceId   string                                   `json:"workspace_id"`
 		}
@@ -86046,6 +86608,22 @@ func ParseCreateCustomerPortalSessionResponse(rsp *http.Response) (*CreateCustom
 	}
 
 	response := &CreateCustomerPortalSessionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetStatsResponse parses an HTTP response from a GetStatsWithResponse call
+func ParseGetStatsResponse(rsp *http.Response) (*GetStatsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetStatsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -97315,6 +97893,80 @@ func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, e
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseListProtectionRulesResponse parses an HTTP response from a ListProtectionRulesWithResponse call
+func ParseListProtectionRulesResponse(rsp *http.Response) (*ListProtectionRulesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListProtectionRulesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ProtectionRuleset
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateProtectionRuleResponse parses an HTTP response from a CreateProtectionRuleWithResponse call
+func ParseCreateProtectionRuleResponse(rsp *http.Response) (*CreateProtectionRuleResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateProtectionRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteProtectionRuleResponse parses an HTTP response from a DeleteProtectionRuleWithResponse call
+func ParseDeleteProtectionRuleResponse(rsp *http.Response) (*DeleteProtectionRuleResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteProtectionRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateProtectionRuleResponse parses an HTTP response from a UpdateProtectionRuleWithResponse call
+func ParseUpdateProtectionRuleResponse(rsp *http.Response) (*UpdateProtectionRuleResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateProtectionRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
