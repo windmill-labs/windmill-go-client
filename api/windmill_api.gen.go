@@ -271,6 +271,13 @@ const (
 	DependencyDependentImporterKindScript DependencyDependentImporterKind = "script"
 )
 
+// Defines values for DetailedHealthResponseStatus.
+const (
+	DetailedHealthResponseStatusDegraded  DetailedHealthResponseStatus = "degraded"
+	DetailedHealthResponseStatusHealthy   DetailedHealthResponseStatus = "healthy"
+	DetailedHealthResponseStatusUnhealthy DetailedHealthResponseStatus = "unhealthy"
+)
+
 // Defines values for DucklakeSettingsDucklakesCatalogResourceType.
 const (
 	DucklakeSettingsDucklakesCatalogResourceTypeInstance   DucklakeSettingsDucklakesCatalogResourceType = "instance"
@@ -435,6 +442,13 @@ const (
 const (
 	Github   GlobalUserInfoLoginType = "github"
 	Password GlobalUserInfoLoginType = "password"
+)
+
+// Defines values for HealthStatusResponseStatus.
+const (
+	HealthStatusResponseStatusDegraded  HealthStatusResponseStatus = "degraded"
+	HealthStatusResponseStatusHealthy   HealthStatusResponseStatus = "healthy"
+	HealthStatusResponseStatusUnhealthy HealthStatusResponseStatus = "unhealthy"
 )
 
 // Defines values for HttpMethod.
@@ -1553,6 +1567,18 @@ type DataTableSettings struct {
 // DataTableSettingsDatatablesDatabaseResourceType defines model for DataTableSettings.Datatables.Database.ResourceType.
 type DataTableSettingsDatatablesDatabaseResourceType string
 
+// DatabaseHealth Database health status
+type DatabaseHealth struct {
+	// Healthy Whether the database is reachable
+	Healthy bool `json:"healthy"`
+
+	// LatencyMs Database query latency in milliseconds
+	LatencyMs int64 `json:"latency_ms"`
+
+	// Pool Database connection pool statistics
+	Pool PoolStats `json:"pool"`
+}
+
 // DeleteGcpSubscription defines model for DeleteGcpSubscription.
 type DeleteGcpSubscription struct {
 	SubscriptionId string `json:"subscription_id"`
@@ -1585,6 +1611,24 @@ type DependentsAmount struct {
 	Count        int64  `json:"count"`
 	ImportedPath string `json:"imported_path"`
 }
+
+// DetailedHealthResponse Detailed health status response (always fresh, no caching)
+type DetailedHealthResponse struct {
+	// CheckedAt Timestamp when the health check was performed
+	CheckedAt time.Time `json:"checked_at"`
+
+	// Checks Detailed health checks
+	Checks HealthChecks `json:"checks"`
+
+	// Status Overall health status
+	Status DetailedHealthResponseStatus `json:"status"`
+
+	// Version Server version (e.g., "EE 1.615.3")
+	Version string `json:"version"`
+}
+
+// DetailedHealthResponseStatus Overall health status
+type DetailedHealthResponseStatus string
 
 // DucklakeSettings defines model for DucklakeSettings.
 type DucklakeSettings struct {
@@ -2737,6 +2781,39 @@ type Group struct {
 	Summary    *string          `json:"summary,omitempty"`
 }
 
+// HealthChecks Detailed health checks
+type HealthChecks struct {
+	// Database Database health status
+	Database DatabaseHealth `json:"database"`
+
+	// Queue Job queue status
+	Queue *QueueHealth `json:"queue,omitempty"`
+
+	// Readiness Server readiness status
+	Readiness ReadinessHealth `json:"readiness"`
+
+	// Workers Workers health status
+	Workers *WorkersHealth `json:"workers,omitempty"`
+}
+
+// HealthStatusResponse Health status response (cached with 5s TTL)
+type HealthStatusResponse struct {
+	// CheckedAt Timestamp when the health check was actually performed (not cache return time)
+	CheckedAt time.Time `json:"checked_at"`
+
+	// DatabaseHealthy Whether the database is reachable
+	DatabaseHealthy bool `json:"database_healthy"`
+
+	// Status Overall health status
+	Status HealthStatusResponseStatus `json:"status"`
+
+	// WorkersAlive Number of workers that pinged within last 5 minutes
+	WorkersAlive int64 `json:"workers_alive"`
+}
+
+// HealthStatusResponseStatus Overall health status
+type HealthStatusResponseStatus string
+
 // HttpMethod defines model for HttpMethod.
 type HttpMethod string
 
@@ -3847,6 +3924,18 @@ type Policy struct {
 // PolicyExecutionMode defines model for Policy.ExecutionMode.
 type PolicyExecutionMode string
 
+// PoolStats Database connection pool statistics
+type PoolStats struct {
+	// Idle Number of idle connections
+	Idle int `json:"idle"`
+
+	// MaxConnections Maximum number of connections allowed
+	MaxConnections int `json:"max_connections"`
+
+	// Size Current number of connections in the pool
+	Size int `json:"size"`
+}
+
 // PostgresTrigger defines model for PostgresTrigger.
 type PostgresTrigger = TriggerExtraProperty
 
@@ -3925,6 +4014,15 @@ type PushConfig struct {
 	Authenticate bool `json:"authenticate"`
 }
 
+// QueueHealth Job queue status
+type QueueHealth struct {
+	// PendingJobs Number of pending jobs in the queue
+	PendingJobs int64 `json:"pending_jobs"`
+
+	// RunningJobs Number of currently running jobs
+	RunningJobs int64 `json:"running_jobs"`
+}
+
 // QueuedJob defines model for QueuedJob.
 type QueuedJob struct {
 	AggregateWaitTimeMs *float32 `json:"aggregate_wait_time_ms,omitempty"`
@@ -3979,6 +4077,12 @@ type RawScriptForDependencies struct {
 	Language ScriptLang `json:"language"`
 	Path     string     `json:"path"`
 	RawCode  string     `json:"raw_code"`
+}
+
+// ReadinessHealth Server readiness status
+type ReadinessHealth struct {
+	// Healthy Whether the server is ready to accept requests
+	Healthy bool `json:"healthy"`
 }
 
 // RedirectUri defines model for RedirectUri.
@@ -4711,6 +4815,24 @@ type WorkerPing struct {
 	Worker             string    `json:"worker"`
 	WorkerGroup        string    `json:"worker_group"`
 	WorkerInstance     string    `json:"worker_instance"`
+}
+
+// WorkersHealth Workers health status
+type WorkersHealth struct {
+	// ActiveCount Number of active workers (pinged in last 5 minutes)
+	ActiveCount int64 `json:"active_count"`
+
+	// Healthy Whether any workers are active
+	Healthy bool `json:"healthy"`
+
+	// MinVersion Minimum required worker version
+	MinVersion string `json:"min_version"`
+
+	// Versions List of active worker versions
+	Versions []string `json:"versions"`
+
+	// WorkerGroups List of active worker groups
+	WorkerGroups []string `json:"worker_groups"`
 }
 
 // WorkflowStatus defines model for WorkflowStatus.
@@ -5755,6 +5877,12 @@ type RemoveUserFromInstanceGroupJSONBody struct {
 // UpdateInstanceGroupJSONBody defines parameters for UpdateInstanceGroup.
 type UpdateInstanceGroupJSONBody struct {
 	NewSummary string `json:"new_summary"`
+}
+
+// GetHealthStatusParams defines parameters for GetHealthStatus.
+type GetHealthStatusParams struct {
+	// Force Force a fresh check, bypassing the cache
+	Force *bool `form:"force,omitempty" json:"force,omitempty"`
 }
 
 // QueryDocumentationJSONBody defines parameters for QueryDocumentation.
@@ -11746,6 +11874,12 @@ type ClientInterface interface {
 
 	UpdateInstanceGroup(ctx context.Context, name Name, body UpdateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetHealthDetailed request
+	GetHealthDetailed(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetHealthStatus request
+	GetHealthStatus(ctx context.Context, params *GetHealthStatusParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// QueryDocumentationWithBody request with any body
 	QueryDocumentationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14541,6 +14675,30 @@ func (c *Client) UpdateInstanceGroupWithBody(ctx context.Context, name Name, con
 
 func (c *Client) UpdateInstanceGroup(ctx context.Context, name Name, body UpdateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateInstanceGroupRequest(c.Server, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetHealthDetailed(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetHealthDetailedRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetHealthStatus(ctx context.Context, params *GetHealthStatusParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetHealthStatusRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -25627,6 +25785,82 @@ func NewUpdateInstanceGroupRequestWithBody(server string, name Name, contentType
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetHealthDetailedRequest generates requests for GetHealthDetailed
+func NewGetHealthDetailedRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/health/detailed")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetHealthStatusRequest generates requests for GetHealthStatus
+func NewGetHealthStatusRequest(server string, params *GetHealthStatusParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/health/status")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Force != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "force", runtime.ParamLocationQuery, *params.Force); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -61500,6 +61734,12 @@ type ClientWithResponsesInterface interface {
 
 	UpdateInstanceGroupWithResponse(ctx context.Context, name Name, body UpdateInstanceGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInstanceGroupResponse, error)
 
+	// GetHealthDetailedWithResponse request
+	GetHealthDetailedWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthDetailedResponse, error)
+
+	// GetHealthStatusWithResponse request
+	GetHealthStatusWithResponse(ctx context.Context, params *GetHealthStatusParams, reqEditors ...RequestEditorFn) (*GetHealthStatusResponse, error)
+
 	// QueryDocumentationWithBodyWithResponse request with any body
 	QueryDocumentationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error)
 
@@ -64621,6 +64861,52 @@ func (r UpdateInstanceGroupResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateInstanceGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetHealthDetailedResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DetailedHealthResponse
+	JSON503      *DetailedHealthResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetHealthDetailedResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetHealthDetailedResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetHealthStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *HealthStatusResponse
+	JSON503      *HealthStatusResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetHealthStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetHealthStatusResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -77937,6 +78223,24 @@ func (c *ClientWithResponses) UpdateInstanceGroupWithResponse(ctx context.Contex
 	return ParseUpdateInstanceGroupResponse(rsp)
 }
 
+// GetHealthDetailedWithResponse request returning *GetHealthDetailedResponse
+func (c *ClientWithResponses) GetHealthDetailedWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthDetailedResponse, error) {
+	rsp, err := c.GetHealthDetailed(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetHealthDetailedResponse(rsp)
+}
+
+// GetHealthStatusWithResponse request returning *GetHealthStatusResponse
+func (c *ClientWithResponses) GetHealthStatusWithResponse(ctx context.Context, params *GetHealthStatusParams, reqEditors ...RequestEditorFn) (*GetHealthStatusResponse, error) {
+	rsp, err := c.GetHealthStatus(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetHealthStatusResponse(rsp)
+}
+
 // QueryDocumentationWithBodyWithResponse request with arbitrary body returning *QueryDocumentationResponse
 func (c *ClientWithResponses) QueryDocumentationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error) {
 	rsp, err := c.QueryDocumentationWithBody(ctx, contentType, body, reqEditors...)
@@ -85877,6 +86181,72 @@ func ParseUpdateInstanceGroupResponse(rsp *http.Response) (*UpdateInstanceGroupR
 	response := &UpdateInstanceGroupResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetHealthDetailedResponse parses an HTTP response from a GetHealthDetailedWithResponse call
+func ParseGetHealthDetailedResponse(rsp *http.Response) (*GetHealthDetailedResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetHealthDetailedResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DetailedHealthResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest DetailedHealthResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetHealthStatusResponse parses an HTTP response from a GetHealthStatusWithResponse call
+func ParseGetHealthStatusResponse(rsp *http.Response) (*GetHealthStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetHealthStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest HealthStatusResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest HealthStatusResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
 	}
 
 	return response, nil
