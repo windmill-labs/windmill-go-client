@@ -1731,10 +1731,10 @@ type EditHttpTrigger struct {
 	AuthenticationMethod AuthenticationMethod `json:"authentication_method"`
 
 	// AuthenticationResourcePath Path to the resource containing authentication configuration (for api_key, basic_http, custom_script, signature methods)
-	AuthenticationResourcePath *string `json:"authentication_resource_path,omitempty"`
+	AuthenticationResourcePath *string `json:"authentication_resource_path"`
 
 	// Description Detailed description of what this trigger does
-	Description *string `json:"description,omitempty"`
+	Description *string `json:"description"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -1778,10 +1778,10 @@ type EditHttpTrigger struct {
 
 		// Storage Storage path for static assets
 		Storage *string `json:"storage,omitempty"`
-	} `json:"static_asset_config,omitempty"`
+	} `json:"static_asset_config"`
 
 	// Summary Short summary describing the purpose of this trigger
-	Summary *string `json:"summary,omitempty"`
+	Summary *string `json:"summary"`
 
 	// WorkspacedRoute If true, the route includes the workspace ID in the path
 	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
@@ -1827,7 +1827,7 @@ type EditKafkaTrigger struct {
 // EditMqttTrigger defines model for EditMqttTrigger.
 type EditMqttTrigger struct {
 	// ClientId MQTT client ID for this connection
-	ClientId      *string            `json:"client_id,omitempty"`
+	ClientId      *string            `json:"client_id"`
 	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
@@ -1863,7 +1863,7 @@ type EditMqttTrigger struct {
 // EditNatsTrigger defines model for EditNatsTrigger.
 type EditNatsTrigger struct {
 	// ConsumerName JetStream consumer name (required when use_jetstream is true)
-	ConsumerName *string `json:"consumer_name,omitempty"`
+	ConsumerName *string `json:"consumer_name"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -1887,7 +1887,7 @@ type EditNatsTrigger struct {
 	ScriptPath string `json:"script_path"`
 
 	// StreamName JetStream stream name (required when use_jetstream is true)
-	StreamName *string `json:"stream_name,omitempty"`
+	StreamName *string `json:"stream_name"`
 
 	// Subjects Array of NATS subjects to subscribe to
 	Subjects []string `json:"subjects"`
@@ -1955,46 +1955,46 @@ type EditSchedule struct {
 	Args ScriptArgs `json:"args"`
 
 	// CronVersion Cron parser version. Use 'v2' for extended syntax with additional features
-	CronVersion *string `json:"cron_version,omitempty"`
+	CronVersion *string `json:"cron_version"`
 
 	// Description Detailed description of what this schedule does
-	Description *string `json:"description,omitempty"`
+	Description *string `json:"description"`
 
 	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
-	DynamicSkip *string `json:"dynamic_skip,omitempty"`
+	DynamicSkip *string `json:"dynamic_skip"`
 
 	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
 
 	// OnFailure Path to a script or flow to run when the scheduled job fails
-	OnFailure *string `json:"on_failure,omitempty"`
+	OnFailure *string `json:"on_failure"`
 
 	// OnFailureExact If true, trigger on_failure handler only on exactly N failures, not on every failure after N
-	OnFailureExact *bool `json:"on_failure_exact,omitempty"`
+	OnFailureExact *bool `json:"on_failure_exact"`
 
 	// OnFailureExtraArgs The arguments to pass to the script or flow
 	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
 
 	// OnFailureTimes Number of consecutive failures before the on_failure handler is triggered (default 1)
-	OnFailureTimes *float32 `json:"on_failure_times,omitempty"`
+	OnFailureTimes *float32 `json:"on_failure_times"`
 
 	// OnRecovery Path to a script or flow to run when the schedule recovers after failures
-	OnRecovery *string `json:"on_recovery,omitempty"`
+	OnRecovery *string `json:"on_recovery"`
 
 	// OnRecoveryExtraArgs The arguments to pass to the script or flow
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 
 	// OnRecoveryTimes Number of consecutive successes before the on_recovery handler is triggered (default 1)
-	OnRecoveryTimes *float32 `json:"on_recovery_times,omitempty"`
+	OnRecoveryTimes *float32 `json:"on_recovery_times"`
 
 	// OnSuccess Path to a script or flow to run after each successful execution
-	OnSuccess *string `json:"on_success,omitempty"`
+	OnSuccess *string `json:"on_success"`
 
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
 
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
-	PausedUntil *time.Time `json:"paused_until,omitempty"`
+	PausedUntil *time.Time `json:"paused_until"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -2003,10 +2003,10 @@ type EditSchedule struct {
 	Schedule string `json:"schedule"`
 
 	// Summary Short summary describing the purpose of this schedule
-	Summary *string `json:"summary,omitempty"`
+	Summary *string `json:"summary"`
 
 	// Tag Worker tag to route jobs to specific worker groups
-	Tag *string `json:"tag,omitempty"`
+	Tag *string `json:"tag"`
 
 	// Timezone IANA timezone for the schedule (e.g., 'UTC', 'Europe/Paris', 'America/New_York')
 	Timezone string `json:"timezone"`
@@ -2032,7 +2032,7 @@ type EditSqsTrigger struct {
 	IsFlow bool `json:"is_flow"`
 
 	// MessageAttributes Array of SQS message attribute names to include with each message
-	MessageAttributes *[]string `json:"message_attributes,omitempty"`
+	MessageAttributes *[]string `json:"message_attributes"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -2109,7 +2109,7 @@ type EditWebsocketTrigger struct {
 	} `json:"filters"`
 
 	// InitialMessages Messages to send immediately after connecting (can be raw strings or computed by runnables)
-	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
+	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
 	IsFlow bool `json:"is_flow"`
@@ -2841,6 +2841,15 @@ type InputTransform struct {
 	union json.RawMessage
 }
 
+// InstanceConfig Unified instance configuration combining global settings and worker group configs
+type InstanceConfig struct {
+	// GlobalSettings Global settings keyed by setting name. Known fields include base_url, license_key, retention_period_secs, smtp_settings, otel, etc. Unknown fields are preserved as-is.
+	GlobalSettings *map[string]interface{} `json:"global_settings,omitempty"`
+
+	// WorkerConfigs Worker group configurations keyed by group name (e.g. "default", "gpu"). Each value contains worker_tags, init_bash, autoscaling, etc.
+	WorkerConfigs *map[string]map[string]interface{} `json:"worker_configs,omitempty"`
+}
+
 // InstanceGroup defines model for InstanceGroup.
 type InstanceGroup struct {
 	Emails  *[]string `json:"emails,omitempty"`
@@ -3277,10 +3286,10 @@ type NewHttpTrigger struct {
 	AuthenticationMethod AuthenticationMethod `json:"authentication_method"`
 
 	// AuthenticationResourcePath Path to the resource containing authentication configuration (for api_key, basic_http, custom_script, signature methods)
-	AuthenticationResourcePath *string `json:"authentication_resource_path,omitempty"`
+	AuthenticationResourcePath *string `json:"authentication_resource_path"`
 
 	// Description Detailed description of what this trigger does
-	Description *string `json:"description,omitempty"`
+	Description *string `json:"description"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -3327,10 +3336,10 @@ type NewHttpTrigger struct {
 
 		// Storage Storage path for static assets
 		Storage *string `json:"storage,omitempty"`
-	} `json:"static_asset_config,omitempty"`
+	} `json:"static_asset_config"`
 
 	// Summary Short summary describing the purpose of this trigger
-	Summary *string `json:"summary,omitempty"`
+	Summary *string `json:"summary"`
 
 	// WorkspacedRoute If true, the route includes the workspace ID in the path
 	WorkspacedRoute *bool `json:"workspaced_route,omitempty"`
@@ -3379,7 +3388,7 @@ type NewKafkaTrigger struct {
 // NewMqttTrigger defines model for NewMqttTrigger.
 type NewMqttTrigger struct {
 	// ClientId MQTT client ID for this connection
-	ClientId      *string            `json:"client_id,omitempty"`
+	ClientId      *string            `json:"client_id"`
 	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
@@ -3415,7 +3424,7 @@ type NewMqttTrigger struct {
 // NewNatsTrigger defines model for NewNatsTrigger.
 type NewNatsTrigger struct {
 	// ConsumerName JetStream consumer name (required when use_jetstream is true)
-	ConsumerName *string `json:"consumer_name,omitempty"`
+	ConsumerName *string `json:"consumer_name"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -3442,7 +3451,7 @@ type NewNatsTrigger struct {
 	ScriptPath string `json:"script_path"`
 
 	// StreamName JetStream stream name (required when use_jetstream is true)
-	StreamName *string `json:"stream_name,omitempty"`
+	StreamName *string `json:"stream_name"`
 
 	// Subjects Array of NATS subjects to subscribe to
 	Subjects []string `json:"subjects"`
@@ -3491,13 +3500,13 @@ type NewSchedule struct {
 	Args ScriptArgs `json:"args"`
 
 	// CronVersion Cron parser version. Use 'v2' for extended syntax with additional features
-	CronVersion *string `json:"cron_version,omitempty"`
+	CronVersion *string `json:"cron_version"`
 
 	// Description Detailed description of what this schedule does
-	Description *string `json:"description,omitempty"`
+	Description *string `json:"description"`
 
 	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
-	DynamicSkip *string `json:"dynamic_skip,omitempty"`
+	DynamicSkip *string `json:"dynamic_skip"`
 
 	// Enabled Whether the schedule is currently active and will trigger jobs
 	Enabled *bool `json:"enabled,omitempty"`
@@ -3509,28 +3518,28 @@ type NewSchedule struct {
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
 
 	// OnFailure Path to a script or flow to run when the scheduled job fails
-	OnFailure *string `json:"on_failure,omitempty"`
+	OnFailure *string `json:"on_failure"`
 
 	// OnFailureExact If true, trigger on_failure handler only on exactly N failures, not on every failure after N
-	OnFailureExact *bool `json:"on_failure_exact,omitempty"`
+	OnFailureExact *bool `json:"on_failure_exact"`
 
 	// OnFailureExtraArgs The arguments to pass to the script or flow
 	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
 
 	// OnFailureTimes Number of consecutive failures before the on_failure handler is triggered (default 1)
-	OnFailureTimes *float32 `json:"on_failure_times,omitempty"`
+	OnFailureTimes *float32 `json:"on_failure_times"`
 
 	// OnRecovery Path to a script or flow to run when the schedule recovers after failures
-	OnRecovery *string `json:"on_recovery,omitempty"`
+	OnRecovery *string `json:"on_recovery"`
 
 	// OnRecoveryExtraArgs The arguments to pass to the script or flow
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 
 	// OnRecoveryTimes Number of consecutive successes before the on_recovery handler is triggered (default 1)
-	OnRecoveryTimes *float32 `json:"on_recovery_times,omitempty"`
+	OnRecoveryTimes *float32 `json:"on_recovery_times"`
 
 	// OnSuccess Path to a script or flow to run after each successful execution
-	OnSuccess *string `json:"on_success,omitempty"`
+	OnSuccess *string `json:"on_success"`
 
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
@@ -3539,7 +3548,7 @@ type NewSchedule struct {
 	Path string `json:"path"`
 
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
-	PausedUntil *time.Time `json:"paused_until,omitempty"`
+	PausedUntil *time.Time `json:"paused_until"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -3551,10 +3560,10 @@ type NewSchedule struct {
 	ScriptPath string `json:"script_path"`
 
 	// Summary Short summary describing the purpose of this schedule
-	Summary *string `json:"summary,omitempty"`
+	Summary *string `json:"summary"`
 
 	// Tag Worker tag to route jobs to specific worker groups
-	Tag *string `json:"tag,omitempty"`
+	Tag *string `json:"tag"`
 
 	// Timezone IANA timezone for the schedule (e.g., 'UTC', 'Europe/Paris', 'America/New_York')
 	Timezone string `json:"timezone"`
@@ -3690,7 +3699,7 @@ type NewSqsTrigger struct {
 	IsFlow bool `json:"is_flow"`
 
 	// MessageAttributes Array of SQS message attribute names to include with each message
-	MessageAttributes *[]string `json:"message_attributes,omitempty"`
+	MessageAttributes *[]string `json:"message_attributes"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -3745,7 +3754,7 @@ type NewWebsocketTrigger struct {
 	} `json:"filters"`
 
 	// InitialMessages Messages to send immediately after connecting (can be raw strings or computed by runnables)
-	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages,omitempty"`
+	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
 	IsFlow bool `json:"is_flow"`
@@ -4213,13 +4222,13 @@ type Schedule struct {
 	Args *ScriptArgs `json:"args,omitempty"`
 
 	// CronVersion Cron parser version. Use 'v2' for extended syntax with additional features
-	CronVersion *string `json:"cron_version,omitempty"`
+	CronVersion *string `json:"cron_version"`
 
 	// Description Detailed description of what this schedule does
-	Description *string `json:"description,omitempty"`
+	Description *string `json:"description"`
 
 	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
-	DynamicSkip *string `json:"dynamic_skip,omitempty"`
+	DynamicSkip *string `json:"dynamic_skip"`
 
 	// EditedAt Timestamp of the last edit
 	EditedAt time.Time `json:"edited_at"`
@@ -4234,7 +4243,7 @@ type Schedule struct {
 	Enabled bool `json:"enabled"`
 
 	// Error Last error message if the schedule failed to trigger
-	Error *string `json:"error,omitempty"`
+	Error *string `json:"error"`
 
 	// ExtraPerms Additional permissions for this schedule
 	ExtraPerms map[string]bool `json:"extra_perms"`
@@ -4246,28 +4255,28 @@ type Schedule struct {
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
 
 	// OnFailure Path to a script or flow to run when the scheduled job fails
-	OnFailure *string `json:"on_failure,omitempty"`
+	OnFailure *string `json:"on_failure"`
 
 	// OnFailureExact If true, trigger on_failure handler only on exactly N failures, not on every failure after N
-	OnFailureExact *bool `json:"on_failure_exact,omitempty"`
+	OnFailureExact *bool `json:"on_failure_exact"`
 
 	// OnFailureExtraArgs The arguments to pass to the script or flow
 	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
 
 	// OnFailureTimes Number of consecutive failures before the on_failure handler is triggered (default 1)
-	OnFailureTimes *float32 `json:"on_failure_times,omitempty"`
+	OnFailureTimes *float32 `json:"on_failure_times"`
 
 	// OnRecovery Path to a script or flow to run when the schedule recovers after failures
-	OnRecovery *string `json:"on_recovery,omitempty"`
+	OnRecovery *string `json:"on_recovery"`
 
 	// OnRecoveryExtraArgs The arguments to pass to the script or flow
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 
 	// OnRecoveryTimes Number of consecutive successes before the on_recovery handler is triggered (default 1)
-	OnRecoveryTimes *float32 `json:"on_recovery_times,omitempty"`
+	OnRecoveryTimes *float32 `json:"on_recovery_times"`
 
 	// OnSuccess Path to a script or flow to run after each successful execution
-	OnSuccess *string `json:"on_success,omitempty"`
+	OnSuccess *string `json:"on_success"`
 
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
@@ -4276,7 +4285,7 @@ type Schedule struct {
 	Path string `json:"path"`
 
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
-	PausedUntil *time.Time `json:"paused_until,omitempty"`
+	PausedUntil *time.Time `json:"paused_until"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -4288,10 +4297,10 @@ type Schedule struct {
 	ScriptPath string `json:"script_path"`
 
 	// Summary Short summary describing the purpose of this schedule
-	Summary *string `json:"summary,omitempty"`
+	Summary *string `json:"summary"`
 
 	// Tag Worker tag to route jobs to specific worker groups
-	Tag *string `json:"tag,omitempty"`
+	Tag *string `json:"tag"`
 
 	// Timezone IANA timezone for the schedule (e.g., 'UTC', 'Europe/Paris', 'America/New_York')
 	Timezone string `json:"timezone"`
@@ -4306,13 +4315,13 @@ type ScheduleWJobs struct {
 	Args *ScriptArgs `json:"args,omitempty"`
 
 	// CronVersion Cron parser version. Use 'v2' for extended syntax with additional features
-	CronVersion *string `json:"cron_version,omitempty"`
+	CronVersion *string `json:"cron_version"`
 
 	// Description Detailed description of what this schedule does
-	Description *string `json:"description,omitempty"`
+	Description *string `json:"description"`
 
 	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
-	DynamicSkip *string `json:"dynamic_skip,omitempty"`
+	DynamicSkip *string `json:"dynamic_skip"`
 
 	// EditedAt Timestamp of the last edit
 	EditedAt time.Time `json:"edited_at"`
@@ -4327,7 +4336,7 @@ type ScheduleWJobs struct {
 	Enabled bool `json:"enabled"`
 
 	// Error Last error message if the schedule failed to trigger
-	Error *string `json:"error,omitempty"`
+	Error *string `json:"error"`
 
 	// ExtraPerms Additional permissions for this schedule
 	ExtraPerms map[string]bool `json:"extra_perms"`
@@ -4344,28 +4353,28 @@ type ScheduleWJobs struct {
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
 
 	// OnFailure Path to a script or flow to run when the scheduled job fails
-	OnFailure *string `json:"on_failure,omitempty"`
+	OnFailure *string `json:"on_failure"`
 
 	// OnFailureExact If true, trigger on_failure handler only on exactly N failures, not on every failure after N
-	OnFailureExact *bool `json:"on_failure_exact,omitempty"`
+	OnFailureExact *bool `json:"on_failure_exact"`
 
 	// OnFailureExtraArgs The arguments to pass to the script or flow
 	OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
 
 	// OnFailureTimes Number of consecutive failures before the on_failure handler is triggered (default 1)
-	OnFailureTimes *float32 `json:"on_failure_times,omitempty"`
+	OnFailureTimes *float32 `json:"on_failure_times"`
 
 	// OnRecovery Path to a script or flow to run when the schedule recovers after failures
-	OnRecovery *string `json:"on_recovery,omitempty"`
+	OnRecovery *string `json:"on_recovery"`
 
 	// OnRecoveryExtraArgs The arguments to pass to the script or flow
 	OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
 
 	// OnRecoveryTimes Number of consecutive successes before the on_recovery handler is triggered (default 1)
-	OnRecoveryTimes *float32 `json:"on_recovery_times,omitempty"`
+	OnRecoveryTimes *float32 `json:"on_recovery_times"`
 
 	// OnSuccess Path to a script or flow to run after each successful execution
-	OnSuccess *string `json:"on_success,omitempty"`
+	OnSuccess *string `json:"on_success"`
 
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
@@ -4374,7 +4383,7 @@ type ScheduleWJobs struct {
 	Path string `json:"path"`
 
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
-	PausedUntil *time.Time `json:"paused_until,omitempty"`
+	PausedUntil *time.Time `json:"paused_until"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -4386,10 +4395,10 @@ type ScheduleWJobs struct {
 	ScriptPath string `json:"script_path"`
 
 	// Summary Short summary describing the purpose of this schedule
-	Summary *string `json:"summary,omitempty"`
+	Summary *string `json:"summary"`
 
 	// Tag Worker tag to route jobs to specific worker groups
-	Tag *string `json:"tag,omitempty"`
+	Tag *string `json:"tag"`
 
 	// Timezone IANA timezone for the schedule (e.g., 'UTC', 'Europe/Paris', 'America/New_York')
 	Timezone string `json:"timezone"`
@@ -9184,6 +9193,9 @@ type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
 // SetGlobalJSONRequestBody defines body for SetGlobal for application/json ContentType.
 type SetGlobalJSONRequestBody SetGlobalJSONBody
 
+// SetInstanceConfigJSONRequestBody defines body for SetInstanceConfig for application/json ContentType.
+type SetInstanceConfigJSONRequestBody = InstanceConfig
+
 // MigrateSecretsToDatabaseJSONRequestBody defines body for MigrateSecretsToDatabase for application/json ContentType.
 type MigrateSecretsToDatabaseJSONRequestBody = VaultSettings
 
@@ -12000,6 +12012,14 @@ type ClientInterface interface {
 	SetGlobalWithBody(ctx context.Context, key Key, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetGlobal(ctx context.Context, key Key, body SetGlobalJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetInstanceConfig request
+	GetInstanceConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetInstanceConfigWithBody request with any body
+	SetInstanceConfigWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetInstanceConfig(ctx context.Context, body SetInstanceConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetLatestKeyRenewalAttempt request
 	GetLatestKeyRenewalAttempt(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15227,6 +15247,42 @@ func (c *Client) SetGlobalWithBody(ctx context.Context, key Key, contentType str
 
 func (c *Client) SetGlobal(ctx context.Context, key Key, body SetGlobalJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetGlobalRequest(c.Server, key, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetInstanceConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetInstanceConfigRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetInstanceConfigWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetInstanceConfigRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetInstanceConfig(ctx context.Context, body SetInstanceConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetInstanceConfigRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -27318,6 +27374,73 @@ func NewSetGlobalRequestWithBody(server string, key Key, contentType string, bod
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetInstanceConfigRequest generates requests for GetInstanceConfig
+func NewGetInstanceConfigRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/instance_config")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetInstanceConfigRequest calls the generic SetInstanceConfig builder with application/json body
+func NewSetInstanceConfigRequest(server string, body SetInstanceConfigJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetInstanceConfigRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSetInstanceConfigRequestWithBody generates requests for SetInstanceConfig with any type of body
+func NewSetInstanceConfigRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/instance_config")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -61861,6 +61984,14 @@ type ClientWithResponsesInterface interface {
 
 	SetGlobalWithResponse(ctx context.Context, key Key, body SetGlobalJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGlobalResponse, error)
 
+	// GetInstanceConfigWithResponse request
+	GetInstanceConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetInstanceConfigResponse, error)
+
+	// SetInstanceConfigWithBodyWithResponse request with any body
+	SetInstanceConfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetInstanceConfigResponse, error)
+
+	SetInstanceConfigWithResponse(ctx context.Context, body SetInstanceConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*SetInstanceConfigResponse, error)
+
 	// GetLatestKeyRenewalAttemptWithResponse request
 	GetLatestKeyRenewalAttemptWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLatestKeyRenewalAttemptResponse, error)
 
@@ -65683,6 +65814,49 @@ func (r SetGlobalResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SetGlobalResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetInstanceConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *InstanceConfig
+}
+
+// Status returns HTTPResponse.Status
+func (r GetInstanceConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetInstanceConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetInstanceConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetInstanceConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetInstanceConfigResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -78626,6 +78800,32 @@ func (c *ClientWithResponses) SetGlobalWithResponse(ctx context.Context, key Key
 	return ParseSetGlobalResponse(rsp)
 }
 
+// GetInstanceConfigWithResponse request returning *GetInstanceConfigResponse
+func (c *ClientWithResponses) GetInstanceConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetInstanceConfigResponse, error) {
+	rsp, err := c.GetInstanceConfig(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetInstanceConfigResponse(rsp)
+}
+
+// SetInstanceConfigWithBodyWithResponse request with arbitrary body returning *SetInstanceConfigResponse
+func (c *ClientWithResponses) SetInstanceConfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetInstanceConfigResponse, error) {
+	rsp, err := c.SetInstanceConfigWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetInstanceConfigResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetInstanceConfigWithResponse(ctx context.Context, body SetInstanceConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*SetInstanceConfigResponse, error) {
+	rsp, err := c.SetInstanceConfig(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetInstanceConfigResponse(rsp)
+}
+
 // GetLatestKeyRenewalAttemptWithResponse request returning *GetLatestKeyRenewalAttemptResponse
 func (c *ClientWithResponses) GetLatestKeyRenewalAttemptWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLatestKeyRenewalAttemptResponse, error) {
 	rsp, err := c.GetLatestKeyRenewalAttempt(ctx, reqEditors...)
@@ -87036,6 +87236,48 @@ func ParseSetGlobalResponse(rsp *http.Response) (*SetGlobalResponse, error) {
 	}
 
 	response := &SetGlobalResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetInstanceConfigResponse parses an HTTP response from a GetInstanceConfigWithResponse call
+func ParseGetInstanceConfigResponse(rsp *http.Response) (*GetInstanceConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetInstanceConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest InstanceConfig
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetInstanceConfigResponse parses an HTTP response from a SetInstanceConfigWithResponse call
+func ParseSetInstanceConfigResponse(rsp *http.Response) (*SetInstanceConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetInstanceConfigResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
