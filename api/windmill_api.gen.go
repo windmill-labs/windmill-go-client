@@ -534,6 +534,7 @@ const (
 	JobTriggerKindDefaultEmail JobTriggerKind = "default_email"
 	JobTriggerKindEmail        JobTriggerKind = "email"
 	JobTriggerKindGcp          JobTriggerKind = "gcp"
+	JobTriggerKindGoogle       JobTriggerKind = "google"
 	JobTriggerKindHttp         JobTriggerKind = "http"
 	JobTriggerKindKafka        JobTriggerKind = "kafka"
 	JobTriggerKindMqtt         JobTriggerKind = "mqtt"
@@ -624,6 +625,7 @@ const (
 
 // Defines values for NativeServiceName.
 const (
+	Google    NativeServiceName = "google"
 	Nextcloud NativeServiceName = "nextcloud"
 )
 
@@ -2773,6 +2775,27 @@ type GlobalUserInfo struct {
 // GlobalUserInfoLoginType defines model for GlobalUserInfo.LoginType.
 type GlobalUserInfoLoginType string
 
+// GoogleCalendarEntry defines model for GoogleCalendarEntry.
+type GoogleCalendarEntry struct {
+	Id      string `json:"id"`
+	Primary *bool  `json:"primary,omitempty"`
+	Summary string `json:"summary"`
+}
+
+// GoogleDriveFile defines model for GoogleDriveFile.
+type GoogleDriveFile struct {
+	Id       string `json:"id"`
+	IsFolder *bool  `json:"is_folder,omitempty"`
+	MimeType string `json:"mime_type"`
+	Name     string `json:"name"`
+}
+
+// GoogleDriveFilesResponse defines model for GoogleDriveFilesResponse.
+type GoogleDriveFilesResponse struct {
+	Files         []GoogleDriveFile `json:"files"`
+	NextPageToken *string           `json:"next_page_token,omitempty"`
+}
+
 // Group defines model for Group.
 type Group struct {
 	ExtraPerms *map[string]bool `json:"extra_perms,omitempty"`
@@ -4513,6 +4536,12 @@ type SecretMigrationReport struct {
 	TotalSecrets int64 `json:"total_secrets"`
 }
 
+// SharedDriveEntry defines model for SharedDriveEntry.
+type SharedDriveEntry struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // Slot defines model for Slot.
 type Slot struct {
 	Name *string `json:"name,omitempty"`
@@ -4633,6 +4662,7 @@ type TriggersCount struct {
 	DefaultEmailCount *float32 `json:"default_email_count,omitempty"`
 	EmailCount        *float32 `json:"email_count,omitempty"`
 	GcpCount          *float32 `json:"gcp_count,omitempty"`
+	GoogleCount       *float32 `json:"google_count,omitempty"`
 	HttpRoutesCount   *float32 `json:"http_routes_count,omitempty"`
 	KafkaCount        *float32 `json:"kafka_count,omitempty"`
 	MqttCount         *float32 `json:"mqtt_count,omitempty"`
@@ -4923,8 +4953,11 @@ type WorkspaceInfo struct {
 
 // WorkspaceIntegrations defines model for WorkspaceIntegrations.
 type WorkspaceIntegrations struct {
-	OauthData   *WorkspaceOAuthConfig `json:"oauth_data,omitempty"`
-	ServiceName NativeServiceName     `json:"service_name"`
+	OauthData *WorkspaceOAuthConfig `json:"oauth_data,omitempty"`
+
+	// ResourcePath Path to the resource storing the OAuth token
+	ResourcePath *string           `json:"resource_path"`
+	ServiceName  NativeServiceName `json:"service_name"`
 }
 
 // WorkspaceInvite defines model for WorkspaceInvite.
@@ -8366,6 +8399,29 @@ type TestMqttConnectionJSONBody struct {
 	Connection map[string]interface{} `json:"connection"`
 }
 
+// ListGoogleDriveFilesParams defines parameters for ListGoogleDriveFiles.
+type ListGoogleDriveFilesParams struct {
+	// Q search query to filter files by name
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+
+	// ParentId folder ID to list children of
+	ParentId *string `form:"parent_id,omitempty" json:"parent_id,omitempty"`
+
+	// PageToken token for next page of results
+	PageToken *string `form:"page_token,omitempty" json:"page_token,omitempty"`
+
+	// SharedWithMe if true, list files shared with the user
+	SharedWithMe *bool `form:"shared_with_me,omitempty" json:"shared_with_me,omitempty"`
+}
+
+// NativeTriggerServiceCallbackJSONBody defines parameters for NativeTriggerServiceCallback.
+type NativeTriggerServiceCallbackJSONBody struct {
+	Code         string  `json:"code"`
+	RedirectUri  string  `json:"redirect_uri"`
+	ResourcePath *string `json:"resource_path,omitempty"`
+	State        string  `json:"state"`
+}
+
 // ListNativeTriggersParams defines parameters for ListNativeTriggers.
 type ListNativeTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -9554,13 +9610,16 @@ type TestMqttConnectionJSONRequestBody TestMqttConnectionJSONBody
 type UpdateMqttTriggerJSONRequestBody = EditMqttTrigger
 
 // NativeTriggerServiceCallbackJSONRequestBody defines body for NativeTriggerServiceCallback for application/json ContentType.
-type NativeTriggerServiceCallbackJSONRequestBody = RedirectUri
+type NativeTriggerServiceCallbackJSONRequestBody NativeTriggerServiceCallbackJSONBody
 
 // CreateNativeTriggerServiceJSONRequestBody defines body for CreateNativeTriggerService for application/json ContentType.
 type CreateNativeTriggerServiceJSONRequestBody = WorkspaceOAuthConfig
 
 // GenerateNativeTriggerServiceConnectUrlJSONRequestBody defines body for GenerateNativeTriggerServiceConnectUrl for application/json ContentType.
 type GenerateNativeTriggerServiceConnectUrlJSONRequestBody = RedirectUri
+
+// GenerateInstanceConnectUrlJSONRequestBody defines body for GenerateInstanceConnectUrl for application/json ContentType.
+type GenerateInstanceConnectUrlJSONRequestBody = RedirectUri
 
 // CreateNativeTriggerJSONRequestBody defines body for CreateNativeTrigger for application/json ContentType.
 type CreateNativeTriggerJSONRequestBody = NativeTriggerData
@@ -13143,13 +13202,22 @@ type ClientInterface interface {
 
 	UpdateMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListGoogleCalendars request
+	ListGoogleCalendars(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListGoogleDriveFiles request
+	ListGoogleDriveFiles(ctx context.Context, workspace string, params *ListGoogleDriveFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListGoogleSharedDrives request
+	ListGoogleSharedDrives(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListNativeTriggerServices request
 	ListNativeTriggerServices(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// NativeTriggerServiceCallbackWithBody request with any body
-	NativeTriggerServiceCallbackWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	NativeTriggerServiceCallbackWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	NativeTriggerServiceCallback(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	NativeTriggerServiceCallback(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateNativeTriggerServiceWithBody request with any body
 	CreateNativeTriggerServiceWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -13166,6 +13234,14 @@ type ClientInterface interface {
 	GenerateNativeTriggerServiceConnectUrlWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	GenerateNativeTriggerServiceConnectUrl(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateNativeTriggerServiceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GenerateInstanceConnectUrlWithBody request with any body
+	GenerateInstanceConnectUrlWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GenerateInstanceConnectUrl(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateInstanceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CheckInstanceSharingAvailable request
+	CheckInstanceSharingAvailable(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListNextCloudEvents request
 	ListNextCloudEvents(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20249,6 +20325,42 @@ func (c *Client) UpdateMqttTrigger(ctx context.Context, workspace WorkspaceId, p
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListGoogleCalendars(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGoogleCalendarsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListGoogleDriveFiles(ctx context.Context, workspace string, params *ListGoogleDriveFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGoogleDriveFilesRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListGoogleSharedDrives(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGoogleSharedDrivesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListNativeTriggerServices(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListNativeTriggerServicesRequest(c.Server, workspace)
 	if err != nil {
@@ -20261,8 +20373,8 @@ func (c *Client) ListNativeTriggerServices(ctx context.Context, workspace Worksp
 	return c.Client.Do(req)
 }
 
-func (c *Client) NativeTriggerServiceCallbackWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewNativeTriggerServiceCallbackRequestWithBody(c.Server, workspace, serviceName, code, state, contentType, body)
+func (c *Client) NativeTriggerServiceCallbackWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNativeTriggerServiceCallbackRequestWithBody(c.Server, workspace, serviceName, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -20273,8 +20385,8 @@ func (c *Client) NativeTriggerServiceCallbackWithBody(ctx context.Context, works
 	return c.Client.Do(req)
 }
 
-func (c *Client) NativeTriggerServiceCallback(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewNativeTriggerServiceCallbackRequest(c.Server, workspace, serviceName, code, state, body)
+func (c *Client) NativeTriggerServiceCallback(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewNativeTriggerServiceCallbackRequest(c.Server, workspace, serviceName, body)
 	if err != nil {
 		return nil, err
 	}
@@ -20347,6 +20459,42 @@ func (c *Client) GenerateNativeTriggerServiceConnectUrlWithBody(ctx context.Cont
 
 func (c *Client) GenerateNativeTriggerServiceConnectUrl(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateNativeTriggerServiceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGenerateNativeTriggerServiceConnectUrlRequest(c.Server, workspace, serviceName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GenerateInstanceConnectUrlWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGenerateInstanceConnectUrlRequestWithBody(c.Server, workspace, serviceName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GenerateInstanceConnectUrl(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateInstanceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGenerateInstanceConnectUrlRequest(c.Server, workspace, serviceName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CheckInstanceSharingAvailable(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCheckInstanceSharingAvailableRequest(c.Server, workspace, serviceName)
 	if err != nil {
 		return nil, err
 	}
@@ -49501,6 +49649,178 @@ func NewUpdateMqttTriggerRequestWithBody(server string, workspace WorkspaceId, p
 	return req, nil
 }
 
+// NewListGoogleCalendarsRequest generates requests for ListGoogleCalendars
+func NewListGoogleCalendarsRequest(server string, workspace string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/google/calendars", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListGoogleDriveFilesRequest generates requests for ListGoogleDriveFiles
+func NewListGoogleDriveFilesRequest(server string, workspace string, params *ListGoogleDriveFilesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/google/drive/files", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Q != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "q", runtime.ParamLocationQuery, *params.Q); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ParentId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "parent_id", runtime.ParamLocationQuery, *params.ParentId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PageToken != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page_token", runtime.ParamLocationQuery, *params.PageToken); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SharedWithMe != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "shared_with_me", runtime.ParamLocationQuery, *params.SharedWithMe); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListGoogleSharedDrivesRequest generates requests for ListGoogleSharedDrives
+func NewListGoogleSharedDrivesRequest(server string, workspace string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/google/drive/shared_drives", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListNativeTriggerServicesRequest generates requests for ListNativeTriggerServices
 func NewListNativeTriggerServicesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -49536,18 +49856,18 @@ func NewListNativeTriggerServicesRequest(server string, workspace WorkspaceId) (
 }
 
 // NewNativeTriggerServiceCallbackRequest calls the generic NativeTriggerServiceCallback builder with application/json body
-func NewNativeTriggerServiceCallbackRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, body NativeTriggerServiceCallbackJSONRequestBody) (*http.Request, error) {
+func NewNativeTriggerServiceCallbackRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, body NativeTriggerServiceCallbackJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewNativeTriggerServiceCallbackRequestWithBody(server, workspace, serviceName, code, state, "application/json", bodyReader)
+	return NewNativeTriggerServiceCallbackRequestWithBody(server, workspace, serviceName, "application/json", bodyReader)
 }
 
 // NewNativeTriggerServiceCallbackRequestWithBody generates requests for NativeTriggerServiceCallback with any type of body
-func NewNativeTriggerServiceCallbackRequestWithBody(server string, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, contentType string, body io.Reader) (*http.Request, error) {
+func NewNativeTriggerServiceCallbackRequestWithBody(server string, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -49564,26 +49884,12 @@ func NewNativeTriggerServiceCallbackRequestWithBody(server string, workspace Wor
 		return nil, err
 	}
 
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "code", runtime.ParamLocationPath, code)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam3 string
-
-	pathParam3, err = runtime.StyleParamWithLocation("simple", false, "state", runtime.ParamLocationPath, state)
-	if err != nil {
-		return nil, err
-	}
-
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/callback/%s/%s", pathParam0, pathParam1, pathParam2, pathParam3)
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/callback", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -49789,6 +50095,101 @@ func NewGenerateNativeTriggerServiceConnectUrlRequestWithBody(server string, wor
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGenerateInstanceConnectUrlRequest calls the generic GenerateInstanceConnectUrl builder with application/json body
+func NewGenerateInstanceConnectUrlRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, body GenerateInstanceConnectUrlJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGenerateInstanceConnectUrlRequestWithBody(server, workspace, serviceName, "application/json", bodyReader)
+}
+
+// NewGenerateInstanceConnectUrlRequestWithBody generates requests for GenerateInstanceConnectUrl with any type of body
+func NewGenerateInstanceConnectUrlRequestWithBody(server string, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/generate_instance_connect_url", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCheckInstanceSharingAvailableRequest generates requests for CheckInstanceSharingAvailable
+func NewCheckInstanceSharingAvailableRequest(server string, workspace WorkspaceId, serviceName NativeServiceName) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/instance_sharing_available", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -63114,13 +63515,22 @@ type ClientWithResponsesInterface interface {
 
 	UpdateMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMqttTriggerResponse, error)
 
+	// ListGoogleCalendarsWithResponse request
+	ListGoogleCalendarsWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGoogleCalendarsResponse, error)
+
+	// ListGoogleDriveFilesWithResponse request
+	ListGoogleDriveFilesWithResponse(ctx context.Context, workspace string, params *ListGoogleDriveFilesParams, reqEditors ...RequestEditorFn) (*ListGoogleDriveFilesResponse, error)
+
+	// ListGoogleSharedDrivesWithResponse request
+	ListGoogleSharedDrivesWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGoogleSharedDrivesResponse, error)
+
 	// ListNativeTriggerServicesWithResponse request
 	ListNativeTriggerServicesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListNativeTriggerServicesResponse, error)
 
 	// NativeTriggerServiceCallbackWithBodyWithResponse request with any body
-	NativeTriggerServiceCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error)
+	NativeTriggerServiceCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error)
 
-	NativeTriggerServiceCallbackWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error)
+	NativeTriggerServiceCallbackWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error)
 
 	// CreateNativeTriggerServiceWithBodyWithResponse request with any body
 	CreateNativeTriggerServiceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNativeTriggerServiceResponse, error)
@@ -63137,6 +63547,14 @@ type ClientWithResponsesInterface interface {
 	GenerateNativeTriggerServiceConnectUrlWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GenerateNativeTriggerServiceConnectUrlResponse, error)
 
 	GenerateNativeTriggerServiceConnectUrlWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateNativeTriggerServiceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateNativeTriggerServiceConnectUrlResponse, error)
+
+	// GenerateInstanceConnectUrlWithBodyWithResponse request with any body
+	GenerateInstanceConnectUrlWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GenerateInstanceConnectUrlResponse, error)
+
+	GenerateInstanceConnectUrlWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateInstanceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateInstanceConnectUrlResponse, error)
+
+	// CheckInstanceSharingAvailableWithResponse request
+	CheckInstanceSharingAvailableWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*CheckInstanceSharingAvailableResponse, error)
 
 	// ListNextCloudEventsWithResponse request
 	ListNextCloudEventsWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListNextCloudEventsResponse, error)
@@ -72520,6 +72938,72 @@ func (r UpdateMqttTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type ListGoogleCalendarsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]GoogleCalendarEntry
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGoogleCalendarsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGoogleCalendarsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListGoogleDriveFilesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GoogleDriveFilesResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGoogleDriveFilesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGoogleDriveFilesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListGoogleSharedDrivesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]SharedDriveEntry
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGoogleSharedDrivesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGoogleSharedDrivesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListNativeTriggerServicesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -72643,6 +73127,50 @@ func (r GenerateNativeTriggerServiceConnectUrlResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GenerateNativeTriggerServiceConnectUrlResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GenerateInstanceConnectUrlResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r GenerateInstanceConnectUrlResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GenerateInstanceConnectUrlResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CheckInstanceSharingAvailableResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r CheckInstanceSharingAvailableResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CheckInstanceSharingAvailableResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -77530,6 +78058,7 @@ type GetUsedTriggersResponse struct {
 	JSON200      *struct {
 		EmailUsed      bool `json:"email_used"`
 		GcpUsed        bool `json:"gcp_used"`
+		GoogleUsed     bool `json:"google_used"`
 		HttpRoutesUsed bool `json:"http_routes_used"`
 		KafkaUsed      bool `json:"kafka_used"`
 		MqttUsed       bool `json:"mqtt_used"`
@@ -82426,6 +82955,33 @@ func (c *ClientWithResponses) UpdateMqttTriggerWithResponse(ctx context.Context,
 	return ParseUpdateMqttTriggerResponse(rsp)
 }
 
+// ListGoogleCalendarsWithResponse request returning *ListGoogleCalendarsResponse
+func (c *ClientWithResponses) ListGoogleCalendarsWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGoogleCalendarsResponse, error) {
+	rsp, err := c.ListGoogleCalendars(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGoogleCalendarsResponse(rsp)
+}
+
+// ListGoogleDriveFilesWithResponse request returning *ListGoogleDriveFilesResponse
+func (c *ClientWithResponses) ListGoogleDriveFilesWithResponse(ctx context.Context, workspace string, params *ListGoogleDriveFilesParams, reqEditors ...RequestEditorFn) (*ListGoogleDriveFilesResponse, error) {
+	rsp, err := c.ListGoogleDriveFiles(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGoogleDriveFilesResponse(rsp)
+}
+
+// ListGoogleSharedDrivesWithResponse request returning *ListGoogleSharedDrivesResponse
+func (c *ClientWithResponses) ListGoogleSharedDrivesWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGoogleSharedDrivesResponse, error) {
+	rsp, err := c.ListGoogleSharedDrives(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGoogleSharedDrivesResponse(rsp)
+}
+
 // ListNativeTriggerServicesWithResponse request returning *ListNativeTriggerServicesResponse
 func (c *ClientWithResponses) ListNativeTriggerServicesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListNativeTriggerServicesResponse, error) {
 	rsp, err := c.ListNativeTriggerServices(ctx, workspace, reqEditors...)
@@ -82436,16 +82992,16 @@ func (c *ClientWithResponses) ListNativeTriggerServicesWithResponse(ctx context.
 }
 
 // NativeTriggerServiceCallbackWithBodyWithResponse request with arbitrary body returning *NativeTriggerServiceCallbackResponse
-func (c *ClientWithResponses) NativeTriggerServiceCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error) {
-	rsp, err := c.NativeTriggerServiceCallbackWithBody(ctx, workspace, serviceName, code, state, contentType, body, reqEditors...)
+func (c *ClientWithResponses) NativeTriggerServiceCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error) {
+	rsp, err := c.NativeTriggerServiceCallbackWithBody(ctx, workspace, serviceName, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseNativeTriggerServiceCallbackResponse(rsp)
 }
 
-func (c *ClientWithResponses) NativeTriggerServiceCallbackWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, code string, state string, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error) {
-	rsp, err := c.NativeTriggerServiceCallback(ctx, workspace, serviceName, code, state, body, reqEditors...)
+func (c *ClientWithResponses) NativeTriggerServiceCallbackWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error) {
+	rsp, err := c.NativeTriggerServiceCallback(ctx, workspace, serviceName, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -82502,6 +83058,32 @@ func (c *ClientWithResponses) GenerateNativeTriggerServiceConnectUrlWithResponse
 		return nil, err
 	}
 	return ParseGenerateNativeTriggerServiceConnectUrlResponse(rsp)
+}
+
+// GenerateInstanceConnectUrlWithBodyWithResponse request with arbitrary body returning *GenerateInstanceConnectUrlResponse
+func (c *ClientWithResponses) GenerateInstanceConnectUrlWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GenerateInstanceConnectUrlResponse, error) {
+	rsp, err := c.GenerateInstanceConnectUrlWithBody(ctx, workspace, serviceName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGenerateInstanceConnectUrlResponse(rsp)
+}
+
+func (c *ClientWithResponses) GenerateInstanceConnectUrlWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateInstanceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateInstanceConnectUrlResponse, error) {
+	rsp, err := c.GenerateInstanceConnectUrl(ctx, workspace, serviceName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGenerateInstanceConnectUrlResponse(rsp)
+}
+
+// CheckInstanceSharingAvailableWithResponse request returning *CheckInstanceSharingAvailableResponse
+func (c *ClientWithResponses) CheckInstanceSharingAvailableWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*CheckInstanceSharingAvailableResponse, error) {
+	rsp, err := c.CheckInstanceSharingAvailable(ctx, workspace, serviceName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCheckInstanceSharingAvailableResponse(rsp)
 }
 
 // ListNextCloudEventsWithResponse request returning *ListNextCloudEventsResponse
@@ -93866,6 +94448,84 @@ func ParseUpdateMqttTriggerResponse(rsp *http.Response) (*UpdateMqttTriggerRespo
 	return response, nil
 }
 
+// ParseListGoogleCalendarsResponse parses an HTTP response from a ListGoogleCalendarsWithResponse call
+func ParseListGoogleCalendarsResponse(rsp *http.Response) (*ListGoogleCalendarsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGoogleCalendarsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []GoogleCalendarEntry
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListGoogleDriveFilesResponse parses an HTTP response from a ListGoogleDriveFilesWithResponse call
+func ParseListGoogleDriveFilesResponse(rsp *http.Response) (*ListGoogleDriveFilesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGoogleDriveFilesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GoogleDriveFilesResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListGoogleSharedDrivesResponse parses an HTTP response from a ListGoogleSharedDrivesWithResponse call
+func ParseListGoogleSharedDrivesResponse(rsp *http.Response) (*ListGoogleSharedDrivesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGoogleSharedDrivesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []SharedDriveEntry
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListNativeTriggerServicesResponse parses an HTTP response from a ListNativeTriggerServicesWithResponse call
 func ParseListNativeTriggerServicesResponse(rsp *http.Response) (*ListNativeTriggerServicesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -93982,6 +94642,58 @@ func ParseGenerateNativeTriggerServiceConnectUrlResponse(rsp *http.Response) (*G
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGenerateInstanceConnectUrlResponse parses an HTTP response from a GenerateInstanceConnectUrlWithResponse call
+func ParseGenerateInstanceConnectUrlResponse(rsp *http.Response) (*GenerateInstanceConnectUrlResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GenerateInstanceConnectUrlResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCheckInstanceSharingAvailableResponse parses an HTTP response from a CheckInstanceSharingAvailableWithResponse call
+func ParseCheckInstanceSharingAvailableResponse(rsp *http.Response) (*CheckInstanceSharingAvailableResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CheckInstanceSharingAvailableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -98842,6 +99554,7 @@ func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse,
 		var dest struct {
 			EmailUsed      bool `json:"email_used"`
 			GcpUsed        bool `json:"gcp_used"`
+			GoogleUsed     bool `json:"google_used"`
 			HttpRoutesUsed bool `json:"http_routes_used"`
 			KafkaUsed      bool `json:"kafka_used"`
 			MqttUsed       bool `json:"mqtt_used"`
