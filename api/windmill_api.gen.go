@@ -4843,6 +4843,7 @@ type WorkerPing struct {
 	LastPing           *float32  `json:"last_ping,omitempty"`
 	Memory             *float32  `json:"memory,omitempty"`
 	MemoryUsage        *float32  `json:"memory_usage,omitempty"`
+	NativeMode         *bool     `json:"native_mode,omitempty"`
 	OccupancyRate      *float32  `json:"occupancy_rate,omitempty"`
 	OccupancyRate15s   *float32  `json:"occupancy_rate_15s,omitempty"`
 	OccupancyRate30m   *float32  `json:"occupancy_rate_30m,omitempty"`
