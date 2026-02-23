@@ -3979,6 +3979,7 @@ type Preview struct {
 	// Content The code to run
 	Content         *string      `json:"content,omitempty"`
 	DedicatedWorker *bool        `json:"dedicated_worker,omitempty"`
+	FlowPath        *string      `json:"flow_path,omitempty"`
 	Kind            *PreviewKind `json:"kind,omitempty"`
 	Language        *ScriptLang  `json:"language,omitempty"`
 	Lock            *string      `json:"lock,omitempty"`
