@@ -1948,6 +1948,7 @@ type EditResource struct {
 // EditResourceType defines model for EditResourceType.
 type EditResourceType struct {
 	Description *string      `json:"description,omitempty"`
+	IsFileset   *bool        `json:"is_fileset,omitempty"`
 	Schema      *interface{} `json:"schema,omitempty"`
 }
 
@@ -4148,6 +4149,7 @@ type ResourceType struct {
 	Description     *string      `json:"description,omitempty"`
 	EditedAt        *time.Time   `json:"edited_at,omitempty"`
 	FormatExtension *string      `json:"format_extension,omitempty"`
+	IsFileset       *bool        `json:"is_fileset,omitempty"`
 	Name            string       `json:"name"`
 	Schema          *interface{} `json:"schema,omitempty"`
 	WorkspaceId     *string      `json:"workspace_id,omitempty"`
@@ -5710,6 +5712,9 @@ type JobId = openapi_types.UUID
 // JobKinds defines model for JobKinds.
 type JobKinds = string
 
+// JobTriggerKindParam defines model for JobTriggerKind.
+type JobTriggerKindParam = string
+
 // Key defines model for Key.
 type Key = string
 
@@ -6299,7 +6304,7 @@ type ListAppsParams struct {
 	// OrderDesc order by desc order (default true)
 	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
 
-	// CreatedBy mask to filter exact matching user creator
+	// CreatedBy filter by exact matching user creator. Supports comma-separated list (e.g. 'alice,bob') and negation by prefixing all values with '!' (e.g. '!alice,!bob')
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
 	// PathStart mask to filter matching starting path
@@ -6410,6 +6415,12 @@ type ListAssetsParams struct {
 
 	// AssetKinds Filter by asset kinds (multiple values allowed)
 	AssetKinds *string `form:"asset_kinds,omitempty" json:"asset_kinds,omitempty"`
+
+	// Path exact path match filter
+	Path *string `form:"path,omitempty" json:"path,omitempty"`
+
+	// Columns JSONB subset match filter for columns using base64 encoded JSON
+	Columns *string `form:"columns,omitempty" json:"columns,omitempty"`
 }
 
 // ListAssetsByUsageJSONBody defines parameters for ListAssetsByUsage.
@@ -6500,19 +6511,19 @@ type ListExtendedJobsParams struct {
 	ConcurrencyKey *string  `form:"concurrency_key,omitempty" json:"concurrency_key,omitempty"`
 	RowLimit       *float32 `form:"row_limit,omitempty" json:"row_limit,omitempty"`
 
-	// CreatedBy mask to filter exact matching user creator
+	// CreatedBy filter by exact matching user creator. Supports comma-separated list (e.g. 'alice,bob') and negation by prefixing all values with '!' (e.g. '!alice,!bob')
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
-	// Label mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string in the array at key 'wm_labels')
+	// Label filter by exact matching job label. Supports comma-separated list (e.g. 'deploy,release') and negation by prefixing all values with '!' (e.g. '!deploy,!release')
 	Label *Label `form:"label,omitempty" json:"label,omitempty"`
 
 	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
-	// ScriptPathExact mask to filter exact matching path
+	// ScriptPathExact filter by exact matching script path. Supports comma-separated list (e.g. 'f/script1,f/script2') and negation by prefixing all values with '!' (e.g. '!f/script1,!f/script2')
 	ScriptPathExact *ScriptExactPath `form:"script_path_exact,omitempty" json:"script_path_exact,omitempty"`
 
-	// ScriptPathStart mask to filter matching starting path
+	// ScriptPathStart filter by script path prefix. Supports comma-separated list (e.g. 'f/folder1,f/folder2') and negation by prefixing all values with '!' (e.g. '!f/folder1,!f/folder2')
 	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
 
 	// SchedulePath mask to filter by schedule path
@@ -6545,13 +6556,13 @@ type ListExtendedJobsParams struct {
 	// CreatedAfterQueue filter on jobs created after X for jobs in the queue only
 	CreatedAfterQueue *CreatedAfterQueue `form:"created_after_queue,omitempty" json:"created_after_queue,omitempty"`
 
-	// JobKinds filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
+	// JobKinds filter by job kind. Supports comma-separated list of values ('preview', 'script', 'dependencies', 'flow') and negation by prefixing all values with '!' (e.g. '!preview,!dependencies')
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
 
 	// Args filter on jobs containing those args as a json subset (@> in postgres)
 	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
 
-	// Tag filter on jobs with a given tag/worker group
+	// Tag filter by tag/worker group. Supports comma-separated list (e.g. 'gpu,highmem') and negation by prefixing all values with '!' (e.g. '!gpu,!highmem')
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// Result filter on jobs containing those result as a json subset (@> in postgres)
@@ -6566,8 +6577,8 @@ type ListExtendedJobsParams struct {
 	// PerPage number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
-	// TriggerKind trigger kind (schedule, http, websocket...)
-	TriggerKind *JobTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
+	// JobTriggerKindParam filter by trigger kind. Supports comma-separated list (e.g. 'schedule,webhook') and negation by prefixing all values with '!' (e.g. '!schedule,!webhook')
+	JobTriggerKindParam *JobTriggerKindParam `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
 
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
@@ -6737,7 +6748,7 @@ type ListFlowsParams struct {
 	// OrderDesc order by desc order (default true)
 	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
 
-	// CreatedBy mask to filter exact matching user creator
+	// CreatedBy filter by exact matching user creator. Supports comma-separated list (e.g. 'alice,bob') and negation by prefixing all values with '!' (e.g. '!alice,!bob')
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
 	// PathStart mask to filter matching starting path
@@ -7228,22 +7239,22 @@ type ListCompletedJobsParams struct {
 	// OrderDesc order by desc order (default true)
 	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
 
-	// CreatedBy mask to filter exact matching user creator
+	// CreatedBy filter by exact matching user creator. Supports comma-separated list (e.g. 'alice,bob') and negation by prefixing all values with '!' (e.g. '!alice,!bob')
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
-	// Label mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string in the array at key 'wm_labels')
+	// Label filter by exact matching job label. Supports comma-separated list (e.g. 'deploy,release') and negation by prefixing all values with '!' (e.g. '!deploy,!release')
 	Label *Label `form:"label,omitempty" json:"label,omitempty"`
 
-	// Worker worker this job was ran on
+	// Worker filter by worker this job ran on. Supports comma-separated list (e.g. 'worker-1,worker-2') and negation by prefixing all values with '!' (e.g. '!worker-1,!worker-2')
 	Worker *Worker `form:"worker,omitempty" json:"worker,omitempty"`
 
 	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
-	// ScriptPathExact mask to filter exact matching path
+	// ScriptPathExact filter by exact matching script path. Supports comma-separated list (e.g. 'f/script1,f/script2') and negation by prefixing all values with '!' (e.g. '!f/script1,!f/script2')
 	ScriptPathExact *ScriptExactPath `form:"script_path_exact,omitempty" json:"script_path_exact,omitempty"`
 
-	// ScriptPathStart mask to filter matching starting path
+	// ScriptPathStart filter by script path prefix. Supports comma-separated list (e.g. 'f/folder1,f/folder2') and negation by prefixing all values with '!' (e.g. '!f/folder1,!f/folder2')
 	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
 
 	// SchedulePath mask to filter by schedule path
@@ -7261,7 +7272,7 @@ type ListCompletedJobsParams struct {
 	// Success filter on successful jobs
 	Success *Success `form:"success,omitempty" json:"success,omitempty"`
 
-	// JobKinds filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
+	// JobKinds filter by job kind. Supports comma-separated list of values ('preview', 'script', 'dependencies', 'flow') and negation by prefixing all values with '!' (e.g. '!preview,!dependencies')
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
 
 	// Args filter on jobs containing those args as a json subset (@> in postgres)
@@ -7273,7 +7284,7 @@ type ListCompletedJobsParams struct {
 	// AllowWildcards allow wildcards (*) in the filter of label, tag, worker
 	AllowWildcards *AllowWildcards `form:"allow_wildcards,omitempty" json:"allow_wildcards,omitempty"`
 
-	// Tag filter on jobs with a given tag/worker group
+	// Tag filter by tag/worker group. Supports comma-separated list (e.g. 'gpu,highmem') and negation by prefixing all values with '!' (e.g. '!gpu,!highmem')
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// Page which page to return (start at 1, default 1)
@@ -7311,22 +7322,22 @@ type CreateJobSignatureParams struct {
 
 // ListJobsParams defines parameters for ListJobs.
 type ListJobsParams struct {
-	// CreatedBy mask to filter exact matching user creator
+	// CreatedBy filter by exact matching user creator. Supports comma-separated list (e.g. 'alice,bob') and negation by prefixing all values with '!' (e.g. '!alice,!bob')
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
-	// Label mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string in the array at key 'wm_labels')
+	// Label filter by exact matching job label. Supports comma-separated list (e.g. 'deploy,release') and negation by prefixing all values with '!' (e.g. '!deploy,!release')
 	Label *Label `form:"label,omitempty" json:"label,omitempty"`
 
-	// Worker worker this job was ran on
+	// Worker filter by worker this job ran on. Supports comma-separated list (e.g. 'worker-1,worker-2') and negation by prefixing all values with '!' (e.g. '!worker-1,!worker-2')
 	Worker *Worker `form:"worker,omitempty" json:"worker,omitempty"`
 
 	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
-	// ScriptPathExact mask to filter exact matching path
+	// ScriptPathExact filter by exact matching script path. Supports comma-separated list (e.g. 'f/script1,f/script2') and negation by prefixing all values with '!' (e.g. '!f/script1,!f/script2')
 	ScriptPathExact *ScriptExactPath `form:"script_path_exact,omitempty" json:"script_path_exact,omitempty"`
 
-	// ScriptPathStart mask to filter matching starting path
+	// ScriptPathStart filter by script path prefix. Supports comma-separated list (e.g. 'f/folder1,f/folder2') and negation by prefixing all values with '!' (e.g. '!f/folder1,!f/folder2')
 	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
 
 	// SchedulePath mask to filter by schedule path
@@ -7365,7 +7376,7 @@ type ListJobsParams struct {
 	// ScheduledForBeforeNow filter on jobs scheduled_for before now (hence waitinf for a worker)
 	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
 
-	// JobKinds filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
+	// JobKinds filter by job kind. Supports comma-separated list of values ('preview', 'script', 'dependencies', 'flow') and negation by prefixing all values with '!' (e.g. '!preview,!dependencies')
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
 
 	// Suspended filter on suspended jobs
@@ -7374,7 +7385,7 @@ type ListJobsParams struct {
 	// Args filter on jobs containing those args as a json subset (@> in postgres)
 	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
 
-	// Tag filter on jobs with a given tag/worker group
+	// Tag filter by tag/worker group. Supports comma-separated list (e.g. 'gpu,highmem') and negation by prefixing all values with '!' (e.g. '!gpu,!highmem')
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// Result filter on jobs containing those result as a json subset (@> in postgres)
@@ -7386,8 +7397,8 @@ type ListJobsParams struct {
 	// PerPage number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
-	// TriggerKind trigger kind (schedule, http, websocket...)
-	TriggerKind *JobTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
+	// JobTriggerKindParam filter by trigger kind. Supports comma-separated list (e.g. 'schedule,webhook') and negation by prefixing all values with '!' (e.g. '!schedule,!webhook')
+	JobTriggerKindParam *JobTriggerKindParam `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
 
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
@@ -7410,22 +7421,22 @@ type ListJobsParams struct {
 
 // ListFilteredJobsUuidsParams defines parameters for ListFilteredJobsUuids.
 type ListFilteredJobsUuidsParams struct {
-	// CreatedBy mask to filter exact matching user creator
+	// CreatedBy filter by exact matching user creator. Supports comma-separated list (e.g. 'alice,bob') and negation by prefixing all values with '!' (e.g. '!alice,!bob')
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
-	// Label mask to filter exact matching job's label (job labels are completed jobs with as a result an object containing a string in the array at key 'wm_labels')
+	// Label filter by exact matching job label. Supports comma-separated list (e.g. 'deploy,release') and negation by prefixing all values with '!' (e.g. '!deploy,!release')
 	Label *Label `form:"label,omitempty" json:"label,omitempty"`
 
-	// Worker worker this job was ran on
+	// Worker filter by worker this job ran on. Supports comma-separated list (e.g. 'worker-1,worker-2') and negation by prefixing all values with '!' (e.g. '!worker-1,!worker-2')
 	Worker *Worker `form:"worker,omitempty" json:"worker,omitempty"`
 
 	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
-	// ScriptPathExact mask to filter exact matching path
+	// ScriptPathExact filter by exact matching script path. Supports comma-separated list (e.g. 'f/script1,f/script2') and negation by prefixing all values with '!' (e.g. '!f/script1,!f/script2')
 	ScriptPathExact *ScriptExactPath `form:"script_path_exact,omitempty" json:"script_path_exact,omitempty"`
 
-	// ScriptPathStart mask to filter matching starting path
+	// ScriptPathStart filter by script path prefix. Supports comma-separated list (e.g. 'f/folder1,f/folder2') and negation by prefixing all values with '!' (e.g. '!f/folder1,!f/folder2')
 	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
 
 	// SchedulePath mask to filter by schedule path
@@ -7464,7 +7475,7 @@ type ListFilteredJobsUuidsParams struct {
 	// ScheduledForBeforeNow filter on jobs scheduled_for before now (hence waitinf for a worker)
 	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
 
-	// JobKinds filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
+	// JobKinds filter by job kind. Supports comma-separated list of values ('preview', 'script', 'dependencies', 'flow') and negation by prefixing all values with '!' (e.g. '!preview,!dependencies')
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
 
 	// Suspended filter on suspended jobs
@@ -7473,7 +7484,7 @@ type ListFilteredJobsUuidsParams struct {
 	// Args filter on jobs containing those args as a json subset (@> in postgres)
 	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
 
-	// Tag filter on jobs with a given tag/worker group
+	// Tag filter by tag/worker group. Supports comma-separated list (e.g. 'gpu,highmem') and negation by prefixing all values with '!' (e.g. '!gpu,!highmem')
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// Result filter on jobs containing those result as a json subset (@> in postgres)
@@ -7538,29 +7549,29 @@ type ListQueueParams struct {
 	// OrderDesc order by desc order (default true)
 	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
 
-	// CreatedBy mask to filter exact matching user creator
+	// CreatedBy filter by exact matching user creator. Supports comma-separated list (e.g. 'alice,bob') and negation by prefixing all values with '!' (e.g. '!alice,!bob')
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
 	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
-	// Worker worker this job was ran on
+	// Worker filter by worker this job ran on. Supports comma-separated list (e.g. 'worker-1,worker-2') and negation by prefixing all values with '!' (e.g. '!worker-1,!worker-2')
 	Worker *Worker `form:"worker,omitempty" json:"worker,omitempty"`
 
-	// ScriptPathExact mask to filter exact matching path
+	// ScriptPathExact filter by exact matching script path. Supports comma-separated list (e.g. 'f/script1,f/script2') and negation by prefixing all values with '!' (e.g. '!f/script1,!f/script2')
 	ScriptPathExact *ScriptExactPath `form:"script_path_exact,omitempty" json:"script_path_exact,omitempty"`
 
-	// ScriptPathStart mask to filter matching starting path
+	// ScriptPathStart filter by script path prefix. Supports comma-separated list (e.g. 'f/folder1,f/folder2') and negation by prefixing all values with '!' (e.g. '!f/folder1,!f/folder2')
 	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
 
 	// SchedulePath mask to filter by schedule path
 	SchedulePath *SchedulePath `form:"schedule_path,omitempty" json:"schedule_path,omitempty"`
 
-	// TriggerPath mask to filter by trigger path
+	// TriggerPath filter by trigger path. Supports comma-separated list (e.g. 'f/trigger1,f/trigger2') and negation by prefixing all values with '!' (e.g. '!f/trigger1,!f/trigger2')
 	TriggerPath *TriggerPath `form:"trigger_path,omitempty" json:"trigger_path,omitempty"`
 
-	// TriggerKind trigger kind (schedule, http, websocket...)
-	TriggerKind *JobTriggerKind `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
+	// JobTriggerKindParam filter by trigger kind. Supports comma-separated list (e.g. 'schedule,webhook') and negation by prefixing all values with '!' (e.g. '!schedule,!webhook')
+	JobTriggerKindParam *JobTriggerKindParam `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
 
 	// ScriptHash mask to filter exact matching path
 	ScriptHash *ScriptExactHash `form:"script_hash,omitempty" json:"script_hash,omitempty"`
@@ -7577,7 +7588,7 @@ type ListQueueParams struct {
 	// ScheduledForBeforeNow filter on jobs scheduled_for before now (hence waitinf for a worker)
 	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
 
-	// JobKinds filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
+	// JobKinds filter by job kind. Supports comma-separated list of values ('preview', 'script', 'dependencies', 'flow') and negation by prefixing all values with '!' (e.g. '!preview,!dependencies')
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
 
 	// Suspended filter on suspended jobs
@@ -7595,7 +7606,7 @@ type ListQueueParams struct {
 	// AllowWildcards allow wildcards (*) in the filter of label, tag, worker
 	AllowWildcards *AllowWildcards `form:"allow_wildcards,omitempty" json:"allow_wildcards,omitempty"`
 
-	// Tag filter on jobs with a given tag/worker group
+	// Tag filter by tag/worker group. Supports comma-separated list (e.g. 'gpu,highmem') and negation by prefixing all values with '!' (e.g. '!gpu,!highmem')
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// Page which page to return (start at 1, default 1)
@@ -7616,16 +7627,16 @@ type ListFilteredQueueUuidsParams struct {
 	// OrderDesc order by desc order (default true)
 	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
 
-	// CreatedBy mask to filter exact matching user creator
+	// CreatedBy filter by exact matching user creator. Supports comma-separated list (e.g. 'alice,bob') and negation by prefixing all values with '!' (e.g. '!alice,!bob')
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
 	// ParentJob The parent job that is at the origin and responsible for the execution of this script if any
 	ParentJob *ParentJob `form:"parent_job,omitempty" json:"parent_job,omitempty"`
 
-	// ScriptPathExact mask to filter exact matching path
+	// ScriptPathExact filter by exact matching script path. Supports comma-separated list (e.g. 'f/script1,f/script2') and negation by prefixing all values with '!' (e.g. '!f/script1,!f/script2')
 	ScriptPathExact *ScriptExactPath `form:"script_path_exact,omitempty" json:"script_path_exact,omitempty"`
 
-	// ScriptPathStart mask to filter matching starting path
+	// ScriptPathStart filter by script path prefix. Supports comma-separated list (e.g. 'f/folder1,f/folder2') and negation by prefixing all values with '!' (e.g. '!f/folder1,!f/folder2')
 	ScriptPathStart *ScriptStartPath `form:"script_path_start,omitempty" json:"script_path_start,omitempty"`
 
 	// SchedulePath mask to filter by schedule path
@@ -7646,7 +7657,7 @@ type ListFilteredQueueUuidsParams struct {
 	// ScheduledForBeforeNow filter on jobs scheduled_for before now (hence waitinf for a worker)
 	ScheduledForBeforeNow *ScheduledForBeforeNow `form:"scheduled_for_before_now,omitempty" json:"scheduled_for_before_now,omitempty"`
 
-	// JobKinds filter on job kind (values 'preview', 'script', 'dependencies', 'flow') separated by,
+	// JobKinds filter by job kind. Supports comma-separated list of values ('preview', 'script', 'dependencies', 'flow') and negation by prefixing all values with '!' (e.g. '!preview,!dependencies')
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
 
 	// Suspended filter on suspended jobs
@@ -7664,7 +7675,7 @@ type ListFilteredQueueUuidsParams struct {
 	// AllowWildcards allow wildcards (*) in the filter of label, tag, worker
 	AllowWildcards *AllowWildcards `form:"allow_wildcards,omitempty" json:"allow_wildcards,omitempty"`
 
-	// Tag filter on jobs with a given tag/worker group
+	// Tag filter by tag/worker group. Supports comma-separated list (e.g. 'gpu,highmem') and negation by prefixing all values with '!' (e.g. '!gpu,!highmem')
 	Tag *Tag `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// Page which page to return (start at 1, default 1)
@@ -8543,7 +8554,7 @@ type ListRawAppsParams struct {
 	// OrderDesc order by desc order (default true)
 	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
 
-	// CreatedBy mask to filter exact matching user creator
+	// CreatedBy filter by exact matching user creator. Supports comma-separated list (e.g. 'alice,bob') and negation by prefixing all values with '!' (e.g. '!alice,!bob')
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
 	// PathStart mask to filter matching starting path
@@ -8598,6 +8609,15 @@ type ListResourceParams struct {
 
 	// PathStart filter resources by path prefix
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// Path exact path match filter
+	Path *string `form:"path,omitempty" json:"path,omitempty"`
+
+	// Description pattern match filter for description field (case-insensitive)
+	Description *string `form:"description,omitempty" json:"description,omitempty"`
+
+	// Value JSONB subset match filter using base64 encoded JSON
+	Value *string `form:"value,omitempty" json:"value,omitempty"`
 }
 
 // UpdateResourceValueJSONBody defines parameters for UpdateResourceValue.
@@ -8616,7 +8636,7 @@ type ListSchedulesParams struct {
 	// Args filter on jobs containing those args as a json subset (@> in postgres)
 	Args *ArgsFilter `form:"args,omitempty" json:"args,omitempty"`
 
-	// Path filter by path
+	// Path filter by path (script path)
 	Path *string `form:"path,omitempty" json:"path,omitempty"`
 
 	// IsFlow filter schedules by whether they target a flow
@@ -8624,6 +8644,15 @@ type ListSchedulesParams struct {
 
 	// PathStart filter schedules by path prefix
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// SchedulePath exact match on the schedule's path
+	SchedulePath *string `form:"schedule_path,omitempty" json:"schedule_path,omitempty"`
+
+	// Description pattern match filter for description field (case-insensitive)
+	Description *string `form:"description,omitempty" json:"description,omitempty"`
+
+	// Summary pattern match filter for summary field (case-insensitive)
+	Summary *string `form:"summary,omitempty" json:"summary,omitempty"`
 }
 
 // ListSchedulesWithJobsParams defines parameters for ListSchedulesWithJobs.
@@ -8692,7 +8721,7 @@ type ListScriptsParams struct {
 	// OrderDesc order by desc order (default true)
 	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
 
-	// CreatedBy mask to filter exact matching user creator
+	// CreatedBy filter by exact matching user creator. Supports comma-separated list (e.g. 'alice,bob') and negation by prefixing all values with '!' (e.g. '!alice,!bob')
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
 	// PathStart mask to filter matching starting path
@@ -8839,6 +8868,15 @@ type GetVariableValueParams struct {
 type ListVariableParams struct {
 	// PathStart filter variables by path prefix
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// Path exact path match filter
+	Path *string `form:"path,omitempty" json:"path,omitempty"`
+
+	// Description pattern match filter for description field (case-insensitive)
+	Description *string `form:"description,omitempty" json:"description,omitempty"`
+
+	// Value pattern match filter for non-secret variable values (case-insensitive)
+	Value *string `form:"value,omitempty" json:"value,omitempty"`
 
 	// Page which page to return (start at 1, default 1)
 	Page *Page `form:"page,omitempty" json:"page,omitempty"`
@@ -31378,6 +31416,38 @@ func NewListAssetsRequest(server string, workspace WorkspaceId, params *ListAsse
 
 		}
 
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Columns != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "columns", runtime.ParamLocationQuery, *params.Columns); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -32535,9 +32605,9 @@ func NewListExtendedJobsRequest(server string, workspace WorkspaceId, params *Li
 
 		}
 
-		if params.TriggerKind != nil {
+		if params.JobTriggerKindParam != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_kind", runtime.ParamLocationQuery, *params.TriggerKind); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_kind", runtime.ParamLocationQuery, *params.JobTriggerKindParam); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -41231,9 +41301,9 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 		}
 
-		if params.TriggerKind != nil {
+		if params.JobTriggerKindParam != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_kind", runtime.ParamLocationQuery, *params.TriggerKind); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_kind", runtime.ParamLocationQuery, *params.JobTriggerKindParam); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -42338,9 +42408,9 @@ func NewListQueueRequest(server string, workspace WorkspaceId, params *ListQueue
 
 		}
 
-		if params.TriggerKind != nil {
+		if params.JobTriggerKindParam != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_kind", runtime.ParamLocationQuery, *params.TriggerKind); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_kind", runtime.ParamLocationQuery, *params.JobTriggerKindParam); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -53447,6 +53517,54 @@ func NewListResourceRequest(server string, workspace WorkspaceId, params *ListRe
 
 		}
 
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Description != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "description", runtime.ParamLocationQuery, *params.Description); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Value != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "value", runtime.ParamLocationQuery, *params.Value); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -54256,6 +54374,54 @@ func NewListSchedulesRequest(server string, workspace WorkspaceId, params *ListS
 		if params.PathStart != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SchedulePath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "schedule_path", runtime.ParamLocationQuery, *params.SchedulePath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Description != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "description", runtime.ParamLocationQuery, *params.Description); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Summary != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "summary", runtime.ParamLocationQuery, *params.Summary); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -57288,6 +57454,54 @@ func NewListVariableRequest(server string, workspace WorkspaceId, params *ListVa
 		if params.PathStart != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Description != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "description", runtime.ParamLocationQuery, *params.Description); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Value != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "value", runtime.ParamLocationQuery, *params.Value); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -74348,7 +74562,10 @@ func (r ExistsResourceResponse) StatusCode() int {
 type FileResourceTypeToFileExtMapResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *interface{}
+	JSON200      *map[string]struct {
+		FormatExtension *string `json:"format_extension"`
+		IsFileset       *bool   `json:"is_fileset,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -95815,7 +96032,10 @@ func ParseFileResourceTypeToFileExtMapResponse(rsp *http.Response) (*FileResourc
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
+		var dest map[string]struct {
+			FormatExtension *string `json:"format_extension"`
+			IsFileset       *bool   `json:"is_fileset,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
