@@ -2778,6 +2778,7 @@ type GetAllTopicSubscription struct {
 type GitRepositorySettings struct {
 	Collapsed            *bool                `json:"collapsed,omitempty"`
 	ExcludeTypesOverride *[]GitSyncObjectType `json:"exclude_types_override,omitempty"`
+	ForceBranch          *string              `json:"force_branch,omitempty"`
 	GitRepoResourcePath  string               `json:"git_repo_resource_path"`
 	GroupByFolder        *bool                `json:"group_by_folder,omitempty"`
 	ScriptPath           string               `json:"script_path"`
@@ -6556,6 +6557,9 @@ type ListAssetsParams struct {
 
 	// Columns JSONB subset match filter for columns using base64 encoded JSON
 	Columns *string `form:"columns,omitempty" json:"columns,omitempty"`
+
+	// BroadFilter broad search across multiple fields (case-insensitive substring match)
+	BroadFilter *string `form:"broad_filter,omitempty" json:"broad_filter,omitempty"`
 }
 
 // ListAssetsByUsageJSONBody defines parameters for ListAssetsByUsage.
@@ -7558,6 +7562,9 @@ type ListJobsParams struct {
 
 	// IsNotSchedule is not a scheduled job
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
+
+	// BroadFilter broad search across multiple fields (case-insensitive substring match on path, tag, schedule path, trigger kind, label)
+	BroadFilter *string `form:"broad_filter,omitempty" json:"broad_filter,omitempty"`
 }
 
 // ListFilteredJobsUuidsParams defines parameters for ListFilteredJobsUuids.
@@ -8763,6 +8770,9 @@ type ListResourceParams struct {
 
 	// Value JSONB subset match filter using base64 encoded JSON
 	Value *string `form:"value,omitempty" json:"value,omitempty"`
+
+	// BroadFilter broad search across multiple fields (case-insensitive substring match)
+	BroadFilter *string `form:"broad_filter,omitempty" json:"broad_filter,omitempty"`
 }
 
 // UpdateResourceValueJSONBody defines parameters for UpdateResourceValue.
@@ -8798,6 +8808,9 @@ type ListSchedulesParams struct {
 
 	// Summary pattern match filter for summary field (case-insensitive)
 	Summary *string `form:"summary,omitempty" json:"summary,omitempty"`
+
+	// BroadFilter broad search across multiple fields (case-insensitive substring match)
+	BroadFilter *string `form:"broad_filter,omitempty" json:"broad_filter,omitempty"`
 }
 
 // ListSchedulesWithJobsParams defines parameters for ListSchedulesWithJobs.
@@ -9022,6 +9035,9 @@ type ListVariableParams struct {
 
 	// Value pattern match filter for non-secret variable values (case-insensitive)
 	Value *string `form:"value,omitempty" json:"value,omitempty"`
+
+	// BroadFilter broad search across multiple fields (case-insensitive substring match)
+	BroadFilter *string `form:"broad_filter,omitempty" json:"broad_filter,omitempty"`
 
 	// Page which page to return (start at 1, default 1)
 	Page *Page `form:"page,omitempty" json:"page,omitempty"`
@@ -31593,6 +31609,22 @@ func NewListAssetsRequest(server string, workspace WorkspaceId, params *ListAsse
 
 		}
 
+		if params.BroadFilter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "broad_filter", runtime.ParamLocationQuery, *params.BroadFilter); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -41545,6 +41577,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 		if params.IsNotSchedule != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_not_schedule", runtime.ParamLocationQuery, *params.IsNotSchedule); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.BroadFilter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "broad_filter", runtime.ParamLocationQuery, *params.BroadFilter); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -53774,6 +53822,22 @@ func NewListResourceRequest(server string, workspace WorkspaceId, params *ListRe
 
 		}
 
+		if params.BroadFilter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "broad_filter", runtime.ParamLocationQuery, *params.BroadFilter); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -54631,6 +54695,22 @@ func NewListSchedulesRequest(server string, workspace WorkspaceId, params *ListS
 		if params.Summary != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "summary", runtime.ParamLocationQuery, *params.Summary); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.BroadFilter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "broad_filter", runtime.ParamLocationQuery, *params.BroadFilter); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -57711,6 +57791,22 @@ func NewListVariableRequest(server string, workspace WorkspaceId, params *ListVa
 		if params.Value != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "value", runtime.ParamLocationQuery, *params.Value); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.BroadFilter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "broad_filter", runtime.ParamLocationQuery, *params.BroadFilter); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
