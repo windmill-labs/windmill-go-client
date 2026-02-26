@@ -1689,12 +1689,18 @@ type DynamicInputData_RunnableRef struct {
 
 // EditEmailTrigger defines model for EditEmailTrigger.
 type EditEmailTrigger struct {
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
 	IsFlow           bool        `json:"is_flow"`
 	LocalPart        *string     `json:"local_part,omitempty"`
 	Path             string      `json:"path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry               *Retry `json:"retry,omitempty"`
@@ -1738,6 +1744,9 @@ type EditHttpTrigger struct {
 	// Description Detailed description of what this trigger does
 	Description *string `json:"description"`
 
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -1756,6 +1765,9 @@ type EditHttpTrigger struct {
 
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
 
 	// RawString If true, passes the request body as a raw string instead of parsing as JSON
 	RawString   *bool            `json:"raw_string,omitempty"`
@@ -1794,6 +1806,9 @@ type EditHttpTrigger struct {
 
 // EditKafkaTrigger defines model for EditKafkaTrigger.
 type EditKafkaTrigger struct {
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -1816,6 +1831,9 @@ type EditKafkaTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
+
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
@@ -1831,6 +1849,9 @@ type EditMqttTrigger struct {
 	// ClientId MQTT client ID for this connection
 	ClientId      *string            `json:"client_id"`
 	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
+
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -1850,6 +1871,9 @@ type EditMqttTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
+
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
@@ -1867,6 +1891,9 @@ type EditNatsTrigger struct {
 	// ConsumerName JetStream consumer name (required when use_jetstream is true)
 	ConsumerName *string `json:"consumer_name"`
 
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -1881,6 +1908,9 @@ type EditNatsTrigger struct {
 
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -1900,6 +1930,9 @@ type EditNatsTrigger struct {
 
 // EditPostgresTrigger defines model for EditPostgresTrigger.
 type EditPostgresTrigger struct {
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -1916,8 +1949,11 @@ type EditPostgresTrigger struct {
 	Path string `json:"path"`
 
 	// PostgresResourcePath Path to the PostgreSQL resource containing connection configuration
-	PostgresResourcePath string           `json:"postgres_resource_path"`
-	Publication          *PublicationData `json:"publication,omitempty"`
+	PostgresResourcePath string `json:"postgres_resource_path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool            `json:"preserve_email,omitempty"`
+	Publication   *PublicationData `json:"publication,omitempty"`
 
 	// PublicationName Name of the PostgreSQL publication to subscribe to for change data capture
 	PublicationName string `json:"publication_name"`
@@ -1966,6 +2002,9 @@ type EditSchedule struct {
 	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
 	DynamicSkip *string `json:"dynamic_skip"`
 
+	// Email Email of the user who the scheduled jobs run as. Used during deployment to preserve the original schedule owner.
+	Email *string `json:"email,omitempty"`
+
 	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
 
@@ -1999,6 +2038,9 @@ type EditSchedule struct {
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
 	PausedUntil *time.Time `json:"paused_until"`
 
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
+
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
@@ -2025,6 +2067,9 @@ type EditSqsTrigger struct {
 	// AwsResourcePath Path to the AWS resource containing credentials or OIDC configuration
 	AwsResourcePath string `json:"aws_resource_path"`
 
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -2042,6 +2087,9 @@ type EditSqsTrigger struct {
 
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
 
 	// QueueUrl The full URL of the AWS SQS queue to poll for messages
 	QueueUrl string `json:"queue_url"`
@@ -2099,6 +2147,9 @@ type EditWebsocketTrigger struct {
 	// CanReturnMessage If true, the script can return a message to send back through the WebSocket
 	CanReturnMessage bool `json:"can_return_message"`
 
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -2119,6 +2170,9 @@ type EditWebsocketTrigger struct {
 
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -2666,6 +2720,9 @@ type GcpTriggerData struct {
 	// DeliveryType Delivery mode for messages. 'push' for HTTP push delivery where messages are sent to a webhook endpoint, 'pull' for polling where the trigger actively fetches messages.
 	DeliveryType *DeliveryType `json:"delivery_type,omitempty"`
 
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -2683,6 +2740,9 @@ type GcpTriggerData struct {
 
 	// Path The unique path identifier for this trigger.
 	Path string `json:"path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -3289,6 +3349,9 @@ type NatsTrigger = TriggerExtraProperty
 
 // NewEmailTrigger defines model for NewEmailTrigger.
 type NewEmailTrigger struct {
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
@@ -3298,6 +3361,9 @@ type NewEmailTrigger struct {
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
 	Path string       `json:"path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry               *Retry `json:"retry,omitempty"`
@@ -3314,6 +3380,9 @@ type NewHttpTrigger struct {
 
 	// Description Detailed description of what this trigger does
 	Description *string `json:"description"`
+
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -3336,6 +3405,9 @@ type NewHttpTrigger struct {
 
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
 
 	// RawString If true, passes the request body as a raw string instead of parsing as JSON
 	RawString   *bool            `json:"raw_string,omitempty"`
@@ -3374,6 +3446,9 @@ type NewHttpTrigger struct {
 
 // NewKafkaTrigger defines model for NewKafkaTrigger.
 type NewKafkaTrigger struct {
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -3399,6 +3474,9 @@ type NewKafkaTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
+
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
@@ -3414,6 +3492,9 @@ type NewMqttTrigger struct {
 	// ClientId MQTT client ID for this connection
 	ClientId      *string            `json:"client_id"`
 	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
+
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -3433,6 +3514,9 @@ type NewMqttTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
+
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
@@ -3449,6 +3533,9 @@ type NewMqttTrigger struct {
 type NewNatsTrigger struct {
 	// ConsumerName JetStream consumer name (required when use_jetstream is true)
 	ConsumerName *string `json:"consumer_name"`
+
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -3468,6 +3555,9 @@ type NewNatsTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
+
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
@@ -3486,6 +3576,9 @@ type NewNatsTrigger struct {
 
 // NewPostgresTrigger defines model for NewPostgresTrigger.
 type NewPostgresTrigger struct {
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -3502,8 +3595,11 @@ type NewPostgresTrigger struct {
 	Path string `json:"path"`
 
 	// PostgresResourcePath Path to the PostgreSQL resource containing connection configuration
-	PostgresResourcePath string           `json:"postgres_resource_path"`
-	Publication          *PublicationData `json:"publication,omitempty"`
+	PostgresResourcePath string `json:"postgres_resource_path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool            `json:"preserve_email,omitempty"`
+	Publication   *PublicationData `json:"publication,omitempty"`
 
 	// PublicationName Name of the PostgreSQL publication to subscribe to for change data capture
 	PublicationName *string `json:"publication_name,omitempty"`
@@ -3531,6 +3627,9 @@ type NewSchedule struct {
 
 	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
 	DynamicSkip *string `json:"dynamic_skip"`
+
+	// Email Email of the user who the scheduled jobs run as. Used during deployment to preserve the original schedule owner.
+	Email *string `json:"email,omitempty"`
 
 	// Enabled Whether the schedule is currently active and will trigger jobs
 	Enabled *bool `json:"enabled,omitempty"`
@@ -3574,6 +3673,9 @@ type NewSchedule struct {
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
 	PausedUntil *time.Time `json:"paused_until"`
 
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
+
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
@@ -3604,41 +3706,44 @@ type NewScript struct {
 		Kind          AssetKind                     `json:"kind"`
 		Path          string                        `json:"path"`
 	} `json:"assets,omitempty"`
-	CacheIgnoreS3Path        *bool                   `json:"cache_ignore_s3_path,omitempty"`
-	CacheTtl                 *float32                `json:"cache_ttl,omitempty"`
-	Codebase                 *string                 `json:"codebase,omitempty"`
-	ConcurrencyKey           *string                 `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS   *int                    `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit          *int                    `json:"concurrent_limit,omitempty"`
-	Content                  string                  `json:"content"`
-	DebounceArgsToAccumulate *[]string               `json:"debounce_args_to_accumulate,omitempty"`
-	DebounceDelayS           *int                    `json:"debounce_delay_s,omitempty"`
-	DebounceKey              *string                 `json:"debounce_key,omitempty"`
-	DedicatedWorker          *bool                   `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse           *bool                   `json:"delete_after_use,omitempty"`
-	DeploymentMessage        *string                 `json:"deployment_message,omitempty"`
-	Description              string                  `json:"description"`
-	DraftOnly                *bool                   `json:"draft_only,omitempty"`
-	Envs                     *[]string               `json:"envs,omitempty"`
-	HasPreprocessor          *bool                   `json:"has_preprocessor,omitempty"`
-	IsTemplate               *bool                   `json:"is_template,omitempty"`
-	Kind                     *NewScriptKind          `json:"kind,omitempty"`
-	Language                 ScriptLang              `json:"language"`
-	Lock                     *string                 `json:"lock,omitempty"`
-	MaxTotalDebouncesAmount  *int                    `json:"max_total_debounces_amount,omitempty"`
-	MaxTotalDebouncingTime   *int                    `json:"max_total_debouncing_time,omitempty"`
-	NoMainFunc               *bool                   `json:"no_main_func,omitempty"`
-	OnBehalfOfEmail          *string                 `json:"on_behalf_of_email,omitempty"`
-	ParentHash               *string                 `json:"parent_hash,omitempty"`
-	Path                     string                  `json:"path"`
-	Priority                 *int                    `json:"priority,omitempty"`
-	RestartUnlessCancelled   *bool                   `json:"restart_unless_cancelled,omitempty"`
-	Schema                   *map[string]interface{} `json:"schema,omitempty"`
-	Summary                  string                  `json:"summary"`
-	Tag                      *string                 `json:"tag,omitempty"`
-	Timeout                  *int                    `json:"timeout,omitempty"`
-	VisibleToRunnerOnly      *bool                   `json:"visible_to_runner_only,omitempty"`
-	WsErrorHandlerMuted      *bool                   `json:"ws_error_handler_muted,omitempty"`
+	CacheIgnoreS3Path        *bool          `json:"cache_ignore_s3_path,omitempty"`
+	CacheTtl                 *float32       `json:"cache_ttl,omitempty"`
+	Codebase                 *string        `json:"codebase,omitempty"`
+	ConcurrencyKey           *string        `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS   *int           `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit          *int           `json:"concurrent_limit,omitempty"`
+	Content                  string         `json:"content"`
+	DebounceArgsToAccumulate *[]string      `json:"debounce_args_to_accumulate,omitempty"`
+	DebounceDelayS           *int           `json:"debounce_delay_s,omitempty"`
+	DebounceKey              *string        `json:"debounce_key,omitempty"`
+	DedicatedWorker          *bool          `json:"dedicated_worker,omitempty"`
+	DeleteAfterUse           *bool          `json:"delete_after_use,omitempty"`
+	DeploymentMessage        *string        `json:"deployment_message,omitempty"`
+	Description              string         `json:"description"`
+	DraftOnly                *bool          `json:"draft_only,omitempty"`
+	Envs                     *[]string      `json:"envs,omitempty"`
+	HasPreprocessor          *bool          `json:"has_preprocessor,omitempty"`
+	IsTemplate               *bool          `json:"is_template,omitempty"`
+	Kind                     *NewScriptKind `json:"kind,omitempty"`
+	Language                 ScriptLang     `json:"language"`
+	Lock                     *string        `json:"lock,omitempty"`
+	MaxTotalDebouncesAmount  *int           `json:"max_total_debounces_amount,omitempty"`
+	MaxTotalDebouncingTime   *int           `json:"max_total_debouncing_time,omitempty"`
+	NoMainFunc               *bool          `json:"no_main_func,omitempty"`
+	OnBehalfOfEmail          *string        `json:"on_behalf_of_email,omitempty"`
+	ParentHash               *string        `json:"parent_hash,omitempty"`
+	Path                     string         `json:"path"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
+	PreserveOnBehalfOf     *bool                   `json:"preserve_on_behalf_of,omitempty"`
+	Priority               *int                    `json:"priority,omitempty"`
+	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
+	Schema                 *map[string]interface{} `json:"schema,omitempty"`
+	Summary                string                  `json:"summary"`
+	Tag                    *string                 `json:"tag,omitempty"`
+	Timeout                *int                    `json:"timeout,omitempty"`
+	VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
+	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // NewScriptAssetsAccessType defines model for NewScript.Assets.AccessType.
@@ -3687,14 +3792,17 @@ type NewScriptWithDraft struct {
 	OnBehalfOfEmail          *string                 `json:"on_behalf_of_email,omitempty"`
 	ParentHash               *string                 `json:"parent_hash,omitempty"`
 	Path                     string                  `json:"path"`
-	Priority                 *int                    `json:"priority,omitempty"`
-	RestartUnlessCancelled   *bool                   `json:"restart_unless_cancelled,omitempty"`
-	Schema                   *map[string]interface{} `json:"schema,omitempty"`
-	Summary                  string                  `json:"summary"`
-	Tag                      *string                 `json:"tag,omitempty"`
-	Timeout                  *int                    `json:"timeout,omitempty"`
-	VisibleToRunnerOnly      *bool                   `json:"visible_to_runner_only,omitempty"`
-	WsErrorHandlerMuted      *bool                   `json:"ws_error_handler_muted,omitempty"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
+	PreserveOnBehalfOf     *bool                   `json:"preserve_on_behalf_of,omitempty"`
+	Priority               *int                    `json:"priority,omitempty"`
+	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
+	Schema                 *map[string]interface{} `json:"schema,omitempty"`
+	Summary                string                  `json:"summary"`
+	Tag                    *string                 `json:"tag,omitempty"`
+	Timeout                *int                    `json:"timeout,omitempty"`
+	VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
+	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // NewScriptWithDraftAssetsAccessType defines model for NewScriptWithDraft.Assets.AccessType.
@@ -3713,6 +3821,9 @@ type NewSqsTrigger struct {
 	// AwsResourcePath Path to the AWS resource containing credentials or OIDC configuration
 	AwsResourcePath string `json:"aws_resource_path"`
 
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -3730,6 +3841,9 @@ type NewSqsTrigger struct {
 
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
 
 	// QueueUrl The full URL of the AWS SQS queue to poll for messages
 	QueueUrl string `json:"queue_url"`
@@ -3765,6 +3879,9 @@ type NewWebsocketTrigger struct {
 	// CanReturnMessage If true, the script can return a message to send back through the WebSocket
 	CanReturnMessage bool `json:"can_return_message"`
 
+	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
+	Email *string `json:"email,omitempty"`
+
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -3788,6 +3905,9 @@ type NewWebsocketTrigger struct {
 
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
+
+	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
+	PreserveEmail *bool `json:"preserve_email,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -3853,7 +3973,10 @@ type OpenFlowWPath struct {
 	Description     *string `json:"description,omitempty"`
 	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 	Path            string  `json:"path"`
-	Priority        *int    `json:"priority,omitempty"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
+	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
+	Priority           *int  `json:"priority,omitempty"`
 
 	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 	Schema *map[string]interface{} `json:"schema,omitempty"`
@@ -6259,25 +6382,31 @@ type RemoveGranularAclsParamsKind string
 
 // CreateAppJSONBody defines parameters for CreateApp.
 type CreateAppJSONBody struct {
-	CustomPath        *string     `json:"custom_path,omitempty"`
-	DeploymentMessage *string     `json:"deployment_message,omitempty"`
-	DraftOnly         *bool       `json:"draft_only,omitempty"`
-	Path              string      `json:"path"`
-	Policy            Policy      `json:"policy"`
-	Summary           string      `json:"summary"`
-	Value             interface{} `json:"value"`
+	CustomPath        *string `json:"custom_path,omitempty"`
+	DeploymentMessage *string `json:"deployment_message,omitempty"`
+	DraftOnly         *bool   `json:"draft_only,omitempty"`
+	Path              string  `json:"path"`
+	Policy            Policy  `json:"policy"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
+	PreserveOnBehalfOf *bool       `json:"preserve_on_behalf_of,omitempty"`
+	Summary            string      `json:"summary"`
+	Value              interface{} `json:"value"`
 }
 
 // CreateAppRawMultipartBody defines parameters for CreateAppRaw.
 type CreateAppRawMultipartBody struct {
 	App *struct {
-		CustomPath        *string     `json:"custom_path,omitempty"`
-		DeploymentMessage *string     `json:"deployment_message,omitempty"`
-		DraftOnly         *bool       `json:"draft_only,omitempty"`
-		Path              string      `json:"path"`
-		Policy            Policy      `json:"policy"`
-		Summary           string      `json:"summary"`
-		Value             interface{} `json:"value"`
+		CustomPath        *string `json:"custom_path,omitempty"`
+		DeploymentMessage *string `json:"deployment_message,omitempty"`
+		DraftOnly         *bool   `json:"draft_only,omitempty"`
+		Path              string  `json:"path"`
+		Policy            Policy  `json:"policy"`
+
+		// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
+		PreserveOnBehalfOf *bool       `json:"preserve_on_behalf_of,omitempty"`
+		Summary            string      `json:"summary"`
+		Value              interface{} `json:"value"`
 	} `json:"app,omitempty"`
 	Css *string `json:"css,omitempty"`
 	Js  *string `json:"js,omitempty"`
@@ -6336,23 +6465,29 @@ type SignS3ObjectsJSONBody struct {
 
 // UpdateAppJSONBody defines parameters for UpdateApp.
 type UpdateAppJSONBody struct {
-	CustomPath        *string      `json:"custom_path,omitempty"`
-	DeploymentMessage *string      `json:"deployment_message,omitempty"`
-	Path              *string      `json:"path,omitempty"`
-	Policy            *Policy      `json:"policy,omitempty"`
-	Summary           *string      `json:"summary,omitempty"`
-	Value             *interface{} `json:"value,omitempty"`
+	CustomPath        *string `json:"custom_path,omitempty"`
+	DeploymentMessage *string `json:"deployment_message,omitempty"`
+	Path              *string `json:"path,omitempty"`
+	Policy            *Policy `json:"policy,omitempty"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
+	PreserveOnBehalfOf *bool        `json:"preserve_on_behalf_of,omitempty"`
+	Summary            *string      `json:"summary,omitempty"`
+	Value              *interface{} `json:"value,omitempty"`
 }
 
 // UpdateAppRawMultipartBody defines parameters for UpdateAppRaw.
 type UpdateAppRawMultipartBody struct {
 	App *struct {
-		CustomPath        *string      `json:"custom_path,omitempty"`
-		DeploymentMessage *string      `json:"deployment_message,omitempty"`
-		Path              *string      `json:"path,omitempty"`
-		Policy            *Policy      `json:"policy,omitempty"`
-		Summary           *string      `json:"summary,omitempty"`
-		Value             *interface{} `json:"value,omitempty"`
+		CustomPath        *string `json:"custom_path,omitempty"`
+		DeploymentMessage *string `json:"deployment_message,omitempty"`
+		Path              *string `json:"path,omitempty"`
+		Policy            *Policy `json:"policy,omitempty"`
+
+		// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
+		PreserveOnBehalfOf *bool        `json:"preserve_on_behalf_of,omitempty"`
+		Summary            *string      `json:"summary,omitempty"`
+		Value              *interface{} `json:"value,omitempty"`
 	} `json:"app,omitempty"`
 	Css *string `json:"css,omitempty"`
 	Js  *string `json:"js,omitempty"`
@@ -6705,7 +6840,10 @@ type CreateFlowJSONBody struct {
 	DraftOnly       *bool   `json:"draft_only,omitempty"`
 	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 	Path            string  `json:"path"`
-	Priority        *int    `json:"priority,omitempty"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
+	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
+	Priority           *int  `json:"priority,omitempty"`
 
 	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 	Schema *map[string]interface{} `json:"schema,omitempty"`
@@ -6807,7 +6945,10 @@ type UpdateFlowJSONBody struct {
 	Description     *string `json:"description,omitempty"`
 	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 	Path            string  `json:"path"`
-	Priority        *int    `json:"priority,omitempty"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
+	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
+	Priority           *int  `json:"priority,omitempty"`
 
 	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 	Schema *map[string]interface{} `json:"schema,omitempty"`
@@ -8254,6 +8395,8 @@ type GetSlackApprovalPayloadParams struct {
 	FlowStepId        string  `form:"flow_step_id" json:"flow_step_id"`
 	DefaultArgsJson   *string `form:"default_args_json,omitempty" json:"default_args_json,omitempty"`
 	DynamicEnumsJson  *string `form:"dynamic_enums_json,omitempty" json:"dynamic_enums_json,omitempty"`
+	ResumeButtonText  *string `form:"resume_button_text,omitempty" json:"resume_button_text,omitempty"`
+	CancelButtonText  *string `form:"cancel_button_text,omitempty" json:"cancel_button_text,omitempty"`
 }
 
 // GetTeamsApprovalPayloadParams defines parameters for GetTeamsApprovalPayload.
@@ -8265,6 +8408,8 @@ type GetTeamsApprovalPayloadParams struct {
 	FlowStepId       string  `form:"flow_step_id" json:"flow_step_id"`
 	DefaultArgsJson  *string `form:"default_args_json,omitempty" json:"default_args_json,omitempty"`
 	DynamicEnumsJson *string `form:"dynamic_enums_json,omitempty" json:"dynamic_enums_json,omitempty"`
+	ResumeButtonText *string `form:"resume_button_text,omitempty" json:"resume_button_text,omitempty"`
+	CancelButtonText *string `form:"cancel_button_text,omitempty" json:"cancel_button_text,omitempty"`
 }
 
 // CancelSuspendedJobGetParams defines parameters for CancelSuspendedJobGet.
@@ -47103,6 +47248,38 @@ func NewGetSlackApprovalPayloadRequest(server string, workspace WorkspaceId, id 
 
 		}
 
+		if params.ResumeButtonText != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resume_button_text", runtime.ParamLocationQuery, *params.ResumeButtonText); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CancelButtonText != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cancel_button_text", runtime.ParamLocationQuery, *params.CancelButtonText); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -47237,6 +47414,38 @@ func NewGetTeamsApprovalPayloadRequest(server string, workspace WorkspaceId, id 
 		if params.DynamicEnumsJson != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dynamic_enums_json", runtime.ParamLocationQuery, *params.DynamicEnumsJson); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ResumeButtonText != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resume_button_text", runtime.ParamLocationQuery, *params.ResumeButtonText); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CancelButtonText != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cancel_button_text", runtime.ParamLocationQuery, *params.CancelButtonText); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
