@@ -2911,6 +2911,12 @@ type HttpTrigger = TriggerExtraProperty
 // HubScriptKind defines model for HubScriptKind.
 type HubScriptKind string
 
+// InlineScriptArgs defines model for InlineScriptArgs.
+type InlineScriptArgs struct {
+	// Args The arguments to pass to the script or flow
+	Args *ScriptArgs `json:"args,omitempty"`
+}
+
 // Input defines model for Input.
 type Input struct {
 	CreatedAt time.Time `json:"created_at"`
@@ -9747,6 +9753,12 @@ type RunAndStreamScriptByHashJSONRequestBody = ScriptArgs
 // RunAndStreamScriptByPathJSONRequestBody defines body for RunAndStreamScriptByPath for application/json ContentType.
 type RunAndStreamScriptByPathJSONRequestBody = ScriptArgs
 
+// RunScriptByHashInlineJSONRequestBody defines body for RunScriptByHashInline for application/json ContentType.
+type RunScriptByHashInlineJSONRequestBody = InlineScriptArgs
+
+// RunScriptByPathInlineJSONRequestBody defines body for RunScriptByPathInline for application/json ContentType.
+type RunScriptByPathInlineJSONRequestBody = InlineScriptArgs
+
 // RunScriptPreviewInlineJSONRequestBody defines body for RunScriptPreviewInline for application/json ContentType.
 type RunScriptPreviewInlineJSONRequestBody = PreviewInline
 
@@ -13213,6 +13225,16 @@ type ClientInterface interface {
 	RunAndStreamScriptByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunAndStreamScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunScriptByHashInlineWithBody request with any body
+	RunScriptByHashInlineWithBody(ctx context.Context, workspace WorkspaceId, hash ScriptHash, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunScriptByHashInline(ctx context.Context, workspace WorkspaceId, hash ScriptHash, body RunScriptByHashInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunScriptByPathInlineWithBody request with any body
+	RunScriptByPathInlineWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunScriptByPathInline(ctx context.Context, workspace WorkspaceId, path ScriptPath, body RunScriptByPathInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunScriptPreviewInlineWithBody request with any body
 	RunScriptPreviewInlineWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19676,6 +19698,54 @@ func (c *Client) RunAndStreamScriptByPathWithBody(ctx context.Context, workspace
 
 func (c *Client) RunAndStreamScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunAndStreamScriptByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunScriptByHashInlineWithBody(ctx context.Context, workspace WorkspaceId, hash ScriptHash, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunScriptByHashInlineRequestWithBody(c.Server, workspace, hash, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunScriptByHashInline(ctx context.Context, workspace WorkspaceId, hash ScriptHash, body RunScriptByHashInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunScriptByHashInlineRequest(c.Server, workspace, hash, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunScriptByPathInlineWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunScriptByPathInlineRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunScriptByPathInline(ctx context.Context, workspace WorkspaceId, path ScriptPath, body RunScriptByPathInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunScriptByPathInlineRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -46227,6 +46297,114 @@ func NewRunAndStreamScriptByPathRequestWithBody(server string, workspace Workspa
 	return req, nil
 }
 
+// NewRunScriptByHashInlineRequest calls the generic RunScriptByHashInline builder with application/json body
+func NewRunScriptByHashInlineRequest(server string, workspace WorkspaceId, hash ScriptHash, body RunScriptByHashInlineJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunScriptByHashInlineRequestWithBody(server, workspace, hash, "application/json", bodyReader)
+}
+
+// NewRunScriptByHashInlineRequestWithBody generates requests for RunScriptByHashInline with any type of body
+func NewRunScriptByHashInlineRequestWithBody(server string, workspace WorkspaceId, hash ScriptHash, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "hash", runtime.ParamLocationPath, hash)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_inline/h/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRunScriptByPathInlineRequest calls the generic RunScriptByPathInline builder with application/json body
+func NewRunScriptByPathInlineRequest(server string, workspace WorkspaceId, path ScriptPath, body RunScriptByPathInlineJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunScriptByPathInlineRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewRunScriptByPathInlineRequestWithBody generates requests for RunScriptByPathInline with any type of body
+func NewRunScriptByPathInlineRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_inline/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRunScriptPreviewInlineRequest calls the generic RunScriptPreviewInline builder with application/json body
 func NewRunScriptPreviewInlineRequest(server string, workspace WorkspaceId, body RunScriptPreviewInlineJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -63847,6 +64025,16 @@ type ClientWithResponsesInterface interface {
 
 	RunAndStreamScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByPathResponse, error)
 
+	// RunScriptByHashInlineWithBodyWithResponse request with any body
+	RunScriptByHashInlineWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptByHashInlineResponse, error)
+
+	RunScriptByHashInlineWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, body RunScriptByHashInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptByHashInlineResponse, error)
+
+	// RunScriptByPathInlineWithBodyWithResponse request with any body
+	RunScriptByPathInlineWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptByPathInlineResponse, error)
+
+	RunScriptByPathInlineWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body RunScriptByPathInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptByPathInlineResponse, error)
+
 	// RunScriptPreviewInlineWithBodyWithResponse request with any body
 	RunScriptPreviewInlineWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptPreviewInlineResponse, error)
 
@@ -72373,6 +72561,50 @@ func (r RunAndStreamScriptByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunAndStreamScriptByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunScriptByHashInlineResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r RunScriptByHashInlineResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunScriptByHashInlineResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunScriptByPathInlineResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r RunScriptByPathInlineResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunScriptByPathInlineResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -82868,6 +83100,40 @@ func (c *ClientWithResponses) RunAndStreamScriptByPathWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseRunAndStreamScriptByPathResponse(rsp)
+}
+
+// RunScriptByHashInlineWithBodyWithResponse request with arbitrary body returning *RunScriptByHashInlineResponse
+func (c *ClientWithResponses) RunScriptByHashInlineWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptByHashInlineResponse, error) {
+	rsp, err := c.RunScriptByHashInlineWithBody(ctx, workspace, hash, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunScriptByHashInlineResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunScriptByHashInlineWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, body RunScriptByHashInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptByHashInlineResponse, error) {
+	rsp, err := c.RunScriptByHashInline(ctx, workspace, hash, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunScriptByHashInlineResponse(rsp)
+}
+
+// RunScriptByPathInlineWithBodyWithResponse request with arbitrary body returning *RunScriptByPathInlineResponse
+func (c *ClientWithResponses) RunScriptByPathInlineWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptByPathInlineResponse, error) {
+	rsp, err := c.RunScriptByPathInlineWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunScriptByPathInlineResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunScriptByPathInlineWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body RunScriptByPathInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptByPathInlineResponse, error) {
+	rsp, err := c.RunScriptByPathInline(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunScriptByPathInlineResponse(rsp)
 }
 
 // RunScriptPreviewInlineWithBodyWithResponse request with arbitrary body returning *RunScriptPreviewInlineResponse
@@ -93907,6 +94173,58 @@ func ParseRunAndStreamScriptByPathResponse(rsp *http.Response) (*RunAndStreamScr
 	response := &RunAndStreamScriptByPathResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunScriptByHashInlineResponse parses an HTTP response from a RunScriptByHashInlineWithResponse call
+func ParseRunScriptByHashInlineResponse(rsp *http.Response) (*RunScriptByHashInlineResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunScriptByHashInlineResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRunScriptByPathInlineResponse parses an HTTP response from a RunScriptByPathInlineWithResponse call
+func ParseRunScriptByPathInlineResponse(rsp *http.Response) (*RunScriptByPathInlineResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunScriptByPathInlineResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
