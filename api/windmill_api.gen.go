@@ -6064,6 +6064,9 @@ type GetHealthStatusParams struct {
 	Force *bool `form:"force,omitempty" json:"force,omitempty"`
 }
 
+// ClearIndexParamsIdxName defines parameters for ClearIndex.
+type ClearIndexParamsIdxName string
+
 // QueryDocumentationJSONBody defines parameters for QueryDocumentation.
 type QueryDocumentationJSONBody struct {
 	// Query The documentation query to send to the AI assistant
@@ -6232,9 +6235,6 @@ type TestSmtpJSONBody struct {
 	} `json:"smtp"`
 	To string `json:"to"`
 }
-
-// ClearIndexParamsIdxName defines parameters for ClearIndex.
-type ClearIndexParamsIdxName string
 
 // CountSearchLogsIndexParams defines parameters for CountSearchLogsIndex.
 type CountSearchLogsIndexParams struct {
@@ -12164,6 +12164,15 @@ type ClientInterface interface {
 	// GetHealthStatus request
 	GetHealthStatus(ctx context.Context, params *GetHealthStatusParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ClearIndex request
+	ClearIndex(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetIndexerStatus request
+	GetIndexerStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetIndexStorageSizes request
+	GetIndexStorageSizes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// QueryDocumentationWithBody request with any body
 	QueryDocumentationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -12353,9 +12362,6 @@ type ClientInterface interface {
 	TestSmtpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// ClearIndex request
-	ClearIndex(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CountSearchLogsIndex request
 	CountSearchLogsIndex(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15028,6 +15034,42 @@ func (c *Client) GetHealthStatus(ctx context.Context, params *GetHealthStatusPar
 	return c.Client.Do(req)
 }
 
+func (c *Client) ClearIndex(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewClearIndexRequest(c.Server, idxName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetIndexerStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetIndexerStatusRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetIndexStorageSizes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetIndexStorageSizesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) QueryDocumentationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewQueryDocumentationRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -15858,18 +15900,6 @@ func (c *Client) TestSmtpWithBody(ctx context.Context, contentType string, body 
 
 func (c *Client) TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewTestSmtpRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ClearIndex(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewClearIndexRequest(c.Server, idxName)
 	if err != nil {
 		return nil, err
 	}
@@ -26340,6 +26370,94 @@ func NewGetHealthStatusRequest(server string, params *GetHealthStatusParams) (*h
 	return req, nil
 }
 
+// NewClearIndexRequest generates requests for ClearIndex
+func NewClearIndexRequest(server string, idxName ClearIndexParamsIdxName) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "idx_name", runtime.ParamLocationPath, idxName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/indexer/delete/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetIndexerStatusRequest generates requests for GetIndexerStatus
+func NewGetIndexerStatusRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/indexer/status")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetIndexStorageSizesRequest generates requests for GetIndexStorageSizes
+func NewGetIndexStorageSizesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/indexer/storage")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewQueryDocumentationRequest calls the generic QueryDocumentation builder with application/json body
 func NewQueryDocumentationRequest(server string, body QueryDocumentationJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -28403,40 +28521,6 @@ func NewTestSmtpRequestWithBody(server string, contentType string, body io.Reade
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewClearIndexRequest generates requests for ClearIndex
-func NewClearIndexRequest(server string, idxName ClearIndexParamsIdxName) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "idx_name", runtime.ParamLocationPath, idxName)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/srch/index/delete/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -62963,6 +63047,15 @@ type ClientWithResponsesInterface interface {
 	// GetHealthStatusWithResponse request
 	GetHealthStatusWithResponse(ctx context.Context, params *GetHealthStatusParams, reqEditors ...RequestEditorFn) (*GetHealthStatusResponse, error)
 
+	// ClearIndexWithResponse request
+	ClearIndexWithResponse(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*ClearIndexResponse, error)
+
+	// GetIndexerStatusWithResponse request
+	GetIndexerStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetIndexerStatusResponse, error)
+
+	// GetIndexStorageSizesWithResponse request
+	GetIndexStorageSizesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetIndexStorageSizesResponse, error)
+
 	// QueryDocumentationWithBodyWithResponse request with any body
 	QueryDocumentationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error)
 
@@ -63152,9 +63245,6 @@ type ClientWithResponsesInterface interface {
 	TestSmtpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error)
 
 	TestSmtpWithResponse(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error)
-
-	// ClearIndexWithResponse request
-	ClearIndexWithResponse(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*ClearIndexResponse, error)
 
 	// CountSearchLogsIndexWithResponse request
 	CountSearchLogsIndexWithResponse(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*CountSearchLogsIndexResponse, error)
@@ -66171,6 +66261,99 @@ func (r GetHealthStatusResponse) StatusCode() int {
 	return 0
 }
 
+type ClearIndexResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ClearIndexResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ClearIndexResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetIndexerStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		JobIndexer *struct {
+			IsAlive      *bool      `json:"is_alive,omitempty"`
+			LastLockedAt *time.Time `json:"last_locked_at"`
+			Owner        *string    `json:"owner"`
+			Storage      *struct {
+				DiskSizeBytes *int `json:"disk_size_bytes"`
+				S3SizeBytes   *int `json:"s3_size_bytes"`
+			} `json:"storage,omitempty"`
+		} `json:"job_indexer,omitempty"`
+		LogIndexer *struct {
+			IsAlive      *bool      `json:"is_alive,omitempty"`
+			LastLockedAt *time.Time `json:"last_locked_at"`
+			Owner        *string    `json:"owner"`
+			Storage      *struct {
+				DiskSizeBytes *int `json:"disk_size_bytes"`
+				S3SizeBytes   *int `json:"s3_size_bytes"`
+			} `json:"storage,omitempty"`
+		} `json:"log_indexer,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetIndexerStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetIndexerStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetIndexStorageSizesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		JobIndex *struct {
+			DiskSizeBytes *int `json:"disk_size_bytes"`
+			S3SizeBytes   *int `json:"s3_size_bytes"`
+		} `json:"job_index,omitempty"`
+		ServiceLogIndex *struct {
+			DiskSizeBytes *int `json:"disk_size_bytes"`
+			S3SizeBytes   *int `json:"s3_size_bytes"`
+		} `json:"service_log_index,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetIndexStorageSizesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetIndexStorageSizesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type QueryDocumentationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -67310,27 +67493,6 @@ func (r TestSmtpResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r TestSmtpResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type ClearIndexResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r ClearIndexResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ClearIndexResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -79700,6 +79862,33 @@ func (c *ClientWithResponses) GetHealthStatusWithResponse(ctx context.Context, p
 	return ParseGetHealthStatusResponse(rsp)
 }
 
+// ClearIndexWithResponse request returning *ClearIndexResponse
+func (c *ClientWithResponses) ClearIndexWithResponse(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*ClearIndexResponse, error) {
+	rsp, err := c.ClearIndex(ctx, idxName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseClearIndexResponse(rsp)
+}
+
+// GetIndexerStatusWithResponse request returning *GetIndexerStatusResponse
+func (c *ClientWithResponses) GetIndexerStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetIndexerStatusResponse, error) {
+	rsp, err := c.GetIndexerStatus(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetIndexerStatusResponse(rsp)
+}
+
+// GetIndexStorageSizesWithResponse request returning *GetIndexStorageSizesResponse
+func (c *ClientWithResponses) GetIndexStorageSizesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetIndexStorageSizesResponse, error) {
+	rsp, err := c.GetIndexStorageSizes(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetIndexStorageSizesResponse(rsp)
+}
+
 // QueryDocumentationWithBodyWithResponse request with arbitrary body returning *QueryDocumentationResponse
 func (c *ClientWithResponses) QueryDocumentationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error) {
 	rsp, err := c.QueryDocumentationWithBody(ctx, contentType, body, reqEditors...)
@@ -80308,15 +80497,6 @@ func (c *ClientWithResponses) TestSmtpWithResponse(ctx context.Context, body Tes
 		return nil, err
 	}
 	return ParseTestSmtpResponse(rsp)
-}
-
-// ClearIndexWithResponse request returning *ClearIndexResponse
-func (c *ClientWithResponses) ClearIndexWithResponse(ctx context.Context, idxName ClearIndexParamsIdxName, reqEditors ...RequestEditorFn) (*ClearIndexResponse, error) {
-	rsp, err := c.ClearIndex(ctx, idxName, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseClearIndexResponse(rsp)
 }
 
 // CountSearchLogsIndexWithResponse request returning *CountSearchLogsIndexResponse
@@ -87824,6 +88004,102 @@ func ParseGetHealthStatusResponse(rsp *http.Response) (*GetHealthStatusResponse,
 	return response, nil
 }
 
+// ParseClearIndexResponse parses an HTTP response from a ClearIndexWithResponse call
+func ParseClearIndexResponse(rsp *http.Response) (*ClearIndexResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ClearIndexResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetIndexerStatusResponse parses an HTTP response from a GetIndexerStatusWithResponse call
+func ParseGetIndexerStatusResponse(rsp *http.Response) (*GetIndexerStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetIndexerStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			JobIndexer *struct {
+				IsAlive      *bool      `json:"is_alive,omitempty"`
+				LastLockedAt *time.Time `json:"last_locked_at"`
+				Owner        *string    `json:"owner"`
+				Storage      *struct {
+					DiskSizeBytes *int `json:"disk_size_bytes"`
+					S3SizeBytes   *int `json:"s3_size_bytes"`
+				} `json:"storage,omitempty"`
+			} `json:"job_indexer,omitempty"`
+			LogIndexer *struct {
+				IsAlive      *bool      `json:"is_alive,omitempty"`
+				LastLockedAt *time.Time `json:"last_locked_at"`
+				Owner        *string    `json:"owner"`
+				Storage      *struct {
+					DiskSizeBytes *int `json:"disk_size_bytes"`
+					S3SizeBytes   *int `json:"s3_size_bytes"`
+				} `json:"storage,omitempty"`
+			} `json:"log_indexer,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetIndexStorageSizesResponse parses an HTTP response from a GetIndexStorageSizesWithResponse call
+func ParseGetIndexStorageSizesResponse(rsp *http.Response) (*GetIndexStorageSizesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetIndexStorageSizesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			JobIndex *struct {
+				DiskSizeBytes *int `json:"disk_size_bytes"`
+				S3SizeBytes   *int `json:"s3_size_bytes"`
+			} `json:"job_index,omitempty"`
+			ServiceLogIndex *struct {
+				DiskSizeBytes *int `json:"disk_size_bytes"`
+				S3SizeBytes   *int `json:"s3_size_bytes"`
+			} `json:"service_log_index,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseQueryDocumentationResponse parses an HTTP response from a QueryDocumentationWithResponse call
 func ParseQueryDocumentationResponse(rsp *http.Response) (*QueryDocumentationResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -88973,22 +89249,6 @@ func ParseTestSmtpResponse(rsp *http.Response) (*TestSmtpResponse, error) {
 	}
 
 	response := &TestSmtpResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseClearIndexResponse parses an HTTP response from a ClearIndexWithResponse call
-func ParseClearIndexResponse(rsp *http.Response) (*ClearIndexResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ClearIndexResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
