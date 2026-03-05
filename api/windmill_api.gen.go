@@ -74,6 +74,7 @@ const (
 	AssetKindDucklake  AssetKind = "ducklake"
 	AssetKindResource  AssetKind = "resource"
 	AssetKindS3object  AssetKind = "s3object"
+	AssetKindVolume    AssetKind = "volume"
 )
 
 // Defines values for AssetUsageAccessType.
@@ -942,6 +943,7 @@ const (
 	SchemasRawScriptAssetsKindDucklake  SchemasRawScriptAssetsKind = "ducklake"
 	SchemasRawScriptAssetsKindResource  SchemasRawScriptAssetsKind = "resource"
 	SchemasRawScriptAssetsKindS3object  SchemasRawScriptAssetsKind = "s3object"
+	SchemasRawScriptAssetsKindVolume    SchemasRawScriptAssetsKind = "volume"
 )
 
 // Defines values for SchemasRawScriptLanguage.
@@ -1018,6 +1020,7 @@ const (
 	AddGranularAclsParamsKindScript           AddGranularAclsParamsKind = "script"
 	AddGranularAclsParamsKindSqsTrigger       AddGranularAclsParamsKind = "sqs_trigger"
 	AddGranularAclsParamsKindVariable         AddGranularAclsParamsKind = "variable"
+	AddGranularAclsParamsKindVolume           AddGranularAclsParamsKind = "volume"
 	AddGranularAclsParamsKindWebsocketTrigger AddGranularAclsParamsKind = "websocket_trigger"
 )
 
@@ -1040,6 +1043,7 @@ const (
 	GetGranularAclsParamsKindScript           GetGranularAclsParamsKind = "script"
 	GetGranularAclsParamsKindSqsTrigger       GetGranularAclsParamsKind = "sqs_trigger"
 	GetGranularAclsParamsKindVariable         GetGranularAclsParamsKind = "variable"
+	GetGranularAclsParamsKindVolume           GetGranularAclsParamsKind = "volume"
 	GetGranularAclsParamsKindWebsocketTrigger GetGranularAclsParamsKind = "websocket_trigger"
 )
 
@@ -1062,6 +1066,7 @@ const (
 	RemoveGranularAclsParamsKindScript           RemoveGranularAclsParamsKind = "script"
 	RemoveGranularAclsParamsKindSqsTrigger       RemoveGranularAclsParamsKind = "sqs_trigger"
 	RemoveGranularAclsParamsKindVariable         RemoveGranularAclsParamsKind = "variable"
+	RemoveGranularAclsParamsKindVolume           RemoveGranularAclsParamsKind = "volume"
 	RemoveGranularAclsParamsKindWebsocketTrigger RemoveGranularAclsParamsKind = "websocket_trigger"
 )
 
@@ -4897,6 +4902,18 @@ type VaultSettings struct {
 
 	// Token Static Vault token for testing/development (optional, if provided this is used instead of JWT authentication)
 	Token *string `json:"token,omitempty"`
+}
+
+// Volume defines model for Volume.
+type Volume struct {
+	CreatedAt  time.Time               `json:"created_at"`
+	CreatedBy  string                  `json:"created_by"`
+	ExtraPerms *map[string]interface{} `json:"extra_perms,omitempty"`
+	FileCount  int                     `json:"file_count"`
+	LastUsedAt *time.Time              `json:"last_used_at"`
+	Name       string                  `json:"name"`
+	SizeBytes  int64                   `json:"size_bytes"`
+	UpdatedAt  *time.Time              `json:"updated_at"`
 }
 
 // WebhookFilters defines model for WebhookFilters.
@@ -9058,6 +9075,11 @@ type UpdateVariableParams struct {
 	AlreadyEncrypted *bool `form:"already_encrypted,omitempty" json:"already_encrypted,omitempty"`
 }
 
+// CreateVolumeJSONBody defines parameters for CreateVolume.
+type CreateVolumeJSONBody struct {
+	Name string `json:"name"`
+}
+
 // ListWebsocketTriggersParams defines parameters for ListWebsocketTriggers.
 type ListWebsocketTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -9968,6 +9990,9 @@ type EncryptValueJSONRequestBody = EncryptValueJSONBody
 
 // UpdateVariableJSONRequestBody defines body for UpdateVariable for application/json ContentType.
 type UpdateVariableJSONRequestBody = EditVariable
+
+// CreateVolumeJSONRequestBody defines body for CreateVolume for application/json ContentType.
+type CreateVolumeJSONRequestBody CreateVolumeJSONBody
 
 // CreateWebsocketTriggerJSONRequestBody defines body for CreateWebsocketTrigger for application/json ContentType.
 type CreateWebsocketTriggerJSONRequestBody = NewWebsocketTrigger
@@ -13966,6 +13991,20 @@ type ClientInterface interface {
 	UpdateVariableWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateVariable(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateVolumeWithBody request with any body
+	CreateVolumeWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateVolume(ctx context.Context, workspace WorkspaceId, body CreateVolumeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteVolume request
+	DeleteVolume(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListVolumes request
+	ListVolumes(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetVolumeStorage request
+	GetVolumeStorage(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateWebsocketTriggerWithBody request with any body
 	CreateWebsocketTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -22956,6 +22995,66 @@ func (c *Client) UpdateVariableWithBody(ctx context.Context, workspace Workspace
 
 func (c *Client) UpdateVariable(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateVariableRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateVolumeWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateVolumeRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateVolume(ctx context.Context, workspace WorkspaceId, body CreateVolumeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateVolumeRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteVolume(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteVolumeRequest(c.Server, workspace, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListVolumes(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListVolumesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetVolumeStorage(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetVolumeStorageRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -58235,6 +58334,162 @@ func NewUpdateVariableRequestWithBody(server string, workspace WorkspaceId, path
 	return req, nil
 }
 
+// NewCreateVolumeRequest calls the generic CreateVolume builder with application/json body
+func NewCreateVolumeRequest(server string, workspace WorkspaceId, body CreateVolumeJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateVolumeRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateVolumeRequestWithBody generates requests for CreateVolume with any type of body
+func NewCreateVolumeRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/volumes/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteVolumeRequest generates requests for DeleteVolume
+func NewDeleteVolumeRequest(server string, workspace WorkspaceId, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/volumes/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListVolumesRequest generates requests for ListVolumes
+func NewListVolumesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/volumes/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetVolumeStorageRequest generates requests for GetVolumeStorage
+func NewGetVolumeStorageRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/volumes/storage", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateWebsocketTriggerRequest calls the generic CreateWebsocketTrigger builder with application/json body
 func NewCreateWebsocketTriggerRequest(server string, workspace WorkspaceId, body CreateWebsocketTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -64849,6 +65104,20 @@ type ClientWithResponsesInterface interface {
 	UpdateVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error)
 
 	UpdateVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateVariableParams, body UpdateVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateVariableResponse, error)
+
+	// CreateVolumeWithBodyWithResponse request with any body
+	CreateVolumeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateVolumeResponse, error)
+
+	CreateVolumeWithResponse(ctx context.Context, workspace WorkspaceId, body CreateVolumeJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateVolumeResponse, error)
+
+	// DeleteVolumeWithResponse request
+	DeleteVolumeWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*DeleteVolumeResponse, error)
+
+	// ListVolumesWithResponse request
+	ListVolumesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListVolumesResponse, error)
+
+	// GetVolumeStorageWithResponse request
+	GetVolumeStorageWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetVolumeStorageResponse, error)
 
 	// CreateWebsocketTriggerWithBodyWithResponse request with any body
 	CreateWebsocketTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWebsocketTriggerResponse, error)
@@ -77033,6 +77302,92 @@ func (r UpdateVariableResponse) StatusCode() int {
 	return 0
 }
 
+type CreateVolumeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateVolumeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateVolumeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteVolumeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteVolumeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteVolumeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListVolumesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]Volume
+}
+
+// Status returns HTTPResponse.Status
+func (r ListVolumesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListVolumesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetVolumeStorageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetVolumeStorageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetVolumeStorageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateWebsocketTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -85629,6 +85984,50 @@ func (c *ClientWithResponses) UpdateVariableWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseUpdateVariableResponse(rsp)
+}
+
+// CreateVolumeWithBodyWithResponse request with arbitrary body returning *CreateVolumeResponse
+func (c *ClientWithResponses) CreateVolumeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateVolumeResponse, error) {
+	rsp, err := c.CreateVolumeWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateVolumeResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateVolumeWithResponse(ctx context.Context, workspace WorkspaceId, body CreateVolumeJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateVolumeResponse, error) {
+	rsp, err := c.CreateVolume(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateVolumeResponse(rsp)
+}
+
+// DeleteVolumeWithResponse request returning *DeleteVolumeResponse
+func (c *ClientWithResponses) DeleteVolumeWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*DeleteVolumeResponse, error) {
+	rsp, err := c.DeleteVolume(ctx, workspace, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteVolumeResponse(rsp)
+}
+
+// ListVolumesWithResponse request returning *ListVolumesResponse
+func (c *ClientWithResponses) ListVolumesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListVolumesResponse, error) {
+	rsp, err := c.ListVolumes(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListVolumesResponse(rsp)
+}
+
+// GetVolumeStorageWithResponse request returning *GetVolumeStorageResponse
+func (c *ClientWithResponses) GetVolumeStorageWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetVolumeStorageResponse, error) {
+	rsp, err := c.GetVolumeStorage(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetVolumeStorageResponse(rsp)
 }
 
 // CreateWebsocketTriggerWithBodyWithResponse request with arbitrary body returning *CreateWebsocketTriggerResponse
@@ -98724,6 +99123,90 @@ func ParseUpdateVariableResponse(rsp *http.Response) (*UpdateVariableResponse, e
 	response := &UpdateVariableResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateVolumeResponse parses an HTTP response from a CreateVolumeWithResponse call
+func ParseCreateVolumeResponse(rsp *http.Response) (*CreateVolumeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateVolumeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteVolumeResponse parses an HTTP response from a DeleteVolumeWithResponse call
+func ParseDeleteVolumeResponse(rsp *http.Response) (*DeleteVolumeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteVolumeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListVolumesResponse parses an HTTP response from a ListVolumesWithResponse call
+func ParseListVolumesResponse(rsp *http.Response) (*ListVolumesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListVolumesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []Volume
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetVolumeStorageResponse parses an HTTP response from a GetVolumeStorageWithResponse call
+func ParseGetVolumeStorageResponse(rsp *http.Response) (*GetVolumeStorageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetVolumeStorageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
