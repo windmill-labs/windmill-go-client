@@ -2655,8 +2655,8 @@ type FlowValue struct {
 	// FailureModule A single step in a flow. Can be a script, subflow, loop, or branch
 	FailureModule *SchemasFlowModule `json:"failure_module,omitempty"`
 
-	// FlowEnv Environment variables available to all steps
-	FlowEnv *map[string]string `json:"flow_env,omitempty"`
+	// FlowEnv Environment variables available to all steps. Values can be strings, JSON values, or special references: '$var:path' (workspace variable) or '$res:path' (resource).
+	FlowEnv *map[string]interface{} `json:"flow_env,omitempty"`
 
 	// MaxTotalDebouncesAmount Maximum number of times a job can be debounced
 	MaxTotalDebouncesAmount *float32 `json:"max_total_debounces_amount,omitempty"`
@@ -5508,8 +5508,8 @@ type SchemasFlowValue struct {
 	// FailureModule A single step in a flow. Can be a script, subflow, loop, or branch
 	FailureModule *SchemasFlowModule `json:"failure_module,omitempty"`
 
-	// FlowEnv Environment variables available to all steps
-	FlowEnv *map[string]string `json:"flow_env,omitempty"`
+	// FlowEnv Environment variables available to all steps. Values can be strings, JSON values, or special references: '$var:path' (workspace variable) or '$res:path' (resource).
+	FlowEnv *map[string]interface{} `json:"flow_env,omitempty"`
 
 	// MaxTotalDebouncesAmount Maximum number of times a job can be debounced
 	MaxTotalDebouncesAmount *float32 `json:"max_total_debounces_amount,omitempty"`
