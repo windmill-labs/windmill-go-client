@@ -3731,7 +3731,7 @@ type NewScript struct {
 	DedicatedWorker          *bool          `json:"dedicated_worker,omitempty"`
 	DeleteAfterUse           *bool          `json:"delete_after_use,omitempty"`
 	DeploymentMessage        *string        `json:"deployment_message,omitempty"`
-	Description              string         `json:"description"`
+	Description              *string        `json:"description,omitempty"`
 	DraftOnly                *bool          `json:"draft_only,omitempty"`
 	Envs                     *[]string      `json:"envs,omitempty"`
 	HasPreprocessor          *bool          `json:"has_preprocessor,omitempty"`
@@ -3788,7 +3788,7 @@ type NewScriptWithDraft struct {
 	DedicatedWorker          *bool                   `json:"dedicated_worker,omitempty"`
 	DeleteAfterUse           *bool                   `json:"delete_after_use,omitempty"`
 	DeploymentMessage        *string                 `json:"deployment_message,omitempty"`
-	Description              string                  `json:"description"`
+	Description              *string                 `json:"description,omitempty"`
 	Draft                    *NewScript              `json:"draft,omitempty"`
 	DraftOnly                *bool                   `json:"draft_only,omitempty"`
 	Envs                     *[]string               `json:"envs,omitempty"`
