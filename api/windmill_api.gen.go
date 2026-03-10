@@ -67841,6 +67841,9 @@ type SearchJobsIndexResponse struct {
 
 			// LostLockOwnership Is the current indexer service being replaced
 			LostLockOwnership *bool `json:"lost_lock_ownership,omitempty"`
+
+			// MaxIndexTimeWindowSecs Maximum time window in seconds for indexing
+			MaxIndexTimeWindowSecs *float32 `json:"max_index_time_window_secs,omitempty"`
 		} `json:"index_metadata,omitempty"`
 
 		// QueryParseErrors a list of the terms that couldn't be parsed (and thus ignored)
@@ -89748,6 +89751,9 @@ func ParseSearchJobsIndexResponse(rsp *http.Response) (*SearchJobsIndexResponse,
 
 				// LostLockOwnership Is the current indexer service being replaced
 				LostLockOwnership *bool `json:"lost_lock_ownership,omitempty"`
+
+				// MaxIndexTimeWindowSecs Maximum time window in seconds for indexing
+				MaxIndexTimeWindowSecs *float32 `json:"max_index_time_window_secs,omitempty"`
 			} `json:"index_metadata,omitempty"`
 
 			// QueryParseErrors a list of the terms that couldn't be parsed (and thus ignored)
