@@ -296,6 +296,12 @@ const (
 	Inline DynamicInputDataRunnableRef1Source = "inline"
 )
 
+// Defines values for EditKafkaTriggerAutoOffsetReset.
+const (
+	EditKafkaTriggerAutoOffsetResetEarliest EditKafkaTriggerAutoOffsetReset = "earliest"
+	EditKafkaTriggerAutoOffsetResetLatest   EditKafkaTriggerAutoOffsetReset = "latest"
+)
+
 // Defines values for ExportableCompletedJobJobKind.
 const (
 	ExportableCompletedJobJobKindAiagent                  ExportableCompletedJobJobKind = "aiagent"
@@ -423,20 +429,21 @@ const (
 
 // Defines values for GitSyncObjectType.
 const (
-	GitSyncObjectTypeApp          GitSyncObjectType = "app"
-	GitSyncObjectTypeFlow         GitSyncObjectType = "flow"
-	GitSyncObjectTypeFolder       GitSyncObjectType = "folder"
-	GitSyncObjectTypeGroup        GitSyncObjectType = "group"
-	GitSyncObjectTypeKey          GitSyncObjectType = "key"
-	GitSyncObjectTypeResource     GitSyncObjectType = "resource"
-	GitSyncObjectTypeResourcetype GitSyncObjectType = "resourcetype"
-	GitSyncObjectTypeSchedule     GitSyncObjectType = "schedule"
-	GitSyncObjectTypeScript       GitSyncObjectType = "script"
-	GitSyncObjectTypeSecret       GitSyncObjectType = "secret"
-	GitSyncObjectTypeSettings     GitSyncObjectType = "settings"
-	GitSyncObjectTypeTrigger      GitSyncObjectType = "trigger"
-	GitSyncObjectTypeUser         GitSyncObjectType = "user"
-	GitSyncObjectTypeVariable     GitSyncObjectType = "variable"
+	GitSyncObjectTypeApp                   GitSyncObjectType = "app"
+	GitSyncObjectTypeFlow                  GitSyncObjectType = "flow"
+	GitSyncObjectTypeFolder                GitSyncObjectType = "folder"
+	GitSyncObjectTypeGroup                 GitSyncObjectType = "group"
+	GitSyncObjectTypeKey                   GitSyncObjectType = "key"
+	GitSyncObjectTypeResource              GitSyncObjectType = "resource"
+	GitSyncObjectTypeResourcetype          GitSyncObjectType = "resourcetype"
+	GitSyncObjectTypeSchedule              GitSyncObjectType = "schedule"
+	GitSyncObjectTypeScript                GitSyncObjectType = "script"
+	GitSyncObjectTypeSecret                GitSyncObjectType = "secret"
+	GitSyncObjectTypeSettings              GitSyncObjectType = "settings"
+	GitSyncObjectTypeTrigger               GitSyncObjectType = "trigger"
+	GitSyncObjectTypeUser                  GitSyncObjectType = "user"
+	GitSyncObjectTypeVariable              GitSyncObjectType = "variable"
+	GitSyncObjectTypeWorkspacedependencies GitSyncObjectType = "workspacedependencies"
 )
 
 // Defines values for GlobalUserInfoLoginType.
@@ -628,6 +635,12 @@ const (
 const (
 	Google    NativeServiceName = "google"
 	Nextcloud NativeServiceName = "nextcloud"
+)
+
+// Defines values for NewKafkaTriggerAutoOffsetReset.
+const (
+	NewKafkaTriggerAutoOffsetResetEarliest NewKafkaTriggerAutoOffsetReset = "earliest"
+	NewKafkaTriggerAutoOffsetResetLatest   NewKafkaTriggerAutoOffsetReset = "latest"
 )
 
 // Defines values for NewScriptAssetsAccessType.
@@ -1811,6 +1824,9 @@ type EditHttpTrigger struct {
 
 // EditKafkaTrigger defines model for EditKafkaTrigger.
 type EditKafkaTrigger struct {
+	// AutoOffsetReset Initial offset behavior when consumer group has no committed offset.
+	AutoOffsetReset *EditKafkaTriggerAutoOffsetReset `json:"auto_offset_reset,omitempty"`
+
 	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
 	Email *string `json:"email,omitempty"`
 
@@ -1848,6 +1864,9 @@ type EditKafkaTrigger struct {
 	// Topics Array of Kafka topic names to subscribe to
 	Topics []string `json:"topics"`
 }
+
+// EditKafkaTriggerAutoOffsetReset Initial offset behavior when consumer group has no committed offset.
+type EditKafkaTriggerAutoOffsetReset string
 
 // EditMqttTrigger defines model for EditMqttTrigger.
 type EditMqttTrigger struct {
@@ -3458,6 +3477,9 @@ type NewHttpTrigger struct {
 
 // NewKafkaTrigger defines model for NewKafkaTrigger.
 type NewKafkaTrigger struct {
+	// AutoOffsetReset Initial offset behavior when consumer group has no committed offset.
+	AutoOffsetReset *NewKafkaTriggerAutoOffsetReset `json:"auto_offset_reset,omitempty"`
+
 	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
 	Email *string `json:"email,omitempty"`
 
@@ -3498,6 +3520,9 @@ type NewKafkaTrigger struct {
 	// Topics Array of Kafka topic names to subscribe to
 	Topics []string `json:"topics"`
 }
+
+// NewKafkaTriggerAutoOffsetReset Initial offset behavior when consumer group has no committed offset.
+type NewKafkaTriggerAutoOffsetReset string
 
 // NewMqttTrigger defines model for NewMqttTrigger.
 type NewMqttTrigger struct {
@@ -13409,6 +13434,9 @@ type ClientInterface interface {
 	// ListKafkaTriggers request
 	ListKafkaTriggers(ctx context.Context, workspace WorkspaceId, params *ListKafkaTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ResetKafkaOffsets request
+	ResetKafkaOffsets(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SetKafkaTriggerModeWithBody request with any body
 	SetKafkaTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -20439,6 +20467,18 @@ func (c *Client) GetKafkaTrigger(ctx context.Context, workspace WorkspaceId, pat
 
 func (c *Client) ListKafkaTriggers(ctx context.Context, workspace WorkspaceId, params *ListKafkaTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListKafkaTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResetKafkaOffsets(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResetKafkaOffsetsRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -49739,6 +49779,47 @@ func NewListKafkaTriggersRequest(server string, workspace WorkspaceId, params *L
 	return req, nil
 }
 
+// NewResetKafkaOffsetsRequest generates requests for ResetKafkaOffsets
+func NewResetKafkaOffsetsRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/reset_offsets/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewSetKafkaTriggerModeRequest calls the generic SetKafkaTriggerMode builder with application/json body
 func NewSetKafkaTriggerModeRequest(server string, workspace WorkspaceId, path Path, body SetKafkaTriggerModeJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -64522,6 +64603,9 @@ type ClientWithResponsesInterface interface {
 	// ListKafkaTriggersWithResponse request
 	ListKafkaTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListKafkaTriggersParams, reqEditors ...RequestEditorFn) (*ListKafkaTriggersResponse, error)
 
+	// ResetKafkaOffsetsWithResponse request
+	ResetKafkaOffsetsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ResetKafkaOffsetsResponse, error)
+
 	// SetKafkaTriggerModeWithBodyWithResponse request with any body
 	SetKafkaTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetKafkaTriggerModeResponse, error)
 
@@ -73885,6 +73969,27 @@ func (r ListKafkaTriggersResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListKafkaTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ResetKafkaOffsetsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ResetKafkaOffsetsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResetKafkaOffsetsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -84126,6 +84231,15 @@ func (c *ClientWithResponses) ListKafkaTriggersWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseListKafkaTriggersResponse(rsp)
+}
+
+// ResetKafkaOffsetsWithResponse request returning *ResetKafkaOffsetsResponse
+func (c *ClientWithResponses) ResetKafkaOffsetsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ResetKafkaOffsetsResponse, error) {
+	rsp, err := c.ResetKafkaOffsets(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResetKafkaOffsetsResponse(rsp)
 }
 
 // SetKafkaTriggerModeWithBodyWithResponse request with arbitrary body returning *SetKafkaTriggerModeResponse
@@ -95744,6 +95858,22 @@ func ParseListKafkaTriggersResponse(rsp *http.Response) (*ListKafkaTriggersRespo
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseResetKafkaOffsetsResponse parses an HTTP response from a ResetKafkaOffsetsWithResponse call
+func ParseResetKafkaOffsetsResponse(rsp *http.Response) (*ResetKafkaOffsetsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResetKafkaOffsetsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
