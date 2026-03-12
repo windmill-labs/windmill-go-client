@@ -1824,6 +1824,9 @@ type EditHttpTrigger struct {
 
 // EditKafkaTrigger defines model for EditKafkaTrigger.
 type EditKafkaTrigger struct {
+	// AutoCommit When true (default), offsets are committed automatically after receiving each message. When false, you must manually commit offsets using the commit_offsets endpoint.
+	AutoCommit *bool `json:"auto_commit,omitempty"`
+
 	// AutoOffsetReset Initial offset behavior when consumer group has no committed offset.
 	AutoOffsetReset *EditKafkaTriggerAutoOffsetReset `json:"auto_offset_reset,omitempty"`
 
@@ -2805,7 +2808,7 @@ type GitRepositorySettings struct {
 	ForceBranch          *string              `json:"force_branch,omitempty"`
 	GitRepoResourcePath  string               `json:"git_repo_resource_path"`
 	GroupByFolder        *bool                `json:"group_by_folder,omitempty"`
-	ScriptPath           string               `json:"script_path"`
+	ScriptPath           *string              `json:"script_path,omitempty"`
 	Settings             *struct {
 		ExcludePath      *[]string            `json:"exclude_path,omitempty"`
 		ExtraIncludePath *[]string            `json:"extra_include_path,omitempty"`
@@ -3477,6 +3480,9 @@ type NewHttpTrigger struct {
 
 // NewKafkaTrigger defines model for NewKafkaTrigger.
 type NewKafkaTrigger struct {
+	// AutoCommit When true (default), offsets are committed automatically after receiving each message. When false, you must manually commit offsets using the commit_offsets endpoint.
+	AutoCommit *bool `json:"auto_commit,omitempty"`
+
 	// AutoOffsetReset Initial offset behavior when consumer group has no committed offset.
 	AutoOffsetReset *NewKafkaTriggerAutoOffsetReset `json:"auto_offset_reset,omitempty"`
 
@@ -8562,6 +8568,13 @@ type ResumeSuspendedJobPostParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
 }
 
+// CommitKafkaOffsetsJSONBody defines parameters for CommitKafkaOffsets.
+type CommitKafkaOffsetsJSONBody struct {
+	Offset    int64  `json:"offset"`
+	Partition int32  `json:"partition"`
+	Topic     string `json:"topic"`
+}
+
 // ListKafkaTriggersParams defines parameters for ListKafkaTriggers.
 type ListKafkaTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -9844,6 +9857,9 @@ type GetStartedAtByIdsJSONRequestBody = GetStartedAtByIdsJSONBody
 
 // ResumeSuspendedJobPostJSONRequestBody defines body for ResumeSuspendedJobPost for application/json ContentType.
 type ResumeSuspendedJobPostJSONRequestBody = ResumeSuspendedJobPostJSONBody
+
+// CommitKafkaOffsetsJSONRequestBody defines body for CommitKafkaOffsets for application/json ContentType.
+type CommitKafkaOffsetsJSONRequestBody CommitKafkaOffsetsJSONBody
 
 // CreateKafkaTriggerJSONRequestBody defines body for CreateKafkaTrigger for application/json ContentType.
 type CreateKafkaTriggerJSONRequestBody = NewKafkaTrigger
@@ -13416,6 +13432,11 @@ type ClientInterface interface {
 	ResumeSuspendedJobPostWithBody(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ResumeSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CommitKafkaOffsetsWithBody request with any body
+	CommitKafkaOffsetsWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CommitKafkaOffsets(ctx context.Context, workspace WorkspaceId, path Path, body CommitKafkaOffsetsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateKafkaTriggerWithBody request with any body
 	CreateKafkaTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20395,6 +20416,30 @@ func (c *Client) ResumeSuspendedJobPostWithBody(ctx context.Context, workspace W
 
 func (c *Client) ResumeSuspendedJobPost(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResumeSuspendedJobPostRequest(c.Server, workspace, id, resumeId, signature, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CommitKafkaOffsetsWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCommitKafkaOffsetsRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CommitKafkaOffsets(ctx context.Context, workspace WorkspaceId, path Path, body CommitKafkaOffsetsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCommitKafkaOffsetsRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -49489,6 +49534,60 @@ func NewResumeSuspendedJobPostRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewCommitKafkaOffsetsRequest calls the generic CommitKafkaOffsets builder with application/json body
+func NewCommitKafkaOffsetsRequest(server string, workspace WorkspaceId, path Path, body CommitKafkaOffsetsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCommitKafkaOffsetsRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewCommitKafkaOffsetsRequestWithBody generates requests for CommitKafkaOffsets with any type of body
+func NewCommitKafkaOffsetsRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/kafka_triggers/commit_offsets/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateKafkaTriggerRequest calls the generic CreateKafkaTrigger builder with application/json body
 func NewCreateKafkaTriggerRequest(server string, workspace WorkspaceId, body CreateKafkaTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -64586,6 +64685,11 @@ type ClientWithResponsesInterface interface {
 
 	ResumeSuspendedJobPostWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, signature string, params *ResumeSuspendedJobPostParams, body ResumeSuspendedJobPostJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedJobPostResponse, error)
 
+	// CommitKafkaOffsetsWithBodyWithResponse request with any body
+	CommitKafkaOffsetsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CommitKafkaOffsetsResponse, error)
+
+	CommitKafkaOffsetsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body CommitKafkaOffsetsJSONRequestBody, reqEditors ...RequestEditorFn) (*CommitKafkaOffsetsResponse, error)
+
 	// CreateKafkaTriggerWithBodyWithResponse request with any body
 	CreateKafkaTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateKafkaTriggerResponse, error)
 
@@ -73861,6 +73965,27 @@ func (r ResumeSuspendedJobPostResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ResumeSuspendedJobPostResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CommitKafkaOffsetsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CommitKafkaOffsetsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CommitKafkaOffsetsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -84178,6 +84303,23 @@ func (c *ClientWithResponses) ResumeSuspendedJobPostWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseResumeSuspendedJobPostResponse(rsp)
+}
+
+// CommitKafkaOffsetsWithBodyWithResponse request with arbitrary body returning *CommitKafkaOffsetsResponse
+func (c *ClientWithResponses) CommitKafkaOffsetsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CommitKafkaOffsetsResponse, error) {
+	rsp, err := c.CommitKafkaOffsetsWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCommitKafkaOffsetsResponse(rsp)
+}
+
+func (c *ClientWithResponses) CommitKafkaOffsetsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body CommitKafkaOffsetsJSONRequestBody, reqEditors ...RequestEditorFn) (*CommitKafkaOffsetsResponse, error) {
+	rsp, err := c.CommitKafkaOffsets(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCommitKafkaOffsetsResponse(rsp)
 }
 
 // CreateKafkaTriggerWithBodyWithResponse request with arbitrary body returning *CreateKafkaTriggerResponse
@@ -95746,6 +95888,22 @@ func ParseResumeSuspendedJobPostResponse(rsp *http.Response) (*ResumeSuspendedJo
 	}
 
 	response := &ResumeSuspendedJobPostResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCommitKafkaOffsetsResponse parses an HTTP response from a CommitKafkaOffsetsWithResponse call
+func ParseCommitKafkaOffsetsResponse(rsp *http.Response) (*CommitKafkaOffsetsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CommitKafkaOffsetsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
