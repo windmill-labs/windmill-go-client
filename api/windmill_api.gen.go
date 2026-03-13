@@ -7097,6 +7097,12 @@ type TestGcpConnectionJSONBody struct {
 	Connection map[string]interface{} `json:"connection"`
 }
 
+// GhesInstallationCallbackJSONBody defines parameters for GhesInstallationCallback.
+type GhesInstallationCallbackJSONBody struct {
+	// InstallationId The GitHub App installation ID from GHES
+	InstallationId int64 `json:"installation_id"`
+}
+
 // ImportInstallationJSONBody defines parameters for ImportInstallation.
 type ImportInstallationJSONBody struct {
 	JwtToken string `json:"jwt_token"`
@@ -9687,6 +9693,9 @@ type TestGcpConnectionJSONRequestBody TestGcpConnectionJSONBody
 // UpdateGcpTriggerJSONRequestBody defines body for UpdateGcpTrigger for application/json ContentType.
 type UpdateGcpTriggerJSONRequestBody = GcpTriggerData
 
+// GhesInstallationCallbackJSONRequestBody defines body for GhesInstallationCallback for application/json ContentType.
+type GhesInstallationCallbackJSONRequestBody GhesInstallationCallbackJSONBody
+
 // ImportInstallationJSONRequestBody defines body for ImportInstallation for application/json ContentType.
 type ImportInstallationJSONRequestBody ImportInstallationJSONBody
 
@@ -12184,6 +12193,9 @@ type ClientInterface interface {
 	// GetGlobalConnectedRepositories request
 	GetGlobalConnectedRepositories(ctx context.Context, params *GetGlobalConnectedRepositoriesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetGhesConfig request
+	GetGhesConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AddUserToInstanceGroupWithBody request with any body
 	AddUserToInstanceGroupWithBody(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -12925,6 +12937,11 @@ type ClientInterface interface {
 
 	// ExportInstallation request
 	ExportInstallation(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GhesInstallationCallbackWithBody request with any body
+	GhesInstallationCallbackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GhesInstallationCallback(ctx context.Context, workspace WorkspaceId, body GhesInstallationCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ImportInstallationWithBody request with any body
 	ImportInstallationWithBody(ctx context.Context, workspace string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14908,6 +14925,18 @@ func (c *Client) ListHubFlows(ctx context.Context, reqEditors ...RequestEditorFn
 
 func (c *Client) GetGlobalConnectedRepositories(ctx context.Context, params *GetGlobalConnectedRepositoriesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetGlobalConnectedRepositoriesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGhesConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGhesConfigRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -18160,6 +18189,30 @@ func (c *Client) UpdateGcpTrigger(ctx context.Context, workspace WorkspaceId, pa
 
 func (c *Client) ExportInstallation(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExportInstallationRequest(c.Server, workspace, installationId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GhesInstallationCallbackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGhesInstallationCallbackRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GhesInstallationCallback(ctx context.Context, workspace WorkspaceId, body GhesInstallationCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGhesInstallationCallbackRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -26098,6 +26151,33 @@ func NewGetGlobalConnectedRepositoriesRequest(server string, params *GetGlobalCo
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetGhesConfigRequest generates requests for GetGhesConfig
+func NewGetGhesConfigRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/github_app/ghes_config")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -36467,6 +36547,53 @@ func NewExportInstallationRequest(server string, workspace string, installationI
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGhesInstallationCallbackRequest calls the generic GhesInstallationCallback builder with application/json body
+func NewGhesInstallationCallbackRequest(server string, workspace WorkspaceId, body GhesInstallationCallbackJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGhesInstallationCallbackRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewGhesInstallationCallbackRequestWithBody generates requests for GhesInstallationCallback with any type of body
+func NewGhesInstallationCallbackRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/github_app/ghes_installation_callback", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -63436,6 +63563,9 @@ type ClientWithResponsesInterface interface {
 	// GetGlobalConnectedRepositoriesWithResponse request
 	GetGlobalConnectedRepositoriesWithResponse(ctx context.Context, params *GetGlobalConnectedRepositoriesParams, reqEditors ...RequestEditorFn) (*GetGlobalConnectedRepositoriesResponse, error)
 
+	// GetGhesConfigWithResponse request
+	GetGhesConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetGhesConfigResponse, error)
+
 	// AddUserToInstanceGroupWithBodyWithResponse request with any body
 	AddUserToInstanceGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserToInstanceGroupResponse, error)
 
@@ -64177,6 +64307,11 @@ type ClientWithResponsesInterface interface {
 
 	// ExportInstallationWithResponse request
 	ExportInstallationWithResponse(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*ExportInstallationResponse, error)
+
+	// GhesInstallationCallbackWithBodyWithResponse request with any body
+	GhesInstallationCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GhesInstallationCallbackResponse, error)
+
+	GhesInstallationCallbackWithResponse(ctx context.Context, workspace WorkspaceId, body GhesInstallationCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*GhesInstallationCallbackResponse, error)
 
 	// ImportInstallationWithBodyWithResponse request with any body
 	ImportInstallationWithBodyWithResponse(ctx context.Context, workspace string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportInstallationResponse, error)
@@ -66452,6 +66587,32 @@ func (r GetGlobalConnectedRepositoriesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetGlobalConnectedRepositoriesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGhesConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		AppSlug  string `json:"app_slug"`
+		BaseUrl  string `json:"base_url"`
+		ClientId string `json:"client_id"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGhesConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGhesConfigResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -71041,6 +71202,27 @@ func (r ExportInstallationResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ExportInstallationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GhesInstallationCallbackResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GhesInstallationCallbackResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GhesInstallationCallbackResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -80302,6 +80484,15 @@ func (c *ClientWithResponses) GetGlobalConnectedRepositoriesWithResponse(ctx con
 	return ParseGetGlobalConnectedRepositoriesResponse(rsp)
 }
 
+// GetGhesConfigWithResponse request returning *GetGhesConfigResponse
+func (c *ClientWithResponses) GetGhesConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetGhesConfigResponse, error) {
+	rsp, err := c.GetGhesConfig(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGhesConfigResponse(rsp)
+}
+
 // AddUserToInstanceGroupWithBodyWithResponse request with arbitrary body returning *AddUserToInstanceGroupResponse
 func (c *ClientWithResponses) AddUserToInstanceGroupWithBodyWithResponse(ctx context.Context, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddUserToInstanceGroupResponse, error) {
 	rsp, err := c.AddUserToInstanceGroupWithBody(ctx, name, contentType, body, reqEditors...)
@@ -82668,6 +82859,23 @@ func (c *ClientWithResponses) ExportInstallationWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseExportInstallationResponse(rsp)
+}
+
+// GhesInstallationCallbackWithBodyWithResponse request with arbitrary body returning *GhesInstallationCallbackResponse
+func (c *ClientWithResponses) GhesInstallationCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GhesInstallationCallbackResponse, error) {
+	rsp, err := c.GhesInstallationCallbackWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGhesInstallationCallbackResponse(rsp)
+}
+
+func (c *ClientWithResponses) GhesInstallationCallbackWithResponse(ctx context.Context, workspace WorkspaceId, body GhesInstallationCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*GhesInstallationCallbackResponse, error) {
+	rsp, err := c.GhesInstallationCallback(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGhesInstallationCallbackResponse(rsp)
 }
 
 // ImportInstallationWithBodyWithResponse request with arbitrary body returning *ImportInstallationResponse
@@ -88396,6 +88604,36 @@ func ParseGetGlobalConnectedRepositoriesResponse(rsp *http.Response) (*GetGlobal
 	return response, nil
 }
 
+// ParseGetGhesConfigResponse parses an HTTP response from a GetGhesConfigWithResponse call
+func ParseGetGhesConfigResponse(rsp *http.Response) (*GetGhesConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGhesConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			AppSlug  string `json:"app_slug"`
+			BaseUrl  string `json:"base_url"`
+			ClientId string `json:"client_id"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseAddUserToInstanceGroupResponse parses an HTTP response from a AddUserToInstanceGroupWithResponse call
 func ParseAddUserToInstanceGroupResponse(rsp *http.Response) (*AddUserToInstanceGroupResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -92964,6 +93202,22 @@ func ParseExportInstallationResponse(rsp *http.Response) (*ExportInstallationRes
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGhesInstallationCallbackResponse parses an HTTP response from a GhesInstallationCallbackWithResponse call
+func ParseGhesInstallationCallbackResponse(rsp *http.Response) (*GhesInstallationCallbackResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GhesInstallationCallbackResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
