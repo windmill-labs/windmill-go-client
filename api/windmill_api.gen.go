@@ -378,6 +378,12 @@ const (
 	ExportableQueuedJobTriggerKindWebsocket ExportableQueuedJobTriggerKind = "websocket"
 )
 
+// Defines values for ExportedInstanceGroupInstanceRole.
+const (
+	ExportedInstanceGroupInstanceRoleDevops     ExportedInstanceGroupInstanceRole = "devops"
+	ExportedInstanceGroupInstanceRoleSuperadmin ExportedInstanceGroupInstanceRole = "superadmin"
+)
+
 // Defines values for FlowConversationMessageMessageType.
 const (
 	FlowConversationMessageMessageTypeAssistant FlowConversationMessageMessageType = "assistant"
@@ -452,6 +458,12 @@ const (
 	Password GlobalUserInfoLoginType = "password"
 )
 
+// Defines values for GlobalUserInfoRoleSource.
+const (
+	GlobalUserInfoRoleSourceInstanceGroup GlobalUserInfoRoleSource = "instance_group"
+	GlobalUserInfoRoleSourceManual        GlobalUserInfoRoleSource = "manual"
+)
+
 // Defines values for HealthStatusResponseStatus.
 const (
 	HealthStatusResponseStatusDegraded  HealthStatusResponseStatus = "degraded"
@@ -481,6 +493,18 @@ const (
 	HubScriptKindFailure  HubScriptKind = "failure"
 	HubScriptKindScript   HubScriptKind = "script"
 	HubScriptKindTrigger  HubScriptKind = "trigger"
+)
+
+// Defines values for InstanceGroupInstanceRole.
+const (
+	InstanceGroupInstanceRoleDevops     InstanceGroupInstanceRole = "devops"
+	InstanceGroupInstanceRoleSuperadmin InstanceGroupInstanceRole = "superadmin"
+)
+
+// Defines values for InstanceGroupWithWorkspacesInstanceRole.
+const (
+	Devops     InstanceGroupWithWorkspacesInstanceRole = "devops"
+	Superadmin InstanceGroupWithWorkspacesInstanceRole = "superadmin"
 )
 
 // Defines values for Job0JobKind.
@@ -2391,13 +2415,17 @@ type ExportableQueuedJobTriggerKind string
 
 // ExportedInstanceGroup defines model for ExportedInstanceGroup.
 type ExportedInstanceGroup struct {
-	Emails          *[]string `json:"emails,omitempty"`
-	ExternalId      *string   `json:"external_id,omitempty"`
-	Id              *string   `json:"id,omitempty"`
-	Name            string    `json:"name"`
-	ScimDisplayName *string   `json:"scim_display_name,omitempty"`
-	Summary         *string   `json:"summary,omitempty"`
+	Emails          *[]string                          `json:"emails,omitempty"`
+	ExternalId      *string                            `json:"external_id,omitempty"`
+	Id              *string                            `json:"id,omitempty"`
+	InstanceRole    *ExportedInstanceGroupInstanceRole `json:"instance_role"`
+	Name            string                             `json:"name"`
+	ScimDisplayName *string                            `json:"scim_display_name,omitempty"`
+	Summary         *string                            `json:"summary,omitempty"`
 }
+
+// ExportedInstanceGroupInstanceRole defines model for ExportedInstanceGroup.InstanceRole.
+type ExportedInstanceGroupInstanceRole string
 
 // ExportedUser defines model for ExportedUser.
 type ExportedUser struct {
@@ -2849,20 +2877,24 @@ type GlobalSetting struct {
 
 // GlobalUserInfo defines model for GlobalUserInfo.
 type GlobalUserInfo struct {
-	Company       *string                 `json:"company,omitempty"`
-	Devops        *bool                   `json:"devops,omitempty"`
-	Email         string                  `json:"email"`
-	FirstTimeUser bool                    `json:"first_time_user"`
-	LoginType     GlobalUserInfoLoginType `json:"login_type"`
-	Name          *string                 `json:"name,omitempty"`
-	OperatorOnly  *bool                   `json:"operator_only,omitempty"`
-	SuperAdmin    bool                    `json:"super_admin"`
-	Username      *string                 `json:"username,omitempty"`
-	Verified      bool                    `json:"verified"`
+	Company       *string                  `json:"company,omitempty"`
+	Devops        *bool                    `json:"devops,omitempty"`
+	Email         string                   `json:"email"`
+	FirstTimeUser bool                     `json:"first_time_user"`
+	LoginType     GlobalUserInfoLoginType  `json:"login_type"`
+	Name          *string                  `json:"name,omitempty"`
+	OperatorOnly  *bool                    `json:"operator_only,omitempty"`
+	RoleSource    GlobalUserInfoRoleSource `json:"role_source"`
+	SuperAdmin    bool                     `json:"super_admin"`
+	Username      *string                  `json:"username,omitempty"`
+	Verified      bool                     `json:"verified"`
 }
 
 // GlobalUserInfoLoginType defines model for GlobalUserInfo.LoginType.
 type GlobalUserInfoLoginType string
+
+// GlobalUserInfoRoleSource defines model for GlobalUserInfo.RoleSource.
+type GlobalUserInfoRoleSource string
 
 // GoogleCalendarEntry defines model for GoogleCalendarEntry.
 type GoogleCalendarEntry struct {
@@ -2970,18 +3002,26 @@ type InstanceConfig struct {
 
 // InstanceGroup defines model for InstanceGroup.
 type InstanceGroup struct {
-	Emails  *[]string `json:"emails,omitempty"`
-	Name    string    `json:"name"`
-	Summary *string   `json:"summary,omitempty"`
+	Emails       *[]string                  `json:"emails,omitempty"`
+	InstanceRole *InstanceGroupInstanceRole `json:"instance_role"`
+	Name         string                     `json:"name"`
+	Summary      *string                    `json:"summary,omitempty"`
 }
+
+// InstanceGroupInstanceRole defines model for InstanceGroup.InstanceRole.
+type InstanceGroupInstanceRole string
 
 // InstanceGroupWithWorkspaces defines model for InstanceGroupWithWorkspaces.
 type InstanceGroupWithWorkspaces struct {
-	Emails     *[]string        `json:"emails,omitempty"`
-	Name       string           `json:"name"`
-	Summary    *string          `json:"summary,omitempty"`
-	Workspaces *[]WorkspaceInfo `json:"workspaces,omitempty"`
+	Emails       *[]string                                `json:"emails,omitempty"`
+	InstanceRole *InstanceGroupWithWorkspacesInstanceRole `json:"instance_role"`
+	Name         string                                   `json:"name"`
+	Summary      *string                                  `json:"summary,omitempty"`
+	Workspaces   *[]WorkspaceInfo                         `json:"workspaces,omitempty"`
 }
+
+// InstanceGroupWithWorkspacesInstanceRole defines model for InstanceGroupWithWorkspaces.InstanceRole.
+type InstanceGroupWithWorkspacesInstanceRole string
 
 // Job defines model for Job.
 type Job struct {
@@ -3749,6 +3789,7 @@ type NewScript struct {
 		Kind          AssetKind                     `json:"kind"`
 		Path          string                        `json:"path"`
 	} `json:"assets,omitempty"`
+	AutoKind                 *string        `json:"auto_kind,omitempty"`
 	CacheIgnoreS3Path        *bool          `json:"cache_ignore_s3_path,omitempty"`
 	CacheTtl                 *float32       `json:"cache_ttl,omitempty"`
 	Codebase                 *string        `json:"codebase,omitempty"`
@@ -3772,10 +3813,12 @@ type NewScript struct {
 	Lock                     *string        `json:"lock,omitempty"`
 	MaxTotalDebouncesAmount  *int           `json:"max_total_debounces_amount,omitempty"`
 	MaxTotalDebouncingTime   *int           `json:"max_total_debouncing_time,omitempty"`
-	NoMainFunc               *bool          `json:"no_main_func,omitempty"`
-	OnBehalfOfEmail          *string        `json:"on_behalf_of_email,omitempty"`
-	ParentHash               *string        `json:"parent_hash,omitempty"`
-	Path                     string         `json:"path"`
+
+	// Modules Additional script modules keyed by relative file path
+	Modules         *map[string]ScriptModule `json:"modules"`
+	OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
+	ParentHash      *string                  `json:"parent_hash,omitempty"`
+	Path            string                   `json:"path"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
 	PreserveOnBehalfOf     *bool                   `json:"preserve_on_behalf_of,omitempty"`
@@ -3806,6 +3849,7 @@ type NewScriptWithDraft struct {
 		Kind          AssetKind                              `json:"kind"`
 		Path          string                                 `json:"path"`
 	} `json:"assets,omitempty"`
+	AutoKind                 *string                 `json:"auto_kind,omitempty"`
 	CacheIgnoreS3Path        *bool                   `json:"cache_ignore_s3_path,omitempty"`
 	CacheTtl                 *float32                `json:"cache_ttl,omitempty"`
 	Codebase                 *string                 `json:"codebase,omitempty"`
@@ -3831,10 +3875,12 @@ type NewScriptWithDraft struct {
 	Lock                     *string                 `json:"lock,omitempty"`
 	MaxTotalDebouncesAmount  *int                    `json:"max_total_debounces_amount,omitempty"`
 	MaxTotalDebouncingTime   *int                    `json:"max_total_debouncing_time,omitempty"`
-	NoMainFunc               *bool                   `json:"no_main_func,omitempty"`
-	OnBehalfOfEmail          *string                 `json:"on_behalf_of_email,omitempty"`
-	ParentHash               *string                 `json:"parent_hash,omitempty"`
-	Path                     string                  `json:"path"`
+
+	// Modules Additional script modules keyed by relative file path
+	Modules         *map[string]ScriptModule `json:"modules"`
+	OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
+	ParentHash      *string                  `json:"parent_hash,omitempty"`
+	Path            string                   `json:"path"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
 	PreserveOnBehalfOf     *bool                   `json:"preserve_on_behalf_of,omitempty"`
@@ -4150,6 +4196,9 @@ type Preview struct {
 	Kind            *PreviewKind `json:"kind,omitempty"`
 	Language        *ScriptLang  `json:"language,omitempty"`
 	Lock            *string      `json:"lock,omitempty"`
+
+	// Modules Additional script modules keyed by relative file path
+	Modules *map[string]ScriptModule `json:"modules"`
 
 	// Path The path to the script
 	Path *string `json:"path,omitempty"`
@@ -4617,6 +4666,7 @@ type ScopeDomain struct {
 // Script defines model for Script.
 type Script struct {
 	Archived                 bool            `json:"archived"`
+	AutoKind                 *string         `json:"auto_kind,omitempty"`
 	CacheTtl                 *float32        `json:"cache_ttl,omitempty"`
 	Codebase                 *string         `json:"codebase,omitempty"`
 	ConcurrencyKey           *string         `json:"concurrency_key,omitempty"`
@@ -4645,8 +4695,10 @@ type Script struct {
 	LockErrorLogs            *string         `json:"lock_error_logs,omitempty"`
 	MaxTotalDebouncesAmount  *int            `json:"max_total_debounces_amount,omitempty"`
 	MaxTotalDebouncingTime   *int            `json:"max_total_debouncing_time,omitempty"`
-	NoMainFunc               bool            `json:"no_main_func"`
-	OnBehalfOfEmail          *string         `json:"on_behalf_of_email,omitempty"`
+
+	// Modules Additional script modules keyed by relative file path
+	Modules         *map[string]ScriptModule `json:"modules"`
+	OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
 
 	// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
 	ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
@@ -4677,6 +4729,16 @@ type ScriptHistory struct {
 
 // ScriptLang defines model for ScriptLang.
 type ScriptLang string
+
+// ScriptModule An additional module file associated with a script
+type ScriptModule struct {
+	// Content The source code content of this module
+	Content  string     `json:"content"`
+	Language ScriptLang `json:"language"`
+
+	// Lock Lock file content for this module's dependencies
+	Lock *string `json:"lock"`
+}
 
 // SecretMigrationFailure defines model for SecretMigrationFailure.
 type SecretMigrationFailure struct {
@@ -6103,7 +6165,9 @@ type RemoveUserFromInstanceGroupJSONBody struct {
 
 // UpdateInstanceGroupJSONBody defines parameters for UpdateInstanceGroup.
 type UpdateInstanceGroupJSONBody struct {
-	NewSummary string `json:"new_summary"`
+	// InstanceRole Instance-level role for group members. 'superadmin', 'devops', 'user' or empty to clear.
+	InstanceRole *string `json:"instance_role"`
+	NewSummary   string  `json:"new_summary"`
 }
 
 // GetHealthStatusParams defines parameters for GetHealthStatus.
@@ -9332,6 +9396,14 @@ type InviteUserJSONBody struct {
 	ParentWorkspaceId *string `json:"parent_workspace_id"`
 }
 
+// LogAiChatJSONBody defines parameters for LogAiChat.
+type LogAiChatJSONBody struct {
+	Mode      string `json:"mode"`
+	Model     string `json:"model"`
+	Provider  string `json:"provider"`
+	SessionId string `json:"session_id"`
+}
+
 // GetPremiumInfoParams defines parameters for GetPremiumInfo.
 type GetPremiumInfoParams struct {
 	// SkipSubscriptionFetch skip fetching subscription status from stripe
@@ -10148,6 +10220,9 @@ type GetDependentsAmountsJSONRequestBody = GetDependentsAmountsJSONBody
 
 // InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
 type InviteUserJSONRequestBody InviteUserJSONBody
+
+// LogAiChatJSONRequestBody defines body for LogAiChat for application/json ContentType.
+type LogAiChatJSONRequestBody LogAiChatJSONBody
 
 // UpdateOperatorSettingsJSONRequestBody defines body for UpdateOperatorSettings for application/json ContentType.
 type UpdateOperatorSettingsJSONRequestBody = OperatorSettings
@@ -14345,6 +14420,11 @@ type ClientInterface interface {
 
 	// ListPendingInvites request
 	ListPendingInvites(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LogAiChatWithBody request with any body
+	LogAiChatWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	LogAiChat(ctx context.Context, workspace WorkspaceId, body LogAiChatJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateOperatorSettingsWithBody request with any body
 	UpdateOperatorSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -24429,6 +24509,30 @@ func (c *Client) ListDucklakes(ctx context.Context, workspace WorkspaceId, reqEd
 
 func (c *Client) ListPendingInvites(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListPendingInvitesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LogAiChatWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLogAiChatRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LogAiChat(ctx context.Context, workspace WorkspaceId, body LogAiChatJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLogAiChatRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -61925,6 +62029,53 @@ func NewListPendingInvitesRequest(server string, workspace WorkspaceId) (*http.R
 	return req, nil
 }
 
+// NewLogAiChatRequest calls the generic LogAiChat builder with application/json body
+func NewLogAiChatRequest(server string, workspace WorkspaceId, body LogAiChatJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewLogAiChatRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewLogAiChatRequestWithBody generates requests for LogAiChat with any type of body
+func NewLogAiChatRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/log_chat", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUpdateOperatorSettingsRequest calls the generic UpdateOperatorSettings builder with application/json body
 func NewUpdateOperatorSettingsRequest(server string, workspace WorkspaceId, body UpdateOperatorSettingsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -65716,6 +65867,11 @@ type ClientWithResponsesInterface interface {
 	// ListPendingInvitesWithResponse request
 	ListPendingInvitesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPendingInvitesResponse, error)
 
+	// LogAiChatWithBodyWithResponse request with any body
+	LogAiChatWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LogAiChatResponse, error)
+
+	LogAiChatWithResponse(ctx context.Context, workspace WorkspaceId, body LogAiChatJSONRequestBody, reqEditors ...RequestEditorFn) (*LogAiChatResponse, error)
+
 	// UpdateOperatorSettingsWithBodyWithResponse request with any body
 	UpdateOperatorSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateOperatorSettingsResponse, error)
 
@@ -66707,7 +66863,7 @@ func (r ExportInstanceGroupsResponse) StatusCode() int {
 type GetInstanceGroupResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *InstanceGroup
+	JSON200      *InstanceGroupWithWorkspaces
 }
 
 // Status returns HTTPResponse.Status
@@ -67687,6 +67843,10 @@ func (r CreateCustomerPortalSessionResponse) StatusCode() int {
 type GetStatsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *struct {
+		Data      *string `json:"data,omitempty"`
+		Signature *string `json:"signature,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -79341,6 +79501,27 @@ func (r ListPendingInvitesResponse) StatusCode() int {
 	return 0
 }
 
+type LogAiChatResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r LogAiChatResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LogAiChatResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UpdateOperatorSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -87389,6 +87570,23 @@ func (c *ClientWithResponses) ListPendingInvitesWithResponse(ctx context.Context
 	return ParseListPendingInvitesResponse(rsp)
 }
 
+// LogAiChatWithBodyWithResponse request with arbitrary body returning *LogAiChatResponse
+func (c *ClientWithResponses) LogAiChatWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LogAiChatResponse, error) {
+	rsp, err := c.LogAiChatWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLogAiChatResponse(rsp)
+}
+
+func (c *ClientWithResponses) LogAiChatWithResponse(ctx context.Context, workspace WorkspaceId, body LogAiChatJSONRequestBody, reqEditors ...RequestEditorFn) (*LogAiChatResponse, error) {
+	rsp, err := c.LogAiChat(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLogAiChatResponse(rsp)
+}
+
 // UpdateOperatorSettingsWithBodyWithResponse request with arbitrary body returning *UpdateOperatorSettingsResponse
 func (c *ClientWithResponses) UpdateOperatorSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateOperatorSettingsResponse, error) {
 	rsp, err := c.UpdateOperatorSettingsWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -88723,7 +88921,7 @@ func ParseGetInstanceGroupResponse(rsp *http.Response) (*GetInstanceGroupRespons
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest InstanceGroup
+		var dest InstanceGroupWithWorkspaces
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -89740,6 +89938,19 @@ func ParseGetStatsResponse(rsp *http.Response) (*GetStatsResponse, error) {
 	response := &GetStatsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Data      *string `json:"data,omitempty"`
+			Signature *string `json:"signature,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -101304,6 +101515,22 @@ func ParseListPendingInvitesResponse(rsp *http.Response) (*ListPendingInvitesRes
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseLogAiChatResponse parses an HTTP response from a LogAiChatWithResponse call
+func ParseLogAiChatResponse(rsp *http.Response) (*LogAiChatResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LogAiChatResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
