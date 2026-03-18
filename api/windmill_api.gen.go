@@ -1190,6 +1190,13 @@ const (
 	SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerTypeSuccess  SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType = "success"
 )
 
+// Defines values for PruneVersionsJSONBodyResourceType.
+const (
+	Apps    PruneVersionsJSONBodyResourceType = "apps"
+	Flows   PruneVersionsJSONBodyResourceType = "flows"
+	Scripts PruneVersionsJSONBodyResourceType = "scripts"
+)
+
 // AIConfig defines model for AIConfig.
 type AIConfig struct {
 	CodeCompletionModel *AIProviderModel             `json:"code_completion_model,omitempty"`
@@ -4320,6 +4327,13 @@ type QueuedJob struct {
 
 // QueuedJobJobKind defines model for QueuedJob.JobKind.
 type QueuedJobJobKind string
+
+// QuotaInfo defines model for QuotaInfo.
+type QuotaInfo struct {
+	Limit    int `json:"limit"`
+	Prunable int `json:"prunable"`
+	Used     int `json:"used"`
+}
 
 // RawScriptForDependencies defines model for RawScriptForDependencies.
 type RawScriptForDependencies struct {
@@ -9437,6 +9451,14 @@ type UpdateProtectionRuleJSONBody struct {
 	Rules ProtectionRules `json:"rules"`
 }
 
+// PruneVersionsJSONBody defines parameters for PruneVersions.
+type PruneVersionsJSONBody struct {
+	ResourceType PruneVersionsJSONBodyResourceType `json:"resource_type"`
+}
+
+// PruneVersionsJSONBodyResourceType defines parameters for PruneVersions.
+type PruneVersionsJSONBodyResourceType string
+
 // SetPublicAppRateLimitJSONBody defines parameters for SetPublicAppRateLimit.
 type SetPublicAppRateLimitJSONBody struct {
 	// PublicAppExecutionLimitPerMinute Rate limit for public app executions per minute per server. NULL or 0 to disable.
@@ -10232,6 +10254,9 @@ type CreateProtectionRuleJSONRequestBody CreateProtectionRuleJSONBody
 
 // UpdateProtectionRuleJSONRequestBody defines body for UpdateProtectionRule for application/json ContentType.
 type UpdateProtectionRuleJSONRequestBody UpdateProtectionRuleJSONBody
+
+// PruneVersionsJSONRequestBody defines body for PruneVersions for application/json ContentType.
+type PruneVersionsJSONRequestBody PruneVersionsJSONBody
 
 // SetPublicAppRateLimitJSONRequestBody defines body for SetPublicAppRateLimit for application/json ContentType.
 type SetPublicAppRateLimitJSONRequestBody SetPublicAppRateLimitJSONBody
@@ -14228,6 +14253,9 @@ type ClientInterface interface {
 
 	ChangeWorkspaceName(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetCloudQuotas request
+	GetCloudQuotas(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CompareWorkspaces request
 	CompareWorkspaces(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14449,6 +14477,11 @@ type ClientInterface interface {
 	UpdateProtectionRuleWithBody(ctx context.Context, workspace WorkspaceId, ruleName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateProtectionRule(ctx context.Context, workspace WorkspaceId, ruleName string, body UpdateProtectionRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PruneVersionsWithBody request with any body
+	PruneVersionsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PruneVersions(ctx context.Context, workspace WorkspaceId, body PruneVersionsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SetPublicAppRateLimitWithBody request with any body
 	SetPublicAppRateLimitWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -23643,6 +23676,18 @@ func (c *Client) ChangeWorkspaceName(ctx context.Context, workspace WorkspaceId,
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetCloudQuotas(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCloudQuotasRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CompareWorkspaces(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCompareWorkspacesRequest(c.Server, workspace, targetWorkspaceId)
 	if err != nil {
@@ -24641,6 +24686,30 @@ func (c *Client) UpdateProtectionRuleWithBody(ctx context.Context, workspace Wor
 
 func (c *Client) UpdateProtectionRule(ctx context.Context, workspace WorkspaceId, ruleName string, body UpdateProtectionRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateProtectionRuleRequest(c.Server, workspace, ruleName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PruneVersionsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPruneVersionsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PruneVersions(ctx context.Context, workspace WorkspaceId, body PruneVersionsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPruneVersionsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -59996,6 +60065,40 @@ func NewChangeWorkspaceNameRequestWithBody(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewGetCloudQuotasRequest generates requests for GetCloudQuotas
+func NewGetCloudQuotasRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/cloud_quotas", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCompareWorkspacesRequest generates requests for CompareWorkspaces
 func NewCompareWorkspacesRequest(server string, workspace WorkspaceId, targetWorkspaceId string) (*http.Request, error) {
 	var err error
@@ -62336,6 +62439,53 @@ func NewUpdateProtectionRuleRequestWithBody(server string, workspace WorkspaceId
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/protection_rules/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPruneVersionsRequest calls the generic PruneVersions builder with application/json body
+func NewPruneVersionsRequest(server string, workspace WorkspaceId, body PruneVersionsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPruneVersionsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewPruneVersionsRequestWithBody generates requests for PruneVersions with any type of body
+func NewPruneVersionsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/prune_versions", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -65674,6 +65824,9 @@ type ClientWithResponsesInterface interface {
 
 	ChangeWorkspaceNameWithResponse(ctx context.Context, workspace WorkspaceId, body ChangeWorkspaceNameJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeWorkspaceNameResponse, error)
 
+	// GetCloudQuotasWithResponse request
+	GetCloudQuotasWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCloudQuotasResponse, error)
+
 	// CompareWorkspacesWithResponse request
 	CompareWorkspacesWithResponse(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*CompareWorkspacesResponse, error)
 
@@ -65895,6 +66048,11 @@ type ClientWithResponsesInterface interface {
 	UpdateProtectionRuleWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, ruleName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProtectionRuleResponse, error)
 
 	UpdateProtectionRuleWithResponse(ctx context.Context, workspace WorkspaceId, ruleName string, body UpdateProtectionRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProtectionRuleResponse, error)
+
+	// PruneVersionsWithBodyWithResponse request with any body
+	PruneVersionsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PruneVersionsResponse, error)
+
+	PruneVersionsWithResponse(ctx context.Context, workspace WorkspaceId, body PruneVersionsJSONRequestBody, reqEditors ...RequestEditorFn) (*PruneVersionsResponse, error)
 
 	// SetPublicAppRateLimitWithBodyWithResponse request with any body
 	SetPublicAppRateLimitWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetPublicAppRateLimitResponse, error)
@@ -78433,6 +78591,34 @@ func (r ChangeWorkspaceNameResponse) StatusCode() int {
 	return 0
 }
 
+type GetCloudQuotasResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Apps      QuotaInfo `json:"apps"`
+		Flows     QuotaInfo `json:"flows"`
+		Resources QuotaInfo `json:"resources"`
+		Scripts   QuotaInfo `json:"scripts"`
+		Variables QuotaInfo `json:"variables"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCloudQuotasResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCloudQuotasResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CompareWorkspacesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -79651,6 +79837,30 @@ func (r UpdateProtectionRuleResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateProtectionRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PruneVersionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Pruned int `json:"pruned"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r PruneVersionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PruneVersionsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -86939,6 +87149,15 @@ func (c *ClientWithResponses) ChangeWorkspaceNameWithResponse(ctx context.Contex
 	return ParseChangeWorkspaceNameResponse(rsp)
 }
 
+// GetCloudQuotasWithResponse request returning *GetCloudQuotasResponse
+func (c *ClientWithResponses) GetCloudQuotasWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCloudQuotasResponse, error) {
+	rsp, err := c.GetCloudQuotas(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCloudQuotasResponse(rsp)
+}
+
 // CompareWorkspacesWithResponse request returning *CompareWorkspacesResponse
 func (c *ClientWithResponses) CompareWorkspacesWithResponse(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*CompareWorkspacesResponse, error) {
 	rsp, err := c.CompareWorkspaces(ctx, workspace, targetWorkspaceId, reqEditors...)
@@ -87663,6 +87882,23 @@ func (c *ClientWithResponses) UpdateProtectionRuleWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseUpdateProtectionRuleResponse(rsp)
+}
+
+// PruneVersionsWithBodyWithResponse request with arbitrary body returning *PruneVersionsResponse
+func (c *ClientWithResponses) PruneVersionsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PruneVersionsResponse, error) {
+	rsp, err := c.PruneVersionsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePruneVersionsResponse(rsp)
+}
+
+func (c *ClientWithResponses) PruneVersionsWithResponse(ctx context.Context, workspace WorkspaceId, body PruneVersionsJSONRequestBody, reqEditors ...RequestEditorFn) (*PruneVersionsResponse, error) {
+	rsp, err := c.PruneVersions(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePruneVersionsResponse(rsp)
 }
 
 // SetPublicAppRateLimitWithBodyWithResponse request with arbitrary body returning *SetPublicAppRateLimitResponse
@@ -100426,6 +100662,38 @@ func ParseChangeWorkspaceNameResponse(rsp *http.Response) (*ChangeWorkspaceNameR
 	return response, nil
 }
 
+// ParseGetCloudQuotasResponse parses an HTTP response from a GetCloudQuotasWithResponse call
+func ParseGetCloudQuotasResponse(rsp *http.Response) (*GetCloudQuotasResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCloudQuotasResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Apps      QuotaInfo `json:"apps"`
+			Flows     QuotaInfo `json:"flows"`
+			Resources QuotaInfo `json:"resources"`
+			Scripts   QuotaInfo `json:"scripts"`
+			Variables QuotaInfo `json:"variables"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCompareWorkspacesResponse parses an HTTP response from a CompareWorkspacesWithResponse call
 func ParseCompareWorkspacesResponse(rsp *http.Response) (*CompareWorkspacesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -101654,6 +101922,34 @@ func ParseUpdateProtectionRuleResponse(rsp *http.Response) (*UpdateProtectionRul
 	response := &UpdateProtectionRuleResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParsePruneVersionsResponse parses an HTTP response from a PruneVersionsWithResponse call
+func ParsePruneVersionsResponse(rsp *http.Response) (*PruneVersionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PruneVersionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Pruned int `json:"pruned"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
