@@ -867,6 +867,7 @@ const (
 const (
 	WorkspaceItemDiffKindApp          WorkspaceItemDiffKind = "app"
 	WorkspaceItemDiffKindFlow         WorkspaceItemDiffKind = "flow"
+	WorkspaceItemDiffKindRawApp       WorkspaceItemDiffKind = "raw_app"
 	WorkspaceItemDiffKindResource     WorkspaceItemDiffKind = "resource"
 	WorkspaceItemDiffKindResourceType WorkspaceItemDiffKind = "resource_type"
 	WorkspaceItemDiffKindScript       WorkspaceItemDiffKind = "script"
