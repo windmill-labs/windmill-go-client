@@ -1739,9 +1739,6 @@ type DynamicInputData_RunnableRef struct {
 
 // EditEmailTrigger defines model for EditEmailTrigger.
 type EditEmailTrigger struct {
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
@@ -1749,8 +1746,11 @@ type EditEmailTrigger struct {
 	LocalPart        *string     `json:"local_part,omitempty"`
 	Path             string      `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry               *Retry `json:"retry,omitempty"`
@@ -1794,9 +1794,6 @@ type EditHttpTrigger struct {
 	// Description Detailed description of what this trigger does
 	Description *string `json:"description"`
 
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -1816,8 +1813,11 @@ type EditHttpTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// RawString If true, passes the request body as a raw string instead of parsing as JSON
 	RawString   *bool            `json:"raw_string,omitempty"`
@@ -1862,9 +1862,6 @@ type EditKafkaTrigger struct {
 	// AutoOffsetReset Initial offset behavior when consumer group has no committed offset.
 	AutoOffsetReset *EditKafkaTriggerAutoOffsetReset `json:"auto_offset_reset,omitempty"`
 
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -1887,8 +1884,11 @@ type EditKafkaTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -1909,9 +1909,6 @@ type EditMqttTrigger struct {
 	ClientId      *string            `json:"client_id"`
 	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
 
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -1930,8 +1927,11 @@ type EditMqttTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -1950,9 +1950,6 @@ type EditNatsTrigger struct {
 	// ConsumerName JetStream consumer name (required when use_jetstream is true)
 	ConsumerName *string `json:"consumer_name"`
 
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -1968,8 +1965,11 @@ type EditNatsTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -1989,9 +1989,6 @@ type EditNatsTrigger struct {
 
 // EditPostgresTrigger defines model for EditPostgresTrigger.
 type EditPostgresTrigger struct {
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -2007,12 +2004,15 @@ type EditPostgresTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
 	// PostgresResourcePath Path to the PostgreSQL resource containing connection configuration
 	PostgresResourcePath string `json:"postgres_resource_path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool            `json:"preserve_email,omitempty"`
-	Publication   *PublicationData `json:"publication,omitempty"`
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool            `json:"preserve_permissioned_as,omitempty"`
+	Publication            *PublicationData `json:"publication,omitempty"`
 
 	// PublicationName Name of the PostgreSQL publication to subscribe to for change data capture
 	PublicationName string `json:"publication_name"`
@@ -2061,9 +2061,6 @@ type EditSchedule struct {
 	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
 	DynamicSkip *string `json:"dynamic_skip"`
 
-	// Email Email of the user who the scheduled jobs run as. Used during deployment to preserve the original schedule owner.
-	Email *string `json:"email,omitempty"`
-
 	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
 
@@ -2097,8 +2094,11 @@ type EditSchedule struct {
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
 	PausedUntil *time.Time `json:"paused_until"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this schedule runs as (e.g., 'u/admin' or 'g/mygroup'). Only admins and wm_deployers can set this via preserve_permissioned_as.
+	PermissionedAs *string `json:"permissioned_as"`
+
+	// PreservePermissionedAs If true and user is admin/wm_deployers, preserve the provided permissioned_as instead of using the deploying user's identity
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -2126,9 +2126,6 @@ type EditSqsTrigger struct {
 	// AwsResourcePath Path to the AWS resource containing credentials or OIDC configuration
 	AwsResourcePath string `json:"aws_resource_path"`
 
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -2147,8 +2144,11 @@ type EditSqsTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// QueueUrl The full URL of the AWS SQS queue to poll for messages
 	QueueUrl string `json:"queue_url"`
@@ -2206,9 +2206,6 @@ type EditWebsocketTrigger struct {
 	// CanReturnMessage If true, the script can return a message to send back through the WebSocket
 	CanReturnMessage bool `json:"can_return_message"`
 
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -2230,8 +2227,11 @@ type EditWebsocketTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -2783,9 +2783,6 @@ type GcpTriggerData struct {
 	// DeliveryType Delivery mode for messages. 'push' for HTTP push delivery where messages are sent to a webhook endpoint, 'pull' for polling where the trigger actively fetches messages.
 	DeliveryType *DeliveryType `json:"delivery_type,omitempty"`
 
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -2804,8 +2801,11 @@ type GcpTriggerData struct {
 	// Path The unique path identifier for this trigger.
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -3431,9 +3431,6 @@ type NatsTrigger = TriggerExtraProperty
 
 // NewEmailTrigger defines model for NewEmailTrigger.
 type NewEmailTrigger struct {
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
@@ -3444,8 +3441,11 @@ type NewEmailTrigger struct {
 	Mode *TriggerMode `json:"mode,omitempty"`
 	Path string       `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry               *Retry `json:"retry,omitempty"`
@@ -3462,9 +3462,6 @@ type NewHttpTrigger struct {
 
 	// Description Detailed description of what this trigger does
 	Description *string `json:"description"`
-
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -3488,8 +3485,11 @@ type NewHttpTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// RawString If true, passes the request body as a raw string instead of parsing as JSON
 	RawString   *bool            `json:"raw_string,omitempty"`
@@ -3534,9 +3534,6 @@ type NewKafkaTrigger struct {
 	// AutoOffsetReset Initial offset behavior when consumer group has no committed offset.
 	AutoOffsetReset *NewKafkaTriggerAutoOffsetReset `json:"auto_offset_reset,omitempty"`
 
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -3562,8 +3559,11 @@ type NewKafkaTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -3584,9 +3584,6 @@ type NewMqttTrigger struct {
 	ClientId      *string            `json:"client_id"`
 	ClientVersion *MqttClientVersion `json:"client_version,omitempty"`
 
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -3605,8 +3602,11 @@ type NewMqttTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -3624,9 +3624,6 @@ type NewMqttTrigger struct {
 type NewNatsTrigger struct {
 	// ConsumerName JetStream consumer name (required when use_jetstream is true)
 	ConsumerName *string `json:"consumer_name"`
-
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
 
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
@@ -3646,8 +3643,11 @@ type NewNatsTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -3667,9 +3667,6 @@ type NewNatsTrigger struct {
 
 // NewPostgresTrigger defines model for NewPostgresTrigger.
 type NewPostgresTrigger struct {
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -3685,12 +3682,15 @@ type NewPostgresTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
 	// PostgresResourcePath Path to the PostgreSQL resource containing connection configuration
 	PostgresResourcePath string `json:"postgres_resource_path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool            `json:"preserve_email,omitempty"`
-	Publication   *PublicationData `json:"publication,omitempty"`
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool            `json:"preserve_permissioned_as,omitempty"`
+	Publication            *PublicationData `json:"publication,omitempty"`
 
 	// PublicationName Name of the PostgreSQL publication to subscribe to for change data capture
 	PublicationName *string `json:"publication_name,omitempty"`
@@ -3718,9 +3718,6 @@ type NewSchedule struct {
 
 	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
 	DynamicSkip *string `json:"dynamic_skip"`
-
-	// Email Email of the user who the scheduled jobs run as. Used during deployment to preserve the original schedule owner.
-	Email *string `json:"email,omitempty"`
 
 	// Enabled Whether the schedule is currently active and will trigger jobs
 	Enabled *bool `json:"enabled,omitempty"`
@@ -3764,8 +3761,11 @@ type NewSchedule struct {
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
 	PausedUntil *time.Time `json:"paused_until"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this schedule runs as. Used during deployment to preserve the original schedule owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -3918,9 +3918,6 @@ type NewSqsTrigger struct {
 	// AwsResourcePath Path to the AWS resource containing credentials or OIDC configuration
 	AwsResourcePath string `json:"aws_resource_path"`
 
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -3939,8 +3936,11 @@ type NewSqsTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// QueueUrl The full URL of the AWS SQS queue to poll for messages
 	QueueUrl string `json:"queue_url"`
@@ -3976,9 +3976,6 @@ type NewWebsocketTrigger struct {
 	// CanReturnMessage If true, the script can return a message to send back through the WebSocket
 	CanReturnMessage bool `json:"can_return_message"`
 
-	// Email Email of the user who triggered jobs run as. Used during deployment to preserve the original trigger owner.
-	Email *string `json:"email,omitempty"`
-
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
@@ -4003,8 +4000,11 @@ type NewWebsocketTrigger struct {
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
 
-	// PreserveEmail When true and the caller is a member of the 'wm_deployers' group, preserves the original email value instead of overwriting it.
-	PreserveEmail *bool `json:"preserve_email,omitempty"`
+	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
+	PermissionedAs *string `json:"permissioned_as,omitempty"`
+
+	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
+	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -4543,6 +4543,9 @@ type Schedule struct {
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
 	PausedUntil *time.Time `json:"paused_until"`
 
+	// PermissionedAs The user or group this schedule runs as (e.g., 'u/admin' or 'g/mygroup')
+	PermissionedAs string `json:"permissioned_as"`
+
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
@@ -4640,6 +4643,9 @@ type ScheduleWJobs struct {
 
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
 	PausedUntil *time.Time `json:"paused_until"`
+
+	// PermissionedAs The user or group this schedule runs as (e.g., 'u/admin' or 'g/mygroup')
+	PermissionedAs string `json:"permissioned_as"`
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
@@ -4878,9 +4884,6 @@ type TriggerExtraProperty struct {
 	// EditedBy Username of the last person who edited this trigger
 	EditedBy string `json:"edited_by"`
 
-	// Email Email of the user who owns this trigger, used for permissioned_as
-	Email string `json:"email"`
-
 	// ExtraPerms Additional permissions for this trigger
 	ExtraPerms map[string]bool `json:"extra_perms"`
 
@@ -4892,6 +4895,9 @@ type TriggerExtraProperty struct {
 
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
+
+	// PermissionedAs The user or group this trigger runs as (permissioned_as)
+	PermissionedAs string `json:"permissioned_as"`
 
 	// ScriptPath Path to the script or flow to execute when triggered
 	ScriptPath string `json:"script_path"`
