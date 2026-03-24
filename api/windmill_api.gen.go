@@ -2546,6 +2546,27 @@ type FlowConversationMessage struct {
 // FlowConversationMessageMessageType Type of the message
 type FlowConversationMessageMessageType string
 
+// FlowGroup A semantic group of flow modules for organizational purposes. Does not affect execution — modules remain in their original position in the flow. Groups provide naming and collapsibility in the editor. Members are computed dynamically from all nodes on paths between start_id and end_id.
+type FlowGroup struct {
+	// Autocollapse If true, this group is collapsed by default in the flow editor. UI hint only.
+	Autocollapse *bool `json:"autocollapse,omitempty"`
+
+	// Color Color for the group in the flow editor
+	Color *string `json:"color,omitempty"`
+
+	// EndId ID of the last flow module in this group (topological exit point)
+	EndId string `json:"end_id"`
+
+	// Note Markdown note shown below the group header
+	Note *string `json:"note,omitempty"`
+
+	// StartId ID of the first flow module in this group (topological entry point)
+	StartId string `json:"start_id"`
+
+	// Summary Display name for this group
+	Summary *string `json:"summary,omitempty"`
+}
+
 // FlowMetadata defines model for FlowMetadata.
 type FlowMetadata struct {
 	Archived            bool       `json:"archived"`
@@ -2720,6 +2741,9 @@ type FlowValue struct {
 
 	// FlowEnv Environment variables available to all steps. Values can be strings, JSON values, or special references: '$var:path' (workspace variable) or '$res:path' (resource).
 	FlowEnv *map[string]interface{} `json:"flow_env,omitempty"`
+
+	// Groups Semantic groups of modules for organizational purposes
+	Groups *[]FlowGroup `json:"groups,omitempty"`
 
 	// MaxTotalDebouncesAmount Maximum number of times a job can be debounced
 	MaxTotalDebouncesAmount *int `json:"max_total_debounces_amount,omitempty"`
@@ -2997,6 +3021,19 @@ type Input struct {
 // InputTransform Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
 type InputTransform struct {
 	union json.RawMessage
+}
+
+// InstanceAIProviderSummary defines model for InstanceAIProviderSummary.
+type InstanceAIProviderSummary struct {
+	Models   []string   `json:"models"`
+	Provider AIProvider `json:"provider"`
+}
+
+// InstanceAISummary defines model for InstanceAISummary.
+type InstanceAISummary struct {
+	CodeCompletionModel *AIProviderModel            `json:"code_completion_model,omitempty"`
+	DefaultModel        *AIProviderModel            `json:"default_model,omitempty"`
+	Providers           []InstanceAIProviderSummary `json:"providers"`
 }
 
 // InstanceConfig Unified instance configuration combining global settings and worker group configs
@@ -5668,6 +5705,9 @@ type SchemasFlowValue struct {
 
 	// FlowEnv Environment variables available to all steps. Values can be strings, JSON values, or special references: '$var:path' (workspace variable) or '$res:path' (resource).
 	FlowEnv *map[string]interface{} `json:"flow_env,omitempty"`
+
+	// Groups Semantic groups of modules for organizational purposes
+	Groups *[]FlowGroup `json:"groups,omitempty"`
 
 	// MaxTotalDebouncesAmount Maximum number of times a job can be debounced
 	MaxTotalDebouncesAmount *int `json:"max_total_debounces_amount,omitempty"`
@@ -8617,6 +8657,24 @@ type GetCompletedJobResultMaybeParams struct {
 	GetStarted *GetStarted `form:"get_started,omitempty" json:"get_started,omitempty"`
 }
 
+// GetApprovalInfoParams defines parameters for GetApprovalInfo.
+type GetApprovalInfoParams struct {
+	// Token approval token for unauthenticated access
+	Token *string `form:"token,omitempty" json:"token,omitempty"`
+}
+
+// ResumeSuspendedJSONBody defines parameters for ResumeSuspended.
+type ResumeSuspendedJSONBody struct {
+	// ApprovalToken approval token for unauthenticated access
+	ApprovalToken *string `json:"approval_token,omitempty"`
+
+	// Approved whether to approve (true) or cancel (false) the job
+	Approved *bool `json:"approved,omitempty"`
+
+	// Payload payload to send to the resumed job
+	Payload *interface{} `json:"payload,omitempty"`
+}
+
 // GetJobParams defines parameters for GetJob.
 type GetJobParams struct {
 	NoLogs *bool `form:"no_logs,omitempty" json:"no_logs,omitempty"`
@@ -10001,6 +10059,9 @@ type RunCodeWorkflowTaskJSONRequestBody = WorkflowTask
 
 // CancelSuspendedJobPostJSONRequestBody defines body for CancelSuspendedJobPost for application/json ContentType.
 type CancelSuspendedJobPostJSONRequestBody = CancelSuspendedJobPostJSONBody
+
+// ResumeSuspendedJSONRequestBody defines body for ResumeSuspended for application/json ContentType.
+type ResumeSuspendedJSONRequestBody ResumeSuspendedJSONBody
 
 // CancelQueuedJobJSONRequestBody defines body for CancelQueuedJob for application/json ContentType.
 type CancelQueuedJobJSONRequestBody CancelQueuedJobJSONBody
@@ -13554,6 +13615,14 @@ type ClientInterface interface {
 	// GetCompletedJobTiming request
 	GetCompletedJobTiming(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetApprovalInfo request
+	GetApprovalInfo(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, params *GetApprovalInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResumeSuspendedWithBody request with any body
+	ResumeSuspendedWithBody(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ResumeSuspended(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, body ResumeSuspendedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetJob request
 	GetJob(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14474,6 +14543,9 @@ type ClientInterface interface {
 
 	// GetCopilotInfo request
 	GetCopilotInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCopilotSettingsState request
+	GetCopilotSettingsState(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetDependencyMap request
 	GetDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20412,6 +20484,42 @@ func (c *Client) GetCompletedJobTiming(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetApprovalInfo(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, params *GetApprovalInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetApprovalInfoRequest(c.Server, workspace, jobId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResumeSuspendedWithBody(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResumeSuspendedRequestWithBody(c.Server, workspace, jobId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResumeSuspended(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, body ResumeSuspendedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResumeSuspendedRequest(c.Server, workspace, jobId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetJob(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetJobRequest(c.Server, workspace, id, params)
 	if err != nil {
@@ -24482,6 +24590,18 @@ func (c *Client) GetWorkspaceAsSuperAdmin(ctx context.Context, workspace Workspa
 
 func (c *Client) GetCopilotInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCopilotInfoRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCopilotSettingsState(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCopilotSettingsStateRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -48868,6 +48988,123 @@ func NewGetCompletedJobTimingRequest(server string, workspace WorkspaceId, id Jo
 	return req, nil
 }
 
+// NewGetApprovalInfoRequest generates requests for GetApprovalInfo
+func NewGetApprovalInfoRequest(server string, workspace WorkspaceId, jobId openapi_types.UUID, params *GetApprovalInfoParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "job_id", runtime.ParamLocationPath, jobId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/flow/approval_info/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Token != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "token", runtime.ParamLocationQuery, *params.Token); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewResumeSuspendedRequest calls the generic ResumeSuspended builder with application/json body
+func NewResumeSuspendedRequest(server string, workspace WorkspaceId, jobId openapi_types.UUID, body ResumeSuspendedJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewResumeSuspendedRequestWithBody(server, workspace, jobId, "application/json", bodyReader)
+}
+
+// NewResumeSuspendedRequestWithBody generates requests for ResumeSuspended with any type of body
+func NewResumeSuspendedRequestWithBody(server string, workspace WorkspaceId, jobId openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "job_id", runtime.ParamLocationPath, jobId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/flow/resume_suspended/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetJobRequest generates requests for GetJob
 func NewGetJobRequest(server string, workspace WorkspaceId, id JobId, params *GetJobParams) (*http.Request, error) {
 	var err error
@@ -61815,6 +62052,40 @@ func NewGetCopilotInfoRequest(server string, workspace WorkspaceId) (*http.Reque
 	return req, nil
 }
 
+// NewGetCopilotSettingsStateRequest generates requests for GetCopilotSettingsState
+func NewGetCopilotSettingsStateRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_copilot_settings_state", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetDependencyMapRequest generates requests for GetDependencyMap
 func NewGetDependencyMapRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -65277,6 +65548,14 @@ type ClientWithResponsesInterface interface {
 	// GetCompletedJobTimingWithResponse request
 	GetCompletedJobTimingWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobTimingResponse, error)
 
+	// GetApprovalInfoWithResponse request
+	GetApprovalInfoWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, params *GetApprovalInfoParams, reqEditors ...RequestEditorFn) (*GetApprovalInfoResponse, error)
+
+	// ResumeSuspendedWithBodyWithResponse request with any body
+	ResumeSuspendedWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedResponse, error)
+
+	ResumeSuspendedWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, body ResumeSuspendedJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedResponse, error)
+
 	// GetJobWithResponse request
 	GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*GetJobResponse, error)
 
@@ -66197,6 +66476,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetCopilotInfoWithResponse request
 	GetCopilotInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCopilotInfoResponse, error)
+
+	// GetCopilotSettingsStateWithResponse request
+	GetCopilotSettingsStateWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCopilotSettingsStateResponse, error)
 
 	// GetDependencyMapWithResponse request
 	GetDependencyMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDependencyMapResponse, error)
@@ -74335,6 +74617,75 @@ func (r GetCompletedJobTimingResponse) StatusCode() int {
 	return 0
 }
 
+type GetApprovalInfoResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		ApprovalConditions *struct {
+			SelfApprovalDisabled bool     `json:"self_approval_disabled"`
+			UserAuthRequired     bool     `json:"user_auth_required"`
+			UserGroupsRequired   []string `json:"user_groups_required"`
+		} `json:"approval_conditions,omitempty"`
+		Approvers []struct {
+			Approver string `json:"approver"`
+			ResumeId int    `json:"resume_id"`
+		} `json:"approvers"`
+
+		// CanApprove whether the current user/token holder can approve
+		CanApprove bool `json:"can_approve"`
+
+		// Description description of the approval step
+		Description *interface{}       `json:"description,omitempty"`
+		FlowId      openapi_types.UUID `json:"flow_id"`
+
+		// FormSchema form schema for the approval step
+		FormSchema *interface{} `json:"form_schema,omitempty"`
+
+		// HideCancel whether to hide the cancel button in the UI
+		HideCancel *bool `json:"hide_cancel,omitempty"`
+
+		// UserAuthRequired whether user authentication is required to approve
+		UserAuthRequired bool `json:"user_auth_required"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetApprovalInfoResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetApprovalInfoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ResumeSuspendedResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ResumeSuspendedResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResumeSuspendedResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetJobResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -79203,6 +79554,12 @@ func (r EditAutoInviteResponse) StatusCode() int {
 type EditCopilotConfigResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *struct {
+		EffectiveAiConfig    AIConfig           `json:"effective_ai_config"`
+		HasInstanceAiConfig  bool               `json:"has_instance_ai_config"`
+		InstanceAiSummary    *InstanceAISummary `json:"instance_ai_summary,omitempty"`
+		UsesInstanceAiConfig bool               `json:"uses_instance_ai_config"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -79604,6 +79961,32 @@ func (r GetCopilotInfoResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetCopilotInfoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCopilotSettingsStateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		HasInstanceAiConfig  bool               `json:"has_instance_ai_config"`
+		InstanceAiSummary    *InstanceAISummary `json:"instance_ai_summary,omitempty"`
+		UsesInstanceAiConfig bool               `json:"uses_instance_ai_config"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCopilotSettingsStateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCopilotSettingsStateResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -84988,6 +85371,32 @@ func (c *ClientWithResponses) GetCompletedJobTimingWithResponse(ctx context.Cont
 	return ParseGetCompletedJobTimingResponse(rsp)
 }
 
+// GetApprovalInfoWithResponse request returning *GetApprovalInfoResponse
+func (c *ClientWithResponses) GetApprovalInfoWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, params *GetApprovalInfoParams, reqEditors ...RequestEditorFn) (*GetApprovalInfoResponse, error) {
+	rsp, err := c.GetApprovalInfo(ctx, workspace, jobId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetApprovalInfoResponse(rsp)
+}
+
+// ResumeSuspendedWithBodyWithResponse request with arbitrary body returning *ResumeSuspendedResponse
+func (c *ClientWithResponses) ResumeSuspendedWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedResponse, error) {
+	rsp, err := c.ResumeSuspendedWithBody(ctx, workspace, jobId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResumeSuspendedResponse(rsp)
+}
+
+func (c *ClientWithResponses) ResumeSuspendedWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, body ResumeSuspendedJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedResponse, error) {
+	rsp, err := c.ResumeSuspended(ctx, workspace, jobId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResumeSuspendedResponse(rsp)
+}
+
 // GetJobWithResponse request returning *GetJobResponse
 func (c *ClientWithResponses) GetJobWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetJobParams, reqEditors ...RequestEditorFn) (*GetJobResponse, error) {
 	rsp, err := c.GetJob(ctx, workspace, id, params, reqEditors...)
@@ -87947,6 +88356,15 @@ func (c *ClientWithResponses) GetCopilotInfoWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseGetCopilotInfoResponse(rsp)
+}
+
+// GetCopilotSettingsStateWithResponse request returning *GetCopilotSettingsStateResponse
+func (c *ClientWithResponses) GetCopilotSettingsStateWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCopilotSettingsStateResponse, error) {
+	rsp, err := c.GetCopilotSettingsState(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCopilotSettingsStateResponse(rsp)
 }
 
 // GetDependencyMapWithResponse request returning *GetDependencyMapResponse
@@ -96555,6 +96973,74 @@ func ParseGetCompletedJobTimingResponse(rsp *http.Response) (*GetCompletedJobTim
 	return response, nil
 }
 
+// ParseGetApprovalInfoResponse parses an HTTP response from a GetApprovalInfoWithResponse call
+func ParseGetApprovalInfoResponse(rsp *http.Response) (*GetApprovalInfoResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetApprovalInfoResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			ApprovalConditions *struct {
+				SelfApprovalDisabled bool     `json:"self_approval_disabled"`
+				UserAuthRequired     bool     `json:"user_auth_required"`
+				UserGroupsRequired   []string `json:"user_groups_required"`
+			} `json:"approval_conditions,omitempty"`
+			Approvers []struct {
+				Approver string `json:"approver"`
+				ResumeId int    `json:"resume_id"`
+			} `json:"approvers"`
+
+			// CanApprove whether the current user/token holder can approve
+			CanApprove bool `json:"can_approve"`
+
+			// Description description of the approval step
+			Description *interface{}       `json:"description,omitempty"`
+			FlowId      openapi_types.UUID `json:"flow_id"`
+
+			// FormSchema form schema for the approval step
+			FormSchema *interface{} `json:"form_schema,omitempty"`
+
+			// HideCancel whether to hide the cancel button in the UI
+			HideCancel *bool `json:"hide_cancel,omitempty"`
+
+			// UserAuthRequired whether user authentication is required to approve
+			UserAuthRequired bool `json:"user_auth_required"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseResumeSuspendedResponse parses an HTTP response from a ResumeSuspendedWithResponse call
+func ParseResumeSuspendedResponse(rsp *http.Response) (*ResumeSuspendedResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResumeSuspendedResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetJobResponse parses an HTTP response from a GetJobWithResponse call
 func ParseGetJobResponse(rsp *http.Response) (*GetJobResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -101385,6 +101871,21 @@ func ParseEditCopilotConfigResponse(rsp *http.Response) (*EditCopilotConfigRespo
 		HTTPResponse: rsp,
 	}
 
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			EffectiveAiConfig    AIConfig           `json:"effective_ai_config"`
+			HasInstanceAiConfig  bool               `json:"has_instance_ai_config"`
+			InstanceAiSummary    *InstanceAISummary `json:"instance_ai_summary,omitempty"`
+			UsesInstanceAiConfig bool               `json:"uses_instance_ai_config"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
 	return response, nil
 }
 
@@ -101758,6 +102259,36 @@ func ParseGetCopilotInfoResponse(rsp *http.Response) (*GetCopilotInfoResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest AIConfig
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCopilotSettingsStateResponse parses an HTTP response from a GetCopilotSettingsStateWithResponse call
+func ParseGetCopilotSettingsStateResponse(rsp *http.Response) (*GetCopilotSettingsStateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCopilotSettingsStateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			HasInstanceAiConfig  bool               `json:"has_instance_ai_config"`
+			InstanceAiSummary    *InstanceAISummary `json:"instance_ai_summary,omitempty"`
+			UsesInstanceAiConfig bool               `json:"uses_instance_ai_config"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
