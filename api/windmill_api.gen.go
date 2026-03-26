@@ -5360,10 +5360,10 @@ type SchemasAiAgent struct {
 		// - 1.0+ = more creative/random
 		Temperature *SchemasInputTransform `json:"temperature,omitempty"`
 
-		// UserImages Array of image references for vision-capable models.
+		// UserAttachments Array of file references (images or PDFs) for the AI agent.
 		// Format: Array<{ bucket: string, key: string }> - S3 object references
-		// Example: [{ bucket: 'my-bucket', key: 'images/photo.jpg' }]
-		UserImages *SchemasInputTransform `json:"user_images,omitempty"`
+		// Example: [{ bucket: 'my-bucket', key: 'documents/report.pdf' }]
+		UserAttachments *SchemasInputTransform `json:"user_attachments,omitempty"`
 
 		// UserMessage The user's prompt/message to the AI agent. Supports variable interpolation with flow.input syntax.
 		UserMessage SchemasInputTransform `json:"user_message"`
@@ -14572,6 +14572,9 @@ type ClientInterface interface {
 
 	// GetDeployTo request
 	GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetImports request
+	GetImports(ctx context.Context, workspace WorkspaceId, importerPath string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSecondaryStorageNames request
 	GetSecondaryStorageNames(ctx context.Context, workspace WorkspaceId, params *GetSecondaryStorageNamesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -24701,6 +24704,18 @@ func (c *Client) GetDependentsAmounts(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetDeployToRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetImports(ctx context.Context, workspace WorkspaceId, importerPath string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetImportsRequest(c.Server, workspace, importerPath)
 	if err != nil {
 		return nil, err
 	}
@@ -62370,6 +62385,47 @@ func NewGetDeployToRequest(server string, workspace WorkspaceId) (*http.Request,
 	return req, nil
 }
 
+// NewGetImportsRequest generates requests for GetImports
+func NewGetImportsRequest(server string, workspace WorkspaceId, importerPath string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "importer_path", runtime.ParamLocationPath, importerPath)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_imports/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetSecondaryStorageNamesRequest generates requests for GetSecondaryStorageNames
 func NewGetSecondaryStorageNamesRequest(server string, workspace WorkspaceId, params *GetSecondaryStorageNamesParams) (*http.Request, error) {
 	var err error
@@ -66661,6 +66717,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetDeployToWithResponse request
 	GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error)
+
+	// GetImportsWithResponse request
+	GetImportsWithResponse(ctx context.Context, workspace WorkspaceId, importerPath string, reqEditors ...RequestEditorFn) (*GetImportsResponse, error)
 
 	// GetSecondaryStorageNamesWithResponse request
 	GetSecondaryStorageNamesWithResponse(ctx context.Context, workspace WorkspaceId, params *GetSecondaryStorageNamesParams, reqEditors ...RequestEditorFn) (*GetSecondaryStorageNamesResponse, error)
@@ -80307,6 +80366,28 @@ func (r GetDeployToResponse) StatusCode() int {
 	return 0
 }
 
+type GetImportsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetImportsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetImportsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSecondaryStorageNamesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -88679,6 +88760,15 @@ func (c *ClientWithResponses) GetDeployToWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseGetDeployToResponse(rsp)
+}
+
+// GetImportsWithResponse request returning *GetImportsResponse
+func (c *ClientWithResponses) GetImportsWithResponse(ctx context.Context, workspace WorkspaceId, importerPath string, reqEditors ...RequestEditorFn) (*GetImportsResponse, error) {
+	rsp, err := c.GetImports(ctx, workspace, importerPath, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetImportsResponse(rsp)
 }
 
 // GetSecondaryStorageNamesWithResponse request returning *GetSecondaryStorageNamesResponse
@@ -102734,6 +102824,32 @@ func ParseGetDeployToResponse(rsp *http.Response) (*GetDeployToResponse, error) 
 		var dest struct {
 			DeployTo *string `json:"deploy_to,omitempty"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetImportsResponse parses an HTTP response from a GetImportsWithResponse call
+func ParseGetImportsResponse(rsp *http.Response) (*GetImportsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetImportsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
