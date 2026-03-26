@@ -2911,6 +2911,7 @@ type GlobalSetting struct {
 type GlobalUserInfo struct {
 	Company       *string                  `json:"company,omitempty"`
 	Devops        *bool                    `json:"devops,omitempty"`
+	Disabled      bool                     `json:"disabled"`
 	Email         string                   `json:"email"`
 	FirstTimeUser bool                     `json:"first_time_user"`
 	LoginType     GlobalUserInfoLoginType  `json:"login_type"`
@@ -6562,6 +6563,7 @@ type UpdateTutorialProgressJSONBody struct {
 
 // GlobalUserUpdateJSONBody defines parameters for GlobalUserUpdate.
 type GlobalUserUpdateJSONBody struct {
+	Disabled     *bool   `json:"disabled,omitempty"`
 	IsDevops     *bool   `json:"is_devops,omitempty"`
 	IsSuperAdmin *bool   `json:"is_super_admin,omitempty"`
 	Name         *string `json:"name,omitempty"`
@@ -8708,6 +8710,7 @@ type GetJobUpdatesSSEParams struct {
 	GetProgress  *bool `form:"get_progress,omitempty" json:"get_progress,omitempty"`
 	OnlyResult   *bool `form:"only_result,omitempty" json:"only_result,omitempty"`
 	NoLogs       *bool `form:"no_logs,omitempty" json:"no_logs,omitempty"`
+	Fast         *bool `form:"fast,omitempty" json:"fast,omitempty"`
 }
 
 // CancelQueuedJobJSONBody defines parameters for CancelQueuedJob.
@@ -8895,6 +8898,9 @@ type CreateAccountJSONBody struct {
 
 	// RefreshToken OAuth refresh token. For authorization_code flow, this contains the actual refresh token. For client_credentials flow, this must be set to an empty string.
 	RefreshToken string `json:"refresh_token"`
+
+	// Scopes OAuth scopes to use for token refresh. Overrides instance-level scopes.
+	Scopes *[]string `json:"scopes,omitempty"`
 }
 
 // RefreshTokenJSONBody defines parameters for RefreshToken.
@@ -12670,6 +12676,9 @@ type ClientInterface interface {
 	// SearchLogsIndex request
 	SearchLogsIndex(ctx context.Context, params *SearchLogsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetIndexDiskStorageSizes request
+	GetIndexDiskStorageSizes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SearchJobsIndex request
 	SearchJobsIndex(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14151,6 +14160,9 @@ type ClientInterface interface {
 	// ListScripts request
 	ListScripts(ctx context.Context, workspace WorkspaceId, params *ListScriptsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListDedicatedWithDeps request
+	ListDedicatedWithDeps(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListScriptPaths request
 	ListScriptPaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14569,6 +14581,9 @@ type ClientInterface interface {
 
 	// GetWorkspaceName request
 	GetWorkspaceName(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetGitSyncEnabled request
+	GetGitSyncEnabled(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// InviteUserWithBody request with any body
 	InviteUserWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16298,6 +16313,18 @@ func (c *Client) CountSearchLogsIndex(ctx context.Context, params *CountSearchLo
 
 func (c *Client) SearchLogsIndex(ctx context.Context, params *SearchLogsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSearchLogsIndexRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetIndexDiskStorageSizes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetIndexDiskStorageSizesRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -22836,6 +22863,18 @@ func (c *Client) ListScripts(ctx context.Context, workspace WorkspaceId, params 
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListDedicatedWithDeps(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDedicatedWithDepsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListScriptPaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListScriptPathsRequest(c.Server, workspace)
 	if err != nil {
@@ -24698,6 +24737,18 @@ func (c *Client) GetSettings(ctx context.Context, workspace WorkspaceId, reqEdit
 
 func (c *Client) GetWorkspaceName(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetWorkspaceNameRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGitSyncEnabled(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGitSyncEnabledRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -29386,6 +29437,33 @@ func NewSearchLogsIndexRequest(server string, params *SearchLogsIndexParams) (*h
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetIndexDiskStorageSizesRequest generates requests for GetIndexDiskStorageSizes
+func NewGetIndexDiskStorageSizesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/srch/index/storage/disk")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -49788,6 +49866,22 @@ func NewGetJobUpdatesSSERequest(server string, workspace WorkspaceId, id JobId, 
 
 		}
 
+		if params.Fast != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "fast", runtime.ParamLocationQuery, *params.Fast); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -57233,6 +57327,40 @@ func NewListScriptsRequest(server string, workspace WorkspaceId, params *ListScr
 	return req, nil
 }
 
+// NewListDedicatedWithDepsRequest generates requests for ListDedicatedWithDeps
+func NewListDedicatedWithDepsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/list_dedicated_with_deps", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListScriptPathsRequest generates requests for ListScriptPaths
 func NewListScriptPathsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -62366,6 +62494,40 @@ func NewGetWorkspaceNameRequest(server string, workspace WorkspaceId) (*http.Req
 	return req, nil
 }
 
+// NewGetGitSyncEnabledRequest generates requests for GetGitSyncEnabled
+func NewGetGitSyncEnabledRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/git_sync_enabled", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewInviteUserRequest calls the generic InviteUser builder with application/json body
 func NewInviteUserRequest(server string, workspace WorkspaceId, body InviteUserJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -64603,6 +64765,9 @@ type ClientWithResponsesInterface interface {
 	// SearchLogsIndexWithResponse request
 	SearchLogsIndexWithResponse(ctx context.Context, params *SearchLogsIndexParams, reqEditors ...RequestEditorFn) (*SearchLogsIndexResponse, error)
 
+	// GetIndexDiskStorageSizesWithResponse request
+	GetIndexDiskStorageSizesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetIndexDiskStorageSizesResponse, error)
+
 	// SearchJobsIndexWithResponse request
 	SearchJobsIndexWithResponse(ctx context.Context, workspace WorkspaceId, params *SearchJobsIndexParams, reqEditors ...RequestEditorFn) (*SearchJobsIndexResponse, error)
 
@@ -66084,6 +66249,9 @@ type ClientWithResponsesInterface interface {
 	// ListScriptsWithResponse request
 	ListScriptsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListScriptsParams, reqEditors ...RequestEditorFn) (*ListScriptsResponse, error)
 
+	// ListDedicatedWithDepsWithResponse request
+	ListDedicatedWithDepsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDedicatedWithDepsResponse, error)
+
 	// ListScriptPathsWithResponse request
 	ListScriptPathsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListScriptPathsResponse, error)
 
@@ -66502,6 +66670,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetWorkspaceNameWithResponse request
 	GetWorkspaceNameWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceNameResponse, error)
+
+	// GetGitSyncEnabledWithResponse request
+	GetGitSyncEnabledWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetGitSyncEnabledResponse, error)
 
 	// InviteUserWithBodyWithResponse request with any body
 	InviteUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*InviteUserResponse, error)
@@ -68991,6 +69162,31 @@ func (r SearchLogsIndexResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SearchLogsIndexResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetIndexDiskStorageSizesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		JobIndexDiskSizeBytes *int `json:"job_index_disk_size_bytes"`
+		LogIndexDiskSizeBytes *int `json:"log_index_disk_size_bytes"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetIndexDiskStorageSizesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetIndexDiskStorageSizesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -77788,6 +77984,33 @@ func (r ListScriptsResponse) StatusCode() int {
 	return 0
 }
 
+type ListDedicatedWithDepsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Language          ListDedicatedWithDeps200Language `json:"language"`
+		Path              string                           `json:"path"`
+		WorkspaceDepNames []string                         `json:"workspace_dep_names"`
+	}
+}
+type ListDedicatedWithDeps200Language string
+
+// Status returns HTTPResponse.Status
+func (r ListDedicatedWithDepsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListDedicatedWithDepsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListScriptPathsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -79425,6 +79648,7 @@ type GetWorkspaceDefaultAppResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		DefaultAppPath *string `json:"default_app_path,omitempty"`
+		DefaultAppRaw  *bool   `json:"default_app_raw,omitempty"`
 	}
 }
 
@@ -80180,6 +80404,34 @@ func (r GetWorkspaceNameResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetWorkspaceNameResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGitSyncEnabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Enabled   *bool   `json:"enabled,omitempty"`
+		MaxRepos  *int    `json:"max_repos"`
+		MaxUsers  *int    `json:"max_users"`
+		Reason    *string `json:"reason"`
+		UserCount *int    `json:"user_count"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGitSyncEnabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGitSyncEnabledResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -82336,6 +82588,15 @@ func (c *ClientWithResponses) SearchLogsIndexWithResponse(ctx context.Context, p
 		return nil, err
 	}
 	return ParseSearchLogsIndexResponse(rsp)
+}
+
+// GetIndexDiskStorageSizesWithResponse request returning *GetIndexDiskStorageSizesResponse
+func (c *ClientWithResponses) GetIndexDiskStorageSizesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetIndexDiskStorageSizesResponse, error) {
+	rsp, err := c.GetIndexDiskStorageSizes(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetIndexDiskStorageSizesResponse(rsp)
 }
 
 // SearchJobsIndexWithResponse request returning *SearchJobsIndexResponse
@@ -87083,6 +87344,15 @@ func (c *ClientWithResponses) ListScriptsWithResponse(ctx context.Context, works
 	return ParseListScriptsResponse(rsp)
 }
 
+// ListDedicatedWithDepsWithResponse request returning *ListDedicatedWithDepsResponse
+func (c *ClientWithResponses) ListDedicatedWithDepsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDedicatedWithDepsResponse, error) {
+	rsp, err := c.ListDedicatedWithDeps(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListDedicatedWithDepsResponse(rsp)
+}
+
 // ListScriptPathsWithResponse request returning *ListScriptPathsResponse
 func (c *ClientWithResponses) ListScriptPathsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListScriptPathsResponse, error) {
 	rsp, err := c.ListScriptPaths(ctx, workspace, reqEditors...)
@@ -88436,6 +88706,15 @@ func (c *ClientWithResponses) GetWorkspaceNameWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseGetWorkspaceNameResponse(rsp)
+}
+
+// GetGitSyncEnabledWithResponse request returning *GetGitSyncEnabledResponse
+func (c *ClientWithResponses) GetGitSyncEnabledWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetGitSyncEnabledResponse, error) {
+	rsp, err := c.GetGitSyncEnabled(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGitSyncEnabledResponse(rsp)
 }
 
 // InviteUserWithBodyWithResponse request with arbitrary body returning *InviteUserResponse
@@ -91372,6 +91651,35 @@ func ParseSearchLogsIndexResponse(rsp *http.Response) (*SearchLogsIndexResponse,
 
 			// QueryParseErrors a list of the terms that couldn't be parsed (and thus ignored)
 			QueryParseErrors *[]string `json:"query_parse_errors,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetIndexDiskStorageSizesResponse parses an HTTP response from a GetIndexDiskStorageSizesWithResponse call
+func ParseGetIndexDiskStorageSizesResponse(rsp *http.Response) (*GetIndexDiskStorageSizesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetIndexDiskStorageSizesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			JobIndexDiskSizeBytes *int `json:"job_index_disk_size_bytes"`
+			LogIndexDiskSizeBytes *int `json:"log_index_disk_size_bytes"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -100090,6 +100398,36 @@ func ParseListScriptsResponse(rsp *http.Response) (*ListScriptsResponse, error) 
 	return response, nil
 }
 
+// ParseListDedicatedWithDepsResponse parses an HTTP response from a ListDedicatedWithDepsWithResponse call
+func ParseListDedicatedWithDepsResponse(rsp *http.Response) (*ListDedicatedWithDepsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListDedicatedWithDepsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Language          ListDedicatedWithDeps200Language `json:"language"`
+			Path              string                           `json:"path"`
+			WorkspaceDepNames []string                         `json:"workspace_dep_names"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListScriptPathsResponse parses an HTTP response from a ListScriptPathsWithResponse call
 func ParseListScriptPathsResponse(rsp *http.Response) (*ListScriptPathsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -101747,6 +102085,7 @@ func ParseGetWorkspaceDefaultAppResponse(rsp *http.Response) (*GetWorkspaceDefau
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			DefaultAppPath *string `json:"default_app_path,omitempty"`
+			DefaultAppRaw  *bool   `json:"default_app_raw,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -102506,6 +102845,38 @@ func ParseGetWorkspaceNameResponse(rsp *http.Response) (*GetWorkspaceNameRespons
 	response := &GetWorkspaceNameResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetGitSyncEnabledResponse parses an HTTP response from a GetGitSyncEnabledWithResponse call
+func ParseGetGitSyncEnabledResponse(rsp *http.Response) (*GetGitSyncEnabledResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGitSyncEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Enabled   *bool   `json:"enabled,omitempty"`
+			MaxRepos  *int    `json:"max_repos"`
+			MaxUsers  *int    `json:"max_users"`
+			Reason    *string `json:"reason"`
+			UserCount *int    `json:"user_count"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
