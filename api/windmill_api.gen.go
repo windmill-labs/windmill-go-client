@@ -4997,18 +4997,19 @@ type UpdateInput struct {
 
 // User defines model for User.
 type User struct {
-	AddedVia      *UserSource `json:"added_via"`
-	CreatedAt     time.Time   `json:"created_at"`
-	Disabled      bool        `json:"disabled"`
-	Email         string      `json:"email"`
-	Folders       []string    `json:"folders"`
-	FoldersOwners []string    `json:"folders_owners"`
-	Groups        *[]string   `json:"groups,omitempty"`
-	IsAdmin       bool        `json:"is_admin"`
-	IsSuperAdmin  bool        `json:"is_super_admin"`
-	Name          *string     `json:"name,omitempty"`
-	Operator      bool        `json:"operator"`
-	Username      string      `json:"username"`
+	AddedVia         *UserSource `json:"added_via"`
+	CreatedAt        time.Time   `json:"created_at"`
+	Disabled         bool        `json:"disabled"`
+	Email            string      `json:"email"`
+	Folders          []string    `json:"folders"`
+	FoldersOwners    []string    `json:"folders_owners"`
+	Groups           *[]string   `json:"groups,omitempty"`
+	IsAdmin          bool        `json:"is_admin"`
+	IsServiceAccount *bool       `json:"is_service_account,omitempty"`
+	IsSuperAdmin     bool        `json:"is_super_admin"`
+	Name             *string     `json:"name,omitempty"`
+	Operator         bool        `json:"operator"`
+	Username         string      `json:"username"`
 }
 
 // UserSource defines model for UserSource.
@@ -9257,6 +9258,16 @@ type ResumeSuspendedTriggerJobsJSONBody struct {
 	JobIds *[]openapi_types.UUID `json:"job_ids,omitempty"`
 }
 
+// ExitImpersonationJSONBody defines parameters for ExitImpersonation.
+type ExitImpersonationJSONBody struct {
+	Token string `json:"token"`
+}
+
+// ImpersonateServiceAccountJSONBody defines parameters for ImpersonateServiceAccount.
+type ImpersonateServiceAccountJSONBody struct {
+	Username string `json:"username"`
+}
+
 // CreateVariableParams defines parameters for CreateVariable.
 type CreateVariableParams struct {
 	// AlreadyEncrypted whether the variable is already encrypted (default false)
@@ -9409,6 +9420,11 @@ type ChangeWorkspaceNameJSONBody struct {
 type ConnectTeamsJSONBody struct {
 	TeamId   *string `json:"team_id,omitempty"`
 	TeamName *string `json:"team_name,omitempty"`
+}
+
+// CreateServiceAccountJSONBody defines parameters for CreateServiceAccount.
+type CreateServiceAccountJSONBody struct {
+	Username string `json:"username"`
 }
 
 // WorkspaceGetCriticalAlertsParams defines parameters for WorkspaceGetCriticalAlerts.
@@ -10249,6 +10265,12 @@ type CancelSuspendedTriggerJobsJSONRequestBody CancelSuspendedTriggerJobsJSONBod
 // ResumeSuspendedTriggerJobsJSONRequestBody defines body for ResumeSuspendedTriggerJobs for application/json ContentType.
 type ResumeSuspendedTriggerJobsJSONRequestBody ResumeSuspendedTriggerJobsJSONBody
 
+// ExitImpersonationJSONRequestBody defines body for ExitImpersonation for application/json ContentType.
+type ExitImpersonationJSONRequestBody ExitImpersonationJSONBody
+
+// ImpersonateServiceAccountJSONRequestBody defines body for ImpersonateServiceAccount for application/json ContentType.
+type ImpersonateServiceAccountJSONRequestBody ImpersonateServiceAccountJSONBody
+
 // UpdateUserJSONRequestBody defines body for UpdateUser for application/json ContentType.
 type UpdateUserJSONRequestBody = EditWorkspaceUser
 
@@ -10299,6 +10321,9 @@ type ConnectTeamsJSONRequestBody ConnectTeamsJSONBody
 
 // CreateWorkspaceForkJSONRequestBody defines body for CreateWorkspaceFork for application/json ContentType.
 type CreateWorkspaceForkJSONRequestBody = CreateWorkspaceFork
+
+// CreateServiceAccountJSONRequestBody defines body for CreateServiceAccount for application/json ContentType.
+type CreateServiceAccountJSONRequestBody CreateServiceAccountJSONBody
 
 // CreateWorkspaceForkGitBranchJSONRequestBody defines body for CreateWorkspaceForkGitBranch for application/json ContentType.
 type CreateWorkspaceForkGitBranchJSONRequestBody = CreateWorkspaceFork
@@ -14244,8 +14269,18 @@ type ClientInterface interface {
 	// DeleteUser request
 	DeleteUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ExitImpersonationWithBody request with any body
+	ExitImpersonationWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ExitImpersonation(ctx context.Context, workspace WorkspaceId, body ExitImpersonationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetUser request
 	GetUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ImpersonateServiceAccountWithBody request with any body
+	ImpersonateServiceAccountWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ImpersonateServiceAccount(ctx context.Context, workspace WorkspaceId, body ImpersonateServiceAccountJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// IsOwnerOfPath request
 	IsOwnerOfPath(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14421,6 +14456,11 @@ type ClientInterface interface {
 	CreateWorkspaceForkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateServiceAccountWithBody request with any body
+	CreateServiceAccountWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateServiceAccount(ctx context.Context, workspace WorkspaceId, body CreateServiceAccountJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateWorkspaceForkGitBranchWithBody request with any body
 	CreateWorkspaceForkGitBranchWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -23238,8 +23278,56 @@ func (c *Client) DeleteUser(ctx context.Context, workspace WorkspaceId, username
 	return c.Client.Do(req)
 }
 
+func (c *Client) ExitImpersonationWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExitImpersonationRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExitImpersonation(ctx context.Context, workspace WorkspaceId, body ExitImpersonationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExitImpersonationRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetUser(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetUserRequest(c.Server, workspace, username)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ImpersonateServiceAccountWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewImpersonateServiceAccountRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ImpersonateServiceAccount(ctx context.Context, workspace WorkspaceId, body ImpersonateServiceAccountJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewImpersonateServiceAccountRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -24008,6 +24096,30 @@ func (c *Client) CreateWorkspaceForkWithBody(ctx context.Context, workspace Work
 
 func (c *Client) CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateWorkspaceForkRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateServiceAccountWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateServiceAccountRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateServiceAccount(ctx context.Context, workspace WorkspaceId, body CreateServiceAccountJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateServiceAccountRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -58405,6 +58517,53 @@ func NewDeleteUserRequest(server string, workspace WorkspaceId, username string)
 	return req, nil
 }
 
+// NewExitImpersonationRequest calls the generic ExitImpersonation builder with application/json body
+func NewExitImpersonationRequest(server string, workspace WorkspaceId, body ExitImpersonationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewExitImpersonationRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewExitImpersonationRequestWithBody generates requests for ExitImpersonation with any type of body
+func NewExitImpersonationRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/users/exit_impersonation", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetUserRequest generates requests for GetUser
 func NewGetUserRequest(server string, workspace WorkspaceId, username string) (*http.Request, error) {
 	var err error
@@ -58442,6 +58601,53 @@ func NewGetUserRequest(server string, workspace WorkspaceId, username string) (*
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewImpersonateServiceAccountRequest calls the generic ImpersonateServiceAccount builder with application/json body
+func NewImpersonateServiceAccountRequest(server string, workspace WorkspaceId, body ImpersonateServiceAccountJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewImpersonateServiceAccountRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewImpersonateServiceAccountRequestWithBody generates requests for ImpersonateServiceAccount with any type of body
+func NewImpersonateServiceAccountRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/users/impersonate_service_account", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -60809,6 +61015,53 @@ func NewCreateWorkspaceForkRequestWithBody(server string, workspace WorkspaceId,
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/create_fork", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateServiceAccountRequest calls the generic CreateServiceAccount builder with application/json body
+func NewCreateServiceAccountRequest(server string, workspace WorkspaceId, body CreateServiceAccountJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateServiceAccountRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateServiceAccountRequestWithBody generates requests for CreateServiceAccount with any type of body
+func NewCreateServiceAccountRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/create_service_account", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -66389,8 +66642,18 @@ type ClientWithResponsesInterface interface {
 	// DeleteUserWithResponse request
 	DeleteUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*DeleteUserResponse, error)
 
+	// ExitImpersonationWithBodyWithResponse request with any body
+	ExitImpersonationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExitImpersonationResponse, error)
+
+	ExitImpersonationWithResponse(ctx context.Context, workspace WorkspaceId, body ExitImpersonationJSONRequestBody, reqEditors ...RequestEditorFn) (*ExitImpersonationResponse, error)
+
 	// GetUserWithResponse request
 	GetUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*GetUserResponse, error)
+
+	// ImpersonateServiceAccountWithBodyWithResponse request with any body
+	ImpersonateServiceAccountWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImpersonateServiceAccountResponse, error)
+
+	ImpersonateServiceAccountWithResponse(ctx context.Context, workspace WorkspaceId, body ImpersonateServiceAccountJSONRequestBody, reqEditors ...RequestEditorFn) (*ImpersonateServiceAccountResponse, error)
 
 	// IsOwnerOfPathWithResponse request
 	IsOwnerOfPathWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*IsOwnerOfPathResponse, error)
@@ -66566,6 +66829,11 @@ type ClientWithResponsesInterface interface {
 	CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
 
 	CreateWorkspaceForkWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
+
+	// CreateServiceAccountWithBodyWithResponse request with any body
+	CreateServiceAccountWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateServiceAccountResponse, error)
+
+	CreateServiceAccountWithResponse(ctx context.Context, workspace WorkspaceId, body CreateServiceAccountJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateServiceAccountResponse, error)
 
 	// CreateWorkspaceForkGitBranchWithBodyWithResponse request with any body
 	CreateWorkspaceForkGitBranchWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkGitBranchResponse, error)
@@ -78524,6 +78792,27 @@ func (r DeleteUserResponse) StatusCode() int {
 	return 0
 }
 
+type ExitImpersonationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ExitImpersonationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExitImpersonationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -78540,6 +78829,27 @@ func (r GetUserResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetUserResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ImpersonateServiceAccountResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ImpersonateServiceAccountResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ImpersonateServiceAccountResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -79578,6 +79888,27 @@ func (r CreateWorkspaceForkResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateWorkspaceForkResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateServiceAccountResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateServiceAccountResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateServiceAccountResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -87695,6 +88026,23 @@ func (c *ClientWithResponses) DeleteUserWithResponse(ctx context.Context, worksp
 	return ParseDeleteUserResponse(rsp)
 }
 
+// ExitImpersonationWithBodyWithResponse request with arbitrary body returning *ExitImpersonationResponse
+func (c *ClientWithResponses) ExitImpersonationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExitImpersonationResponse, error) {
+	rsp, err := c.ExitImpersonationWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExitImpersonationResponse(rsp)
+}
+
+func (c *ClientWithResponses) ExitImpersonationWithResponse(ctx context.Context, workspace WorkspaceId, body ExitImpersonationJSONRequestBody, reqEditors ...RequestEditorFn) (*ExitImpersonationResponse, error) {
+	rsp, err := c.ExitImpersonation(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExitImpersonationResponse(rsp)
+}
+
 // GetUserWithResponse request returning *GetUserResponse
 func (c *ClientWithResponses) GetUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*GetUserResponse, error) {
 	rsp, err := c.GetUser(ctx, workspace, username, reqEditors...)
@@ -87702,6 +88050,23 @@ func (c *ClientWithResponses) GetUserWithResponse(ctx context.Context, workspace
 		return nil, err
 	}
 	return ParseGetUserResponse(rsp)
+}
+
+// ImpersonateServiceAccountWithBodyWithResponse request with arbitrary body returning *ImpersonateServiceAccountResponse
+func (c *ClientWithResponses) ImpersonateServiceAccountWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImpersonateServiceAccountResponse, error) {
+	rsp, err := c.ImpersonateServiceAccountWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseImpersonateServiceAccountResponse(rsp)
+}
+
+func (c *ClientWithResponses) ImpersonateServiceAccountWithResponse(ctx context.Context, workspace WorkspaceId, body ImpersonateServiceAccountJSONRequestBody, reqEditors ...RequestEditorFn) (*ImpersonateServiceAccountResponse, error) {
+	rsp, err := c.ImpersonateServiceAccount(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseImpersonateServiceAccountResponse(rsp)
 }
 
 // IsOwnerOfPathWithResponse request returning *IsOwnerOfPathResponse
@@ -88261,6 +88626,23 @@ func (c *ClientWithResponses) CreateWorkspaceForkWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseCreateWorkspaceForkResponse(rsp)
+}
+
+// CreateServiceAccountWithBodyWithResponse request with arbitrary body returning *CreateServiceAccountResponse
+func (c *ClientWithResponses) CreateServiceAccountWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateServiceAccountResponse, error) {
+	rsp, err := c.CreateServiceAccountWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateServiceAccountResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateServiceAccountWithResponse(ctx context.Context, workspace WorkspaceId, body CreateServiceAccountJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateServiceAccountResponse, error) {
+	rsp, err := c.CreateServiceAccount(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateServiceAccountResponse(rsp)
 }
 
 // CreateWorkspaceForkGitBranchWithBodyWithResponse request with arbitrary body returning *CreateWorkspaceForkGitBranchResponse
@@ -100957,6 +101339,22 @@ func ParseDeleteUserResponse(rsp *http.Response) (*DeleteUserResponse, error) {
 	return response, nil
 }
 
+// ParseExitImpersonationResponse parses an HTTP response from a ExitImpersonationWithResponse call
+func ParseExitImpersonationResponse(rsp *http.Response) (*ExitImpersonationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExitImpersonationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetUserResponse parses an HTTP response from a GetUserWithResponse call
 func ParseGetUserResponse(rsp *http.Response) (*GetUserResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -100978,6 +101376,22 @@ func ParseGetUserResponse(rsp *http.Response) (*GetUserResponse, error) {
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseImpersonateServiceAccountResponse parses an HTTP response from a ImpersonateServiceAccountWithResponse call
+func ParseImpersonateServiceAccountResponse(rsp *http.Response) (*ImpersonateServiceAccountResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ImpersonateServiceAccountResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -102013,6 +102427,22 @@ func ParseCreateWorkspaceForkResponse(rsp *http.Response) (*CreateWorkspaceForkR
 	}
 
 	response := &CreateWorkspaceForkResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateServiceAccountResponse parses an HTTP response from a CreateServiceAccountWithResponse call
+func ParseCreateServiceAccountResponse(rsp *http.Response) (*CreateServiceAccountResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateServiceAccountResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
