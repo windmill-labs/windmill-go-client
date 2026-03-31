@@ -302,6 +302,18 @@ const (
 	EditKafkaTriggerAutoOffsetResetLatest   EditKafkaTriggerAutoOffsetReset = "latest"
 )
 
+// Defines values for EditKafkaTriggerFilterLogic.
+const (
+	EditKafkaTriggerFilterLogicAnd EditKafkaTriggerFilterLogic = "and"
+	EditKafkaTriggerFilterLogicOr  EditKafkaTriggerFilterLogic = "or"
+)
+
+// Defines values for EditWebsocketTriggerFilterLogic.
+const (
+	EditWebsocketTriggerFilterLogicAnd EditWebsocketTriggerFilterLogic = "and"
+	EditWebsocketTriggerFilterLogicOr  EditWebsocketTriggerFilterLogic = "or"
+)
+
 // Defines values for ExportableCompletedJobJobKind.
 const (
 	ExportableCompletedJobJobKindAiagent                  ExportableCompletedJobJobKind = "aiagent"
@@ -667,6 +679,12 @@ const (
 	NewKafkaTriggerAutoOffsetResetLatest   NewKafkaTriggerAutoOffsetReset = "latest"
 )
 
+// Defines values for NewKafkaTriggerFilterLogic.
+const (
+	NewKafkaTriggerFilterLogicAnd NewKafkaTriggerFilterLogic = "and"
+	NewKafkaTriggerFilterLogicOr  NewKafkaTriggerFilterLogic = "or"
+)
+
 // Defines values for NewScriptAssetsAccessType.
 const (
 	NewScriptAssetsAccessTypeR  NewScriptAssetsAccessType = "r"
@@ -713,6 +731,12 @@ const (
 	NewScriptWithDraftKindPreprocessor NewScriptWithDraftKind = "preprocessor"
 	NewScriptWithDraftKindScript       NewScriptWithDraftKind = "script"
 	NewScriptWithDraftKindTrigger      NewScriptWithDraftKind = "trigger"
+)
+
+// Defines values for NewWebsocketTriggerFilterLogic.
+const (
+	NewWebsocketTriggerFilterLogicAnd NewWebsocketTriggerFilterLogic = "and"
+	NewWebsocketTriggerFilterLogicOr  NewWebsocketTriggerFilterLogic = "or"
 )
 
 // Defines values for OpenapiSpecFormat.
@@ -1867,7 +1891,10 @@ type EditKafkaTrigger struct {
 
 	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
-	Filters          []struct {
+
+	// FilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+	FilterLogic *EditKafkaTriggerFilterLogic `json:"filter_logic,omitempty"`
+	Filters     []struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
@@ -1902,6 +1929,9 @@ type EditKafkaTrigger struct {
 
 // EditKafkaTriggerAutoOffsetReset Initial offset behavior when consumer group has no committed offset.
 type EditKafkaTriggerAutoOffsetReset string
+
+// EditKafkaTriggerFilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+type EditKafkaTriggerFilterLogic string
 
 // EditMqttTrigger defines model for EditMqttTrigger.
 type EditMqttTrigger struct {
@@ -2212,6 +2242,9 @@ type EditWebsocketTrigger struct {
 	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
+	// FilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+	FilterLogic *EditWebsocketTriggerFilterLogic `json:"filter_logic,omitempty"`
+
 	// Filters Array of key-value filters to match incoming messages (only matching messages trigger the script)
 	Filters []struct {
 		Key   string      `json:"key"`
@@ -2245,6 +2278,9 @@ type EditWebsocketTrigger struct {
 	// UrlRunnableArgs The arguments to pass to the script or flow
 	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
 }
+
+// EditWebsocketTriggerFilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+type EditWebsocketTriggerFilterLogic string
 
 // EditWorkspaceUser defines model for EditWorkspaceUser.
 type EditWorkspaceUser struct {
@@ -3586,7 +3622,10 @@ type NewKafkaTrigger struct {
 
 	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
-	Filters          []struct {
+
+	// FilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+	FilterLogic *NewKafkaTriggerFilterLogic `json:"filter_logic,omitempty"`
+	Filters     []struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
@@ -3624,6 +3663,9 @@ type NewKafkaTrigger struct {
 
 // NewKafkaTriggerAutoOffsetReset Initial offset behavior when consumer group has no committed offset.
 type NewKafkaTriggerAutoOffsetReset string
+
+// NewKafkaTriggerFilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+type NewKafkaTriggerFilterLogic string
 
 // NewMqttTrigger defines model for NewMqttTrigger.
 type NewMqttTrigger struct {
@@ -4029,6 +4071,9 @@ type NewWebsocketTrigger struct {
 	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
+	// FilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+	FilterLogic *NewWebsocketTriggerFilterLogic `json:"filter_logic,omitempty"`
+
 	// Filters Array of key-value filters to match incoming messages (only matching messages trigger the script)
 	Filters []struct {
 		Key   string      `json:"key"`
@@ -4065,6 +4110,9 @@ type NewWebsocketTrigger struct {
 	// UrlRunnableArgs The arguments to pass to the script or flow
 	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
 }
+
+// NewWebsocketTriggerFilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+type NewWebsocketTriggerFilterLogic string
 
 // NewWorkspaceDependencies defines model for NewWorkspaceDependencies.
 type NewWorkspaceDependencies struct {
