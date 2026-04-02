@@ -12712,6 +12712,9 @@ type ClientInterface interface {
 	// RenewLicenseKey request
 	RenewLicenseKey(ctx context.Context, params *RenewLicenseKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RestartWorkerGroup request
+	RestartWorkerGroup(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SendStats request
 	SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16226,6 +16229,18 @@ func (c *Client) RefreshCustomInstanceUserPwd(ctx context.Context, reqEditors ..
 
 func (c *Client) RenewLicenseKey(ctx context.Context, params *RenewLicenseKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRenewLicenseKeyRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RestartWorkerGroup(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestartWorkerGroupRequest(c.Server, workerGroup)
 	if err != nil {
 		return nil, err
 	}
@@ -29146,6 +29161,40 @@ func NewRenewLicenseKeyRequest(server string, params *RenewLicenseKeyParams) (*h
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRestartWorkerGroupRequest generates requests for RestartWorkerGroup
+func NewRestartWorkerGroupRequest(server string, workerGroup string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "worker_group", runtime.ParamLocationPath, workerGroup)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/restart_worker_group/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
@@ -65085,6 +65134,9 @@ type ClientWithResponsesInterface interface {
 	// RenewLicenseKeyWithResponse request
 	RenewLicenseKeyWithResponse(ctx context.Context, params *RenewLicenseKeyParams, reqEditors ...RequestEditorFn) (*RenewLicenseKeyResponse, error)
 
+	// RestartWorkerGroupWithResponse request
+	RestartWorkerGroupWithResponse(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*RestartWorkerGroupResponse, error)
+
 	// SendStatsWithResponse request
 	SendStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SendStatsResponse, error)
 
@@ -69335,6 +69387,27 @@ func (r RenewLicenseKeyResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RenewLicenseKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RestartWorkerGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RestartWorkerGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RestartWorkerGroupResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -82923,6 +82996,15 @@ func (c *ClientWithResponses) RenewLicenseKeyWithResponse(ctx context.Context, p
 	return ParseRenewLicenseKeyResponse(rsp)
 }
 
+// RestartWorkerGroupWithResponse request returning *RestartWorkerGroupResponse
+func (c *ClientWithResponses) RestartWorkerGroupWithResponse(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*RestartWorkerGroupResponse, error) {
+	rsp, err := c.RestartWorkerGroup(ctx, workerGroup, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestartWorkerGroupResponse(rsp)
+}
+
 // SendStatsWithResponse request returning *SendStatsResponse
 func (c *ClientWithResponses) SendStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SendStatsResponse, error) {
 	rsp, err := c.SendStats(ctx, reqEditors...)
@@ -91991,6 +92073,22 @@ func ParseRenewLicenseKeyResponse(rsp *http.Response) (*RenewLicenseKeyResponse,
 	}
 
 	response := &RenewLicenseKeyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRestartWorkerGroupResponse parses an HTTP response from a RestartWorkerGroupWithResponse call
+func ParseRestartWorkerGroupResponse(rsp *http.Response) (*RestartWorkerGroupResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RestartWorkerGroupResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
