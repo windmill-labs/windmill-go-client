@@ -1287,6 +1287,7 @@ type AppWithLastVersion struct {
 	ExecutionMode AppWithLastVersionExecutionMode `json:"execution_mode"`
 	ExtraPerms    map[string]bool                 `json:"extra_perms"`
 	Id            int                             `json:"id"`
+	Labels        *[]string                       `json:"labels,omitempty"`
 	Path          string                          `json:"path"`
 	Policy        Policy                          `json:"policy"`
 	RawApp        bool                            `json:"raw_app"`
@@ -1310,6 +1311,7 @@ type AppWithLastVersionWDraft struct {
 	ExecutionMode AppWithLastVersionWDraftExecutionMode `json:"execution_mode"`
 	ExtraPerms    map[string]bool                       `json:"extra_perms"`
 	Id            int                                   `json:"id"`
+	Labels        *[]string                             `json:"labels,omitempty"`
 	Path          string                                `json:"path"`
 	Policy        Policy                                `json:"policy"`
 	RawApp        bool                                  `json:"raw_app"`
@@ -1380,6 +1382,24 @@ type AutoscalingEvent struct {
 
 // AwsAuthResourceType defines model for AwsAuthResourceType.
 type AwsAuthResourceType string
+
+// AzureKeyVaultSettings defines model for AzureKeyVaultSettings.
+type AzureKeyVaultSettings struct {
+	// ClientId Azure AD application (client) ID
+	ClientId string `json:"client_id"`
+
+	// ClientSecret Azure AD client secret
+	ClientSecret *string `json:"client_secret,omitempty"`
+
+	// TenantId Azure AD tenant ID
+	TenantId string `json:"tenant_id"`
+
+	// Token Static Bearer token for testing/development (optional, if provided this is used instead of OAuth2 authentication)
+	Token *string `json:"token,omitempty"`
+
+	// VaultUrl Azure Key Vault URL (e.g., https://myvault.vault.azure.net)
+	VaultUrl string `json:"vault_url"`
+}
 
 // Capture defines model for Capture.
 type Capture struct {
@@ -1523,7 +1543,8 @@ type CreateInput struct {
 // CreateResource defines model for CreateResource.
 type CreateResource struct {
 	// Description The description of the resource
-	Description *string `json:"description,omitempty"`
+	Description *string   `json:"description,omitempty"`
+	Labels      *[]string `json:"labels,omitempty"`
 
 	// Path The path to the resource
 	Path string `json:"path"`
@@ -1554,7 +1575,8 @@ type CreateVariable struct {
 	IsOauth *bool `json:"is_oauth,omitempty"`
 
 	// IsSecret Whether the variable is a secret
-	IsSecret bool `json:"is_secret"`
+	IsSecret bool      `json:"is_secret"`
+	Labels   *[]string `json:"labels,omitempty"`
 
 	// Path The path to the variable
 	Path string `json:"path"`
@@ -1769,6 +1791,7 @@ type EditEmailTrigger struct {
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
 	IsFlow           bool        `json:"is_flow"`
+	Labels           *[]string   `json:"labels,omitempty"`
 	LocalPart        *string     `json:"local_part,omitempty"`
 	Path             string      `json:"path"`
 
@@ -1834,7 +1857,8 @@ type EditHttpTrigger struct {
 	IsFlow bool `json:"is_flow"`
 
 	// IsStaticWebsite If true, serves static files from S3/storage instead of running a script
-	IsStaticWebsite bool `json:"is_static_website"`
+	IsStaticWebsite bool      `json:"is_static_website"`
+	Labels          *[]string `json:"labels,omitempty"`
 
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
@@ -1908,7 +1932,8 @@ type EditKafkaTrigger struct {
 	IsFlow bool `json:"is_flow"`
 
 	// KafkaResourcePath Path to the Kafka resource containing connection configuration
-	KafkaResourcePath string `json:"kafka_resource_path"`
+	KafkaResourcePath string    `json:"kafka_resource_path"`
+	Labels            *[]string `json:"labels,omitempty"`
 
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
@@ -1948,7 +1973,8 @@ type EditMqttTrigger struct {
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -1989,7 +2015,8 @@ type EditNatsTrigger struct {
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// NatsResourcePath Path to the NATS resource containing connection configuration
 	NatsResourcePath string `json:"nats_resource_path"`
@@ -2028,7 +2055,8 @@ type EditPostgresTrigger struct {
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -2062,7 +2090,8 @@ type EditPostgresTrigger struct {
 // EditResource defines model for EditResource.
 type EditResource struct {
 	// Description The new description of the resource
-	Description *string `json:"description,omitempty"`
+	Description *string   `json:"description,omitempty"`
+	Labels      *[]string `json:"labels,omitempty"`
 
 	// Path The path to the resource
 	Path *string `json:"path,omitempty"`
@@ -2091,7 +2120,8 @@ type EditSchedule struct {
 	Description *string `json:"description"`
 
 	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
-	DynamicSkip *string `json:"dynamic_skip"`
+	DynamicSkip *string   `json:"dynamic_skip"`
+	Labels      *[]string `json:"labels,omitempty"`
 
 	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
@@ -2165,7 +2195,8 @@ type EditSqsTrigger struct {
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// MessageAttributes Array of SQS message attribute names to include with each message
 	MessageAttributes *[]string `json:"message_attributes"`
@@ -2221,7 +2252,8 @@ type EditVariable struct {
 	Description *string `json:"description,omitempty"`
 
 	// IsSecret Whether the variable is a secret
-	IsSecret *bool `json:"is_secret,omitempty"`
+	IsSecret *bool     `json:"is_secret,omitempty"`
+	Labels   *[]string `json:"labels,omitempty"`
 
 	// Path The path to the variable
 	Path *string `json:"path,omitempty"`
@@ -2252,12 +2284,14 @@ type EditWebsocketTrigger struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
+	Heartbeat *WebsocketHeartbeat `json:"heartbeat,omitempty"`
 
 	// InitialMessages Messages to send immediately after connecting (can be raw strings or computed by runnables)
 	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// Path The unique path identifier for this trigger
 	Path string `json:"path"`
@@ -2508,6 +2542,7 @@ type Flow struct {
 	EditedAt        time.Time  `json:"edited_at"`
 	EditedBy        string     `json:"edited_by"`
 	ExtraPerms      ExtraPerms `json:"extra_perms"`
+	Labels          *[]string  `json:"labels,omitempty"`
 	LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
 	OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
 	Path            string     `json:"path"`
@@ -2613,6 +2648,7 @@ type FlowMetadata struct {
 	EditedAt            time.Time  `json:"edited_at"`
 	EditedBy            string     `json:"edited_by"`
 	ExtraPerms          ExtraPerms `json:"extra_perms"`
+	Labels              *[]string  `json:"labels,omitempty"`
 	OnBehalfOfEmail     *string    `json:"on_behalf_of_email,omitempty"`
 	Path                string     `json:"path"`
 	Priority            *int       `json:"priority,omitempty"`
@@ -2855,7 +2891,8 @@ type GcpTriggerData struct {
 	GcpResourcePath string `json:"gcp_resource_path"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script.
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -3270,6 +3307,7 @@ type ListableApp struct {
 	ExecutionMode ListableAppExecutionMode `json:"execution_mode"`
 	ExtraPerms    map[string]bool          `json:"extra_perms"`
 	Id            int                      `json:"id"`
+	Labels        *[]string                `json:"labels,omitempty"`
 	Path          string                   `json:"path"`
 	RawApp        *bool                    `json:"raw_app,omitempty"`
 	Starred       *bool                    `json:"starred,omitempty"`
@@ -3285,6 +3323,7 @@ type ListableAppExecutionMode string
 type ListableRawApp struct {
 	EditedAt    time.Time       `json:"edited_at"`
 	ExtraPerms  map[string]bool `json:"extra_perms"`
+	Labels      *[]string       `json:"labels,omitempty"`
 	Path        string          `json:"path"`
 	Starred     *bool           `json:"starred,omitempty"`
 	Summary     string          `json:"summary"`
@@ -3303,6 +3342,7 @@ type ListableResource struct {
 	IsLinked     bool             `json:"is_linked"`
 	IsOauth      bool             `json:"is_oauth"`
 	IsRefreshed  bool             `json:"is_refreshed"`
+	Labels       *[]string        `json:"labels,omitempty"`
 	Path         string           `json:"path"`
 	RefreshError *string          `json:"refresh_error,omitempty"`
 	ResourceType string           `json:"resource_type"`
@@ -3321,6 +3361,7 @@ type ListableVariable struct {
 	IsOauth      *bool           `json:"is_oauth,omitempty"`
 	IsRefreshed  *bool           `json:"is_refreshed,omitempty"`
 	IsSecret     bool            `json:"is_secret"`
+	Labels       *[]string       `json:"labels,omitempty"`
 	Path         string          `json:"path"`
 	RefreshError *string         `json:"refresh_error,omitempty"`
 	Value        *string         `json:"value,omitempty"`
@@ -3520,6 +3561,7 @@ type NewEmailTrigger struct {
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
 	IsFlow           bool        `json:"is_flow"`
+	Labels           *[]string   `json:"labels,omitempty"`
 	LocalPart        string      `json:"local_part"`
 
 	// Mode job trigger mode
@@ -3562,7 +3604,8 @@ type NewHttpTrigger struct {
 	IsFlow bool `json:"is_flow"`
 
 	// IsStaticWebsite If true, serves static files from S3/storage instead of running a script
-	IsStaticWebsite bool `json:"is_static_website"`
+	IsStaticWebsite bool      `json:"is_static_website"`
+	Labels          *[]string `json:"labels,omitempty"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -3639,7 +3682,8 @@ type NewKafkaTrigger struct {
 	IsFlow bool `json:"is_flow"`
 
 	// KafkaResourcePath Path to the Kafka resource containing connection configuration
-	KafkaResourcePath string `json:"kafka_resource_path"`
+	KafkaResourcePath string    `json:"kafka_resource_path"`
+	Labels            *[]string `json:"labels,omitempty"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -3682,7 +3726,8 @@ type NewMqttTrigger struct {
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -3723,7 +3768,8 @@ type NewNatsTrigger struct {
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -3765,7 +3811,8 @@ type NewPostgresTrigger struct {
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -3814,7 +3861,8 @@ type NewSchedule struct {
 	Enabled *bool `json:"enabled,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
@@ -3908,6 +3956,7 @@ type NewScript struct {
 	HasPreprocessor          *bool          `json:"has_preprocessor,omitempty"`
 	IsTemplate               *bool          `json:"is_template,omitempty"`
 	Kind                     *NewScriptKind `json:"kind,omitempty"`
+	Labels                   *[]string      `json:"labels,omitempty"`
 	Language                 ScriptLang     `json:"language"`
 	Lock                     *string        `json:"lock,omitempty"`
 	MaxTotalDebouncesAmount  *int           `json:"max_total_debounces_amount,omitempty"`
@@ -3970,6 +4019,7 @@ type NewScriptWithDraft struct {
 	Hash                     string                  `json:"hash"`
 	IsTemplate               *bool                   `json:"is_template,omitempty"`
 	Kind                     *NewScriptWithDraftKind `json:"kind,omitempty"`
+	Labels                   *[]string               `json:"labels,omitempty"`
 	Language                 ScriptLang              `json:"language"`
 	Lock                     *string                 `json:"lock,omitempty"`
 	MaxTotalDebouncesAmount  *int                    `json:"max_total_debounces_amount,omitempty"`
@@ -4016,7 +4066,8 @@ type NewSqsTrigger struct {
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// MessageAttributes Array of SQS message attribute names to include with each message
 	MessageAttributes *[]string `json:"message_attributes"`
@@ -4081,12 +4132,14 @@ type NewWebsocketTrigger struct {
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	} `json:"filters"`
+	Heartbeat *WebsocketHeartbeat `json:"heartbeat,omitempty"`
 
 	// InitialMessages Messages to send immediately after connecting (can be raw strings or computed by runnables)
 	InitialMessages *[]WebsocketTriggerInitialMessage `json:"initial_messages"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
@@ -4164,9 +4217,10 @@ type OpenFlowWPath struct {
 	DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description     *string `json:"description,omitempty"`
-	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
-	Path            string  `json:"path"`
+	Description     *string   `json:"description,omitempty"`
+	Labels          *[]string `json:"labels,omitempty"`
+	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+	Path            string    `json:"path"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
 	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
@@ -4464,6 +4518,7 @@ type Resource struct {
 	EditedAt     *time.Time       `json:"edited_at,omitempty"`
 	ExtraPerms   *map[string]bool `json:"extra_perms,omitempty"`
 	IsOauth      bool             `json:"is_oauth"`
+	Labels       *[]string        `json:"labels,omitempty"`
 	Path         string           `json:"path"`
 	ResourceType string           `json:"resource_type"`
 	Value        *interface{}     `json:"value,omitempty"`
@@ -4602,7 +4657,8 @@ type Schedule struct {
 	ExtraPerms map[string]bool `json:"extra_perms"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
@@ -4704,6 +4760,7 @@ type ScheduleWJobs struct {
 		Id         string  `json:"id"`
 		Success    bool    `json:"success"`
 	} `json:"jobs,omitempty"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
@@ -4808,6 +4865,7 @@ type Script struct {
 	Hash                     string          `json:"hash"`
 	IsTemplate               bool            `json:"is_template"`
 	Kind                     ScriptKind      `json:"kind"`
+	Labels                   *[]string       `json:"labels,omitempty"`
 	Language                 ScriptLang      `json:"language"`
 	Lock                     *string         `json:"lock,omitempty"`
 	LockErrorLogs            *string         `json:"lock_error_logs,omitempty"`
@@ -4985,7 +5043,8 @@ type TriggerExtraProperty struct {
 	ExtraPerms map[string]bool `json:"extra_perms"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
-	IsFlow bool `json:"is_flow"`
+	IsFlow bool      `json:"is_flow"`
+	Labels *[]string `json:"labels,omitempty"`
 
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
@@ -5146,6 +5205,18 @@ type WebsearchToolValue struct {
 
 // WebsearchToolValueToolType defines model for WebsearchToolValue.ToolType.
 type WebsearchToolValueToolType string
+
+// WebsocketHeartbeat defines model for WebsocketHeartbeat.
+type WebsocketHeartbeat struct {
+	// IntervalSecs Interval in seconds between heartbeat messages
+	IntervalSecs int `json:"interval_secs"`
+
+	// Message Message to send as heartbeat. Use {{state}} as a placeholder for a value extracted from incoming messages (see state_field).
+	Message string `json:"message"`
+
+	// StateField Optional. Top-level JSON field to extract from incoming messages. The extracted value replaces {{state}} in the heartbeat message.
+	StateField *string `json:"state_field,omitempty"`
+}
 
 // WebsocketTrigger defines model for WebsocketTrigger.
 type WebsocketTrigger = TriggerExtraProperty
@@ -6642,11 +6713,12 @@ type RemoveGranularAclsParamsKind string
 
 // CreateAppJSONBody defines parameters for CreateApp.
 type CreateAppJSONBody struct {
-	CustomPath        *string `json:"custom_path,omitempty"`
-	DeploymentMessage *string `json:"deployment_message,omitempty"`
-	DraftOnly         *bool   `json:"draft_only,omitempty"`
-	Path              string  `json:"path"`
-	Policy            Policy  `json:"policy"`
+	CustomPath        *string   `json:"custom_path,omitempty"`
+	DeploymentMessage *string   `json:"deployment_message,omitempty"`
+	DraftOnly         *bool     `json:"draft_only,omitempty"`
+	Labels            *[]string `json:"labels,omitempty"`
+	Path              string    `json:"path"`
+	Policy            Policy    `json:"policy"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
 	PreserveOnBehalfOf *bool       `json:"preserve_on_behalf_of,omitempty"`
@@ -6657,11 +6729,12 @@ type CreateAppJSONBody struct {
 // CreateAppRawMultipartBody defines parameters for CreateAppRaw.
 type CreateAppRawMultipartBody struct {
 	App *struct {
-		CustomPath        *string `json:"custom_path,omitempty"`
-		DeploymentMessage *string `json:"deployment_message,omitempty"`
-		DraftOnly         *bool   `json:"draft_only,omitempty"`
-		Path              string  `json:"path"`
-		Policy            Policy  `json:"policy"`
+		CustomPath        *string   `json:"custom_path,omitempty"`
+		DeploymentMessage *string   `json:"deployment_message,omitempty"`
+		DraftOnly         *bool     `json:"draft_only,omitempty"`
+		Labels            *[]string `json:"labels,omitempty"`
+		Path              string    `json:"path"`
+		Policy            Policy    `json:"policy"`
 
 		// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
 		PreserveOnBehalfOf *bool       `json:"preserve_on_behalf_of,omitempty"`
@@ -6713,6 +6786,9 @@ type ListAppsParams struct {
 	// WithDeploymentMsg (default false)
 	// include deployment message
 	WithDeploymentMsg *bool `form:"with_deployment_msg,omitempty" json:"with_deployment_msg,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // ListAppPathsFromWorkspaceRunnableParamsRunnableKind defines parameters for ListAppPathsFromWorkspaceRunnable.
@@ -6725,10 +6801,11 @@ type SignS3ObjectsJSONBody struct {
 
 // UpdateAppJSONBody defines parameters for UpdateApp.
 type UpdateAppJSONBody struct {
-	CustomPath        *string `json:"custom_path,omitempty"`
-	DeploymentMessage *string `json:"deployment_message,omitempty"`
-	Path              *string `json:"path,omitempty"`
-	Policy            *Policy `json:"policy,omitempty"`
+	CustomPath        *string   `json:"custom_path,omitempty"`
+	DeploymentMessage *string   `json:"deployment_message,omitempty"`
+	Labels            *[]string `json:"labels,omitempty"`
+	Path              *string   `json:"path,omitempty"`
+	Policy            *Policy   `json:"policy,omitempty"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
 	PreserveOnBehalfOf *bool        `json:"preserve_on_behalf_of,omitempty"`
@@ -6739,10 +6816,11 @@ type UpdateAppJSONBody struct {
 // UpdateAppRawMultipartBody defines parameters for UpdateAppRaw.
 type UpdateAppRawMultipartBody struct {
 	App *struct {
-		CustomPath        *string `json:"custom_path,omitempty"`
-		DeploymentMessage *string `json:"deployment_message,omitempty"`
-		Path              *string `json:"path,omitempty"`
-		Policy            *Policy `json:"policy,omitempty"`
+		CustomPath        *string   `json:"custom_path,omitempty"`
+		DeploymentMessage *string   `json:"deployment_message,omitempty"`
+		Labels            *[]string `json:"labels,omitempty"`
+		Path              *string   `json:"path,omitempty"`
+		Policy            *Policy   `json:"policy,omitempty"`
 
 		// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
 		PreserveOnBehalfOf *bool        `json:"preserve_on_behalf_of,omitempty"`
@@ -7022,6 +7100,9 @@ type ListEmailTriggersParams struct {
 	Path      *string `form:"path,omitempty" json:"path,omitempty"`
 	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // ExistsEmailLocalPartJSONBody defines parameters for ExistsEmailLocalPart.
@@ -7099,10 +7180,11 @@ type CreateFlowJSONBody struct {
 	DeploymentMessage *string `json:"deployment_message,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description     *string `json:"description,omitempty"`
-	DraftOnly       *bool   `json:"draft_only,omitempty"`
-	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
-	Path            string  `json:"path"`
+	Description     *string   `json:"description,omitempty"`
+	DraftOnly       *bool     `json:"draft_only,omitempty"`
+	Labels          *[]string `json:"labels,omitempty"`
+	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+	Path            string    `json:"path"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
 	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
@@ -7184,6 +7266,9 @@ type ListFlowsParams struct {
 	// If true, show only flows with dedicated_worker enabled.
 	// If false, show only flows with dedicated_worker disabled.
 	DedicatedWorker *bool `form:"dedicated_worker,omitempty" json:"dedicated_worker,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // ListFlowPathsFromWorkspaceRunnableParams defines parameters for ListFlowPathsFromWorkspaceRunnable.
@@ -7205,9 +7290,10 @@ type UpdateFlowJSONBody struct {
 	DeploymentMessage *string `json:"deployment_message,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description     *string `json:"description,omitempty"`
-	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
-	Path            string  `json:"path"`
+	Description     *string   `json:"description,omitempty"`
+	Labels          *[]string `json:"labels,omitempty"`
+	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+	Path            string    `json:"path"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
 	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
@@ -7289,6 +7375,9 @@ type ListGcpTriggersParams struct {
 	Path      *string `form:"path,omitempty" json:"path,omitempty"`
 	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // SetGcpTriggerModeJSONBody defines parameters for SetGcpTriggerMode.
@@ -7387,6 +7476,9 @@ type ListHttpTriggersParams struct {
 	Path      *string `form:"path,omitempty" json:"path,omitempty"`
 	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // ExistsRouteJSONBody defines parameters for ExistsRoute.
@@ -8817,6 +8909,9 @@ type ListKafkaTriggersParams struct {
 	Path      *string `form:"path,omitempty" json:"path,omitempty"`
 	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // SetKafkaTriggerModeJSONBody defines parameters for SetKafkaTriggerMode.
@@ -8842,6 +8937,9 @@ type ListMqttTriggersParams struct {
 	Path      *string `form:"path,omitempty" json:"path,omitempty"`
 	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // SetMqttTriggerModeJSONBody defines parameters for SetMqttTriggerMode.
@@ -8891,6 +8989,9 @@ type ListNativeTriggersParams struct {
 
 	// IsFlow filter by is_flow
 	IsFlow *bool `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // ListNatsTriggersParams defines parameters for ListNatsTriggers.
@@ -8905,6 +9006,9 @@ type ListNatsTriggersParams struct {
 	Path      *string `form:"path,omitempty" json:"path,omitempty"`
 	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // SetNatsTriggerModeJSONBody defines parameters for SetNatsTriggerMode.
@@ -8976,6 +9080,9 @@ type ListPostgresTriggersParams struct {
 	Path      *string `form:"path,omitempty" json:"path,omitempty"`
 	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // SetPostgresTriggerModeJSONBody defines parameters for SetPostgresTriggerMode.
@@ -9012,6 +9119,9 @@ type ListRawAppsParams struct {
 	// StarredOnly (default false)
 	// show only the starred items
 	StarredOnly *bool `form:"starred_only,omitempty" json:"starred_only,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // CreateResourceParams defines parameters for CreateResource.
@@ -9067,6 +9177,9 @@ type ListResourceParams struct {
 
 	// BroadFilter broad search across multiple fields (case-insensitive substring match)
 	BroadFilter *string `form:"broad_filter,omitempty" json:"broad_filter,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // UpdateResourceValueJSONBody defines parameters for UpdateResourceValue.
@@ -9105,6 +9218,9 @@ type ListSchedulesParams struct {
 
 	// BroadFilter broad search across multiple fields (case-insensitive substring match)
 	BroadFilter *string `form:"broad_filter,omitempty" json:"broad_filter,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // ListSchedulesWithJobsParams defines parameters for ListSchedulesWithJobs.
@@ -9242,6 +9358,9 @@ type ListScriptsParams struct {
 	// If true, show only scripts with dedicated_worker enabled.
 	// If false, show only scripts with dedicated_worker disabled.
 	DedicatedWorker *bool `form:"dedicated_worker,omitempty" json:"dedicated_worker,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // DiffRawScriptsWithDeployedJSONBody defines parameters for DiffRawScriptsWithDeployed.
@@ -9283,6 +9402,9 @@ type ListSqsTriggersParams struct {
 	Path      *string `form:"path,omitempty" json:"path,omitempty"`
 	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // SetSqsTriggerModeJSONBody defines parameters for SetSqsTriggerMode.
@@ -9370,6 +9492,9 @@ type ListVariableParams struct {
 
 	// PerPage number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // UpdateVariableParams defines parameters for UpdateVariable.
@@ -9395,6 +9520,9 @@ type ListWebsocketTriggersParams struct {
 	Path      *string `form:"path,omitempty" json:"path,omitempty"`
 	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// Label Filter by label
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // SetWebsocketTriggerModeJSONBody defines parameters for SetWebsocketTriggerMode.
@@ -9805,6 +9933,12 @@ type SetGlobalJSONRequestBody SetGlobalJSONBody
 // SetInstanceConfigJSONRequestBody defines body for SetInstanceConfig for application/json ContentType.
 type SetInstanceConfigJSONRequestBody = InstanceConfig
 
+// MigrateSecretsFromAzureKvJSONRequestBody defines body for MigrateSecretsFromAzureKv for application/json ContentType.
+type MigrateSecretsFromAzureKvJSONRequestBody = AzureKeyVaultSettings
+
+// MigrateSecretsToAzureKvJSONRequestBody defines body for MigrateSecretsToAzureKv for application/json ContentType.
+type MigrateSecretsToAzureKvJSONRequestBody = AzureKeyVaultSettings
+
 // MigrateSecretsToDatabaseJSONRequestBody defines body for MigrateSecretsToDatabase for application/json ContentType.
 type MigrateSecretsToDatabaseJSONRequestBody = VaultSettings
 
@@ -9813,6 +9947,9 @@ type MigrateSecretsToVaultJSONRequestBody = VaultSettings
 
 // SetupCustomInstanceDbJSONRequestBody defines body for SetupCustomInstanceDb for application/json ContentType.
 type SetupCustomInstanceDbJSONRequestBody SetupCustomInstanceDbJSONBody
+
+// TestAzureKvBackendJSONRequestBody defines body for TestAzureKvBackend for application/json ContentType.
+type TestAzureKvBackendJSONRequestBody = AzureKeyVaultSettings
 
 // TestCriticalChannelsJSONRequestBody defines body for TestCriticalChannels for application/json ContentType.
 type TestCriticalChannelsJSONRequestBody = TestCriticalChannelsJSONBody
@@ -12462,6 +12599,12 @@ type ClientInterface interface {
 	// ListConfigs request
 	ListConfigs(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAllDedicatedWithDeps request
+	ListAllDedicatedWithDeps(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAllWorkspaceDependencies request
+	ListAllWorkspaceDependencies(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListAutoscalingEvents request
 	ListAutoscalingEvents(ctx context.Context, workerGroup string, params *ListAutoscalingEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -12696,6 +12839,16 @@ type ClientInterface interface {
 	// GetLocal request
 	GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// MigrateSecretsFromAzureKvWithBody request with any body
+	MigrateSecretsFromAzureKvWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MigrateSecretsFromAzureKv(ctx context.Context, body MigrateSecretsFromAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// MigrateSecretsToAzureKvWithBody request with any body
+	MigrateSecretsToAzureKvWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MigrateSecretsToAzureKv(ctx context.Context, body MigrateSecretsToAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// MigrateSecretsToDatabaseWithBody request with any body
 	MigrateSecretsToDatabaseWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -12722,6 +12875,11 @@ type ClientInterface interface {
 	SetupCustomInstanceDbWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetupCustomInstanceDb(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestAzureKvBackendWithBody request with any body
+	TestAzureKvBackendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestAzureKvBackend(ctx context.Context, body TestAzureKvBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestCriticalChannelsWithBody request with any body
 	TestCriticalChannelsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15159,6 +15317,30 @@ func (c *Client) ListConfigs(ctx context.Context, reqEditors ...RequestEditorFn)
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListAllDedicatedWithDeps(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAllDedicatedWithDepsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAllWorkspaceDependencies(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAllWorkspaceDependenciesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListAutoscalingEvents(ctx context.Context, workerGroup string, params *ListAutoscalingEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAutoscalingEventsRequest(c.Server, workerGroup, params)
 	if err != nil {
@@ -16167,6 +16349,54 @@ func (c *Client) GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*
 	return c.Client.Do(req)
 }
 
+func (c *Client) MigrateSecretsFromAzureKvWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsFromAzureKvRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateSecretsFromAzureKv(ctx context.Context, body MigrateSecretsFromAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsFromAzureKvRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateSecretsToAzureKvWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsToAzureKvRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateSecretsToAzureKv(ctx context.Context, body MigrateSecretsToAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsToAzureKvRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) MigrateSecretsToDatabaseWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewMigrateSecretsToDatabaseRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -16277,6 +16507,30 @@ func (c *Client) SetupCustomInstanceDbWithBody(ctx context.Context, name string,
 
 func (c *Client) SetupCustomInstanceDb(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetupCustomInstanceDbRequest(c.Server, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestAzureKvBackendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestAzureKvBackendRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestAzureKvBackend(ctx context.Context, body TestAzureKvBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestAzureKvBackendRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -26353,6 +26607,60 @@ func NewListConfigsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewListAllDedicatedWithDepsRequest generates requests for ListAllDedicatedWithDeps
+func NewListAllDedicatedWithDepsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/list_all_dedicated_with_deps")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAllWorkspaceDependenciesRequest generates requests for ListAllWorkspaceDependencies
+func NewListAllWorkspaceDependenciesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/list_all_workspace_dependencies")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListAutoscalingEventsRequest generates requests for ListAutoscalingEvents
 func NewListAutoscalingEventsRequest(server string, workerGroup string, params *ListAutoscalingEventsParams) (*http.Request, error) {
 	var err error
@@ -29015,6 +29323,86 @@ func NewGetLocalRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewMigrateSecretsFromAzureKvRequest calls the generic MigrateSecretsFromAzureKv builder with application/json body
+func NewMigrateSecretsFromAzureKvRequest(server string, body MigrateSecretsFromAzureKvJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMigrateSecretsFromAzureKvRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewMigrateSecretsFromAzureKvRequestWithBody generates requests for MigrateSecretsFromAzureKv with any type of body
+func NewMigrateSecretsFromAzureKvRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/migrate_secrets_from_azure_kv")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewMigrateSecretsToAzureKvRequest calls the generic MigrateSecretsToAzureKv builder with application/json body
+func NewMigrateSecretsToAzureKvRequest(server string, body MigrateSecretsToAzureKvJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMigrateSecretsToAzureKvRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewMigrateSecretsToAzureKvRequestWithBody generates requests for MigrateSecretsToAzureKv with any type of body
+func NewMigrateSecretsToAzureKvRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/migrate_secrets_to_azure_kv")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewMigrateSecretsToDatabaseRequest calls the generic MigrateSecretsToDatabase builder with application/json body
 func NewMigrateSecretsToDatabaseRequest(server string, body MigrateSecretsToDatabaseJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -29260,6 +29648,46 @@ func NewSetupCustomInstanceDbRequestWithBody(server string, name string, content
 	}
 
 	operationPath := fmt.Sprintf("/settings/setup_custom_instance_pg_database/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestAzureKvBackendRequest calls the generic TestAzureKvBackend builder with application/json body
+func NewTestAzureKvBackendRequest(server string, body TestAzureKvBackendJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestAzureKvBackendRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewTestAzureKvBackendRequestWithBody generates requests for TestAzureKvBackend with any type of body
+func NewTestAzureKvBackendRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/test_azure_kv_backend")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -31919,6 +32347,22 @@ func NewListAppsRequest(server string, workspace WorkspaceId, params *ListAppsPa
 
 		}
 
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -34414,6 +34858,22 @@ func NewListEmailTriggersRequest(server string, workspace WorkspaceId, params *L
 
 		}
 
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -35755,6 +36215,22 @@ func NewListFlowsRequest(server string, workspace WorkspaceId, params *ListFlows
 
 		}
 
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -36899,6 +37375,22 @@ func NewListGcpTriggersRequest(server string, workspace WorkspaceId, params *Lis
 		if params.PathStart != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -38308,6 +38800,22 @@ func NewListHttpTriggersRequest(server string, workspace WorkspaceId, params *Li
 		if params.PathStart != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -50844,6 +51352,22 @@ func NewListKafkaTriggersRequest(server string, workspace WorkspaceId, params *L
 
 		}
 
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -51317,6 +51841,22 @@ func NewListMqttTriggersRequest(server string, workspace WorkspaceId, params *Li
 		if params.PathStart != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -52373,6 +52913,22 @@ func NewListNativeTriggersRequest(server string, workspace WorkspaceId, serviceN
 
 		}
 
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -52752,6 +53308,22 @@ func NewListNatsTriggersRequest(server string, workspace WorkspaceId, params *Li
 		if params.PathStart != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -53960,6 +54532,22 @@ func NewListPostgresTriggersRequest(server string, workspace WorkspaceId, params
 
 		}
 
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -54716,6 +55304,22 @@ func NewListRawAppsRequest(server string, workspace WorkspaceId, params *ListRaw
 
 		}
 
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -55343,6 +55947,22 @@ func NewListResourceRequest(server string, workspace WorkspaceId, params *ListRe
 		if params.BroadFilter != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "broad_filter", runtime.ParamLocationQuery, *params.BroadFilter); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -56229,6 +56849,22 @@ func NewListSchedulesRequest(server string, workspace WorkspaceId, params *ListS
 		if params.BroadFilter != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "broad_filter", runtime.ParamLocationQuery, *params.BroadFilter); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -57542,6 +58178,22 @@ func NewListScriptsRequest(server string, workspace WorkspaceId, params *ListScr
 
 		}
 
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -58233,6 +58885,22 @@ func NewListSqsTriggersRequest(server string, workspace WorkspaceId, params *Lis
 		if params.PathStart != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -59592,6 +60260,22 @@ func NewListVariableRequest(server string, workspace WorkspaceId, params *ListVa
 
 		}
 
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -60135,6 +60819,22 @@ func NewListWebsocketTriggersRequest(server string, workspace WorkspaceId, param
 		if params.PathStart != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -64884,6 +65584,12 @@ type ClientWithResponsesInterface interface {
 	// ListConfigsWithResponse request
 	ListConfigsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListConfigsResponse, error)
 
+	// ListAllDedicatedWithDepsWithResponse request
+	ListAllDedicatedWithDepsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAllDedicatedWithDepsResponse, error)
+
+	// ListAllWorkspaceDependenciesWithResponse request
+	ListAllWorkspaceDependenciesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAllWorkspaceDependenciesResponse, error)
+
 	// ListAutoscalingEventsWithResponse request
 	ListAutoscalingEventsWithResponse(ctx context.Context, workerGroup string, params *ListAutoscalingEventsParams, reqEditors ...RequestEditorFn) (*ListAutoscalingEventsResponse, error)
 
@@ -65118,6 +65824,16 @@ type ClientWithResponsesInterface interface {
 	// GetLocalWithResponse request
 	GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error)
 
+	// MigrateSecretsFromAzureKvWithBodyWithResponse request with any body
+	MigrateSecretsFromAzureKvWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAzureKvResponse, error)
+
+	MigrateSecretsFromAzureKvWithResponse(ctx context.Context, body MigrateSecretsFromAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAzureKvResponse, error)
+
+	// MigrateSecretsToAzureKvWithBodyWithResponse request with any body
+	MigrateSecretsToAzureKvWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToAzureKvResponse, error)
+
+	MigrateSecretsToAzureKvWithResponse(ctx context.Context, body MigrateSecretsToAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsToAzureKvResponse, error)
+
 	// MigrateSecretsToDatabaseWithBodyWithResponse request with any body
 	MigrateSecretsToDatabaseWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToDatabaseResponse, error)
 
@@ -65144,6 +65860,11 @@ type ClientWithResponsesInterface interface {
 	SetupCustomInstanceDbWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetupCustomInstanceDbResponse, error)
 
 	SetupCustomInstanceDbWithResponse(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*SetupCustomInstanceDbResponse, error)
+
+	// TestAzureKvBackendWithBodyWithResponse request with any body
+	TestAzureKvBackendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestAzureKvBackendResponse, error)
+
+	TestAzureKvBackendWithResponse(ctx context.Context, body TestAzureKvBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*TestAzureKvBackendResponse, error)
 
 	// TestCriticalChannelsWithBodyWithResponse request with any body
 	TestCriticalChannelsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestCriticalChannelsResponse, error)
@@ -67507,6 +68228,7 @@ type GetPublicAppByCustomPathResponse struct {
 		ExecutionMode GetPublicAppByCustomPath200ExecutionMode `json:"execution_mode"`
 		ExtraPerms    map[string]bool                          `json:"extra_perms"`
 		Id            int                                      `json:"id"`
+		Labels        *[]string                                `json:"labels,omitempty"`
 		Path          string                                   `json:"path"`
 		Policy        Policy                                   `json:"policy"`
 		RawApp        bool                                     `json:"raw_app"`
@@ -67746,6 +68468,59 @@ func (r ListConfigsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListConfigsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAllDedicatedWithDepsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Language          ScriptLang `json:"language"`
+		Path              string     `json:"path"`
+		WorkspaceDepNames []string   `json:"workspace_dep_names"`
+		WorkspaceId       string     `json:"workspace_id"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAllDedicatedWithDepsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAllDedicatedWithDepsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAllWorkspaceDependenciesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Language    ScriptLang `json:"language"`
+		Name        *string    `json:"name,omitempty"`
+		WorkspaceId string     `json:"workspace_id"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAllWorkspaceDependenciesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAllWorkspaceDependenciesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -69306,6 +70081,50 @@ func (r GetLocalResponse) StatusCode() int {
 	return 0
 }
 
+type MigrateSecretsFromAzureKvResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SecretMigrationReport
+}
+
+// Status returns HTTPResponse.Status
+func (r MigrateSecretsFromAzureKvResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MigrateSecretsFromAzureKvResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type MigrateSecretsToAzureKvResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SecretMigrationReport
+}
+
+// Status returns HTTPResponse.Status
+func (r MigrateSecretsToAzureKvResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MigrateSecretsToAzureKvResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type MigrateSecretsToDatabaseResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -69451,6 +70270,27 @@ func (r SetupCustomInstanceDbResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SetupCustomInstanceDbResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestAzureKvBackendResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestAzureKvBackendResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestAzureKvBackendResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -71813,6 +72653,7 @@ type GetFlowByPathWithDraftResponse struct {
 		EditedAt        time.Time  `json:"edited_at"`
 		EditedBy        string     `json:"edited_by"`
 		ExtraPerms      ExtraPerms `json:"extra_perms"`
+		Labels          *[]string  `json:"labels,omitempty"`
 		LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
 		OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
 		Path            string     `json:"path"`
@@ -71997,6 +72838,7 @@ type ListFlowsResponse struct {
 		EditedBy        string     `json:"edited_by"`
 		ExtraPerms      ExtraPerms `json:"extra_perms"`
 		HasDraft        *bool      `json:"has_draft,omitempty"`
+		Labels          *[]string  `json:"labels,omitempty"`
 		LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
 		OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
 		Path            string     `json:"path"`
@@ -82206,6 +83048,24 @@ func (c *ClientWithResponses) ListConfigsWithResponse(ctx context.Context, reqEd
 	return ParseListConfigsResponse(rsp)
 }
 
+// ListAllDedicatedWithDepsWithResponse request returning *ListAllDedicatedWithDepsResponse
+func (c *ClientWithResponses) ListAllDedicatedWithDepsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAllDedicatedWithDepsResponse, error) {
+	rsp, err := c.ListAllDedicatedWithDeps(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAllDedicatedWithDepsResponse(rsp)
+}
+
+// ListAllWorkspaceDependenciesWithResponse request returning *ListAllWorkspaceDependenciesResponse
+func (c *ClientWithResponses) ListAllWorkspaceDependenciesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAllWorkspaceDependenciesResponse, error) {
+	rsp, err := c.ListAllWorkspaceDependencies(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAllWorkspaceDependenciesResponse(rsp)
+}
+
 // ListAutoscalingEventsWithResponse request returning *ListAutoscalingEventsResponse
 func (c *ClientWithResponses) ListAutoscalingEventsWithResponse(ctx context.Context, workerGroup string, params *ListAutoscalingEventsParams, reqEditors ...RequestEditorFn) (*ListAutoscalingEventsResponse, error) {
 	rsp, err := c.ListAutoscalingEvents(ctx, workerGroup, params, reqEditors...)
@@ -82944,6 +83804,40 @@ func (c *ClientWithResponses) GetLocalWithResponse(ctx context.Context, reqEdito
 	return ParseGetLocalResponse(rsp)
 }
 
+// MigrateSecretsFromAzureKvWithBodyWithResponse request with arbitrary body returning *MigrateSecretsFromAzureKvResponse
+func (c *ClientWithResponses) MigrateSecretsFromAzureKvWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAzureKvResponse, error) {
+	rsp, err := c.MigrateSecretsFromAzureKvWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsFromAzureKvResponse(rsp)
+}
+
+func (c *ClientWithResponses) MigrateSecretsFromAzureKvWithResponse(ctx context.Context, body MigrateSecretsFromAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAzureKvResponse, error) {
+	rsp, err := c.MigrateSecretsFromAzureKv(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsFromAzureKvResponse(rsp)
+}
+
+// MigrateSecretsToAzureKvWithBodyWithResponse request with arbitrary body returning *MigrateSecretsToAzureKvResponse
+func (c *ClientWithResponses) MigrateSecretsToAzureKvWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToAzureKvResponse, error) {
+	rsp, err := c.MigrateSecretsToAzureKvWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsToAzureKvResponse(rsp)
+}
+
+func (c *ClientWithResponses) MigrateSecretsToAzureKvWithResponse(ctx context.Context, body MigrateSecretsToAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsToAzureKvResponse, error) {
+	rsp, err := c.MigrateSecretsToAzureKv(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsToAzureKvResponse(rsp)
+}
+
 // MigrateSecretsToDatabaseWithBodyWithResponse request with arbitrary body returning *MigrateSecretsToDatabaseResponse
 func (c *ClientWithResponses) MigrateSecretsToDatabaseWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToDatabaseResponse, error) {
 	rsp, err := c.MigrateSecretsToDatabaseWithBody(ctx, contentType, body, reqEditors...)
@@ -83029,6 +83923,23 @@ func (c *ClientWithResponses) SetupCustomInstanceDbWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseSetupCustomInstanceDbResponse(rsp)
+}
+
+// TestAzureKvBackendWithBodyWithResponse request with arbitrary body returning *TestAzureKvBackendResponse
+func (c *ClientWithResponses) TestAzureKvBackendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestAzureKvBackendResponse, error) {
+	rsp, err := c.TestAzureKvBackendWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestAzureKvBackendResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestAzureKvBackendWithResponse(ctx context.Context, body TestAzureKvBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*TestAzureKvBackendResponse, error) {
+	rsp, err := c.TestAzureKvBackend(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestAzureKvBackendResponse(rsp)
 }
 
 // TestCriticalChannelsWithBodyWithResponse request with arbitrary body returning *TestCriticalChannelsResponse
@@ -90114,6 +91025,7 @@ func ParseGetPublicAppByCustomPathResponse(rsp *http.Response) (*GetPublicAppByC
 			ExecutionMode GetPublicAppByCustomPath200ExecutionMode `json:"execution_mode"`
 			ExtraPerms    map[string]bool                          `json:"extra_perms"`
 			Id            int                                      `json:"id"`
+			Labels        *[]string                                `json:"labels,omitempty"`
 			Path          string                                   `json:"path"`
 			Policy        Policy                                   `json:"policy"`
 			RawApp        bool                                     `json:"raw_app"`
@@ -90362,6 +91274,67 @@ func ParseListConfigsResponse(rsp *http.Response) (*ListConfigsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []Config
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAllDedicatedWithDepsResponse parses an HTTP response from a ListAllDedicatedWithDepsWithResponse call
+func ParseListAllDedicatedWithDepsResponse(rsp *http.Response) (*ListAllDedicatedWithDepsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAllDedicatedWithDepsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Language          ScriptLang `json:"language"`
+			Path              string     `json:"path"`
+			WorkspaceDepNames []string   `json:"workspace_dep_names"`
+			WorkspaceId       string     `json:"workspace_id"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAllWorkspaceDependenciesResponse parses an HTTP response from a ListAllWorkspaceDependenciesWithResponse call
+func ParseListAllWorkspaceDependenciesResponse(rsp *http.Response) (*ListAllWorkspaceDependenciesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAllWorkspaceDependenciesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Language    ScriptLang `json:"language"`
+			Name        *string    `json:"name,omitempty"`
+			WorkspaceId string     `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -91986,6 +92959,58 @@ func ParseGetLocalResponse(rsp *http.Response) (*GetLocalResponse, error) {
 	return response, nil
 }
 
+// ParseMigrateSecretsFromAzureKvResponse parses an HTTP response from a MigrateSecretsFromAzureKvWithResponse call
+func ParseMigrateSecretsFromAzureKvResponse(rsp *http.Response) (*MigrateSecretsFromAzureKvResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MigrateSecretsFromAzureKvResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SecretMigrationReport
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseMigrateSecretsToAzureKvResponse parses an HTTP response from a MigrateSecretsToAzureKvWithResponse call
+func ParseMigrateSecretsToAzureKvResponse(rsp *http.Response) (*MigrateSecretsToAzureKvResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MigrateSecretsToAzureKvResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SecretMigrationReport
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseMigrateSecretsToDatabaseResponse parses an HTTP response from a MigrateSecretsToDatabaseWithResponse call
 func ParseMigrateSecretsToDatabaseResponse(rsp *http.Response) (*MigrateSecretsToDatabaseResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -92133,6 +93158,22 @@ func ParseSetupCustomInstanceDbResponse(rsp *http.Response) (*SetupCustomInstanc
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseTestAzureKvBackendResponse parses an HTTP response from a TestAzureKvBackendWithResponse call
+func ParseTestAzureKvBackendResponse(rsp *http.Response) (*TestAzureKvBackendResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestAzureKvBackendResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -94436,6 +95477,7 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			EditedAt        time.Time  `json:"edited_at"`
 			EditedBy        string     `json:"edited_by"`
 			ExtraPerms      ExtraPerms `json:"extra_perms"`
+			Labels          *[]string  `json:"labels,omitempty"`
 			LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
 			OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
 			Path            string     `json:"path"`
@@ -94639,6 +95681,7 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			EditedBy        string     `json:"edited_by"`
 			ExtraPerms      ExtraPerms `json:"extra_perms"`
 			HasDraft        *bool      `json:"has_draft,omitempty"`
+			Labels          *[]string  `json:"labels,omitempty"`
 			LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
 			OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
 			Path            string     `json:"path"`
