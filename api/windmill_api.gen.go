@@ -12865,6 +12865,9 @@ type ClientInterface interface {
 	// GetObjectStorageUsage request
 	GetObjectStorageUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ComputeObjectStorageUsage request
+	ComputeObjectStorageUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RefreshCustomInstanceUserPwd request
 	RefreshCustomInstanceUserPwd(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16468,6 +16471,18 @@ func (c *Client) MigrateSecretsToVault(ctx context.Context, body MigrateSecretsT
 
 func (c *Client) GetObjectStorageUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetObjectStorageUsageRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ComputeObjectStorageUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewComputeObjectStorageUsageRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -29575,6 +29590,33 @@ func NewGetObjectStorageUsageRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewComputeObjectStorageUsageRequest generates requests for ComputeObjectStorageUsage
+func NewComputeObjectStorageUsageRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/object_storage_usage")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -65976,6 +66018,9 @@ type ClientWithResponsesInterface interface {
 	// GetObjectStorageUsageWithResponse request
 	GetObjectStorageUsageWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetObjectStorageUsageResponse, error)
 
+	// ComputeObjectStorageUsageWithResponse request
+	ComputeObjectStorageUsageWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ComputeObjectStorageUsageResponse, error)
+
 	// RefreshCustomInstanceUserPwdWithResponse request
 	RefreshCustomInstanceUserPwdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshCustomInstanceUserPwdResponse, error)
 
@@ -70223,6 +70268,9 @@ type GetLogCleanupStatusResponse struct {
 		Errors           int64      `json:"errors"`
 		FinishedAt       *time.Time `json:"finished_at"`
 		LastError        *string    `json:"last_error"`
+		OrphansDeleted   int64      `json:"orphans_deleted"`
+		OrphansScanned   int64      `json:"orphans_scanned"`
+		Phase            string     `json:"phase"`
 		ProcessedJobs    int64      `json:"processed_jobs"`
 		ProcessedService int64      `json:"processed_service"`
 		Running          bool       `json:"running"`
@@ -70340,9 +70388,18 @@ func (r MigrateSecretsToVaultResponse) StatusCode() int {
 type GetObjectStorageUsageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]struct {
-		Prefix string `json:"prefix"`
-		Size   int64  `json:"size"`
+	JSON200      *struct {
+		CurrentPrefix *string    `json:"current_prefix"`
+		Error         *string    `json:"error"`
+		FinishedAt    *time.Time `json:"finished_at"`
+		Folders       []struct {
+			Partial *bool  `json:"partial,omitempty"`
+			Prefix  string `json:"prefix"`
+			Size    int64  `json:"size"`
+		} `json:"folders"`
+		Running        bool      `json:"running"`
+		ScannedObjects int64     `json:"scanned_objects"`
+		StartedAt      time.Time `json:"started_at"`
 	}
 }
 
@@ -70356,6 +70413,27 @@ func (r GetObjectStorageUsageResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetObjectStorageUsageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ComputeObjectStorageUsageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ComputeObjectStorageUsageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ComputeObjectStorageUsageResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -84104,6 +84182,15 @@ func (c *ClientWithResponses) GetObjectStorageUsageWithResponse(ctx context.Cont
 	return ParseGetObjectStorageUsageResponse(rsp)
 }
 
+// ComputeObjectStorageUsageWithResponse request returning *ComputeObjectStorageUsageResponse
+func (c *ClientWithResponses) ComputeObjectStorageUsageWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ComputeObjectStorageUsageResponse, error) {
+	rsp, err := c.ComputeObjectStorageUsage(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseComputeObjectStorageUsageResponse(rsp)
+}
+
 // RefreshCustomInstanceUserPwdWithResponse request returning *RefreshCustomInstanceUserPwdResponse
 func (c *ClientWithResponses) RefreshCustomInstanceUserPwdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshCustomInstanceUserPwdResponse, error) {
 	rsp, err := c.RefreshCustomInstanceUserPwd(ctx, reqEditors...)
@@ -93219,6 +93306,9 @@ func ParseGetLogCleanupStatusResponse(rsp *http.Response) (*GetLogCleanupStatusR
 			Errors           int64      `json:"errors"`
 			FinishedAt       *time.Time `json:"finished_at"`
 			LastError        *string    `json:"last_error"`
+			OrphansDeleted   int64      `json:"orphans_deleted"`
+			OrphansScanned   int64      `json:"orphans_scanned"`
+			Phase            string     `json:"phase"`
 			ProcessedJobs    int64      `json:"processed_jobs"`
 			ProcessedService int64      `json:"processed_service"`
 			Running          bool       `json:"running"`
@@ -93356,15 +93446,40 @@ func ParseGetObjectStorageUsageResponse(rsp *http.Response) (*GetObjectStorageUs
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []struct {
-			Prefix string `json:"prefix"`
-			Size   int64  `json:"size"`
+		var dest struct {
+			CurrentPrefix *string    `json:"current_prefix"`
+			Error         *string    `json:"error"`
+			FinishedAt    *time.Time `json:"finished_at"`
+			Folders       []struct {
+				Partial *bool  `json:"partial,omitempty"`
+				Prefix  string `json:"prefix"`
+				Size    int64  `json:"size"`
+			} `json:"folders"`
+			Running        bool      `json:"running"`
+			ScannedObjects int64     `json:"scanned_objects"`
+			StartedAt      time.Time `json:"started_at"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseComputeObjectStorageUsageResponse parses an HTTP response from a ComputeObjectStorageUsageWithResponse call
+func ParseComputeObjectStorageUsageResponse(rsp *http.Response) (*ComputeObjectStorageUsageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ComputeObjectStorageUsageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
