@@ -12839,6 +12839,9 @@ type ClientInterface interface {
 	// GetLocal request
 	GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetLogCleanupStatus request
+	GetLogCleanupStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// MigrateSecretsFromAzureKvWithBody request with any body
 	MigrateSecretsFromAzureKvWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -12859,6 +12862,9 @@ type ClientInterface interface {
 
 	MigrateSecretsToVault(ctx context.Context, body MigrateSecretsToVaultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetObjectStorageUsage request
+	GetObjectStorageUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RefreshCustomInstanceUserPwd request
 	RefreshCustomInstanceUserPwd(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -12867,6 +12873,9 @@ type ClientInterface interface {
 
 	// RestartWorkerGroup request
 	RestartWorkerGroup(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunLogCleanup request
+	RunLogCleanup(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SendStats request
 	SendStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16349,6 +16358,18 @@ func (c *Client) GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetLogCleanupStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLogCleanupStatusRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) MigrateSecretsFromAzureKvWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewMigrateSecretsFromAzureKvRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -16445,6 +16466,18 @@ func (c *Client) MigrateSecretsToVault(ctx context.Context, body MigrateSecretsT
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetObjectStorageUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetObjectStorageUsageRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) RefreshCustomInstanceUserPwd(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRefreshCustomInstanceUserPwdRequest(c.Server)
 	if err != nil {
@@ -16471,6 +16504,18 @@ func (c *Client) RenewLicenseKey(ctx context.Context, params *RenewLicenseKeyPar
 
 func (c *Client) RestartWorkerGroup(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRestartWorkerGroupRequest(c.Server, workerGroup)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunLogCleanup(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunLogCleanupRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -29323,6 +29368,33 @@ func NewGetLocalRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGetLogCleanupStatusRequest generates requests for GetLogCleanupStatus
+func NewGetLogCleanupStatusRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/log_cleanup_status")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewMigrateSecretsFromAzureKvRequest calls the generic MigrateSecretsFromAzureKv builder with application/json body
 func NewMigrateSecretsFromAzureKvRequest(server string, body MigrateSecretsFromAzureKvJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -29483,6 +29555,33 @@ func NewMigrateSecretsToVaultRequestWithBody(server string, contentType string, 
 	return req, nil
 }
 
+// NewGetObjectStorageUsageRequest generates requests for GetObjectStorageUsage
+func NewGetObjectStorageUsageRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/object_storage_usage")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewRefreshCustomInstanceUserPwdRequest generates requests for RefreshCustomInstanceUserPwd
 func NewRefreshCustomInstanceUserPwdRequest(server string) (*http.Request, error) {
 	var err error
@@ -29576,6 +29675,33 @@ func NewRestartWorkerGroupRequest(server string, workerGroup string) (*http.Requ
 	}
 
 	operationPath := fmt.Sprintf("/settings/restart_worker_group/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRunLogCleanupRequest generates requests for RunLogCleanup
+func NewRunLogCleanupRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/run_log_cleanup")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -65824,6 +65950,9 @@ type ClientWithResponsesInterface interface {
 	// GetLocalWithResponse request
 	GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error)
 
+	// GetLogCleanupStatusWithResponse request
+	GetLogCleanupStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLogCleanupStatusResponse, error)
+
 	// MigrateSecretsFromAzureKvWithBodyWithResponse request with any body
 	MigrateSecretsFromAzureKvWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAzureKvResponse, error)
 
@@ -65844,6 +65973,9 @@ type ClientWithResponsesInterface interface {
 
 	MigrateSecretsToVaultWithResponse(ctx context.Context, body MigrateSecretsToVaultJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsToVaultResponse, error)
 
+	// GetObjectStorageUsageWithResponse request
+	GetObjectStorageUsageWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetObjectStorageUsageResponse, error)
+
 	// RefreshCustomInstanceUserPwdWithResponse request
 	RefreshCustomInstanceUserPwdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshCustomInstanceUserPwdResponse, error)
 
@@ -65852,6 +65984,9 @@ type ClientWithResponsesInterface interface {
 
 	// RestartWorkerGroupWithResponse request
 	RestartWorkerGroupWithResponse(ctx context.Context, workerGroup string, reqEditors ...RequestEditorFn) (*RestartWorkerGroupResponse, error)
+
+	// RunLogCleanupWithResponse request
+	RunLogCleanupWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RunLogCleanupResponse, error)
 
 	// SendStatsWithResponse request
 	SendStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*SendStatsResponse, error)
@@ -70081,6 +70216,39 @@ func (r GetLocalResponse) StatusCode() int {
 	return 0
 }
 
+type GetLogCleanupStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Errors           int64      `json:"errors"`
+		FinishedAt       *time.Time `json:"finished_at"`
+		LastError        *string    `json:"last_error"`
+		ProcessedJobs    int64      `json:"processed_jobs"`
+		ProcessedService int64      `json:"processed_service"`
+		Running          bool       `json:"running"`
+		S3Deleted        int64      `json:"s3_deleted"`
+		StartedAt        time.Time  `json:"started_at"`
+		TotalJobs        int64      `json:"total_jobs"`
+		TotalService     int64      `json:"total_service"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetLogCleanupStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetLogCleanupStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type MigrateSecretsFromAzureKvResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -70169,6 +70337,31 @@ func (r MigrateSecretsToVaultResponse) StatusCode() int {
 	return 0
 }
 
+type GetObjectStorageUsageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Prefix string `json:"prefix"`
+		Size   int64  `json:"size"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetObjectStorageUsageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetObjectStorageUsageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RefreshCustomInstanceUserPwdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -70227,6 +70420,27 @@ func (r RestartWorkerGroupResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RestartWorkerGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunLogCleanupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunLogCleanupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunLogCleanupResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -83804,6 +84018,15 @@ func (c *ClientWithResponses) GetLocalWithResponse(ctx context.Context, reqEdito
 	return ParseGetLocalResponse(rsp)
 }
 
+// GetLogCleanupStatusWithResponse request returning *GetLogCleanupStatusResponse
+func (c *ClientWithResponses) GetLogCleanupStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLogCleanupStatusResponse, error) {
+	rsp, err := c.GetLogCleanupStatus(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetLogCleanupStatusResponse(rsp)
+}
+
 // MigrateSecretsFromAzureKvWithBodyWithResponse request with arbitrary body returning *MigrateSecretsFromAzureKvResponse
 func (c *ClientWithResponses) MigrateSecretsFromAzureKvWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAzureKvResponse, error) {
 	rsp, err := c.MigrateSecretsFromAzureKvWithBody(ctx, contentType, body, reqEditors...)
@@ -83872,6 +84095,15 @@ func (c *ClientWithResponses) MigrateSecretsToVaultWithResponse(ctx context.Cont
 	return ParseMigrateSecretsToVaultResponse(rsp)
 }
 
+// GetObjectStorageUsageWithResponse request returning *GetObjectStorageUsageResponse
+func (c *ClientWithResponses) GetObjectStorageUsageWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetObjectStorageUsageResponse, error) {
+	rsp, err := c.GetObjectStorageUsage(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetObjectStorageUsageResponse(rsp)
+}
+
 // RefreshCustomInstanceUserPwdWithResponse request returning *RefreshCustomInstanceUserPwdResponse
 func (c *ClientWithResponses) RefreshCustomInstanceUserPwdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshCustomInstanceUserPwdResponse, error) {
 	rsp, err := c.RefreshCustomInstanceUserPwd(ctx, reqEditors...)
@@ -83897,6 +84129,15 @@ func (c *ClientWithResponses) RestartWorkerGroupWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseRestartWorkerGroupResponse(rsp)
+}
+
+// RunLogCleanupWithResponse request returning *RunLogCleanupResponse
+func (c *ClientWithResponses) RunLogCleanupWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RunLogCleanupResponse, error) {
+	rsp, err := c.RunLogCleanup(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunLogCleanupResponse(rsp)
 }
 
 // SendStatsWithResponse request returning *SendStatsResponse
@@ -92959,6 +93200,43 @@ func ParseGetLocalResponse(rsp *http.Response) (*GetLocalResponse, error) {
 	return response, nil
 }
 
+// ParseGetLogCleanupStatusResponse parses an HTTP response from a GetLogCleanupStatusWithResponse call
+func ParseGetLogCleanupStatusResponse(rsp *http.Response) (*GetLogCleanupStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetLogCleanupStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Errors           int64      `json:"errors"`
+			FinishedAt       *time.Time `json:"finished_at"`
+			LastError        *string    `json:"last_error"`
+			ProcessedJobs    int64      `json:"processed_jobs"`
+			ProcessedService int64      `json:"processed_service"`
+			Running          bool       `json:"running"`
+			S3Deleted        int64      `json:"s3_deleted"`
+			StartedAt        time.Time  `json:"started_at"`
+			TotalJobs        int64      `json:"total_jobs"`
+			TotalService     int64      `json:"total_service"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseMigrateSecretsFromAzureKvResponse parses an HTTP response from a MigrateSecretsFromAzureKvWithResponse call
 func ParseMigrateSecretsFromAzureKvResponse(rsp *http.Response) (*MigrateSecretsFromAzureKvResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -93063,6 +93341,35 @@ func ParseMigrateSecretsToVaultResponse(rsp *http.Response) (*MigrateSecretsToVa
 	return response, nil
 }
 
+// ParseGetObjectStorageUsageResponse parses an HTTP response from a GetObjectStorageUsageWithResponse call
+func ParseGetObjectStorageUsageResponse(rsp *http.Response) (*GetObjectStorageUsageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetObjectStorageUsageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Prefix string `json:"prefix"`
+			Size   int64  `json:"size"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseRefreshCustomInstanceUserPwdResponse parses an HTTP response from a RefreshCustomInstanceUserPwdWithResponse call
 func ParseRefreshCustomInstanceUserPwdResponse(rsp *http.Response) (*RefreshCustomInstanceUserPwdResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -93114,6 +93421,22 @@ func ParseRestartWorkerGroupResponse(rsp *http.Response) (*RestartWorkerGroupRes
 	}
 
 	response := &RestartWorkerGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunLogCleanupResponse parses an HTTP response from a RunLogCleanupWithResponse call
+func ParseRunLogCleanupResponse(rsp *http.Response) (*RunLogCleanupResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunLogCleanupResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
