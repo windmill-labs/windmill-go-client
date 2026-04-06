@@ -1383,6 +1383,24 @@ type AutoscalingEvent struct {
 // AwsAuthResourceType defines model for AwsAuthResourceType.
 type AwsAuthResourceType string
 
+// AwsSecretsManagerSettings defines model for AwsSecretsManagerSettings.
+type AwsSecretsManagerSettings struct {
+	// AccessKeyId AWS Access Key ID (optional, uses default credential chain if not provided)
+	AccessKeyId *string `json:"access_key_id,omitempty"`
+
+	// EndpointUrl Custom endpoint URL for testing (e.g., LocalStack)
+	EndpointUrl *string `json:"endpoint_url,omitempty"`
+
+	// Prefix Prefix for secret names (e.g., windmill/)
+	Prefix *string `json:"prefix,omitempty"`
+
+	// Region AWS region (e.g., us-east-1)
+	Region string `json:"region"`
+
+	// SecretAccessKey AWS Secret Access Key (optional)
+	SecretAccessKey *string `json:"secret_access_key,omitempty"`
+}
+
 // AzureKeyVaultSettings defines model for AzureKeyVaultSettings.
 type AzureKeyVaultSettings struct {
 	// ClientId Azure AD application (client) ID
@@ -9933,8 +9951,14 @@ type SetGlobalJSONRequestBody SetGlobalJSONBody
 // SetInstanceConfigJSONRequestBody defines body for SetInstanceConfig for application/json ContentType.
 type SetInstanceConfigJSONRequestBody = InstanceConfig
 
+// MigrateSecretsFromAwsSmJSONRequestBody defines body for MigrateSecretsFromAwsSm for application/json ContentType.
+type MigrateSecretsFromAwsSmJSONRequestBody = AwsSecretsManagerSettings
+
 // MigrateSecretsFromAzureKvJSONRequestBody defines body for MigrateSecretsFromAzureKv for application/json ContentType.
 type MigrateSecretsFromAzureKvJSONRequestBody = AzureKeyVaultSettings
+
+// MigrateSecretsToAwsSmJSONRequestBody defines body for MigrateSecretsToAwsSm for application/json ContentType.
+type MigrateSecretsToAwsSmJSONRequestBody = AwsSecretsManagerSettings
 
 // MigrateSecretsToAzureKvJSONRequestBody defines body for MigrateSecretsToAzureKv for application/json ContentType.
 type MigrateSecretsToAzureKvJSONRequestBody = AzureKeyVaultSettings
@@ -9947,6 +9971,9 @@ type MigrateSecretsToVaultJSONRequestBody = VaultSettings
 
 // SetupCustomInstanceDbJSONRequestBody defines body for SetupCustomInstanceDb for application/json ContentType.
 type SetupCustomInstanceDbJSONRequestBody SetupCustomInstanceDbJSONBody
+
+// TestAwsSmBackendJSONRequestBody defines body for TestAwsSmBackend for application/json ContentType.
+type TestAwsSmBackendJSONRequestBody = AwsSecretsManagerSettings
 
 // TestAzureKvBackendJSONRequestBody defines body for TestAzureKvBackend for application/json ContentType.
 type TestAzureKvBackendJSONRequestBody = AzureKeyVaultSettings
@@ -12842,10 +12869,20 @@ type ClientInterface interface {
 	// GetLogCleanupStatus request
 	GetLogCleanupStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// MigrateSecretsFromAwsSmWithBody request with any body
+	MigrateSecretsFromAwsSmWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MigrateSecretsFromAwsSm(ctx context.Context, body MigrateSecretsFromAwsSmJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// MigrateSecretsFromAzureKvWithBody request with any body
 	MigrateSecretsFromAzureKvWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	MigrateSecretsFromAzureKv(ctx context.Context, body MigrateSecretsFromAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// MigrateSecretsToAwsSmWithBody request with any body
+	MigrateSecretsToAwsSmWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MigrateSecretsToAwsSm(ctx context.Context, body MigrateSecretsToAwsSmJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// MigrateSecretsToAzureKvWithBody request with any body
 	MigrateSecretsToAzureKvWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -12887,6 +12924,11 @@ type ClientInterface interface {
 	SetupCustomInstanceDbWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetupCustomInstanceDb(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestAwsSmBackendWithBody request with any body
+	TestAwsSmBackendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestAwsSmBackend(ctx context.Context, body TestAwsSmBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestAzureKvBackendWithBody request with any body
 	TestAzureKvBackendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16376,6 +16418,30 @@ func (c *Client) GetLogCleanupStatus(ctx context.Context, reqEditors ...RequestE
 	return c.Client.Do(req)
 }
 
+func (c *Client) MigrateSecretsFromAwsSmWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsFromAwsSmRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateSecretsFromAwsSm(ctx context.Context, body MigrateSecretsFromAwsSmJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsFromAwsSmRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) MigrateSecretsFromAzureKvWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewMigrateSecretsFromAzureKvRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -16390,6 +16456,30 @@ func (c *Client) MigrateSecretsFromAzureKvWithBody(ctx context.Context, contentT
 
 func (c *Client) MigrateSecretsFromAzureKv(ctx context.Context, body MigrateSecretsFromAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewMigrateSecretsFromAzureKvRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateSecretsToAwsSmWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsToAwsSmRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateSecretsToAwsSm(ctx context.Context, body MigrateSecretsToAwsSmJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsToAwsSmRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -16570,6 +16660,30 @@ func (c *Client) SetupCustomInstanceDbWithBody(ctx context.Context, name string,
 
 func (c *Client) SetupCustomInstanceDb(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetupCustomInstanceDbRequest(c.Server, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestAwsSmBackendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestAwsSmBackendRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestAwsSmBackend(ctx context.Context, body TestAwsSmBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestAwsSmBackendRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -29425,6 +29539,46 @@ func NewGetLogCleanupStatusRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewMigrateSecretsFromAwsSmRequest calls the generic MigrateSecretsFromAwsSm builder with application/json body
+func NewMigrateSecretsFromAwsSmRequest(server string, body MigrateSecretsFromAwsSmJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMigrateSecretsFromAwsSmRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewMigrateSecretsFromAwsSmRequestWithBody generates requests for MigrateSecretsFromAwsSm with any type of body
+func NewMigrateSecretsFromAwsSmRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/migrate_secrets_from_aws_sm")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewMigrateSecretsFromAzureKvRequest calls the generic MigrateSecretsFromAzureKv builder with application/json body
 func NewMigrateSecretsFromAzureKvRequest(server string, body MigrateSecretsFromAzureKvJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -29446,6 +29600,46 @@ func NewMigrateSecretsFromAzureKvRequestWithBody(server string, contentType stri
 	}
 
 	operationPath := fmt.Sprintf("/settings/migrate_secrets_from_azure_kv")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewMigrateSecretsToAwsSmRequest calls the generic MigrateSecretsToAwsSm builder with application/json body
+func NewMigrateSecretsToAwsSmRequest(server string, body MigrateSecretsToAwsSmJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMigrateSecretsToAwsSmRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewMigrateSecretsToAwsSmRequestWithBody generates requests for MigrateSecretsToAwsSm with any type of body
+func NewMigrateSecretsToAwsSmRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/migrate_secrets_to_aws_sm")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -29831,6 +30025,46 @@ func NewSetupCustomInstanceDbRequestWithBody(server string, name string, content
 	}
 
 	operationPath := fmt.Sprintf("/settings/setup_custom_instance_pg_database/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestAwsSmBackendRequest calls the generic TestAwsSmBackend builder with application/json body
+func NewTestAwsSmBackendRequest(server string, body TestAwsSmBackendJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestAwsSmBackendRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewTestAwsSmBackendRequestWithBody generates requests for TestAwsSmBackend with any type of body
+func NewTestAwsSmBackendRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/test_aws_sm_backend")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -66044,10 +66278,20 @@ type ClientWithResponsesInterface interface {
 	// GetLogCleanupStatusWithResponse request
 	GetLogCleanupStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLogCleanupStatusResponse, error)
 
+	// MigrateSecretsFromAwsSmWithBodyWithResponse request with any body
+	MigrateSecretsFromAwsSmWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAwsSmResponse, error)
+
+	MigrateSecretsFromAwsSmWithResponse(ctx context.Context, body MigrateSecretsFromAwsSmJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAwsSmResponse, error)
+
 	// MigrateSecretsFromAzureKvWithBodyWithResponse request with any body
 	MigrateSecretsFromAzureKvWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAzureKvResponse, error)
 
 	MigrateSecretsFromAzureKvWithResponse(ctx context.Context, body MigrateSecretsFromAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAzureKvResponse, error)
+
+	// MigrateSecretsToAwsSmWithBodyWithResponse request with any body
+	MigrateSecretsToAwsSmWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToAwsSmResponse, error)
+
+	MigrateSecretsToAwsSmWithResponse(ctx context.Context, body MigrateSecretsToAwsSmJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsToAwsSmResponse, error)
 
 	// MigrateSecretsToAzureKvWithBodyWithResponse request with any body
 	MigrateSecretsToAzureKvWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToAzureKvResponse, error)
@@ -66089,6 +66333,11 @@ type ClientWithResponsesInterface interface {
 	SetupCustomInstanceDbWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetupCustomInstanceDbResponse, error)
 
 	SetupCustomInstanceDbWithResponse(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*SetupCustomInstanceDbResponse, error)
+
+	// TestAwsSmBackendWithBodyWithResponse request with any body
+	TestAwsSmBackendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestAwsSmBackendResponse, error)
+
+	TestAwsSmBackendWithResponse(ctx context.Context, body TestAwsSmBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*TestAwsSmBackendResponse, error)
 
 	// TestAzureKvBackendWithBodyWithResponse request with any body
 	TestAzureKvBackendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestAzureKvBackendResponse, error)
@@ -70349,6 +70598,28 @@ func (r GetLogCleanupStatusResponse) StatusCode() int {
 	return 0
 }
 
+type MigrateSecretsFromAwsSmResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SecretMigrationReport
+}
+
+// Status returns HTTPResponse.Status
+func (r MigrateSecretsFromAwsSmResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MigrateSecretsFromAwsSmResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type MigrateSecretsFromAzureKvResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -70365,6 +70636,28 @@ func (r MigrateSecretsFromAzureKvResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r MigrateSecretsFromAzureKvResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type MigrateSecretsToAwsSmResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SecretMigrationReport
+}
+
+// Status returns HTTPResponse.Status
+func (r MigrateSecretsToAwsSmResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MigrateSecretsToAwsSmResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -70614,6 +70907,27 @@ func (r SetupCustomInstanceDbResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SetupCustomInstanceDbResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestAwsSmBackendResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestAwsSmBackendResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestAwsSmBackendResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -84181,6 +84495,23 @@ func (c *ClientWithResponses) GetLogCleanupStatusWithResponse(ctx context.Contex
 	return ParseGetLogCleanupStatusResponse(rsp)
 }
 
+// MigrateSecretsFromAwsSmWithBodyWithResponse request with arbitrary body returning *MigrateSecretsFromAwsSmResponse
+func (c *ClientWithResponses) MigrateSecretsFromAwsSmWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAwsSmResponse, error) {
+	rsp, err := c.MigrateSecretsFromAwsSmWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsFromAwsSmResponse(rsp)
+}
+
+func (c *ClientWithResponses) MigrateSecretsFromAwsSmWithResponse(ctx context.Context, body MigrateSecretsFromAwsSmJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAwsSmResponse, error) {
+	rsp, err := c.MigrateSecretsFromAwsSm(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsFromAwsSmResponse(rsp)
+}
+
 // MigrateSecretsFromAzureKvWithBodyWithResponse request with arbitrary body returning *MigrateSecretsFromAzureKvResponse
 func (c *ClientWithResponses) MigrateSecretsFromAzureKvWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAzureKvResponse, error) {
 	rsp, err := c.MigrateSecretsFromAzureKvWithBody(ctx, contentType, body, reqEditors...)
@@ -84196,6 +84527,23 @@ func (c *ClientWithResponses) MigrateSecretsFromAzureKvWithResponse(ctx context.
 		return nil, err
 	}
 	return ParseMigrateSecretsFromAzureKvResponse(rsp)
+}
+
+// MigrateSecretsToAwsSmWithBodyWithResponse request with arbitrary body returning *MigrateSecretsToAwsSmResponse
+func (c *ClientWithResponses) MigrateSecretsToAwsSmWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToAwsSmResponse, error) {
+	rsp, err := c.MigrateSecretsToAwsSmWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsToAwsSmResponse(rsp)
+}
+
+func (c *ClientWithResponses) MigrateSecretsToAwsSmWithResponse(ctx context.Context, body MigrateSecretsToAwsSmJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsToAwsSmResponse, error) {
+	rsp, err := c.MigrateSecretsToAwsSm(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsToAwsSmResponse(rsp)
 }
 
 // MigrateSecretsToAzureKvWithBodyWithResponse request with arbitrary body returning *MigrateSecretsToAzureKvResponse
@@ -84327,6 +84675,23 @@ func (c *ClientWithResponses) SetupCustomInstanceDbWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseSetupCustomInstanceDbResponse(rsp)
+}
+
+// TestAwsSmBackendWithBodyWithResponse request with arbitrary body returning *TestAwsSmBackendResponse
+func (c *ClientWithResponses) TestAwsSmBackendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestAwsSmBackendResponse, error) {
+	rsp, err := c.TestAwsSmBackendWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestAwsSmBackendResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestAwsSmBackendWithResponse(ctx context.Context, body TestAwsSmBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*TestAwsSmBackendResponse, error) {
+	rsp, err := c.TestAwsSmBackend(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestAwsSmBackendResponse(rsp)
 }
 
 // TestAzureKvBackendWithBodyWithResponse request with arbitrary body returning *TestAzureKvBackendResponse
@@ -93412,6 +93777,32 @@ func ParseGetLogCleanupStatusResponse(rsp *http.Response) (*GetLogCleanupStatusR
 	return response, nil
 }
 
+// ParseMigrateSecretsFromAwsSmResponse parses an HTTP response from a MigrateSecretsFromAwsSmWithResponse call
+func ParseMigrateSecretsFromAwsSmResponse(rsp *http.Response) (*MigrateSecretsFromAwsSmResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MigrateSecretsFromAwsSmResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SecretMigrationReport
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseMigrateSecretsFromAzureKvResponse parses an HTTP response from a MigrateSecretsFromAzureKvWithResponse call
 func ParseMigrateSecretsFromAzureKvResponse(rsp *http.Response) (*MigrateSecretsFromAzureKvResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -93421,6 +93812,32 @@ func ParseMigrateSecretsFromAzureKvResponse(rsp *http.Response) (*MigrateSecrets
 	}
 
 	response := &MigrateSecretsFromAzureKvResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SecretMigrationReport
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseMigrateSecretsToAwsSmResponse parses an HTTP response from a MigrateSecretsToAwsSmWithResponse call
+func ParseMigrateSecretsToAwsSmResponse(rsp *http.Response) (*MigrateSecretsToAwsSmResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MigrateSecretsToAwsSmResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -93681,6 +94098,22 @@ func ParseSetupCustomInstanceDbResponse(rsp *http.Response) (*SetupCustomInstanc
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseTestAwsSmBackendResponse parses an HTTP response from a TestAwsSmBackendWithResponse call
+func ParseTestAwsSmBackendResponse(rsp *http.Response) (*TestAwsSmBackendResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestAwsSmBackendResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
