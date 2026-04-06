@@ -14160,6 +14160,9 @@ type ClientInterface interface {
 
 	GenerateOpenapiSpec(ctx context.Context, workspace WorkspaceId, body GenerateOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListPathAutocompletePaths request
+	ListPathAutocompletePaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreatePostgresTriggerWithBody request with any body
 	CreatePostgresTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -22195,6 +22198,18 @@ func (c *Client) GenerateOpenapiSpecWithBody(ctx context.Context, workspace Work
 
 func (c *Client) GenerateOpenapiSpec(ctx context.Context, workspace WorkspaceId, body GenerateOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGenerateOpenapiSpecRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListPathAutocompletePaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPathAutocompletePathsRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -54292,6 +54307,40 @@ func NewGenerateOpenapiSpecRequestWithBody(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewListPathAutocompletePathsRequest generates requests for ListPathAutocompletePaths
+func NewListPathAutocompletePathsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/path_autocomplete/list_paths", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreatePostgresTriggerRequest calls the generic CreatePostgresTrigger builder with application/json body
 func NewCreatePostgresTriggerRequest(server string, workspace WorkspaceId, body CreatePostgresTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -67313,6 +67362,9 @@ type ClientWithResponsesInterface interface {
 
 	GenerateOpenapiSpecWithResponse(ctx context.Context, workspace WorkspaceId, body GenerateOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateOpenapiSpecResponse, error)
 
+	// ListPathAutocompletePathsWithResponse request
+	ListPathAutocompletePathsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPathAutocompletePathsResponse, error)
+
 	// CreatePostgresTriggerWithBodyWithResponse request with any body
 	CreatePostgresTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePostgresTriggerResponse, error)
 
@@ -78079,6 +78131,30 @@ func (r GenerateOpenapiSpecResponse) StatusCode() int {
 	return 0
 }
 
+type ListPathAutocompletePathsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Paths []string `json:"paths"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListPathAutocompletePathsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListPathAutocompletePathsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreatePostgresTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -88337,6 +88413,15 @@ func (c *ClientWithResponses) GenerateOpenapiSpecWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseGenerateOpenapiSpecResponse(rsp)
+}
+
+// ListPathAutocompletePathsWithResponse request returning *ListPathAutocompletePathsResponse
+func (c *ClientWithResponses) ListPathAutocompletePathsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPathAutocompletePathsResponse, error) {
+	rsp, err := c.ListPathAutocompletePaths(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListPathAutocompletePathsResponse(rsp)
 }
 
 // CreatePostgresTriggerWithBodyWithResponse request with arbitrary body returning *CreatePostgresTriggerResponse
@@ -100976,6 +101061,34 @@ func ParseGenerateOpenapiSpecResponse(rsp *http.Response) (*GenerateOpenapiSpecR
 	response := &GenerateOpenapiSpecResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListPathAutocompletePathsResponse parses an HTTP response from a ListPathAutocompletePathsWithResponse call
+func ParseListPathAutocompletePathsResponse(rsp *http.Response) (*ListPathAutocompletePathsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListPathAutocompletePathsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Paths []string `json:"paths"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
