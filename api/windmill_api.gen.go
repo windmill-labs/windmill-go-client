@@ -1217,6 +1217,13 @@ const (
 	SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerTypeSuccess  SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType = "success"
 )
 
+// Defines values for ImportPgDatabaseJSONBodyForkBehavior.
+const (
+	KeepOriginal  ImportPgDatabaseJSONBodyForkBehavior = "keep_original"
+	SchemaAndData ImportPgDatabaseJSONBodyForkBehavior = "schema_and_data"
+	SchemaOnly    ImportPgDatabaseJSONBodyForkBehavior = "schema_only"
+)
+
 // Defines values for PruneVersionsJSONBodyResourceType.
 const (
 	Apps    PruneVersionsJSONBodyResourceType = "apps"
@@ -1613,9 +1620,16 @@ type CreateWorkspace struct {
 
 // CreateWorkspaceFork defines model for CreateWorkspaceFork.
 type CreateWorkspaceFork struct {
-	Color *string `json:"color,omitempty"`
-	Id    string  `json:"id"`
-	Name  string  `json:"name"`
+	Color            *string `json:"color,omitempty"`
+	ForkedDatatables *[]struct {
+		// Name Datatable name
+		Name string `json:"name"`
+
+		// NewDbname New database name for the fork
+		NewDbname string `json:"new_dbname"`
+	} `json:"forked_datatables,omitempty"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 // CriticalAlert defines model for CriticalAlert.
@@ -1679,6 +1693,12 @@ type DataTableSettings struct {
 			ResourcePath *string                                         `json:"resource_path,omitempty"`
 			ResourceType DataTableSettingsDatatablesDatabaseResourceType `json:"resource_type"`
 		} `json:"database"`
+
+		// ForkedFrom Fork origin info with schema snapshot
+		ForkedFrom *struct {
+			// Schema Schema snapshot at fork time
+			Schema *map[string]interface{} `json:"schema,omitempty"`
+		} `json:"forked_from,omitempty"`
 	} `json:"datatables"`
 }
 
@@ -2117,6 +2137,9 @@ type EditResource struct {
 	// ResourceType The new resource_type to be associated with the resource
 	ResourceType *string      `json:"resource_type,omitempty"`
 	Value        *interface{} `json:"value,omitempty"`
+
+	// WsSpecific When true, the resource is excluded from workspace diff comparisons
+	WsSpecific *bool `json:"ws_specific,omitempty"`
 }
 
 // EditResourceType defines model for EditResourceType.
@@ -9618,6 +9641,15 @@ type ConnectTeamsJSONBody struct {
 	TeamName *string `json:"team_name,omitempty"`
 }
 
+// CreatePgDatabaseJSONBody defines parameters for CreatePgDatabase.
+type CreatePgDatabaseJSONBody struct {
+	// Source Datatable source to determine connection info: 'datatable://name' or '$res:path'
+	Source string `json:"source"`
+
+	// TargetDbname Name for the new database
+	TargetDbname string `json:"target_dbname"`
+}
+
 // CreateServiceAccountJSONBody defines parameters for CreateServiceAccount.
 type CreateServiceAccountJSONBody struct {
 	Username string `json:"username"`
@@ -9647,6 +9679,11 @@ type DeleteInviteJSONBody struct {
 	Email    string `json:"email"`
 	IsAdmin  bool   `json:"is_admin"`
 	Operator bool   `json:"operator"`
+}
+
+// DropForkedDatatableDatabasesJSONBody defines parameters for DropForkedDatatableDatabases.
+type DropForkedDatatableDatabasesJSONBody struct {
+	DatatableNames []string `json:"datatable_names"`
 }
 
 // EditAutoInviteJSONBody defines parameters for EditAutoInvite.
@@ -9725,6 +9762,18 @@ type SetWorkspaceEncryptionKeyJSONBody struct {
 	SkipReencrypt *bool  `json:"skip_reencrypt,omitempty"`
 }
 
+// ExportPgSchemaJSONBody defines parameters for ExportPgSchema.
+type ExportPgSchemaJSONBody struct {
+	// Source Source database: 'datatable://name' or '$res:path'
+	Source string `json:"source"`
+}
+
+// GetDatatableFullSchemaJSONBody defines parameters for GetDatatableFullSchema.
+type GetDatatableFullSchemaJSONBody struct {
+	// Source Source datatable, e.g. 'datatable://main'
+	Source string `json:"source"`
+}
+
 // GetDependentsAmountsJSONBody defines parameters for GetDependentsAmounts.
 type GetDependentsAmountsJSONBody = []string
 
@@ -9733,6 +9782,23 @@ type GetSecondaryStorageNamesParams struct {
 	// IncludeDefault If true, include "_default_" in the list if primary workspace storage is set
 	IncludeDefault *bool `form:"include_default,omitempty" json:"include_default,omitempty"`
 }
+
+// ImportPgDatabaseJSONBody defines parameters for ImportPgDatabase.
+type ImportPgDatabaseJSONBody struct {
+	ForkBehavior ImportPgDatabaseJSONBodyForkBehavior `json:"fork_behavior"`
+
+	// Source Source database: 'datatable://name' or '$res:path'
+	Source string `json:"source"`
+
+	// Target Target database: 'datatable://name' or '$res:path'
+	Target string `json:"target"`
+
+	// TargetDbnameOverride Override the target database name
+	TargetDbnameOverride *string `json:"target_dbname_override,omitempty"`
+}
+
+// ImportPgDatabaseJSONBodyForkBehavior defines parameters for ImportPgDatabase.
+type ImportPgDatabaseJSONBodyForkBehavior string
 
 // InviteUserJSONBody defines parameters for InviteUser.
 type InviteUserJSONBody struct {
@@ -10536,6 +10602,9 @@ type ConnectTeamsJSONRequestBody ConnectTeamsJSONBody
 // CreateWorkspaceForkJSONRequestBody defines body for CreateWorkspaceFork for application/json ContentType.
 type CreateWorkspaceForkJSONRequestBody = CreateWorkspaceFork
 
+// CreatePgDatabaseJSONRequestBody defines body for CreatePgDatabase for application/json ContentType.
+type CreatePgDatabaseJSONRequestBody CreatePgDatabaseJSONBody
+
 // CreateServiceAccountJSONRequestBody defines body for CreateServiceAccount for application/json ContentType.
 type CreateServiceAccountJSONRequestBody CreateServiceAccountJSONBody
 
@@ -10553,6 +10622,9 @@ type DeleteGitSyncRepositoryJSONRequestBody DeleteGitSyncRepositoryJSONBody
 
 // DeleteInviteJSONRequestBody defines body for DeleteInvite for application/json ContentType.
 type DeleteInviteJSONRequestBody DeleteInviteJSONBody
+
+// DropForkedDatatableDatabasesJSONRequestBody defines body for DropForkedDatatableDatabases for application/json ContentType.
+type DropForkedDatatableDatabasesJSONRequestBody DropForkedDatatableDatabasesJSONBody
 
 // EditAutoInviteJSONRequestBody defines body for EditAutoInvite for application/json ContentType.
 type EditAutoInviteJSONRequestBody EditAutoInviteJSONBody
@@ -10605,8 +10677,17 @@ type EditWebhookJSONRequestBody EditWebhookJSONBody
 // SetWorkspaceEncryptionKeyJSONRequestBody defines body for SetWorkspaceEncryptionKey for application/json ContentType.
 type SetWorkspaceEncryptionKeyJSONRequestBody SetWorkspaceEncryptionKeyJSONBody
 
+// ExportPgSchemaJSONRequestBody defines body for ExportPgSchema for application/json ContentType.
+type ExportPgSchemaJSONRequestBody ExportPgSchemaJSONBody
+
+// GetDatatableFullSchemaJSONRequestBody defines body for GetDatatableFullSchema for application/json ContentType.
+type GetDatatableFullSchemaJSONRequestBody GetDatatableFullSchemaJSONBody
+
 // GetDependentsAmountsJSONRequestBody defines body for GetDependentsAmounts for application/json ContentType.
 type GetDependentsAmountsJSONRequestBody = GetDependentsAmountsJSONBody
+
+// ImportPgDatabaseJSONRequestBody defines body for ImportPgDatabase for application/json ContentType.
+type ImportPgDatabaseJSONRequestBody ImportPgDatabaseJSONBody
 
 // InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
 type InviteUserJSONRequestBody InviteUserJSONBody
@@ -12835,6 +12916,9 @@ type ClientInterface interface {
 	// CreateCustomerPortalSession request
 	CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DropCustomInstanceDb request
+	DropCustomInstanceDb(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetStats request
 	GetStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14728,6 +14812,11 @@ type ClientInterface interface {
 
 	CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreatePgDatabaseWithBody request with any body
+	CreatePgDatabaseWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreatePgDatabase(ctx context.Context, workspace WorkspaceId, body CreatePgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateServiceAccountWithBody request with any body
 	CreateServiceAccountWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14772,6 +14861,11 @@ type ClientInterface interface {
 	DeleteInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	DeleteInvite(ctx context.Context, workspace WorkspaceId, body DeleteInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DropForkedDatatableDatabasesWithBody request with any body
+	DropForkedDatatableDatabasesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DropForkedDatatableDatabases(ctx context.Context, workspace WorkspaceId, body DropForkedDatatableDatabasesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditAutoInviteWithBody request with any body
 	EditAutoInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14861,6 +14955,11 @@ type ClientInterface interface {
 
 	SetWorkspaceEncryptionKey(ctx context.Context, workspace WorkspaceId, body SetWorkspaceEncryptionKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ExportPgSchemaWithBody request with any body
+	ExportPgSchemaWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ExportPgSchema(ctx context.Context, workspace WorkspaceId, body ExportPgSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetWorkspaceAsSuperAdmin request
 	GetWorkspaceAsSuperAdmin(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14869,6 +14968,11 @@ type ClientInterface interface {
 
 	// GetCopilotSettingsState request
 	GetCopilotSettingsState(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDatatableFullSchemaWithBody request with any body
+	GetDatatableFullSchemaWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GetDatatableFullSchema(ctx context.Context, workspace WorkspaceId, body GetDatatableFullSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetDependencyMap request
 	GetDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14898,6 +15002,11 @@ type ClientInterface interface {
 
 	// GetGitSyncEnabled request
 	GetGitSyncEnabled(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ImportPgDatabaseWithBody request with any body
+	ImportPgDatabaseWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ImportPgDatabase(ctx context.Context, workspace WorkspaceId, body ImportPgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// InviteUserWithBody request with any body
 	InviteUserWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16267,6 +16376,18 @@ func (c *Client) AcknowledgeCriticalAlert(ctx context.Context, id int, reqEditor
 
 func (c *Client) CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateCustomerPortalSessionRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DropCustomInstanceDb(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDropCustomInstanceDbRequest(c.Server, name)
 	if err != nil {
 		return nil, err
 	}
@@ -24629,6 +24750,30 @@ func (c *Client) CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId,
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreatePgDatabaseWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreatePgDatabaseRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreatePgDatabase(ctx context.Context, workspace WorkspaceId, body CreatePgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreatePgDatabaseRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateServiceAccountWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateServiceAccountRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -24823,6 +24968,30 @@ func (c *Client) DeleteInviteWithBody(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) DeleteInvite(ctx context.Context, workspace WorkspaceId, body DeleteInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteInviteRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DropForkedDatatableDatabasesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDropForkedDatatableDatabasesRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DropForkedDatatableDatabases(ctx context.Context, workspace WorkspaceId, body DropForkedDatatableDatabasesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDropForkedDatatableDatabasesRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -25253,6 +25422,30 @@ func (c *Client) SetWorkspaceEncryptionKey(ctx context.Context, workspace Worksp
 	return c.Client.Do(req)
 }
 
+func (c *Client) ExportPgSchemaWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExportPgSchemaRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExportPgSchema(ctx context.Context, workspace WorkspaceId, body ExportPgSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExportPgSchemaRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetWorkspaceAsSuperAdmin(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetWorkspaceAsSuperAdminRequest(c.Server, workspace)
 	if err != nil {
@@ -25279,6 +25472,30 @@ func (c *Client) GetCopilotInfo(ctx context.Context, workspace WorkspaceId, reqE
 
 func (c *Client) GetCopilotSettingsState(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCopilotSettingsStateRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDatatableFullSchemaWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDatatableFullSchemaRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDatatableFullSchema(ctx context.Context, workspace WorkspaceId, body GetDatatableFullSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDatatableFullSchemaRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -25399,6 +25616,30 @@ func (c *Client) GetWorkspaceName(ctx context.Context, workspace WorkspaceId, re
 
 func (c *Client) GetGitSyncEnabled(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetGitSyncEnabledRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ImportPgDatabaseWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewImportPgDatabaseRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ImportPgDatabase(ctx context.Context, workspace WorkspaceId, body ImportPgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewImportPgDatabaseRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -29234,6 +29475,40 @@ func NewCreateCustomerPortalSessionRequest(server string, params *CreateCustomer
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDropCustomInstanceDbRequest generates requests for DropCustomInstanceDb
+func NewDropCustomInstanceDbRequest(server string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/drop_custom_instance_pg_database/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
@@ -62340,6 +62615,53 @@ func NewCreateWorkspaceForkRequestWithBody(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewCreatePgDatabaseRequest calls the generic CreatePgDatabase builder with application/json body
+func NewCreatePgDatabaseRequest(server string, workspace WorkspaceId, body CreatePgDatabaseJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreatePgDatabaseRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreatePgDatabaseRequestWithBody generates requests for CreatePgDatabase with any type of body
+func NewCreatePgDatabaseRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/create_pg_database", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateServiceAccountRequest calls the generic CreateServiceAccount builder with application/json body
 func NewCreateServiceAccountRequest(server string, workspace WorkspaceId, body CreateServiceAccountJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -62834,6 +63156,53 @@ func NewDeleteInviteRequestWithBody(server string, workspace WorkspaceId, conten
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/delete_invite", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDropForkedDatatableDatabasesRequest calls the generic DropForkedDatatableDatabases builder with application/json body
+func NewDropForkedDatatableDatabasesRequest(server string, workspace WorkspaceId, body DropForkedDatatableDatabasesJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDropForkedDatatableDatabasesRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewDropForkedDatatableDatabasesRequestWithBody generates requests for DropForkedDatatableDatabases with any type of body
+func NewDropForkedDatatableDatabasesRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/drop_forked_datatable_databases", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -63686,6 +64055,53 @@ func NewSetWorkspaceEncryptionKeyRequestWithBody(server string, workspace Worksp
 	return req, nil
 }
 
+// NewExportPgSchemaRequest calls the generic ExportPgSchema builder with application/json body
+func NewExportPgSchemaRequest(server string, workspace WorkspaceId, body ExportPgSchemaJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewExportPgSchemaRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewExportPgSchemaRequestWithBody generates requests for ExportPgSchema with any type of body
+func NewExportPgSchemaRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/export_pg_schema", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetWorkspaceAsSuperAdminRequest generates requests for GetWorkspaceAsSuperAdmin
 func NewGetWorkspaceAsSuperAdminRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -63784,6 +64200,53 @@ func NewGetCopilotSettingsStateRequest(server string, workspace WorkspaceId) (*h
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGetDatatableFullSchemaRequest calls the generic GetDatatableFullSchema builder with application/json body
+func NewGetDatatableFullSchemaRequest(server string, workspace WorkspaceId, body GetDatatableFullSchemaJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGetDatatableFullSchemaRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewGetDatatableFullSchemaRequestWithBody generates requests for GetDatatableFullSchema with any type of body
+func NewGetDatatableFullSchemaRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_datatable_full_schema", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -64139,6 +64602,53 @@ func NewGetGitSyncEnabledRequest(server string, workspace WorkspaceId) (*http.Re
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewImportPgDatabaseRequest calls the generic ImportPgDatabase builder with application/json body
+func NewImportPgDatabaseRequest(server string, workspace WorkspaceId, body ImportPgDatabaseJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewImportPgDatabaseRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewImportPgDatabaseRequestWithBody generates requests for ImportPgDatabase with any type of body
+func NewImportPgDatabaseRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/import_pg_database", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -66300,6 +66810,9 @@ type ClientWithResponsesInterface interface {
 	// CreateCustomerPortalSessionWithResponse request
 	CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
 
+	// DropCustomInstanceDbWithResponse request
+	DropCustomInstanceDbWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DropCustomInstanceDbResponse, error)
+
 	// GetStatsWithResponse request
 	GetStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetStatsResponse, error)
 
@@ -68193,6 +68706,11 @@ type ClientWithResponsesInterface interface {
 
 	CreateWorkspaceForkWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
 
+	// CreatePgDatabaseWithBodyWithResponse request with any body
+	CreatePgDatabaseWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePgDatabaseResponse, error)
+
+	CreatePgDatabaseWithResponse(ctx context.Context, workspace WorkspaceId, body CreatePgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*CreatePgDatabaseResponse, error)
+
 	// CreateServiceAccountWithBodyWithResponse request with any body
 	CreateServiceAccountWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateServiceAccountResponse, error)
 
@@ -68237,6 +68755,11 @@ type ClientWithResponsesInterface interface {
 	DeleteInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error)
 
 	DeleteInviteWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error)
+
+	// DropForkedDatatableDatabasesWithBodyWithResponse request with any body
+	DropForkedDatatableDatabasesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DropForkedDatatableDatabasesResponse, error)
+
+	DropForkedDatatableDatabasesWithResponse(ctx context.Context, workspace WorkspaceId, body DropForkedDatatableDatabasesJSONRequestBody, reqEditors ...RequestEditorFn) (*DropForkedDatatableDatabasesResponse, error)
 
 	// EditAutoInviteWithBodyWithResponse request with any body
 	EditAutoInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditAutoInviteResponse, error)
@@ -68326,6 +68849,11 @@ type ClientWithResponsesInterface interface {
 
 	SetWorkspaceEncryptionKeyWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceEncryptionKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceEncryptionKeyResponse, error)
 
+	// ExportPgSchemaWithBodyWithResponse request with any body
+	ExportPgSchemaWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExportPgSchemaResponse, error)
+
+	ExportPgSchemaWithResponse(ctx context.Context, workspace WorkspaceId, body ExportPgSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*ExportPgSchemaResponse, error)
+
 	// GetWorkspaceAsSuperAdminWithResponse request
 	GetWorkspaceAsSuperAdminWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceAsSuperAdminResponse, error)
 
@@ -68334,6 +68862,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetCopilotSettingsStateWithResponse request
 	GetCopilotSettingsStateWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCopilotSettingsStateResponse, error)
+
+	// GetDatatableFullSchemaWithBodyWithResponse request with any body
+	GetDatatableFullSchemaWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetDatatableFullSchemaResponse, error)
+
+	GetDatatableFullSchemaWithResponse(ctx context.Context, workspace WorkspaceId, body GetDatatableFullSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*GetDatatableFullSchemaResponse, error)
 
 	// GetDependencyMapWithResponse request
 	GetDependencyMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDependencyMapResponse, error)
@@ -68363,6 +68896,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetGitSyncEnabledWithResponse request
 	GetGitSyncEnabledWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetGitSyncEnabledResponse, error)
+
+	// ImportPgDatabaseWithBodyWithResponse request with any body
+	ImportPgDatabaseWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportPgDatabaseResponse, error)
+
+	ImportPgDatabaseWithResponse(ctx context.Context, workspace WorkspaceId, body ImportPgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*ImportPgDatabaseResponse, error)
 
 	// InviteUserWithBodyWithResponse request with any body
 	InviteUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*InviteUserResponse, error)
@@ -70413,6 +70951,27 @@ func (r CreateCustomerPortalSessionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateCustomerPortalSessionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DropCustomInstanceDbResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DropCustomInstanceDbResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DropCustomInstanceDbResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -81621,6 +82180,27 @@ func (r CreateWorkspaceForkResponse) StatusCode() int {
 	return 0
 }
 
+type CreatePgDatabaseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreatePgDatabaseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreatePgDatabaseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateServiceAccountResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -81865,6 +82445,28 @@ func (r DeleteInviteResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteInviteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DropForkedDatatableDatabasesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r DropForkedDatatableDatabasesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DropForkedDatatableDatabasesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -82264,6 +82866,27 @@ func (r SetWorkspaceEncryptionKeyResponse) StatusCode() int {
 	return 0
 }
 
+type ExportPgSchemaResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ExportPgSchemaResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExportPgSchemaResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetWorkspaceAsSuperAdminResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -82328,6 +82951,48 @@ func (r GetCopilotSettingsStateResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetCopilotSettingsStateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDatatableFullSchemaResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]map[string]struct {
+		Columns []struct {
+			Datatype     string  `json:"datatype"`
+			DefaultValue *string `json:"default_value,omitempty"`
+			Name         string  `json:"name"`
+			Nullable     *bool   `json:"nullable,omitempty"`
+			PrimaryKey   *bool   `json:"primary_key,omitempty"`
+		} `json:"columns"`
+		ForeignKeys []struct {
+			Columns []struct {
+				SourceColumn *string `json:"source_column,omitempty"`
+				TargetColumn *string `json:"target_column,omitempty"`
+			} `json:"columns"`
+			FkConstraintName *string `json:"fk_constraint_name,omitempty"`
+			OnDelete         string  `json:"on_delete"`
+			OnUpdate         string  `json:"on_update"`
+			TargetTable      *string `json:"target_table,omitempty"`
+		} `json:"foreign_keys"`
+		Name             string  `json:"name"`
+		PkConstraintName *string `json:"pk_constraint_name,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDatatableFullSchemaResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDatatableFullSchemaResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -82577,6 +83242,27 @@ func (r GetGitSyncEnabledResponse) StatusCode() int {
 	return 0
 }
 
+type ImportPgDatabaseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ImportPgDatabaseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ImportPgDatabaseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type InviteUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -82666,8 +83352,13 @@ func (r ListDataTableSchemasResponse) StatusCode() int {
 type ListDataTablesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]string
+	JSON200      *[]struct {
+		Name         string                        `json:"name"`
+		ResourcePath string                        `json:"resource_path"`
+		ResourceType ListDataTables200ResourceType `json:"resource_type"`
+	}
 }
+type ListDataTables200ResourceType string
 
 // Status returns HTTPResponse.Status
 func (r ListDataTablesResponse) Status() string {
@@ -84467,6 +85158,15 @@ func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx contex
 		return nil, err
 	}
 	return ParseCreateCustomerPortalSessionResponse(rsp)
+}
+
+// DropCustomInstanceDbWithResponse request returning *DropCustomInstanceDbResponse
+func (c *ClientWithResponses) DropCustomInstanceDbWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DropCustomInstanceDbResponse, error) {
+	rsp, err := c.DropCustomInstanceDb(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDropCustomInstanceDbResponse(rsp)
 }
 
 // GetStatsWithResponse request returning *GetStatsResponse
@@ -90538,6 +91238,23 @@ func (c *ClientWithResponses) CreateWorkspaceForkWithResponse(ctx context.Contex
 	return ParseCreateWorkspaceForkResponse(rsp)
 }
 
+// CreatePgDatabaseWithBodyWithResponse request with arbitrary body returning *CreatePgDatabaseResponse
+func (c *ClientWithResponses) CreatePgDatabaseWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePgDatabaseResponse, error) {
+	rsp, err := c.CreatePgDatabaseWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreatePgDatabaseResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreatePgDatabaseWithResponse(ctx context.Context, workspace WorkspaceId, body CreatePgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*CreatePgDatabaseResponse, error) {
+	rsp, err := c.CreatePgDatabase(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreatePgDatabaseResponse(rsp)
+}
+
 // CreateServiceAccountWithBodyWithResponse request with arbitrary body returning *CreateServiceAccountResponse
 func (c *ClientWithResponses) CreateServiceAccountWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateServiceAccountResponse, error) {
 	rsp, err := c.CreateServiceAccountWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -90683,6 +91400,23 @@ func (c *ClientWithResponses) DeleteInviteWithResponse(ctx context.Context, work
 		return nil, err
 	}
 	return ParseDeleteInviteResponse(rsp)
+}
+
+// DropForkedDatatableDatabasesWithBodyWithResponse request with arbitrary body returning *DropForkedDatatableDatabasesResponse
+func (c *ClientWithResponses) DropForkedDatatableDatabasesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DropForkedDatatableDatabasesResponse, error) {
+	rsp, err := c.DropForkedDatatableDatabasesWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDropForkedDatatableDatabasesResponse(rsp)
+}
+
+func (c *ClientWithResponses) DropForkedDatatableDatabasesWithResponse(ctx context.Context, workspace WorkspaceId, body DropForkedDatatableDatabasesJSONRequestBody, reqEditors ...RequestEditorFn) (*DropForkedDatatableDatabasesResponse, error) {
+	rsp, err := c.DropForkedDatatableDatabases(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDropForkedDatatableDatabasesResponse(rsp)
 }
 
 // EditAutoInviteWithBodyWithResponse request with arbitrary body returning *EditAutoInviteResponse
@@ -90983,6 +91717,23 @@ func (c *ClientWithResponses) SetWorkspaceEncryptionKeyWithResponse(ctx context.
 	return ParseSetWorkspaceEncryptionKeyResponse(rsp)
 }
 
+// ExportPgSchemaWithBodyWithResponse request with arbitrary body returning *ExportPgSchemaResponse
+func (c *ClientWithResponses) ExportPgSchemaWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExportPgSchemaResponse, error) {
+	rsp, err := c.ExportPgSchemaWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExportPgSchemaResponse(rsp)
+}
+
+func (c *ClientWithResponses) ExportPgSchemaWithResponse(ctx context.Context, workspace WorkspaceId, body ExportPgSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*ExportPgSchemaResponse, error) {
+	rsp, err := c.ExportPgSchema(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExportPgSchemaResponse(rsp)
+}
+
 // GetWorkspaceAsSuperAdminWithResponse request returning *GetWorkspaceAsSuperAdminResponse
 func (c *ClientWithResponses) GetWorkspaceAsSuperAdminWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceAsSuperAdminResponse, error) {
 	rsp, err := c.GetWorkspaceAsSuperAdmin(ctx, workspace, reqEditors...)
@@ -91008,6 +91759,23 @@ func (c *ClientWithResponses) GetCopilotSettingsStateWithResponse(ctx context.Co
 		return nil, err
 	}
 	return ParseGetCopilotSettingsStateResponse(rsp)
+}
+
+// GetDatatableFullSchemaWithBodyWithResponse request with arbitrary body returning *GetDatatableFullSchemaResponse
+func (c *ClientWithResponses) GetDatatableFullSchemaWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetDatatableFullSchemaResponse, error) {
+	rsp, err := c.GetDatatableFullSchemaWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDatatableFullSchemaResponse(rsp)
+}
+
+func (c *ClientWithResponses) GetDatatableFullSchemaWithResponse(ctx context.Context, workspace WorkspaceId, body GetDatatableFullSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*GetDatatableFullSchemaResponse, error) {
+	rsp, err := c.GetDatatableFullSchema(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDatatableFullSchemaResponse(rsp)
 }
 
 // GetDependencyMapWithResponse request returning *GetDependencyMapResponse
@@ -91097,6 +91865,23 @@ func (c *ClientWithResponses) GetGitSyncEnabledWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseGetGitSyncEnabledResponse(rsp)
+}
+
+// ImportPgDatabaseWithBodyWithResponse request with arbitrary body returning *ImportPgDatabaseResponse
+func (c *ClientWithResponses) ImportPgDatabaseWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportPgDatabaseResponse, error) {
+	rsp, err := c.ImportPgDatabaseWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseImportPgDatabaseResponse(rsp)
+}
+
+func (c *ClientWithResponses) ImportPgDatabaseWithResponse(ctx context.Context, workspace WorkspaceId, body ImportPgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*ImportPgDatabaseResponse, error) {
+	rsp, err := c.ImportPgDatabase(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseImportPgDatabaseResponse(rsp)
 }
 
 // InviteUserWithBodyWithResponse request with arbitrary body returning *InviteUserResponse
@@ -93599,6 +94384,22 @@ func ParseCreateCustomerPortalSessionResponse(rsp *http.Response) (*CreateCustom
 	}
 
 	response := &CreateCustomerPortalSessionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDropCustomInstanceDbResponse parses an HTTP response from a DropCustomInstanceDbWithResponse call
+func ParseDropCustomInstanceDbResponse(rsp *http.Response) (*DropCustomInstanceDbResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DropCustomInstanceDbResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -104714,6 +105515,22 @@ func ParseCreateWorkspaceForkResponse(rsp *http.Response) (*CreateWorkspaceForkR
 	return response, nil
 }
 
+// ParseCreatePgDatabaseResponse parses an HTTP response from a CreatePgDatabaseWithResponse call
+func ParseCreatePgDatabaseResponse(rsp *http.Response) (*CreatePgDatabaseResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreatePgDatabaseResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCreateServiceAccountResponse parses an HTTP response from a CreateServiceAccountWithResponse call
 func ParseCreateServiceAccountResponse(rsp *http.Response) (*CreateServiceAccountResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -104976,6 +105793,32 @@ func ParseDeleteInviteResponse(rsp *http.Response) (*DeleteInviteResponse, error
 	response := &DeleteInviteResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDropForkedDatatableDatabasesResponse parses an HTTP response from a DropForkedDatatableDatabasesWithResponse call
+func ParseDropForkedDatatableDatabasesResponse(rsp *http.Response) (*DropForkedDatatableDatabasesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DropForkedDatatableDatabasesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -105356,6 +106199,22 @@ func ParseSetWorkspaceEncryptionKeyResponse(rsp *http.Response) (*SetWorkspaceEn
 	return response, nil
 }
 
+// ParseExportPgSchemaResponse parses an HTTP response from a ExportPgSchemaWithResponse call
+func ParseExportPgSchemaResponse(rsp *http.Response) (*ExportPgSchemaResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExportPgSchemaResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetWorkspaceAsSuperAdminResponse parses an HTTP response from a GetWorkspaceAsSuperAdminWithResponse call
 func ParseGetWorkspaceAsSuperAdminResponse(rsp *http.Response) (*GetWorkspaceAsSuperAdminResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -105427,6 +106286,52 @@ func ParseGetCopilotSettingsStateResponse(rsp *http.Response) (*GetCopilotSettin
 			HasInstanceAiConfig  bool               `json:"has_instance_ai_config"`
 			InstanceAiSummary    *InstanceAISummary `json:"instance_ai_summary,omitempty"`
 			UsesInstanceAiConfig bool               `json:"uses_instance_ai_config"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDatatableFullSchemaResponse parses an HTTP response from a GetDatatableFullSchemaWithResponse call
+func ParseGetDatatableFullSchemaResponse(rsp *http.Response) (*GetDatatableFullSchemaResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDatatableFullSchemaResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]map[string]struct {
+			Columns []struct {
+				Datatype     string  `json:"datatype"`
+				DefaultValue *string `json:"default_value,omitempty"`
+				Name         string  `json:"name"`
+				Nullable     *bool   `json:"nullable,omitempty"`
+				PrimaryKey   *bool   `json:"primary_key,omitempty"`
+			} `json:"columns"`
+			ForeignKeys []struct {
+				Columns []struct {
+					SourceColumn *string `json:"source_column,omitempty"`
+					TargetColumn *string `json:"target_column,omitempty"`
+				} `json:"columns"`
+				FkConstraintName *string `json:"fk_constraint_name,omitempty"`
+				OnDelete         string  `json:"on_delete"`
+				OnUpdate         string  `json:"on_update"`
+				TargetTable      *string `json:"target_table,omitempty"`
+			} `json:"foreign_keys"`
+			Name             string  `json:"name"`
+			PkConstraintName *string `json:"pk_constraint_name,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -105708,6 +106613,22 @@ func ParseGetGitSyncEnabledResponse(rsp *http.Response) (*GetGitSyncEnabledRespo
 	return response, nil
 }
 
+// ParseImportPgDatabaseResponse parses an HTTP response from a ImportPgDatabaseWithResponse call
+func ParseImportPgDatabaseResponse(rsp *http.Response) (*ImportPgDatabaseResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ImportPgDatabaseResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseInviteUserResponse parses an HTTP response from a InviteUserWithResponse call
 func ParseInviteUserResponse(rsp *http.Response) (*InviteUserResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -105807,7 +106728,11 @@ func ParseListDataTablesResponse(rsp *http.Response) (*ListDataTablesResponse, e
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []string
+		var dest []struct {
+			Name         string                        `json:"name"`
+			ResourcePath string                        `json:"resource_path"`
+			ResourceType ListDataTables200ResourceType `json:"resource_type"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
