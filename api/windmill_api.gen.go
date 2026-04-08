@@ -2137,9 +2137,6 @@ type EditResource struct {
 	// ResourceType The new resource_type to be associated with the resource
 	ResourceType *string      `json:"resource_type,omitempty"`
 	Value        *interface{} `json:"value,omitempty"`
-
-	// WsSpecific When true, the resource is excluded from workspace diff comparisons
-	WsSpecific *bool `json:"ws_specific,omitempty"`
 }
 
 // EditResourceType defines model for EditResourceType.
@@ -2847,6 +2844,9 @@ type FlowValue struct {
 
 	// DebounceKey Expression to group debounced executions
 	DebounceKey *string `json:"debounce_key,omitempty"`
+
+	// DeleteAfterSecs If set, delete the flow job's args, result and logs after this many seconds following job completion
+	DeleteAfterSecs *int `json:"delete_after_secs,omitempty"`
 
 	// EarlyReturn JavaScript expression to return early from the flow
 	EarlyReturn *string `json:"early_return,omitempty"`
@@ -3977,31 +3977,33 @@ type NewScript struct {
 		Kind          AssetKind                     `json:"kind"`
 		Path          string                        `json:"path"`
 	} `json:"assets,omitempty"`
-	AutoKind                 *string        `json:"auto_kind,omitempty"`
-	CacheIgnoreS3Path        *bool          `json:"cache_ignore_s3_path,omitempty"`
-	CacheTtl                 *float32       `json:"cache_ttl,omitempty"`
-	Codebase                 *string        `json:"codebase,omitempty"`
-	ConcurrencyKey           *string        `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS   *int           `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit          *int           `json:"concurrent_limit,omitempty"`
-	Content                  string         `json:"content"`
-	DebounceArgsToAccumulate *[]string      `json:"debounce_args_to_accumulate,omitempty"`
-	DebounceDelayS           *int           `json:"debounce_delay_s,omitempty"`
-	DebounceKey              *string        `json:"debounce_key,omitempty"`
-	DedicatedWorker          *bool          `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse           *bool          `json:"delete_after_use,omitempty"`
-	DeploymentMessage        *string        `json:"deployment_message,omitempty"`
-	Description              *string        `json:"description,omitempty"`
-	DraftOnly                *bool          `json:"draft_only,omitempty"`
-	Envs                     *[]string      `json:"envs,omitempty"`
-	HasPreprocessor          *bool          `json:"has_preprocessor,omitempty"`
-	IsTemplate               *bool          `json:"is_template,omitempty"`
-	Kind                     *NewScriptKind `json:"kind,omitempty"`
-	Labels                   *[]string      `json:"labels,omitempty"`
-	Language                 ScriptLang     `json:"language"`
-	Lock                     *string        `json:"lock,omitempty"`
-	MaxTotalDebouncesAmount  *int           `json:"max_total_debounces_amount,omitempty"`
-	MaxTotalDebouncingTime   *int           `json:"max_total_debouncing_time,omitempty"`
+	AutoKind                 *string   `json:"auto_kind,omitempty"`
+	CacheIgnoreS3Path        *bool     `json:"cache_ignore_s3_path,omitempty"`
+	CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
+	Codebase                 *string   `json:"codebase,omitempty"`
+	ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS   *int      `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit          *int      `json:"concurrent_limit,omitempty"`
+	Content                  string    `json:"content"`
+	DebounceArgsToAccumulate *[]string `json:"debounce_args_to_accumulate,omitempty"`
+	DebounceDelayS           *int      `json:"debounce_delay_s,omitempty"`
+	DebounceKey              *string   `json:"debounce_key,omitempty"`
+	DedicatedWorker          *bool     `json:"dedicated_worker,omitempty"`
+
+	// DeleteAfterSecs If set, delete the job's args, result and logs after this many seconds following job completion
+	DeleteAfterSecs         *int           `json:"delete_after_secs,omitempty"`
+	DeploymentMessage       *string        `json:"deployment_message,omitempty"`
+	Description             *string        `json:"description,omitempty"`
+	DraftOnly               *bool          `json:"draft_only,omitempty"`
+	Envs                    *[]string      `json:"envs,omitempty"`
+	HasPreprocessor         *bool          `json:"has_preprocessor,omitempty"`
+	IsTemplate              *bool          `json:"is_template,omitempty"`
+	Kind                    *NewScriptKind `json:"kind,omitempty"`
+	Labels                  *[]string      `json:"labels,omitempty"`
+	Language                ScriptLang     `json:"language"`
+	Lock                    *string        `json:"lock,omitempty"`
+	MaxTotalDebouncesAmount *int           `json:"max_total_debounces_amount,omitempty"`
+	MaxTotalDebouncingTime  *int           `json:"max_total_debouncing_time,omitempty"`
 
 	// Modules Additional script modules keyed by relative file path
 	Modules         *map[string]ScriptModule `json:"modules"`
@@ -4038,33 +4040,35 @@ type NewScriptWithDraft struct {
 		Kind          AssetKind                              `json:"kind"`
 		Path          string                                 `json:"path"`
 	} `json:"assets,omitempty"`
-	AutoKind                 *string                 `json:"auto_kind,omitempty"`
-	CacheIgnoreS3Path        *bool                   `json:"cache_ignore_s3_path,omitempty"`
-	CacheTtl                 *float32                `json:"cache_ttl,omitempty"`
-	Codebase                 *string                 `json:"codebase,omitempty"`
-	ConcurrencyKey           *string                 `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS   *int                    `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit          *int                    `json:"concurrent_limit,omitempty"`
-	Content                  string                  `json:"content"`
-	DebounceArgsToAccumulate *[]string               `json:"debounce_args_to_accumulate,omitempty"`
-	DebounceDelayS           *int                    `json:"debounce_delay_s,omitempty"`
-	DebounceKey              *string                 `json:"debounce_key,omitempty"`
-	DedicatedWorker          *bool                   `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse           *bool                   `json:"delete_after_use,omitempty"`
-	DeploymentMessage        *string                 `json:"deployment_message,omitempty"`
-	Description              *string                 `json:"description,omitempty"`
-	Draft                    *NewScript              `json:"draft,omitempty"`
-	DraftOnly                *bool                   `json:"draft_only,omitempty"`
-	Envs                     *[]string               `json:"envs,omitempty"`
-	HasPreprocessor          *bool                   `json:"has_preprocessor,omitempty"`
-	Hash                     string                  `json:"hash"`
-	IsTemplate               *bool                   `json:"is_template,omitempty"`
-	Kind                     *NewScriptWithDraftKind `json:"kind,omitempty"`
-	Labels                   *[]string               `json:"labels,omitempty"`
-	Language                 ScriptLang              `json:"language"`
-	Lock                     *string                 `json:"lock,omitempty"`
-	MaxTotalDebouncesAmount  *int                    `json:"max_total_debounces_amount,omitempty"`
-	MaxTotalDebouncingTime   *int                    `json:"max_total_debouncing_time,omitempty"`
+	AutoKind                 *string   `json:"auto_kind,omitempty"`
+	CacheIgnoreS3Path        *bool     `json:"cache_ignore_s3_path,omitempty"`
+	CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
+	Codebase                 *string   `json:"codebase,omitempty"`
+	ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS   *int      `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit          *int      `json:"concurrent_limit,omitempty"`
+	Content                  string    `json:"content"`
+	DebounceArgsToAccumulate *[]string `json:"debounce_args_to_accumulate,omitempty"`
+	DebounceDelayS           *int      `json:"debounce_delay_s,omitempty"`
+	DebounceKey              *string   `json:"debounce_key,omitempty"`
+	DedicatedWorker          *bool     `json:"dedicated_worker,omitempty"`
+
+	// DeleteAfterSecs If set, delete the job's args, result and logs after this many seconds following job completion
+	DeleteAfterSecs         *int                    `json:"delete_after_secs,omitempty"`
+	DeploymentMessage       *string                 `json:"deployment_message,omitempty"`
+	Description             *string                 `json:"description,omitempty"`
+	Draft                   *NewScript              `json:"draft,omitempty"`
+	DraftOnly               *bool                   `json:"draft_only,omitempty"`
+	Envs                    *[]string               `json:"envs,omitempty"`
+	HasPreprocessor         *bool                   `json:"has_preprocessor,omitempty"`
+	Hash                    string                  `json:"hash"`
+	IsTemplate              *bool                   `json:"is_template,omitempty"`
+	Kind                    *NewScriptWithDraftKind `json:"kind,omitempty"`
+	Labels                  *[]string               `json:"labels,omitempty"`
+	Language                ScriptLang              `json:"language"`
+	Lock                    *string                 `json:"lock,omitempty"`
+	MaxTotalDebouncesAmount *int                    `json:"max_total_debounces_amount,omitempty"`
+	MaxTotalDebouncingTime  *int                    `json:"max_total_debouncing_time,omitempty"`
 
 	// Modules Additional script modules keyed by relative file path
 	Modules         *map[string]ScriptModule `json:"modules"`
@@ -4881,37 +4885,39 @@ type ScopeDomain struct {
 
 // Script defines model for Script.
 type Script struct {
-	Archived                 bool            `json:"archived"`
-	AutoKind                 *string         `json:"auto_kind,omitempty"`
-	CacheTtl                 *float32        `json:"cache_ttl,omitempty"`
-	Codebase                 *string         `json:"codebase,omitempty"`
-	ConcurrencyKey           *string         `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS   *int            `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit          *int            `json:"concurrent_limit,omitempty"`
-	Content                  string          `json:"content"`
-	CreatedAt                time.Time       `json:"created_at"`
-	CreatedBy                string          `json:"created_by"`
-	DebounceArgsToAccumulate *[]string       `json:"debounce_args_to_accumulate,omitempty"`
-	DebounceDelayS           *int            `json:"debounce_delay_s,omitempty"`
-	DebounceKey              *string         `json:"debounce_key,omitempty"`
-	DedicatedWorker          *bool           `json:"dedicated_worker,omitempty"`
-	DeleteAfterUse           *bool           `json:"delete_after_use,omitempty"`
-	Deleted                  bool            `json:"deleted"`
-	Description              string          `json:"description"`
-	DraftOnly                *bool           `json:"draft_only,omitempty"`
-	Envs                     *[]string       `json:"envs,omitempty"`
-	ExtraPerms               map[string]bool `json:"extra_perms"`
-	HasDraft                 *bool           `json:"has_draft,omitempty"`
-	HasPreprocessor          bool            `json:"has_preprocessor"`
-	Hash                     string          `json:"hash"`
-	IsTemplate               bool            `json:"is_template"`
-	Kind                     ScriptKind      `json:"kind"`
-	Labels                   *[]string       `json:"labels,omitempty"`
-	Language                 ScriptLang      `json:"language"`
-	Lock                     *string         `json:"lock,omitempty"`
-	LockErrorLogs            *string         `json:"lock_error_logs,omitempty"`
-	MaxTotalDebouncesAmount  *int            `json:"max_total_debounces_amount,omitempty"`
-	MaxTotalDebouncingTime   *int            `json:"max_total_debouncing_time,omitempty"`
+	Archived                 bool      `json:"archived"`
+	AutoKind                 *string   `json:"auto_kind,omitempty"`
+	CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
+	Codebase                 *string   `json:"codebase,omitempty"`
+	ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
+	ConcurrencyTimeWindowS   *int      `json:"concurrency_time_window_s,omitempty"`
+	ConcurrentLimit          *int      `json:"concurrent_limit,omitempty"`
+	Content                  string    `json:"content"`
+	CreatedAt                time.Time `json:"created_at"`
+	CreatedBy                string    `json:"created_by"`
+	DebounceArgsToAccumulate *[]string `json:"debounce_args_to_accumulate,omitempty"`
+	DebounceDelayS           *int      `json:"debounce_delay_s,omitempty"`
+	DebounceKey              *string   `json:"debounce_key,omitempty"`
+	DedicatedWorker          *bool     `json:"dedicated_worker,omitempty"`
+
+	// DeleteAfterSecs If set, delete the job's args, result and logs after this many seconds following job completion
+	DeleteAfterSecs         *int            `json:"delete_after_secs,omitempty"`
+	Deleted                 bool            `json:"deleted"`
+	Description             string          `json:"description"`
+	DraftOnly               *bool           `json:"draft_only,omitempty"`
+	Envs                    *[]string       `json:"envs,omitempty"`
+	ExtraPerms              map[string]bool `json:"extra_perms"`
+	HasDraft                *bool           `json:"has_draft,omitempty"`
+	HasPreprocessor         bool            `json:"has_preprocessor"`
+	Hash                    string          `json:"hash"`
+	IsTemplate              bool            `json:"is_template"`
+	Kind                    ScriptKind      `json:"kind"`
+	Labels                  *[]string       `json:"labels,omitempty"`
+	Language                ScriptLang      `json:"language"`
+	Lock                    *string         `json:"lock,omitempty"`
+	LockErrorLogs           *string         `json:"lock_error_logs,omitempty"`
+	MaxTotalDebouncesAmount *int            `json:"max_total_debounces_amount,omitempty"`
+	MaxTotalDebouncingTime  *int            `json:"max_total_debouncing_time,omitempty"`
 
 	// Modules Additional script modules keyed by relative file path
 	Modules         *map[string]ScriptModule `json:"modules"`
@@ -5623,8 +5629,8 @@ type SchemasFlowModule struct {
 		MaxTotalDebouncingTime *int `json:"max_total_debouncing_time,omitempty"`
 	} `json:"debouncing,omitempty"`
 
-	// DeleteAfterUse If true, this step's result is deleted after use to save memory
-	DeleteAfterUse *bool `json:"delete_after_use,omitempty"`
+	// DeleteAfterSecs If set, delete the step's args, result and logs after this many seconds following job completion
+	DeleteAfterSecs *int `json:"delete_after_secs,omitempty"`
 
 	// Id Unique identifier for this step. Used to reference results via 'results.step_id'. Must be a valid identifier (alphanumeric, underscore, hyphen)
 	Id string `json:"id"`
@@ -5860,6 +5866,9 @@ type SchemasFlowValue struct {
 
 	// DebounceKey Expression to group debounced executions
 	DebounceKey *string `json:"debounce_key,omitempty"`
+
+	// DeleteAfterSecs If set, delete the flow job's args, result and logs after this many seconds following job completion
+	DeleteAfterSecs *int `json:"delete_after_secs,omitempty"`
 
 	// EarlyReturn JavaScript expression to return early from the flow
 	EarlyReturn *string `json:"early_return,omitempty"`
