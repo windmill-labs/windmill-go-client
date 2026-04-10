@@ -1217,6 +1217,20 @@ const (
 	SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerTypeSuccess  SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType = "success"
 )
 
+// Defines values for GetCiTestResultsParamsKind.
+const (
+	GetCiTestResultsParamsKindFlow     GetCiTestResultsParamsKind = "flow"
+	GetCiTestResultsParamsKindResource GetCiTestResultsParamsKind = "resource"
+	GetCiTestResultsParamsKindScript   GetCiTestResultsParamsKind = "script"
+)
+
+// Defines values for GetCiTestResultsBatchJSONBodyItemsKind.
+const (
+	GetCiTestResultsBatchJSONBodyItemsKindFlow     GetCiTestResultsBatchJSONBodyItemsKind = "flow"
+	GetCiTestResultsBatchJSONBodyItemsKindResource GetCiTestResultsBatchJSONBodyItemsKind = "resource"
+	GetCiTestResultsBatchJSONBodyItemsKindScript   GetCiTestResultsBatchJSONBodyItemsKind = "script"
+)
+
 // Defines values for ImportPgDatabaseJSONBodyForkBehavior.
 const (
 	KeepOriginal  ImportPgDatabaseJSONBodyForkBehavior = "keep_original"
@@ -1445,6 +1459,14 @@ type CaptureConfig struct {
 
 // CaptureTriggerKind defines model for CaptureTriggerKind.
 type CaptureTriggerKind string
+
+// CiTestResult defines model for CiTestResult.
+type CiTestResult struct {
+	JobId          *openapi_types.UUID `json:"job_id"`
+	StartedAt      *time.Time          `json:"started_at"`
+	Status         *string             `json:"status"`
+	TestScriptPath string              `json:"test_script_path"`
+}
 
 // CompareSummary defines model for CompareSummary.
 type CompareSummary struct {
@@ -2566,6 +2588,19 @@ type ExtendedJobs struct {
 	OmittedObscuredJobs *bool `json:"omitted_obscured_jobs,omitempty"`
 }
 
+// ExternalJwtToken defines model for ExternalJwtToken.
+type ExternalJwtToken struct {
+	Email       string    `json:"email"`
+	IsAdmin     bool      `json:"is_admin"`
+	IsOperator  bool      `json:"is_operator"`
+	JwtHash     int64     `json:"jwt_hash"`
+	Label       *string   `json:"label,omitempty"`
+	LastUsedAt  time.Time `json:"last_used_at"`
+	Scopes      *[]string `json:"scopes,omitempty"`
+	Username    string    `json:"username"`
+	WorkspaceId *string   `json:"workspace_id,omitempty"`
+}
+
 // ExtraPerms defines model for ExtraPerms.
 type ExtraPerms map[string]bool
 
@@ -3015,6 +3050,20 @@ type GithubInstallations = []struct {
 	// TotalCount Total number of repositories available for this installation
 	TotalCount  float32 `json:"total_count"`
 	WorkspaceId *string `json:"workspace_id,omitempty"`
+}
+
+// GlobalOffboardPreview defines model for GlobalOffboardPreview.
+type GlobalOffboardPreview struct {
+	Workspaces []WorkspaceOffboardPreview `json:"workspaces"`
+}
+
+// GlobalOffboardRequest defines model for GlobalOffboardRequest.
+type GlobalOffboardRequest struct {
+	// DeleteUser Whether to also remove the user from the instance
+	DeleteUser *bool `json:"delete_user,omitempty"`
+
+	// Reassignments Map of workspace_id to reassignment config
+	Reassignments *map[string]WorkspaceReassignment `json:"reassignments,omitempty"`
 }
 
 // GlobalSetting defines model for GlobalSetting.
@@ -4239,6 +4288,70 @@ type ObscuredJob struct {
 	Typ        *string    `json:"typ,omitempty"`
 }
 
+// OffboardAffectedPaths defines model for OffboardAffectedPaths.
+type OffboardAffectedPaths struct {
+	Apps      *[]string            `json:"apps,omitempty"`
+	Flows     *[]string            `json:"flows,omitempty"`
+	Resources *[]string            `json:"resources,omitempty"`
+	Schedules *[]string            `json:"schedules,omitempty"`
+	Scripts   *[]string            `json:"scripts,omitempty"`
+	Triggers  *map[string][]string `json:"triggers,omitempty"`
+	Variables *[]string            `json:"variables,omitempty"`
+}
+
+// OffboardPreview defines model for OffboardPreview.
+type OffboardPreview struct {
+	// EmailTriggers Email triggers under the user's path (email addresses will change)
+	EmailTriggers     int                   `json:"email_triggers"`
+	ExecutingOnBehalf OffboardAffectedPaths `json:"executing_on_behalf"`
+
+	// HttpTriggers HTTP triggers under the user's path (webhook URLs will change)
+	HttpTriggers int                   `json:"http_triggers"`
+	Owned        OffboardAffectedPaths `json:"owned"`
+	Referencing  OffboardAffectedPaths `json:"referencing"`
+
+	// Tokens Tokens owned by this user (will be deleted)
+	Tokens []OffboardTokenInfo `json:"tokens"`
+}
+
+// OffboardRequest defines model for OffboardRequest.
+type OffboardRequest struct {
+	// DeleteUser Whether to also remove the user from the workspace
+	DeleteUser *bool `json:"delete_user,omitempty"`
+
+	// NewOnBehalfOfUser Required when reassign_to is a folder. The username whose identity will be used as permissioned_as for schedules and triggers.
+	NewOnBehalfOfUser *string `json:"new_on_behalf_of_user,omitempty"`
+
+	// ReassignTo Target for reassignment: 'u/{username}' or 'f/{folder}'
+	ReassignTo string `json:"reassign_to"`
+}
+
+// OffboardResponse defines model for OffboardResponse.
+type OffboardResponse struct {
+	// Conflicts List of path conflicts that block the offboarding. Empty on success.
+	Conflicts *[]string        `json:"conflicts,omitempty"`
+	Summary   *OffboardSummary `json:"summary,omitempty"`
+}
+
+// OffboardSummary defines model for OffboardSummary.
+type OffboardSummary struct {
+	AppsReassigned      int `json:"apps_reassigned"`
+	DraftsDeleted       int `json:"drafts_deleted"`
+	FlowsReassigned     int `json:"flows_reassigned"`
+	ResourcesReassigned int `json:"resources_reassigned"`
+	SchedulesReassigned int `json:"schedules_reassigned"`
+	ScriptsReassigned   int `json:"scripts_reassigned"`
+	TriggersReassigned  int `json:"triggers_reassigned"`
+	VariablesReassigned int `json:"variables_reassigned"`
+}
+
+// OffboardTokenInfo defines model for OffboardTokenInfo.
+type OffboardTokenInfo struct {
+	Expiration *string  `json:"expiration,omitempty"`
+	Label      string   `json:"label"`
+	Scopes     []string `json:"scopes"`
+}
+
 // OpenFlow Top-level flow definition containing metadata, configuration, and the flow structure
 type OpenFlow struct {
 	// Description Detailed documentation for this flow
@@ -5218,6 +5331,9 @@ type VaultSettings struct {
 	// Namespace Vault Enterprise namespace (optional)
 	Namespace *string `json:"namespace,omitempty"`
 
+	// SkipSslVerify Skip TLS certificate verification when connecting to Vault. Only use for self-signed certificates in development environments.
+	SkipSslVerify *bool `json:"skip_ssl_verify,omitempty"`
+
 	// Token Static Vault token for testing/development (optional, if provided this is used instead of JWT authentication)
 	Token *string `json:"token,omitempty"`
 }
@@ -5490,6 +5606,22 @@ type WorkspaceOAuthConfig struct {
 
 	// RedirectUri The OAuth redirect URI
 	RedirectUri string `json:"redirect_uri"`
+}
+
+// WorkspaceOffboardPreview defines model for WorkspaceOffboardPreview.
+type WorkspaceOffboardPreview struct {
+	Preview     OffboardPreview `json:"preview"`
+	Username    string          `json:"username"`
+	WorkspaceId string          `json:"workspace_id"`
+}
+
+// WorkspaceReassignment defines model for WorkspaceReassignment.
+type WorkspaceReassignment struct {
+	// NewOnBehalfOfUser Required when reassign_to is a folder. Username to use as permissioned_as.
+	NewOnBehalfOfUser *string `json:"new_on_behalf_of_user,omitempty"`
+
+	// ReassignTo Target: 'u/{username}' or 'f/{folder}'
+	ReassignTo string `json:"reassign_to"`
 }
 
 // SchemasAiAgent AI agent step that can use tools to accomplish tasks. The agent receives inputs and can call any of its configured tools to complete the task
@@ -6668,6 +6800,15 @@ type CreateUserGloballyJSONBody struct {
 // DeclineInviteJSONBody defines parameters for DeclineInvite.
 type DeclineInviteJSONBody struct {
 	WorkspaceId string `json:"workspace_id"`
+}
+
+// ListExtJwtTokensParams defines parameters for ListExtJwtTokens.
+type ListExtJwtTokensParams struct {
+	Page    *int `form:"page,omitempty" json:"page,omitempty"`
+	PerPage *int `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// ActiveOnly only tokens used in the last 30 days
+	ActiveOnly *bool `form:"active_only,omitempty" json:"active_only,omitempty"`
 }
 
 // ListUsersAsSuperAdminParams defines parameters for ListUsersAsSuperAdmin.
@@ -9301,6 +9442,20 @@ type SetScheduleEnabledJSONBody struct {
 	Enabled bool `json:"enabled"`
 }
 
+// GetCiTestResultsParamsKind defines parameters for GetCiTestResults.
+type GetCiTestResultsParamsKind string
+
+// GetCiTestResultsBatchJSONBody defines parameters for GetCiTestResultsBatch.
+type GetCiTestResultsBatchJSONBody struct {
+	Items []struct {
+		Kind GetCiTestResultsBatchJSONBodyItemsKind `json:"kind"`
+		Path string                                 `json:"path"`
+	} `json:"items"`
+}
+
+// GetCiTestResultsBatchJSONBodyItemsKind defines parameters for GetCiTestResultsBatch.
+type GetCiTestResultsBatchJSONBodyItemsKind string
+
 // DeleteScriptByPathParams defines parameters for DeleteScriptByPath.
 type DeleteScriptByPathParams struct {
 	// KeepCaptures keep captures
@@ -10080,6 +10235,9 @@ type CreateUserGloballyJSONRequestBody CreateUserGloballyJSONBody
 // DeclineInviteJSONRequestBody defines body for DeclineInvite for application/json ContentType.
 type DeclineInviteJSONRequestBody DeclineInviteJSONBody
 
+// OffboardGlobalUserJSONRequestBody defines body for OffboardGlobalUser for application/json ContentType.
+type OffboardGlobalUserJSONRequestBody = GlobalOffboardRequest
+
 // SubmitOnboardingDataJSONRequestBody defines body for SubmitOnboardingData for application/json ContentType.
 type SubmitOnboardingDataJSONRequestBody SubmitOnboardingDataJSONBody
 
@@ -10518,6 +10676,9 @@ type SetScheduleEnabledJSONRequestBody SetScheduleEnabledJSONBody
 // UpdateScheduleJSONRequestBody defines body for UpdateSchedule for application/json ContentType.
 type UpdateScheduleJSONRequestBody = EditSchedule
 
+// GetCiTestResultsBatchJSONRequestBody defines body for GetCiTestResultsBatch for application/json ContentType.
+type GetCiTestResultsBatchJSONRequestBody GetCiTestResultsBatchJSONBody
+
 // CreateScriptJSONRequestBody defines body for CreateScript for application/json ContentType.
 type CreateScriptJSONRequestBody = NewScript
 
@@ -10559,6 +10720,9 @@ type ExitImpersonationJSONRequestBody ExitImpersonationJSONBody
 
 // ImpersonateServiceAccountJSONRequestBody defines body for ImpersonateServiceAccount for application/json ContentType.
 type ImpersonateServiceAccountJSONRequestBody ImpersonateServiceAccountJSONBody
+
+// OffboardWorkspaceUserJSONRequestBody defines body for OffboardWorkspaceUser for application/json ContentType.
+type OffboardWorkspaceUserJSONRequestBody = OffboardRequest
 
 // UpdateUserJSONRequestBody defines body for UpdateUser for application/json ContentType.
 type UpdateUserJSONRequestBody = EditWorkspaceUser
@@ -13106,6 +13270,9 @@ type ClientInterface interface {
 	// GlobalUsersExport request
 	GlobalUsersExport(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListExtJwtTokens request
+	ListExtJwtTokens(ctx context.Context, params *ListExtJwtTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// LeaveInstance request
 	LeaveInstance(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -13114,6 +13281,14 @@ type ClientInterface interface {
 
 	// ListWorkspaceInvites request
 	ListWorkspaceInvites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// OffboardGlobalUserWithBody request with any body
+	OffboardGlobalUserWithBody(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	OffboardGlobalUser(ctx context.Context, email string, body OffboardGlobalUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GlobalOffboardPreview request
+	GlobalOffboardPreview(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SubmitOnboardingDataWithBody request with any body
 	SubmitOnboardingDataWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14501,6 +14676,14 @@ type ClientInterface interface {
 	// ArchiveScriptByPath request
 	ArchiveScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetCiTestResults request
+	GetCiTestResults(ctx context.Context, workspace WorkspaceId, kind GetCiTestResultsParamsKind, path string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCiTestResultsBatchWithBody request with any body
+	GetCiTestResultsBatchWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GetCiTestResultsBatch(ctx context.Context, workspace WorkspaceId, body GetCiTestResultsBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateScriptWithBody request with any body
 	CreateScriptWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14657,6 +14840,14 @@ type ClientInterface interface {
 
 	// ListUsernames request
 	ListUsernames(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// OffboardWorkspaceUserWithBody request with any body
+	OffboardWorkspaceUserWithBody(ctx context.Context, workspace WorkspaceId, username string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	OffboardWorkspaceUser(ctx context.Context, workspace WorkspaceId, username string, body OffboardWorkspaceUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// OffboardPreview request
+	OffboardPreview(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateUserWithBody request with any body
 	UpdateUserWithBody(ctx context.Context, workspace WorkspaceId, username string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17199,6 +17390,18 @@ func (c *Client) GlobalUsersExport(ctx context.Context, reqEditors ...RequestEdi
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListExtJwtTokens(ctx context.Context, params *ListExtJwtTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListExtJwtTokensRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) LeaveInstance(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLeaveInstanceRequest(c.Server)
 	if err != nil {
@@ -17225,6 +17428,42 @@ func (c *Client) ListUsersAsSuperAdmin(ctx context.Context, params *ListUsersAsS
 
 func (c *Client) ListWorkspaceInvites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListWorkspaceInvitesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OffboardGlobalUserWithBody(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOffboardGlobalUserRequestWithBody(c.Server, email, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OffboardGlobalUser(ctx context.Context, email string, body OffboardGlobalUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOffboardGlobalUserRequest(c.Server, email, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GlobalOffboardPreview(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGlobalOffboardPreviewRequest(c.Server, email)
 	if err != nil {
 		return nil, err
 	}
@@ -23355,6 +23594,42 @@ func (c *Client) ArchiveScriptByPath(ctx context.Context, workspace WorkspaceId,
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetCiTestResults(ctx context.Context, workspace WorkspaceId, kind GetCiTestResultsParamsKind, path string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCiTestResultsRequest(c.Server, workspace, kind, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCiTestResultsBatchWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCiTestResultsBatchRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCiTestResultsBatch(ctx context.Context, workspace WorkspaceId, body GetCiTestResultsBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCiTestResultsBatchRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateScriptWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateScriptRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -24029,6 +24304,42 @@ func (c *Client) ListUsersUsage(ctx context.Context, workspace WorkspaceId, reqE
 
 func (c *Client) ListUsernames(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListUsernamesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OffboardWorkspaceUserWithBody(ctx context.Context, workspace WorkspaceId, username string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOffboardWorkspaceUserRequestWithBody(c.Server, workspace, username, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OffboardWorkspaceUser(ctx context.Context, workspace WorkspaceId, username string, body OffboardWorkspaceUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOffboardWorkspaceUserRequest(c.Server, workspace, username, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OffboardPreview(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOffboardPreviewRequest(c.Server, workspace, username)
 	if err != nil {
 		return nil, err
 	}
@@ -31275,6 +31586,87 @@ func NewGlobalUsersExportRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewListExtJwtTokensRequest generates requests for ListExtJwtTokens
+func NewListExtJwtTokensRequest(server string, params *ListExtJwtTokensParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/ext_jwt_tokens")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ActiveOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "active_only", runtime.ParamLocationQuery, *params.ActiveOnly); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewLeaveInstanceRequest generates requests for LeaveInstance
 func NewLeaveInstanceRequest(server string) (*http.Request, error) {
 	var err error
@@ -31393,6 +31785,87 @@ func NewListWorkspaceInvitesRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/users/list_invites")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewOffboardGlobalUserRequest calls the generic OffboardGlobalUser builder with application/json body
+func NewOffboardGlobalUserRequest(server string, email string, body OffboardGlobalUserJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewOffboardGlobalUserRequestWithBody(server, email, "application/json", bodyReader)
+}
+
+// NewOffboardGlobalUserRequestWithBody generates requests for OffboardGlobalUser with any type of body
+func NewOffboardGlobalUserRequestWithBody(server string, email string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "email", runtime.ParamLocationPath, email)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/offboard/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGlobalOffboardPreviewRequest generates requests for GlobalOffboardPreview
+func NewGlobalOffboardPreviewRequest(server string, email string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "email", runtime.ParamLocationPath, email)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/offboard_preview/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -57989,6 +58462,101 @@ func NewArchiveScriptByPathRequest(server string, workspace WorkspaceId, path Sc
 	return req, nil
 }
 
+// NewGetCiTestResultsRequest generates requests for GetCiTestResults
+func NewGetCiTestResultsRequest(server string, workspace WorkspaceId, kind GetCiTestResultsParamsKind, path string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "kind", runtime.ParamLocationPath, kind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/ci_test_results/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetCiTestResultsBatchRequest calls the generic GetCiTestResultsBatch builder with application/json body
+func NewGetCiTestResultsBatchRequest(server string, workspace WorkspaceId, body GetCiTestResultsBatchJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGetCiTestResultsBatchRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewGetCiTestResultsBatchRequestWithBody generates requests for GetCiTestResultsBatch with any type of body
+func NewGetCiTestResultsBatchRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/ci_test_results_batch", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateScriptRequest calls the generic CreateScript builder with application/json body
 func NewCreateScriptRequest(server string, workspace WorkspaceId, body CreateScriptJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -60336,6 +60904,101 @@ func NewListUsernamesRequest(server string, workspace WorkspaceId) (*http.Reques
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/users/list_usernames", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewOffboardWorkspaceUserRequest calls the generic OffboardWorkspaceUser builder with application/json body
+func NewOffboardWorkspaceUserRequest(server string, workspace WorkspaceId, username string, body OffboardWorkspaceUserJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewOffboardWorkspaceUserRequestWithBody(server, workspace, username, "application/json", bodyReader)
+}
+
+// NewOffboardWorkspaceUserRequestWithBody generates requests for OffboardWorkspaceUser with any type of body
+func NewOffboardWorkspaceUserRequestWithBody(server string, workspace WorkspaceId, username string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "username", runtime.ParamLocationPath, username)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/users/offboard/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewOffboardPreviewRequest generates requests for OffboardPreview
+func NewOffboardPreviewRequest(server string, workspace WorkspaceId, username string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "username", runtime.ParamLocationPath, username)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/users/offboard_preview/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -67000,6 +67663,9 @@ type ClientWithResponsesInterface interface {
 	// GlobalUsersExportWithResponse request
 	GlobalUsersExportWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GlobalUsersExportResponse, error)
 
+	// ListExtJwtTokensWithResponse request
+	ListExtJwtTokensWithResponse(ctx context.Context, params *ListExtJwtTokensParams, reqEditors ...RequestEditorFn) (*ListExtJwtTokensResponse, error)
+
 	// LeaveInstanceWithResponse request
 	LeaveInstanceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LeaveInstanceResponse, error)
 
@@ -67008,6 +67674,14 @@ type ClientWithResponsesInterface interface {
 
 	// ListWorkspaceInvitesWithResponse request
 	ListWorkspaceInvitesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkspaceInvitesResponse, error)
+
+	// OffboardGlobalUserWithBodyWithResponse request with any body
+	OffboardGlobalUserWithBodyWithResponse(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OffboardGlobalUserResponse, error)
+
+	OffboardGlobalUserWithResponse(ctx context.Context, email string, body OffboardGlobalUserJSONRequestBody, reqEditors ...RequestEditorFn) (*OffboardGlobalUserResponse, error)
+
+	// GlobalOffboardPreviewWithResponse request
+	GlobalOffboardPreviewWithResponse(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*GlobalOffboardPreviewResponse, error)
 
 	// SubmitOnboardingDataWithBodyWithResponse request with any body
 	SubmitOnboardingDataWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubmitOnboardingDataResponse, error)
@@ -68395,6 +69069,14 @@ type ClientWithResponsesInterface interface {
 	// ArchiveScriptByPathWithResponse request
 	ArchiveScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ArchiveScriptByPathResponse, error)
 
+	// GetCiTestResultsWithResponse request
+	GetCiTestResultsWithResponse(ctx context.Context, workspace WorkspaceId, kind GetCiTestResultsParamsKind, path string, reqEditors ...RequestEditorFn) (*GetCiTestResultsResponse, error)
+
+	// GetCiTestResultsBatchWithBodyWithResponse request with any body
+	GetCiTestResultsBatchWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetCiTestResultsBatchResponse, error)
+
+	GetCiTestResultsBatchWithResponse(ctx context.Context, workspace WorkspaceId, body GetCiTestResultsBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*GetCiTestResultsBatchResponse, error)
+
 	// CreateScriptWithBodyWithResponse request with any body
 	CreateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateScriptResponse, error)
 
@@ -68551,6 +69233,14 @@ type ClientWithResponsesInterface interface {
 
 	// ListUsernamesWithResponse request
 	ListUsernamesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListUsernamesResponse, error)
+
+	// OffboardWorkspaceUserWithBodyWithResponse request with any body
+	OffboardWorkspaceUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, username string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OffboardWorkspaceUserResponse, error)
+
+	OffboardWorkspaceUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, body OffboardWorkspaceUserJSONRequestBody, reqEditors ...RequestEditorFn) (*OffboardWorkspaceUserResponse, error)
+
+	// OffboardPreviewWithResponse request
+	OffboardPreviewWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*OffboardPreviewResponse, error)
 
 	// UpdateUserWithBodyWithResponse request with any body
 	UpdateUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, username string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateUserResponse, error)
@@ -72053,6 +72743,28 @@ func (r GlobalUsersExportResponse) StatusCode() int {
 	return 0
 }
 
+type ListExtJwtTokensResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]ExternalJwtToken
+}
+
+// Status returns HTTPResponse.Status
+func (r ListExtJwtTokensResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListExtJwtTokensResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type LeaveInstanceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -72112,6 +72824,50 @@ func (r ListWorkspaceInvitesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListWorkspaceInvitesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type OffboardGlobalUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OffboardResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r OffboardGlobalUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r OffboardGlobalUserResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GlobalOffboardPreviewResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GlobalOffboardPreview
+}
+
+// Status returns HTTPResponse.Status
+func (r GlobalOffboardPreviewResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GlobalOffboardPreviewResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -80296,6 +81052,50 @@ func (r ArchiveScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
+type GetCiTestResultsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]CiTestResult
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCiTestResultsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCiTestResultsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCiTestResultsBatchResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string][]CiTestResult
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCiTestResultsBatchResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCiTestResultsBatchResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateScriptResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -81233,6 +82033,50 @@ func (r ListUsernamesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListUsernamesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type OffboardWorkspaceUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OffboardResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r OffboardWorkspaceUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r OffboardWorkspaceUserResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type OffboardPreviewResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OffboardPreview
+}
+
+// Status returns HTTPResponse.Status
+func (r OffboardPreviewResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r OffboardPreviewResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -85752,6 +86596,15 @@ func (c *ClientWithResponses) GlobalUsersExportWithResponse(ctx context.Context,
 	return ParseGlobalUsersExportResponse(rsp)
 }
 
+// ListExtJwtTokensWithResponse request returning *ListExtJwtTokensResponse
+func (c *ClientWithResponses) ListExtJwtTokensWithResponse(ctx context.Context, params *ListExtJwtTokensParams, reqEditors ...RequestEditorFn) (*ListExtJwtTokensResponse, error) {
+	rsp, err := c.ListExtJwtTokens(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListExtJwtTokensResponse(rsp)
+}
+
 // LeaveInstanceWithResponse request returning *LeaveInstanceResponse
 func (c *ClientWithResponses) LeaveInstanceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LeaveInstanceResponse, error) {
 	rsp, err := c.LeaveInstance(ctx, reqEditors...)
@@ -85777,6 +86630,32 @@ func (c *ClientWithResponses) ListWorkspaceInvitesWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseListWorkspaceInvitesResponse(rsp)
+}
+
+// OffboardGlobalUserWithBodyWithResponse request with arbitrary body returning *OffboardGlobalUserResponse
+func (c *ClientWithResponses) OffboardGlobalUserWithBodyWithResponse(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OffboardGlobalUserResponse, error) {
+	rsp, err := c.OffboardGlobalUserWithBody(ctx, email, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOffboardGlobalUserResponse(rsp)
+}
+
+func (c *ClientWithResponses) OffboardGlobalUserWithResponse(ctx context.Context, email string, body OffboardGlobalUserJSONRequestBody, reqEditors ...RequestEditorFn) (*OffboardGlobalUserResponse, error) {
+	rsp, err := c.OffboardGlobalUser(ctx, email, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOffboardGlobalUserResponse(rsp)
+}
+
+// GlobalOffboardPreviewWithResponse request returning *GlobalOffboardPreviewResponse
+func (c *ClientWithResponses) GlobalOffboardPreviewWithResponse(ctx context.Context, email string, reqEditors ...RequestEditorFn) (*GlobalOffboardPreviewResponse, error) {
+	rsp, err := c.GlobalOffboardPreview(ctx, email, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGlobalOffboardPreviewResponse(rsp)
 }
 
 // SubmitOnboardingDataWithBodyWithResponse request with arbitrary body returning *SubmitOnboardingDataResponse
@@ -90225,6 +91104,32 @@ func (c *ClientWithResponses) ArchiveScriptByPathWithResponse(ctx context.Contex
 	return ParseArchiveScriptByPathResponse(rsp)
 }
 
+// GetCiTestResultsWithResponse request returning *GetCiTestResultsResponse
+func (c *ClientWithResponses) GetCiTestResultsWithResponse(ctx context.Context, workspace WorkspaceId, kind GetCiTestResultsParamsKind, path string, reqEditors ...RequestEditorFn) (*GetCiTestResultsResponse, error) {
+	rsp, err := c.GetCiTestResults(ctx, workspace, kind, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCiTestResultsResponse(rsp)
+}
+
+// GetCiTestResultsBatchWithBodyWithResponse request with arbitrary body returning *GetCiTestResultsBatchResponse
+func (c *ClientWithResponses) GetCiTestResultsBatchWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetCiTestResultsBatchResponse, error) {
+	rsp, err := c.GetCiTestResultsBatchWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCiTestResultsBatchResponse(rsp)
+}
+
+func (c *ClientWithResponses) GetCiTestResultsBatchWithResponse(ctx context.Context, workspace WorkspaceId, body GetCiTestResultsBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*GetCiTestResultsBatchResponse, error) {
+	rsp, err := c.GetCiTestResultsBatch(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCiTestResultsBatchResponse(rsp)
+}
+
 // CreateScriptWithBodyWithResponse request with arbitrary body returning *CreateScriptResponse
 func (c *ClientWithResponses) CreateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateScriptResponse, error) {
 	rsp, err := c.CreateScriptWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -90722,6 +91627,32 @@ func (c *ClientWithResponses) ListUsernamesWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseListUsernamesResponse(rsp)
+}
+
+// OffboardWorkspaceUserWithBodyWithResponse request with arbitrary body returning *OffboardWorkspaceUserResponse
+func (c *ClientWithResponses) OffboardWorkspaceUserWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, username string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OffboardWorkspaceUserResponse, error) {
+	rsp, err := c.OffboardWorkspaceUserWithBody(ctx, workspace, username, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOffboardWorkspaceUserResponse(rsp)
+}
+
+func (c *ClientWithResponses) OffboardWorkspaceUserWithResponse(ctx context.Context, workspace WorkspaceId, username string, body OffboardWorkspaceUserJSONRequestBody, reqEditors ...RequestEditorFn) (*OffboardWorkspaceUserResponse, error) {
+	rsp, err := c.OffboardWorkspaceUser(ctx, workspace, username, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOffboardWorkspaceUserResponse(rsp)
+}
+
+// OffboardPreviewWithResponse request returning *OffboardPreviewResponse
+func (c *ClientWithResponses) OffboardPreviewWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*OffboardPreviewResponse, error) {
+	rsp, err := c.OffboardPreview(ctx, workspace, username, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOffboardPreviewResponse(rsp)
 }
 
 // UpdateUserWithBodyWithResponse request with arbitrary body returning *UpdateUserResponse
@@ -95477,6 +96408,32 @@ func ParseGlobalUsersExportResponse(rsp *http.Response) (*GlobalUsersExportRespo
 	return response, nil
 }
 
+// ParseListExtJwtTokensResponse parses an HTTP response from a ListExtJwtTokensWithResponse call
+func ParseListExtJwtTokensResponse(rsp *http.Response) (*ListExtJwtTokensResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListExtJwtTokensResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ExternalJwtToken
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseLeaveInstanceResponse parses an HTTP response from a LeaveInstanceWithResponse call
 func ParseLeaveInstanceResponse(rsp *http.Response) (*LeaveInstanceResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -95535,6 +96492,58 @@ func ParseListWorkspaceInvitesResponse(rsp *http.Response) (*ListWorkspaceInvite
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []WorkspaceInvite
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseOffboardGlobalUserResponse parses an HTTP response from a OffboardGlobalUserWithResponse call
+func ParseOffboardGlobalUserResponse(rsp *http.Response) (*OffboardGlobalUserResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &OffboardGlobalUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OffboardResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGlobalOffboardPreviewResponse parses an HTTP response from a GlobalOffboardPreviewWithResponse call
+func ParseGlobalOffboardPreviewResponse(rsp *http.Response) (*GlobalOffboardPreviewResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GlobalOffboardPreviewResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GlobalOffboardPreview
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -103612,6 +104621,58 @@ func ParseArchiveScriptByPathResponse(rsp *http.Response) (*ArchiveScriptByPathR
 	return response, nil
 }
 
+// ParseGetCiTestResultsResponse parses an HTTP response from a GetCiTestResultsWithResponse call
+func ParseGetCiTestResultsResponse(rsp *http.Response) (*GetCiTestResultsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCiTestResultsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []CiTestResult
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCiTestResultsBatchResponse parses an HTTP response from a GetCiTestResultsBatchWithResponse call
+func ParseGetCiTestResultsBatchResponse(rsp *http.Response) (*GetCiTestResultsBatchResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCiTestResultsBatchResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string][]CiTestResult
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateScriptResponse parses an HTTP response from a CreateScriptWithResponse call
 func ParseCreateScriptResponse(rsp *http.Response) (*CreateScriptResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -104581,6 +105642,58 @@ func ParseListUsernamesResponse(rsp *http.Response) (*ListUsernamesResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseOffboardWorkspaceUserResponse parses an HTTP response from a OffboardWorkspaceUserWithResponse call
+func ParseOffboardWorkspaceUserResponse(rsp *http.Response) (*OffboardWorkspaceUserResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &OffboardWorkspaceUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OffboardResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseOffboardPreviewResponse parses an HTTP response from a OffboardPreviewWithResponse call
+func ParseOffboardPreviewResponse(rsp *http.Response) (*OffboardPreviewResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &OffboardPreviewResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OffboardPreview
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
