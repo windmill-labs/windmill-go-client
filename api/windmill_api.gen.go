@@ -761,8 +761,9 @@ const (
 
 // Defines values for ProtectionRuleKind.
 const (
-	DisableDirectDeployment ProtectionRuleKind = "DisableDirectDeployment"
-	DisableWorkspaceForking ProtectionRuleKind = "DisableWorkspaceForking"
+	DisableDirectDeployment   ProtectionRuleKind = "DisableDirectDeployment"
+	DisableWorkspaceForking   ProtectionRuleKind = "DisableWorkspaceForking"
+	RestrictDeployToDeployers ProtectionRuleKind = "RestrictDeployToDeployers"
 )
 
 // Defines values for QueuedJobJobKind.
@@ -1770,6 +1771,44 @@ type DependencyMap struct {
 type DependentsAmount struct {
 	Count        int64  `json:"count"`
 	ImportedPath string `json:"imported_path"`
+}
+
+// DeploymentRequest defines model for DeploymentRequest.
+type DeploymentRequest struct {
+	Assignees         []DeploymentRequestAssignee `json:"assignees"`
+	Comments          []DeploymentRequestComment  `json:"comments"`
+	ForkWorkspaceId   string                      `json:"fork_workspace_id"`
+	Id                int64                       `json:"id"`
+	RequestedAt       time.Time                   `json:"requested_at"`
+	RequestedBy       string                      `json:"requested_by"`
+	RequestedByEmail  string                      `json:"requested_by_email"`
+	SourceWorkspaceId string                      `json:"source_workspace_id"`
+}
+
+// DeploymentRequestAssignee defines model for DeploymentRequestAssignee.
+type DeploymentRequestAssignee struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+}
+
+// DeploymentRequestComment defines model for DeploymentRequestComment.
+type DeploymentRequestComment struct {
+	AnchorKind  *string   `json:"anchor_kind"`
+	AnchorPath  *string   `json:"anchor_path"`
+	Author      string    `json:"author"`
+	AuthorEmail string    `json:"author_email"`
+	Body        string    `json:"body"`
+	CreatedAt   time.Time `json:"created_at"`
+	Id          int64     `json:"id"`
+	Obsolete    bool      `json:"obsolete"`
+	ParentId    *int64    `json:"parent_id"`
+}
+
+// DeploymentRequestEligibleDeployer defines model for DeploymentRequestEligibleDeployer.
+type DeploymentRequestEligibleDeployer struct {
+	Email    string `json:"email"`
+	IsAdmin  bool   `json:"is_admin"`
+	Username string `json:"username"`
 }
 
 // DetailedHealthResponse Detailed health status response (always fresh, no caching)
@@ -2929,12 +2968,24 @@ type FlowVersion struct {
 
 // Folder defines model for Folder.
 type Folder struct {
-	CreatedBy  *string         `json:"created_by,omitempty"`
-	EditedAt   *time.Time      `json:"edited_at,omitempty"`
-	ExtraPerms map[string]bool `json:"extra_perms"`
-	Name       string          `json:"name"`
-	Owners     []string        `json:"owners"`
-	Summary    *string         `json:"summary,omitempty"`
+	CreatedBy *string `json:"created_by,omitempty"`
+
+	// DefaultPermissionedAs Ordered list of rules applied at create-time when admins or `wm_deployers` members deploy items in this folder. The first rule whose `path_glob` matches the item path (relative to the folder root) wins, and its `permissioned_as` is used as the default.
+	DefaultPermissionedAs *FolderDefaultPermissionedAs `json:"default_permissioned_as,omitempty"`
+	EditedAt              *time.Time                   `json:"edited_at,omitempty"`
+	ExtraPerms            map[string]bool              `json:"extra_perms"`
+	Name                  string                       `json:"name"`
+	Owners                []string                     `json:"owners"`
+	Summary               *string                      `json:"summary,omitempty"`
+}
+
+// FolderDefaultPermissionedAs Ordered list of rules applied at create-time when admins or `wm_deployers` members deploy items in this folder. The first rule whose `path_glob` matches the item path (relative to the folder root) wins, and its `permissioned_as` is used as the default.
+type FolderDefaultPermissionedAs = []struct {
+	// PathGlob Glob pattern evaluated against the item path *relative* to the folder root (e.g. "jobs/**" matches every item whose full path is `f/<folder>/jobs/...`). Supports `*`, `**`, `?`, `[abc]`, `{a,b}`.
+	PathGlob string `json:"path_glob"`
+
+	// PermissionedAs Target identity the matched item should be permissioned as. Must be `u/<username>`, `g/<groupname>`, or an email that exists in this workspace.
+	PermissionedAs string `json:"permissioned_as"`
 }
 
 // GcpTrigger defines model for GcpTrigger.
@@ -7266,6 +7317,20 @@ type ListExtendedJobsParams struct {
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
 
+// CreateDeploymentRequestJSONBody defines parameters for CreateDeploymentRequest.
+type CreateDeploymentRequestJSONBody struct {
+	// Assignees Usernames in the parent workspace. Must be admin or wm_deployers.
+	Assignees []string `json:"assignees"`
+}
+
+// CreateDeploymentRequestCommentJSONBody defines parameters for CreateDeploymentRequestComment.
+type CreateDeploymentRequestCommentJSONBody struct {
+	AnchorKind *string `json:"anchor_kind"`
+	AnchorPath *string `json:"anchor_path"`
+	Body       string  `json:"body"`
+	ParentId   *int64  `json:"parent_id"`
+}
+
 // CreateDraftJSONBody defines parameters for CreateDraft.
 type CreateDraftJSONBody struct {
 	Path  string                 `json:"path"`
@@ -7511,10 +7576,12 @@ type AddOwnerToFolderJSONBody struct {
 
 // CreateFolderJSONBody defines parameters for CreateFolder.
 type CreateFolderJSONBody struct {
-	ExtraPerms *map[string]bool `json:"extra_perms,omitempty"`
-	Name       string           `json:"name"`
-	Owners     *[]string        `json:"owners,omitempty"`
-	Summary    *string          `json:"summary,omitempty"`
+	// DefaultPermissionedAs Ordered list of rules applied at create-time when admins or `wm_deployers` members deploy items in this folder. The first rule whose `path_glob` matches the item path (relative to the folder root) wins, and its `permissioned_as` is used as the default.
+	DefaultPermissionedAs *FolderDefaultPermissionedAs `json:"default_permissioned_as,omitempty"`
+	ExtraPerms            *map[string]bool             `json:"extra_perms,omitempty"`
+	Name                  string                       `json:"name"`
+	Owners                *[]string                    `json:"owners,omitempty"`
+	Summary               *string                      `json:"summary,omitempty"`
 }
 
 // ListFoldersParams defines parameters for ListFolders.
@@ -7540,9 +7607,11 @@ type RemoveOwnerToFolderJSONBody struct {
 
 // UpdateFolderJSONBody defines parameters for UpdateFolder.
 type UpdateFolderJSONBody struct {
-	ExtraPerms *map[string]bool `json:"extra_perms,omitempty"`
-	Owners     *[]string        `json:"owners,omitempty"`
-	Summary    *string          `json:"summary,omitempty"`
+	// DefaultPermissionedAs Ordered list of rules applied at create-time when admins or `wm_deployers` members deploy items in this folder. The first rule whose `path_glob` matches the item path (relative to the folder root) wins, and its `permissioned_as` is used as the default.
+	DefaultPermissionedAs *FolderDefaultPermissionedAs `json:"default_permissioned_as,omitempty"`
+	ExtraPerms            *map[string]bool             `json:"extra_perms,omitempty"`
+	Owners                *[]string                    `json:"owners,omitempty"`
+	Summary               *string                      `json:"summary,omitempty"`
 }
 
 // GetFolderPermissionHistoryParams defines parameters for GetFolderPermissionHistory.
@@ -10303,6 +10372,12 @@ type MoveCapturesAndConfigsJSONRequestBody MoveCapturesAndConfigsJSONBody
 
 // SetCaptureConfigJSONRequestBody defines body for SetCaptureConfig for application/json ContentType.
 type SetCaptureConfigJSONRequestBody SetCaptureConfigJSONBody
+
+// CreateDeploymentRequestJSONRequestBody defines body for CreateDeploymentRequest for application/json ContentType.
+type CreateDeploymentRequestJSONRequestBody CreateDeploymentRequestJSONBody
+
+// CreateDeploymentRequestCommentJSONRequestBody defines body for CreateDeploymentRequestComment for application/json ContentType.
+type CreateDeploymentRequestCommentJSONRequestBody CreateDeploymentRequestCommentJSONBody
 
 // CreateDraftJSONRequestBody defines body for CreateDraft for application/json ContentType.
 type CreateDraftJSONRequestBody CreateDraftJSONBody
@@ -13217,6 +13292,9 @@ type ClientInterface interface {
 
 	TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetRuffConfig request
+	GetRuffConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CountSearchLogsIndex request
 	CountSearchLogsIndex(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -13509,6 +13587,28 @@ type ClientInterface interface {
 
 	// ListExtendedJobs request
 	ListExtendedJobs(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateDeploymentRequestWithBody request with any body
+	CreateDeploymentRequestWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateDeploymentRequest(ctx context.Context, workspace WorkspaceId, body CreateDeploymentRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListDeploymentRequestEligibleDeployers request
+	ListDeploymentRequestEligibleDeployers(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetOpenDeploymentRequest request
+	GetOpenDeploymentRequest(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CancelDeploymentRequest request
+	CancelDeploymentRequest(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CloseDeploymentRequestMerged request
+	CloseDeploymentRequestMerged(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateDeploymentRequestCommentWithBody request with any body
+	CreateDeploymentRequestCommentWithBody(ctx context.Context, workspace WorkspaceId, id int64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateDeploymentRequestComment(ctx context.Context, workspace WorkspaceId, id int64, body CreateDeploymentRequestCommentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateDraftWithBody request with any body
 	CreateDraftWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17162,6 +17262,18 @@ func (c *Client) TestSmtp(ctx context.Context, body TestSmtpJSONRequestBody, req
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetRuffConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRuffConfigRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CountSearchLogsIndex(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCountSearchLogsIndexRequest(c.Server, params)
 	if err != nil {
@@ -18424,6 +18536,102 @@ func (c *Client) GetCapture(ctx context.Context, workspace WorkspaceId, id int, 
 
 func (c *Client) ListExtendedJobs(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListExtendedJobsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDeploymentRequestWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDeploymentRequestRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDeploymentRequest(ctx context.Context, workspace WorkspaceId, body CreateDeploymentRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDeploymentRequestRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListDeploymentRequestEligibleDeployers(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDeploymentRequestEligibleDeployersRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetOpenDeploymentRequest(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOpenDeploymentRequestRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CancelDeploymentRequest(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCancelDeploymentRequestRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CloseDeploymentRequestMerged(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCloseDeploymentRequestMergedRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDeploymentRequestCommentWithBody(ctx context.Context, workspace WorkspaceId, id int64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDeploymentRequestCommentRequestWithBody(c.Server, workspace, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDeploymentRequestComment(ctx context.Context, workspace WorkspaceId, id int64, body CreateDeploymentRequestCommentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDeploymentRequestCommentRequest(c.Server, workspace, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -30934,6 +31142,33 @@ func NewTestSmtpRequestWithBody(server string, contentType string, body io.Reade
 	return req, nil
 }
 
+// NewGetRuffConfigRequest generates requests for GetRuffConfig
+func NewGetRuffConfigRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings_u/ruff_config")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCountSearchLogsIndexRequest generates requests for CountSearchLogsIndex
 func NewCountSearchLogsIndexRequest(server string, params *CountSearchLogsIndexParams) (*http.Request, error) {
 	var err error
@@ -35669,6 +35904,257 @@ func NewListExtendedJobsRequest(server string, workspace WorkspaceId, params *Li
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewCreateDeploymentRequestRequest calls the generic CreateDeploymentRequest builder with application/json body
+func NewCreateDeploymentRequestRequest(server string, workspace WorkspaceId, body CreateDeploymentRequestJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateDeploymentRequestRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateDeploymentRequestRequestWithBody generates requests for CreateDeploymentRequest with any type of body
+func NewCreateDeploymentRequestRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/deployment_request", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListDeploymentRequestEligibleDeployersRequest generates requests for ListDeploymentRequestEligibleDeployers
+func NewListDeploymentRequestEligibleDeployersRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/deployment_request/eligible_deployers", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetOpenDeploymentRequestRequest generates requests for GetOpenDeploymentRequest
+func NewGetOpenDeploymentRequestRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/deployment_request/open", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCancelDeploymentRequestRequest generates requests for CancelDeploymentRequest
+func NewCancelDeploymentRequestRequest(server string, workspace WorkspaceId, id int64) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/deployment_request/%s/cancel", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCloseDeploymentRequestMergedRequest generates requests for CloseDeploymentRequestMerged
+func NewCloseDeploymentRequestMergedRequest(server string, workspace WorkspaceId, id int64) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/deployment_request/%s/close_merged", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateDeploymentRequestCommentRequest calls the generic CreateDeploymentRequestComment builder with application/json body
+func NewCreateDeploymentRequestCommentRequest(server string, workspace WorkspaceId, id int64, body CreateDeploymentRequestCommentJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateDeploymentRequestCommentRequestWithBody(server, workspace, id, "application/json", bodyReader)
+}
+
+// NewCreateDeploymentRequestCommentRequestWithBody generates requests for CreateDeploymentRequestComment with any type of body
+func NewCreateDeploymentRequestCommentRequestWithBody(server string, workspace WorkspaceId, id int64, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/deployment_request/%s/comment", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -67610,6 +68096,9 @@ type ClientWithResponsesInterface interface {
 
 	TestSmtpWithResponse(ctx context.Context, body TestSmtpJSONRequestBody, reqEditors ...RequestEditorFn) (*TestSmtpResponse, error)
 
+	// GetRuffConfigWithResponse request
+	GetRuffConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetRuffConfigResponse, error)
+
 	// CountSearchLogsIndexWithResponse request
 	CountSearchLogsIndexWithResponse(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*CountSearchLogsIndexResponse, error)
 
@@ -67902,6 +68391,28 @@ type ClientWithResponsesInterface interface {
 
 	// ListExtendedJobsWithResponse request
 	ListExtendedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListExtendedJobsParams, reqEditors ...RequestEditorFn) (*ListExtendedJobsResponse, error)
+
+	// CreateDeploymentRequestWithBodyWithResponse request with any body
+	CreateDeploymentRequestWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestResponse, error)
+
+	CreateDeploymentRequestWithResponse(ctx context.Context, workspace WorkspaceId, body CreateDeploymentRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestResponse, error)
+
+	// ListDeploymentRequestEligibleDeployersWithResponse request
+	ListDeploymentRequestEligibleDeployersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDeploymentRequestEligibleDeployersResponse, error)
+
+	// GetOpenDeploymentRequestWithResponse request
+	GetOpenDeploymentRequestWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetOpenDeploymentRequestResponse, error)
+
+	// CancelDeploymentRequestWithResponse request
+	CancelDeploymentRequestWithResponse(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*CancelDeploymentRequestResponse, error)
+
+	// CloseDeploymentRequestMergedWithResponse request
+	CloseDeploymentRequestMergedWithResponse(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*CloseDeploymentRequestMergedResponse, error)
+
+	// CreateDeploymentRequestCommentWithBodyWithResponse request with any body
+	CreateDeploymentRequestCommentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id int64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestCommentResponse, error)
+
+	CreateDeploymentRequestCommentWithResponse(ctx context.Context, workspace WorkspaceId, id int64, body CreateDeploymentRequestCommentJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestCommentResponse, error)
 
 	// CreateDraftWithBodyWithResponse request with any body
 	CreateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error)
@@ -72377,6 +72888,27 @@ func (r TestSmtpResponse) StatusCode() int {
 	return 0
 }
 
+type GetRuffConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetRuffConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetRuffConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CountSearchLogsIndexResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -74217,6 +74749,136 @@ func (r ListExtendedJobsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListExtendedJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateDeploymentRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DeploymentRequest
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateDeploymentRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateDeploymentRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListDeploymentRequestEligibleDeployersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]DeploymentRequestEligibleDeployer
+}
+
+// Status returns HTTPResponse.Status
+func (r ListDeploymentRequestEligibleDeployersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListDeploymentRequestEligibleDeployersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetOpenDeploymentRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DeploymentRequest
+}
+
+// Status returns HTTPResponse.Status
+func (r GetOpenDeploymentRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOpenDeploymentRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CancelDeploymentRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CancelDeploymentRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CancelDeploymentRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CloseDeploymentRequestMergedResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CloseDeploymentRequestMergedResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CloseDeploymentRequestMergedResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateDeploymentRequestCommentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DeploymentRequestComment
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateDeploymentRequestCommentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateDeploymentRequestCommentResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -86429,6 +87091,15 @@ func (c *ClientWithResponses) TestSmtpWithResponse(ctx context.Context, body Tes
 	return ParseTestSmtpResponse(rsp)
 }
 
+// GetRuffConfigWithResponse request returning *GetRuffConfigResponse
+func (c *ClientWithResponses) GetRuffConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetRuffConfigResponse, error) {
+	rsp, err := c.GetRuffConfig(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetRuffConfigResponse(rsp)
+}
+
 // CountSearchLogsIndexWithResponse request returning *CountSearchLogsIndexResponse
 func (c *ClientWithResponses) CountSearchLogsIndexWithResponse(ctx context.Context, params *CountSearchLogsIndexParams, reqEditors ...RequestEditorFn) (*CountSearchLogsIndexResponse, error) {
 	rsp, err := c.CountSearchLogsIndex(ctx, params, reqEditors...)
@@ -87356,6 +88027,76 @@ func (c *ClientWithResponses) ListExtendedJobsWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseListExtendedJobsResponse(rsp)
+}
+
+// CreateDeploymentRequestWithBodyWithResponse request with arbitrary body returning *CreateDeploymentRequestResponse
+func (c *ClientWithResponses) CreateDeploymentRequestWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestResponse, error) {
+	rsp, err := c.CreateDeploymentRequestWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDeploymentRequestResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateDeploymentRequestWithResponse(ctx context.Context, workspace WorkspaceId, body CreateDeploymentRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestResponse, error) {
+	rsp, err := c.CreateDeploymentRequest(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDeploymentRequestResponse(rsp)
+}
+
+// ListDeploymentRequestEligibleDeployersWithResponse request returning *ListDeploymentRequestEligibleDeployersResponse
+func (c *ClientWithResponses) ListDeploymentRequestEligibleDeployersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDeploymentRequestEligibleDeployersResponse, error) {
+	rsp, err := c.ListDeploymentRequestEligibleDeployers(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListDeploymentRequestEligibleDeployersResponse(rsp)
+}
+
+// GetOpenDeploymentRequestWithResponse request returning *GetOpenDeploymentRequestResponse
+func (c *ClientWithResponses) GetOpenDeploymentRequestWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetOpenDeploymentRequestResponse, error) {
+	rsp, err := c.GetOpenDeploymentRequest(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOpenDeploymentRequestResponse(rsp)
+}
+
+// CancelDeploymentRequestWithResponse request returning *CancelDeploymentRequestResponse
+func (c *ClientWithResponses) CancelDeploymentRequestWithResponse(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*CancelDeploymentRequestResponse, error) {
+	rsp, err := c.CancelDeploymentRequest(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCancelDeploymentRequestResponse(rsp)
+}
+
+// CloseDeploymentRequestMergedWithResponse request returning *CloseDeploymentRequestMergedResponse
+func (c *ClientWithResponses) CloseDeploymentRequestMergedWithResponse(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*CloseDeploymentRequestMergedResponse, error) {
+	rsp, err := c.CloseDeploymentRequestMerged(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCloseDeploymentRequestMergedResponse(rsp)
+}
+
+// CreateDeploymentRequestCommentWithBodyWithResponse request with arbitrary body returning *CreateDeploymentRequestCommentResponse
+func (c *ClientWithResponses) CreateDeploymentRequestCommentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id int64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestCommentResponse, error) {
+	rsp, err := c.CreateDeploymentRequestCommentWithBody(ctx, workspace, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDeploymentRequestCommentResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateDeploymentRequestCommentWithResponse(ctx context.Context, workspace WorkspaceId, id int64, body CreateDeploymentRequestCommentJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestCommentResponse, error) {
+	rsp, err := c.CreateDeploymentRequestComment(ctx, workspace, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDeploymentRequestCommentResponse(rsp)
 }
 
 // CreateDraftWithBodyWithResponse request with arbitrary body returning *CreateDraftResponse
@@ -96045,6 +96786,22 @@ func ParseTestSmtpResponse(rsp *http.Response) (*TestSmtpResponse, error) {
 	return response, nil
 }
 
+// ParseGetRuffConfigResponse parses an HTTP response from a GetRuffConfigWithResponse call
+func ParseGetRuffConfigResponse(rsp *http.Response) (*GetRuffConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetRuffConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCountSearchLogsIndexResponse parses an HTTP response from a CountSearchLogsIndexWithResponse call
 func ParseCountSearchLogsIndexResponse(rsp *http.Response) (*CountSearchLogsIndexResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -97872,6 +98629,142 @@ func ParseListExtendedJobsResponse(rsp *http.Response) (*ListExtendedJobsRespons
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest ExtendedJobs
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateDeploymentRequestResponse parses an HTTP response from a CreateDeploymentRequestWithResponse call
+func ParseCreateDeploymentRequestResponse(rsp *http.Response) (*CreateDeploymentRequestResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateDeploymentRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DeploymentRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListDeploymentRequestEligibleDeployersResponse parses an HTTP response from a ListDeploymentRequestEligibleDeployersWithResponse call
+func ParseListDeploymentRequestEligibleDeployersResponse(rsp *http.Response) (*ListDeploymentRequestEligibleDeployersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListDeploymentRequestEligibleDeployersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []DeploymentRequestEligibleDeployer
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetOpenDeploymentRequestResponse parses an HTTP response from a GetOpenDeploymentRequestWithResponse call
+func ParseGetOpenDeploymentRequestResponse(rsp *http.Response) (*GetOpenDeploymentRequestResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetOpenDeploymentRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DeploymentRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCancelDeploymentRequestResponse parses an HTTP response from a CancelDeploymentRequestWithResponse call
+func ParseCancelDeploymentRequestResponse(rsp *http.Response) (*CancelDeploymentRequestResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CancelDeploymentRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCloseDeploymentRequestMergedResponse parses an HTTP response from a CloseDeploymentRequestMergedWithResponse call
+func ParseCloseDeploymentRequestMergedResponse(rsp *http.Response) (*CloseDeploymentRequestMergedResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CloseDeploymentRequestMergedResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCreateDeploymentRequestCommentResponse parses an HTTP response from a CreateDeploymentRequestCommentWithResponse call
+func ParseCreateDeploymentRequestCommentResponse(rsp *http.Response) (*CreateDeploymentRequestCommentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateDeploymentRequestCommentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DeploymentRequestComment
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
