@@ -71080,9 +71080,10 @@ type GetGhesConfigResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AppSlug  string `json:"app_slug"`
-		BaseUrl  string `json:"base_url"`
-		ClientId string `json:"client_id"`
+		AppOwner *string `json:"app_owner"`
+		AppSlug  string  `json:"app_slug"`
+		BaseUrl  string  `json:"base_url"`
+		ClientId string  `json:"client_id"`
 	}
 }
 
@@ -94963,9 +94964,10 @@ func ParseGetGhesConfigResponse(rsp *http.Response) (*GetGhesConfigResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AppSlug  string `json:"app_slug"`
-			BaseUrl  string `json:"base_url"`
-			ClientId string `json:"client_id"`
+			AppOwner *string `json:"app_owner"`
+			AppSlug  string  `json:"app_slug"`
+			BaseUrl  string  `json:"base_url"`
+			ClientId string  `json:"client_id"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
