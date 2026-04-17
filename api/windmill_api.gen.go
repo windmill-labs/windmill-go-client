@@ -466,8 +466,8 @@ const (
 
 // Defines values for GlobalUserInfoLoginType.
 const (
-	Github   GlobalUserInfoLoginType = "github"
-	Password GlobalUserInfoLoginType = "password"
+	GlobalUserInfoLoginTypeGithub   GlobalUserInfoLoginType = "github"
+	GlobalUserInfoLoginTypePassword GlobalUserInfoLoginType = "password"
 )
 
 // Defines values for GlobalUserInfoRoleSource.
@@ -578,6 +578,7 @@ const (
 	JobTriggerKindDefaultEmail JobTriggerKind = "default_email"
 	JobTriggerKindEmail        JobTriggerKind = "email"
 	JobTriggerKindGcp          JobTriggerKind = "gcp"
+	JobTriggerKindGithub       JobTriggerKind = "github"
 	JobTriggerKindGoogle       JobTriggerKind = "google"
 	JobTriggerKindHttp         JobTriggerKind = "http"
 	JobTriggerKindKafka        JobTriggerKind = "kafka"
@@ -669,8 +670,9 @@ const (
 
 // Defines values for NativeServiceName.
 const (
-	Google    NativeServiceName = "google"
-	Nextcloud NativeServiceName = "nextcloud"
+	NativeServiceNameGithub    NativeServiceName = "github"
+	NativeServiceNameGoogle    NativeServiceName = "google"
+	NativeServiceNameNextcloud NativeServiceName = "nextcloud"
 )
 
 // Defines values for NewKafkaTriggerAutoOffsetReset.
@@ -3103,6 +3105,14 @@ type GithubInstallations = []struct {
 	WorkspaceId *string `json:"workspace_id,omitempty"`
 }
 
+// GithubRepoEntry defines model for GithubRepoEntry.
+type GithubRepoEntry struct {
+	FullName string `json:"full_name"`
+	Name     string `json:"name"`
+	Owner    string `json:"owner"`
+	Private  bool   `json:"private"`
+}
+
 // GlobalOffboardPreview defines model for GlobalOffboardPreview.
 type GlobalOffboardPreview struct {
 	Workspaces []WorkspaceOffboardPreview `json:"workspaces"`
@@ -5281,6 +5291,7 @@ type TriggersCount struct {
 	DefaultEmailCount *float32 `json:"default_email_count,omitempty"`
 	EmailCount        *float32 `json:"email_count,omitempty"`
 	GcpCount          *float32 `json:"gcp_count,omitempty"`
+	GithubCount       *float32 `json:"github_count,omitempty"`
 	GoogleCount       *float32 `json:"google_count,omitempty"`
 	HttpRoutesCount   *float32 `json:"http_routes_count,omitempty"`
 	KafkaCount        *float32 `json:"kafka_count,omitempty"`
@@ -12919,6 +12930,9 @@ type ClientInterface interface {
 	// GetPublicAppByCustomPath request
 	GetPublicAppByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// IsPasswordLoginDisabled request
+	IsPasswordLoginDisabled(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// IsSmtpConfigured request
 	IsSmtpConfigured(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14423,6 +14437,9 @@ type ClientInterface interface {
 
 	UpdateMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListGithubRepos request
+	ListGithubRepos(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListGoogleCalendars request
 	ListGoogleCalendars(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -15620,6 +15637,18 @@ func (c *Client) ListHubApps(ctx context.Context, reqEditors ...RequestEditorFn)
 
 func (c *Client) GetPublicAppByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPublicAppByCustomPathRequest(c.Server, customPath)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) IsPasswordLoginDisabled(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewIsPasswordLoginDisabledRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -22254,6 +22283,18 @@ func (c *Client) UpdateMqttTrigger(ctx context.Context, workspace WorkspaceId, p
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListGithubRepos(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGithubReposRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListGoogleCalendars(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListGoogleCalendarsRequest(c.Server, workspace)
 	if err != nil {
@@ -27233,6 +27274,33 @@ func NewGetPublicAppByCustomPathRequest(server string, customPath CustomPath) (*
 	}
 
 	operationPath := fmt.Sprintf("/apps_u/public_app_by_custom_path/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewIsPasswordLoginDisabledRequest generates requests for IsPasswordLoginDisabled
+func NewIsPasswordLoginDisabledRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/auth/is_password_login_disabled")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -53752,6 +53820,40 @@ func NewUpdateMqttTriggerRequestWithBody(server string, workspace WorkspaceId, p
 	return req, nil
 }
 
+// NewListGithubReposRequest generates requests for ListGithubRepos
+func NewListGithubReposRequest(server string, workspace string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/github/repos", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListGoogleCalendarsRequest generates requests for ListGoogleCalendars
 func NewListGoogleCalendarsRequest(server string, workspace string) (*http.Request, error) {
 	var err error
@@ -67723,6 +67825,9 @@ type ClientWithResponsesInterface interface {
 	// GetPublicAppByCustomPathWithResponse request
 	GetPublicAppByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetPublicAppByCustomPathResponse, error)
 
+	// IsPasswordLoginDisabledWithResponse request
+	IsPasswordLoginDisabledWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsPasswordLoginDisabledResponse, error)
+
 	// IsSmtpConfiguredWithResponse request
 	IsSmtpConfiguredWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsSmtpConfiguredResponse, error)
 
@@ -69227,6 +69332,9 @@ type ClientWithResponsesInterface interface {
 
 	UpdateMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMqttTriggerResponse, error)
 
+	// ListGithubReposWithResponse request
+	ListGithubReposWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGithubReposResponse, error)
+
 	// ListGoogleCalendarsWithResponse request
 	ListGoogleCalendarsWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGoogleCalendarsResponse, error)
 
@@ -70538,6 +70646,28 @@ func (r GetPublicAppByCustomPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetPublicAppByCustomPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type IsPasswordLoginDisabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r IsPasswordLoginDisabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r IsPasswordLoginDisabledResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -79643,6 +79773,28 @@ func (r UpdateMqttTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type ListGithubReposResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]GithubRepoEntry
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGithubReposResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGithubReposResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListGoogleCalendarsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -85386,6 +85538,7 @@ type GetUsedTriggersResponse struct {
 	JSON200      *struct {
 		EmailUsed      bool `json:"email_used"`
 		GcpUsed        bool `json:"gcp_used"`
+		GithubUsed     bool `json:"github_used"`
 		GoogleUsed     bool `json:"google_used"`
 		HttpRoutesUsed bool `json:"http_routes_used"`
 		KafkaUsed      bool `json:"kafka_used"`
@@ -85901,6 +86054,15 @@ func (c *ClientWithResponses) GetPublicAppByCustomPathWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseGetPublicAppByCustomPathResponse(rsp)
+}
+
+// IsPasswordLoginDisabledWithResponse request returning *IsPasswordLoginDisabledResponse
+func (c *ClientWithResponses) IsPasswordLoginDisabledWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsPasswordLoginDisabledResponse, error) {
+	rsp, err := c.IsPasswordLoginDisabled(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseIsPasswordLoginDisabledResponse(rsp)
 }
 
 // IsSmtpConfiguredWithResponse request returning *IsSmtpConfiguredResponse
@@ -90719,6 +90881,15 @@ func (c *ClientWithResponses) UpdateMqttTriggerWithResponse(ctx context.Context,
 	return ParseUpdateMqttTriggerResponse(rsp)
 }
 
+// ListGithubReposWithResponse request returning *ListGithubReposResponse
+func (c *ClientWithResponses) ListGithubReposWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGithubReposResponse, error) {
+	rsp, err := c.ListGithubRepos(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGithubReposResponse(rsp)
+}
+
 // ListGoogleCalendarsWithResponse request returning *ListGoogleCalendarsResponse
 func (c *ClientWithResponses) ListGoogleCalendarsWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGoogleCalendarsResponse, error) {
 	rsp, err := c.ListGoogleCalendars(ctx, workspace, reqEditors...)
@@ -94368,6 +94539,32 @@ func ParseGetPublicAppByCustomPathResponse(rsp *http.Response) (*GetPublicAppByC
 			Versions      []int                                    `json:"versions"`
 			WorkspaceId   string                                   `json:"workspace_id"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseIsPasswordLoginDisabledResponse parses an HTTP response from a IsPasswordLoginDisabledWithResponse call
+func ParseIsPasswordLoginDisabledResponse(rsp *http.Response) (*IsPasswordLoginDisabledResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &IsPasswordLoginDisabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -103478,6 +103675,32 @@ func ParseUpdateMqttTriggerResponse(rsp *http.Response) (*UpdateMqttTriggerRespo
 	return response, nil
 }
 
+// ParseListGithubReposResponse parses an HTTP response from a ListGithubReposWithResponse call
+func ParseListGithubReposResponse(rsp *http.Response) (*ListGithubReposResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGithubReposResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []GithubRepoEntry
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListGoogleCalendarsResponse parses an HTTP response from a ListGoogleCalendarsWithResponse call
 func ParseListGoogleCalendarsResponse(rsp *http.Response) (*ListGoogleCalendarsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -109237,6 +109460,7 @@ func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse,
 		var dest struct {
 			EmailUsed      bool `json:"email_used"`
 			GcpUsed        bool `json:"gcp_used"`
+			GithubUsed     bool `json:"github_used"`
 			GoogleUsed     bool `json:"google_used"`
 			HttpRoutesUsed bool `json:"http_routes_used"`
 			KafkaUsed      bool `json:"kafka_used"`
