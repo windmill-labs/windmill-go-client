@@ -8299,7 +8299,8 @@ type CancelSelectionJSONBody = []string
 
 // CancelSelectionParams defines parameters for CancelSelection.
 type CancelSelectionParams struct {
-	ForceCancel *bool `form:"force_cancel,omitempty" json:"force_cancel,omitempty"`
+	ForceCancel   *bool `form:"force_cancel,omitempty" json:"force_cancel,omitempty"`
+	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 }
 
 // GetQueueCountParams defines parameters for GetQueueCount.
@@ -45676,6 +45677,22 @@ func NewCancelSelectionRequestWithBody(server string, workspace WorkspaceId, par
 		if params.ForceCancel != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "force_cancel", runtime.ParamLocationQuery, *params.ForceCancel); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.AllWorkspaces != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
