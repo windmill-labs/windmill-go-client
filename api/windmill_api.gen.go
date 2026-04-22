@@ -8533,6 +8533,12 @@ type RunRawScriptDependenciesJSONBody struct {
 	RawScripts []RawScriptForDependencies `json:"raw_scripts"`
 }
 
+// RunRawScriptDependenciesAsyncJSONBody defines parameters for RunRawScriptDependenciesAsync.
+type RunRawScriptDependenciesAsyncJSONBody struct {
+	Entrypoint string                     `json:"entrypoint"`
+	RawScripts []RawScriptForDependencies `json:"raw_scripts"`
+}
+
 // RunFlowByPathParams defines parameters for RunFlowByPath.
 type RunFlowByPathParams struct {
 	// ScheduledFor when to schedule this job (leave empty for immediate run)
@@ -8562,6 +8568,13 @@ type RunFlowByPathParams struct {
 
 	// MemoryId memory ID for chat-enabled flows
 	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+}
+
+// RunFlowDependenciesAsyncJSONBody defines parameters for RunFlowDependenciesAsync.
+type RunFlowDependenciesAsyncJSONBody struct {
+	// FlowValue The flow structure containing modules and optional preprocessor/failure handlers
+	FlowValue FlowValue `json:"flow_value"`
+	Path      string    `json:"path"`
 }
 
 // RunFlowByVersionParams defines parameters for RunFlowByVersion.
@@ -10553,11 +10566,17 @@ type BatchReRunJobsJSONRequestBody BatchReRunJobsJSONBody
 // RunRawScriptDependenciesJSONRequestBody defines body for RunRawScriptDependencies for application/json ContentType.
 type RunRawScriptDependenciesJSONRequestBody RunRawScriptDependenciesJSONBody
 
+// RunRawScriptDependenciesAsyncJSONRequestBody defines body for RunRawScriptDependenciesAsync for application/json ContentType.
+type RunRawScriptDependenciesAsyncJSONRequestBody RunRawScriptDependenciesAsyncJSONBody
+
 // RunDynamicSelectJSONRequestBody defines body for RunDynamicSelect for application/json ContentType.
 type RunDynamicSelectJSONRequestBody = DynamicInputData
 
 // RunFlowByPathJSONRequestBody defines body for RunFlowByPath for application/json ContentType.
 type RunFlowByPathJSONRequestBody = ScriptArgs
+
+// RunFlowDependenciesAsyncJSONRequestBody defines body for RunFlowDependenciesAsync for application/json ContentType.
+type RunFlowDependenciesAsyncJSONRequestBody RunFlowDependenciesAsyncJSONBody
 
 // RunFlowByVersionJSONRequestBody defines body for RunFlowByVersion for application/json ContentType.
 type RunFlowByVersionJSONRequestBody = ScriptArgs
@@ -14153,6 +14172,11 @@ type ClientInterface interface {
 
 	RunRawScriptDependencies(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RunRawScriptDependenciesAsyncWithBody request with any body
+	RunRawScriptDependenciesAsyncWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunRawScriptDependenciesAsync(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesAsyncJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RunDynamicSelectWithBody request with any body
 	RunDynamicSelectWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14162,6 +14186,11 @@ type ClientInterface interface {
 	RunFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, body RunFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunFlowDependenciesAsyncWithBody request with any body
+	RunFlowDependenciesAsyncWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunFlowDependenciesAsync(ctx context.Context, workspace WorkspaceId, body RunFlowDependenciesAsyncJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunFlowByVersionWithBody request with any body
 	RunFlowByVersionWithBody(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -21000,6 +21029,30 @@ func (c *Client) RunRawScriptDependencies(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
+func (c *Client) RunRawScriptDependenciesAsyncWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunRawScriptDependenciesAsyncRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunRawScriptDependenciesAsync(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesAsyncJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunRawScriptDependenciesAsyncRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) RunDynamicSelectWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunDynamicSelectRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -21038,6 +21091,30 @@ func (c *Client) RunFlowByPathWithBody(ctx context.Context, workspace WorkspaceI
 
 func (c *Client) RunFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, body RunFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunFlowByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunFlowDependenciesAsyncWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowDependenciesAsyncRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunFlowDependenciesAsync(ctx context.Context, workspace WorkspaceId, body RunFlowDependenciesAsyncJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowDependenciesAsyncRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -47224,6 +47301,53 @@ func NewRunRawScriptDependenciesRequestWithBody(server string, workspace Workspa
 	return req, nil
 }
 
+// NewRunRawScriptDependenciesAsyncRequest calls the generic RunRawScriptDependenciesAsync builder with application/json body
+func NewRunRawScriptDependenciesAsyncRequest(server string, workspace WorkspaceId, body RunRawScriptDependenciesAsyncJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunRawScriptDependenciesAsyncRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRunRawScriptDependenciesAsyncRequestWithBody generates requests for RunRawScriptDependenciesAsync with any type of body
+func NewRunRawScriptDependenciesAsyncRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run/dependencies_async", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRunDynamicSelectRequest calls the generic RunDynamicSelect builder with application/json body
 func NewRunDynamicSelectRequest(server string, workspace WorkspaceId, body RunDynamicSelectJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -47463,6 +47587,53 @@ func NewRunFlowByPathRequestWithBody(server string, workspace WorkspaceId, path 
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRunFlowDependenciesAsyncRequest calls the generic RunFlowDependenciesAsync builder with application/json body
+func NewRunFlowDependenciesAsyncRequest(server string, workspace WorkspaceId, body RunFlowDependenciesAsyncJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunFlowDependenciesAsyncRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRunFlowDependenciesAsyncRequestWithBody generates requests for RunFlowDependenciesAsync with any type of body
+func NewRunFlowDependenciesAsyncRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run/flow_dependencies_async", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -69064,6 +69235,11 @@ type ClientWithResponsesInterface interface {
 
 	RunRawScriptDependenciesWithResponse(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesJSONRequestBody, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesResponse, error)
 
+	// RunRawScriptDependenciesAsyncWithBodyWithResponse request with any body
+	RunRawScriptDependenciesAsyncWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesAsyncResponse, error)
+
+	RunRawScriptDependenciesAsyncWithResponse(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesAsyncJSONRequestBody, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesAsyncResponse, error)
+
 	// RunDynamicSelectWithBodyWithResponse request with any body
 	RunDynamicSelectWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunDynamicSelectResponse, error)
 
@@ -69073,6 +69249,11 @@ type ClientWithResponsesInterface interface {
 	RunFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowByPathResponse, error)
 
 	RunFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowByPathParams, body RunFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowByPathResponse, error)
+
+	// RunFlowDependenciesAsyncWithBodyWithResponse request with any body
+	RunFlowDependenciesAsyncWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowDependenciesAsyncResponse, error)
+
+	RunFlowDependenciesAsyncWithResponse(ctx context.Context, workspace WorkspaceId, body RunFlowDependenciesAsyncJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowDependenciesAsyncResponse, error)
 
 	// RunFlowByVersionWithBodyWithResponse request with any body
 	RunFlowByVersionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowByVersionResponse, error)
@@ -78219,6 +78400,27 @@ func (r RunRawScriptDependenciesResponse) StatusCode() int {
 	return 0
 }
 
+type RunRawScriptDependenciesAsyncResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunRawScriptDependenciesAsyncResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunRawScriptDependenciesAsyncResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RunDynamicSelectResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -78255,6 +78457,27 @@ func (r RunFlowByPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunFlowByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunFlowDependenciesAsyncResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunFlowDependenciesAsyncResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunFlowDependenciesAsyncResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -89971,6 +90194,23 @@ func (c *ClientWithResponses) RunRawScriptDependenciesWithResponse(ctx context.C
 	return ParseRunRawScriptDependenciesResponse(rsp)
 }
 
+// RunRawScriptDependenciesAsyncWithBodyWithResponse request with arbitrary body returning *RunRawScriptDependenciesAsyncResponse
+func (c *ClientWithResponses) RunRawScriptDependenciesAsyncWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesAsyncResponse, error) {
+	rsp, err := c.RunRawScriptDependenciesAsyncWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunRawScriptDependenciesAsyncResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunRawScriptDependenciesAsyncWithResponse(ctx context.Context, workspace WorkspaceId, body RunRawScriptDependenciesAsyncJSONRequestBody, reqEditors ...RequestEditorFn) (*RunRawScriptDependenciesAsyncResponse, error) {
+	rsp, err := c.RunRawScriptDependenciesAsync(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunRawScriptDependenciesAsyncResponse(rsp)
+}
+
 // RunDynamicSelectWithBodyWithResponse request with arbitrary body returning *RunDynamicSelectResponse
 func (c *ClientWithResponses) RunDynamicSelectWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunDynamicSelectResponse, error) {
 	rsp, err := c.RunDynamicSelectWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -90003,6 +90243,23 @@ func (c *ClientWithResponses) RunFlowByPathWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseRunFlowByPathResponse(rsp)
+}
+
+// RunFlowDependenciesAsyncWithBodyWithResponse request with arbitrary body returning *RunFlowDependenciesAsyncResponse
+func (c *ClientWithResponses) RunFlowDependenciesAsyncWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowDependenciesAsyncResponse, error) {
+	rsp, err := c.RunFlowDependenciesAsyncWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunFlowDependenciesAsyncResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunFlowDependenciesAsyncWithResponse(ctx context.Context, workspace WorkspaceId, body RunFlowDependenciesAsyncJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowDependenciesAsyncResponse, error) {
+	rsp, err := c.RunFlowDependenciesAsync(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunFlowDependenciesAsyncResponse(rsp)
 }
 
 // RunFlowByVersionWithBodyWithResponse request with arbitrary body returning *RunFlowByVersionResponse
@@ -102224,6 +102481,22 @@ func ParseRunRawScriptDependenciesResponse(rsp *http.Response) (*RunRawScriptDep
 	return response, nil
 }
 
+// ParseRunRawScriptDependenciesAsyncResponse parses an HTTP response from a RunRawScriptDependenciesAsyncWithResponse call
+func ParseRunRawScriptDependenciesAsyncResponse(rsp *http.Response) (*RunRawScriptDependenciesAsyncResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunRawScriptDependenciesAsyncResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseRunDynamicSelectResponse parses an HTTP response from a RunDynamicSelectWithResponse call
 func ParseRunDynamicSelectResponse(rsp *http.Response) (*RunDynamicSelectResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -102249,6 +102522,22 @@ func ParseRunFlowByPathResponse(rsp *http.Response) (*RunFlowByPathResponse, err
 	}
 
 	response := &RunFlowByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunFlowDependenciesAsyncResponse parses an HTTP response from a RunFlowDependenciesAsyncWithResponse call
+func ParseRunFlowDependenciesAsyncResponse(rsp *http.Response) (*RunFlowDependenciesAsyncResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunFlowDependenciesAsyncResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
