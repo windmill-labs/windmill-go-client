@@ -210,8 +210,16 @@ const (
 	Oidc        AwsAuthResourceType = "oidc"
 )
 
+// Defines values for AzureMode.
+const (
+	BasicPush     AzureMode = "basic_push"
+	NamespacePull AzureMode = "namespace_pull"
+	NamespacePush AzureMode = "namespace_push"
+)
+
 // Defines values for CaptureTriggerKind.
 const (
+	CaptureTriggerKindAzure        CaptureTriggerKind = "azure"
 	CaptureTriggerKindDefaultEmail CaptureTriggerKind = "default_email"
 	CaptureTriggerKindEmail        CaptureTriggerKind = "email"
 	CaptureTriggerKindGcp          CaptureTriggerKind = "gcp"
@@ -575,6 +583,7 @@ const (
 
 // Defines values for JobTriggerKind.
 const (
+	JobTriggerKindAzure        JobTriggerKind = "azure"
 	JobTriggerKindDefaultEmail JobTriggerKind = "default_email"
 	JobTriggerKindEmail        JobTriggerKind = "email"
 	JobTriggerKindGcp          JobTriggerKind = "gcp"
@@ -1071,6 +1080,7 @@ const (
 // Defines values for AddGranularAclsParamsKind.
 const (
 	AddGranularAclsParamsKindApp              AddGranularAclsParamsKind = "app"
+	AddGranularAclsParamsKindAzureTrigger     AddGranularAclsParamsKind = "azure_trigger"
 	AddGranularAclsParamsKindEmailTrigger     AddGranularAclsParamsKind = "email_trigger"
 	AddGranularAclsParamsKindFlow             AddGranularAclsParamsKind = "flow"
 	AddGranularAclsParamsKindFolder           AddGranularAclsParamsKind = "folder"
@@ -1094,6 +1104,7 @@ const (
 // Defines values for GetGranularAclsParamsKind.
 const (
 	GetGranularAclsParamsKindApp              GetGranularAclsParamsKind = "app"
+	GetGranularAclsParamsKindAzureTrigger     GetGranularAclsParamsKind = "azure_trigger"
 	GetGranularAclsParamsKindEmailTrigger     GetGranularAclsParamsKind = "email_trigger"
 	GetGranularAclsParamsKindFlow             GetGranularAclsParamsKind = "flow"
 	GetGranularAclsParamsKindFolder           GetGranularAclsParamsKind = "folder"
@@ -1117,6 +1128,7 @@ const (
 // Defines values for RemoveGranularAclsParamsKind.
 const (
 	RemoveGranularAclsParamsKindApp              RemoveGranularAclsParamsKind = "app"
+	RemoveGranularAclsParamsKindAzureTrigger     RemoveGranularAclsParamsKind = "azure_trigger"
 	RemoveGranularAclsParamsKindEmailTrigger     RemoveGranularAclsParamsKind = "email_trigger"
 	RemoveGranularAclsParamsKindFlow             RemoveGranularAclsParamsKind = "flow"
 	RemoveGranularAclsParamsKindFolder           RemoveGranularAclsParamsKind = "folder"
@@ -1425,6 +1437,23 @@ type AwsSecretsManagerSettings struct {
 	SecretAccessKey *string `json:"secret_access_key,omitempty"`
 }
 
+// AzureArmResource An ARM resource the service principal can see.
+type AzureArmResource struct {
+	Id       string  `json:"id"`
+	Location *string `json:"location,omitempty"`
+	Name     string  `json:"name"`
+	Type     string  `json:"type"`
+}
+
+// AzureDeleteSubscription defines model for AzureDeleteSubscription.
+type AzureDeleteSubscription struct {
+	// AzureMode Azure Event Grid trigger mode.
+	AzureMode        AzureMode `json:"azure_mode"`
+	ScopeResourceId  string    `json:"scope_resource_id"`
+	SubscriptionName string    `json:"subscription_name"`
+	TopicName        *string   `json:"topic_name"`
+}
+
 // AzureKeyVaultSettings defines model for AzureKeyVaultSettings.
 type AzureKeyVaultSettings struct {
 	// ClientId Azure AD application (client) ID
@@ -1441,6 +1470,53 @@ type AzureKeyVaultSettings struct {
 
 	// VaultUrl Azure Key Vault URL (e.g., https://myvault.vault.azure.net)
 	VaultUrl string `json:"vault_url"`
+}
+
+// AzureListSubscriptions defines model for AzureListSubscriptions.
+type AzureListSubscriptions struct {
+	ScopeResourceId string `json:"scope_resource_id"`
+	TopicName       string `json:"topic_name"`
+}
+
+// AzureListTopics defines model for AzureListTopics.
+type AzureListTopics struct {
+	ScopeResourceId string `json:"scope_resource_id"`
+}
+
+// AzureMode Azure Event Grid trigger mode.
+type AzureMode string
+
+// AzureTrigger defines model for AzureTrigger.
+type AzureTrigger = TriggerExtraProperty
+
+// AzureTriggerData Data for creating or updating an Azure Event Grid trigger.
+type AzureTriggerData struct {
+	// AzureMode Azure Event Grid trigger mode.
+	AzureMode         AzureMode `json:"azure_mode"`
+	AzureResourcePath string    `json:"azure_resource_path"`
+
+	// BaseEndpoint Base URL for push delivery endpoints (push modes only).
+	BaseEndpoint *string `json:"base_endpoint,omitempty"`
+
+	// ErrorHandlerArgs The arguments to pass to the script or flow
+	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
+	ErrorHandlerPath *string     `json:"error_handler_path,omitempty"`
+	EventTypeFilters *[]string   `json:"event_type_filters,omitempty"`
+	IsFlow           bool        `json:"is_flow"`
+	Labels           *[]string   `json:"labels,omitempty"`
+
+	// Mode job trigger mode
+	Mode                   *TriggerMode `json:"mode,omitempty"`
+	Path                   string       `json:"path"`
+	PermissionedAs         *string      `json:"permissioned_as,omitempty"`
+	PreservePermissionedAs *bool        `json:"preserve_permissioned_as,omitempty"`
+
+	// Retry Retry configuration for failed module executions
+	Retry            *Retry  `json:"retry,omitempty"`
+	ScopeResourceId  string  `json:"scope_resource_id"`
+	ScriptPath       string  `json:"script_path"`
+	SubscriptionName string  `json:"subscription_name"`
+	TopicName        *string `json:"topic_name"`
 }
 
 // Capture defines model for Capture.
@@ -2713,6 +2789,9 @@ type FlowConversationMessage struct {
 
 	// CreatedAt When the message was created
 	CreatedAt time.Time `json:"created_at"`
+
+	// CreatedSeq Monotonic cursor assigned when the message is inserted
+	CreatedSeq int64 `json:"created_seq"`
 
 	// Id Unique identifier for the message
 	Id openapi_types.UUID `json:"id"`
@@ -5232,6 +5311,11 @@ type TemplateScript struct {
 	Relations            []Relations `json:"relations"`
 }
 
+// TestAzureConnection defines model for TestAzureConnection.
+type TestAzureConnection struct {
+	AzureResourcePath string `json:"azure_resource_path"`
+}
+
 // TimeseriesMetric defines model for TimeseriesMetric.
 type TimeseriesMetric struct {
 	MetricId *string           `json:"metric_id,omitempty"`
@@ -5288,6 +5372,7 @@ type TriggerMode string
 
 // TriggersCount defines model for TriggersCount.
 type TriggersCount struct {
+	AzureCount        *float32 `json:"azure_count,omitempty"`
 	DefaultEmailCount *float32 `json:"default_email_count,omitempty"`
 	EmailCount        *float32 `json:"email_count,omitempty"`
 	GcpCount          *float32 `json:"gcp_count,omitempty"`
@@ -5731,6 +5816,9 @@ type SchemasAiAgent struct {
 		// UserMessage The user's prompt/message to the AI agent. Supports variable interpolation with flow.input syntax.
 		UserMessage SchemasInputTransform `json:"user_message"`
 	} `json:"input_transforms"`
+
+	// OmitOutputFromConversation If true, this AI agent step does not persist its assistant or tool messages to the flow conversation when chat mode is enabled.
+	OmitOutputFromConversation *bool `json:"omit_output_from_conversation,omitempty"`
 
 	// Parallel If true, the agent can execute multiple tool calls in parallel
 	Parallel *bool `json:"parallel,omitempty"`
@@ -7199,6 +7287,26 @@ type ListAuditLogsParams struct {
 // ListAuditLogsParamsActionKind defines parameters for ListAuditLogs.
 type ListAuditLogsParamsActionKind string
 
+// ListAzureTriggersParams defines parameters for ListAzureTriggers.
+type ListAzureTriggersParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// Path filter by exact path
+	Path      *string `form:"path,omitempty" json:"path,omitempty"`
+	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+}
+
+// SetAzureTriggerModeJSONBody defines parameters for SetAzureTriggerMode.
+type SetAzureTriggerModeJSONBody struct {
+	// Mode job trigger mode
+	Mode TriggerMode `json:"mode"`
+}
+
 // GetCaptureConfigsParamsRunnableKind defines parameters for GetCaptureConfigs.
 type GetCaptureConfigsParamsRunnableKind string
 
@@ -7432,8 +7540,8 @@ type ListConversationMessagesParams struct {
 	// PerPage number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
-	// AfterId id to fetch only the messages after that id
-	AfterId *openapi_types.UUID `form:"after_id,omitempty" json:"after_id,omitempty"`
+	// AfterSeq Message sequence cursor to fetch only the messages after that cursor
+	AfterSeq *int64 `form:"after_seq,omitempty" json:"after_seq,omitempty"`
 }
 
 // ArchiveFlowByPathJSONBody defines parameters for ArchiveFlowByPath.
@@ -9109,6 +9217,9 @@ type ResumeSuspendedJSONBody struct {
 type GetJobParams struct {
 	NoLogs *bool `form:"no_logs,omitempty" json:"no_logs,omitempty"`
 	NoCode *bool `form:"no_code,omitempty" json:"no_code,omitempty"`
+
+	// ApprovalToken Approval token granting read access to the job when not logged in. The token must be the one issued for this job's flow (i.e. the flow id used when generating the approval URL).
+	ApprovalToken *string `form:"approval_token,omitempty" json:"approval_token,omitempty"`
 }
 
 // GetSuspendedJobFlowParams defines parameters for GetSuspendedJobFlow.
@@ -10391,6 +10502,27 @@ type ExecuteComponentJSONRequestBody ExecuteComponentJSONBody
 
 // ListAssetsByUsageJSONRequestBody defines body for ListAssetsByUsage for application/json ContentType.
 type ListAssetsByUsageJSONRequestBody ListAssetsByUsageJSONBody
+
+// CreateAzureTriggerJSONRequestBody defines body for CreateAzureTrigger for application/json ContentType.
+type CreateAzureTriggerJSONRequestBody = AzureTriggerData
+
+// ListAzureNamespaceSubscriptionsJSONRequestBody defines body for ListAzureNamespaceSubscriptions for application/json ContentType.
+type ListAzureNamespaceSubscriptionsJSONRequestBody = AzureListSubscriptions
+
+// ListAzureNamespaceTopicsJSONRequestBody defines body for ListAzureNamespaceTopics for application/json ContentType.
+type ListAzureNamespaceTopicsJSONRequestBody = AzureListTopics
+
+// SetAzureTriggerModeJSONRequestBody defines body for SetAzureTriggerMode for application/json ContentType.
+type SetAzureTriggerModeJSONRequestBody SetAzureTriggerModeJSONBody
+
+// DeleteAzureSubscriptionJSONRequestBody defines body for DeleteAzureSubscription for application/json ContentType.
+type DeleteAzureSubscriptionJSONRequestBody = AzureDeleteSubscription
+
+// TestAzureConnectionJSONRequestBody defines body for TestAzureConnection for application/json ContentType.
+type TestAzureConnectionJSONRequestBody = TestAzureConnection
+
+// UpdateAzureTriggerJSONRequestBody defines body for UpdateAzureTrigger for application/json ContentType.
+type UpdateAzureTriggerJSONRequestBody = AzureTriggerData
 
 // MoveCapturesAndConfigsJSONRequestBody defines body for MoveCapturesAndConfigs for application/json ContentType.
 type MoveCapturesAndConfigsJSONRequestBody MoveCapturesAndConfigsJSONBody
@@ -13593,6 +13725,59 @@ type ClientInterface interface {
 
 	// ListAuditLogs request
 	ListAuditLogs(ctx context.Context, workspace WorkspaceId, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAzureBasicTopics request
+	ListAzureBasicTopics(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateAzureTriggerWithBody request with any body
+	CreateAzureTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateAzureTrigger(ctx context.Context, workspace WorkspaceId, body CreateAzureTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteAzureTrigger request
+	DeleteAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExistsAzureTrigger request
+	ExistsAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAzureTrigger request
+	GetAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAzureTriggers request
+	ListAzureTriggers(ctx context.Context, workspace WorkspaceId, params *ListAzureTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAzureNamespaces request
+	ListAzureNamespaces(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAzureNamespaceSubscriptionsWithBody request with any body
+	ListAzureNamespaceSubscriptionsWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ListAzureNamespaceSubscriptions(ctx context.Context, workspace WorkspaceId, path Path, body ListAzureNamespaceSubscriptionsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAzureNamespaceTopicsWithBody request with any body
+	ListAzureNamespaceTopicsWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ListAzureNamespaceTopics(ctx context.Context, workspace WorkspaceId, path Path, body ListAzureNamespaceTopicsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetAzureTriggerModeWithBody request with any body
+	SetAzureTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetAzureTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetAzureTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteAzureSubscriptionWithBody request with any body
+	DeleteAzureSubscriptionWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DeleteAzureSubscription(ctx context.Context, workspace WorkspaceId, path Path, body DeleteAzureSubscriptionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestAzureConnectionWithBody request with any body
+	TestAzureConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestAzureConnection(ctx context.Context, workspace WorkspaceId, body TestAzureConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateAzureTriggerWithBody request with any body
+	UpdateAzureTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateAzureTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCaptureConfigs request
 	GetCaptureConfigs(ctx context.Context, workspace WorkspaceId, runnableKind GetCaptureConfigsParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18475,6 +18660,246 @@ func (c *Client) GetAuditLog(ctx context.Context, workspace WorkspaceId, id Path
 
 func (c *Client) ListAuditLogs(ctx context.Context, workspace WorkspaceId, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAuditLogsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAzureBasicTopics(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAzureBasicTopicsRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateAzureTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateAzureTriggerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateAzureTrigger(ctx context.Context, workspace WorkspaceId, body CreateAzureTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateAzureTriggerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteAzureTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExistsAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExistsAzureTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAzureTriggerRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAzureTriggers(ctx context.Context, workspace WorkspaceId, params *ListAzureTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAzureTriggersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAzureNamespaces(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAzureNamespacesRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAzureNamespaceSubscriptionsWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAzureNamespaceSubscriptionsRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAzureNamespaceSubscriptions(ctx context.Context, workspace WorkspaceId, path Path, body ListAzureNamespaceSubscriptionsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAzureNamespaceSubscriptionsRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAzureNamespaceTopicsWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAzureNamespaceTopicsRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAzureNamespaceTopics(ctx context.Context, workspace WorkspaceId, path Path, body ListAzureNamespaceTopicsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAzureNamespaceTopicsRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetAzureTriggerModeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetAzureTriggerModeRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetAzureTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetAzureTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetAzureTriggerModeRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteAzureSubscriptionWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteAzureSubscriptionRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteAzureSubscription(ctx context.Context, workspace WorkspaceId, path Path, body DeleteAzureSubscriptionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteAzureSubscriptionRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestAzureConnectionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestAzureConnectionRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestAzureConnection(ctx context.Context, workspace WorkspaceId, body TestAzureConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestAzureConnectionRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateAzureTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateAzureTriggerRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateAzureTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateAzureTriggerRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -35123,6 +35548,695 @@ func NewListAuditLogsRequest(server string, workspace WorkspaceId, params *ListA
 	return req, nil
 }
 
+// NewListAzureBasicTopicsRequest generates requests for ListAzureBasicTopics
+func NewListAzureBasicTopicsRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/basic/topics/list/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateAzureTriggerRequest calls the generic CreateAzureTrigger builder with application/json body
+func NewCreateAzureTriggerRequest(server string, workspace WorkspaceId, body CreateAzureTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateAzureTriggerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateAzureTriggerRequestWithBody generates requests for CreateAzureTrigger with any type of body
+func NewCreateAzureTriggerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteAzureTriggerRequest generates requests for DeleteAzureTrigger
+func NewDeleteAzureTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExistsAzureTriggerRequest generates requests for ExistsAzureTrigger
+func NewExistsAzureTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetAzureTriggerRequest generates requests for GetAzureTrigger
+func NewGetAzureTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAzureTriggersRequest generates requests for ListAzureTriggers
+func NewListAzureTriggersRequest(server string, workspace WorkspaceId, params *ListAzureTriggersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IsFlow != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow", runtime.ParamLocationQuery, *params.IsFlow); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PathStart != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAzureNamespacesRequest generates requests for ListAzureNamespaces
+func NewListAzureNamespacesRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/namespaces/list/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAzureNamespaceSubscriptionsRequest calls the generic ListAzureNamespaceSubscriptions builder with application/json body
+func NewListAzureNamespaceSubscriptionsRequest(server string, workspace WorkspaceId, path Path, body ListAzureNamespaceSubscriptionsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewListAzureNamespaceSubscriptionsRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewListAzureNamespaceSubscriptionsRequestWithBody generates requests for ListAzureNamespaceSubscriptions with any type of body
+func NewListAzureNamespaceSubscriptionsRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/namespaces/subscriptions/list/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListAzureNamespaceTopicsRequest calls the generic ListAzureNamespaceTopics builder with application/json body
+func NewListAzureNamespaceTopicsRequest(server string, workspace WorkspaceId, path Path, body ListAzureNamespaceTopicsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewListAzureNamespaceTopicsRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewListAzureNamespaceTopicsRequestWithBody generates requests for ListAzureNamespaceTopics with any type of body
+func NewListAzureNamespaceTopicsRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/namespaces/topics/list/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSetAzureTriggerModeRequest calls the generic SetAzureTriggerMode builder with application/json body
+func NewSetAzureTriggerModeRequest(server string, workspace WorkspaceId, path Path, body SetAzureTriggerModeJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetAzureTriggerModeRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewSetAzureTriggerModeRequestWithBody generates requests for SetAzureTriggerMode with any type of body
+func NewSetAzureTriggerModeRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/setmode/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteAzureSubscriptionRequest calls the generic DeleteAzureSubscription builder with application/json body
+func NewDeleteAzureSubscriptionRequest(server string, workspace WorkspaceId, path Path, body DeleteAzureSubscriptionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDeleteAzureSubscriptionRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewDeleteAzureSubscriptionRequestWithBody generates requests for DeleteAzureSubscription with any type of body
+func NewDeleteAzureSubscriptionRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/subscriptions/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestAzureConnectionRequest calls the generic TestAzureConnection builder with application/json body
+func NewTestAzureConnectionRequest(server string, workspace WorkspaceId, body TestAzureConnectionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestAzureConnectionRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewTestAzureConnectionRequestWithBody generates requests for TestAzureConnection with any type of body
+func NewTestAzureConnectionRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/test", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateAzureTriggerRequest calls the generic UpdateAzureTrigger builder with application/json body
+func NewUpdateAzureTriggerRequest(server string, workspace WorkspaceId, path Path, body UpdateAzureTriggerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateAzureTriggerRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateAzureTriggerRequestWithBody generates requests for UpdateAzureTrigger with any type of body
+func NewUpdateAzureTriggerRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/azure_triggers/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetCaptureConfigsRequest generates requests for GetCaptureConfigs
 func NewGetCaptureConfigsRequest(server string, workspace WorkspaceId, runnableKind GetCaptureConfigsParamsRunnableKind, path Path) (*http.Request, error) {
 	var err error
@@ -37220,9 +38334,9 @@ func NewListConversationMessagesRequest(server string, workspace WorkspaceId, co
 
 		}
 
-		if params.AfterId != nil {
+		if params.AfterSeq != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "after_id", runtime.ParamLocationQuery, *params.AfterId); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "after_seq", runtime.ParamLocationQuery, *params.AfterSeq); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -51903,6 +53017,22 @@ func NewGetJobRequest(server string, workspace WorkspaceId, id JobId, params *Ge
 		if params.NoCode != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "no_code", runtime.ParamLocationQuery, *params.NoCode); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ApprovalToken != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approval_token", runtime.ParamLocationQuery, *params.ApprovalToken); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -68657,6 +69787,59 @@ type ClientWithResponsesInterface interface {
 	// ListAuditLogsWithResponse request
 	ListAuditLogsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAuditLogsParams, reqEditors ...RequestEditorFn) (*ListAuditLogsResponse, error)
 
+	// ListAzureBasicTopicsWithResponse request
+	ListAzureBasicTopicsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListAzureBasicTopicsResponse, error)
+
+	// CreateAzureTriggerWithBodyWithResponse request with any body
+	CreateAzureTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAzureTriggerResponse, error)
+
+	CreateAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateAzureTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAzureTriggerResponse, error)
+
+	// DeleteAzureTriggerWithResponse request
+	DeleteAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteAzureTriggerResponse, error)
+
+	// ExistsAzureTriggerWithResponse request
+	ExistsAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsAzureTriggerResponse, error)
+
+	// GetAzureTriggerWithResponse request
+	GetAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetAzureTriggerResponse, error)
+
+	// ListAzureTriggersWithResponse request
+	ListAzureTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAzureTriggersParams, reqEditors ...RequestEditorFn) (*ListAzureTriggersResponse, error)
+
+	// ListAzureNamespacesWithResponse request
+	ListAzureNamespacesWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListAzureNamespacesResponse, error)
+
+	// ListAzureNamespaceSubscriptionsWithBodyWithResponse request with any body
+	ListAzureNamespaceSubscriptionsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAzureNamespaceSubscriptionsResponse, error)
+
+	ListAzureNamespaceSubscriptionsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body ListAzureNamespaceSubscriptionsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListAzureNamespaceSubscriptionsResponse, error)
+
+	// ListAzureNamespaceTopicsWithBodyWithResponse request with any body
+	ListAzureNamespaceTopicsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAzureNamespaceTopicsResponse, error)
+
+	ListAzureNamespaceTopicsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body ListAzureNamespaceTopicsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListAzureNamespaceTopicsResponse, error)
+
+	// SetAzureTriggerModeWithBodyWithResponse request with any body
+	SetAzureTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAzureTriggerModeResponse, error)
+
+	SetAzureTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetAzureTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetAzureTriggerModeResponse, error)
+
+	// DeleteAzureSubscriptionWithBodyWithResponse request with any body
+	DeleteAzureSubscriptionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteAzureSubscriptionResponse, error)
+
+	DeleteAzureSubscriptionWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body DeleteAzureSubscriptionJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteAzureSubscriptionResponse, error)
+
+	// TestAzureConnectionWithBodyWithResponse request with any body
+	TestAzureConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestAzureConnectionResponse, error)
+
+	TestAzureConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestAzureConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestAzureConnectionResponse, error)
+
+	// UpdateAzureTriggerWithBodyWithResponse request with any body
+	UpdateAzureTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAzureTriggerResponse, error)
+
+	UpdateAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateAzureTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAzureTriggerResponse, error)
+
 	// GetCaptureConfigsWithResponse request
 	GetCaptureConfigsWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind GetCaptureConfigsParamsRunnableKind, path Path, reqEditors ...RequestEditorFn) (*GetCaptureConfigsResponse, error)
 
@@ -74905,6 +76088,286 @@ func (r ListAuditLogsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListAuditLogsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAzureBasicTopicsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]AzureArmResource
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAzureBasicTopicsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAzureBasicTopicsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateAzureTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateAzureTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateAzureTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteAzureTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteAzureTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteAzureTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExistsAzureTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r ExistsAzureTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExistsAzureTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAzureTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AzureTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAzureTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAzureTriggerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAzureTriggersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]AzureTrigger
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAzureTriggersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAzureTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAzureNamespacesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]AzureArmResource
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAzureNamespacesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAzureNamespacesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAzureNamespaceSubscriptionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]map[string]interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAzureNamespaceSubscriptionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAzureNamespaceSubscriptionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAzureNamespaceTopicsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]map[string]interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAzureNamespaceTopicsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAzureNamespaceTopicsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetAzureTriggerModeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetAzureTriggerModeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetAzureTriggerModeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteAzureSubscriptionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteAzureSubscriptionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteAzureSubscriptionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestAzureConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestAzureConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestAzureConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateAzureTriggerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateAzureTriggerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateAzureTriggerResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -85776,6 +87239,7 @@ type GetUsedTriggersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
+		AzureUsed      bool `json:"azure_used"`
 		EmailUsed      bool `json:"email_used"`
 		GcpUsed        bool `json:"gcp_used"`
 		GithubUsed     bool `json:"github_used"`
@@ -88342,6 +89806,179 @@ func (c *ClientWithResponses) ListAuditLogsWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseListAuditLogsResponse(rsp)
+}
+
+// ListAzureBasicTopicsWithResponse request returning *ListAzureBasicTopicsResponse
+func (c *ClientWithResponses) ListAzureBasicTopicsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListAzureBasicTopicsResponse, error) {
+	rsp, err := c.ListAzureBasicTopics(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAzureBasicTopicsResponse(rsp)
+}
+
+// CreateAzureTriggerWithBodyWithResponse request with arbitrary body returning *CreateAzureTriggerResponse
+func (c *ClientWithResponses) CreateAzureTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAzureTriggerResponse, error) {
+	rsp, err := c.CreateAzureTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAzureTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, body CreateAzureTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAzureTriggerResponse, error) {
+	rsp, err := c.CreateAzureTrigger(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAzureTriggerResponse(rsp)
+}
+
+// DeleteAzureTriggerWithResponse request returning *DeleteAzureTriggerResponse
+func (c *ClientWithResponses) DeleteAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteAzureTriggerResponse, error) {
+	rsp, err := c.DeleteAzureTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteAzureTriggerResponse(rsp)
+}
+
+// ExistsAzureTriggerWithResponse request returning *ExistsAzureTriggerResponse
+func (c *ClientWithResponses) ExistsAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsAzureTriggerResponse, error) {
+	rsp, err := c.ExistsAzureTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExistsAzureTriggerResponse(rsp)
+}
+
+// GetAzureTriggerWithResponse request returning *GetAzureTriggerResponse
+func (c *ClientWithResponses) GetAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetAzureTriggerResponse, error) {
+	rsp, err := c.GetAzureTrigger(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAzureTriggerResponse(rsp)
+}
+
+// ListAzureTriggersWithResponse request returning *ListAzureTriggersResponse
+func (c *ClientWithResponses) ListAzureTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAzureTriggersParams, reqEditors ...RequestEditorFn) (*ListAzureTriggersResponse, error) {
+	rsp, err := c.ListAzureTriggers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAzureTriggersResponse(rsp)
+}
+
+// ListAzureNamespacesWithResponse request returning *ListAzureNamespacesResponse
+func (c *ClientWithResponses) ListAzureNamespacesWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListAzureNamespacesResponse, error) {
+	rsp, err := c.ListAzureNamespaces(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAzureNamespacesResponse(rsp)
+}
+
+// ListAzureNamespaceSubscriptionsWithBodyWithResponse request with arbitrary body returning *ListAzureNamespaceSubscriptionsResponse
+func (c *ClientWithResponses) ListAzureNamespaceSubscriptionsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAzureNamespaceSubscriptionsResponse, error) {
+	rsp, err := c.ListAzureNamespaceSubscriptionsWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAzureNamespaceSubscriptionsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ListAzureNamespaceSubscriptionsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body ListAzureNamespaceSubscriptionsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListAzureNamespaceSubscriptionsResponse, error) {
+	rsp, err := c.ListAzureNamespaceSubscriptions(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAzureNamespaceSubscriptionsResponse(rsp)
+}
+
+// ListAzureNamespaceTopicsWithBodyWithResponse request with arbitrary body returning *ListAzureNamespaceTopicsResponse
+func (c *ClientWithResponses) ListAzureNamespaceTopicsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAzureNamespaceTopicsResponse, error) {
+	rsp, err := c.ListAzureNamespaceTopicsWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAzureNamespaceTopicsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ListAzureNamespaceTopicsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body ListAzureNamespaceTopicsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListAzureNamespaceTopicsResponse, error) {
+	rsp, err := c.ListAzureNamespaceTopics(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAzureNamespaceTopicsResponse(rsp)
+}
+
+// SetAzureTriggerModeWithBodyWithResponse request with arbitrary body returning *SetAzureTriggerModeResponse
+func (c *ClientWithResponses) SetAzureTriggerModeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAzureTriggerModeResponse, error) {
+	rsp, err := c.SetAzureTriggerModeWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetAzureTriggerModeResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetAzureTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetAzureTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetAzureTriggerModeResponse, error) {
+	rsp, err := c.SetAzureTriggerMode(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetAzureTriggerModeResponse(rsp)
+}
+
+// DeleteAzureSubscriptionWithBodyWithResponse request with arbitrary body returning *DeleteAzureSubscriptionResponse
+func (c *ClientWithResponses) DeleteAzureSubscriptionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteAzureSubscriptionResponse, error) {
+	rsp, err := c.DeleteAzureSubscriptionWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteAzureSubscriptionResponse(rsp)
+}
+
+func (c *ClientWithResponses) DeleteAzureSubscriptionWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body DeleteAzureSubscriptionJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteAzureSubscriptionResponse, error) {
+	rsp, err := c.DeleteAzureSubscription(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteAzureSubscriptionResponse(rsp)
+}
+
+// TestAzureConnectionWithBodyWithResponse request with arbitrary body returning *TestAzureConnectionResponse
+func (c *ClientWithResponses) TestAzureConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestAzureConnectionResponse, error) {
+	rsp, err := c.TestAzureConnectionWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestAzureConnectionResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestAzureConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestAzureConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestAzureConnectionResponse, error) {
+	rsp, err := c.TestAzureConnection(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestAzureConnectionResponse(rsp)
+}
+
+// UpdateAzureTriggerWithBodyWithResponse request with arbitrary body returning *UpdateAzureTriggerResponse
+func (c *ClientWithResponses) UpdateAzureTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAzureTriggerResponse, error) {
+	rsp, err := c.UpdateAzureTriggerWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAzureTriggerResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateAzureTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAzureTriggerResponse, error) {
+	rsp, err := c.UpdateAzureTrigger(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAzureTriggerResponse(rsp)
 }
 
 // GetCaptureConfigsWithResponse request returning *GetCaptureConfigsResponse
@@ -98929,6 +100566,284 @@ func ParseListAuditLogsResponse(rsp *http.Response) (*ListAuditLogsResponse, err
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseListAzureBasicTopicsResponse parses an HTTP response from a ListAzureBasicTopicsWithResponse call
+func ParseListAzureBasicTopicsResponse(rsp *http.Response) (*ListAzureBasicTopicsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAzureBasicTopicsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []AzureArmResource
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateAzureTriggerResponse parses an HTTP response from a CreateAzureTriggerWithResponse call
+func ParseCreateAzureTriggerResponse(rsp *http.Response) (*CreateAzureTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateAzureTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteAzureTriggerResponse parses an HTTP response from a DeleteAzureTriggerWithResponse call
+func ParseDeleteAzureTriggerResponse(rsp *http.Response) (*DeleteAzureTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteAzureTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseExistsAzureTriggerResponse parses an HTTP response from a ExistsAzureTriggerWithResponse call
+func ParseExistsAzureTriggerResponse(rsp *http.Response) (*ExistsAzureTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExistsAzureTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetAzureTriggerResponse parses an HTTP response from a GetAzureTriggerWithResponse call
+func ParseGetAzureTriggerResponse(rsp *http.Response) (*GetAzureTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAzureTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AzureTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAzureTriggersResponse parses an HTTP response from a ListAzureTriggersWithResponse call
+func ParseListAzureTriggersResponse(rsp *http.Response) (*ListAzureTriggersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAzureTriggersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []AzureTrigger
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAzureNamespacesResponse parses an HTTP response from a ListAzureNamespacesWithResponse call
+func ParseListAzureNamespacesResponse(rsp *http.Response) (*ListAzureNamespacesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAzureNamespacesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []AzureArmResource
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAzureNamespaceSubscriptionsResponse parses an HTTP response from a ListAzureNamespaceSubscriptionsWithResponse call
+func ParseListAzureNamespaceSubscriptionsResponse(rsp *http.Response) (*ListAzureNamespaceSubscriptionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAzureNamespaceSubscriptionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAzureNamespaceTopicsResponse parses an HTTP response from a ListAzureNamespaceTopicsWithResponse call
+func ParseListAzureNamespaceTopicsResponse(rsp *http.Response) (*ListAzureNamespaceTopicsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAzureNamespaceTopicsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetAzureTriggerModeResponse parses an HTTP response from a SetAzureTriggerModeWithResponse call
+func ParseSetAzureTriggerModeResponse(rsp *http.Response) (*SetAzureTriggerModeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetAzureTriggerModeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteAzureSubscriptionResponse parses an HTTP response from a DeleteAzureSubscriptionWithResponse call
+func ParseDeleteAzureSubscriptionResponse(rsp *http.Response) (*DeleteAzureSubscriptionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteAzureSubscriptionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestAzureConnectionResponse parses an HTTP response from a TestAzureConnectionWithResponse call
+func ParseTestAzureConnectionResponse(rsp *http.Response) (*TestAzureConnectionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestAzureConnectionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateAzureTriggerResponse parses an HTTP response from a UpdateAzureTriggerWithResponse call
+func ParseUpdateAzureTriggerResponse(rsp *http.Response) (*UpdateAzureTriggerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateAzureTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -109764,6 +111679,7 @@ func ParseGetUsedTriggersResponse(rsp *http.Response) (*GetUsedTriggersResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
+			AzureUsed      bool `json:"azure_used"`
 			EmailUsed      bool `json:"email_used"`
 			GcpUsed        bool `json:"gcp_used"`
 			GithubUsed     bool `json:"github_used"`
