@@ -3148,7 +3148,6 @@ type GetAllTopicSubscription struct {
 type GitRepositorySettings struct {
 	Collapsed            *bool                `json:"collapsed,omitempty"`
 	ExcludeTypesOverride *[]GitSyncObjectType `json:"exclude_types_override,omitempty"`
-	ForceBranch          *string              `json:"force_branch,omitempty"`
 	GitRepoResourcePath  string               `json:"git_repo_resource_path"`
 	GroupByFolder        *bool                `json:"group_by_folder,omitempty"`
 	ScriptPath           *string              `json:"script_path,omitempty"`
@@ -6798,6 +6797,14 @@ type ConnectSlackCallbackInstanceJSONBody struct {
 	State string `json:"state"`
 }
 
+// ConnectSlackInstanceJSONBody defines parameters for ConnectSlackInstance.
+type ConnectSlackInstanceJSONBody struct {
+	// BotToken xoxb-... bot token obtained at api.slack.com/apps
+	BotToken string `json:"bot_token"`
+	TeamId   string `json:"team_id"`
+	TeamName string `json:"team_name"`
+}
+
 // LoginWithOauthJSONBody defines parameters for LoginWithOauth.
 type LoginWithOauthJSONBody struct {
 	Code  *string `json:"code,omitempty"`
@@ -10004,6 +10011,14 @@ type ChangeWorkspaceNameJSONBody struct {
 	NewName *string `json:"new_name,omitempty"`
 }
 
+// ConnectSlackJSONBody defines parameters for ConnectSlack.
+type ConnectSlackJSONBody struct {
+	// BotToken xoxb-... bot token obtained at api.slack.com/apps
+	BotToken string `json:"bot_token"`
+	TeamId   string `json:"team_id"`
+	TeamName string `json:"team_name"`
+}
+
 // ConnectTeamsJSONBody defines parameters for ConnectTeams.
 type ConnectTeamsJSONBody struct {
 	TeamId   *string `json:"team_id,omitempty"`
@@ -10370,6 +10385,9 @@ type ConnectClientCredentialsJSONRequestBody ConnectClientCredentialsJSONBody
 
 // ConnectSlackCallbackInstanceJSONRequestBody defines body for ConnectSlackCallbackInstance for application/json ContentType.
 type ConnectSlackCallbackInstanceJSONRequestBody ConnectSlackCallbackInstanceJSONBody
+
+// ConnectSlackInstanceJSONRequestBody defines body for ConnectSlackInstance for application/json ContentType.
+type ConnectSlackInstanceJSONRequestBody ConnectSlackInstanceJSONBody
 
 // LoginWithOauthJSONRequestBody defines body for LoginWithOauth for application/json ContentType.
 type LoginWithOauthJSONRequestBody LoginWithOauthJSONBody
@@ -11006,6 +11024,9 @@ type ChangeWorkspaceIdJSONRequestBody ChangeWorkspaceIdJSONBody
 
 // ChangeWorkspaceNameJSONRequestBody defines body for ChangeWorkspaceName for application/json ContentType.
 type ChangeWorkspaceNameJSONRequestBody ChangeWorkspaceNameJSONBody
+
+// ConnectSlackJSONRequestBody defines body for ConnectSlack for application/json ContentType.
+type ConnectSlackJSONRequestBody ConnectSlackJSONBody
 
 // ConnectTeamsJSONRequestBody defines body for ConnectTeams for application/json ContentType.
 type ConnectTeamsJSONRequestBody ConnectTeamsJSONBody
@@ -13273,6 +13294,11 @@ type ClientInterface interface {
 
 	ConnectSlackCallbackInstance(ctx context.Context, body ConnectSlackCallbackInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ConnectSlackInstanceWithBody request with any body
+	ConnectSlackInstanceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ConnectSlackInstance(ctx context.Context, body ConnectSlackInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetOAuthConnect request
 	GetOAuthConnect(ctx context.Context, client string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -15334,6 +15360,11 @@ type ClientInterface interface {
 	// CompareWorkspaces request
 	CompareWorkspaces(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ConnectSlackWithBody request with any body
+	ConnectSlackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ConnectSlack(ctx context.Context, workspace WorkspaceId, body ConnectSlackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ConnectTeamsWithBody request with any body
 	ConnectTeamsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16680,6 +16711,30 @@ func (c *Client) ConnectSlackCallbackInstanceWithBody(ctx context.Context, conte
 
 func (c *Client) ConnectSlackCallbackInstance(ctx context.Context, body ConnectSlackCallbackInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConnectSlackCallbackInstanceRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectSlackInstanceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectSlackInstanceRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectSlackInstance(ctx context.Context, body ConnectSlackInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectSlackInstanceRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -25774,6 +25829,30 @@ func (c *Client) CompareWorkspaces(ctx context.Context, workspace WorkspaceId, t
 	return c.Client.Do(req)
 }
 
+func (c *Client) ConnectSlackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectSlackRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectSlack(ctx context.Context, workspace WorkspaceId, body ConnectSlackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectSlackRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ConnectTeamsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConnectTeamsRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -29813,6 +29892,46 @@ func NewConnectSlackCallbackInstanceRequestWithBody(server string, contentType s
 	}
 
 	operationPath := fmt.Sprintf("/oauth/connect_slack_callback")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewConnectSlackInstanceRequest calls the generic ConnectSlackInstance builder with application/json body
+func NewConnectSlackInstanceRequest(server string, body ConnectSlackInstanceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewConnectSlackInstanceRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewConnectSlackInstanceRequestWithBody generates requests for ConnectSlackInstance with any type of body
+func NewConnectSlackInstanceRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oauth/connect_slack_instance")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -65099,6 +65218,53 @@ func NewCompareWorkspacesRequest(server string, workspace WorkspaceId, targetWor
 	return req, nil
 }
 
+// NewConnectSlackRequest calls the generic ConnectSlack builder with application/json body
+func NewConnectSlackRequest(server string, workspace WorkspaceId, body ConnectSlackJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewConnectSlackRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewConnectSlackRequestWithBody generates requests for ConnectSlack with any type of body
+func NewConnectSlackRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/connect_slack", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewConnectTeamsRequest calls the generic ConnectTeams builder with application/json body
 func NewConnectTeamsRequest(server string, workspace WorkspaceId, body ConnectTeamsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -69334,6 +69500,11 @@ type ClientWithResponsesInterface interface {
 
 	ConnectSlackCallbackInstanceWithResponse(ctx context.Context, body ConnectSlackCallbackInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackInstanceResponse, error)
 
+	// ConnectSlackInstanceWithBodyWithResponse request with any body
+	ConnectSlackInstanceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackInstanceResponse, error)
+
+	ConnectSlackInstanceWithResponse(ctx context.Context, body ConnectSlackInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectSlackInstanceResponse, error)
+
 	// GetOAuthConnectWithResponse request
 	GetOAuthConnectWithResponse(ctx context.Context, client string, reqEditors ...RequestEditorFn) (*GetOAuthConnectResponse, error)
 
@@ -71395,6 +71566,11 @@ type ClientWithResponsesInterface interface {
 	// CompareWorkspacesWithResponse request
 	CompareWorkspacesWithResponse(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*CompareWorkspacesResponse, error)
 
+	// ConnectSlackWithBodyWithResponse request with any body
+	ConnectSlackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackResponse, error)
+
+	ConnectSlackWithResponse(ctx context.Context, workspace WorkspaceId, body ConnectSlackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectSlackResponse, error)
+
 	// ConnectTeamsWithBodyWithResponse request with any body
 	ConnectTeamsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectTeamsResponse, error)
 
@@ -73266,6 +73442,27 @@ func (r ConnectSlackCallbackInstanceResponse) StatusCode() int {
 	return 0
 }
 
+type ConnectSlackInstanceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ConnectSlackInstanceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ConnectSlackInstanceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetOAuthConnectResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -73296,7 +73493,9 @@ type ListOAuthLoginsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Oauth []struct {
+		// AutoLogin provider type to auto-redirect to on login (oauth key or "saml")
+		AutoLogin *string `json:"auto_login,omitempty"`
+		Oauth     []struct {
 			DisplayName *string `json:"display_name,omitempty"`
 			Type        string  `json:"type"`
 		} `json:"oauth"`
@@ -85509,6 +85708,27 @@ func (r CompareWorkspacesResponse) StatusCode() int {
 	return 0
 }
 
+type ConnectSlackResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ConnectSlackResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ConnectSlackResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ConnectTeamsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -88363,6 +88583,23 @@ func (c *ClientWithResponses) ConnectSlackCallbackInstanceWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseConnectSlackCallbackInstanceResponse(rsp)
+}
+
+// ConnectSlackInstanceWithBodyWithResponse request with arbitrary body returning *ConnectSlackInstanceResponse
+func (c *ClientWithResponses) ConnectSlackInstanceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackInstanceResponse, error) {
+	rsp, err := c.ConnectSlackInstanceWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectSlackInstanceResponse(rsp)
+}
+
+func (c *ClientWithResponses) ConnectSlackInstanceWithResponse(ctx context.Context, body ConnectSlackInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectSlackInstanceResponse, error) {
+	rsp, err := c.ConnectSlackInstance(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectSlackInstanceResponse(rsp)
 }
 
 // GetOAuthConnectWithResponse request returning *GetOAuthConnectResponse
@@ -94968,6 +95205,23 @@ func (c *ClientWithResponses) CompareWorkspacesWithResponse(ctx context.Context,
 	return ParseCompareWorkspacesResponse(rsp)
 }
 
+// ConnectSlackWithBodyWithResponse request with arbitrary body returning *ConnectSlackResponse
+func (c *ClientWithResponses) ConnectSlackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackResponse, error) {
+	rsp, err := c.ConnectSlackWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectSlackResponse(rsp)
+}
+
+func (c *ClientWithResponses) ConnectSlackWithResponse(ctx context.Context, workspace WorkspaceId, body ConnectSlackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectSlackResponse, error) {
+	rsp, err := c.ConnectSlack(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectSlackResponse(rsp)
+}
+
 // ConnectTeamsWithBodyWithResponse request with arbitrary body returning *ConnectTeamsResponse
 func (c *ClientWithResponses) ConnectTeamsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectTeamsResponse, error) {
 	rsp, err := c.ConnectTeamsWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -97764,6 +98018,22 @@ func ParseConnectSlackCallbackInstanceResponse(rsp *http.Response) (*ConnectSlac
 	return response, nil
 }
 
+// ParseConnectSlackInstanceResponse parses an HTTP response from a ConnectSlackInstanceWithResponse call
+func ParseConnectSlackInstanceResponse(rsp *http.Response) (*ConnectSlackInstanceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ConnectSlackInstanceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetOAuthConnectResponse parses an HTTP response from a GetOAuthConnectWithResponse call
 func ParseGetOAuthConnectResponse(rsp *http.Response) (*GetOAuthConnectResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -97810,7 +98080,9 @@ func ParseListOAuthLoginsResponse(rsp *http.Response) (*ListOAuthLoginsResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Oauth []struct {
+			// AutoLogin provider type to auto-redirect to on login (oauth key or "saml")
+			AutoLogin *string `json:"auto_login,omitempty"`
+			Oauth     []struct {
 				DisplayName *string `json:"display_name,omitempty"`
 				Type        string  `json:"type"`
 			} `json:"oauth"`
@@ -109939,6 +110211,22 @@ func ParseCompareWorkspacesResponse(rsp *http.Response) (*CompareWorkspacesRespo
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseConnectSlackResponse parses an HTTP response from a ConnectSlackWithResponse call
+func ParseConnectSlackResponse(rsp *http.Response) (*ConnectSlackResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ConnectSlackResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
