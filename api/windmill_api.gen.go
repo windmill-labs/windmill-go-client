@@ -799,6 +799,12 @@ const (
 	QueuedJobJobKindUnassignedSinglestepflow QueuedJobJobKind = "unassigned_singlestepflow"
 )
 
+// Defines values for RestartedFromBranchChosenType.
+const (
+	RestartedFromBranchChosenTypeBranch  RestartedFromBranchChosenType = "branch"
+	RestartedFromBranchChosenTypeDefault RestartedFromBranchChosenType = "default"
+)
+
 // Defines values for RunnableKind.
 const (
 	RunnableKindFlow   RunnableKind = "flow"
@@ -959,8 +965,8 @@ const (
 
 // Defines values for SchemasFlowStatusModuleBranchChosenType.
 const (
-	SchemasFlowStatusModuleBranchChosenTypeBranch  SchemasFlowStatusModuleBranchChosenType = "branch"
-	SchemasFlowStatusModuleBranchChosenTypeDefault SchemasFlowStatusModuleBranchChosenType = "default"
+	Branch  SchemasFlowStatusModuleBranchChosenType = "branch"
+	Default SchemasFlowStatusModuleBranchChosenType = "default"
 )
 
 // Defines values for SchemasFlowStatusModuleType.
@@ -1506,10 +1512,12 @@ type AzureTriggerData struct {
 	Labels           *[]string   `json:"labels,omitempty"`
 
 	// Mode job trigger mode
-	Mode                   *TriggerMode `json:"mode,omitempty"`
-	Path                   string       `json:"path"`
-	PermissionedAs         *string      `json:"permissioned_as,omitempty"`
-	PreservePermissionedAs *bool        `json:"preserve_permissioned_as,omitempty"`
+	Mode *TriggerMode `json:"mode,omitempty"`
+
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+	Path                   string  `json:"path"`
+	PermissionedAs         *string `json:"permissioned_as,omitempty"`
+	PreservePermissionedAs *bool   `json:"preserve_permissioned_as,omitempty"`
 
 	// Retry Retry configuration for failed module executions
 	Retry            *Retry  `json:"retry,omitempty"`
@@ -1806,6 +1814,24 @@ type DataTableSettings struct {
 // DataTableSettingsDatatablesDatabaseResourceType defines model for DataTableSettings.Datatables.Database.ResourceType.
 type DataTableSettingsDatatablesDatabaseResourceType string
 
+// DataTableTableSchema defines model for DataTableTableSchema.
+type DataTableTableSchema struct {
+	// Columns Columns in this table: column_name -> compact_type
+	Columns       map[string]string `json:"columns"`
+	DatatableName string            `json:"datatable_name"`
+	SchemaName    string            `json:"schema_name"`
+	TableName     string            `json:"table_name"`
+}
+
+// DataTableTables defines model for DataTableTables.
+type DataTableTables struct {
+	DatatableName string  `json:"datatable_name"`
+	Error         *string `json:"error,omitempty"`
+
+	// Schemas Hierarchical metadata: schema_name -> table_names
+	Schemas map[string][]string `json:"schemas"`
+}
+
 // DatabaseHealth Database health status
 type DatabaseHealth struct {
 	// Healthy Whether the database is reachable
@@ -2037,7 +2063,7 @@ type EditHttpTrigger struct {
 	IsStaticWebsite bool      `json:"is_static_website"`
 	Labels          *[]string `json:"labels,omitempty"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -2112,7 +2138,7 @@ type EditKafkaTrigger struct {
 	KafkaResourcePath string    `json:"kafka_resource_path"`
 	Labels            *[]string `json:"labels,omitempty"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -2159,7 +2185,7 @@ type EditMqttTrigger struct {
 	// MqttResourcePath Path to the MQTT resource containing broker connection configuration
 	MqttResourcePath string `json:"mqtt_resource_path"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -2198,7 +2224,7 @@ type EditNatsTrigger struct {
 	// NatsResourcePath Path to the NATS resource containing connection configuration
 	NatsResourcePath string `json:"nats_resource_path"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -2238,7 +2264,7 @@ type EditPostgresTrigger struct {
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -2381,7 +2407,7 @@ type EditSqsTrigger struct {
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -2470,7 +2496,7 @@ type EditWebsocketTrigger struct {
 	IsFlow bool      `json:"is_flow"`
 	Labels *[]string `json:"labels,omitempty"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -3105,7 +3131,7 @@ type GcpTriggerData struct {
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
 
-	// Path The unique path identifier for this trigger.
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -3839,7 +3865,7 @@ type NewHttpTrigger struct {
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -3917,7 +3943,7 @@ type NewKafkaTrigger struct {
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -3964,7 +3990,7 @@ type NewMqttTrigger struct {
 	// MqttResourcePath Path to the MQTT resource containing broker connection configuration
 	MqttResourcePath string `json:"mqtt_resource_path"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -4006,7 +4032,7 @@ type NewNatsTrigger struct {
 	// NatsResourcePath Path to the NATS resource containing connection configuration
 	NatsResourcePath string `json:"nats_resource_path"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -4046,7 +4072,7 @@ type NewPostgresTrigger struct {
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -4123,7 +4149,7 @@ type NewSchedule struct {
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
 
-	// Path The unique path identifier for this schedule
+	// Path The unique Windmill path for this schedule. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`.
 	Path string `json:"path"`
 
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
@@ -4308,7 +4334,7 @@ type NewSqsTrigger struct {
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -4377,7 +4403,7 @@ type NewWebsocketTrigger struct {
 	// Mode job trigger mode
 	Mode *TriggerMode `json:"mode,omitempty"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as. Used during deployment to preserve the original trigger owner.
@@ -4836,11 +4862,22 @@ type ResourceType struct {
 
 // RestartedFrom defines model for RestartedFrom.
 type RestartedFrom struct {
+	// BranchChosen For BranchOne nested restart — the branch that was originally chosen, used to lock branch evaluation.
+	BranchChosen *struct {
+		Branch *int                           `json:"branch,omitempty"`
+		Type   *RestartedFromBranchChosenType `json:"type,omitempty"`
+	} `json:"branch_chosen,omitempty"`
+
+	// BranchOrIterationN 0-based iteration index for ForLoop / branch index for BranchAll. Iterations 0..n-1 are preserved; iteration n is restarted.
 	BranchOrIterationN *int                `json:"branch_or_iteration_n,omitempty"`
 	FlowJobId          *openapi_types.UUID `json:"flow_job_id,omitempty"`
 	FlowVersion        *int                `json:"flow_version,omitempty"`
+	Nested             *RestartedFrom      `json:"nested,omitempty"`
 	StepId             *string             `json:"step_id,omitempty"`
 }
+
+// RestartedFromBranchChosenType defines model for RestartedFrom.BranchChosen.Type.
+type RestartedFromBranchChosenType string
 
 // Retry Retry configuration for failed module executions
 type Retry struct {
@@ -4987,7 +5024,7 @@ type Schedule struct {
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
 
-	// Path The unique path identifier for this schedule
+	// Path The unique Windmill path for this schedule. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`.
 	Path string `json:"path"`
 
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
@@ -5089,7 +5126,7 @@ type ScheduleWJobs struct {
 	// OnSuccessExtraArgs The arguments to pass to the script or flow
 	OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
 
-	// Path The unique path identifier for this schedule
+	// Path The unique Windmill path for this schedule. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`.
 	Path string `json:"path"`
 
 	// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
@@ -5353,7 +5390,7 @@ type TriggerExtraProperty struct {
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
 
-	// Path The unique path identifier for this trigger
+	// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
 	Path string `json:"path"`
 
 	// PermissionedAs The user or group this trigger runs as (permissioned_as)
@@ -5401,6 +5438,7 @@ type TruncatedToken struct {
 	LastUsedAt  time.Time  `json:"last_used_at"`
 	Scopes      *[]string  `json:"scopes,omitempty"`
 	TokenPrefix string     `json:"token_prefix"`
+	WorkspaceId *string    `json:"workspace_id,omitempty"`
 }
 
 // UpdateInput defines model for UpdateInput.
@@ -7025,6 +7063,11 @@ type ListTokensParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
+// UpdateTokenScopesJSONBody defines parameters for UpdateTokenScopes.
+type UpdateTokenScopesJSONBody struct {
+	Scopes *[]string `json:"scopes"`
+}
+
 // UpdateTutorialProgressJSONBody defines parameters for UpdateTutorialProgress.
 type UpdateTutorialProgressJSONBody struct {
 	Progress   *int  `json:"progress,omitempty"`
@@ -7189,7 +7232,9 @@ type ExecuteComponentJSONBody struct {
 	Args                          interface{}             `json:"args"`
 	Component                     string                  `json:"component"`
 	ForceViewerAllowUserResources *[]string               `json:"force_viewer_allow_user_resources,omitempty"`
+	ForceViewerDeleteAfterSecs    *int                    `json:"force_viewer_delete_after_secs,omitempty"`
 	ForceViewerOneOfFields        *map[string]interface{} `json:"force_viewer_one_of_fields,omitempty"`
+	ForceViewerSensitiveInputs    *[]string               `json:"force_viewer_sensitive_inputs,omitempty"`
 	ForceViewerStaticFields       *map[string]interface{} `json:"force_viewer_static_fields,omitempty"`
 	Id                            *int                    `json:"id,omitempty"`
 	Path                          *string                 `json:"path,omitempty"`
@@ -8586,13 +8631,22 @@ type ListFilteredQueueUuidsParams struct {
 
 // RestartFlowAtStepJSONBody defines parameters for RestartFlowAtStep.
 type RestartFlowAtStepJSONBody struct {
-	// BranchOrIterationN for branchall or loop, the iteration at which the flow should restart (optional)
+	// BranchOrIterationN for branchall or loop at the top level, the iteration at which the flow should restart (optional)
 	BranchOrIterationN *int `json:"branch_or_iteration_n,omitempty"`
 
 	// FlowVersion specific flow version to use for restart (optional, uses current version if not specified)
 	FlowVersion *int `json:"flow_version,omitempty"`
 
-	// StepId step id to restart the flow from
+	// NestedPath path of additional steps to descend into AFTER `step_id`. Each entry represents one level of nesting inside the spawned child of the previous level's container (BranchOne / sequential ForLoop iteration / Subflow). When non-empty, the actual restart point is the LAST entry's step_id.
+	NestedPath *[]struct {
+		// BranchOrIterationN for ForLoop containers, the iteration to restart at (0-based; iterations 0..n-1 are preserved)
+		BranchOrIterationN *int `json:"branch_or_iteration_n,omitempty"`
+
+		// StepId step id at this nesting level
+		StepId string `json:"step_id"`
+	} `json:"nested_path,omitempty"`
+
+	// StepId top-level step id to restart the flow from (or the outermost container when restarting at a nested step)
 	StepId string `json:"step_id"`
 }
 
@@ -9807,6 +9861,11 @@ type ToggleWorkspaceErrorHandlerForScriptJSONBody struct {
 	Muted *bool `json:"muted,omitempty"`
 }
 
+// UpdateSharedUiJSONBody defines parameters for UpdateSharedUi.
+type UpdateSharedUiJSONBody struct {
+	Files map[string]string `json:"files"`
+}
+
 // ListSqsTriggersParams defines parameters for ListSqsTriggers.
 type ListSqsTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -10158,6 +10217,13 @@ type GetDatatableFullSchemaJSONBody struct {
 	Source string `json:"source"`
 }
 
+// GetDataTableTableSchemaParams defines parameters for GetDataTableTableSchema.
+type GetDataTableTableSchemaParams struct {
+	DatatableName string `form:"datatable_name" json:"datatable_name"`
+	SchemaName    string `form:"schema_name" json:"schema_name"`
+	TableName     string `form:"table_name" json:"table_name"`
+}
+
 // GetDependentsAmountsJSONBody defines parameters for GetDependentsAmounts.
 type GetDependentsAmountsJSONBody = []string
 
@@ -10484,6 +10550,9 @@ type CreateTokenJSONRequestBody = NewToken
 
 // CreateTokenImpersonateJSONRequestBody defines body for CreateTokenImpersonate for application/json ContentType.
 type CreateTokenImpersonateJSONRequestBody = NewTokenImpersonate
+
+// UpdateTokenScopesJSONRequestBody defines body for UpdateTokenScopes for application/json ContentType.
+type UpdateTokenScopesJSONRequestBody UpdateTokenScopesJSONBody
 
 // UpdateTutorialProgressJSONRequestBody defines body for UpdateTutorialProgress for application/json ContentType.
 type UpdateTutorialProgressJSONRequestBody UpdateTutorialProgressJSONBody
@@ -10952,6 +11021,9 @@ type StoreRawScriptTempJSONRequestBody = StoreRawScriptTempJSONBody
 
 // ToggleWorkspaceErrorHandlerForScriptJSONRequestBody defines body for ToggleWorkspaceErrorHandlerForScript for application/json ContentType.
 type ToggleWorkspaceErrorHandlerForScriptJSONRequestBody ToggleWorkspaceErrorHandlerForScriptJSONBody
+
+// UpdateSharedUiJSONRequestBody defines body for UpdateSharedUi for application/json ContentType.
+type UpdateSharedUiJSONRequestBody UpdateSharedUiJSONBody
 
 // CreateSqsTriggerJSONRequestBody defines body for CreateSqsTrigger for application/json ContentType.
 type CreateSqsTriggerJSONRequestBody = NewSqsTrigger
@@ -13609,6 +13681,11 @@ type ClientInterface interface {
 	// ListTokens request
 	ListTokens(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UpdateTokenScopesWithBody request with any body
+	UpdateTokenScopesWithBody(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateTokenScopes(ctx context.Context, tokenPrefix string, body UpdateTokenScopesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetTutorialProgress request
 	GetTutorialProgress(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -15126,6 +15203,20 @@ type ClientInterface interface {
 
 	ToggleWorkspaceErrorHandlerForScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UpdateSharedUiWithBody request with any body
+	UpdateSharedUiWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateSharedUi(ctx context.Context, workspace WorkspaceId, body UpdateSharedUiJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSharedUi request
+	GetSharedUi(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListSharedUi request
+	ListSharedUi(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSharedUiVersion request
+	GetSharedUiVersion(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateSqsTriggerWithBody request with any body
 	CreateSqsTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -15537,6 +15628,9 @@ type ClientInterface interface {
 
 	GetDatatableFullSchema(ctx context.Context, workspace WorkspaceId, body GetDatatableFullSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetDataTableTableSchema request
+	GetDataTableTableSchema(ctx context.Context, workspace WorkspaceId, params *GetDataTableTableSchemaParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetDependencyMap request
 	GetDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -15584,6 +15678,9 @@ type ClientInterface interface {
 
 	// ListDataTableSchemas request
 	ListDataTableSchemas(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListDataTableTables request
+	ListDataTableTables(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListDataTables request
 	ListDataTables(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18103,6 +18200,30 @@ func (c *Client) CreateTokenImpersonate(ctx context.Context, body CreateTokenImp
 
 func (c *Client) ListTokens(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListTokensRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateTokenScopesWithBody(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateTokenScopesRequestWithBody(c.Server, tokenPrefix, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateTokenScopes(ctx context.Context, tokenPrefix string, body UpdateTokenScopesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateTokenScopesRequest(c.Server, tokenPrefix, body)
 	if err != nil {
 		return nil, err
 	}
@@ -24797,6 +24918,66 @@ func (c *Client) ToggleWorkspaceErrorHandlerForScript(ctx context.Context, works
 	return c.Client.Do(req)
 }
 
+func (c *Client) UpdateSharedUiWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateSharedUiRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateSharedUi(ctx context.Context, workspace WorkspaceId, body UpdateSharedUiJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateSharedUiRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSharedUi(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSharedUiRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListSharedUi(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSharedUiRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSharedUiVersion(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSharedUiVersionRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateSqsTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateSqsTriggerRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -26657,6 +26838,18 @@ func (c *Client) GetDatatableFullSchema(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetDataTableTableSchema(ctx context.Context, workspace WorkspaceId, params *GetDataTableTableSchemaParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDataTableTableSchemaRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetDependencyMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetDependencyMapRequest(c.Server, workspace)
 	if err != nil {
@@ -26851,6 +27044,18 @@ func (c *Client) LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqE
 
 func (c *Client) ListDataTableSchemas(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListDataTableSchemasRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListDataTableTables(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDataTableTablesRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -33309,6 +33514,53 @@ func NewListTokensRequest(server string, params *ListTokensParams) (*http.Reques
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewUpdateTokenScopesRequest calls the generic UpdateTokenScopes builder with application/json body
+func NewUpdateTokenScopesRequest(server string, tokenPrefix string, body UpdateTokenScopesJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateTokenScopesRequestWithBody(server, tokenPrefix, "application/json", bodyReader)
+}
+
+// NewUpdateTokenScopesRequestWithBody generates requests for UpdateTokenScopes with any type of body
+func NewUpdateTokenScopesRequestWithBody(server string, tokenPrefix string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "token_prefix", runtime.ParamLocationPath, tokenPrefix)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/tokens/update_scopes/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -62003,6 +62255,155 @@ func NewToggleWorkspaceErrorHandlerForScriptRequestWithBody(server string, works
 	return req, nil
 }
 
+// NewUpdateSharedUiRequest calls the generic UpdateSharedUi builder with application/json body
+func NewUpdateSharedUiRequest(server string, workspace WorkspaceId, body UpdateSharedUiJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateSharedUiRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewUpdateSharedUiRequestWithBody generates requests for UpdateSharedUi with any type of body
+func NewUpdateSharedUiRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/shared_ui", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetSharedUiRequest generates requests for GetSharedUi
+func NewGetSharedUiRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/shared_ui/get", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListSharedUiRequest generates requests for ListSharedUi
+func NewListSharedUiRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/shared_ui/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetSharedUiVersionRequest generates requests for GetSharedUiVersion
+func NewGetSharedUiVersionRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/shared_ui/version", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateSqsTriggerRequest calls the generic CreateSqsTrigger builder with application/json body
 func NewCreateSqsTriggerRequest(server string, workspace WorkspaceId, body CreateSqsTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -66995,6 +67396,82 @@ func NewGetDatatableFullSchemaRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewGetDataTableTableSchemaRequest generates requests for GetDataTableTableSchema
+func NewGetDataTableTableSchemaRequest(server string, workspace WorkspaceId, params *GetDataTableTableSchemaParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_datatable_table_schema", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "datatable_name", runtime.ParamLocationQuery, params.DatatableName); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "schema_name", runtime.ParamLocationQuery, params.SchemaName); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "table_name", runtime.ParamLocationQuery, params.TableName); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetDependencyMapRequest generates requests for GetDependencyMap
 func NewGetDependencyMapRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -67529,6 +68006,40 @@ func NewListDataTableSchemasRequest(server string, workspace WorkspaceId) (*http
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/list_datatable_schemas", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListDataTableTablesRequest generates requests for ListDataTableTables
+func NewListDataTableTablesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/list_datatable_tables", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -69815,6 +70326,11 @@ type ClientWithResponsesInterface interface {
 	// ListTokensWithResponse request
 	ListTokensWithResponse(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*ListTokensResponse, error)
 
+	// UpdateTokenScopesWithBodyWithResponse request with any body
+	UpdateTokenScopesWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenScopesResponse, error)
+
+	UpdateTokenScopesWithResponse(ctx context.Context, tokenPrefix string, body UpdateTokenScopesJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateTokenScopesResponse, error)
+
 	// GetTutorialProgressWithResponse request
 	GetTutorialProgressWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTutorialProgressResponse, error)
 
@@ -71332,6 +71848,20 @@ type ClientWithResponsesInterface interface {
 
 	ToggleWorkspaceErrorHandlerForScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForScriptResponse, error)
 
+	// UpdateSharedUiWithBodyWithResponse request with any body
+	UpdateSharedUiWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateSharedUiResponse, error)
+
+	UpdateSharedUiWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateSharedUiJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateSharedUiResponse, error)
+
+	// GetSharedUiWithResponse request
+	GetSharedUiWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSharedUiResponse, error)
+
+	// ListSharedUiWithResponse request
+	ListSharedUiWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSharedUiResponse, error)
+
+	// GetSharedUiVersionWithResponse request
+	GetSharedUiVersionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSharedUiVersionResponse, error)
+
 	// CreateSqsTriggerWithBodyWithResponse request with any body
 	CreateSqsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateSqsTriggerResponse, error)
 
@@ -71743,6 +72273,9 @@ type ClientWithResponsesInterface interface {
 
 	GetDatatableFullSchemaWithResponse(ctx context.Context, workspace WorkspaceId, body GetDatatableFullSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*GetDatatableFullSchemaResponse, error)
 
+	// GetDataTableTableSchemaWithResponse request
+	GetDataTableTableSchemaWithResponse(ctx context.Context, workspace WorkspaceId, params *GetDataTableTableSchemaParams, reqEditors ...RequestEditorFn) (*GetDataTableTableSchemaResponse, error)
+
 	// GetDependencyMapWithResponse request
 	GetDependencyMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDependencyMapResponse, error)
 
@@ -71790,6 +72323,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListDataTableSchemasWithResponse request
 	ListDataTableSchemasWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTableSchemasResponse, error)
+
+	// ListDataTableTablesWithResponse request
+	ListDataTableTablesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTableTablesResponse, error)
 
 	// ListDataTablesWithResponse request
 	ListDataTablesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTablesResponse, error)
@@ -75344,6 +75880,27 @@ func (r ListTokensResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListTokensResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateTokenScopesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateTokenScopesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateTokenScopesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -84347,6 +84904,106 @@ func (r ToggleWorkspaceErrorHandlerForScriptResponse) StatusCode() int {
 	return 0
 }
 
+type UpdateSharedUiResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateSharedUiResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateSharedUiResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetSharedUiResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		EditedAt time.Time         `json:"edited_at"`
+		EditedBy string            `json:"edited_by"`
+		Files    map[string]string `json:"files"`
+		Version  int64             `json:"version"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSharedUiResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSharedUiResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListSharedUiResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		EditedAt time.Time        `json:"edited_at"`
+		EditedBy string           `json:"edited_by"`
+		Paths    []string         `json:"paths"`
+		Sizes    map[string]int64 `json:"sizes"`
+		Version  int64            `json:"version"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSharedUiResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSharedUiResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetSharedUiVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Version int64 `json:"version"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSharedUiVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSharedUiVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateSqsTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -86590,6 +87247,28 @@ func (r GetDatatableFullSchemaResponse) StatusCode() int {
 	return 0
 }
 
+type GetDataTableTableSchemaResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DataTableTableSchema
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDataTableTableSchemaResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDataTableTableSchemaResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetDependencyMapResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -86934,6 +87613,28 @@ func (r ListDataTableSchemasResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListDataTableSchemasResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListDataTableTablesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]DataTableTables
+}
+
+// Status returns HTTPResponse.Status
+func (r ListDataTableTablesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListDataTableTablesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -89594,6 +90295,23 @@ func (c *ClientWithResponses) ListTokensWithResponse(ctx context.Context, params
 		return nil, err
 	}
 	return ParseListTokensResponse(rsp)
+}
+
+// UpdateTokenScopesWithBodyWithResponse request with arbitrary body returning *UpdateTokenScopesResponse
+func (c *ClientWithResponses) UpdateTokenScopesWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenScopesResponse, error) {
+	rsp, err := c.UpdateTokenScopesWithBody(ctx, tokenPrefix, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateTokenScopesResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateTokenScopesWithResponse(ctx context.Context, tokenPrefix string, body UpdateTokenScopesJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateTokenScopesResponse, error) {
+	rsp, err := c.UpdateTokenScopes(ctx, tokenPrefix, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateTokenScopesResponse(rsp)
 }
 
 // GetTutorialProgressWithResponse request returning *GetTutorialProgressResponse
@@ -94455,6 +95173,50 @@ func (c *ClientWithResponses) ToggleWorkspaceErrorHandlerForScriptWithResponse(c
 	return ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp)
 }
 
+// UpdateSharedUiWithBodyWithResponse request with arbitrary body returning *UpdateSharedUiResponse
+func (c *ClientWithResponses) UpdateSharedUiWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateSharedUiResponse, error) {
+	rsp, err := c.UpdateSharedUiWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateSharedUiResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateSharedUiWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateSharedUiJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateSharedUiResponse, error) {
+	rsp, err := c.UpdateSharedUi(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateSharedUiResponse(rsp)
+}
+
+// GetSharedUiWithResponse request returning *GetSharedUiResponse
+func (c *ClientWithResponses) GetSharedUiWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSharedUiResponse, error) {
+	rsp, err := c.GetSharedUi(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSharedUiResponse(rsp)
+}
+
+// ListSharedUiWithResponse request returning *ListSharedUiResponse
+func (c *ClientWithResponses) ListSharedUiWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSharedUiResponse, error) {
+	rsp, err := c.ListSharedUi(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSharedUiResponse(rsp)
+}
+
+// GetSharedUiVersionWithResponse request returning *GetSharedUiVersionResponse
+func (c *ClientWithResponses) GetSharedUiVersionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSharedUiVersionResponse, error) {
+	rsp, err := c.GetSharedUiVersion(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSharedUiVersionResponse(rsp)
+}
+
 // CreateSqsTriggerWithBodyWithResponse request with arbitrary body returning *CreateSqsTriggerResponse
 func (c *ClientWithResponses) CreateSqsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateSqsTriggerResponse, error) {
 	rsp, err := c.CreateSqsTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -95796,6 +96558,15 @@ func (c *ClientWithResponses) GetDatatableFullSchemaWithResponse(ctx context.Con
 	return ParseGetDatatableFullSchemaResponse(rsp)
 }
 
+// GetDataTableTableSchemaWithResponse request returning *GetDataTableTableSchemaResponse
+func (c *ClientWithResponses) GetDataTableTableSchemaWithResponse(ctx context.Context, workspace WorkspaceId, params *GetDataTableTableSchemaParams, reqEditors ...RequestEditorFn) (*GetDataTableTableSchemaResponse, error) {
+	rsp, err := c.GetDataTableTableSchema(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDataTableTableSchemaResponse(rsp)
+}
+
 // GetDependencyMapWithResponse request returning *GetDependencyMapResponse
 func (c *ClientWithResponses) GetDependencyMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDependencyMapResponse, error) {
 	rsp, err := c.GetDependencyMap(ctx, workspace, reqEditors...)
@@ -95944,6 +96715,15 @@ func (c *ClientWithResponses) ListDataTableSchemasWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseListDataTableSchemasResponse(rsp)
+}
+
+// ListDataTableTablesWithResponse request returning *ListDataTableTablesResponse
+func (c *ClientWithResponses) ListDataTableTablesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTableTablesResponse, error) {
+	rsp, err := c.ListDataTableTables(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListDataTableTablesResponse(rsp)
 }
 
 // ListDataTablesWithResponse request returning *ListDataTablesResponse
@@ -99884,6 +100664,22 @@ func ParseListTokensResponse(rsp *http.Response) (*ListTokensResponse, error) {
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseUpdateTokenScopesResponse parses an HTTP response from a UpdateTokenScopesWithResponse call
+func ParseUpdateTokenScopesResponse(rsp *http.Response) (*UpdateTokenScopesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateTokenScopesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -108859,6 +109655,113 @@ func ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp *http.Response) (*Tog
 	return response, nil
 }
 
+// ParseUpdateSharedUiResponse parses an HTTP response from a UpdateSharedUiWithResponse call
+func ParseUpdateSharedUiResponse(rsp *http.Response) (*UpdateSharedUiResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateSharedUiResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetSharedUiResponse parses an HTTP response from a GetSharedUiWithResponse call
+func ParseGetSharedUiResponse(rsp *http.Response) (*GetSharedUiResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSharedUiResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			EditedAt time.Time         `json:"edited_at"`
+			EditedBy string            `json:"edited_by"`
+			Files    map[string]string `json:"files"`
+			Version  int64             `json:"version"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListSharedUiResponse parses an HTTP response from a ListSharedUiWithResponse call
+func ParseListSharedUiResponse(rsp *http.Response) (*ListSharedUiResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSharedUiResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			EditedAt time.Time        `json:"edited_at"`
+			EditedBy string           `json:"edited_by"`
+			Paths    []string         `json:"paths"`
+			Sizes    map[string]int64 `json:"sizes"`
+			Version  int64            `json:"version"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSharedUiVersionResponse parses an HTTP response from a GetSharedUiVersionWithResponse call
+func ParseGetSharedUiVersionResponse(rsp *http.Response) (*GetSharedUiVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSharedUiVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Version int64 `json:"version"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateSqsTriggerResponse parses an HTTP response from a CreateSqsTriggerWithResponse call
 func ParseCreateSqsTriggerResponse(rsp *http.Response) (*CreateSqsTriggerResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -111092,6 +111995,32 @@ func ParseGetDatatableFullSchemaResponse(rsp *http.Response) (*GetDatatableFullS
 	return response, nil
 }
 
+// ParseGetDataTableTableSchemaResponse parses an HTTP response from a GetDataTableTableSchemaWithResponse call
+func ParseGetDataTableTableSchemaResponse(rsp *http.Response) (*GetDataTableTableSchemaResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDataTableTableSchemaResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DataTableTableSchema
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetDependencyMapResponse parses an HTTP response from a GetDependencyMapWithResponse call
 func ParseGetDependencyMapResponse(rsp *http.Response) (*GetDependencyMapResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -111452,6 +112381,32 @@ func ParseListDataTableSchemasResponse(rsp *http.Response) (*ListDataTableSchema
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []DataTableSchema
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListDataTableTablesResponse parses an HTTP response from a ListDataTableTablesWithResponse call
+func ParseListDataTableTablesResponse(rsp *http.Response) (*ListDataTableTablesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListDataTableTablesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []DataTableTables
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
