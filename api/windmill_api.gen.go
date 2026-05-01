@@ -7244,6 +7244,7 @@ type ExecuteComponentJSONBody struct {
 		Language string  `json:"language"`
 		Lock     *string `json:"lock,omitempty"`
 		Path     *string `json:"path,omitempty"`
+		Tag      *string `json:"tag,omitempty"`
 	} `json:"raw_code,omitempty"`
 
 	// RunQueryParams Runnable query parameters
@@ -7355,6 +7356,9 @@ type ListAzureTriggersParams struct {
 
 // SetAzureTriggerModeJSONBody defines parameters for SetAzureTriggerMode.
 type SetAzureTriggerModeJSONBody struct {
+	// Force Bypass the parent-state conflict warning when enabling a trigger in a fork whose parent has the same path enabled.
+	Force *bool `json:"force,omitempty"`
+
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
 }
@@ -7541,6 +7545,9 @@ type ExistsEmailLocalPartJSONBody struct {
 
 // SetEmailTriggerModeJSONBody defines parameters for SetEmailTriggerMode.
 type SetEmailTriggerModeJSONBody struct {
+	// Force Bypass the parent-state conflict warning when enabling a trigger in a fork whose parent has the same path enabled.
+	Force *bool `json:"force,omitempty"`
+
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
 }
@@ -7813,6 +7820,9 @@ type ListGcpTriggersParams struct {
 
 // SetGcpTriggerModeJSONBody defines parameters for SetGcpTriggerMode.
 type SetGcpTriggerModeJSONBody struct {
+	// Force Bypass the parent-state conflict warning when enabling a trigger in a fork whose parent has the same path enabled.
+	Force *bool `json:"force,omitempty"`
+
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
 }
@@ -7922,6 +7932,9 @@ type ExistsRouteJSONBody struct {
 
 // SetHttpTriggerModeJSONBody defines parameters for SetHttpTriggerMode.
 type SetHttpTriggerModeJSONBody struct {
+	// Force Bypass the parent-state conflict warning when enabling a trigger in a fork whose parent has the same path enabled.
+	Force *bool `json:"force,omitempty"`
+
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
 }
@@ -9378,6 +9391,9 @@ type ListKafkaTriggersParams struct {
 
 // SetKafkaTriggerModeJSONBody defines parameters for SetKafkaTriggerMode.
 type SetKafkaTriggerModeJSONBody struct {
+	// Force Bypass the parent-state conflict warning when enabling a trigger in a fork whose parent has the same path enabled.
+	Force *bool `json:"force,omitempty"`
+
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
 }
@@ -9406,6 +9422,9 @@ type ListMqttTriggersParams struct {
 
 // SetMqttTriggerModeJSONBody defines parameters for SetMqttTriggerMode.
 type SetMqttTriggerModeJSONBody struct {
+	// Force Bypass the parent-state conflict warning when enabling a trigger in a fork whose parent has the same path enabled.
+	Force *bool `json:"force,omitempty"`
+
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
 }
@@ -9475,6 +9494,9 @@ type ListNatsTriggersParams struct {
 
 // SetNatsTriggerModeJSONBody defines parameters for SetNatsTriggerMode.
 type SetNatsTriggerModeJSONBody struct {
+	// Force Bypass the parent-state conflict warning when enabling a trigger in a fork whose parent has the same path enabled.
+	Force *bool `json:"force,omitempty"`
+
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
 }
@@ -9549,6 +9571,9 @@ type ListPostgresTriggersParams struct {
 
 // SetPostgresTriggerModeJSONBody defines parameters for SetPostgresTriggerMode.
 type SetPostgresTriggerModeJSONBody struct {
+	// Force Bypass the parent-state conflict warning when enabling a trigger in a fork whose parent has the same path enabled.
+	Force *bool `json:"force,omitempty"`
+
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
 }
@@ -9711,6 +9736,9 @@ type SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType string
 // SetScheduleEnabledJSONBody defines parameters for SetScheduleEnabled.
 type SetScheduleEnabledJSONBody struct {
 	Enabled bool `json:"enabled"`
+
+	// Force Bypass the parent-state conflict warning when enabling a schedule in a fork whose parent has the same path enabled.
+	Force *bool `json:"force,omitempty"`
 }
 
 // GetCiTestResultsParamsKind defines parameters for GetCiTestResults.
@@ -9890,6 +9918,9 @@ type ListSqsTriggersParams struct {
 
 // SetSqsTriggerModeJSONBody defines parameters for SetSqsTriggerMode.
 type SetSqsTriggerModeJSONBody struct {
+	// Force Bypass the parent-state conflict warning when enabling a trigger in a fork whose parent has the same path enabled.
+	Force *bool `json:"force,omitempty"`
+
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
 }
@@ -10008,6 +10039,9 @@ type ListWebsocketTriggersParams struct {
 
 // SetWebsocketTriggerModeJSONBody defines parameters for SetWebsocketTriggerMode.
 type SetWebsocketTriggerModeJSONBody struct {
+	// Force Bypass the parent-state conflict warning when enabling a trigger in a fork whose parent has the same path enabled.
+	Force *bool `json:"force,omitempty"`
+
 	// Mode job trigger mode
 	Mode TriggerMode `json:"mode"`
 }
