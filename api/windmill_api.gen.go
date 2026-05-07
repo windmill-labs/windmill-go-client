@@ -908,13 +908,25 @@ const (
 
 // Defines values for WorkspaceItemDiffKind.
 const (
-	WorkspaceItemDiffKindApp          WorkspaceItemDiffKind = "app"
-	WorkspaceItemDiffKindFlow         WorkspaceItemDiffKind = "flow"
-	WorkspaceItemDiffKindRawApp       WorkspaceItemDiffKind = "raw_app"
-	WorkspaceItemDiffKindResource     WorkspaceItemDiffKind = "resource"
-	WorkspaceItemDiffKindResourceType WorkspaceItemDiffKind = "resource_type"
-	WorkspaceItemDiffKindScript       WorkspaceItemDiffKind = "script"
-	WorkspaceItemDiffKindVariable     WorkspaceItemDiffKind = "variable"
+	WorkspaceItemDiffKindApp              WorkspaceItemDiffKind = "app"
+	WorkspaceItemDiffKindAzureTrigger     WorkspaceItemDiffKind = "azure_trigger"
+	WorkspaceItemDiffKindEmailTrigger     WorkspaceItemDiffKind = "email_trigger"
+	WorkspaceItemDiffKindFlow             WorkspaceItemDiffKind = "flow"
+	WorkspaceItemDiffKindFolder           WorkspaceItemDiffKind = "folder"
+	WorkspaceItemDiffKindGcpTrigger       WorkspaceItemDiffKind = "gcp_trigger"
+	WorkspaceItemDiffKindHttpTrigger      WorkspaceItemDiffKind = "http_trigger"
+	WorkspaceItemDiffKindKafkaTrigger     WorkspaceItemDiffKind = "kafka_trigger"
+	WorkspaceItemDiffKindMqttTrigger      WorkspaceItemDiffKind = "mqtt_trigger"
+	WorkspaceItemDiffKindNatsTrigger      WorkspaceItemDiffKind = "nats_trigger"
+	WorkspaceItemDiffKindPostgresTrigger  WorkspaceItemDiffKind = "postgres_trigger"
+	WorkspaceItemDiffKindRawApp           WorkspaceItemDiffKind = "raw_app"
+	WorkspaceItemDiffKindResource         WorkspaceItemDiffKind = "resource"
+	WorkspaceItemDiffKindResourceType     WorkspaceItemDiffKind = "resource_type"
+	WorkspaceItemDiffKindSchedule         WorkspaceItemDiffKind = "schedule"
+	WorkspaceItemDiffKindScript           WorkspaceItemDiffKind = "script"
+	WorkspaceItemDiffKindSqsTrigger       WorkspaceItemDiffKind = "sqs_trigger"
+	WorkspaceItemDiffKindVariable         WorkspaceItemDiffKind = "variable"
+	WorkspaceItemDiffKindWebsocketTrigger WorkspaceItemDiffKind = "websocket_trigger"
 )
 
 // Defines values for SchemasAiAgentType.
@@ -1259,6 +1271,12 @@ const (
 	SchemaOnly    ImportPgDatabaseJSONBodyForkBehavior = "schema_only"
 )
 
+// Defines values for ListWsSpecificVersionsParamsKind.
+const (
+	ListWsSpecificVersionsParamsKindResource ListWsSpecificVersionsParamsKind = "resource"
+	ListWsSpecificVersionsParamsKindVariable ListWsSpecificVersionsParamsKind = "variable"
+)
+
 // Defines values for PruneVersionsJSONBodyResourceType.
 const (
 	Apps    PruneVersionsJSONBodyResourceType = "apps"
@@ -1465,7 +1483,7 @@ type AzureKeyVaultSettings struct {
 	// ClientId Azure AD application (client) ID
 	ClientId string `json:"client_id"`
 
-	// ClientSecret Azure AD client secret
+	// ClientSecret Azure AD client secret. Optional — when omitted, the integration falls back to Azure Workload Identity Federation, exchanging the Kubernetes-projected service-account JWT at AZURE_FEDERATED_TOKEN_FILE for an access token (no long-lived secret stored).
 	ClientSecret *string `json:"client_secret,omitempty"`
 
 	// TenantId Azure AD tenant ID
@@ -1575,6 +1593,9 @@ type CompareSummary struct {
 	// ResourcesChanged Number of resources with differences
 	ResourcesChanged int `json:"resources_changed"`
 
+	// SchedulesChanged Number of schedules with differences
+	SchedulesChanged int `json:"schedules_changed"`
+
 	// ScriptsChanged Number of scripts with differences
 	ScriptsChanged int `json:"scripts_changed"`
 
@@ -1586,6 +1607,9 @@ type CompareSummary struct {
 
 	// TotalDiffs Total number of items with differences
 	TotalDiffs int `json:"total_diffs"`
+
+	// TriggersChanged Number of triggers with differences (sum across all trigger kinds)
+	TriggersChanged int `json:"triggers_changed"`
 
 	// VariablesChanged Number of variables with differences
 	VariablesChanged int `json:"variables_changed"`
@@ -1686,6 +1710,7 @@ type CreateResource struct {
 	// ResourceType The resource_type associated with the resource
 	ResourceType string      `json:"resource_type"`
 	Value        interface{} `json:"value"`
+	WsSpecific   *bool       `json:"ws_specific,omitempty"`
 }
 
 // CreateTriggerResponse Response returned when a native trigger is created
@@ -1716,7 +1741,8 @@ type CreateVariable struct {
 	Path string `json:"path"`
 
 	// Value The value of the variable
-	Value string `json:"value"`
+	Value      string `json:"value"`
+	WsSpecific *bool  `json:"ws_specific,omitempty"`
 }
 
 // CreateWorkspace defines model for CreateWorkspace.
@@ -2302,6 +2328,7 @@ type EditResource struct {
 	// ResourceType The new resource_type to be associated with the resource
 	ResourceType *string      `json:"resource_type,omitempty"`
 	Value        *interface{} `json:"value,omitempty"`
+	WsSpecific   *bool        `json:"ws_specific,omitempty"`
 }
 
 // EditResourceType defines model for EditResourceType.
@@ -2462,7 +2489,8 @@ type EditVariable struct {
 	Path *string `json:"path,omitempty"`
 
 	// Value The new value of the variable
-	Value *string `json:"value,omitempty"`
+	Value      *string `json:"value,omitempty"`
+	WsSpecific *bool   `json:"ws_specific,omitempty"`
 }
 
 // EditWebsocketTrigger defines model for EditWebsocketTrigger.
@@ -3603,6 +3631,7 @@ type ListableResource struct {
 	ResourceType string           `json:"resource_type"`
 	Value        *interface{}     `json:"value,omitempty"`
 	WorkspaceId  *string          `json:"workspace_id,omitempty"`
+	WsSpecific   *bool            `json:"ws_specific,omitempty"`
 }
 
 // ListableVariable defines model for ListableVariable.
@@ -3621,6 +3650,7 @@ type ListableVariable struct {
 	RefreshError *string         `json:"refresh_error,omitempty"`
 	Value        *string         `json:"value,omitempty"`
 	WorkspaceId  string          `json:"workspace_id"`
+	WsSpecific   *bool           `json:"ws_specific,omitempty"`
 }
 
 // LogSearchHit defines model for LogSearchHit.
@@ -4846,6 +4876,7 @@ type Resource struct {
 	ResourceType string           `json:"resource_type"`
 	Value        *interface{}     `json:"value,omitempty"`
 	WorkspaceId  *string          `json:"workspace_id,omitempty"`
+	WsSpecific   *bool            `json:"ws_specific,omitempty"`
 }
 
 // ResourceType defines model for ResourceType.
@@ -10297,6 +10328,15 @@ type InviteUserJSONBody struct {
 	ParentWorkspaceId *string `json:"parent_workspace_id"`
 }
 
+// ListWsSpecificVersionsParams defines parameters for ListWsSpecificVersions.
+type ListWsSpecificVersionsParams struct {
+	Kind ListWsSpecificVersionsParamsKind `form:"kind" json:"kind"`
+	Path string                           `form:"path" json:"path"`
+}
+
+// ListWsSpecificVersionsParamsKind defines parameters for ListWsSpecificVersions.
+type ListWsSpecificVersionsParamsKind string
+
 // LogAiChatJSONBody defines parameters for LogAiChat.
 type LogAiChatJSONBody struct {
 	Mode      string `json:"mode"`
@@ -15732,6 +15772,12 @@ type ClientInterface interface {
 
 	// ListPendingInvites request
 	ListPendingInvites(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListWsSpecific request
+	ListWsSpecific(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListWsSpecificVersions request
+	ListWsSpecificVersions(ctx context.Context, workspace WorkspaceId, params *ListWsSpecificVersionsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// LogAiChatWithBody request with any body
 	LogAiChatWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -27146,6 +27192,30 @@ func (c *Client) ListDucklakes(ctx context.Context, workspace WorkspaceId, reqEd
 
 func (c *Client) ListPendingInvites(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListPendingInvitesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListWsSpecific(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListWsSpecificRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListWsSpecificVersions(ctx context.Context, workspace WorkspaceId, params *ListWsSpecificVersionsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListWsSpecificVersionsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -68263,6 +68333,104 @@ func NewListPendingInvitesRequest(server string, workspace WorkspaceId) (*http.R
 	return req, nil
 }
 
+// NewListWsSpecificRequest generates requests for ListWsSpecific
+func NewListWsSpecificRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/list_ws_specific", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListWsSpecificVersionsRequest generates requests for ListWsSpecificVersions
+func NewListWsSpecificVersionsRequest(server string, workspace WorkspaceId, params *ListWsSpecificVersionsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/list_ws_specific_versions", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, params.Kind); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, params.Path); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewLogAiChatRequest calls the generic LogAiChat builder with application/json body
 func NewLogAiChatRequest(server string, workspace WorkspaceId, body LogAiChatJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -72442,6 +72610,12 @@ type ClientWithResponsesInterface interface {
 
 	// ListPendingInvitesWithResponse request
 	ListPendingInvitesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPendingInvitesResponse, error)
+
+	// ListWsSpecificWithResponse request
+	ListWsSpecificWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListWsSpecificResponse, error)
+
+	// ListWsSpecificVersionsWithResponse request
+	ListWsSpecificVersionsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListWsSpecificVersionsParams, reqEditors ...RequestEditorFn) (*ListWsSpecificVersionsResponse, error)
 
 	// LogAiChatWithBodyWithResponse request with any body
 	LogAiChatWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LogAiChatResponse, error)
@@ -87852,6 +88026,53 @@ func (r ListPendingInvitesResponse) StatusCode() int {
 	return 0
 }
 
+type ListWsSpecificResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		ItemKind string `json:"item_kind"`
+		Path     string `json:"path"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListWsSpecificResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListWsSpecificResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListWsSpecificVersionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListWsSpecificVersionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListWsSpecificVersionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type LogAiChatResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -96900,6 +97121,24 @@ func (c *ClientWithResponses) ListPendingInvitesWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListPendingInvitesResponse(rsp)
+}
+
+// ListWsSpecificWithResponse request returning *ListWsSpecificResponse
+func (c *ClientWithResponses) ListWsSpecificWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListWsSpecificResponse, error) {
+	rsp, err := c.ListWsSpecific(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListWsSpecificResponse(rsp)
+}
+
+// ListWsSpecificVersionsWithResponse request returning *ListWsSpecificVersionsResponse
+func (c *ClientWithResponses) ListWsSpecificVersionsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListWsSpecificVersionsParams, reqEditors ...RequestEditorFn) (*ListWsSpecificVersionsResponse, error) {
+	rsp, err := c.ListWsSpecificVersions(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListWsSpecificVersionsResponse(rsp)
 }
 
 // LogAiChatWithBodyWithResponse request with arbitrary body returning *LogAiChatResponse
@@ -112675,6 +112914,61 @@ func ParseListPendingInvitesResponse(rsp *http.Response) (*ListPendingInvitesRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []WorkspaceInvite
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListWsSpecificResponse parses an HTTP response from a ListWsSpecificWithResponse call
+func ParseListWsSpecificResponse(rsp *http.Response) (*ListWsSpecificResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListWsSpecificResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			ItemKind string `json:"item_kind"`
+			Path     string `json:"path"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListWsSpecificVersionsResponse parses an HTTP response from a ListWsSpecificVersionsWithResponse call
+func ParseListWsSpecificVersionsResponse(rsp *http.Response) (*ListWsSpecificVersionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListWsSpecificVersionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
