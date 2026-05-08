@@ -8400,6 +8400,9 @@ type ListJobsParams struct {
 	// IsNotSchedule is not a scheduled job
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 
+	// ExcludesEntrypointOverride exclude jobs that were started with a `_ENTRYPOINT_OVERRIDE` arg (e.g. dynamic-select helper runs and preprocessor previews)
+	ExcludesEntrypointOverride *bool `form:"excludes_entrypoint_override,omitempty" json:"excludes_entrypoint_override,omitempty"`
+
 	// BroadFilter broad search across multiple fields (case-insensitive substring match on path, tag, schedule path, trigger kind, label)
 	BroadFilter *string `form:"broad_filter,omitempty" json:"broad_filter,omitempty"`
 }
@@ -46713,6 +46716,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 		if params.IsNotSchedule != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_not_schedule", runtime.ParamLocationQuery, *params.IsNotSchedule); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ExcludesEntrypointOverride != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "excludes_entrypoint_override", runtime.ParamLocationQuery, *params.ExcludesEntrypointOverride); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
