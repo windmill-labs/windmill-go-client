@@ -5537,6 +5537,9 @@ type VaultSettings struct {
 	// Address HashiCorp Vault server address (e.g., https://vault.company.com:8200)
 	Address string `json:"address"`
 
+	// JwtMountPath Mount path for the JWT auth method in Vault (optional, defaults to "jwt"). Set this when the JWT auth method is mounted at a non-default path, e.g. via `vault auth enable -path=<mount> jwt`.
+	JwtMountPath *string `json:"jwt_mount_path,omitempty"`
+
 	// JwtRole Vault JWT auth role name for Windmill (optional, if not provided token auth is used)
 	JwtRole *string `json:"jwt_role,omitempty"`
 
@@ -5846,6 +5849,10 @@ type SchemasAiAgent struct {
 		// MaxCompletionTokens Integer. Maximum number of tokens the AI will generate in its response.
 		// Range: 1 to 4,294,967,295. Typical values: 256-4096 for most use cases.
 		MaxCompletionTokens *SchemasInputTransform `json:"max_completion_tokens,omitempty"`
+
+		// MaxIterations Number. Limits how many times the agent can loop through reasoning and tool use.
+		// Range: 1-1000.
+		MaxIterations *SchemasInputTransform `json:"max_iterations,omitempty"`
 
 		// Memory Memory configuration - can be static (MemoryConfig), JavaScript expression, or AI-determined
 		Memory *MemoryTransform `json:"memory,omitempty"`
@@ -13532,6 +13539,9 @@ type ClientInterface interface {
 
 	SetInstanceConfig(ctx context.Context, body SetInstanceConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetInstanceHash request
+	GetInstanceHash(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetLatestKeyRenewalAttempt request
 	GetLatestKeyRenewalAttempt(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -13582,6 +13592,9 @@ type ClientInterface interface {
 
 	// ComputeObjectStorageUsage request
 	ComputeObjectStorageUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetOfflineLicenseStatus request
+	GetOfflineLicenseStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RefreshCustomInstanceUserPwd request
 	RefreshCustomInstanceUserPwd(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17269,6 +17282,18 @@ func (c *Client) SetInstanceConfig(ctx context.Context, body SetInstanceConfigJS
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetInstanceHash(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetInstanceHashRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetLatestKeyRenewalAttempt(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetLatestKeyRenewalAttemptRequest(c.Server)
 	if err != nil {
@@ -17487,6 +17512,18 @@ func (c *Client) GetObjectStorageUsage(ctx context.Context, reqEditors ...Reques
 
 func (c *Client) ComputeObjectStorageUsage(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewComputeObjectStorageUsageRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetOfflineLicenseStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOfflineLicenseStatusRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -31244,6 +31281,33 @@ func NewSetInstanceConfigRequestWithBody(server string, contentType string, body
 	return req, nil
 }
 
+// NewGetInstanceHashRequest generates requests for GetInstanceHash
+func NewGetInstanceHashRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/instance_hash")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetLatestKeyRenewalAttemptRequest generates requests for GetLatestKeyRenewalAttempt
 func NewGetLatestKeyRenewalAttemptRequest(server string) (*http.Request, error) {
 	var err error
@@ -31666,6 +31730,33 @@ func NewComputeObjectStorageUsageRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetOfflineLicenseStatusRequest generates requests for GetOfflineLicenseStatus
+func NewGetOfflineLicenseStatusRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/offline_license_status")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -70386,6 +70477,9 @@ type ClientWithResponsesInterface interface {
 
 	SetInstanceConfigWithResponse(ctx context.Context, body SetInstanceConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*SetInstanceConfigResponse, error)
 
+	// GetInstanceHashWithResponse request
+	GetInstanceHashWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetInstanceHashResponse, error)
+
 	// GetLatestKeyRenewalAttemptWithResponse request
 	GetLatestKeyRenewalAttemptWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLatestKeyRenewalAttemptResponse, error)
 
@@ -70436,6 +70530,9 @@ type ClientWithResponsesInterface interface {
 
 	// ComputeObjectStorageUsageWithResponse request
 	ComputeObjectStorageUsageWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ComputeObjectStorageUsageResponse, error)
+
+	// GetOfflineLicenseStatusWithResponse request
+	GetOfflineLicenseStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOfflineLicenseStatusResponse, error)
 
 	// RefreshCustomInstanceUserPwdWithResponse request
 	RefreshCustomInstanceUserPwdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*RefreshCustomInstanceUserPwdResponse, error)
@@ -74846,6 +74943,30 @@ func (r SetInstanceConfigResponse) StatusCode() int {
 	return 0
 }
 
+type GetInstanceHashResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		InstanceHash *string `json:"instance_hash"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetInstanceHashResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetInstanceHashResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetLatestKeyRenewalAttemptResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -75154,6 +75275,40 @@ func (r ComputeObjectStorageUsageResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ComputeObjectStorageUsageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetOfflineLicenseStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		AuthorCount *int     `json:"author_count,omitempty"`
+		CuCap       *float32 `json:"cu_cap,omitempty"`
+		CuOverCap   *bool    `json:"cu_over_cap,omitempty"`
+
+		// CurrentCu Sum of CU rate across workers that pinged in the last 2 minutes.
+		CurrentCu     *float32 `json:"current_cu,omitempty"`
+		OperatorCount *int     `json:"operator_count,omitempty"`
+		SeatsCap      *int     `json:"seats_cap,omitempty"`
+
+		// SeatsUsed Author-equivalent seats consumed (authors + 0.5 × operators)
+		SeatsUsed *float32 `json:"seats_used,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetOfflineLicenseStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOfflineLicenseStatusResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -89930,6 +90085,15 @@ func (c *ClientWithResponses) SetInstanceConfigWithResponse(ctx context.Context,
 	return ParseSetInstanceConfigResponse(rsp)
 }
 
+// GetInstanceHashWithResponse request returning *GetInstanceHashResponse
+func (c *ClientWithResponses) GetInstanceHashWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetInstanceHashResponse, error) {
+	rsp, err := c.GetInstanceHash(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetInstanceHashResponse(rsp)
+}
+
 // GetLatestKeyRenewalAttemptWithResponse request returning *GetLatestKeyRenewalAttemptResponse
 func (c *ClientWithResponses) GetLatestKeyRenewalAttemptWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLatestKeyRenewalAttemptResponse, error) {
 	rsp, err := c.GetLatestKeyRenewalAttempt(ctx, reqEditors...)
@@ -90093,6 +90257,15 @@ func (c *ClientWithResponses) ComputeObjectStorageUsageWithResponse(ctx context.
 		return nil, err
 	}
 	return ParseComputeObjectStorageUsageResponse(rsp)
+}
+
+// GetOfflineLicenseStatusWithResponse request returning *GetOfflineLicenseStatusResponse
+func (c *ClientWithResponses) GetOfflineLicenseStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOfflineLicenseStatusResponse, error) {
+	rsp, err := c.GetOfflineLicenseStatus(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOfflineLicenseStatusResponse(rsp)
 }
 
 // RefreshCustomInstanceUserPwdWithResponse request returning *RefreshCustomInstanceUserPwdResponse
@@ -99770,6 +99943,34 @@ func ParseSetInstanceConfigResponse(rsp *http.Response) (*SetInstanceConfigRespo
 	return response, nil
 }
 
+// ParseGetInstanceHashResponse parses an HTTP response from a GetInstanceHashWithResponse call
+func ParseGetInstanceHashResponse(rsp *http.Response) (*GetInstanceHashResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetInstanceHashResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			InstanceHash *string `json:"instance_hash"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetLatestKeyRenewalAttemptResponse parses an HTTP response from a GetLatestKeyRenewalAttemptWithResponse call
 func ParseGetLatestKeyRenewalAttemptResponse(rsp *http.Response) (*GetLatestKeyRenewalAttemptResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -100122,6 +100323,44 @@ func ParseComputeObjectStorageUsageResponse(rsp *http.Response) (*ComputeObjectS
 	response := &ComputeObjectStorageUsageResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetOfflineLicenseStatusResponse parses an HTTP response from a GetOfflineLicenseStatusWithResponse call
+func ParseGetOfflineLicenseStatusResponse(rsp *http.Response) (*GetOfflineLicenseStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetOfflineLicenseStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			AuthorCount *int     `json:"author_count,omitempty"`
+			CuCap       *float32 `json:"cu_cap,omitempty"`
+			CuOverCap   *bool    `json:"cu_over_cap,omitempty"`
+
+			// CurrentCu Sum of CU rate across workers that pinged in the last 2 minutes.
+			CurrentCu     *float32 `json:"current_cu,omitempty"`
+			OperatorCount *int     `json:"operator_count,omitempty"`
+			SeatsCap      *int     `json:"seats_cap,omitempty"`
+
+			// SeatsUsed Author-equivalent seats consumed (authors + 0.5 × operators)
+			SeatsUsed *float32 `json:"seats_used,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
