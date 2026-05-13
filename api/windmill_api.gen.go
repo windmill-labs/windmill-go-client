@@ -4385,10 +4385,15 @@ type NewSqsTrigger struct {
 
 // NewToken defines model for NewToken.
 type NewToken struct {
-	Expiration  *time.Time `json:"expiration,omitempty"`
-	Label       *string    `json:"label,omitempty"`
-	Scopes      *[]string  `json:"scopes,omitempty"`
-	WorkspaceId *string    `json:"workspace_id,omitempty"`
+	Expiration *time.Time `json:"expiration,omitempty"`
+	Label      *string    `json:"label,omitempty"`
+
+	// ReadOnly If true, the token is restricted to read-only HTTP methods
+	// (GET/HEAD/OPTIONS). Mutating endpoints and job-run actions are
+	// rejected with 403, regardless of the scopes attached.
+	ReadOnly    *bool     `json:"read_only,omitempty"`
+	Scopes      *[]string `json:"scopes,omitempty"`
+	WorkspaceId *string   `json:"workspace_id,omitempty"`
 }
 
 // NewTokenImpersonate defines model for NewTokenImpersonate.
@@ -5467,6 +5472,7 @@ type TruncatedToken struct {
 	Expiration  *time.Time `json:"expiration,omitempty"`
 	Label       *string    `json:"label,omitempty"`
 	LastUsedAt  time.Time  `json:"last_used_at"`
+	ReadOnly    bool       `json:"read_only"`
 	Scopes      *[]string  `json:"scopes,omitempty"`
 	TokenPrefix string     `json:"token_prefix"`
 	WorkspaceId *string    `json:"workspace_id,omitempty"`
