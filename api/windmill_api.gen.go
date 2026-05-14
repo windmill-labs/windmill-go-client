@@ -474,14 +474,16 @@ const (
 
 // Defines values for GlobalUserInfoLoginType.
 const (
-	GlobalUserInfoLoginTypeGithub   GlobalUserInfoLoginType = "github"
-	GlobalUserInfoLoginTypePassword GlobalUserInfoLoginType = "password"
+	GlobalUserInfoLoginTypeGithub         GlobalUserInfoLoginType = "github"
+	GlobalUserInfoLoginTypePassword       GlobalUserInfoLoginType = "password"
+	GlobalUserInfoLoginTypeServiceAccount GlobalUserInfoLoginType = "service_account"
 )
 
 // Defines values for GlobalUserInfoRoleSource.
 const (
-	GlobalUserInfoRoleSourceInstanceGroup GlobalUserInfoRoleSource = "instance_group"
-	GlobalUserInfoRoleSourceManual        GlobalUserInfoRoleSource = "manual"
+	GlobalUserInfoRoleSourceInstanceGroup  GlobalUserInfoRoleSource = "instance_group"
+	GlobalUserInfoRoleSourceManual         GlobalUserInfoRoleSource = "manual"
+	GlobalUserInfoRoleSourceServiceAccount GlobalUserInfoRoleSource = "service_account"
 )
 
 // Defines values for HealthStatusResponseStatus.
@@ -679,9 +681,9 @@ const (
 
 // Defines values for NativeServiceName.
 const (
-	NativeServiceNameGithub    NativeServiceName = "github"
-	NativeServiceNameGoogle    NativeServiceName = "google"
-	NativeServiceNameNextcloud NativeServiceName = "nextcloud"
+	Github    NativeServiceName = "github"
+	Google    NativeServiceName = "google"
+	Nextcloud NativeServiceName = "nextcloud"
 )
 
 // Defines values for NewKafkaTriggerAutoOffsetReset.
@@ -3279,6 +3281,7 @@ type GlobalUserInfo struct {
 	SuperAdmin    bool                     `json:"super_admin"`
 	Username      *string                  `json:"username,omitempty"`
 	Verified      bool                     `json:"verified"`
+	WorkspaceId   *string                  `json:"workspace_id,omitempty"`
 }
 
 // GlobalUserInfoLoginType defines model for GlobalUserInfo.LoginType.
