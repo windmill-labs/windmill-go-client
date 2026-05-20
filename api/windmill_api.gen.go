@@ -1364,23 +1364,26 @@ type AppWithLastVersionExecutionMode string
 
 // AppWithLastVersionWDraft defines model for AppWithLastVersionWDraft.
 type AppWithLastVersionWDraft struct {
-	BundleSecret  *string                               `json:"bundle_secret,omitempty"`
-	CreatedAt     time.Time                             `json:"created_at"`
-	CreatedBy     string                                `json:"created_by"`
-	CustomPath    *string                               `json:"custom_path,omitempty"`
-	Draft         *interface{}                          `json:"draft,omitempty"`
-	DraftOnly     *bool                                 `json:"draft_only,omitempty"`
-	ExecutionMode AppWithLastVersionWDraftExecutionMode `json:"execution_mode"`
-	ExtraPerms    map[string]bool                       `json:"extra_perms"`
-	Id            int                                   `json:"id"`
-	Labels        *[]string                             `json:"labels,omitempty"`
-	Path          string                                `json:"path"`
-	Policy        Policy                                `json:"policy"`
-	RawApp        bool                                  `json:"raw_app"`
-	Summary       string                                `json:"summary"`
-	Value         interface{}                           `json:"value"`
-	Versions      []int                                 `json:"versions"`
-	WorkspaceId   string                                `json:"workspace_id"`
+	BundleSecret *string      `json:"bundle_secret,omitempty"`
+	CreatedAt    time.Time    `json:"created_at"`
+	CreatedBy    string       `json:"created_by"`
+	CustomPath   *string      `json:"custom_path,omitempty"`
+	Draft        *interface{} `json:"draft,omitempty"`
+
+	// DraftCreatedAt Timestamp at which the most recent DB draft was created. Used by the frontend's UserDraft staleness check.
+	DraftCreatedAt *time.Time                            `json:"draft_created_at,omitempty"`
+	DraftOnly      *bool                                 `json:"draft_only,omitempty"`
+	ExecutionMode  AppWithLastVersionWDraftExecutionMode `json:"execution_mode"`
+	ExtraPerms     map[string]bool                       `json:"extra_perms"`
+	Id             int                                   `json:"id"`
+	Labels         *[]string                             `json:"labels,omitempty"`
+	Path           string                                `json:"path"`
+	Policy         Policy                                `json:"policy"`
+	RawApp         bool                                  `json:"raw_app"`
+	Summary        string                                `json:"summary"`
+	Value          interface{}                           `json:"value"`
+	Versions       []int                                 `json:"versions"`
+	WorkspaceId    string                                `json:"workspace_id"`
 }
 
 // AppWithLastVersionWDraftExecutionMode defines model for AppWithLastVersionWDraft.ExecutionMode.
@@ -2926,6 +2929,9 @@ type FlowPreview struct {
 	RestartedFrom *RestartedFrom `json:"restarted_from,omitempty"`
 	Tag           *string        `json:"tag,omitempty"`
 
+	// TempScriptRefs Map of relative-import script path -> temp storage hash, propagated to each flow step so inline-script relative imports resolve from not-yet-deployed local content instead of the deployed script
+	TempScriptRefs *map[string]string `json:"temp_script_refs"`
+
 	// Value The flow structure containing modules and optional preprocessor/failure handlers
 	Value FlowValue `json:"value"`
 }
@@ -3641,6 +3647,8 @@ type ListableResource struct {
 type ListableVariable struct {
 	Account      *int            `json:"account,omitempty"`
 	Description  *string         `json:"description,omitempty"`
+	EditedAt     *time.Time      `json:"edited_at,omitempty"`
+	EditedBy     *string         `json:"edited_by,omitempty"`
 	ExpiresAt    *time.Time      `json:"expires_at,omitempty"`
 	ExtraPerms   map[string]bool `json:"extra_perms"`
 	IsExpired    *bool           `json:"is_expired,omitempty"`
@@ -4301,10 +4309,13 @@ type NewScriptWithDraft struct {
 	DedicatedWorker          *bool     `json:"dedicated_worker,omitempty"`
 
 	// DeleteAfterSecs If set, delete the job's args, result and logs after this many seconds following job completion
-	DeleteAfterSecs         *int                    `json:"delete_after_secs,omitempty"`
-	DeploymentMessage       *string                 `json:"deployment_message,omitempty"`
-	Description             *string                 `json:"description,omitempty"`
-	Draft                   *NewScript              `json:"draft,omitempty"`
+	DeleteAfterSecs   *int       `json:"delete_after_secs,omitempty"`
+	DeploymentMessage *string    `json:"deployment_message,omitempty"`
+	Description       *string    `json:"description,omitempty"`
+	Draft             *NewScript `json:"draft,omitempty"`
+
+	// DraftCreatedAt Timestamp at which the most recent DB draft was created. Used by the frontend's UserDraft staleness check.
+	DraftCreatedAt          *time.Time              `json:"draft_created_at,omitempty"`
 	DraftOnly               *bool                   `json:"draft_only,omitempty"`
 	Envs                    *[]string               `json:"envs,omitempty"`
 	HasPreprocessor         *bool                   `json:"has_preprocessor,omitempty"`
@@ -4726,6 +4737,9 @@ type Preview struct {
 	// ScriptHash The hash of the script
 	ScriptHash *string `json:"script_hash,omitempty"`
 	Tag        *string `json:"tag,omitempty"`
+
+	// TempScriptRefs Map of relative-import script path -> temp storage hash so the preview job resolves those imports from not-yet-deployed local content instead of the deployed script
+	TempScriptRefs *map[string]string `json:"temp_script_refs"`
 }
 
 // PreviewKind defines model for Preview.Kind.
@@ -5551,6 +5565,9 @@ type VaultSettings struct {
 
 	// JwtRole Vault JWT auth role name for Windmill (optional, if not provided token auth is used)
 	JwtRole *string `json:"jwt_role,omitempty"`
+
+	// KvSecretPathPrefix Optional path prefix inserted between the KV data/metadata segment and the workspace id (e.g., "apps/windmill"). When set, secrets are stored at `<mount>/data/<prefix>/<workspace>/<secret>`, allowing a Vault policy scoped to exactly `<mount>/data/<prefix>/*`.
+	KvSecretPathPrefix *string `json:"kv_secret_path_prefix,omitempty"`
 
 	// MountPath KV v2 secrets engine mount path (e.g., windmill)
 	MountPath string `json:"mount_path"`
@@ -7296,7 +7313,10 @@ type ExecuteComponentJSONBody struct {
 
 	// RunQueryParams Runnable query parameters
 	RunQueryParams *map[string]interface{} `json:"run_query_params,omitempty"`
-	Version        *int                    `json:"version,omitempty"`
+
+	// TempScriptRefs Map of relative-import script path -> temp storage hash. Only honored for inline-script (raw_code) execution so app dev resolves those imports from not-yet-deployed local content.
+	TempScriptRefs *map[string]string `json:"temp_script_refs"`
+	Version        *int               `json:"version,omitempty"`
 }
 
 // UploadS3FileFromAppParams defines parameters for UploadS3FileFromApp.
@@ -9600,6 +9620,13 @@ type RefreshTokenJSONBody struct {
 // GetOidcTokenParams defines parameters for GetOidcToken.
 type GetOidcTokenParams struct {
 	ExpiresIn *float32 `form:"expires_in,omitempty" json:"expires_in,omitempty"`
+}
+
+// ListPathAutocompletePathsParams defines parameters for ListPathAutocompletePaths.
+type ListPathAutocompletePathsParams struct {
+	// Force bypass the server-side cache and re-query the DB, refreshing the
+	// cache. Used right after a deploy so the new path appears immediately.
+	Force *bool `form:"force,omitempty" json:"force,omitempty"`
 }
 
 // ListPostgresTriggersParams defines parameters for ListPostgresTriggers.
@@ -13514,6 +13541,9 @@ type ClientInterface interface {
 	// ListLogFiles request
 	ListLogFiles(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetAuditLogsS3Status request
+	GetAuditLogsS3Status(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetCriticalAlerts request
 	GetCriticalAlerts(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -15013,7 +15043,7 @@ type ClientInterface interface {
 	GenerateOpenapiSpec(ctx context.Context, workspace WorkspaceId, body GenerateOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListPathAutocompletePaths request
-	ListPathAutocompletePaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListPathAutocompletePaths(ctx context.Context, workspace WorkspaceId, params *ListPathAutocompletePathsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreatePostgresTriggerWithBody request with any body
 	CreatePostgresTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17137,6 +17167,18 @@ func (c *Client) GetLogFile(ctx context.Context, path Path, reqEditors ...Reques
 
 func (c *Client) ListLogFiles(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListLogFilesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAuditLogsS3Status(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAuditLogsS3StatusRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -23771,8 +23813,8 @@ func (c *Client) GenerateOpenapiSpec(ctx context.Context, workspace WorkspaceId,
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListPathAutocompletePaths(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListPathAutocompletePathsRequest(c.Server, workspace)
+func (c *Client) ListPathAutocompletePaths(ctx context.Context, workspace WorkspaceId, params *ListPathAutocompletePathsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPathAutocompletePathsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -30880,6 +30922,33 @@ func NewListLogFilesRequest(server string, params *ListLogFilesParams) (*http.Re
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetAuditLogsS3StatusRequest generates requests for GetAuditLogsS3Status
+func NewGetAuditLogsS3StatusRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/audit_logs_s3_status")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -57891,7 +57960,7 @@ func NewGenerateOpenapiSpecRequestWithBody(server string, workspace WorkspaceId,
 }
 
 // NewListPathAutocompletePathsRequest generates requests for ListPathAutocompletePaths
-func NewListPathAutocompletePathsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewListPathAutocompletePathsRequest(server string, workspace WorkspaceId, params *ListPathAutocompletePathsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -57914,6 +57983,28 @@ func NewListPathAutocompletePathsRequest(server string, workspace WorkspaceId) (
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Force != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "force", runtime.ParamLocationQuery, *params.Force); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -70452,6 +70543,9 @@ type ClientWithResponsesInterface interface {
 	// ListLogFilesWithResponse request
 	ListLogFilesWithResponse(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*ListLogFilesResponse, error)
 
+	// GetAuditLogsS3StatusWithResponse request
+	GetAuditLogsS3StatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetAuditLogsS3StatusResponse, error)
+
 	// GetCriticalAlertsWithResponse request
 	GetCriticalAlertsWithResponse(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*GetCriticalAlertsResponse, error)
 
@@ -71951,7 +72045,7 @@ type ClientWithResponsesInterface interface {
 	GenerateOpenapiSpecWithResponse(ctx context.Context, workspace WorkspaceId, body GenerateOpenapiSpecJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateOpenapiSpecResponse, error)
 
 	// ListPathAutocompletePathsWithResponse request
-	ListPathAutocompletePathsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPathAutocompletePathsResponse, error)
+	ListPathAutocompletePathsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListPathAutocompletePathsParams, reqEditors ...RequestEditorFn) (*ListPathAutocompletePathsResponse, error)
 
 	// CreatePostgresTriggerWithBodyWithResponse request with any body
 	CreatePostgresTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePostgresTriggerResponse, error)
@@ -74018,18 +74112,20 @@ type GetIndexerStatusResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		JobIndexer *struct {
-			IsAlive      *bool      `json:"is_alive,omitempty"`
-			LastLockedAt *time.Time `json:"last_locked_at"`
-			Owner        *string    `json:"owner"`
+			IsAlive      *bool                               `json:"is_alive,omitempty"`
+			LastLockedAt *time.Time                          `json:"last_locked_at"`
+			Owner        *string                             `json:"owner"`
+			State        *GetIndexerStatus200JobIndexerState `json:"state,omitempty"`
 			Storage      *struct {
 				DiskSizeBytes *int `json:"disk_size_bytes"`
 				S3SizeBytes   *int `json:"s3_size_bytes"`
 			} `json:"storage,omitempty"`
 		} `json:"job_indexer,omitempty"`
 		LogIndexer *struct {
-			IsAlive      *bool      `json:"is_alive,omitempty"`
-			LastLockedAt *time.Time `json:"last_locked_at"`
-			Owner        *string    `json:"owner"`
+			IsAlive      *bool                               `json:"is_alive,omitempty"`
+			LastLockedAt *time.Time                          `json:"last_locked_at"`
+			Owner        *string                             `json:"owner"`
+			State        *GetIndexerStatus200LogIndexerState `json:"state,omitempty"`
 			Storage      *struct {
 				DiskSizeBytes *int `json:"disk_size_bytes"`
 				S3SizeBytes   *int `json:"s3_size_bytes"`
@@ -74037,6 +74133,8 @@ type GetIndexerStatusResponse struct {
 		} `json:"log_indexer,omitempty"`
 	}
 }
+type GetIndexerStatus200JobIndexerState string
+type GetIndexerStatus200LogIndexerState string
 
 // Status returns HTTPResponse.Status
 func (r GetIndexerStatusResponse) Status() string {
@@ -74719,6 +74817,37 @@ func (r ListLogFilesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListLogFilesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAuditLogsS3StatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Bootstrapping       bool       `json:"bootstrapping"`
+		LastExportedAuditTs *time.Time `json:"last_exported_audit_ts"`
+		LastRunAt           *time.Time `json:"last_run_at"`
+		LastRunExported     int64      `json:"last_run_exported"`
+		LastTs              *time.Time `json:"last_ts"`
+		LastXmin            int64      `json:"last_xmin"`
+		Owner               *string    `json:"owner"`
+		UpdatedAt           time.Time  `json:"updated_at"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAuditLogsS3StatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAuditLogsS3StatusResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -78362,8 +78491,11 @@ type GetFlowByPathWithDraftResponse struct {
 		DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 		// Description Detailed documentation for this flow
-		Description     *string    `json:"description,omitempty"`
-		Draft           *Flow      `json:"draft,omitempty"`
+		Description *string `json:"description,omitempty"`
+		Draft       *Flow   `json:"draft,omitempty"`
+
+		// DraftCreatedAt Timestamp at which the most recent DB draft was created. Used by the frontend's UserDraft staleness check.
+		DraftCreatedAt  *time.Time `json:"draft_created_at,omitempty"`
 		DraftOnly       *bool      `json:"draft_only,omitempty"`
 		EditedAt        time.Time  `json:"edited_at"`
 		EditedBy        string     `json:"edited_by"`
@@ -89988,6 +90120,15 @@ func (c *ClientWithResponses) ListLogFilesWithResponse(ctx context.Context, para
 	return ParseListLogFilesResponse(rsp)
 }
 
+// GetAuditLogsS3StatusWithResponse request returning *GetAuditLogsS3StatusResponse
+func (c *ClientWithResponses) GetAuditLogsS3StatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetAuditLogsS3StatusResponse, error) {
+	rsp, err := c.GetAuditLogsS3Status(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAuditLogsS3StatusResponse(rsp)
+}
+
 // GetCriticalAlertsWithResponse request returning *GetCriticalAlertsResponse
 func (c *ClientWithResponses) GetCriticalAlertsWithResponse(ctx context.Context, params *GetCriticalAlertsParams, reqEditors ...RequestEditorFn) (*GetCriticalAlertsResponse, error) {
 	rsp, err := c.GetCriticalAlerts(ctx, params, reqEditors...)
@@ -94799,8 +94940,8 @@ func (c *ClientWithResponses) GenerateOpenapiSpecWithResponse(ctx context.Contex
 }
 
 // ListPathAutocompletePathsWithResponse request returning *ListPathAutocompletePathsResponse
-func (c *ClientWithResponses) ListPathAutocompletePathsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPathAutocompletePathsResponse, error) {
-	rsp, err := c.ListPathAutocompletePaths(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListPathAutocompletePathsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListPathAutocompletePathsParams, reqEditors ...RequestEditorFn) (*ListPathAutocompletePathsResponse, error) {
+	rsp, err := c.ListPathAutocompletePaths(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -99009,18 +99150,20 @@ func ParseGetIndexerStatusResponse(rsp *http.Response) (*GetIndexerStatusRespons
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			JobIndexer *struct {
-				IsAlive      *bool      `json:"is_alive,omitempty"`
-				LastLockedAt *time.Time `json:"last_locked_at"`
-				Owner        *string    `json:"owner"`
+				IsAlive      *bool                               `json:"is_alive,omitempty"`
+				LastLockedAt *time.Time                          `json:"last_locked_at"`
+				Owner        *string                             `json:"owner"`
+				State        *GetIndexerStatus200JobIndexerState `json:"state,omitempty"`
 				Storage      *struct {
 					DiskSizeBytes *int `json:"disk_size_bytes"`
 					S3SizeBytes   *int `json:"s3_size_bytes"`
 				} `json:"storage,omitempty"`
 			} `json:"job_indexer,omitempty"`
 			LogIndexer *struct {
-				IsAlive      *bool      `json:"is_alive,omitempty"`
-				LastLockedAt *time.Time `json:"last_locked_at"`
-				Owner        *string    `json:"owner"`
+				IsAlive      *bool                               `json:"is_alive,omitempty"`
+				LastLockedAt *time.Time                          `json:"last_locked_at"`
+				Owner        *string                             `json:"owner"`
+				State        *GetIndexerStatus200LogIndexerState `json:"state,omitempty"`
 				Storage      *struct {
 					DiskSizeBytes *int `json:"disk_size_bytes"`
 					S3SizeBytes   *int `json:"s3_size_bytes"`
@@ -99710,6 +99853,41 @@ func ParseListLogFilesResponse(rsp *http.Response) (*ListLogFilesResponse, error
 			Mode        string    `json:"mode"`
 			OkLines     *int      `json:"ok_lines,omitempty"`
 			WorkerGroup *string   `json:"worker_group,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetAuditLogsS3StatusResponse parses an HTTP response from a GetAuditLogsS3StatusWithResponse call
+func ParseGetAuditLogsS3StatusResponse(rsp *http.Response) (*GetAuditLogsS3StatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAuditLogsS3StatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Bootstrapping       bool       `json:"bootstrapping"`
+			LastExportedAuditTs *time.Time `json:"last_exported_audit_ts"`
+			LastRunAt           *time.Time `json:"last_run_at"`
+			LastRunExported     int64      `json:"last_run_exported"`
+			LastTs              *time.Time `json:"last_ts"`
+			LastXmin            int64      `json:"last_xmin"`
+			Owner               *string    `json:"owner"`
+			UpdatedAt           time.Time  `json:"updated_at"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -103339,8 +103517,11 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 			// Description Detailed documentation for this flow
-			Description     *string    `json:"description,omitempty"`
-			Draft           *Flow      `json:"draft,omitempty"`
+			Description *string `json:"description,omitempty"`
+			Draft       *Flow   `json:"draft,omitempty"`
+
+			// DraftCreatedAt Timestamp at which the most recent DB draft was created. Used by the frontend's UserDraft staleness check.
+			DraftCreatedAt  *time.Time `json:"draft_created_at,omitempty"`
 			DraftOnly       *bool      `json:"draft_only,omitempty"`
 			EditedAt        time.Time  `json:"edited_at"`
 			EditedBy        string     `json:"edited_by"`
