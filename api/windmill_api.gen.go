@@ -3230,12 +3230,18 @@ type GithubInstallations = []struct {
 	AccountId string `json:"account_id"`
 
 	// Error Error message if token retrieval failed
-	Error          *string `json:"error,omitempty"`
+	Error *string `json:"error,omitempty"`
+
+	// GithubBaseUrl Set for self-managed (GHES) installs. Cloud installs omit this field.
+	GithubBaseUrl  *string `json:"github_base_url"`
 	InstallationId float32 `json:"installation_id"`
 
 	// PerPage Number of repositories loaded per page
-	PerPage      float32 `json:"per_page"`
-	Repositories []struct {
+	PerPage float32 `json:"per_page"`
+
+	// ProvisionedByAdmin True when the installation was assigned by the instance super-admin from instance settings. Workspace admins cannot remove these.
+	ProvisionedByAdmin *bool `json:"provisioned_by_admin,omitempty"`
+	Repositories       []struct {
 		Name string `json:"name"`
 		Url  string `json:"url"`
 	} `json:"repositories"`
@@ -6786,6 +6792,12 @@ type QueryHubScriptsParams struct {
 type GetGlobalConnectedRepositoriesParams struct {
 	// Page Page number for pagination (default 1)
 	Page *int `form:"page,omitempty" json:"page,omitempty"`
+}
+
+// AssignGhesInstallationJSONBody defines parameters for AssignGhesInstallation.
+type AssignGhesInstallationJSONBody struct {
+	InstallationId int64  `json:"installation_id"`
+	WorkspaceId    string `json:"workspace_id"`
 }
 
 // AddUserToInstanceGroupJSONBody defines parameters for AddUserToInstanceGroup.
@@ -10541,6 +10553,9 @@ type ResetPasswordJSONRequestBody ResetPasswordJSONBody
 // UpdateConfigJSONRequestBody defines body for UpdateConfig for application/json ContentType.
 type UpdateConfigJSONRequestBody = UpdateConfigJSONBody
 
+// AssignGhesInstallationJSONRequestBody defines body for AssignGhesInstallation for application/json ContentType.
+type AssignGhesInstallationJSONRequestBody AssignGhesInstallationJSONBody
+
 // AddUserToInstanceGroupJSONRequestBody defines body for AddUserToInstanceGroup for application/json ContentType.
 type AddUserToInstanceGroupJSONRequestBody AddUserToInstanceGroupJSONBody
 
@@ -13379,6 +13394,17 @@ type ClientInterface interface {
 
 	// GetGlobalConnectedRepositories request
 	GetGlobalConnectedRepositories(ctx context.Context, params *GetGlobalConnectedRepositoriesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AssignGhesInstallationWithBody request with any body
+	AssignGhesInstallationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AssignGhesInstallation(ctx context.Context, body AssignGhesInstallationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UnassignGhesInstallation request
+	UnassignGhesInstallation(ctx context.Context, workspaceId string, installationId int64, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DiscoverGhesInstallations request
+	DiscoverGhesInstallations(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetGhesConfig request
 	GetGhesConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16459,6 +16485,54 @@ func (c *Client) ListHubFlows(ctx context.Context, reqEditors ...RequestEditorFn
 
 func (c *Client) GetGlobalConnectedRepositories(ctx context.Context, params *GetGlobalConnectedRepositoriesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetGlobalConnectedRepositoriesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AssignGhesInstallationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAssignGhesInstallationRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AssignGhesInstallation(ctx context.Context, body AssignGhesInstallationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAssignGhesInstallationRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UnassignGhesInstallation(ctx context.Context, workspaceId string, installationId int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnassignGhesInstallationRequest(c.Server, workspaceId, installationId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DiscoverGhesInstallations(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDiscoverGhesInstallationsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -29158,6 +29232,114 @@ func NewGetGlobalConnectedRepositoriesRequest(server string, params *GetGlobalCo
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAssignGhesInstallationRequest calls the generic AssignGhesInstallation builder with application/json body
+func NewAssignGhesInstallationRequest(server string, body AssignGhesInstallationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAssignGhesInstallationRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewAssignGhesInstallationRequestWithBody generates requests for AssignGhesInstallation with any type of body
+func NewAssignGhesInstallationRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/github_app/ghes/assign")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUnassignGhesInstallationRequest generates requests for UnassignGhesInstallation
+func NewUnassignGhesInstallationRequest(server string, workspaceId string, installationId int64) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace_id", runtime.ParamLocationPath, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "installation_id", runtime.ParamLocationPath, installationId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/github_app/ghes/assign/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDiscoverGhesInstallationsRequest generates requests for DiscoverGhesInstallations
+func NewDiscoverGhesInstallationsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/github_app/ghes/discover")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -70382,6 +70564,17 @@ type ClientWithResponsesInterface interface {
 	// GetGlobalConnectedRepositoriesWithResponse request
 	GetGlobalConnectedRepositoriesWithResponse(ctx context.Context, params *GetGlobalConnectedRepositoriesParams, reqEditors ...RequestEditorFn) (*GetGlobalConnectedRepositoriesResponse, error)
 
+	// AssignGhesInstallationWithBodyWithResponse request with any body
+	AssignGhesInstallationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AssignGhesInstallationResponse, error)
+
+	AssignGhesInstallationWithResponse(ctx context.Context, body AssignGhesInstallationJSONRequestBody, reqEditors ...RequestEditorFn) (*AssignGhesInstallationResponse, error)
+
+	// UnassignGhesInstallationWithResponse request
+	UnassignGhesInstallationWithResponse(ctx context.Context, workspaceId string, installationId int64, reqEditors ...RequestEditorFn) (*UnassignGhesInstallationResponse, error)
+
+	// DiscoverGhesInstallationsWithResponse request
+	DiscoverGhesInstallationsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*DiscoverGhesInstallationsResponse, error)
+
 	// GetGhesConfigWithResponse request
 	GetGhesConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetGhesConfigResponse, error)
 
@@ -73793,6 +73986,78 @@ func (r GetGlobalConnectedRepositoriesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetGlobalConnectedRepositoriesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AssignGhesInstallationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AssignGhesInstallationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AssignGhesInstallationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UnassignGhesInstallationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UnassignGhesInstallationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UnassignGhesInstallationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DiscoverGhesInstallationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		// AccountId GitHub login of the installation's account (org or user)
+		AccountId          string `json:"account_id"`
+		AssignedWorkspaces []struct {
+			ProvisionedByAdmin bool   `json:"provisioned_by_admin"`
+			WorkspaceId        string `json:"workspace_id"`
+		} `json:"assigned_workspaces"`
+		InstallationId int64 `json:"installation_id"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r DiscoverGhesInstallationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DiscoverGhesInstallationsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -89605,6 +89870,41 @@ func (c *ClientWithResponses) GetGlobalConnectedRepositoriesWithResponse(ctx con
 	return ParseGetGlobalConnectedRepositoriesResponse(rsp)
 }
 
+// AssignGhesInstallationWithBodyWithResponse request with arbitrary body returning *AssignGhesInstallationResponse
+func (c *ClientWithResponses) AssignGhesInstallationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AssignGhesInstallationResponse, error) {
+	rsp, err := c.AssignGhesInstallationWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAssignGhesInstallationResponse(rsp)
+}
+
+func (c *ClientWithResponses) AssignGhesInstallationWithResponse(ctx context.Context, body AssignGhesInstallationJSONRequestBody, reqEditors ...RequestEditorFn) (*AssignGhesInstallationResponse, error) {
+	rsp, err := c.AssignGhesInstallation(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAssignGhesInstallationResponse(rsp)
+}
+
+// UnassignGhesInstallationWithResponse request returning *UnassignGhesInstallationResponse
+func (c *ClientWithResponses) UnassignGhesInstallationWithResponse(ctx context.Context, workspaceId string, installationId int64, reqEditors ...RequestEditorFn) (*UnassignGhesInstallationResponse, error) {
+	rsp, err := c.UnassignGhesInstallation(ctx, workspaceId, installationId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnassignGhesInstallationResponse(rsp)
+}
+
+// DiscoverGhesInstallationsWithResponse request returning *DiscoverGhesInstallationsResponse
+func (c *ClientWithResponses) DiscoverGhesInstallationsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*DiscoverGhesInstallationsResponse, error) {
+	rsp, err := c.DiscoverGhesInstallations(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDiscoverGhesInstallationsResponse(rsp)
+}
+
 // GetGhesConfigWithResponse request returning *GetGhesConfigResponse
 func (c *ClientWithResponses) GetGhesConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetGhesConfigResponse, error) {
 	rsp, err := c.GetGhesConfig(ctx, reqEditors...)
@@ -98810,6 +99110,72 @@ func ParseGetGlobalConnectedRepositoriesResponse(rsp *http.Response) (*GetGlobal
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest GithubInstallations
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAssignGhesInstallationResponse parses an HTTP response from a AssignGhesInstallationWithResponse call
+func ParseAssignGhesInstallationResponse(rsp *http.Response) (*AssignGhesInstallationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AssignGhesInstallationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUnassignGhesInstallationResponse parses an HTTP response from a UnassignGhesInstallationWithResponse call
+func ParseUnassignGhesInstallationResponse(rsp *http.Response) (*UnassignGhesInstallationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UnassignGhesInstallationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDiscoverGhesInstallationsResponse parses an HTTP response from a DiscoverGhesInstallationsWithResponse call
+func ParseDiscoverGhesInstallationsResponse(rsp *http.Response) (*DiscoverGhesInstallationsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DiscoverGhesInstallationsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			// AccountId GitHub login of the installation's account (org or user)
+			AccountId          string `json:"account_id"`
+			AssignedWorkspaces []struct {
+				ProvisionedByAdmin bool   `json:"provisioned_by_admin"`
+				WorkspaceId        string `json:"workspace_id"`
+			} `json:"assigned_workspaces"`
+			InstallationId int64 `json:"installation_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
