@@ -3281,19 +3281,22 @@ type GlobalSetting struct {
 
 // GlobalUserInfo defines model for GlobalUserInfo.
 type GlobalUserInfo struct {
-	Company       *string                  `json:"company,omitempty"`
-	Devops        *bool                    `json:"devops,omitempty"`
-	Disabled      bool                     `json:"disabled"`
-	Email         string                   `json:"email"`
-	FirstTimeUser bool                     `json:"first_time_user"`
-	LoginType     GlobalUserInfoLoginType  `json:"login_type"`
-	Name          *string                  `json:"name,omitempty"`
-	OperatorOnly  *bool                    `json:"operator_only,omitempty"`
-	RoleSource    GlobalUserInfoRoleSource `json:"role_source"`
-	SuperAdmin    bool                     `json:"super_admin"`
-	Username      *string                  `json:"username,omitempty"`
-	Verified      bool                     `json:"verified"`
-	WorkspaceId   *string                  `json:"workspace_id,omitempty"`
+	Company       *string `json:"company,omitempty"`
+	Devops        *bool   `json:"devops,omitempty"`
+	Disabled      bool    `json:"disabled"`
+	Email         string  `json:"email"`
+	FirstTimeUser bool    `json:"first_time_user"`
+
+	// IsWorkspaceAdmin Populated only for service accounts. True if the service account has workspace admin in its (single) workspace.
+	IsWorkspaceAdmin *bool                    `json:"is_workspace_admin,omitempty"`
+	LoginType        GlobalUserInfoLoginType  `json:"login_type"`
+	Name             *string                  `json:"name,omitempty"`
+	OperatorOnly     *bool                    `json:"operator_only,omitempty"`
+	RoleSource       GlobalUserInfoRoleSource `json:"role_source"`
+	SuperAdmin       bool                     `json:"super_admin"`
+	Username         *string                  `json:"username,omitempty"`
+	Verified         bool                     `json:"verified"`
+	WorkspaceId      *string                  `json:"workspace_id,omitempty"`
 }
 
 // GlobalUserInfoLoginType defines model for GlobalUserInfo.LoginType.
@@ -10223,6 +10226,14 @@ type CreatePgDatabaseJSONBody struct {
 
 // CreateServiceAccountJSONBody defines parameters for CreateServiceAccount.
 type CreateServiceAccountJSONBody struct {
+	// AddToDeployers Add the service account to the workspace `wm_deployers` group on creation. Recommended when the account will be used as a CLI sync / CI deploy identity so it can deploy on behalf of other users.
+	AddToDeployers *bool `json:"add_to_deployers,omitempty"`
+
+	// IsAdmin Grant the service account workspace admin. Defaults to false. Cannot be combined with operator=true.
+	IsAdmin *bool `json:"is_admin,omitempty"`
+
+	// Operator Make the service account an operator. Defaults to true for backward compatibility. Set to false to count as a developer (1 seat) instead of 0.5 seat.
+	Operator *bool  `json:"operator,omitempty"`
 	Username string `json:"username"`
 }
 
@@ -15968,6 +15979,9 @@ type ClientInterface interface {
 
 	// GetCountsOfRunningJobsPerTag request
 	GetCountsOfRunningJobsPerTag(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetWorkspaceFairnessEvents request
+	GetWorkspaceFairnessEvents(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// IsDomainAllowed request
 	IsDomainAllowed(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -27861,6 +27875,18 @@ func (c *Client) GetQueueMetrics(ctx context.Context, reqEditors ...RequestEdito
 
 func (c *Client) GetCountsOfRunningJobsPerTag(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCountsOfRunningJobsPerTagRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetWorkspaceFairnessEvents(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetWorkspaceFairnessEventsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -70049,6 +70075,33 @@ func NewGetCountsOfRunningJobsPerTagRequest(server string) (*http.Request, error
 	return req, nil
 }
 
+// NewGetWorkspaceFairnessEventsRequest generates requests for GetWorkspaceFairnessEvents
+func NewGetWorkspaceFairnessEventsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workers/workspace_fairness_events")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewIsDomainAllowedRequest generates requests for IsDomainAllowed
 func NewIsDomainAllowedRequest(server string) (*http.Request, error) {
 	var err error
@@ -73137,6 +73190,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetCountsOfRunningJobsPerTagWithResponse request
 	GetCountsOfRunningJobsPerTagWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCountsOfRunningJobsPerTagResponse, error)
+
+	// GetWorkspaceFairnessEventsWithResponse request
+	GetWorkspaceFairnessEventsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWorkspaceFairnessEventsResponse, error)
 
 	// IsDomainAllowedWithResponse request
 	IsDomainAllowedWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*IsDomainAllowedResponse, error)
@@ -89315,6 +89371,33 @@ func (r GetCountsOfRunningJobsPerTagResponse) StatusCode() int {
 	return 0
 }
 
+type GetWorkspaceFairnessEventsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Operation   string                  `json:"operation"`
+		Parameters  *map[string]interface{} `json:"parameters"`
+		Timestamp   time.Time               `json:"timestamp"`
+		WorkspaceId *string                 `json:"workspace_id"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetWorkspaceFairnessEventsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetWorkspaceFairnessEventsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type IsDomainAllowedResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -98130,6 +98213,15 @@ func (c *ClientWithResponses) GetCountsOfRunningJobsPerTagWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseGetCountsOfRunningJobsPerTagResponse(rsp)
+}
+
+// GetWorkspaceFairnessEventsWithResponse request returning *GetWorkspaceFairnessEventsResponse
+func (c *ClientWithResponses) GetWorkspaceFairnessEventsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWorkspaceFairnessEventsResponse, error) {
+	rsp, err := c.GetWorkspaceFairnessEvents(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetWorkspaceFairnessEventsResponse(rsp)
 }
 
 // IsDomainAllowedWithResponse request returning *IsDomainAllowedResponse
@@ -114444,6 +114536,37 @@ func ParseGetCountsOfRunningJobsPerTagResponse(rsp *http.Response) (*GetCountsOf
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest map[string]int
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetWorkspaceFairnessEventsResponse parses an HTTP response from a GetWorkspaceFairnessEventsWithResponse call
+func ParseGetWorkspaceFairnessEventsResponse(rsp *http.Response) (*GetWorkspaceFairnessEventsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetWorkspaceFairnessEventsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Operation   string                  `json:"operation"`
+			Parameters  *map[string]interface{} `json:"parameters"`
+			Timestamp   time.Time               `json:"timestamp"`
+			WorkspaceId *string                 `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
