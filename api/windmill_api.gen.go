@@ -1802,6 +1802,9 @@ type CustomInstanceDb struct {
 	// Success Whether the operation completed successfully
 	Success bool                 `json:"success"`
 	Tag     *CustomInstanceDbTag `json:"tag,omitempty"`
+
+	// UsedByWorkspaces Workspaces that reference this database via a ducklake catalog or datatable database with resource_type 'instance'. Computed at request time, not persisted.
+	UsedByWorkspaces *[]string `json:"used_by_workspaces,omitempty"`
 }
 
 // CustomInstanceDbLogs defines model for CustomInstanceDbLogs.
