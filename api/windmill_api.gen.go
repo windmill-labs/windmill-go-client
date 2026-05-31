@@ -3095,6 +3095,9 @@ type FlowValue struct {
 	// PreprocessorModule A single step in a flow. Can be a script, subflow, loop, or branch
 	PreprocessorModule *SchemasFlowModule `json:"preprocessor_module,omitempty"`
 
+	// PreserveStepTags If true and the flow runs on a custom worker tag, steps that declare their own non-empty tag run on it instead of inheriting the flow tag. Steps without their own tag still inherit the flow tag.
+	PreserveStepTags *bool `json:"preserve_step_tags,omitempty"`
+
 	// Priority Execution priority (higher numbers run first)
 	Priority *float32 `json:"priority,omitempty"`
 
@@ -4283,11 +4286,14 @@ type NewScript struct {
 	Priority               *int                    `json:"priority,omitempty"`
 	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
 	Schema                 *map[string]interface{} `json:"schema,omitempty"`
-	Summary                string                  `json:"summary"`
-	Tag                    *string                 `json:"tag,omitempty"`
-	Timeout                *int                    `json:"timeout,omitempty"`
-	VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
-	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
+
+	// SkipDraftDeletion When true (set by the CLI / git sync), deploying this script does not delete an existing user draft at the same path.
+	SkipDraftDeletion   *bool   `json:"skip_draft_deletion,omitempty"`
+	Summary             string  `json:"summary"`
+	Tag                 *string `json:"tag,omitempty"`
+	Timeout             *int    `json:"timeout,omitempty"`
+	VisibleToRunnerOnly *bool   `json:"visible_to_runner_only,omitempty"`
+	WsErrorHandlerMuted *bool   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // NewScriptAssetsAccessType defines model for NewScript.Assets.AccessType.
@@ -4351,11 +4357,14 @@ type NewScriptWithDraft struct {
 	Priority               *int                    `json:"priority,omitempty"`
 	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
 	Schema                 *map[string]interface{} `json:"schema,omitempty"`
-	Summary                string                  `json:"summary"`
-	Tag                    *string                 `json:"tag,omitempty"`
-	Timeout                *int                    `json:"timeout,omitempty"`
-	VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
-	WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
+
+	// SkipDraftDeletion When true (set by the CLI / git sync), deploying this script does not delete an existing user draft at the same path.
+	SkipDraftDeletion   *bool   `json:"skip_draft_deletion,omitempty"`
+	Summary             string  `json:"summary"`
+	Tag                 *string `json:"tag,omitempty"`
+	Timeout             *int    `json:"timeout,omitempty"`
+	VisibleToRunnerOnly *bool   `json:"visible_to_runner_only,omitempty"`
+	WsErrorHandlerMuted *bool   `json:"ws_error_handler_muted,omitempty"`
 }
 
 // NewScriptWithDraftAssetsAccessType defines model for NewScriptWithDraft.Assets.AccessType.
@@ -6292,6 +6301,9 @@ type SchemasFlowValue struct {
 	// PreprocessorModule A single step in a flow. Can be a script, subflow, loop, or branch
 	PreprocessorModule *SchemasFlowModule `json:"preprocessor_module,omitempty"`
 
+	// PreserveStepTags If true and the flow runs on a custom worker tag, steps that declare their own non-empty tag run on it instead of inheriting the flow tag. Steps without their own tag still inherit the flow tag.
+	PreserveStepTags *bool `json:"preserve_step_tags,omitempty"`
+
 	// Priority Execution priority (higher numbers run first)
 	Priority *float32 `json:"priority,omitempty"`
 
@@ -7194,9 +7206,12 @@ type CreateAppJSONBody struct {
 	Policy            Policy    `json:"policy"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
-	PreserveOnBehalfOf *bool       `json:"preserve_on_behalf_of,omitempty"`
-	Summary            string      `json:"summary"`
-	Value              interface{} `json:"value"`
+	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
+
+	// SkipDraftDeletion When true (set by the CLI / git sync), deploying this app does not delete an existing user draft at the same path.
+	SkipDraftDeletion *bool       `json:"skip_draft_deletion,omitempty"`
+	Summary           string      `json:"summary"`
+	Value             interface{} `json:"value"`
 }
 
 // CreateAppRawMultipartBody defines parameters for CreateAppRaw.
@@ -7210,9 +7225,12 @@ type CreateAppRawMultipartBody struct {
 		Policy            Policy    `json:"policy"`
 
 		// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
-		PreserveOnBehalfOf *bool       `json:"preserve_on_behalf_of,omitempty"`
-		Summary            string      `json:"summary"`
-		Value              interface{} `json:"value"`
+		PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
+
+		// SkipDraftDeletion When true (set by the CLI / git sync), deploying this app does not delete an existing user draft at the same path.
+		SkipDraftDeletion *bool       `json:"skip_draft_deletion,omitempty"`
+		Summary           string      `json:"summary"`
+		Value             interface{} `json:"value"`
 	} `json:"app,omitempty"`
 	Css *string `json:"css,omitempty"`
 	Js  *string `json:"js,omitempty"`
@@ -7281,9 +7299,12 @@ type UpdateAppJSONBody struct {
 	Policy            *Policy   `json:"policy,omitempty"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
-	PreserveOnBehalfOf *bool        `json:"preserve_on_behalf_of,omitempty"`
-	Summary            *string      `json:"summary,omitempty"`
-	Value              *interface{} `json:"value,omitempty"`
+	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
+
+	// SkipDraftDeletion When true (set by the CLI / git sync), deploying this app does not delete an existing user draft at the same path.
+	SkipDraftDeletion *bool        `json:"skip_draft_deletion,omitempty"`
+	Summary           *string      `json:"summary,omitempty"`
+	Value             *interface{} `json:"value,omitempty"`
 }
 
 // UpdateAppRawMultipartBody defines parameters for UpdateAppRaw.
@@ -7296,9 +7317,12 @@ type UpdateAppRawMultipartBody struct {
 		Policy            *Policy   `json:"policy,omitempty"`
 
 		// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
-		PreserveOnBehalfOf *bool        `json:"preserve_on_behalf_of,omitempty"`
-		Summary            *string      `json:"summary,omitempty"`
-		Value              *interface{} `json:"value,omitempty"`
+		PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
+
+		// SkipDraftDeletion When true (set by the CLI / git sync), deploying this app does not delete an existing user draft at the same path.
+		SkipDraftDeletion *bool        `json:"skip_draft_deletion,omitempty"`
+		Summary           *string      `json:"summary,omitempty"`
+		Value             *interface{} `json:"value,omitempty"`
 	} `json:"app,omitempty"`
 	Css *string `json:"css,omitempty"`
 	Js  *string `json:"js,omitempty"`
@@ -7712,6 +7736,9 @@ type CreateFlowJSONBody struct {
 	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 	Schema *map[string]interface{} `json:"schema,omitempty"`
 
+	// SkipDraftDeletion When true (set by the CLI / git sync), deploying this flow does not delete an existing user draft at the same path.
+	SkipDraftDeletion *bool `json:"skip_draft_deletion,omitempty"`
+
 	// Summary Short description of what this flow does
 	Summary string   `json:"summary"`
 	Tag     *string  `json:"tag,omitempty"`
@@ -7820,6 +7847,9 @@ type UpdateFlowJSONBody struct {
 
 	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 	Schema *map[string]interface{} `json:"schema,omitempty"`
+
+	// SkipDraftDeletion When true (set by the CLI / git sync), deploying this flow does not delete an existing user draft at the same path.
+	SkipDraftDeletion *bool `json:"skip_draft_deletion,omitempty"`
 
 	// Summary Short description of what this flow does
 	Summary string   `json:"summary"`
