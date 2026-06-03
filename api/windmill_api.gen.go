@@ -14604,6 +14604,9 @@ type ClientInterface interface {
 	// CreateJobSignature request
 	CreateJobSignature(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetJobViewToken request
+	GetJobViewToken(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListJobs request
 	ListJobs(ctx context.Context, workspace WorkspaceId, params *ListJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -21656,6 +21659,18 @@ func (c *Client) GetJobOtelTraces(ctx context.Context, workspace WorkspaceId, id
 
 func (c *Client) CreateJobSignature(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateJobSignatureRequest(c.Server, workspace, id, resumeId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetJobViewToken(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetJobViewTokenRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -46588,6 +46603,47 @@ func NewCreateJobSignatureRequest(server string, workspace WorkspaceId, id JobId
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetJobViewTokenRequest generates requests for GetJobViewToken
+func NewGetJobViewTokenRequest(server string, workspace WorkspaceId, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/job_view_token/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -71815,6 +71871,9 @@ type ClientWithResponsesInterface interface {
 	// CreateJobSignatureWithResponse request
 	CreateJobSignatureWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*CreateJobSignatureResponse, error)
 
+	// GetJobViewTokenWithResponse request
+	GetJobViewTokenWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetJobViewTokenResponse, error)
+
 	// ListJobsWithResponse request
 	ListJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListJobsParams, reqEditors ...RequestEditorFn) (*ListJobsResponse, error)
 
@@ -81203,6 +81262,27 @@ func (r CreateJobSignatureResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateJobSignatureResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetJobViewTokenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetJobViewTokenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetJobViewTokenResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -93711,6 +93791,15 @@ func (c *ClientWithResponses) CreateJobSignatureWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseCreateJobSignatureResponse(rsp)
+}
+
+// GetJobViewTokenWithResponse request returning *GetJobViewTokenResponse
+func (c *ClientWithResponses) GetJobViewTokenWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetJobViewTokenResponse, error) {
+	rsp, err := c.GetJobViewToken(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetJobViewTokenResponse(rsp)
 }
 
 // ListJobsWithResponse request returning *ListJobsResponse
@@ -106396,6 +106485,22 @@ func ParseCreateJobSignatureResponse(rsp *http.Response) (*CreateJobSignatureRes
 	}
 
 	response := &CreateJobSignatureResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetJobViewTokenResponse parses an HTTP response from a GetJobViewTokenWithResponse call
+func ParseGetJobViewTokenResponse(rsp *http.Response) (*GetJobViewTokenResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetJobViewTokenResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
