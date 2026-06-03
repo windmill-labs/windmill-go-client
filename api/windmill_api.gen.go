@@ -1292,6 +1292,7 @@ type AIConfig struct {
 	CustomPrompts       *map[string]string           `json:"custom_prompts,omitempty"`
 	DefaultModel        *AIProviderModel             `json:"default_model,omitempty"`
 	MaxTokensPerModel   *map[string]int              `json:"max_tokens_per_model,omitempty"`
+	MetadataModel       *AIProviderModel             `json:"metadata_model,omitempty"`
 	Providers           *map[string]AIProviderConfig `json:"providers,omitempty"`
 }
 
@@ -3416,6 +3417,7 @@ type InstanceAIProviderSummary struct {
 type InstanceAISummary struct {
 	CodeCompletionModel *AIProviderModel            `json:"code_completion_model,omitempty"`
 	DefaultModel        *AIProviderModel            `json:"default_model,omitempty"`
+	MetadataModel       *AIProviderModel            `json:"metadata_model,omitempty"`
 	Providers           []InstanceAIProviderSummary `json:"providers"`
 }
 
