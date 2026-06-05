@@ -1207,6 +1207,14 @@ const (
 	PingCaptureConfigParamsRunnableKindScript PingCaptureConfigParamsRunnableKind = "script"
 )
 
+// Defines values for ListExtendedJobsParamsStatus.
+const (
+	ListExtendedJobsParamsStatusCanceled ListExtendedJobsParamsStatus = "canceled"
+	ListExtendedJobsParamsStatusFailure  ListExtendedJobsParamsStatus = "failure"
+	ListExtendedJobsParamsStatusSkipped  ListExtendedJobsParamsStatus = "skipped"
+	ListExtendedJobsParamsStatusSuccess  ListExtendedJobsParamsStatus = "success"
+)
+
 // Defines values for CreateDraftJSONBodyTyp.
 const (
 	CreateDraftJSONBodyTypApp    CreateDraftJSONBodyTyp = "app"
@@ -1243,6 +1251,30 @@ const (
 const (
 	ListFlowPathsFromWorkspaceRunnableParamsRunnableKindFlow   ListFlowPathsFromWorkspaceRunnableParamsRunnableKind = "flow"
 	ListFlowPathsFromWorkspaceRunnableParamsRunnableKindScript ListFlowPathsFromWorkspaceRunnableParamsRunnableKind = "script"
+)
+
+// Defines values for ListCompletedJobsParamsStatus.
+const (
+	ListCompletedJobsParamsStatusCanceled ListCompletedJobsParamsStatus = "canceled"
+	ListCompletedJobsParamsStatusFailure  ListCompletedJobsParamsStatus = "failure"
+	ListCompletedJobsParamsStatusSkipped  ListCompletedJobsParamsStatus = "skipped"
+	ListCompletedJobsParamsStatusSuccess  ListCompletedJobsParamsStatus = "success"
+)
+
+// Defines values for ListJobsParamsStatus.
+const (
+	ListJobsParamsStatusCanceled ListJobsParamsStatus = "canceled"
+	ListJobsParamsStatusFailure  ListJobsParamsStatus = "failure"
+	ListJobsParamsStatusSkipped  ListJobsParamsStatus = "skipped"
+	ListJobsParamsStatusSuccess  ListJobsParamsStatus = "success"
+)
+
+// Defines values for ListFilteredJobsUuidsParamsStatus.
+const (
+	ListFilteredJobsUuidsParamsStatusCanceled ListFilteredJobsUuidsParamsStatus = "canceled"
+	ListFilteredJobsUuidsParamsStatusFailure  ListFilteredJobsUuidsParamsStatus = "failure"
+	ListFilteredJobsUuidsParamsStatusSkipped  ListFilteredJobsUuidsParamsStatus = "skipped"
+	ListFilteredJobsUuidsParamsStatusSuccess  ListFilteredJobsUuidsParamsStatus = "success"
 )
 
 // Defines values for SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType.
@@ -6523,6 +6555,9 @@ type SchemasStaticTransformType string
 
 // SchemasStopAfterIf Early termination condition for a module
 type SchemasStopAfterIf struct {
+	// ErrorIncludeResult When stopping with an error (error_message set), embed the stopping step's own result inside the raised error object (as error.result) instead of discarding it. The top-level result stays { error }. Defaults to false.
+	ErrorIncludeResult *bool `json:"error_include_result,omitempty"`
+
 	// ErrorMessage Custom error message when stopping with an error. Mutually exclusive with skip_if_stopped. If set to a non-empty string, the flow stops with this error. If empty string, a default error message is used. If null or omitted, no error is raised.
 	ErrorMessage *string `json:"error_message"`
 
@@ -7596,12 +7631,18 @@ type ListExtendedJobsParams struct {
 	// Success filter on successful jobs
 	Success *bool `form:"success,omitempty" json:"success,omitempty"`
 
+	// Status filter on the exact completed job status. Unlike `success=true` (which also matches `skipped`), `status=success` matches only `success`.
+	Status *ListExtendedJobsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+
 	// AllWorkspaces get jobs from all workspaces (only valid if request come from the `admins` workspace)
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 
 	// IsNotSchedule is not a scheduled job
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
+
+// ListExtendedJobsParamsStatus defines parameters for ListExtendedJobs.
+type ListExtendedJobsParamsStatus string
 
 // CreateDeploymentRequestJSONBody defines parameters for CreateDeploymentRequest.
 type CreateDeploymentRequestJSONBody struct {
@@ -8340,6 +8381,9 @@ type ListCompletedJobsParams struct {
 	// Success filter on successful jobs
 	Success *Success `form:"success,omitempty" json:"success,omitempty"`
 
+	// Status filter on the exact completed job status. Unlike `success=true` (which also matches `skipped`), `status=success` matches only `success`.
+	Status *ListCompletedJobsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+
 	// JobKinds filter by job kind. Supports comma-separated list of values ('preview', 'script', 'dependencies', 'flow') and negation by prefixing all values with '!' (e.g. '!preview,!dependencies')
 	JobKinds *JobKinds `form:"job_kinds,omitempty" json:"job_kinds,omitempty"`
 
@@ -8373,6 +8417,9 @@ type ListCompletedJobsParams struct {
 	// IsNotSchedule is not a scheduled job
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
+
+// ListCompletedJobsParamsStatus defines parameters for ListCompletedJobs.
+type ListCompletedJobsParamsStatus string
 
 // DeleteJobsJSONBody defines parameters for DeleteJobs.
 type DeleteJobsJSONBody = []openapi_types.UUID
@@ -8480,6 +8527,9 @@ type ListJobsParams struct {
 	// Success filter on successful jobs
 	Success *bool `form:"success,omitempty" json:"success,omitempty"`
 
+	// Status filter on the exact completed job status. Unlike `success=true` (which also matches `skipped`), `status=success` matches only `success`.
+	Status *ListJobsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+
 	// AllWorkspaces get jobs from all workspaces (only valid if request come from the `admins` workspace)
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 
@@ -8492,6 +8542,9 @@ type ListJobsParams struct {
 	// BroadFilter broad search across multiple fields (case-insensitive substring match on path, tag, schedule path, trigger kind, label)
 	BroadFilter *string `form:"broad_filter,omitempty" json:"broad_filter,omitempty"`
 }
+
+// ListJobsParamsStatus defines parameters for ListJobs.
+type ListJobsParamsStatus string
 
 // ListFilteredJobsUuidsParams defines parameters for ListFilteredJobsUuids.
 type ListFilteredJobsUuidsParams struct {
@@ -8582,12 +8635,18 @@ type ListFilteredJobsUuidsParams struct {
 	// Success filter on successful jobs
 	Success *bool `form:"success,omitempty" json:"success,omitempty"`
 
+	// Status filter on the exact completed job status. Unlike `success=true` (which also matches `skipped`), `status=success` matches only `success`.
+	Status *ListFilteredJobsUuidsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+
 	// AllWorkspaces get jobs from all workspaces (only valid if request come from the `admins` workspace)
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 
 	// IsNotSchedule is not a scheduled job
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
+
+// ListFilteredJobsUuidsParamsStatus defines parameters for ListFilteredJobsUuids.
+type ListFilteredJobsUuidsParamsStatus string
 
 // ListSelectedJobGroupsJSONBody defines parameters for ListSelectedJobGroups.
 type ListSelectedJobGroupsJSONBody = []openapi_types.UUID
@@ -38050,6 +38109,22 @@ func NewListExtendedJobsRequest(server string, workspace WorkspaceId, params *Li
 
 		}
 
+		if params.Status != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.AllWorkspaces != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
@@ -46107,6 +46182,22 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 
 		}
 
+		if params.Status != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.JobKinds != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_kinds", runtime.ParamLocationQuery, *params.JobKinds); err != nil {
@@ -47165,6 +47256,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 		}
 
+		if params.Status != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.AllWorkspaces != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
@@ -47720,6 +47827,22 @@ func NewListFilteredJobsUuidsRequest(server string, workspace WorkspaceId, param
 		if params.Success != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "success", runtime.ParamLocationQuery, *params.Success); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Status != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
