@@ -7194,6 +7194,11 @@ type ListTokensParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
+// UpdateTokenLabelJSONBody defines parameters for UpdateTokenLabel.
+type UpdateTokenLabelJSONBody struct {
+	Label *string `json:"label"`
+}
+
 // UpdateTokenScopesJSONBody defines parameters for UpdateTokenScopes.
 type UpdateTokenScopesJSONBody struct {
 	Scopes *[]string `json:"scopes"`
@@ -10796,6 +10801,9 @@ type CreateTokenJSONRequestBody = NewToken
 // CreateTokenImpersonateJSONRequestBody defines body for CreateTokenImpersonate for application/json ContentType.
 type CreateTokenImpersonateJSONRequestBody = NewTokenImpersonate
 
+// UpdateTokenLabelJSONRequestBody defines body for UpdateTokenLabel for application/json ContentType.
+type UpdateTokenLabelJSONRequestBody UpdateTokenLabelJSONBody
+
 // UpdateTokenScopesJSONRequestBody defines body for UpdateTokenScopes for application/json ContentType.
 type UpdateTokenScopesJSONRequestBody UpdateTokenScopesJSONBody
 
@@ -13945,6 +13953,11 @@ type ClientInterface interface {
 
 	// ListTokens request
 	ListTokens(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateTokenLabelWithBody request with any body
+	UpdateTokenLabelWithBody(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateTokenLabel(ctx context.Context, tokenPrefix string, body UpdateTokenLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateTokenScopesWithBody request with any body
 	UpdateTokenScopesWithBody(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18564,6 +18577,30 @@ func (c *Client) CreateTokenImpersonate(ctx context.Context, body CreateTokenImp
 
 func (c *Client) ListTokens(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListTokensRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateTokenLabelWithBody(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateTokenLabelRequestWithBody(c.Server, tokenPrefix, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateTokenLabel(ctx context.Context, tokenPrefix string, body UpdateTokenLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateTokenLabelRequest(c.Server, tokenPrefix, body)
 	if err != nil {
 		return nil, err
 	}
@@ -34127,6 +34164,53 @@ func NewListTokensRequest(server string, params *ListTokensParams) (*http.Reques
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewUpdateTokenLabelRequest calls the generic UpdateTokenLabel builder with application/json body
+func NewUpdateTokenLabelRequest(server string, tokenPrefix string, body UpdateTokenLabelJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateTokenLabelRequestWithBody(server, tokenPrefix, "application/json", bodyReader)
+}
+
+// NewUpdateTokenLabelRequestWithBody generates requests for UpdateTokenLabel with any type of body
+func NewUpdateTokenLabelRequestWithBody(server string, tokenPrefix string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "token_prefix", runtime.ParamLocationPath, tokenPrefix)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/tokens/update_label/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -71277,6 +71361,11 @@ type ClientWithResponsesInterface interface {
 	// ListTokensWithResponse request
 	ListTokensWithResponse(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*ListTokensResponse, error)
 
+	// UpdateTokenLabelWithBodyWithResponse request with any body
+	UpdateTokenLabelWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenLabelResponse, error)
+
+	UpdateTokenLabelWithResponse(ctx context.Context, tokenPrefix string, body UpdateTokenLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateTokenLabelResponse, error)
+
 	// UpdateTokenScopesWithBodyWithResponse request with any body
 	UpdateTokenScopesWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenScopesResponse, error)
 
@@ -77011,6 +77100,27 @@ func (r ListTokensResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListTokensResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateTokenLabelResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateTokenLabelResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateTokenLabelResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -91621,6 +91731,23 @@ func (c *ClientWithResponses) ListTokensWithResponse(ctx context.Context, params
 	return ParseListTokensResponse(rsp)
 }
 
+// UpdateTokenLabelWithBodyWithResponse request with arbitrary body returning *UpdateTokenLabelResponse
+func (c *ClientWithResponses) UpdateTokenLabelWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenLabelResponse, error) {
+	rsp, err := c.UpdateTokenLabelWithBody(ctx, tokenPrefix, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateTokenLabelResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateTokenLabelWithResponse(ctx context.Context, tokenPrefix string, body UpdateTokenLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateTokenLabelResponse, error) {
+	rsp, err := c.UpdateTokenLabel(ctx, tokenPrefix, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateTokenLabelResponse(rsp)
+}
+
 // UpdateTokenScopesWithBodyWithResponse request with arbitrary body returning *UpdateTokenScopesResponse
 func (c *ClientWithResponses) UpdateTokenScopesWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenScopesResponse, error) {
 	rsp, err := c.UpdateTokenScopesWithBody(ctx, tokenPrefix, contentType, body, reqEditors...)
@@ -102202,6 +102329,22 @@ func ParseListTokensResponse(rsp *http.Response) (*ListTokensResponse, error) {
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseUpdateTokenLabelResponse parses an HTTP response from a UpdateTokenLabelWithResponse call
+func ParseUpdateTokenLabelResponse(rsp *http.Response) (*UpdateTokenLabelResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateTokenLabelResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
