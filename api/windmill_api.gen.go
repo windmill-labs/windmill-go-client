@@ -1334,8 +1334,9 @@ type AIProvider string
 
 // AIProviderConfig defines model for AIProviderConfig.
 type AIProviderConfig struct {
-	Models       []string `json:"models"`
-	ResourcePath string   `json:"resource_path"`
+	Models           []string `json:"models"`
+	ResourcePath     string   `json:"resource_path"`
+	WebSearchEnabled *bool    `json:"web_search_enabled,omitempty"`
 }
 
 // AIProviderKind Supported AI provider types
