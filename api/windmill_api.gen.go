@@ -774,9 +774,10 @@ const (
 
 // Defines values for ProtectionRuleKind.
 const (
-	DisableDirectDeployment   ProtectionRuleKind = "DisableDirectDeployment"
-	DisableWorkspaceForking   ProtectionRuleKind = "DisableWorkspaceForking"
-	RestrictDeployToDeployers ProtectionRuleKind = "RestrictDeployToDeployers"
+	DisableDirectDeployment        ProtectionRuleKind = "DisableDirectDeployment"
+	DisableWorkspaceForking        ProtectionRuleKind = "DisableWorkspaceForking"
+	RestrictAnonymousAppDeployment ProtectionRuleKind = "RestrictAnonymousAppDeployment"
+	RestrictDeployToDeployers      ProtectionRuleKind = "RestrictDeployToDeployers"
 )
 
 // Defines values for QueuedJobJobKind.
@@ -2822,16 +2823,19 @@ type Flow struct {
 	DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description     *string    `json:"description,omitempty"`
-	DraftOnly       *bool      `json:"draft_only,omitempty"`
-	EditedAt        time.Time  `json:"edited_at"`
-	EditedBy        string     `json:"edited_by"`
-	ExtraPerms      ExtraPerms `json:"extra_perms"`
-	Labels          *[]string  `json:"labels,omitempty"`
-	LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
-	OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
-	Path            string     `json:"path"`
-	Priority        *int       `json:"priority,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	DraftOnly   *bool      `json:"draft_only,omitempty"`
+	EditedAt    time.Time  `json:"edited_at"`
+	EditedBy    string     `json:"edited_by"`
+	ExtraPerms  ExtraPerms `json:"extra_perms"`
+
+	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+	Labels          *[]string `json:"labels,omitempty"`
+	LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
+	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+	Path            string    `json:"path"`
+	Priority        *int      `json:"priority,omitempty"`
 
 	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 	Schema  *map[string]interface{} `json:"schema,omitempty"`
@@ -2930,22 +2934,25 @@ type FlowGroup struct {
 
 // FlowMetadata defines model for FlowMetadata.
 type FlowMetadata struct {
-	Archived            bool       `json:"archived"`
-	DedicatedWorker     *bool      `json:"dedicated_worker,omitempty"`
-	DraftOnly           *bool      `json:"draft_only,omitempty"`
-	EditedAt            time.Time  `json:"edited_at"`
-	EditedBy            string     `json:"edited_by"`
-	ExtraPerms          ExtraPerms `json:"extra_perms"`
-	Labels              *[]string  `json:"labels,omitempty"`
-	OnBehalfOfEmail     *string    `json:"on_behalf_of_email,omitempty"`
-	Path                string     `json:"path"`
-	Priority            *int       `json:"priority,omitempty"`
-	Starred             *bool      `json:"starred,omitempty"`
-	Tag                 *string    `json:"tag,omitempty"`
-	Timeout             *float32   `json:"timeout,omitempty"`
-	VisibleToRunnerOnly *bool      `json:"visible_to_runner_only,omitempty"`
-	WorkspaceId         *string    `json:"workspace_id,omitempty"`
-	WsErrorHandlerMuted *bool      `json:"ws_error_handler_muted,omitempty"`
+	Archived        bool       `json:"archived"`
+	DedicatedWorker *bool      `json:"dedicated_worker,omitempty"`
+	DraftOnly       *bool      `json:"draft_only,omitempty"`
+	EditedAt        time.Time  `json:"edited_at"`
+	EditedBy        string     `json:"edited_by"`
+	ExtraPerms      ExtraPerms `json:"extra_perms"`
+
+	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+	InheritedLabels     *[]string `json:"inherited_labels,omitempty"`
+	Labels              *[]string `json:"labels,omitempty"`
+	OnBehalfOfEmail     *string   `json:"on_behalf_of_email,omitempty"`
+	Path                string    `json:"path"`
+	Priority            *int      `json:"priority,omitempty"`
+	Starred             *bool     `json:"starred,omitempty"`
+	Tag                 *string   `json:"tag,omitempty"`
+	Timeout             *float32  `json:"timeout,omitempty"`
+	VisibleToRunnerOnly *bool     `json:"visible_to_runner_only,omitempty"`
+	WorkspaceId         *string   `json:"workspace_id,omitempty"`
+	WsErrorHandlerMuted *bool     `json:"ws_error_handler_muted,omitempty"`
 }
 
 // FlowModuleTool defines model for FlowModuleTool.
@@ -3156,9 +3163,12 @@ type Folder struct {
 	DefaultPermissionedAs *FolderDefaultPermissionedAs `json:"default_permissioned_as,omitempty"`
 	EditedAt              *time.Time                   `json:"edited_at,omitempty"`
 	ExtraPerms            map[string]bool              `json:"extra_perms"`
-	Name                  string                       `json:"name"`
-	Owners                []string                     `json:"owners"`
-	Summary               *string                      `json:"summary,omitempty"`
+
+	// Labels Labels set on the folder. Items inside the folder inherit them, exposed as `inherited_labels` on scripts and flows and stamped into job labels at run time.
+	Labels  *[]string `json:"labels,omitempty"`
+	Name    string    `json:"name"`
+	Owners  []string  `json:"owners"`
+	Summary *string   `json:"summary,omitempty"`
 }
 
 // FolderDefaultPermissionedAs Ordered list of rules applied at create-time when admins or `wm_deployers` members deploy items in this folder. The first rule whose `path_glob` matches the item path (relative to the folder root) wins, and its `permissioned_as` is used as the default.
@@ -3648,13 +3658,16 @@ type ListableApp struct {
 	ExecutionMode ListableAppExecutionMode `json:"execution_mode"`
 	ExtraPerms    map[string]bool          `json:"extra_perms"`
 	Id            int                      `json:"id"`
-	Labels        *[]string                `json:"labels,omitempty"`
-	Path          string                   `json:"path"`
-	RawApp        *bool                    `json:"raw_app,omitempty"`
-	Starred       *bool                    `json:"starred,omitempty"`
-	Summary       string                   `json:"summary"`
-	Version       int                      `json:"version"`
-	WorkspaceId   string                   `json:"workspace_id"`
+
+	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+	Labels          *[]string `json:"labels,omitempty"`
+	Path            string    `json:"path"`
+	RawApp          *bool     `json:"raw_app,omitempty"`
+	Starred         *bool     `json:"starred,omitempty"`
+	Summary         string    `json:"summary"`
+	Version         int       `json:"version"`
+	WorkspaceId     string    `json:"workspace_id"`
 }
 
 // ListableAppExecutionMode defines model for ListableApp.ExecutionMode.
@@ -3662,55 +3675,64 @@ type ListableAppExecutionMode string
 
 // ListableRawApp defines model for ListableRawApp.
 type ListableRawApp struct {
-	EditedAt    time.Time       `json:"edited_at"`
-	ExtraPerms  map[string]bool `json:"extra_perms"`
-	Labels      *[]string       `json:"labels,omitempty"`
-	Path        string          `json:"path"`
-	Starred     *bool           `json:"starred,omitempty"`
-	Summary     string          `json:"summary"`
-	Version     float32         `json:"version"`
-	WorkspaceId string          `json:"workspace_id"`
+	EditedAt   time.Time       `json:"edited_at"`
+	ExtraPerms map[string]bool `json:"extra_perms"`
+
+	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+	Labels          *[]string `json:"labels,omitempty"`
+	Path            string    `json:"path"`
+	Starred         *bool     `json:"starred,omitempty"`
+	Summary         string    `json:"summary"`
+	Version         float32   `json:"version"`
+	WorkspaceId     string    `json:"workspace_id"`
 }
 
 // ListableResource defines model for ListableResource.
 type ListableResource struct {
-	Account      *float32         `json:"account,omitempty"`
-	CreatedBy    *string          `json:"created_by,omitempty"`
-	Description  *string          `json:"description,omitempty"`
-	EditedAt     *time.Time       `json:"edited_at,omitempty"`
-	ExtraPerms   *map[string]bool `json:"extra_perms,omitempty"`
-	IsExpired    *bool            `json:"is_expired,omitempty"`
-	IsLinked     bool             `json:"is_linked"`
-	IsOauth      bool             `json:"is_oauth"`
-	IsRefreshed  bool             `json:"is_refreshed"`
-	Labels       *[]string        `json:"labels,omitempty"`
-	Path         string           `json:"path"`
-	RefreshError *string          `json:"refresh_error,omitempty"`
-	ResourceType string           `json:"resource_type"`
-	Value        *interface{}     `json:"value,omitempty"`
-	WorkspaceId  *string          `json:"workspace_id,omitempty"`
-	WsSpecific   *bool            `json:"ws_specific,omitempty"`
+	Account     *float32         `json:"account,omitempty"`
+	CreatedBy   *string          `json:"created_by,omitempty"`
+	Description *string          `json:"description,omitempty"`
+	EditedAt    *time.Time       `json:"edited_at,omitempty"`
+	ExtraPerms  *map[string]bool `json:"extra_perms,omitempty"`
+
+	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+	InheritedLabels *[]string    `json:"inherited_labels,omitempty"`
+	IsExpired       *bool        `json:"is_expired,omitempty"`
+	IsLinked        bool         `json:"is_linked"`
+	IsOauth         bool         `json:"is_oauth"`
+	IsRefreshed     bool         `json:"is_refreshed"`
+	Labels          *[]string    `json:"labels,omitempty"`
+	Path            string       `json:"path"`
+	RefreshError    *string      `json:"refresh_error,omitempty"`
+	ResourceType    string       `json:"resource_type"`
+	Value           *interface{} `json:"value,omitempty"`
+	WorkspaceId     *string      `json:"workspace_id,omitempty"`
+	WsSpecific      *bool        `json:"ws_specific,omitempty"`
 }
 
 // ListableVariable defines model for ListableVariable.
 type ListableVariable struct {
-	Account      *int            `json:"account,omitempty"`
-	Description  *string         `json:"description,omitempty"`
-	EditedAt     *time.Time      `json:"edited_at,omitempty"`
-	EditedBy     *string         `json:"edited_by,omitempty"`
-	ExpiresAt    *time.Time      `json:"expires_at,omitempty"`
-	ExtraPerms   map[string]bool `json:"extra_perms"`
-	IsExpired    *bool           `json:"is_expired,omitempty"`
-	IsLinked     *bool           `json:"is_linked,omitempty"`
-	IsOauth      *bool           `json:"is_oauth,omitempty"`
-	IsRefreshed  *bool           `json:"is_refreshed,omitempty"`
-	IsSecret     bool            `json:"is_secret"`
-	Labels       *[]string       `json:"labels,omitempty"`
-	Path         string          `json:"path"`
-	RefreshError *string         `json:"refresh_error,omitempty"`
-	Value        *string         `json:"value,omitempty"`
-	WorkspaceId  string          `json:"workspace_id"`
-	WsSpecific   *bool           `json:"ws_specific,omitempty"`
+	Account     *int            `json:"account,omitempty"`
+	Description *string         `json:"description,omitempty"`
+	EditedAt    *time.Time      `json:"edited_at,omitempty"`
+	EditedBy    *string         `json:"edited_by,omitempty"`
+	ExpiresAt   *time.Time      `json:"expires_at,omitempty"`
+	ExtraPerms  map[string]bool `json:"extra_perms"`
+
+	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+	IsExpired       *bool     `json:"is_expired,omitempty"`
+	IsLinked        *bool     `json:"is_linked,omitempty"`
+	IsOauth         *bool     `json:"is_oauth,omitempty"`
+	IsRefreshed     *bool     `json:"is_refreshed,omitempty"`
+	IsSecret        bool      `json:"is_secret"`
+	Labels          *[]string `json:"labels,omitempty"`
+	Path            string    `json:"path"`
+	RefreshError    *string   `json:"refresh_error,omitempty"`
+	Value           *string   `json:"value,omitempty"`
+	WorkspaceId     string    `json:"workspace_id"`
+	WsSpecific      *bool     `json:"ws_specific,omitempty"`
 }
 
 // LogSearchHit defines model for LogSearchHit.
@@ -4943,17 +4965,20 @@ type Relations struct {
 
 // Resource defines model for Resource.
 type Resource struct {
-	CreatedBy    *string          `json:"created_by,omitempty"`
-	Description  *string          `json:"description,omitempty"`
-	EditedAt     *time.Time       `json:"edited_at,omitempty"`
-	ExtraPerms   *map[string]bool `json:"extra_perms,omitempty"`
-	IsOauth      bool             `json:"is_oauth"`
-	Labels       *[]string        `json:"labels,omitempty"`
-	Path         string           `json:"path"`
-	ResourceType string           `json:"resource_type"`
-	Value        *interface{}     `json:"value,omitempty"`
-	WorkspaceId  *string          `json:"workspace_id,omitempty"`
-	WsSpecific   *bool            `json:"ws_specific,omitempty"`
+	CreatedBy   *string          `json:"created_by,omitempty"`
+	Description *string          `json:"description,omitempty"`
+	EditedAt    *time.Time       `json:"edited_at,omitempty"`
+	ExtraPerms  *map[string]bool `json:"extra_perms,omitempty"`
+
+	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+	InheritedLabels *[]string    `json:"inherited_labels,omitempty"`
+	IsOauth         bool         `json:"is_oauth"`
+	Labels          *[]string    `json:"labels,omitempty"`
+	Path            string       `json:"path"`
+	ResourceType    string       `json:"resource_type"`
+	Value           *interface{} `json:"value,omitempty"`
+	WorkspaceId     *string      `json:"workspace_id,omitempty"`
+	WsSpecific      *bool        `json:"ws_specific,omitempty"`
 }
 
 // ResourceType defines model for ResourceType.
@@ -5098,6 +5123,9 @@ type Schedule struct {
 	// ExtraPerms Additional permissions for this schedule
 	ExtraPerms map[string]bool `json:"extra_perms"`
 
+	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+
 	// IsFlow True if script_path points to a flow, false if it points to a script
 	IsFlow bool      `json:"is_flow"`
 	Labels *[]string `json:"labels,omitempty"`
@@ -5194,6 +5222,9 @@ type ScheduleWJobs struct {
 
 	// ExtraPerms Additional permissions for this schedule
 	ExtraPerms map[string]bool `json:"extra_perms"`
+
+	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
 	IsFlow bool `json:"is_flow"`
@@ -5298,23 +5329,26 @@ type Script struct {
 	DedicatedWorker          *bool     `json:"dedicated_worker,omitempty"`
 
 	// DeleteAfterSecs If set, delete the job's args, result and logs after this many seconds following job completion
-	DeleteAfterSecs         *int            `json:"delete_after_secs,omitempty"`
-	Deleted                 bool            `json:"deleted"`
-	Description             string          `json:"description"`
-	DraftOnly               *bool           `json:"draft_only,omitempty"`
-	Envs                    *[]string       `json:"envs,omitempty"`
-	ExtraPerms              map[string]bool `json:"extra_perms"`
-	HasDraft                *bool           `json:"has_draft,omitempty"`
-	HasPreprocessor         bool            `json:"has_preprocessor"`
-	Hash                    string          `json:"hash"`
-	IsTemplate              bool            `json:"is_template"`
-	Kind                    ScriptKind      `json:"kind"`
-	Labels                  *[]string       `json:"labels,omitempty"`
-	Language                ScriptLang      `json:"language"`
-	Lock                    *string         `json:"lock,omitempty"`
-	LockErrorLogs           *string         `json:"lock_error_logs,omitempty"`
-	MaxTotalDebouncesAmount *int            `json:"max_total_debounces_amount,omitempty"`
-	MaxTotalDebouncingTime  *int            `json:"max_total_debouncing_time,omitempty"`
+	DeleteAfterSecs *int            `json:"delete_after_secs,omitempty"`
+	Deleted         bool            `json:"deleted"`
+	Description     string          `json:"description"`
+	DraftOnly       *bool           `json:"draft_only,omitempty"`
+	Envs            *[]string       `json:"envs,omitempty"`
+	ExtraPerms      map[string]bool `json:"extra_perms"`
+	HasDraft        *bool           `json:"has_draft,omitempty"`
+	HasPreprocessor bool            `json:"has_preprocessor"`
+	Hash            string          `json:"hash"`
+
+	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+	InheritedLabels         *[]string  `json:"inherited_labels,omitempty"`
+	IsTemplate              bool       `json:"is_template"`
+	Kind                    ScriptKind `json:"kind"`
+	Labels                  *[]string  `json:"labels,omitempty"`
+	Language                ScriptLang `json:"language"`
+	Lock                    *string    `json:"lock,omitempty"`
+	LockErrorLogs           *string    `json:"lock_error_logs,omitempty"`
+	MaxTotalDebouncesAmount *int       `json:"max_total_debounces_amount,omitempty"`
+	MaxTotalDebouncingTime  *int       `json:"max_total_debouncing_time,omitempty"`
 
 	// Modules Additional script modules keyed by relative file path
 	Modules         *map[string]ScriptModule `json:"modules"`
@@ -5978,6 +6012,9 @@ type SchemasAiAgent struct {
 
 	// Parallel If true, the agent can execute multiple tool calls in parallel
 	Parallel *bool `json:"parallel,omitempty"`
+
+	// Tag Worker group tag for execution routing. If not set, the AI agent step runs on the flow's tag (default `flow`)
+	Tag *string `json:"tag,omitempty"`
 
 	// Tools Array of tools the agent can use. The agent decides which tools to call based on the task
 	Tools []AgentTool        `json:"tools"`
@@ -7920,6 +7957,7 @@ type CreateFolderJSONBody struct {
 	// DefaultPermissionedAs Ordered list of rules applied at create-time when admins or `wm_deployers` members deploy items in this folder. The first rule whose `path_glob` matches the item path (relative to the folder root) wins, and its `permissioned_as` is used as the default.
 	DefaultPermissionedAs *FolderDefaultPermissionedAs `json:"default_permissioned_as,omitempty"`
 	ExtraPerms            *map[string]bool             `json:"extra_perms,omitempty"`
+	Labels                *[]string                    `json:"labels,omitempty"`
 	Name                  string                       `json:"name"`
 	Owners                *[]string                    `json:"owners,omitempty"`
 	Summary               *string                      `json:"summary,omitempty"`
@@ -7951,6 +7989,7 @@ type UpdateFolderJSONBody struct {
 	// DefaultPermissionedAs Ordered list of rules applied at create-time when admins or `wm_deployers` members deploy items in this folder. The first rule whose `path_glob` matches the item path (relative to the folder root) wins, and its `permissioned_as` is used as the default.
 	DefaultPermissionedAs *FolderDefaultPermissionedAs `json:"default_permissioned_as,omitempty"`
 	ExtraPerms            *map[string]bool             `json:"extra_perms,omitempty"`
+	Labels                *[]string                    `json:"labels,omitempty"`
 	Owners                *[]string                    `json:"owners,omitempty"`
 	Summary               *string                      `json:"summary,omitempty"`
 }
@@ -79143,16 +79182,19 @@ type GetFlowByPathWithDraftResponse struct {
 		Draft       *Flow   `json:"draft,omitempty"`
 
 		// DraftCreatedAt Timestamp at which the most recent DB draft was created. Used by the frontend's UserDraft staleness check.
-		DraftCreatedAt  *time.Time `json:"draft_created_at,omitempty"`
-		DraftOnly       *bool      `json:"draft_only,omitempty"`
-		EditedAt        time.Time  `json:"edited_at"`
-		EditedBy        string     `json:"edited_by"`
-		ExtraPerms      ExtraPerms `json:"extra_perms"`
-		Labels          *[]string  `json:"labels,omitempty"`
-		LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
-		OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
-		Path            string     `json:"path"`
-		Priority        *int       `json:"priority,omitempty"`
+		DraftCreatedAt *time.Time `json:"draft_created_at,omitempty"`
+		DraftOnly      *bool      `json:"draft_only,omitempty"`
+		EditedAt       time.Time  `json:"edited_at"`
+		EditedBy       string     `json:"edited_by"`
+		ExtraPerms     ExtraPerms `json:"extra_perms"`
+
+		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+		Labels          *[]string `json:"labels,omitempty"`
+		LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
+		OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+		Path            string    `json:"path"`
+		Priority        *int      `json:"priority,omitempty"`
 
 		// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 		Schema  *map[string]interface{} `json:"schema,omitempty"`
@@ -79327,17 +79369,20 @@ type ListFlowsResponse struct {
 		DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 		// Description Detailed documentation for this flow
-		Description     *string    `json:"description,omitempty"`
-		DraftOnly       *bool      `json:"draft_only,omitempty"`
-		EditedAt        time.Time  `json:"edited_at"`
-		EditedBy        string     `json:"edited_by"`
-		ExtraPerms      ExtraPerms `json:"extra_perms"`
-		HasDraft        *bool      `json:"has_draft,omitempty"`
-		Labels          *[]string  `json:"labels,omitempty"`
-		LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
-		OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
-		Path            string     `json:"path"`
-		Priority        *int       `json:"priority,omitempty"`
+		Description *string    `json:"description,omitempty"`
+		DraftOnly   *bool      `json:"draft_only,omitempty"`
+		EditedAt    time.Time  `json:"edited_at"`
+		EditedBy    string     `json:"edited_by"`
+		ExtraPerms  ExtraPerms `json:"extra_perms"`
+		HasDraft    *bool      `json:"has_draft,omitempty"`
+
+		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+		Labels          *[]string `json:"labels,omitempty"`
+		LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
+		OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+		Path            string    `json:"path"`
+		Priority        *int      `json:"priority,omitempty"`
 
 		// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 		Schema  *map[string]interface{} `json:"schema,omitempty"`
@@ -104369,16 +104414,19 @@ func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWith
 			Draft       *Flow   `json:"draft,omitempty"`
 
 			// DraftCreatedAt Timestamp at which the most recent DB draft was created. Used by the frontend's UserDraft staleness check.
-			DraftCreatedAt  *time.Time `json:"draft_created_at,omitempty"`
-			DraftOnly       *bool      `json:"draft_only,omitempty"`
-			EditedAt        time.Time  `json:"edited_at"`
-			EditedBy        string     `json:"edited_by"`
-			ExtraPerms      ExtraPerms `json:"extra_perms"`
-			Labels          *[]string  `json:"labels,omitempty"`
-			LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
-			OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
-			Path            string     `json:"path"`
-			Priority        *int       `json:"priority,omitempty"`
+			DraftCreatedAt *time.Time `json:"draft_created_at,omitempty"`
+			DraftOnly      *bool      `json:"draft_only,omitempty"`
+			EditedAt       time.Time  `json:"edited_at"`
+			EditedBy       string     `json:"edited_by"`
+			ExtraPerms     ExtraPerms `json:"extra_perms"`
+
+			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+			Labels          *[]string `json:"labels,omitempty"`
+			LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
+			OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+			Path            string    `json:"path"`
+			Priority        *int      `json:"priority,omitempty"`
 
 			// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 			Schema  *map[string]interface{} `json:"schema,omitempty"`
@@ -104572,17 +104620,20 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 			// Description Detailed documentation for this flow
-			Description     *string    `json:"description,omitempty"`
-			DraftOnly       *bool      `json:"draft_only,omitempty"`
-			EditedAt        time.Time  `json:"edited_at"`
-			EditedBy        string     `json:"edited_by"`
-			ExtraPerms      ExtraPerms `json:"extra_perms"`
-			HasDraft        *bool      `json:"has_draft,omitempty"`
-			Labels          *[]string  `json:"labels,omitempty"`
-			LockErrorLogs   *string    `json:"lock_error_logs,omitempty"`
-			OnBehalfOfEmail *string    `json:"on_behalf_of_email,omitempty"`
-			Path            string     `json:"path"`
-			Priority        *int       `json:"priority,omitempty"`
+			Description *string    `json:"description,omitempty"`
+			DraftOnly   *bool      `json:"draft_only,omitempty"`
+			EditedAt    time.Time  `json:"edited_at"`
+			EditedBy    string     `json:"edited_by"`
+			ExtraPerms  ExtraPerms `json:"extra_perms"`
+			HasDraft    *bool      `json:"has_draft,omitempty"`
+
+			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+			Labels          *[]string `json:"labels,omitempty"`
+			LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
+			OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+			Path            string    `json:"path"`
+			Priority        *int      `json:"priority,omitempty"`
 
 			// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 			Schema  *map[string]interface{} `json:"schema,omitempty"`
