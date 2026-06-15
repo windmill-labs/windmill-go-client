@@ -61,13 +61,6 @@ const (
 	AppWithLastVersionExecutionModeViewer    AppWithLastVersionExecutionMode = "viewer"
 )
 
-// Defines values for AppWithLastVersionWDraftExecutionMode.
-const (
-	AppWithLastVersionWDraftExecutionModeAnonymous AppWithLastVersionWDraftExecutionMode = "anonymous"
-	AppWithLastVersionWDraftExecutionModePublisher AppWithLastVersionWDraftExecutionMode = "publisher"
-	AppWithLastVersionWDraftExecutionModeViewer    AppWithLastVersionWDraftExecutionMode = "viewer"
-)
-
 // Defines values for AssetKind.
 const (
 	AssetKindDatatable AssetKind = "datatable"
@@ -722,30 +715,6 @@ const (
 	NewScriptKindTrigger      NewScriptKind = "trigger"
 )
 
-// Defines values for NewScriptWithDraftAssetsAccessType.
-const (
-	NewScriptWithDraftAssetsAccessTypeR  NewScriptWithDraftAssetsAccessType = "r"
-	NewScriptWithDraftAssetsAccessTypeRw NewScriptWithDraftAssetsAccessType = "rw"
-	NewScriptWithDraftAssetsAccessTypeW  NewScriptWithDraftAssetsAccessType = "w"
-)
-
-// Defines values for NewScriptWithDraftAssetsAltAccessType.
-const (
-	NewScriptWithDraftAssetsAltAccessTypeR  NewScriptWithDraftAssetsAltAccessType = "r"
-	NewScriptWithDraftAssetsAltAccessTypeRw NewScriptWithDraftAssetsAltAccessType = "rw"
-	NewScriptWithDraftAssetsAltAccessTypeW  NewScriptWithDraftAssetsAltAccessType = "w"
-)
-
-// Defines values for NewScriptWithDraftKind.
-const (
-	NewScriptWithDraftKindApproval     NewScriptWithDraftKind = "approval"
-	NewScriptWithDraftKindCommand      NewScriptWithDraftKind = "command"
-	NewScriptWithDraftKindFailure      NewScriptWithDraftKind = "failure"
-	NewScriptWithDraftKindPreprocessor NewScriptWithDraftKind = "preprocessor"
-	NewScriptWithDraftKindScript       NewScriptWithDraftKind = "script"
-	NewScriptWithDraftKindTrigger      NewScriptWithDraftKind = "trigger"
-)
-
 // Defines values for NewWebsocketTriggerFilterLogic.
 const (
 	NewWebsocketTriggerFilterLogicAnd NewWebsocketTriggerFilterLogic = "and"
@@ -760,9 +729,9 @@ const (
 
 // Defines values for PolicyExecutionMode.
 const (
-	PolicyExecutionModeAnonymous PolicyExecutionMode = "anonymous"
-	PolicyExecutionModePublisher PolicyExecutionMode = "publisher"
-	PolicyExecutionModeViewer    PolicyExecutionMode = "viewer"
+	Anonymous PolicyExecutionMode = "anonymous"
+	Publisher PolicyExecutionMode = "publisher"
+	Viewer    PolicyExecutionMode = "viewer"
 )
 
 // Defines values for PreviewKind.
@@ -880,6 +849,34 @@ const (
 	TriggerModeDisabled  TriggerMode = "disabled"
 	TriggerModeEnabled   TriggerMode = "enabled"
 	TriggerModeSuspended TriggerMode = "suspended"
+)
+
+// Defines values for UserDraftItemKind.
+const (
+	UserDraftItemKindApp                 UserDraftItemKind = "app"
+	UserDraftItemKindFlow                UserDraftItemKind = "flow"
+	UserDraftItemKindRawApp              UserDraftItemKind = "raw_app"
+	UserDraftItemKindResource            UserDraftItemKind = "resource"
+	UserDraftItemKindScript              UserDraftItemKind = "script"
+	UserDraftItemKindTriggerAzure        UserDraftItemKind = "trigger_azure"
+	UserDraftItemKindTriggerCli          UserDraftItemKind = "trigger_cli"
+	UserDraftItemKindTriggerDefaultEmail UserDraftItemKind = "trigger_default_email"
+	UserDraftItemKindTriggerEmail        UserDraftItemKind = "trigger_email"
+	UserDraftItemKindTriggerGcp          UserDraftItemKind = "trigger_gcp"
+	UserDraftItemKindTriggerGithub       UserDraftItemKind = "trigger_github"
+	UserDraftItemKindTriggerGoogle       UserDraftItemKind = "trigger_google"
+	UserDraftItemKindTriggerHttp         UserDraftItemKind = "trigger_http"
+	UserDraftItemKindTriggerKafka        UserDraftItemKind = "trigger_kafka"
+	UserDraftItemKindTriggerMqtt         UserDraftItemKind = "trigger_mqtt"
+	UserDraftItemKindTriggerNats         UserDraftItemKind = "trigger_nats"
+	UserDraftItemKindTriggerNextcloud    UserDraftItemKind = "trigger_nextcloud"
+	UserDraftItemKindTriggerPoll         UserDraftItemKind = "trigger_poll"
+	UserDraftItemKindTriggerPostgres     UserDraftItemKind = "trigger_postgres"
+	UserDraftItemKindTriggerSchedule     UserDraftItemKind = "trigger_schedule"
+	UserDraftItemKindTriggerSqs          UserDraftItemKind = "trigger_sqs"
+	UserDraftItemKindTriggerWebhook      UserDraftItemKind = "trigger_webhook"
+	UserDraftItemKindTriggerWebsocket    UserDraftItemKind = "trigger_websocket"
+	UserDraftItemKindVariable            UserDraftItemKind = "variable"
 )
 
 // Defines values for UserSourceSource.
@@ -1001,7 +998,7 @@ const (
 
 // Defines values for SchemasIdentityType.
 const (
-	Identity SchemasIdentityType = "identity"
+	SchemasIdentityTypeIdentity SchemasIdentityType = "identity"
 )
 
 // Defines values for SchemasJavascriptTransformType.
@@ -1216,20 +1213,6 @@ const (
 	ListExtendedJobsParamsStatusSuccess  ListExtendedJobsParamsStatus = "success"
 )
 
-// Defines values for CreateDraftJSONBodyTyp.
-const (
-	CreateDraftJSONBodyTypApp    CreateDraftJSONBodyTyp = "app"
-	CreateDraftJSONBodyTypFlow   CreateDraftJSONBodyTyp = "flow"
-	CreateDraftJSONBodyTypScript CreateDraftJSONBodyTyp = "script"
-)
-
-// Defines values for DeleteDraftParamsKind.
-const (
-	DeleteDraftParamsKindApp    DeleteDraftParamsKind = "app"
-	DeleteDraftParamsKindFlow   DeleteDraftParamsKind = "flow"
-	DeleteDraftParamsKindScript DeleteDraftParamsKind = "script"
-)
-
 // Defines values for StarJSONBodyFavoriteKind.
 const (
 	StarJSONBodyFavoriteKindApp    StarJSONBodyFavoriteKind = "app"
@@ -1396,33 +1379,6 @@ type AppWithLastVersion struct {
 
 // AppWithLastVersionExecutionMode defines model for AppWithLastVersion.ExecutionMode.
 type AppWithLastVersionExecutionMode string
-
-// AppWithLastVersionWDraft defines model for AppWithLastVersionWDraft.
-type AppWithLastVersionWDraft struct {
-	BundleSecret *string      `json:"bundle_secret,omitempty"`
-	CreatedAt    time.Time    `json:"created_at"`
-	CreatedBy    string       `json:"created_by"`
-	CustomPath   *string      `json:"custom_path,omitempty"`
-	Draft        *interface{} `json:"draft,omitempty"`
-
-	// DraftCreatedAt Timestamp at which the most recent DB draft was created. Used by the frontend's UserDraft staleness check.
-	DraftCreatedAt *time.Time                            `json:"draft_created_at,omitempty"`
-	DraftOnly      *bool                                 `json:"draft_only,omitempty"`
-	ExecutionMode  AppWithLastVersionWDraftExecutionMode `json:"execution_mode"`
-	ExtraPerms     map[string]bool                       `json:"extra_perms"`
-	Id             int                                   `json:"id"`
-	Labels         *[]string                             `json:"labels,omitempty"`
-	Path           string                                `json:"path"`
-	Policy         Policy                                `json:"policy"`
-	RawApp         bool                                  `json:"raw_app"`
-	Summary        string                                `json:"summary"`
-	Value          interface{}                           `json:"value"`
-	Versions       []int                                 `json:"versions"`
-	WorkspaceId    string                                `json:"workspace_id"`
-}
-
-// AppWithLastVersionWDraftExecutionMode defines model for AppWithLastVersionWDraft.ExecutionMode.
-type AppWithLastVersionWDraftExecutionMode string
 
 // AssetKind defines model for AssetKind.
 type AssetKind string
@@ -3655,6 +3611,21 @@ type LargeFileStorageType string
 
 // ListableApp defines model for ListableApp.
 type ListableApp struct {
+	// DraftPath User-typed path the editor has staged but not yet deployed.
+	// Sourced from the draft JSON's `draft_path` field (the editor
+	// only writes it when the typed path differs from the deployed
+	// one). Lets the home list render the meaningful name instead of
+	// the autogenerated `u/{user}/draft_{uuid}` URL path. Omitted
+	// when unchanged.
+	DraftPath *string `json:"draft_path,omitempty"`
+
+	// DraftUsers Workspace users (including the authed user, and the legacy
+	// NULL-email row if any) who have a per-user draft at this
+	// path. Drives the home page's user-avatar circles inside the
+	// Draft badge. Omitted when no drafts exist.
+	DraftUsers *[]struct {
+		Username *string `json:"username"`
+	} `json:"draft_users,omitempty"`
 	EditedAt      time.Time                `json:"edited_at"`
 	ExecutionMode ListableAppExecutionMode `json:"execution_mode"`
 	ExtraPerms    map[string]bool          `json:"extra_perms"`
@@ -3662,13 +3633,18 @@ type ListableApp struct {
 
 	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
-	Labels          *[]string `json:"labels,omitempty"`
-	Path            string    `json:"path"`
-	RawApp          *bool     `json:"raw_app,omitempty"`
-	Starred         *bool     `json:"starred,omitempty"`
-	Summary         string    `json:"summary"`
-	Version         int       `json:"version"`
-	WorkspaceId     string    `json:"workspace_id"`
+
+	// IsDraft True when the authed user has a draft for this app — either no
+	// deployed row exists at this path (draft-only) or the user has
+	// saved a per-user draft on top of the deployed row.
+	IsDraft     *bool     `json:"is_draft,omitempty"`
+	Labels      *[]string `json:"labels,omitempty"`
+	Path        string    `json:"path"`
+	RawApp      *bool     `json:"raw_app,omitempty"`
+	Starred     *bool     `json:"starred,omitempty"`
+	Summary     string    `json:"summary"`
+	Version     int       `json:"version"`
+	WorkspaceId string    `json:"workspace_id"`
 }
 
 // ListableAppExecutionMode defines model for ListableApp.ExecutionMode.
@@ -3691,49 +3667,67 @@ type ListableRawApp struct {
 
 // ListableResource defines model for ListableResource.
 type ListableResource struct {
-	Account     *float32         `json:"account,omitempty"`
-	CreatedBy   *string          `json:"created_by,omitempty"`
-	Description *string          `json:"description,omitempty"`
-	EditedAt    *time.Time       `json:"edited_at,omitempty"`
-	ExtraPerms  *map[string]bool `json:"extra_perms,omitempty"`
+	Account     *float32 `json:"account,omitempty"`
+	CreatedBy   *string  `json:"created_by,omitempty"`
+	Description *string  `json:"description,omitempty"`
+
+	// DraftOnly True when this row is a per-user draft with no deployed
+	// resource at the same path. Frontend renders a "Draft" badge.
+	DraftOnly  *bool            `json:"draft_only,omitempty"`
+	EditedAt   *time.Time       `json:"edited_at,omitempty"`
+	ExtraPerms *map[string]bool `json:"extra_perms,omitempty"`
 
 	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
-	InheritedLabels *[]string    `json:"inherited_labels,omitempty"`
-	IsExpired       *bool        `json:"is_expired,omitempty"`
-	IsLinked        bool         `json:"is_linked"`
-	IsOauth         bool         `json:"is_oauth"`
-	IsRefreshed     bool         `json:"is_refreshed"`
-	Labels          *[]string    `json:"labels,omitempty"`
-	Path            string       `json:"path"`
-	RefreshError    *string      `json:"refresh_error,omitempty"`
-	ResourceType    string       `json:"resource_type"`
-	Value           *interface{} `json:"value,omitempty"`
-	WorkspaceId     *string      `json:"workspace_id,omitempty"`
-	WsSpecific      *bool        `json:"ws_specific,omitempty"`
+	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+
+	// IsDraft True when the authed user has a per-user draft at this path
+	// (over a deployed row or a synthesized draft-only row).
+	// Frontend appends a `*` to the displayed name.
+	IsDraft      *bool        `json:"is_draft,omitempty"`
+	IsExpired    *bool        `json:"is_expired,omitempty"`
+	IsLinked     bool         `json:"is_linked"`
+	IsOauth      bool         `json:"is_oauth"`
+	IsRefreshed  bool         `json:"is_refreshed"`
+	Labels       *[]string    `json:"labels,omitempty"`
+	Path         string       `json:"path"`
+	RefreshError *string      `json:"refresh_error,omitempty"`
+	ResourceType string       `json:"resource_type"`
+	Value        *interface{} `json:"value,omitempty"`
+	WorkspaceId  *string      `json:"workspace_id,omitempty"`
+	WsSpecific   *bool        `json:"ws_specific,omitempty"`
 }
 
 // ListableVariable defines model for ListableVariable.
 type ListableVariable struct {
-	Account     *int            `json:"account,omitempty"`
-	Description *string         `json:"description,omitempty"`
-	EditedAt    *time.Time      `json:"edited_at,omitempty"`
-	EditedBy    *string         `json:"edited_by,omitempty"`
-	ExpiresAt   *time.Time      `json:"expires_at,omitempty"`
-	ExtraPerms  map[string]bool `json:"extra_perms"`
+	Account     *int    `json:"account,omitempty"`
+	Description *string `json:"description,omitempty"`
+
+	// DraftOnly True when this row is a per-user draft with no deployed
+	// variable at the same path. Frontend renders a "Draft" badge.
+	DraftOnly  *bool           `json:"draft_only,omitempty"`
+	EditedAt   *time.Time      `json:"edited_at,omitempty"`
+	EditedBy   *string         `json:"edited_by,omitempty"`
+	ExpiresAt  *time.Time      `json:"expires_at,omitempty"`
+	ExtraPerms map[string]bool `json:"extra_perms"`
 
 	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
-	IsExpired       *bool     `json:"is_expired,omitempty"`
-	IsLinked        *bool     `json:"is_linked,omitempty"`
-	IsOauth         *bool     `json:"is_oauth,omitempty"`
-	IsRefreshed     *bool     `json:"is_refreshed,omitempty"`
-	IsSecret        bool      `json:"is_secret"`
-	Labels          *[]string `json:"labels,omitempty"`
-	Path            string    `json:"path"`
-	RefreshError    *string   `json:"refresh_error,omitempty"`
-	Value           *string   `json:"value,omitempty"`
-	WorkspaceId     string    `json:"workspace_id"`
-	WsSpecific      *bool     `json:"ws_specific,omitempty"`
+
+	// IsDraft True when the authed user has a per-user draft at this path
+	// (over a deployed row or a synthesized draft-only row).
+	// Frontend appends a `*` to the displayed name.
+	IsDraft      *bool     `json:"is_draft,omitempty"`
+	IsExpired    *bool     `json:"is_expired,omitempty"`
+	IsLinked     *bool     `json:"is_linked,omitempty"`
+	IsOauth      *bool     `json:"is_oauth,omitempty"`
+	IsRefreshed  *bool     `json:"is_refreshed,omitempty"`
+	IsSecret     bool      `json:"is_secret"`
+	Labels       *[]string `json:"labels,omitempty"`
+	Path         string    `json:"path"`
+	RefreshError *string   `json:"refresh_error,omitempty"`
+	Value        *string   `json:"value,omitempty"`
+	WorkspaceId  string    `json:"workspace_id"`
+	WsSpecific   *bool     `json:"ws_specific,omitempty"`
 }
 
 // LogSearchHit defines model for LogSearchHit.
@@ -4321,7 +4315,6 @@ type NewScript struct {
 	DeleteAfterSecs         *int           `json:"delete_after_secs,omitempty"`
 	DeploymentMessage       *string        `json:"deployment_message,omitempty"`
 	Description             *string        `json:"description,omitempty"`
-	DraftOnly               *bool          `json:"draft_only,omitempty"`
 	Envs                    *[]string      `json:"envs,omitempty"`
 	HasPreprocessor         *bool          `json:"has_preprocessor,omitempty"`
 	IsTemplate              *bool          `json:"is_template,omitempty"`
@@ -4361,77 +4354,6 @@ type NewScriptAssetsAltAccessType string
 
 // NewScriptKind defines model for NewScript.Kind.
 type NewScriptKind string
-
-// NewScriptWithDraft defines model for NewScriptWithDraft.
-type NewScriptWithDraft struct {
-	Assets *[]struct {
-		AccessType    *NewScriptWithDraftAssetsAccessType    `json:"access_type,omitempty"`
-		AltAccessType *NewScriptWithDraftAssetsAltAccessType `json:"alt_access_type,omitempty"`
-		Kind          AssetKind                              `json:"kind"`
-		Path          string                                 `json:"path"`
-	} `json:"assets,omitempty"`
-	AutoKind                 *string   `json:"auto_kind,omitempty"`
-	CacheIgnoreS3Path        *bool     `json:"cache_ignore_s3_path,omitempty"`
-	CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
-	Codebase                 *string   `json:"codebase,omitempty"`
-	ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
-	ConcurrencyTimeWindowS   *int      `json:"concurrency_time_window_s,omitempty"`
-	ConcurrentLimit          *int      `json:"concurrent_limit,omitempty"`
-	Content                  string    `json:"content"`
-	DebounceArgsToAccumulate *[]string `json:"debounce_args_to_accumulate,omitempty"`
-	DebounceDelayS           *int      `json:"debounce_delay_s,omitempty"`
-	DebounceKey              *string   `json:"debounce_key,omitempty"`
-	DedicatedWorker          *bool     `json:"dedicated_worker,omitempty"`
-
-	// DeleteAfterSecs If set, delete the job's args, result and logs after this many seconds following job completion
-	DeleteAfterSecs   *int       `json:"delete_after_secs,omitempty"`
-	DeploymentMessage *string    `json:"deployment_message,omitempty"`
-	Description       *string    `json:"description,omitempty"`
-	Draft             *NewScript `json:"draft,omitempty"`
-
-	// DraftCreatedAt Timestamp at which the most recent DB draft was created. Used by the frontend's UserDraft staleness check.
-	DraftCreatedAt          *time.Time              `json:"draft_created_at,omitempty"`
-	DraftOnly               *bool                   `json:"draft_only,omitempty"`
-	Envs                    *[]string               `json:"envs,omitempty"`
-	HasPreprocessor         *bool                   `json:"has_preprocessor,omitempty"`
-	Hash                    string                  `json:"hash"`
-	IsTemplate              *bool                   `json:"is_template,omitempty"`
-	Kind                    *NewScriptWithDraftKind `json:"kind,omitempty"`
-	Labels                  *[]string               `json:"labels,omitempty"`
-	Language                ScriptLang              `json:"language"`
-	Lock                    *string                 `json:"lock,omitempty"`
-	MaxTotalDebouncesAmount *int                    `json:"max_total_debounces_amount,omitempty"`
-	MaxTotalDebouncingTime  *int                    `json:"max_total_debouncing_time,omitempty"`
-
-	// Modules Additional script modules keyed by relative file path
-	Modules         *map[string]ScriptModule `json:"modules"`
-	OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
-	ParentHash      *string                  `json:"parent_hash,omitempty"`
-	Path            string                   `json:"path"`
-
-	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
-	PreserveOnBehalfOf     *bool                   `json:"preserve_on_behalf_of,omitempty"`
-	Priority               *int                    `json:"priority,omitempty"`
-	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
-	Schema                 *map[string]interface{} `json:"schema,omitempty"`
-
-	// SkipDraftDeletion When true (set by the CLI / git sync), deploying this script does not delete an existing user draft at the same path.
-	SkipDraftDeletion   *bool   `json:"skip_draft_deletion,omitempty"`
-	Summary             string  `json:"summary"`
-	Tag                 *string `json:"tag,omitempty"`
-	Timeout             *int    `json:"timeout,omitempty"`
-	VisibleToRunnerOnly *bool   `json:"visible_to_runner_only,omitempty"`
-	WsErrorHandlerMuted *bool   `json:"ws_error_handler_muted,omitempty"`
-}
-
-// NewScriptWithDraftAssetsAccessType defines model for NewScriptWithDraft.Assets.AccessType.
-type NewScriptWithDraftAssetsAccessType string
-
-// NewScriptWithDraftAssetsAltAccessType defines model for NewScriptWithDraft.Assets.AltAccessType.
-type NewScriptWithDraftAssetsAltAccessType string
-
-// NewScriptWithDraftKind defines model for NewScriptWithDraft.Kind.
-type NewScriptWithDraftKind string
 
 // NewSqsTrigger defines model for NewSqsTrigger.
 type NewSqsTrigger struct {
@@ -4964,24 +4886,6 @@ type Relations struct {
 	TableToTrack TableToTrack `json:"table_to_track"`
 }
 
-// Resource defines model for Resource.
-type Resource struct {
-	CreatedBy   *string          `json:"created_by,omitempty"`
-	Description *string          `json:"description,omitempty"`
-	EditedAt    *time.Time       `json:"edited_at,omitempty"`
-	ExtraPerms  *map[string]bool `json:"extra_perms,omitempty"`
-
-	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
-	InheritedLabels *[]string    `json:"inherited_labels,omitempty"`
-	IsOauth         bool         `json:"is_oauth"`
-	Labels          *[]string    `json:"labels,omitempty"`
-	Path            string       `json:"path"`
-	ResourceType    string       `json:"resource_type"`
-	Value           *interface{} `json:"value,omitempty"`
-	WorkspaceId     *string      `json:"workspace_id,omitempty"`
-	WsSpecific      *bool        `json:"ws_specific,omitempty"`
-}
-
 // ResourceType defines model for ResourceType.
 type ResourceType struct {
 	CreatedBy       *string      `json:"created_by,omitempty"`
@@ -5103,6 +5007,10 @@ type Schedule struct {
 	// Description Detailed description of what this schedule does
 	Description *string `json:"description"`
 
+	// DraftOnly True when this row is a per-user draft with no deployed
+	// schedule at the same path. Frontend renders a "Draft" badge.
+	DraftOnly *bool `json:"draft_only,omitempty"`
+
 	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
 	DynamicSkip *string `json:"dynamic_skip"`
 
@@ -5126,6 +5034,11 @@ type Schedule struct {
 
 	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+
+	// IsDraft True when the authed user has a per-user draft at this path
+	// (over a deployed row or a synthesized draft-only row).
+	// Frontend appends a `*` to the displayed name.
+	IsDraft *bool `json:"is_draft,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
 	IsFlow bool      `json:"is_flow"`
@@ -5203,6 +5116,10 @@ type ScheduleWJobs struct {
 	// Description Detailed description of what this schedule does
 	Description *string `json:"description"`
 
+	// DraftOnly True when this row is a per-user draft with no deployed
+	// schedule at the same path. Frontend renders a "Draft" badge.
+	DraftOnly *bool `json:"draft_only,omitempty"`
+
 	// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
 	DynamicSkip *string `json:"dynamic_skip"`
 
@@ -5226,6 +5143,11 @@ type ScheduleWJobs struct {
 
 	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+
+	// IsDraft True when the authed user has a per-user draft at this path
+	// (over a deployed row or a synthesized draft-only row).
+	// Frontend appends a `*` to the displayed name.
+	IsDraft *bool `json:"is_draft,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
 	IsFlow bool `json:"is_flow"`
@@ -5336,7 +5258,6 @@ type Script struct {
 	DraftOnly       *bool           `json:"draft_only,omitempty"`
 	Envs            *[]string       `json:"envs,omitempty"`
 	ExtraPerms      map[string]bool `json:"extra_perms"`
-	HasDraft        *bool           `json:"has_draft,omitempty"`
 	HasPreprocessor bool            `json:"has_preprocessor"`
 	Hash            string          `json:"hash"`
 
@@ -5517,6 +5438,12 @@ type ToolValue struct {
 
 // TriggerExtraProperty defines model for TriggerExtraProperty.
 type TriggerExtraProperty struct {
+	// DraftOnly True when this row is a per-user draft with no deployed
+	// trigger at the same path. Set by list endpoints when
+	// `include_draft_only=true` synthesizes the row from the
+	// draft. Frontend renders a "Draft" badge.
+	DraftOnly *bool `json:"draft_only,omitempty"`
+
 	// EditedAt Timestamp of the last edit
 	EditedAt time.Time `json:"edited_at"`
 
@@ -5525,6 +5452,11 @@ type TriggerExtraProperty struct {
 
 	// ExtraPerms Additional permissions for this trigger
 	ExtraPerms map[string]bool `json:"extra_perms"`
+
+	// IsDraft True when the authed user has a per-user draft at this path
+	// (over a deployed row or a synthesized draft-only row).
+	// Frontend appends a `*` to the displayed name.
+	IsDraft *bool `json:"is_draft,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
 	IsFlow bool      `json:"is_flow"`
@@ -5607,6 +5539,41 @@ type User struct {
 	Name             *string     `json:"name,omitempty"`
 	Operator         bool        `json:"operator"`
 	Username         string      `json:"username"`
+}
+
+// UserDraftItemKind Closed set of item kinds a user can autosave as a draft. Mirrors the
+// Postgres `DRAFT_KIND` enum and the backend `UserDraftItemKind`.
+type UserDraftItemKind string
+
+// UserDraftOverlay Overlay fields added to every "get by path" response that accepts
+// the `get_draft` query parameter. The deployed payload is sent
+// untouched in the response body; the authed user's saved draft
+// for this path — whatever shape the editor wrote — is attached
+// as the sibling `draft` field when `get_draft=true` and a draft
+// exists. The frontend pairs the two to present diff / reset /
+// discard UI; the server never merges them.
+//
+// When `no_deployed=true` there is no deployed row at this path —
+// the response body is a best-effort stand-in synthesized from
+// the draft, and only `draft` is canonical. Callers should disable
+// "diff vs deployed" UI in that case.
+type UserDraftOverlay struct {
+	Draft        *map[string]interface{} `json:"draft,omitempty"`
+	DraftSavedAt *time.Time              `json:"draft_saved_at,omitempty"`
+	IsDraft      bool                    `json:"is_draft"`
+	NoDeployed   *bool                   `json:"no_deployed,omitempty"`
+
+	// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+	// with a saved draft at the same path. Populated only on the
+	// authed user's "get by path" responses for kinds the editor
+	// surfaces a fork banner for (script, flow, app, raw_app).
+	// Empty / omitted for kinds without that UI.
+	OtherDraftsUsers *[]struct {
+		// Username Workspace username of the draft owner. `null` represents
+		// the legacy workspace-level (NULL-email) row. Emails never
+		// leave the server.
+		Username *string `json:"username"`
+	} `json:"other_drafts_users,omitempty"`
 }
 
 // UserSource defines model for UserSource.
@@ -6677,11 +6644,17 @@ type CreatedBy = string
 // CustomPath defines model for CustomPath.
 type CustomPath = string
 
+// GetDraft defines model for GetDraft.
+type GetDraft = bool
+
 // GetStarted defines model for GetStarted.
 type GetStarted = bool
 
 // Id defines model for Id.
 type Id = string
+
+// IncludeDraftOnly defines model for IncludeDraftOnly.
+type IncludeDraftOnly = bool
 
 // IncludeHeader defines model for IncludeHeader.
 type IncludeHeader = string
@@ -7280,7 +7253,6 @@ type RemoveGranularAclsParamsKind string
 type CreateAppJSONBody struct {
 	CustomPath        *string   `json:"custom_path,omitempty"`
 	DeploymentMessage *string   `json:"deployment_message,omitempty"`
-	DraftOnly         *bool     `json:"draft_only,omitempty"`
 	Labels            *[]string `json:"labels,omitempty"`
 	Path              string    `json:"path"`
 	Policy            Policy    `json:"policy"`
@@ -7299,7 +7271,6 @@ type CreateAppRawMultipartBody struct {
 	App *struct {
 		CustomPath        *string   `json:"custom_path,omitempty"`
 		DeploymentMessage *string   `json:"deployment_message,omitempty"`
-		DraftOnly         *bool     `json:"draft_only,omitempty"`
 		Labels            *[]string `json:"labels,omitempty"`
 		Path              string    `json:"path"`
 		Policy            Policy    `json:"policy"`
@@ -7319,6 +7290,14 @@ type CreateAppRawMultipartBody struct {
 // GetAppByPathParams defines parameters for GetAppByPath.
 type GetAppByPathParams struct {
 	WithStarredInfo *bool `form:"with_starred_info,omitempty" json:"with_starred_info,omitempty"`
+
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
+
+	// RawApp When no deployed app exists at this path and `get_draft` is set,
+	// disambiguates which draft kind (`raw_app` or `app`) to look up.
+	// Ignored when a deployed row exists.
+	RawApp *bool `form:"raw_app,omitempty" json:"raw_app,omitempty"`
 }
 
 // UpdateAppHistoryJSONBody defines parameters for UpdateAppHistory.
@@ -7529,6 +7508,12 @@ type ListAuditLogsParams struct {
 // ListAuditLogsParamsActionKind defines parameters for ListAuditLogs.
 type ListAuditLogsParamsActionKind string
 
+// GetAzureTriggerParams defines parameters for GetAzureTrigger.
+type GetAzureTriggerParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
+}
+
 // ListAzureTriggersParams defines parameters for ListAzureTriggers.
 type ListAzureTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -7541,6 +7526,13 @@ type ListAzureTriggersParams struct {
 	Path      *string `form:"path,omitempty" json:"path,omitempty"`
 	IsFlow    *bool   `form:"is_flow,omitempty" json:"is_flow,omitempty"`
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // SetAzureTriggerModeJSONBody defines parameters for SetAzureTriggerMode.
@@ -7701,18 +7693,29 @@ type CreateDeploymentRequestCommentJSONBody struct {
 	ParentId   *int64  `json:"parent_id"`
 }
 
-// CreateDraftJSONBody defines parameters for CreateDraft.
-type CreateDraftJSONBody struct {
-	Path  string                 `json:"path"`
-	Typ   CreateDraftJSONBodyTyp `json:"typ"`
-	Value *interface{}           `json:"value,omitempty"`
+// GetDraftForUserParams defines parameters for GetDraftForUser.
+type GetDraftForUserParams struct {
+	// Username Workspace username of the draft owner. Omit to fetch the legacy workspace-level (NULL email) row.
+	Username *string `form:"username,omitempty" json:"username,omitempty"`
 }
 
-// CreateDraftJSONBodyTyp defines parameters for CreateDraft.
-type CreateDraftJSONBodyTyp string
+// UpdateDraftJSONBody defines parameters for UpdateDraft.
+type UpdateDraftJSONBody struct {
+	// Force Skip the conflict check and overwrite the server copy.
+	Force *bool `json:"force,omitempty"`
 
-// DeleteDraftParamsKind defines parameters for DeleteDraft.
-type DeleteDraftParamsKind string
+	// LastSync Server timestamp of the client's last known sync for this draft. Omit on first save.
+	LastSync *time.Time `json:"last_sync,omitempty"`
+
+	// Value Draft content to save. `null` (or omitted) signals a delete — the row is removed under the same conflict rules.
+	Value *interface{} `json:"value"`
+}
+
+// GetEmailTriggerParams defines parameters for GetEmailTrigger.
+type GetEmailTriggerParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
+}
 
 // ListEmailTriggersParams defines parameters for ListEmailTriggers.
 type ListEmailTriggersParams struct {
@@ -7729,6 +7732,13 @@ type ListEmailTriggersParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // ExistsEmailLocalPartJSONBody defines parameters for ExistsEmailLocalPart.
@@ -7810,7 +7820,6 @@ type CreateFlowJSONBody struct {
 
 	// Description Detailed documentation for this flow
 	Description     *string   `json:"description,omitempty"`
-	DraftOnly       *bool     `json:"draft_only,omitempty"`
 	Labels          *[]string `json:"labels,omitempty"`
 	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
 	Path            string    `json:"path"`
@@ -7845,6 +7854,9 @@ type DeleteFlowByPathParams struct {
 // GetFlowByPathParams defines parameters for GetFlowByPath.
 type GetFlowByPathParams struct {
 	WithStarredInfo *bool `form:"with_starred_info,omitempty" json:"with_starred_info,omitempty"`
+
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
 }
 
 // UpdateFlowHistoryJSONBody defines parameters for UpdateFlowHistory.
@@ -8004,6 +8016,12 @@ type GetFolderPermissionHistoryParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
+// GetGcpTriggerParams defines parameters for GetGcpTrigger.
+type GetGcpTriggerParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
+}
+
 // ListGcpTriggersParams defines parameters for ListGcpTriggers.
 type ListGcpTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -8019,6 +8037,13 @@ type ListGcpTriggersParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // SetGcpTriggerModeJSONBody defines parameters for SetGcpTriggerMode.
@@ -8108,6 +8133,12 @@ type GetGroupPermissionHistoryParams struct {
 // CreateHttpTriggersJSONBody defines parameters for CreateHttpTriggers.
 type CreateHttpTriggersJSONBody = []NewHttpTrigger
 
+// GetHttpTriggerParams defines parameters for GetHttpTrigger.
+type GetHttpTriggerParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
+}
+
 // ListHttpTriggersParams defines parameters for ListHttpTriggers.
 type ListHttpTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -8123,6 +8154,13 @@ type ListHttpTriggersParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // ExistsRouteJSONBody defines parameters for ExistsRoute.
@@ -9596,6 +9634,12 @@ type CommitKafkaOffsetsJSONBody struct {
 	Topic     string `json:"topic"`
 }
 
+// GetKafkaTriggerParams defines parameters for GetKafkaTrigger.
+type GetKafkaTriggerParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
+}
+
 // ListKafkaTriggersParams defines parameters for ListKafkaTriggers.
 type ListKafkaTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -9611,6 +9655,13 @@ type ListKafkaTriggersParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // SetKafkaTriggerModeJSONBody defines parameters for SetKafkaTriggerMode.
@@ -9625,6 +9676,12 @@ type SetKafkaTriggerModeJSONBody struct {
 // TestKafkaConnectionJSONBody defines parameters for TestKafkaConnection.
 type TestKafkaConnectionJSONBody struct {
 	Connection map[string]interface{} `json:"connection"`
+}
+
+// GetMqttTriggerParams defines parameters for GetMqttTrigger.
+type GetMqttTriggerParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
 }
 
 // ListMqttTriggersParams defines parameters for ListMqttTriggers.
@@ -9642,6 +9699,13 @@ type ListMqttTriggersParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // SetMqttTriggerModeJSONBody defines parameters for SetMqttTriggerMode.
@@ -9697,6 +9761,19 @@ type ListNativeTriggersParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
+}
+
+// GetNatsTriggerParams defines parameters for GetNatsTrigger.
+type GetNatsTriggerParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
 }
 
 // ListNatsTriggersParams defines parameters for ListNatsTriggers.
@@ -9714,6 +9791,13 @@ type ListNatsTriggersParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // SetNatsTriggerModeJSONBody defines parameters for SetNatsTriggerMode.
@@ -9783,6 +9867,12 @@ type ListPathAutocompletePathsParams struct {
 	Force *bool `form:"force,omitempty" json:"force,omitempty"`
 }
 
+// GetPostgresTriggerParams defines parameters for GetPostgresTrigger.
+type GetPostgresTriggerParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
+}
+
 // ListPostgresTriggersParams defines parameters for ListPostgresTriggers.
 type ListPostgresTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -9798,6 +9888,13 @@ type ListPostgresTriggersParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // SetPostgresTriggerModeJSONBody defines parameters for SetPostgresTriggerMode.
@@ -9840,6 +9937,13 @@ type ListRawAppsParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // CreateResourceParams defines parameters for CreateResource.
@@ -9851,6 +9955,12 @@ type CreateResourceParams struct {
 // DeleteResourcesBulkJSONBody defines parameters for DeleteResourcesBulk.
 type DeleteResourcesBulkJSONBody struct {
 	Paths []string `json:"paths"`
+}
+
+// GetResourceParams defines parameters for GetResource.
+type GetResourceParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
 }
 
 // GetResourceValueInterpolatedParams defines parameters for GetResourceValueInterpolated.
@@ -9898,11 +10008,22 @@ type ListResourceParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft resources whose path has
+	// no deployed resource. Synthesized rows carry
+	// `draft_only: true`.
+	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // UpdateResourceValueJSONBody defines parameters for UpdateResourceValue.
 type UpdateResourceValueJSONBody struct {
 	Value *interface{} `json:"value,omitempty"`
+}
+
+// GetScheduleParams defines parameters for GetSchedule.
+type GetScheduleParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
 }
 
 // ListSchedulesParams defines parameters for ListSchedules.
@@ -9939,6 +10060,11 @@ type ListSchedulesParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft schedules whose path has
+	// no deployed schedule. Synthesized rows carry
+	// `draft_only: true`.
+	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // ListSchedulesWithJobsParams defines parameters for ListSchedulesWithJobs.
@@ -10006,6 +10132,9 @@ type GetScriptByHashParams struct {
 // GetScriptByPathParams defines parameters for GetScriptByPath.
 type GetScriptByPathParams struct {
 	WithStarredInfo *bool `form:"with_starred_info,omitempty" json:"with_starred_info,omitempty"`
+
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
 }
 
 // UpdateScriptHistoryJSONBody defines parameters for UpdateScriptHistory.
@@ -10130,6 +10259,12 @@ type UpdateSharedUiJSONBody struct {
 	Files map[string]string `json:"files"`
 }
 
+// GetSqsTriggerParams defines parameters for GetSqsTrigger.
+type GetSqsTriggerParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
+}
+
 // ListSqsTriggersParams defines parameters for ListSqsTriggers.
 type ListSqsTriggersParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -10145,6 +10280,13 @@ type ListSqsTriggersParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // SetSqsTriggerModeJSONBody defines parameters for SetSqsTriggerMode.
@@ -10205,6 +10347,9 @@ type GetVariableParams struct {
 
 	// IncludeEncrypted ask to include the encrypted value if secret and decrypt secret is not true (default: false)
 	IncludeEncrypted *bool `form:"include_encrypted,omitempty" json:"include_encrypted,omitempty"`
+
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
 }
 
 // GetVariableValueParams defines parameters for GetVariableValue.
@@ -10238,6 +10383,11 @@ type ListVariableParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft variables whose path has no
+	// deployed variable. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge.
+	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // UpdateVariableParams defines parameters for UpdateVariable.
@@ -10249,6 +10399,12 @@ type UpdateVariableParams struct {
 // CreateVolumeJSONBody defines parameters for CreateVolume.
 type CreateVolumeJSONBody struct {
 	Name string `json:"name"`
+}
+
+// GetWebsocketTriggerParams defines parameters for GetWebsocketTrigger.
+type GetWebsocketTriggerParams struct {
+	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
+	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
 }
 
 // ListWebsocketTriggersParams defines parameters for ListWebsocketTriggers.
@@ -10266,6 +10422,13 @@ type ListWebsocketTriggersParams struct {
 
 	// Label Filter by label
 	Label *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// IncludeDraftOnly When true, append per-user draft rows whose path has no
+	// deployed counterpart. Synthesized rows carry `draft_only: true`
+	// so the home page can render a "Draft" badge. Gated to
+	// non-operators + page 0 + no narrowing filters on the backend so
+	// picker callers stay deployed-only and pagination stays clean.
+	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // SetWebsocketTriggerModeJSONBody defines parameters for SetWebsocketTriggerMode.
@@ -10916,8 +11079,8 @@ type CreateDeploymentRequestJSONRequestBody CreateDeploymentRequestJSONBody
 // CreateDeploymentRequestCommentJSONRequestBody defines body for CreateDeploymentRequestComment for application/json ContentType.
 type CreateDeploymentRequestCommentJSONRequestBody CreateDeploymentRequestCommentJSONBody
 
-// CreateDraftJSONRequestBody defines body for CreateDraft for application/json ContentType.
-type CreateDraftJSONRequestBody CreateDraftJSONBody
+// UpdateDraftJSONRequestBody defines body for UpdateDraft for application/json ContentType.
+type UpdateDraftJSONRequestBody UpdateDraftJSONBody
 
 // CreateEmailTriggerJSONRequestBody defines body for CreateEmailTrigger for application/json ContentType.
 type CreateEmailTriggerJSONRequestBody = NewEmailTrigger
@@ -14059,9 +14222,6 @@ type ClientInterface interface {
 	// ExistsApp request
 	ExistsApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetAppByPathWithDraft request
-	GetAppByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetAppLiteByPath request
 	GetAppLiteByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14162,7 +14322,7 @@ type ClientInterface interface {
 	ExistsAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAzureTrigger request
-	GetAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetAzureTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAzureTriggers request
 	ListAzureTriggers(ctx context.Context, workspace WorkspaceId, params *ListAzureTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14250,13 +14410,16 @@ type ClientInterface interface {
 
 	CreateDeploymentRequestComment(ctx context.Context, workspace WorkspaceId, id int64, body CreateDeploymentRequestCommentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// CreateDraftWithBody request with any body
-	CreateDraftWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetDraftForUser request
+	GetDraftForUser(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	CreateDraft(ctx context.Context, workspace WorkspaceId, body CreateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListDrafts request
+	ListDrafts(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteDraft request
-	DeleteDraft(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// UpdateDraftWithBody request with any body
+	UpdateDraftWithBody(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateDraft(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body UpdateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateEmailTriggerWithBody request with any body
 	CreateEmailTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14270,7 +14433,7 @@ type ClientInterface interface {
 	ExistsEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetEmailTrigger request
-	GetEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetEmailTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListEmailTriggers request
 	ListEmailTriggers(ctx context.Context, workspace WorkspaceId, params *ListEmailTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14330,9 +14493,6 @@ type ClientInterface interface {
 
 	// ExistsFlowByPath request
 	ExistsFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetFlowByPathWithDraft request
-	GetFlowByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFlowVersion request
 	GetFlowVersion(ctx context.Context, workspace WorkspaceId, version float32, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14432,7 +14592,7 @@ type ClientInterface interface {
 	ExistsGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetGcpTrigger request
-	GetGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetGcpTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListGcpTriggers request
 	ListGcpTriggers(ctx context.Context, workspace WorkspaceId, params *ListGcpTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14543,7 +14703,7 @@ type ClientInterface interface {
 	ExistsHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetHttpTrigger request
-	GetHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetHttpTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListHttpTriggers request
 	ListHttpTriggers(ctx context.Context, workspace WorkspaceId, params *ListHttpTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15021,7 +15181,7 @@ type ClientInterface interface {
 	ExistsKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetKafkaTrigger request
-	GetKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetKafkaTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListKafkaTriggers request
 	ListKafkaTriggers(ctx context.Context, workspace WorkspaceId, params *ListKafkaTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15056,7 +15216,7 @@ type ClientInterface interface {
 	ExistsMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetMqttTrigger request
-	GetMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetMqttTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListMqttTriggers request
 	ListMqttTriggers(ctx context.Context, workspace WorkspaceId, params *ListMqttTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15160,7 +15320,7 @@ type ClientInterface interface {
 	ExistsNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetNatsTrigger request
-	GetNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetNatsTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListNatsTriggers request
 	ListNatsTriggers(ctx context.Context, workspace WorkspaceId, params *ListNatsTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15249,7 +15409,7 @@ type ClientInterface interface {
 	ExistsPostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetPostgresTrigger request
-	GetPostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetPostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetPostgresTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetTemplateScript request
 	GetTemplateScript(ctx context.Context, workspace WorkspaceId, id Id, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15333,7 +15493,7 @@ type ClientInterface interface {
 	FileResourceTypeToFileExtMap(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetResource request
-	GetResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetResource(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetResourceValue request
 	GetResourceValue(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15403,7 +15563,7 @@ type ClientInterface interface {
 	ExistsSchedule(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSchedule request
-	GetSchedule(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetSchedule(ctx context.Context, workspace WorkspaceId, path Path, params *GetScheduleParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListSchedules request
 	ListSchedules(ctx context.Context, workspace WorkspaceId, params *ListSchedulesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15461,9 +15621,6 @@ type ClientInterface interface {
 
 	// ExistsScriptByPath request
 	ExistsScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetScriptByPathWithDraft request
-	GetScriptByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetScriptByHash request
 	GetScriptByHash(ctx context.Context, workspace WorkspaceId, hash ScriptHash, params *GetScriptByHashParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15550,7 +15707,7 @@ type ClientInterface interface {
 	ExistsSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSqsTrigger request
-	GetSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetSqsTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListSqsTriggers request
 	ListSqsTriggers(ctx context.Context, workspace WorkspaceId, params *ListSqsTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15697,7 +15854,7 @@ type ClientInterface interface {
 	ExistsWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetWebsocketTrigger request
-	GetWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetWebsocketTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListWebsocketTriggers request
 	ListWebsocketTriggers(ctx context.Context, workspace WorkspaceId, params *ListWebsocketTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18915,18 +19072,6 @@ func (c *Client) ExistsApp(ctx context.Context, workspace WorkspaceId, path Path
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetAppByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAppByPathWithDraftRequest(c.Server, workspace, path)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) GetAppLiteByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAppLiteByPathRequest(c.Server, workspace, path)
 	if err != nil {
@@ -19347,8 +19492,8 @@ func (c *Client) ExistsAzureTrigger(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAzureTriggerRequest(c.Server, workspace, path)
+func (c *Client) GetAzureTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetAzureTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAzureTriggerRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -19743,8 +19888,8 @@ func (c *Client) CreateDeploymentRequestComment(ctx context.Context, workspace W
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateDraftWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateDraftRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) GetDraftForUser(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDraftForUserRequest(c.Server, workspace, kind, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -19755,8 +19900,8 @@ func (c *Client) CreateDraftWithBody(ctx context.Context, workspace WorkspaceId,
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateDraft(ctx context.Context, workspace WorkspaceId, body CreateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateDraftRequest(c.Server, workspace, body)
+func (c *Client) ListDrafts(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDraftsRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -19767,8 +19912,20 @@ func (c *Client) CreateDraft(ctx context.Context, workspace WorkspaceId, body Cr
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteDraft(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteDraftRequest(c.Server, workspace, kind, path)
+func (c *Client) UpdateDraftWithBody(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateDraftRequestWithBody(c.Server, workspace, kind, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateDraft(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body UpdateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateDraftRequest(c.Server, workspace, kind, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -19827,8 +19984,8 @@ func (c *Client) ExistsEmailTrigger(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetEmailTriggerRequest(c.Server, workspace, path)
+func (c *Client) GetEmailTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetEmailTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetEmailTriggerRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -20093,18 +20250,6 @@ func (c *Client) GetFlowDeploymentStatus(ctx context.Context, workspace Workspac
 
 func (c *Client) ExistsFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsFlowByPathRequest(c.Server, workspace, path)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetFlowByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetFlowByPathWithDraftRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -20535,8 +20680,8 @@ func (c *Client) ExistsGcpTrigger(ctx context.Context, workspace WorkspaceId, pa
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetGcpTriggerRequest(c.Server, workspace, path)
+func (c *Client) GetGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetGcpTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGcpTriggerRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -21039,8 +21184,8 @@ func (c *Client) ExistsHttpTrigger(ctx context.Context, workspace WorkspaceId, p
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetHttpTriggerRequest(c.Server, workspace, path)
+func (c *Client) GetHttpTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetHttpTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetHttpTriggerRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -23163,8 +23308,8 @@ func (c *Client) ExistsKafkaTrigger(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetKafkaTriggerRequest(c.Server, workspace, path)
+func (c *Client) GetKafkaTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetKafkaTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetKafkaTriggerRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -23319,8 +23464,8 @@ func (c *Client) ExistsMqttTrigger(ctx context.Context, workspace WorkspaceId, p
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetMqttTriggerRequest(c.Server, workspace, path)
+func (c *Client) GetMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetMqttTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMqttTriggerRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -23775,8 +23920,8 @@ func (c *Client) ExistsNatsTrigger(ctx context.Context, workspace WorkspaceId, p
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetNatsTriggerRequest(c.Server, workspace, path)
+func (c *Client) GetNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetNatsTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNatsTriggerRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -24171,8 +24316,8 @@ func (c *Client) ExistsPostgresTrigger(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetPostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetPostgresTriggerRequest(c.Server, workspace, path)
+func (c *Client) GetPostgresTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetPostgresTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPostgresTriggerRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -24543,8 +24688,8 @@ func (c *Client) FileResourceTypeToFileExtMap(ctx context.Context, workspace Wor
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetResource(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetResourceRequest(c.Server, workspace, path)
+func (c *Client) GetResource(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetResourceRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -24843,8 +24988,8 @@ func (c *Client) ExistsSchedule(ctx context.Context, workspace WorkspaceId, path
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetSchedule(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetScheduleRequest(c.Server, workspace, path)
+func (c *Client) GetSchedule(ctx context.Context, workspace WorkspaceId, path Path, params *GetScheduleParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetScheduleRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -25097,18 +25242,6 @@ func (c *Client) GetScriptDeploymentStatus(ctx context.Context, workspace Worksp
 
 func (c *Client) ExistsScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsScriptByPathRequest(c.Server, workspace, path)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetScriptByPathWithDraft(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetScriptByPathWithDraftRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -25479,8 +25612,8 @@ func (c *Client) ExistsSqsTrigger(ctx context.Context, workspace WorkspaceId, pa
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetSqsTriggerRequest(c.Server, workspace, path)
+func (c *Client) GetSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetSqsTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSqsTriggerRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -26127,8 +26260,8 @@ func (c *Client) ExistsWebsocketTrigger(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetWebsocketTriggerRequest(c.Server, workspace, path)
+func (c *Client) GetWebsocketTrigger(ctx context.Context, workspace WorkspaceId, path Path, params *GetWebsocketTriggerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetWebsocketTriggerRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -34907,47 +35040,6 @@ func NewExistsAppRequest(server string, workspace WorkspaceId, path Path) (*http
 	return req, nil
 }
 
-// NewGetAppByPathWithDraftRequest generates requests for GetAppByPathWithDraft
-func NewGetAppByPathWithDraftRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/apps/get/draft/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewGetAppLiteByPathRequest generates requests for GetAppLiteByPath
 func NewGetAppLiteByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
 	var err error
@@ -35028,6 +35120,38 @@ func NewGetAppByPathRequest(server string, workspace WorkspaceId, path ScriptPat
 		if params.WithStarredInfo != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_starred_info", runtime.ParamLocationQuery, *params.WithStarredInfo); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.RawApp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "raw_app", runtime.ParamLocationQuery, *params.RawApp); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -36827,7 +36951,7 @@ func NewExistsAzureTriggerRequest(server string, workspace WorkspaceId, path Pat
 }
 
 // NewGetAzureTriggerRequest generates requests for GetAzureTrigger
-func NewGetAzureTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetAzureTriggerRequest(server string, workspace WorkspaceId, path Path, params *GetAzureTriggerParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -36857,6 +36981,28 @@ func NewGetAzureTriggerRequest(server string, workspace WorkspaceId, path Path) 
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -36963,6 +37109,22 @@ func NewListAzureTriggersRequest(server string, workspace WorkspaceId, params *L
 		if params.PathStart != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -38543,55 +38705,8 @@ func NewCreateDeploymentRequestCommentRequestWithBody(server string, workspace W
 	return req, nil
 }
 
-// NewCreateDraftRequest calls the generic CreateDraft builder with application/json body
-func NewCreateDraftRequest(server string, workspace WorkspaceId, body CreateDraftJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewCreateDraftRequestWithBody(server, workspace, "application/json", bodyReader)
-}
-
-// NewCreateDraftRequestWithBody generates requests for CreateDraft with any type of body
-func NewCreateDraftRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/drafts/create", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeleteDraftRequest generates requests for DeleteDraft
-func NewDeleteDraftRequest(server string, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath) (*http.Request, error) {
+// NewGetDraftForUserRequest generates requests for GetDraftForUser
+func NewGetDraftForUserRequest(server string, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -38620,7 +38735,7 @@ func NewDeleteDraftRequest(server string, workspace WorkspaceId, kind DeleteDraf
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/drafts/delete/%s/%s", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/w/%s/drafts/get/%s/%s", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -38630,10 +38745,127 @@ func NewDeleteDraftRequest(server string, workspace WorkspaceId, kind DeleteDraf
 		return nil, err
 	}
 
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Username != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "username", runtime.ParamLocationQuery, *params.Username); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewListDraftsRequest generates requests for ListDrafts
+func NewListDraftsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/drafts/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateDraftRequest calls the generic UpdateDraft builder with application/json body
+func NewUpdateDraftRequest(server string, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body UpdateDraftJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateDraftRequestWithBody(server, workspace, kind, path, "application/json", bodyReader)
+}
+
+// NewUpdateDraftRequestWithBody generates requests for UpdateDraft with any type of body
+func NewUpdateDraftRequestWithBody(server string, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "kind", runtime.ParamLocationPath, kind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/drafts/update/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -38768,7 +39000,7 @@ func NewExistsEmailTriggerRequest(server string, workspace WorkspaceId, path Pat
 }
 
 // NewGetEmailTriggerRequest generates requests for GetEmailTrigger
-func NewGetEmailTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetEmailTriggerRequest(server string, workspace WorkspaceId, path Path, params *GetEmailTriggerParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -38798,6 +39030,28 @@ func NewGetEmailTriggerRequest(server string, workspace WorkspaceId, path Path) 
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -38920,6 +39174,22 @@ func NewListEmailTriggersRequest(server string, workspace WorkspaceId, params *L
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -39731,47 +40001,6 @@ func NewExistsFlowByPathRequest(server string, workspace WorkspaceId, path Scrip
 	return req, nil
 }
 
-// NewGetFlowByPathWithDraftRequest generates requests for GetFlowByPathWithDraft
-func NewGetFlowByPathWithDraftRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/flows/get/draft/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewGetFlowVersionRequest generates requests for GetFlowVersion
 func NewGetFlowVersionRequest(server string, workspace WorkspaceId, version float32) (*http.Request, error) {
 	var err error
@@ -39852,6 +40081,22 @@ func NewGetFlowByPathRequest(server string, workspace WorkspaceId, path ScriptPa
 		if params.WithStarredInfo != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_starred_info", runtime.ParamLocationQuery, *params.WithStarredInfo); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -41298,7 +41543,7 @@ func NewExistsGcpTriggerRequest(server string, workspace WorkspaceId, path Path)
 }
 
 // NewGetGcpTriggerRequest generates requests for GetGcpTrigger
-func NewGetGcpTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetGcpTriggerRequest(server string, workspace WorkspaceId, path Path, params *GetGcpTriggerParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -41328,6 +41573,28 @@ func NewGetGcpTriggerRequest(server string, workspace WorkspaceId, path Path) (*
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -41450,6 +41717,22 @@ func NewListGcpTriggersRequest(server string, workspace WorkspaceId, params *Lis
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -42723,7 +43006,7 @@ func NewExistsHttpTriggerRequest(server string, workspace WorkspaceId, path Path
 }
 
 // NewGetHttpTriggerRequest generates requests for GetHttpTrigger
-func NewGetHttpTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetHttpTriggerRequest(server string, workspace WorkspaceId, path Path, params *GetHttpTriggerParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -42753,6 +43036,28 @@ func NewGetHttpTriggerRequest(server string, workspace WorkspaceId, path Path) (
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -42875,6 +43180,22 @@ func NewListHttpTriggersRequest(server string, workspace WorkspaceId, params *Li
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -55550,7 +55871,7 @@ func NewExistsKafkaTriggerRequest(server string, workspace WorkspaceId, path Pat
 }
 
 // NewGetKafkaTriggerRequest generates requests for GetKafkaTrigger
-func NewGetKafkaTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetKafkaTriggerRequest(server string, workspace WorkspaceId, path Path, params *GetKafkaTriggerParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -55580,6 +55901,28 @@ func NewGetKafkaTriggerRequest(server string, workspace WorkspaceId, path Path) 
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -55702,6 +56045,22 @@ func NewListKafkaTriggersRequest(server string, workspace WorkspaceId, params *L
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -56052,7 +56411,7 @@ func NewExistsMqttTriggerRequest(server string, workspace WorkspaceId, path Path
 }
 
 // NewGetMqttTriggerRequest generates requests for GetMqttTrigger
-func NewGetMqttTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetMqttTriggerRequest(server string, workspace WorkspaceId, path Path, params *GetMqttTriggerParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -56082,6 +56441,28 @@ func NewGetMqttTriggerRequest(server string, workspace WorkspaceId, path Path) (
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -56204,6 +56585,22 @@ func NewListMqttTriggersRequest(server string, workspace WorkspaceId, params *Li
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -57310,6 +57707,22 @@ func NewListNativeTriggersRequest(server string, workspace WorkspaceId, serviceN
 
 		}
 
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -57553,7 +57966,7 @@ func NewExistsNatsTriggerRequest(server string, workspace WorkspaceId, path Path
 }
 
 // NewGetNatsTriggerRequest generates requests for GetNatsTrigger
-func NewGetNatsTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetNatsTriggerRequest(server string, workspace WorkspaceId, path Path, params *GetNatsTriggerParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -57583,6 +57996,28 @@ func NewGetNatsTriggerRequest(server string, workspace WorkspaceId, path Path) (
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -57705,6 +58140,22 @@ func NewListNatsTriggersRequest(server string, workspace WorkspaceId, params *Li
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -58738,7 +59189,7 @@ func NewExistsPostgresTriggerRequest(server string, workspace WorkspaceId, path 
 }
 
 // NewGetPostgresTriggerRequest generates requests for GetPostgresTrigger
-func NewGetPostgresTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetPostgresTriggerRequest(server string, workspace WorkspaceId, path Path, params *GetPostgresTriggerParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -58768,6 +59219,28 @@ func NewGetPostgresTriggerRequest(server string, workspace WorkspaceId, path Pat
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -58972,6 +59445,22 @@ func NewListPostgresTriggersRequest(server string, workspace WorkspaceId, params
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -59757,6 +60246,22 @@ func NewListRawAppsRequest(server string, workspace WorkspaceId, params *ListRaw
 
 		}
 
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -60001,7 +60506,7 @@ func NewFileResourceTypeToFileExtMapRequest(server string, workspace WorkspaceId
 }
 
 // NewGetResourceRequest generates requests for GetResource
-func NewGetResourceRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetResourceRequest(server string, workspace WorkspaceId, path Path, params *GetResourceParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -60031,6 +60536,28 @@ func NewGetResourceRequest(server string, workspace WorkspaceId, path Path) (*ht
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -60400,6 +60927,22 @@ func NewListResourceRequest(server string, workspace WorkspaceId, params *ListRe
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -61070,7 +61613,7 @@ func NewExistsScheduleRequest(server string, workspace WorkspaceId, path Path) (
 }
 
 // NewGetScheduleRequest generates requests for GetSchedule
-func NewGetScheduleRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetScheduleRequest(server string, workspace WorkspaceId, path Path, params *GetScheduleParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -61100,6 +61643,28 @@ func NewGetScheduleRequest(server string, workspace WorkspaceId, path Path) (*ht
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -61302,6 +61867,22 @@ func NewListSchedulesRequest(server string, workspace WorkspaceId, params *ListS
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -62010,47 +62591,6 @@ func NewExistsScriptByPathRequest(server string, workspace WorkspaceId, path Scr
 	return req, nil
 }
 
-// NewGetScriptByPathWithDraftRequest generates requests for GetScriptByPathWithDraft
-func NewGetScriptByPathWithDraftRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/scripts/get/draft/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewGetScriptByHashRequest generates requests for GetScriptByHash
 func NewGetScriptByHashRequest(server string, workspace WorkspaceId, hash ScriptHash, params *GetScriptByHashParams) (*http.Request, error) {
 	var err error
@@ -62169,6 +62709,22 @@ func NewGetScriptByPathRequest(server string, workspace WorkspaceId, path Script
 		if params.WithStarredInfo != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "with_starred_info", runtime.ParamLocationQuery, *params.WithStarredInfo); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -63430,7 +63986,7 @@ func NewExistsSqsTriggerRequest(server string, workspace WorkspaceId, path Path)
 }
 
 // NewGetSqsTriggerRequest generates requests for GetSqsTrigger
-func NewGetSqsTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetSqsTriggerRequest(server string, workspace WorkspaceId, path Path, params *GetSqsTriggerParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -63460,6 +64016,28 @@ func NewGetSqsTriggerRequest(server string, workspace WorkspaceId, path Path) (*
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -63582,6 +64160,22 @@ func NewListSqsTriggersRequest(server string, workspace WorkspaceId, params *Lis
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -64821,6 +65415,22 @@ func NewGetVariableRequest(server string, workspace WorkspaceId, path Path, para
 
 		}
 
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -65039,6 +65649,22 @@ func NewListVariableRequest(server string, workspace WorkspaceId, params *ListVa
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -65459,7 +66085,7 @@ func NewExistsWebsocketTriggerRequest(server string, workspace WorkspaceId, path
 }
 
 // NewGetWebsocketTriggerRequest generates requests for GetWebsocketTrigger
-func NewGetWebsocketTriggerRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewGetWebsocketTriggerRequest(server string, workspace WorkspaceId, path Path, params *GetWebsocketTriggerParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -65489,6 +66115,28 @@ func NewGetWebsocketTriggerRequest(server string, workspace WorkspaceId, path Pa
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.GetDraft != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_draft", runtime.ParamLocationQuery, *params.GetDraft); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -65611,6 +66259,22 @@ func NewListWebsocketTriggersRequest(server string, workspace WorkspaceId, param
 		if params.Label != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -71466,9 +72130,6 @@ type ClientWithResponsesInterface interface {
 	// ExistsAppWithResponse request
 	ExistsAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsAppResponse, error)
 
-	// GetAppByPathWithDraftWithResponse request
-	GetAppByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathWithDraftResponse, error)
-
 	// GetAppLiteByPathWithResponse request
 	GetAppLiteByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppLiteByPathResponse, error)
 
@@ -71569,7 +72230,7 @@ type ClientWithResponsesInterface interface {
 	ExistsAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsAzureTriggerResponse, error)
 
 	// GetAzureTriggerWithResponse request
-	GetAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetAzureTriggerResponse, error)
+	GetAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetAzureTriggerParams, reqEditors ...RequestEditorFn) (*GetAzureTriggerResponse, error)
 
 	// ListAzureTriggersWithResponse request
 	ListAzureTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAzureTriggersParams, reqEditors ...RequestEditorFn) (*ListAzureTriggersResponse, error)
@@ -71657,13 +72318,16 @@ type ClientWithResponsesInterface interface {
 
 	CreateDeploymentRequestCommentWithResponse(ctx context.Context, workspace WorkspaceId, id int64, body CreateDeploymentRequestCommentJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestCommentResponse, error)
 
-	// CreateDraftWithBodyWithResponse request with any body
-	CreateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error)
+	// GetDraftForUserWithResponse request
+	GetDraftForUserWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*GetDraftForUserResponse, error)
 
-	CreateDraftWithResponse(ctx context.Context, workspace WorkspaceId, body CreateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error)
+	// ListDraftsWithResponse request
+	ListDraftsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDraftsResponse, error)
 
-	// DeleteDraftWithResponse request
-	DeleteDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteDraftResponse, error)
+	// UpdateDraftWithBodyWithResponse request with any body
+	UpdateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDraftResponse, error)
+
+	UpdateDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body UpdateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDraftResponse, error)
 
 	// CreateEmailTriggerWithBodyWithResponse request with any body
 	CreateEmailTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateEmailTriggerResponse, error)
@@ -71677,7 +72341,7 @@ type ClientWithResponsesInterface interface {
 	ExistsEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsEmailTriggerResponse, error)
 
 	// GetEmailTriggerWithResponse request
-	GetEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetEmailTriggerResponse, error)
+	GetEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetEmailTriggerParams, reqEditors ...RequestEditorFn) (*GetEmailTriggerResponse, error)
 
 	// ListEmailTriggersWithResponse request
 	ListEmailTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListEmailTriggersParams, reqEditors ...RequestEditorFn) (*ListEmailTriggersResponse, error)
@@ -71737,9 +72401,6 @@ type ClientWithResponsesInterface interface {
 
 	// ExistsFlowByPathWithResponse request
 	ExistsFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ExistsFlowByPathResponse, error)
-
-	// GetFlowByPathWithDraftWithResponse request
-	GetFlowByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathWithDraftResponse, error)
 
 	// GetFlowVersionWithResponse request
 	GetFlowVersionWithResponse(ctx context.Context, workspace WorkspaceId, version float32, reqEditors ...RequestEditorFn) (*GetFlowVersionResponse, error)
@@ -71839,7 +72500,7 @@ type ClientWithResponsesInterface interface {
 	ExistsGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsGcpTriggerResponse, error)
 
 	// GetGcpTriggerWithResponse request
-	GetGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetGcpTriggerResponse, error)
+	GetGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetGcpTriggerParams, reqEditors ...RequestEditorFn) (*GetGcpTriggerResponse, error)
 
 	// ListGcpTriggersWithResponse request
 	ListGcpTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListGcpTriggersParams, reqEditors ...RequestEditorFn) (*ListGcpTriggersResponse, error)
@@ -71950,7 +72611,7 @@ type ClientWithResponsesInterface interface {
 	ExistsHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsHttpTriggerResponse, error)
 
 	// GetHttpTriggerWithResponse request
-	GetHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetHttpTriggerResponse, error)
+	GetHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetHttpTriggerParams, reqEditors ...RequestEditorFn) (*GetHttpTriggerResponse, error)
 
 	// ListHttpTriggersWithResponse request
 	ListHttpTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListHttpTriggersParams, reqEditors ...RequestEditorFn) (*ListHttpTriggersResponse, error)
@@ -72428,7 +73089,7 @@ type ClientWithResponsesInterface interface {
 	ExistsKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsKafkaTriggerResponse, error)
 
 	// GetKafkaTriggerWithResponse request
-	GetKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetKafkaTriggerResponse, error)
+	GetKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetKafkaTriggerParams, reqEditors ...RequestEditorFn) (*GetKafkaTriggerResponse, error)
 
 	// ListKafkaTriggersWithResponse request
 	ListKafkaTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListKafkaTriggersParams, reqEditors ...RequestEditorFn) (*ListKafkaTriggersResponse, error)
@@ -72463,7 +73124,7 @@ type ClientWithResponsesInterface interface {
 	ExistsMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsMqttTriggerResponse, error)
 
 	// GetMqttTriggerWithResponse request
-	GetMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetMqttTriggerResponse, error)
+	GetMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetMqttTriggerParams, reqEditors ...RequestEditorFn) (*GetMqttTriggerResponse, error)
 
 	// ListMqttTriggersWithResponse request
 	ListMqttTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListMqttTriggersParams, reqEditors ...RequestEditorFn) (*ListMqttTriggersResponse, error)
@@ -72567,7 +73228,7 @@ type ClientWithResponsesInterface interface {
 	ExistsNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsNatsTriggerResponse, error)
 
 	// GetNatsTriggerWithResponse request
-	GetNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetNatsTriggerResponse, error)
+	GetNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetNatsTriggerParams, reqEditors ...RequestEditorFn) (*GetNatsTriggerResponse, error)
 
 	// ListNatsTriggersWithResponse request
 	ListNatsTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListNatsTriggersParams, reqEditors ...RequestEditorFn) (*ListNatsTriggersResponse, error)
@@ -72656,7 +73317,7 @@ type ClientWithResponsesInterface interface {
 	ExistsPostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsPostgresTriggerResponse, error)
 
 	// GetPostgresTriggerWithResponse request
-	GetPostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPostgresTriggerResponse, error)
+	GetPostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetPostgresTriggerParams, reqEditors ...RequestEditorFn) (*GetPostgresTriggerResponse, error)
 
 	// GetTemplateScriptWithResponse request
 	GetTemplateScriptWithResponse(ctx context.Context, workspace WorkspaceId, id Id, reqEditors ...RequestEditorFn) (*GetTemplateScriptResponse, error)
@@ -72740,7 +73401,7 @@ type ClientWithResponsesInterface interface {
 	FileResourceTypeToFileExtMapWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*FileResourceTypeToFileExtMapResponse, error)
 
 	// GetResourceWithResponse request
-	GetResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceResponse, error)
+	GetResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceParams, reqEditors ...RequestEditorFn) (*GetResourceResponse, error)
 
 	// GetResourceValueWithResponse request
 	GetResourceValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceValueResponse, error)
@@ -72810,7 +73471,7 @@ type ClientWithResponsesInterface interface {
 	ExistsScheduleWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsScheduleResponse, error)
 
 	// GetScheduleWithResponse request
-	GetScheduleWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetScheduleResponse, error)
+	GetScheduleWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetScheduleParams, reqEditors ...RequestEditorFn) (*GetScheduleResponse, error)
 
 	// ListSchedulesWithResponse request
 	ListSchedulesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListSchedulesParams, reqEditors ...RequestEditorFn) (*ListSchedulesResponse, error)
@@ -72868,9 +73529,6 @@ type ClientWithResponsesInterface interface {
 
 	// ExistsScriptByPathWithResponse request
 	ExistsScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ExistsScriptByPathResponse, error)
-
-	// GetScriptByPathWithDraftWithResponse request
-	GetScriptByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptByPathWithDraftResponse, error)
 
 	// GetScriptByHashWithResponse request
 	GetScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, params *GetScriptByHashParams, reqEditors ...RequestEditorFn) (*GetScriptByHashResponse, error)
@@ -72957,7 +73615,7 @@ type ClientWithResponsesInterface interface {
 	ExistsSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsSqsTriggerResponse, error)
 
 	// GetSqsTriggerWithResponse request
-	GetSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetSqsTriggerResponse, error)
+	GetSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetSqsTriggerParams, reqEditors ...RequestEditorFn) (*GetSqsTriggerResponse, error)
 
 	// ListSqsTriggersWithResponse request
 	ListSqsTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListSqsTriggersParams, reqEditors ...RequestEditorFn) (*ListSqsTriggersResponse, error)
@@ -73104,7 +73762,7 @@ type ClientWithResponsesInterface interface {
 	ExistsWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsWebsocketTriggerResponse, error)
 
 	// GetWebsocketTriggerWithResponse request
-	GetWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetWebsocketTriggerResponse, error)
+	GetWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetWebsocketTriggerParams, reqEditors ...RequestEditorFn) (*GetWebsocketTriggerResponse, error)
 
 	// ListWebsocketTriggersWithResponse request
 	ListWebsocketTriggersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListWebsocketTriggersParams, reqEditors ...RequestEditorFn) (*ListWebsocketTriggersResponse, error)
@@ -77518,28 +78176,6 @@ func (r ExistsAppResponse) StatusCode() int {
 	return 0
 }
 
-type GetAppByPathWithDraftResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *AppWithLastVersionWDraft
-}
-
-// Status returns HTTPResponse.Status
-func (r GetAppByPathWithDraftResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetAppByPathWithDraftResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetAppLiteByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -77565,8 +78201,41 @@ func (r GetAppLiteByPathResponse) StatusCode() int {
 type GetAppByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *AppWithLastVersion
+	JSON200      *struct {
+		BundleSecret  *string                      `json:"bundle_secret,omitempty"`
+		CreatedAt     time.Time                    `json:"created_at"`
+		CreatedBy     string                       `json:"created_by"`
+		CustomPath    *string                      `json:"custom_path,omitempty"`
+		Draft         *map[string]interface{}      `json:"draft,omitempty"`
+		DraftSavedAt  *time.Time                   `json:"draft_saved_at,omitempty"`
+		ExecutionMode GetAppByPath200ExecutionMode `json:"execution_mode"`
+		ExtraPerms    map[string]bool              `json:"extra_perms"`
+		Id            int                          `json:"id"`
+		IsDraft       bool                         `json:"is_draft"`
+		Labels        *[]string                    `json:"labels,omitempty"`
+		NoDeployed    *bool                        `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+		Path        string      `json:"path"`
+		Policy      Policy      `json:"policy"`
+		RawApp      bool        `json:"raw_app"`
+		Summary     string      `json:"summary"`
+		Value       interface{} `json:"value"`
+		Versions    []int       `json:"versions"`
+		WorkspaceId string      `json:"workspace_id"`
+	}
 }
+type GetAppByPath200ExecutionMode string
 
 // Status returns HTTPResponse.Status
 func (r GetAppByPathResponse) Status() string {
@@ -78220,7 +78889,58 @@ func (r ExistsAzureTriggerResponse) StatusCode() int {
 type GetAzureTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *AzureTrigger
+	JSON200      *struct {
+		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// trigger at the same path. Set by list endpoints when
+		// `include_draft_only=true` synthesizes the row from the
+		// draft. Frontend renders a "Draft" badge.
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+		// EditedAt Timestamp of the last edit
+		EditedAt time.Time `json:"edited_at"`
+
+		// EditedBy Username of the last person who edited this trigger
+		EditedBy string `json:"edited_by"`
+
+		// ExtraPerms Additional permissions for this trigger
+		ExtraPerms map[string]bool `json:"extra_perms"`
+		IsDraft    bool            `json:"is_draft"`
+
+		// IsFlow True if script_path points to a flow, false if it points to a script
+		IsFlow bool      `json:"is_flow"`
+		Labels *[]string `json:"labels,omitempty"`
+
+		// Mode job trigger mode
+		Mode       TriggerMode `json:"mode"`
+		NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+		Path string `json:"path"`
+
+		// PermissionedAs The user or group this trigger runs as (permissioned_as)
+		PermissionedAs string `json:"permissioned_as"`
+
+		// ScriptPath Path to the script or flow to execute when triggered
+		ScriptPath string `json:"script_path"`
+
+		// WorkspaceId The workspace this trigger belongs to
+		WorkspaceId string `json:"workspace_id"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -78714,13 +79434,17 @@ func (r CreateDeploymentRequestCommentResponse) StatusCode() int {
 	return 0
 }
 
-type CreateDraftResponse struct {
+type GetDraftForUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *struct {
+		CreatedAt time.Time   `json:"created_at"`
+		Value     interface{} `json:"value"`
+	}
 }
 
 // Status returns HTTPResponse.Status
-func (r CreateDraftResponse) Status() string {
+func (r GetDraftForUserResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -78728,20 +79452,34 @@ func (r CreateDraftResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r CreateDraftResponse) StatusCode() int {
+func (r GetDraftForUserResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type DeleteDraftResponse struct {
+type ListDraftsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		CreatedAt time.Time `json:"created_at"`
+
+		// DraftOnly No deployed counterpart exists at this path — the draft is the whole item.
+		DraftOnly bool `json:"draft_only"`
+
+		// Kind Closed set of item kinds a user can autosave as a draft. Mirrors the
+		// Postgres `DRAFT_KIND` enum and the backend `UserDraftItemKind`.
+		Kind UserDraftItemKind `json:"kind"`
+		Path string            `json:"path"`
+
+		// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one.
+		Summary *string `json:"summary,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteDraftResponse) Status() string {
+func (r ListDraftsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -78749,7 +79487,33 @@ func (r DeleteDraftResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteDraftResponse) StatusCode() int {
+func (r ListDraftsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateDraftResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		CurrentTimestamp time.Time            `json:"current_timestamp"`
+		Status           UpdateDraft200Status `json:"status"`
+	}
+}
+type UpdateDraft200Status string
+
+// Status returns HTTPResponse.Status
+func (r UpdateDraftResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateDraftResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -78823,7 +79587,58 @@ func (r ExistsEmailTriggerResponse) StatusCode() int {
 type GetEmailTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *EmailTrigger
+	JSON200      *struct {
+		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// trigger at the same path. Set by list endpoints when
+		// `include_draft_only=true` synthesizes the row from the
+		// draft. Frontend renders a "Draft" badge.
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+		// EditedAt Timestamp of the last edit
+		EditedAt time.Time `json:"edited_at"`
+
+		// EditedBy Username of the last person who edited this trigger
+		EditedBy string `json:"edited_by"`
+
+		// ExtraPerms Additional permissions for this trigger
+		ExtraPerms map[string]bool `json:"extra_perms"`
+		IsDraft    bool            `json:"is_draft"`
+
+		// IsFlow True if script_path points to a flow, false if it points to a script
+		IsFlow bool      `json:"is_flow"`
+		Labels *[]string `json:"labels,omitempty"`
+
+		// Mode job trigger mode
+		Mode       TriggerMode `json:"mode"`
+		NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+		Path string `json:"path"`
+
+		// PermissionedAs The user or group this trigger runs as (permissioned_as)
+		PermissionedAs string `json:"permissioned_as"`
+
+		// ScriptPath Path to the script or flow to execute when triggered
+		ScriptPath string `json:"script_path"`
+
+		// WorkspaceId The workspace this trigger belongs to
+		WorkspaceId string `json:"workspace_id"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -79171,66 +79986,6 @@ func (r ExistsFlowByPathResponse) StatusCode() int {
 	return 0
 }
 
-type GetFlowByPathWithDraftResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Archived        bool  `json:"archived"`
-		DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
-
-		// Description Detailed documentation for this flow
-		Description *string `json:"description,omitempty"`
-		Draft       *Flow   `json:"draft,omitempty"`
-
-		// DraftCreatedAt Timestamp at which the most recent DB draft was created. Used by the frontend's UserDraft staleness check.
-		DraftCreatedAt *time.Time `json:"draft_created_at,omitempty"`
-		DraftOnly      *bool      `json:"draft_only,omitempty"`
-		EditedAt       time.Time  `json:"edited_at"`
-		EditedBy       string     `json:"edited_by"`
-		ExtraPerms     ExtraPerms `json:"extra_perms"`
-
-		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
-		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
-		Labels          *[]string `json:"labels,omitempty"`
-		LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
-		OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
-		Path            string    `json:"path"`
-		Priority        *int      `json:"priority,omitempty"`
-
-		// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
-		Schema  *map[string]interface{} `json:"schema,omitempty"`
-		Starred *bool                   `json:"starred,omitempty"`
-
-		// Summary Short description of what this flow does
-		Summary string   `json:"summary"`
-		Tag     *string  `json:"tag,omitempty"`
-		Timeout *float32 `json:"timeout,omitempty"`
-
-		// Value The flow structure containing modules and optional preprocessor/failure handlers
-		Value               SchemasFlowValue `json:"value"`
-		VersionId           *float32         `json:"version_id,omitempty"`
-		VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
-		WorkspaceId         *string          `json:"workspace_id,omitempty"`
-		WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r GetFlowByPathWithDraftResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetFlowByPathWithDraftResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetFlowVersionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -79256,7 +80011,57 @@ func (r GetFlowVersionResponse) StatusCode() int {
 type GetFlowByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Flow
+	JSON200      *struct {
+		Archived        bool  `json:"archived"`
+		DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
+
+		// Description Detailed documentation for this flow
+		Description  *string                 `json:"description,omitempty"`
+		Draft        *map[string]interface{} `json:"draft,omitempty"`
+		DraftOnly    *bool                   `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time              `json:"draft_saved_at,omitempty"`
+		EditedAt     time.Time               `json:"edited_at"`
+		EditedBy     string                  `json:"edited_by"`
+		ExtraPerms   ExtraPerms              `json:"extra_perms"`
+
+		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+		IsDraft         bool      `json:"is_draft"`
+		Labels          *[]string `json:"labels,omitempty"`
+		LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
+		NoDeployed      *bool     `json:"no_deployed,omitempty"`
+		OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+		Path     string `json:"path"`
+		Priority *int   `json:"priority,omitempty"`
+
+		// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+		Schema  *map[string]interface{} `json:"schema,omitempty"`
+		Starred *bool                   `json:"starred,omitempty"`
+
+		// Summary Short description of what this flow does
+		Summary string   `json:"summary"`
+		Tag     *string  `json:"tag,omitempty"`
+		Timeout *float32 `json:"timeout,omitempty"`
+
+		// Value The flow structure containing modules and optional preprocessor/failure handlers
+		Value               SchemasFlowValue `json:"value"`
+		VersionId           *float32         `json:"version_id,omitempty"`
+		VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
+		WorkspaceId         *string          `json:"workspace_id,omitempty"`
+		WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -79370,15 +80175,39 @@ type ListFlowsResponse struct {
 		DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 		// Description Detailed documentation for this flow
-		Description *string    `json:"description,omitempty"`
-		DraftOnly   *bool      `json:"draft_only,omitempty"`
-		EditedAt    time.Time  `json:"edited_at"`
-		EditedBy    string     `json:"edited_by"`
-		ExtraPerms  ExtraPerms `json:"extra_perms"`
-		HasDraft    *bool      `json:"has_draft,omitempty"`
+		Description *string `json:"description,omitempty"`
+		DraftOnly   *bool   `json:"draft_only,omitempty"`
+
+		// DraftPath User-typed path the editor has staged but not
+		// yet deployed. Sourced from the draft JSON's
+		// `draft_path` field (the editor only writes it
+		// when the typed path differs from the deployed
+		// one). Lets the home list render the meaningful
+		// name instead of the autogenerated
+		// `u/{user}/draft_{uuid}` URL path. Omitted when
+		// unchanged.
+		DraftPath *string `json:"draft_path,omitempty"`
+
+		// DraftUsers Workspace users (including the authed user, and
+		// the legacy NULL-email row if any) who have a
+		// per-user draft at this path. Drives the home
+		// page's user-avatar circles inside the Draft
+		// badge. Omitted when no drafts exist.
+		DraftUsers *[]struct {
+			Username *string `json:"username"`
+		} `json:"draft_users,omitempty"`
+		EditedAt   time.Time  `json:"edited_at"`
+		EditedBy   string     `json:"edited_by"`
+		ExtraPerms ExtraPerms `json:"extra_perms"`
 
 		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+
+		// IsDraft True when the authed user has a draft for this
+		// flow — either no deployed row exists at this
+		// path (draft-only) or the user saved a per-user
+		// draft on top of the deployed row.
+		IsDraft         *bool     `json:"is_draft,omitempty"`
 		Labels          *[]string `json:"labels,omitempty"`
 		LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
 		OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
@@ -79868,7 +80697,58 @@ func (r ExistsGcpTriggerResponse) StatusCode() int {
 type GetGcpTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *GcpTrigger
+	JSON200      *struct {
+		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// trigger at the same path. Set by list endpoints when
+		// `include_draft_only=true` synthesizes the row from the
+		// draft. Frontend renders a "Draft" badge.
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+		// EditedAt Timestamp of the last edit
+		EditedAt time.Time `json:"edited_at"`
+
+		// EditedBy Username of the last person who edited this trigger
+		EditedBy string `json:"edited_by"`
+
+		// ExtraPerms Additional permissions for this trigger
+		ExtraPerms map[string]bool `json:"extra_perms"`
+		IsDraft    bool            `json:"is_draft"`
+
+		// IsFlow True if script_path points to a flow, false if it points to a script
+		IsFlow bool      `json:"is_flow"`
+		Labels *[]string `json:"labels,omitempty"`
+
+		// Mode job trigger mode
+		Mode       TriggerMode `json:"mode"`
+		NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+		Path string `json:"path"`
+
+		// PermissionedAs The user or group this trigger runs as (permissioned_as)
+		PermissionedAs string `json:"permissioned_as"`
+
+		// ScriptPath Path to the script or flow to execute when triggered
+		ScriptPath string `json:"script_path"`
+
+		// WorkspaceId The workspace this trigger belongs to
+		WorkspaceId string `json:"workspace_id"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -80456,7 +81336,58 @@ func (r ExistsHttpTriggerResponse) StatusCode() int {
 type GetHttpTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *HttpTrigger
+	JSON200      *struct {
+		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// trigger at the same path. Set by list endpoints when
+		// `include_draft_only=true` synthesizes the row from the
+		// draft. Frontend renders a "Draft" badge.
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+		// EditedAt Timestamp of the last edit
+		EditedAt time.Time `json:"edited_at"`
+
+		// EditedBy Username of the last person who edited this trigger
+		EditedBy string `json:"edited_by"`
+
+		// ExtraPerms Additional permissions for this trigger
+		ExtraPerms map[string]bool `json:"extra_perms"`
+		IsDraft    bool            `json:"is_draft"`
+
+		// IsFlow True if script_path points to a flow, false if it points to a script
+		IsFlow bool      `json:"is_flow"`
+		Labels *[]string `json:"labels,omitempty"`
+
+		// Mode job trigger mode
+		Mode       TriggerMode `json:"mode"`
+		NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+		Path string `json:"path"`
+
+		// PermissionedAs The user or group this trigger runs as (permissioned_as)
+		PermissionedAs string `json:"permissioned_as"`
+
+		// ScriptPath Path to the script or flow to execute when triggered
+		ScriptPath string `json:"script_path"`
+
+		// WorkspaceId The workspace this trigger belongs to
+		WorkspaceId string `json:"workspace_id"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -83247,7 +84178,58 @@ func (r ExistsKafkaTriggerResponse) StatusCode() int {
 type GetKafkaTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *KafkaTrigger
+	JSON200      *struct {
+		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// trigger at the same path. Set by list endpoints when
+		// `include_draft_only=true` synthesizes the row from the
+		// draft. Frontend renders a "Draft" badge.
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+		// EditedAt Timestamp of the last edit
+		EditedAt time.Time `json:"edited_at"`
+
+		// EditedBy Username of the last person who edited this trigger
+		EditedBy string `json:"edited_by"`
+
+		// ExtraPerms Additional permissions for this trigger
+		ExtraPerms map[string]bool `json:"extra_perms"`
+		IsDraft    bool            `json:"is_draft"`
+
+		// IsFlow True if script_path points to a flow, false if it points to a script
+		IsFlow bool      `json:"is_flow"`
+		Labels *[]string `json:"labels,omitempty"`
+
+		// Mode job trigger mode
+		Mode       TriggerMode `json:"mode"`
+		NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+		Path string `json:"path"`
+
+		// PermissionedAs The user or group this trigger runs as (permissioned_as)
+		PermissionedAs string `json:"permissioned_as"`
+
+		// ScriptPath Path to the script or flow to execute when triggered
+		ScriptPath string `json:"script_path"`
+
+		// WorkspaceId The workspace this trigger belongs to
+		WorkspaceId string `json:"workspace_id"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -83439,7 +84421,58 @@ func (r ExistsMqttTriggerResponse) StatusCode() int {
 type GetMqttTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *MqttTrigger
+	JSON200      *struct {
+		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// trigger at the same path. Set by list endpoints when
+		// `include_draft_only=true` synthesizes the row from the
+		// draft. Frontend renders a "Draft" badge.
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+		// EditedAt Timestamp of the last edit
+		EditedAt time.Time `json:"edited_at"`
+
+		// EditedBy Username of the last person who edited this trigger
+		EditedBy string `json:"edited_by"`
+
+		// ExtraPerms Additional permissions for this trigger
+		ExtraPerms map[string]bool `json:"extra_perms"`
+		IsDraft    bool            `json:"is_draft"`
+
+		// IsFlow True if script_path points to a flow, false if it points to a script
+		IsFlow bool      `json:"is_flow"`
+		Labels *[]string `json:"labels,omitempty"`
+
+		// Mode job trigger mode
+		Mode       TriggerMode `json:"mode"`
+		NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+		Path string `json:"path"`
+
+		// PermissionedAs The user or group this trigger runs as (permissioned_as)
+		PermissionedAs string `json:"permissioned_as"`
+
+		// ScriptPath Path to the script or flow to execute when triggered
+		ScriptPath string `json:"script_path"`
+
+		// WorkspaceId The workspace this trigger belongs to
+		WorkspaceId string `json:"workspace_id"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -84044,7 +85077,58 @@ func (r ExistsNatsTriggerResponse) StatusCode() int {
 type GetNatsTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *NatsTrigger
+	JSON200      *struct {
+		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// trigger at the same path. Set by list endpoints when
+		// `include_draft_only=true` synthesizes the row from the
+		// draft. Frontend renders a "Draft" badge.
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+		// EditedAt Timestamp of the last edit
+		EditedAt time.Time `json:"edited_at"`
+
+		// EditedBy Username of the last person who edited this trigger
+		EditedBy string `json:"edited_by"`
+
+		// ExtraPerms Additional permissions for this trigger
+		ExtraPerms map[string]bool `json:"extra_perms"`
+		IsDraft    bool            `json:"is_draft"`
+
+		// IsFlow True if script_path points to a flow, false if it points to a script
+		IsFlow bool      `json:"is_flow"`
+		Labels *[]string `json:"labels,omitempty"`
+
+		// Mode job trigger mode
+		Mode       TriggerMode `json:"mode"`
+		NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+		Path string `json:"path"`
+
+		// PermissionedAs The user or group this trigger runs as (permissioned_as)
+		PermissionedAs string `json:"permissioned_as"`
+
+		// ScriptPath Path to the script or flow to execute when triggered
+		ScriptPath string `json:"script_path"`
+
+		// WorkspaceId The workspace this trigger belongs to
+		WorkspaceId string `json:"workspace_id"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -84546,7 +85630,58 @@ func (r ExistsPostgresTriggerResponse) StatusCode() int {
 type GetPostgresTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *PostgresTrigger
+	JSON200      *struct {
+		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// trigger at the same path. Set by list endpoints when
+		// `include_draft_only=true` synthesizes the row from the
+		// draft. Frontend renders a "Draft" badge.
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+		// EditedAt Timestamp of the last edit
+		EditedAt time.Time `json:"edited_at"`
+
+		// EditedBy Username of the last person who edited this trigger
+		EditedBy string `json:"edited_by"`
+
+		// ExtraPerms Additional permissions for this trigger
+		ExtraPerms map[string]bool `json:"extra_perms"`
+		IsDraft    bool            `json:"is_draft"`
+
+		// IsFlow True if script_path points to a flow, false if it points to a script
+		IsFlow bool      `json:"is_flow"`
+		Labels *[]string `json:"labels,omitempty"`
+
+		// Mode job trigger mode
+		Mode       TriggerMode `json:"mode"`
+		NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+		Path string `json:"path"`
+
+		// PermissionedAs The user or group this trigger runs as (permissioned_as)
+		PermissionedAs string `json:"permissioned_as"`
+
+		// ScriptPath Path to the script or flow to execute when triggered
+		ScriptPath string `json:"script_path"`
+
+		// WorkspaceId The workspace this trigger belongs to
+		WorkspaceId string `json:"workspace_id"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -85022,7 +86157,47 @@ func (r FileResourceTypeToFileExtMapResponse) StatusCode() int {
 type GetResourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Resource
+	JSON200      *struct {
+		Account     *float32                `json:"account,omitempty"`
+		CreatedBy   *string                 `json:"created_by,omitempty"`
+		Description *string                 `json:"description,omitempty"`
+		Draft       *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// resource at the same path. Frontend renders a "Draft" badge.
+		DraftOnly    *bool            `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time       `json:"draft_saved_at,omitempty"`
+		EditedAt     *time.Time       `json:"edited_at,omitempty"`
+		ExtraPerms   *map[string]bool `json:"extra_perms,omitempty"`
+
+		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+		IsDraft         bool      `json:"is_draft"`
+		IsExpired       *bool     `json:"is_expired,omitempty"`
+		IsLinked        bool      `json:"is_linked"`
+		IsOauth         bool      `json:"is_oauth"`
+		IsRefreshed     bool      `json:"is_refreshed"`
+		Labels          *[]string `json:"labels,omitempty"`
+		NoDeployed      *bool     `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+		Path         string       `json:"path"`
+		RefreshError *string      `json:"refresh_error,omitempty"`
+		ResourceType string       `json:"resource_type"`
+		Value        *interface{} `json:"value,omitempty"`
+		WorkspaceId  *string      `json:"workspace_id,omitempty"`
+		WsSpecific   *bool        `json:"ws_specific,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -85468,7 +86643,124 @@ func (r ExistsScheduleResponse) StatusCode() int {
 type GetScheduleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Schedule
+	JSON200      *struct {
+		// Args The arguments to pass to the script or flow
+		Args *ScriptArgs `json:"args,omitempty"`
+
+		// CronVersion Cron parser version. Use 'v2' for extended syntax with additional features
+		CronVersion *string `json:"cron_version"`
+
+		// Description Detailed description of what this schedule does
+		Description *string                 `json:"description"`
+		Draft       *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// schedule at the same path. Frontend renders a "Draft" badge.
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+		// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
+		DynamicSkip *string `json:"dynamic_skip"`
+
+		// EditedAt Timestamp of the last edit
+		EditedAt time.Time `json:"edited_at"`
+
+		// EditedBy Username of the last person who edited this schedule
+		EditedBy string `json:"edited_by"`
+
+		// Email Email of the user who owns this schedule, used for permissioned_as
+		Email string `json:"email"`
+
+		// Enabled Whether the schedule is currently active and will trigger jobs
+		Enabled bool `json:"enabled"`
+
+		// Error Last error message if the schedule failed to trigger
+		Error *string `json:"error"`
+
+		// ExtraPerms Additional permissions for this schedule
+		ExtraPerms map[string]bool `json:"extra_perms"`
+
+		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+		IsDraft         bool      `json:"is_draft"`
+
+		// IsFlow True if script_path points to a flow, false if it points to a script
+		IsFlow     bool      `json:"is_flow"`
+		Labels     *[]string `json:"labels,omitempty"`
+		NoDeployed *bool     `json:"no_deployed,omitempty"`
+
+		// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
+		NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
+
+		// OnFailure Path to a script or flow to run when the scheduled job fails
+		OnFailure *string `json:"on_failure"`
+
+		// OnFailureExact If true, trigger on_failure handler only on exactly N failures, not on every failure after N
+		OnFailureExact *bool `json:"on_failure_exact"`
+
+		// OnFailureExtraArgs The arguments to pass to the script or flow
+		OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
+
+		// OnFailureTimes Number of consecutive failures before the on_failure handler is triggered (default 1)
+		OnFailureTimes *float32 `json:"on_failure_times"`
+
+		// OnRecovery Path to a script or flow to run when the schedule recovers after failures
+		OnRecovery *string `json:"on_recovery"`
+
+		// OnRecoveryExtraArgs The arguments to pass to the script or flow
+		OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
+
+		// OnRecoveryTimes Number of consecutive successes before the on_recovery handler is triggered (default 1)
+		OnRecoveryTimes *float32 `json:"on_recovery_times"`
+
+		// OnSuccess Path to a script or flow to run after each successful execution
+		OnSuccess *string `json:"on_success"`
+
+		// OnSuccessExtraArgs The arguments to pass to the script or flow
+		OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// Path The unique Windmill path for this schedule. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`.
+		Path string `json:"path"`
+
+		// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
+		PausedUntil *time.Time `json:"paused_until"`
+
+		// PermissionedAs The user or group this schedule runs as (e.g., 'u/admin' or 'g/mygroup')
+		PermissionedAs string `json:"permissioned_as"`
+
+		// Retry Retry configuration for failed module executions
+		Retry *Retry `json:"retry,omitempty"`
+
+		// Schedule Cron expression with 6 fields (seconds, minutes, hours, day of month, month, day of week). Example '0 0 12 * * *' for daily at noon
+		Schedule string `json:"schedule"`
+
+		// ScriptPath Path to the script or flow to execute when triggered
+		ScriptPath string `json:"script_path"`
+
+		// Summary Short summary describing the purpose of this schedule
+		Summary *string `json:"summary"`
+
+		// Tag Worker tag to route jobs to specific worker groups
+		Tag *string `json:"tag"`
+
+		// Timezone IANA timezone for the schedule (e.g., 'UTC', 'Europe/Paris', 'America/New_York')
+		Timezone string `json:"timezone"`
+
+		// WsErrorHandlerMuted If true, the workspace-level error handler will not be triggered for this schedule's failures
+		WsErrorHandlerMuted *bool `json:"ws_error_handler_muted,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -85816,28 +87108,6 @@ func (r ExistsScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
-type GetScriptByPathWithDraftResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *NewScriptWithDraft
-}
-
-// Status returns HTTPResponse.Status
-func (r GetScriptByPathWithDraftResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetScriptByPathWithDraftResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetScriptByHashResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -85863,8 +87133,79 @@ func (r GetScriptByHashResponse) StatusCode() int {
 type GetScriptByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Script
+	JSON200      *struct {
+		Archived                 bool      `json:"archived"`
+		AutoKind                 *string   `json:"auto_kind,omitempty"`
+		CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
+		Codebase                 *string   `json:"codebase,omitempty"`
+		ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
+		ConcurrencyTimeWindowS   *int      `json:"concurrency_time_window_s,omitempty"`
+		ConcurrentLimit          *int      `json:"concurrent_limit,omitempty"`
+		Content                  string    `json:"content"`
+		CreatedAt                time.Time `json:"created_at"`
+		CreatedBy                string    `json:"created_by"`
+		DebounceArgsToAccumulate *[]string `json:"debounce_args_to_accumulate,omitempty"`
+		DebounceDelayS           *int      `json:"debounce_delay_s,omitempty"`
+		DebounceKey              *string   `json:"debounce_key,omitempty"`
+		DedicatedWorker          *bool     `json:"dedicated_worker,omitempty"`
+
+		// DeleteAfterSecs If set, delete the job's args, result and logs after this many seconds following job completion
+		DeleteAfterSecs *int                    `json:"delete_after_secs,omitempty"`
+		Deleted         bool                    `json:"deleted"`
+		Description     string                  `json:"description"`
+		Draft           *map[string]interface{} `json:"draft,omitempty"`
+		DraftOnly       *bool                   `json:"draft_only,omitempty"`
+		DraftSavedAt    *time.Time              `json:"draft_saved_at,omitempty"`
+		Envs            *[]string               `json:"envs,omitempty"`
+		ExtraPerms      map[string]bool         `json:"extra_perms"`
+		HasPreprocessor bool                    `json:"has_preprocessor"`
+		Hash            string                  `json:"hash"`
+
+		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+		InheritedLabels         *[]string              `json:"inherited_labels,omitempty"`
+		IsDraft                 bool                   `json:"is_draft"`
+		IsTemplate              bool                   `json:"is_template"`
+		Kind                    GetScriptByPath200Kind `json:"kind"`
+		Labels                  *[]string              `json:"labels,omitempty"`
+		Language                ScriptLang             `json:"language"`
+		Lock                    *string                `json:"lock,omitempty"`
+		LockErrorLogs           *string                `json:"lock_error_logs,omitempty"`
+		MaxTotalDebouncesAmount *int                   `json:"max_total_debounces_amount,omitempty"`
+		MaxTotalDebouncingTime  *int                   `json:"max_total_debouncing_time,omitempty"`
+
+		// Modules Additional script modules keyed by relative file path
+		Modules         *map[string]ScriptModule `json:"modules"`
+		NoDeployed      *bool                    `json:"no_deployed,omitempty"`
+		OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
+		ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
+		Path                   string                  `json:"path"`
+		Priority               *int                    `json:"priority,omitempty"`
+		RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
+		Schema                 *map[string]interface{} `json:"schema,omitempty"`
+		Starred                bool                    `json:"starred"`
+		Summary                string                  `json:"summary"`
+		Tag                    *string                 `json:"tag,omitempty"`
+		Timeout                *int                    `json:"timeout,omitempty"`
+		VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
+		WorkspaceId            *string                 `json:"workspace_id,omitempty"`
+		WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
+	}
 }
+type GetScriptByPath200Kind string
 
 // Status returns HTTPResponse.Status
 func (r GetScriptByPathResponse) Status() string {
@@ -85972,8 +87313,86 @@ func (r UpdateScriptHistoryResponse) StatusCode() int {
 type ListScriptsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]Script
+	JSON200      *[]struct {
+		Archived                 bool      `json:"archived"`
+		AutoKind                 *string   `json:"auto_kind,omitempty"`
+		CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
+		Codebase                 *string   `json:"codebase,omitempty"`
+		ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
+		ConcurrencyTimeWindowS   *int      `json:"concurrency_time_window_s,omitempty"`
+		ConcurrentLimit          *int      `json:"concurrent_limit,omitempty"`
+		Content                  string    `json:"content"`
+		CreatedAt                time.Time `json:"created_at"`
+		CreatedBy                string    `json:"created_by"`
+		DebounceArgsToAccumulate *[]string `json:"debounce_args_to_accumulate,omitempty"`
+		DebounceDelayS           *int      `json:"debounce_delay_s,omitempty"`
+		DebounceKey              *string   `json:"debounce_key,omitempty"`
+		DedicatedWorker          *bool     `json:"dedicated_worker,omitempty"`
+
+		// DeleteAfterSecs If set, delete the job's args, result and logs after this many seconds following job completion
+		DeleteAfterSecs *int   `json:"delete_after_secs,omitempty"`
+		Deleted         bool   `json:"deleted"`
+		Description     string `json:"description"`
+		DraftOnly       *bool  `json:"draft_only,omitempty"`
+
+		// DraftPath User-typed path the editor has staged but not
+		// yet deployed. Surfaced for draft-only rows so
+		// the home list can render the meaningful name
+		// instead of the autogenerated
+		// `u/{user}/draft_{uuid}` URL path. Omitted
+		// when unchanged.
+		DraftPath *string `json:"draft_path,omitempty"`
+
+		// DraftUsers Workspace users (including the authed user, and
+		// the legacy NULL-email row if any) who have a
+		// per-user draft at this path. Drives the home
+		// page's user-avatar circles inside the Draft
+		// badge. Omitted when no drafts exist.
+		DraftUsers *[]struct {
+			Username *string `json:"username"`
+		} `json:"draft_users,omitempty"`
+		Envs            *[]string       `json:"envs,omitempty"`
+		ExtraPerms      map[string]bool `json:"extra_perms"`
+		HasPreprocessor bool            `json:"has_preprocessor"`
+		Hash            string          `json:"hash"`
+
+		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+
+		// IsDraft True when the authed user has a draft for this
+		// script — either no deployed row exists at this
+		// path (draft-only) or the user saved a per-user
+		// draft on top of the deployed row.
+		IsDraft                 *bool              `json:"is_draft,omitempty"`
+		IsTemplate              bool               `json:"is_template"`
+		Kind                    ListScripts200Kind `json:"kind"`
+		Labels                  *[]string          `json:"labels,omitempty"`
+		Language                ScriptLang         `json:"language"`
+		Lock                    *string            `json:"lock,omitempty"`
+		LockErrorLogs           *string            `json:"lock_error_logs,omitempty"`
+		MaxTotalDebouncesAmount *int               `json:"max_total_debounces_amount,omitempty"`
+		MaxTotalDebouncingTime  *int               `json:"max_total_debouncing_time,omitempty"`
+
+		// Modules Additional script modules keyed by relative file path
+		Modules         *map[string]ScriptModule `json:"modules"`
+		OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
+
+		// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
+		ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
+		Path                   string                  `json:"path"`
+		Priority               *int                    `json:"priority,omitempty"`
+		RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
+		Schema                 *map[string]interface{} `json:"schema,omitempty"`
+		Starred                bool                    `json:"starred"`
+		Summary                string                  `json:"summary"`
+		Tag                    *string                 `json:"tag,omitempty"`
+		Timeout                *int                    `json:"timeout,omitempty"`
+		VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
+		WorkspaceId            *string                 `json:"workspace_id,omitempty"`
+		WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
+	}
 }
+type ListScripts200Kind string
 
 // Status returns HTTPResponse.Status
 func (r ListScriptsResponse) Status() string {
@@ -86382,7 +87801,58 @@ func (r ExistsSqsTriggerResponse) StatusCode() int {
 type GetSqsTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *SqsTrigger
+	JSON200      *struct {
+		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// trigger at the same path. Set by list endpoints when
+		// `include_draft_only=true` synthesizes the row from the
+		// draft. Frontend renders a "Draft" badge.
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+		// EditedAt Timestamp of the last edit
+		EditedAt time.Time `json:"edited_at"`
+
+		// EditedBy Username of the last person who edited this trigger
+		EditedBy string `json:"edited_by"`
+
+		// ExtraPerms Additional permissions for this trigger
+		ExtraPerms map[string]bool `json:"extra_perms"`
+		IsDraft    bool            `json:"is_draft"`
+
+		// IsFlow True if script_path points to a flow, false if it points to a script
+		IsFlow bool      `json:"is_flow"`
+		Labels *[]string `json:"labels,omitempty"`
+
+		// Mode job trigger mode
+		Mode       TriggerMode `json:"mode"`
+		NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+		Path string `json:"path"`
+
+		// PermissionedAs The user or group this trigger runs as (permissioned_as)
+		PermissionedAs string `json:"permissioned_as"`
+
+		// ScriptPath Path to the script or flow to execute when triggered
+		ScriptPath string `json:"script_path"`
+
+		// WorkspaceId The workspace this trigger belongs to
+		WorkspaceId string `json:"workspace_id"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -86964,7 +88434,48 @@ func (r ExistsVariableResponse) StatusCode() int {
 type GetVariableResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *ListableVariable
+	JSON200      *struct {
+		Account     *int                    `json:"account,omitempty"`
+		Description *string                 `json:"description,omitempty"`
+		Draft       *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// variable at the same path. Frontend renders a "Draft" badge.
+		DraftOnly    *bool           `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time      `json:"draft_saved_at,omitempty"`
+		EditedAt     *time.Time      `json:"edited_at,omitempty"`
+		EditedBy     *string         `json:"edited_by,omitempty"`
+		ExpiresAt    *time.Time      `json:"expires_at,omitempty"`
+		ExtraPerms   map[string]bool `json:"extra_perms"`
+
+		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+		IsDraft         bool      `json:"is_draft"`
+		IsExpired       *bool     `json:"is_expired,omitempty"`
+		IsLinked        *bool     `json:"is_linked,omitempty"`
+		IsOauth         *bool     `json:"is_oauth,omitempty"`
+		IsRefreshed     *bool     `json:"is_refreshed,omitempty"`
+		IsSecret        bool      `json:"is_secret"`
+		Labels          *[]string `json:"labels,omitempty"`
+		NoDeployed      *bool     `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+		Path         string  `json:"path"`
+		RefreshError *string `json:"refresh_error,omitempty"`
+		Value        *string `json:"value,omitempty"`
+		WorkspaceId  string  `json:"workspace_id"`
+		WsSpecific   *bool   `json:"ws_specific,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -87223,7 +88734,58 @@ func (r ExistsWebsocketTriggerResponse) StatusCode() int {
 type GetWebsocketTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *WebsocketTrigger
+	JSON200      *struct {
+		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftOnly True when this row is a per-user draft with no deployed
+		// trigger at the same path. Set by list endpoints when
+		// `include_draft_only=true` synthesizes the row from the
+		// draft. Frontend renders a "Draft" badge.
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+		// EditedAt Timestamp of the last edit
+		EditedAt time.Time `json:"edited_at"`
+
+		// EditedBy Username of the last person who edited this trigger
+		EditedBy string `json:"edited_by"`
+
+		// ExtraPerms Additional permissions for this trigger
+		ExtraPerms map[string]bool `json:"extra_perms"`
+		IsDraft    bool            `json:"is_draft"`
+
+		// IsFlow True if script_path points to a flow, false if it points to a script
+		IsFlow bool      `json:"is_flow"`
+		Labels *[]string `json:"labels,omitempty"`
+
+		// Mode job trigger mode
+		Mode       TriggerMode `json:"mode"`
+		NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+		// with a saved draft at the same path. Populated only on the
+		// authed user's "get by path" responses for kinds the editor
+		// surfaces a fork banner for (script, flow, app, raw_app).
+		// Empty / omitted for kinds without that UI.
+		OtherDraftsUsers *[]struct {
+			// Username Workspace username of the draft owner. `null` represents
+			// the legacy workspace-level (NULL-email) row. Emails never
+			// leave the server.
+			Username *string `json:"username"`
+		} `json:"other_drafts_users,omitempty"`
+
+		// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+		Path string `json:"path"`
+
+		// PermissionedAs The user or group this trigger runs as (permissioned_as)
+		PermissionedAs string `json:"permissioned_as"`
+
+		// ScriptPath Path to the script or flow to execute when triggered
+		ScriptPath string `json:"script_path"`
+
+		// WorkspaceId The workspace this trigger belongs to
+		WorkspaceId string `json:"workspace_id"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -91986,15 +93548,6 @@ func (c *ClientWithResponses) ExistsAppWithResponse(ctx context.Context, workspa
 	return ParseExistsAppResponse(rsp)
 }
 
-// GetAppByPathWithDraftWithResponse request returning *GetAppByPathWithDraftResponse
-func (c *ClientWithResponses) GetAppByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppByPathWithDraftResponse, error) {
-	rsp, err := c.GetAppByPathWithDraft(ctx, workspace, path, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetAppByPathWithDraftResponse(rsp)
-}
-
 // GetAppLiteByPathWithResponse request returning *GetAppLiteByPathResponse
 func (c *ClientWithResponses) GetAppLiteByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppLiteByPathResponse, error) {
 	rsp, err := c.GetAppLiteByPath(ctx, workspace, path, reqEditors...)
@@ -92305,8 +93858,8 @@ func (c *ClientWithResponses) ExistsAzureTriggerWithResponse(ctx context.Context
 }
 
 // GetAzureTriggerWithResponse request returning *GetAzureTriggerResponse
-func (c *ClientWithResponses) GetAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetAzureTriggerResponse, error) {
-	rsp, err := c.GetAzureTrigger(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetAzureTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetAzureTriggerParams, reqEditors ...RequestEditorFn) (*GetAzureTriggerResponse, error) {
+	rsp, err := c.GetAzureTrigger(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -92591,30 +94144,39 @@ func (c *ClientWithResponses) CreateDeploymentRequestCommentWithResponse(ctx con
 	return ParseCreateDeploymentRequestCommentResponse(rsp)
 }
 
-// CreateDraftWithBodyWithResponse request with arbitrary body returning *CreateDraftResponse
-func (c *ClientWithResponses) CreateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error) {
-	rsp, err := c.CreateDraftWithBody(ctx, workspace, contentType, body, reqEditors...)
+// GetDraftForUserWithResponse request returning *GetDraftForUserResponse
+func (c *ClientWithResponses) GetDraftForUserWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*GetDraftForUserResponse, error) {
+	rsp, err := c.GetDraftForUser(ctx, workspace, kind, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseCreateDraftResponse(rsp)
+	return ParseGetDraftForUserResponse(rsp)
 }
 
-func (c *ClientWithResponses) CreateDraftWithResponse(ctx context.Context, workspace WorkspaceId, body CreateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDraftResponse, error) {
-	rsp, err := c.CreateDraft(ctx, workspace, body, reqEditors...)
+// ListDraftsWithResponse request returning *ListDraftsResponse
+func (c *ClientWithResponses) ListDraftsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDraftsResponse, error) {
+	rsp, err := c.ListDrafts(ctx, workspace, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseCreateDraftResponse(rsp)
+	return ParseListDraftsResponse(rsp)
 }
 
-// DeleteDraftWithResponse request returning *DeleteDraftResponse
-func (c *ClientWithResponses) DeleteDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind DeleteDraftParamsKind, path ScriptPath, reqEditors ...RequestEditorFn) (*DeleteDraftResponse, error) {
-	rsp, err := c.DeleteDraft(ctx, workspace, kind, path, reqEditors...)
+// UpdateDraftWithBodyWithResponse request with arbitrary body returning *UpdateDraftResponse
+func (c *ClientWithResponses) UpdateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDraftResponse, error) {
+	rsp, err := c.UpdateDraftWithBody(ctx, workspace, kind, path, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteDraftResponse(rsp)
+	return ParseUpdateDraftResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body UpdateDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDraftResponse, error) {
+	rsp, err := c.UpdateDraft(ctx, workspace, kind, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateDraftResponse(rsp)
 }
 
 // CreateEmailTriggerWithBodyWithResponse request with arbitrary body returning *CreateEmailTriggerResponse
@@ -92653,8 +94215,8 @@ func (c *ClientWithResponses) ExistsEmailTriggerWithResponse(ctx context.Context
 }
 
 // GetEmailTriggerWithResponse request returning *GetEmailTriggerResponse
-func (c *ClientWithResponses) GetEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetEmailTriggerResponse, error) {
-	rsp, err := c.GetEmailTrigger(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetEmailTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetEmailTriggerParams, reqEditors ...RequestEditorFn) (*GetEmailTriggerResponse, error) {
+	rsp, err := c.GetEmailTrigger(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -92850,15 +94412,6 @@ func (c *ClientWithResponses) ExistsFlowByPathWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseExistsFlowByPathResponse(rsp)
-}
-
-// GetFlowByPathWithDraftWithResponse request returning *GetFlowByPathWithDraftResponse
-func (c *ClientWithResponses) GetFlowByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowByPathWithDraftResponse, error) {
-	rsp, err := c.GetFlowByPathWithDraft(ctx, workspace, path, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetFlowByPathWithDraftResponse(rsp)
 }
 
 // GetFlowVersionWithResponse request returning *GetFlowVersionResponse
@@ -93169,8 +94722,8 @@ func (c *ClientWithResponses) ExistsGcpTriggerWithResponse(ctx context.Context, 
 }
 
 // GetGcpTriggerWithResponse request returning *GetGcpTriggerResponse
-func (c *ClientWithResponses) GetGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetGcpTriggerResponse, error) {
-	rsp, err := c.GetGcpTrigger(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetGcpTriggerParams, reqEditors ...RequestEditorFn) (*GetGcpTriggerResponse, error) {
+	rsp, err := c.GetGcpTrigger(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -93532,8 +95085,8 @@ func (c *ClientWithResponses) ExistsHttpTriggerWithResponse(ctx context.Context,
 }
 
 // GetHttpTriggerWithResponse request returning *GetHttpTriggerResponse
-func (c *ClientWithResponses) GetHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetHttpTriggerResponse, error) {
-	rsp, err := c.GetHttpTrigger(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetHttpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetHttpTriggerParams, reqEditors ...RequestEditorFn) (*GetHttpTriggerResponse, error) {
+	rsp, err := c.GetHttpTrigger(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -95072,8 +96625,8 @@ func (c *ClientWithResponses) ExistsKafkaTriggerWithResponse(ctx context.Context
 }
 
 // GetKafkaTriggerWithResponse request returning *GetKafkaTriggerResponse
-func (c *ClientWithResponses) GetKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetKafkaTriggerResponse, error) {
-	rsp, err := c.GetKafkaTrigger(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetKafkaTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetKafkaTriggerParams, reqEditors ...RequestEditorFn) (*GetKafkaTriggerResponse, error) {
+	rsp, err := c.GetKafkaTrigger(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -95185,8 +96738,8 @@ func (c *ClientWithResponses) ExistsMqttTriggerWithResponse(ctx context.Context,
 }
 
 // GetMqttTriggerWithResponse request returning *GetMqttTriggerResponse
-func (c *ClientWithResponses) GetMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetMqttTriggerResponse, error) {
-	rsp, err := c.GetMqttTrigger(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetMqttTriggerParams, reqEditors ...RequestEditorFn) (*GetMqttTriggerResponse, error) {
+	rsp, err := c.GetMqttTrigger(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -95517,8 +97070,8 @@ func (c *ClientWithResponses) ExistsNatsTriggerWithResponse(ctx context.Context,
 }
 
 // GetNatsTriggerWithResponse request returning *GetNatsTriggerResponse
-func (c *ClientWithResponses) GetNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetNatsTriggerResponse, error) {
-	rsp, err := c.GetNatsTrigger(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetNatsTriggerParams, reqEditors ...RequestEditorFn) (*GetNatsTriggerResponse, error) {
+	rsp, err := c.GetNatsTrigger(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -95804,8 +97357,8 @@ func (c *ClientWithResponses) ExistsPostgresTriggerWithResponse(ctx context.Cont
 }
 
 // GetPostgresTriggerWithResponse request returning *GetPostgresTriggerResponse
-func (c *ClientWithResponses) GetPostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPostgresTriggerResponse, error) {
-	rsp, err := c.GetPostgresTrigger(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetPostgresTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetPostgresTriggerParams, reqEditors ...RequestEditorFn) (*GetPostgresTriggerResponse, error) {
+	rsp, err := c.GetPostgresTrigger(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -96074,8 +97627,8 @@ func (c *ClientWithResponses) FileResourceTypeToFileExtMapWithResponse(ctx conte
 }
 
 // GetResourceWithResponse request returning *GetResourceResponse
-func (c *ClientWithResponses) GetResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceResponse, error) {
-	rsp, err := c.GetResource(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetResourceParams, reqEditors ...RequestEditorFn) (*GetResourceResponse, error) {
+	rsp, err := c.GetResource(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -96294,8 +97847,8 @@ func (c *ClientWithResponses) ExistsScheduleWithResponse(ctx context.Context, wo
 }
 
 // GetScheduleWithResponse request returning *GetScheduleResponse
-func (c *ClientWithResponses) GetScheduleWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetScheduleResponse, error) {
-	rsp, err := c.GetSchedule(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetScheduleWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetScheduleParams, reqEditors ...RequestEditorFn) (*GetScheduleResponse, error) {
+	rsp, err := c.GetSchedule(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -96483,15 +98036,6 @@ func (c *ClientWithResponses) ExistsScriptByPathWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseExistsScriptByPathResponse(rsp)
-}
-
-// GetScriptByPathWithDraftWithResponse request returning *GetScriptByPathWithDraftResponse
-func (c *ClientWithResponses) GetScriptByPathWithDraftWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptByPathWithDraftResponse, error) {
-	rsp, err := c.GetScriptByPathWithDraft(ctx, workspace, path, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetScriptByPathWithDraftResponse(rsp)
 }
 
 // GetScriptByHashWithResponse request returning *GetScriptByHashResponse
@@ -96759,8 +98303,8 @@ func (c *ClientWithResponses) ExistsSqsTriggerWithResponse(ctx context.Context, 
 }
 
 // GetSqsTriggerWithResponse request returning *GetSqsTriggerResponse
-func (c *ClientWithResponses) GetSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetSqsTriggerResponse, error) {
-	rsp, err := c.GetSqsTrigger(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetSqsTriggerParams, reqEditors ...RequestEditorFn) (*GetSqsTriggerResponse, error) {
+	rsp, err := c.GetSqsTrigger(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -97230,8 +98774,8 @@ func (c *ClientWithResponses) ExistsWebsocketTriggerWithResponse(ctx context.Con
 }
 
 // GetWebsocketTriggerWithResponse request returning *GetWebsocketTriggerResponse
-func (c *ClientWithResponses) GetWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetWebsocketTriggerResponse, error) {
-	rsp, err := c.GetWebsocketTrigger(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetWebsocketTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetWebsocketTriggerParams, reqEditors ...RequestEditorFn) (*GetWebsocketTriggerResponse, error) {
+	rsp, err := c.GetWebsocketTrigger(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -102721,32 +104265,6 @@ func ParseExistsAppResponse(rsp *http.Response) (*ExistsAppResponse, error) {
 	return response, nil
 }
 
-// ParseGetAppByPathWithDraftResponse parses an HTTP response from a GetAppByPathWithDraftWithResponse call
-func ParseGetAppByPathWithDraftResponse(rsp *http.Response) (*GetAppByPathWithDraftResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetAppByPathWithDraftResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AppWithLastVersionWDraft
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseGetAppLiteByPathResponse parses an HTTP response from a GetAppLiteByPathWithResponse call
 func ParseGetAppLiteByPathResponse(rsp *http.Response) (*GetAppLiteByPathResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -102788,7 +104306,39 @@ func ParseGetAppByPathResponse(rsp *http.Response) (*GetAppByPathResponse, error
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AppWithLastVersion
+		var dest struct {
+			BundleSecret  *string                      `json:"bundle_secret,omitempty"`
+			CreatedAt     time.Time                    `json:"created_at"`
+			CreatedBy     string                       `json:"created_by"`
+			CustomPath    *string                      `json:"custom_path,omitempty"`
+			Draft         *map[string]interface{}      `json:"draft,omitempty"`
+			DraftSavedAt  *time.Time                   `json:"draft_saved_at,omitempty"`
+			ExecutionMode GetAppByPath200ExecutionMode `json:"execution_mode"`
+			ExtraPerms    map[string]bool              `json:"extra_perms"`
+			Id            int                          `json:"id"`
+			IsDraft       bool                         `json:"is_draft"`
+			Labels        *[]string                    `json:"labels,omitempty"`
+			NoDeployed    *bool                        `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+			Path        string      `json:"path"`
+			Policy      Policy      `json:"policy"`
+			RawApp      bool        `json:"raw_app"`
+			Summary     string      `json:"summary"`
+			Value       interface{} `json:"value"`
+			Versions    []int       `json:"versions"`
+			WorkspaceId string      `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -103465,7 +105015,58 @@ func ParseGetAzureTriggerResponse(rsp *http.Response) (*GetAzureTriggerResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AzureTrigger
+		var dest struct {
+			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// trigger at the same path. Set by list endpoints when
+			// `include_draft_only=true` synthesizes the row from the
+			// draft. Frontend renders a "Draft" badge.
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+			// EditedAt Timestamp of the last edit
+			EditedAt time.Time `json:"edited_at"`
+
+			// EditedBy Username of the last person who edited this trigger
+			EditedBy string `json:"edited_by"`
+
+			// ExtraPerms Additional permissions for this trigger
+			ExtraPerms map[string]bool `json:"extra_perms"`
+			IsDraft    bool            `json:"is_draft"`
+
+			// IsFlow True if script_path points to a flow, false if it points to a script
+			IsFlow bool      `json:"is_flow"`
+			Labels *[]string `json:"labels,omitempty"`
+
+			// Mode job trigger mode
+			Mode       TriggerMode `json:"mode"`
+			NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+			Path string `json:"path"`
+
+			// PermissionedAs The user or group this trigger runs as (permissioned_as)
+			PermissionedAs string `json:"permissioned_as"`
+
+			// ScriptPath Path to the script or flow to execute when triggered
+			ScriptPath string `json:"script_path"`
+
+			// WorkspaceId The workspace this trigger belongs to
+			WorkspaceId string `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -103958,33 +105559,98 @@ func ParseCreateDeploymentRequestCommentResponse(rsp *http.Response) (*CreateDep
 	return response, nil
 }
 
-// ParseCreateDraftResponse parses an HTTP response from a CreateDraftWithResponse call
-func ParseCreateDraftResponse(rsp *http.Response) (*CreateDraftResponse, error) {
+// ParseGetDraftForUserResponse parses an HTTP response from a GetDraftForUserWithResponse call
+func ParseGetDraftForUserResponse(rsp *http.Response) (*GetDraftForUserResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &CreateDraftResponse{
+	response := &GetDraftForUserResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CreatedAt time.Time   `json:"created_at"`
+			Value     interface{} `json:"value"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
 }
 
-// ParseDeleteDraftResponse parses an HTTP response from a DeleteDraftWithResponse call
-func ParseDeleteDraftResponse(rsp *http.Response) (*DeleteDraftResponse, error) {
+// ParseListDraftsResponse parses an HTTP response from a ListDraftsWithResponse call
+func ParseListDraftsResponse(rsp *http.Response) (*ListDraftsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteDraftResponse{
+	response := &ListDraftsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			CreatedAt time.Time `json:"created_at"`
+
+			// DraftOnly No deployed counterpart exists at this path — the draft is the whole item.
+			DraftOnly bool `json:"draft_only"`
+
+			// Kind Closed set of item kinds a user can autosave as a draft. Mirrors the
+			// Postgres `DRAFT_KIND` enum and the backend `UserDraftItemKind`.
+			Kind UserDraftItemKind `json:"kind"`
+			Path string            `json:"path"`
+
+			// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one.
+			Summary *string `json:"summary,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateDraftResponse parses an HTTP response from a UpdateDraftWithResponse call
+func ParseUpdateDraftResponse(rsp *http.Response) (*UpdateDraftResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateDraftResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CurrentTimestamp time.Time            `json:"current_timestamp"`
+			Status           UpdateDraft200Status `json:"status"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -104063,7 +105729,58 @@ func ParseGetEmailTriggerResponse(rsp *http.Response) (*GetEmailTriggerResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest EmailTrigger
+		var dest struct {
+			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// trigger at the same path. Set by list endpoints when
+			// `include_draft_only=true` synthesizes the row from the
+			// draft. Frontend renders a "Draft" badge.
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+			// EditedAt Timestamp of the last edit
+			EditedAt time.Time `json:"edited_at"`
+
+			// EditedBy Username of the last person who edited this trigger
+			EditedBy string `json:"edited_by"`
+
+			// ExtraPerms Additional permissions for this trigger
+			ExtraPerms map[string]bool `json:"extra_perms"`
+			IsDraft    bool            `json:"is_draft"`
+
+			// IsFlow True if script_path points to a flow, false if it points to a script
+			IsFlow bool      `json:"is_flow"`
+			Labels *[]string `json:"labels,omitempty"`
+
+			// Mode job trigger mode
+			Mode       TriggerMode `json:"mode"`
+			NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+			Path string `json:"path"`
+
+			// PermissionedAs The user or group this trigger runs as (permissioned_as)
+			PermissionedAs string `json:"permissioned_as"`
+
+			// ScriptPath Path to the script or flow to execute when triggered
+			ScriptPath string `json:"script_path"`
+
+			// WorkspaceId The workspace this trigger belongs to
+			WorkspaceId string `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -104391,70 +106108,6 @@ func ParseExistsFlowByPathResponse(rsp *http.Response) (*ExistsFlowByPathRespons
 	return response, nil
 }
 
-// ParseGetFlowByPathWithDraftResponse parses an HTTP response from a GetFlowByPathWithDraftWithResponse call
-func ParseGetFlowByPathWithDraftResponse(rsp *http.Response) (*GetFlowByPathWithDraftResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetFlowByPathWithDraftResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Archived        bool  `json:"archived"`
-			DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
-
-			// Description Detailed documentation for this flow
-			Description *string `json:"description,omitempty"`
-			Draft       *Flow   `json:"draft,omitempty"`
-
-			// DraftCreatedAt Timestamp at which the most recent DB draft was created. Used by the frontend's UserDraft staleness check.
-			DraftCreatedAt *time.Time `json:"draft_created_at,omitempty"`
-			DraftOnly      *bool      `json:"draft_only,omitempty"`
-			EditedAt       time.Time  `json:"edited_at"`
-			EditedBy       string     `json:"edited_by"`
-			ExtraPerms     ExtraPerms `json:"extra_perms"`
-
-			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
-			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
-			Labels          *[]string `json:"labels,omitempty"`
-			LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
-			OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
-			Path            string    `json:"path"`
-			Priority        *int      `json:"priority,omitempty"`
-
-			// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
-			Schema  *map[string]interface{} `json:"schema,omitempty"`
-			Starred *bool                   `json:"starred,omitempty"`
-
-			// Summary Short description of what this flow does
-			Summary string   `json:"summary"`
-			Tag     *string  `json:"tag,omitempty"`
-			Timeout *float32 `json:"timeout,omitempty"`
-
-			// Value The flow structure containing modules and optional preprocessor/failure handlers
-			Value               SchemasFlowValue `json:"value"`
-			VersionId           *float32         `json:"version_id,omitempty"`
-			VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
-			WorkspaceId         *string          `json:"workspace_id,omitempty"`
-			WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseGetFlowVersionResponse parses an HTTP response from a GetFlowVersionWithResponse call
 func ParseGetFlowVersionResponse(rsp *http.Response) (*GetFlowVersionResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -104496,7 +106149,57 @@ func ParseGetFlowByPathResponse(rsp *http.Response) (*GetFlowByPathResponse, err
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Flow
+		var dest struct {
+			Archived        bool  `json:"archived"`
+			DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
+
+			// Description Detailed documentation for this flow
+			Description  *string                 `json:"description,omitempty"`
+			Draft        *map[string]interface{} `json:"draft,omitempty"`
+			DraftOnly    *bool                   `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time              `json:"draft_saved_at,omitempty"`
+			EditedAt     time.Time               `json:"edited_at"`
+			EditedBy     string                  `json:"edited_by"`
+			ExtraPerms   ExtraPerms              `json:"extra_perms"`
+
+			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+			IsDraft         bool      `json:"is_draft"`
+			Labels          *[]string `json:"labels,omitempty"`
+			LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
+			NoDeployed      *bool     `json:"no_deployed,omitempty"`
+			OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+			Path     string `json:"path"`
+			Priority *int   `json:"priority,omitempty"`
+
+			// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+			Schema  *map[string]interface{} `json:"schema,omitempty"`
+			Starred *bool                   `json:"starred,omitempty"`
+
+			// Summary Short description of what this flow does
+			Summary string   `json:"summary"`
+			Tag     *string  `json:"tag,omitempty"`
+			Timeout *float32 `json:"timeout,omitempty"`
+
+			// Value The flow structure containing modules and optional preprocessor/failure handlers
+			Value               SchemasFlowValue `json:"value"`
+			VersionId           *float32         `json:"version_id,omitempty"`
+			VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
+			WorkspaceId         *string          `json:"workspace_id,omitempty"`
+			WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -104621,15 +106324,39 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 			// Description Detailed documentation for this flow
-			Description *string    `json:"description,omitempty"`
-			DraftOnly   *bool      `json:"draft_only,omitempty"`
-			EditedAt    time.Time  `json:"edited_at"`
-			EditedBy    string     `json:"edited_by"`
-			ExtraPerms  ExtraPerms `json:"extra_perms"`
-			HasDraft    *bool      `json:"has_draft,omitempty"`
+			Description *string `json:"description,omitempty"`
+			DraftOnly   *bool   `json:"draft_only,omitempty"`
+
+			// DraftPath User-typed path the editor has staged but not
+			// yet deployed. Sourced from the draft JSON's
+			// `draft_path` field (the editor only writes it
+			// when the typed path differs from the deployed
+			// one). Lets the home list render the meaningful
+			// name instead of the autogenerated
+			// `u/{user}/draft_{uuid}` URL path. Omitted when
+			// unchanged.
+			DraftPath *string `json:"draft_path,omitempty"`
+
+			// DraftUsers Workspace users (including the authed user, and
+			// the legacy NULL-email row if any) who have a
+			// per-user draft at this path. Drives the home
+			// page's user-avatar circles inside the Draft
+			// badge. Omitted when no drafts exist.
+			DraftUsers *[]struct {
+				Username *string `json:"username"`
+			} `json:"draft_users,omitempty"`
+			EditedAt   time.Time  `json:"edited_at"`
+			EditedBy   string     `json:"edited_by"`
+			ExtraPerms ExtraPerms `json:"extra_perms"`
 
 			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+
+			// IsDraft True when the authed user has a draft for this
+			// flow — either no deployed row exists at this
+			// path (draft-only) or the user saved a per-user
+			// draft on top of the deployed row.
+			IsDraft         *bool     `json:"is_draft,omitempty"`
 			Labels          *[]string `json:"labels,omitempty"`
 			LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
 			OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
@@ -105113,7 +106840,58 @@ func ParseGetGcpTriggerResponse(rsp *http.Response) (*GetGcpTriggerResponse, err
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest GcpTrigger
+		var dest struct {
+			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// trigger at the same path. Set by list endpoints when
+			// `include_draft_only=true` synthesizes the row from the
+			// draft. Frontend renders a "Draft" badge.
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+			// EditedAt Timestamp of the last edit
+			EditedAt time.Time `json:"edited_at"`
+
+			// EditedBy Username of the last person who edited this trigger
+			EditedBy string `json:"edited_by"`
+
+			// ExtraPerms Additional permissions for this trigger
+			ExtraPerms map[string]bool `json:"extra_perms"`
+			IsDraft    bool            `json:"is_draft"`
+
+			// IsFlow True if script_path points to a flow, false if it points to a script
+			IsFlow bool      `json:"is_flow"`
+			Labels *[]string `json:"labels,omitempty"`
+
+			// Mode job trigger mode
+			Mode       TriggerMode `json:"mode"`
+			NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+			Path string `json:"path"`
+
+			// PermissionedAs The user or group this trigger runs as (permissioned_as)
+			PermissionedAs string `json:"permissioned_as"`
+
+			// ScriptPath Path to the script or flow to execute when triggered
+			ScriptPath string `json:"script_path"`
+
+			// WorkspaceId The workspace this trigger belongs to
+			WorkspaceId string `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -105665,7 +107443,58 @@ func ParseGetHttpTriggerResponse(rsp *http.Response) (*GetHttpTriggerResponse, e
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest HttpTrigger
+		var dest struct {
+			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// trigger at the same path. Set by list endpoints when
+			// `include_draft_only=true` synthesizes the row from the
+			// draft. Frontend renders a "Draft" badge.
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+			// EditedAt Timestamp of the last edit
+			EditedAt time.Time `json:"edited_at"`
+
+			// EditedBy Username of the last person who edited this trigger
+			EditedBy string `json:"edited_by"`
+
+			// ExtraPerms Additional permissions for this trigger
+			ExtraPerms map[string]bool `json:"extra_perms"`
+			IsDraft    bool            `json:"is_draft"`
+
+			// IsFlow True if script_path points to a flow, false if it points to a script
+			IsFlow bool      `json:"is_flow"`
+			Labels *[]string `json:"labels,omitempty"`
+
+			// Mode job trigger mode
+			Mode       TriggerMode `json:"mode"`
+			NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+			Path string `json:"path"`
+
+			// PermissionedAs The user or group this trigger runs as (permissioned_as)
+			PermissionedAs string `json:"permissioned_as"`
+
+			// ScriptPath Path to the script or flow to execute when triggered
+			ScriptPath string `json:"script_path"`
+
+			// WorkspaceId The workspace this trigger belongs to
+			WorkspaceId string `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -108457,7 +110286,58 @@ func ParseGetKafkaTriggerResponse(rsp *http.Response) (*GetKafkaTriggerResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest KafkaTrigger
+		var dest struct {
+			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// trigger at the same path. Set by list endpoints when
+			// `include_draft_only=true` synthesizes the row from the
+			// draft. Frontend renders a "Draft" badge.
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+			// EditedAt Timestamp of the last edit
+			EditedAt time.Time `json:"edited_at"`
+
+			// EditedBy Username of the last person who edited this trigger
+			EditedBy string `json:"edited_by"`
+
+			// ExtraPerms Additional permissions for this trigger
+			ExtraPerms map[string]bool `json:"extra_perms"`
+			IsDraft    bool            `json:"is_draft"`
+
+			// IsFlow True if script_path points to a flow, false if it points to a script
+			IsFlow bool      `json:"is_flow"`
+			Labels *[]string `json:"labels,omitempty"`
+
+			// Mode job trigger mode
+			Mode       TriggerMode `json:"mode"`
+			NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+			Path string `json:"path"`
+
+			// PermissionedAs The user or group this trigger runs as (permissioned_as)
+			PermissionedAs string `json:"permissioned_as"`
+
+			// ScriptPath Path to the script or flow to execute when triggered
+			ScriptPath string `json:"script_path"`
+
+			// WorkspaceId The workspace this trigger belongs to
+			WorkspaceId string `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -108631,7 +110511,58 @@ func ParseGetMqttTriggerResponse(rsp *http.Response) (*GetMqttTriggerResponse, e
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest MqttTrigger
+		var dest struct {
+			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// trigger at the same path. Set by list endpoints when
+			// `include_draft_only=true` synthesizes the row from the
+			// draft. Frontend renders a "Draft" badge.
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+			// EditedAt Timestamp of the last edit
+			EditedAt time.Time `json:"edited_at"`
+
+			// EditedBy Username of the last person who edited this trigger
+			EditedBy string `json:"edited_by"`
+
+			// ExtraPerms Additional permissions for this trigger
+			ExtraPerms map[string]bool `json:"extra_perms"`
+			IsDraft    bool            `json:"is_draft"`
+
+			// IsFlow True if script_path points to a flow, false if it points to a script
+			IsFlow bool      `json:"is_flow"`
+			Labels *[]string `json:"labels,omitempty"`
+
+			// Mode job trigger mode
+			Mode       TriggerMode `json:"mode"`
+			NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+			Path string `json:"path"`
+
+			// PermissionedAs The user or group this trigger runs as (permissioned_as)
+			PermissionedAs string `json:"permissioned_as"`
+
+			// ScriptPath Path to the script or flow to execute when triggered
+			ScriptPath string `json:"script_path"`
+
+			// WorkspaceId The workspace this trigger belongs to
+			WorkspaceId string `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -109249,7 +111180,58 @@ func ParseGetNatsTriggerResponse(rsp *http.Response) (*GetNatsTriggerResponse, e
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest NatsTrigger
+		var dest struct {
+			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// trigger at the same path. Set by list endpoints when
+			// `include_draft_only=true` synthesizes the row from the
+			// draft. Frontend renders a "Draft" badge.
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+			// EditedAt Timestamp of the last edit
+			EditedAt time.Time `json:"edited_at"`
+
+			// EditedBy Username of the last person who edited this trigger
+			EditedBy string `json:"edited_by"`
+
+			// ExtraPerms Additional permissions for this trigger
+			ExtraPerms map[string]bool `json:"extra_perms"`
+			IsDraft    bool            `json:"is_draft"`
+
+			// IsFlow True if script_path points to a flow, false if it points to a script
+			IsFlow bool      `json:"is_flow"`
+			Labels *[]string `json:"labels,omitempty"`
+
+			// Mode job trigger mode
+			Mode       TriggerMode `json:"mode"`
+			NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+			Path string `json:"path"`
+
+			// PermissionedAs The user or group this trigger runs as (permissioned_as)
+			PermissionedAs string `json:"permissioned_as"`
+
+			// ScriptPath Path to the script or flow to execute when triggered
+			ScriptPath string `json:"script_path"`
+
+			// WorkspaceId The workspace this trigger belongs to
+			WorkspaceId string `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -109699,7 +111681,58 @@ func ParseGetPostgresTriggerResponse(rsp *http.Response) (*GetPostgresTriggerRes
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest PostgresTrigger
+		var dest struct {
+			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// trigger at the same path. Set by list endpoints when
+			// `include_draft_only=true` synthesizes the row from the
+			// draft. Frontend renders a "Draft" badge.
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+			// EditedAt Timestamp of the last edit
+			EditedAt time.Time `json:"edited_at"`
+
+			// EditedBy Username of the last person who edited this trigger
+			EditedBy string `json:"edited_by"`
+
+			// ExtraPerms Additional permissions for this trigger
+			ExtraPerms map[string]bool `json:"extra_perms"`
+			IsDraft    bool            `json:"is_draft"`
+
+			// IsFlow True if script_path points to a flow, false if it points to a script
+			IsFlow bool      `json:"is_flow"`
+			Labels *[]string `json:"labels,omitempty"`
+
+			// Mode job trigger mode
+			Mode       TriggerMode `json:"mode"`
+			NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+			Path string `json:"path"`
+
+			// PermissionedAs The user or group this trigger runs as (permissioned_as)
+			PermissionedAs string `json:"permissioned_as"`
+
+			// ScriptPath Path to the script or flow to execute when triggered
+			ScriptPath string `json:"script_path"`
+
+			// WorkspaceId The workspace this trigger belongs to
+			WorkspaceId string `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -110164,7 +112197,47 @@ func ParseGetResourceResponse(rsp *http.Response) (*GetResourceResponse, error) 
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Resource
+		var dest struct {
+			Account     *float32                `json:"account,omitempty"`
+			CreatedBy   *string                 `json:"created_by,omitempty"`
+			Description *string                 `json:"description,omitempty"`
+			Draft       *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// resource at the same path. Frontend renders a "Draft" badge.
+			DraftOnly    *bool            `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time       `json:"draft_saved_at,omitempty"`
+			EditedAt     *time.Time       `json:"edited_at,omitempty"`
+			ExtraPerms   *map[string]bool `json:"extra_perms,omitempty"`
+
+			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+			IsDraft         bool      `json:"is_draft"`
+			IsExpired       *bool     `json:"is_expired,omitempty"`
+			IsLinked        bool      `json:"is_linked"`
+			IsOauth         bool      `json:"is_oauth"`
+			IsRefreshed     bool      `json:"is_refreshed"`
+			Labels          *[]string `json:"labels,omitempty"`
+			NoDeployed      *bool     `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+			Path         string       `json:"path"`
+			RefreshError *string      `json:"refresh_error,omitempty"`
+			ResourceType string       `json:"resource_type"`
+			Value        *interface{} `json:"value,omitempty"`
+			WorkspaceId  *string      `json:"workspace_id,omitempty"`
+			WsSpecific   *bool        `json:"ws_specific,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -110627,7 +112700,124 @@ func ParseGetScheduleResponse(rsp *http.Response) (*GetScheduleResponse, error) 
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Schedule
+		var dest struct {
+			// Args The arguments to pass to the script or flow
+			Args *ScriptArgs `json:"args,omitempty"`
+
+			// CronVersion Cron parser version. Use 'v2' for extended syntax with additional features
+			CronVersion *string `json:"cron_version"`
+
+			// Description Detailed description of what this schedule does
+			Description *string                 `json:"description"`
+			Draft       *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// schedule at the same path. Frontend renders a "Draft" badge.
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+			// DynamicSkip Path to a script that validates scheduled datetimes. Receives scheduled_for datetime and returns boolean to skip (true) or run (false)
+			DynamicSkip *string `json:"dynamic_skip"`
+
+			// EditedAt Timestamp of the last edit
+			EditedAt time.Time `json:"edited_at"`
+
+			// EditedBy Username of the last person who edited this schedule
+			EditedBy string `json:"edited_by"`
+
+			// Email Email of the user who owns this schedule, used for permissioned_as
+			Email string `json:"email"`
+
+			// Enabled Whether the schedule is currently active and will trigger jobs
+			Enabled bool `json:"enabled"`
+
+			// Error Last error message if the schedule failed to trigger
+			Error *string `json:"error"`
+
+			// ExtraPerms Additional permissions for this schedule
+			ExtraPerms map[string]bool `json:"extra_perms"`
+
+			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+			IsDraft         bool      `json:"is_draft"`
+
+			// IsFlow True if script_path points to a flow, false if it points to a script
+			IsFlow     bool      `json:"is_flow"`
+			Labels     *[]string `json:"labels,omitempty"`
+			NoDeployed *bool     `json:"no_deployed,omitempty"`
+
+			// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
+			NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
+
+			// OnFailure Path to a script or flow to run when the scheduled job fails
+			OnFailure *string `json:"on_failure"`
+
+			// OnFailureExact If true, trigger on_failure handler only on exactly N failures, not on every failure after N
+			OnFailureExact *bool `json:"on_failure_exact"`
+
+			// OnFailureExtraArgs The arguments to pass to the script or flow
+			OnFailureExtraArgs *ScriptArgs `json:"on_failure_extra_args,omitempty"`
+
+			// OnFailureTimes Number of consecutive failures before the on_failure handler is triggered (default 1)
+			OnFailureTimes *float32 `json:"on_failure_times"`
+
+			// OnRecovery Path to a script or flow to run when the schedule recovers after failures
+			OnRecovery *string `json:"on_recovery"`
+
+			// OnRecoveryExtraArgs The arguments to pass to the script or flow
+			OnRecoveryExtraArgs *ScriptArgs `json:"on_recovery_extra_args,omitempty"`
+
+			// OnRecoveryTimes Number of consecutive successes before the on_recovery handler is triggered (default 1)
+			OnRecoveryTimes *float32 `json:"on_recovery_times"`
+
+			// OnSuccess Path to a script or flow to run after each successful execution
+			OnSuccess *string `json:"on_success"`
+
+			// OnSuccessExtraArgs The arguments to pass to the script or flow
+			OnSuccessExtraArgs *ScriptArgs `json:"on_success_extra_args,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// Path The unique Windmill path for this schedule. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`.
+			Path string `json:"path"`
+
+			// PausedUntil ISO 8601 datetime until which the schedule is paused. Schedule resumes automatically after this time
+			PausedUntil *time.Time `json:"paused_until"`
+
+			// PermissionedAs The user or group this schedule runs as (e.g., 'u/admin' or 'g/mygroup')
+			PermissionedAs string `json:"permissioned_as"`
+
+			// Retry Retry configuration for failed module executions
+			Retry *Retry `json:"retry,omitempty"`
+
+			// Schedule Cron expression with 6 fields (seconds, minutes, hours, day of month, month, day of week). Example '0 0 12 * * *' for daily at noon
+			Schedule string `json:"schedule"`
+
+			// ScriptPath Path to the script or flow to execute when triggered
+			ScriptPath string `json:"script_path"`
+
+			// Summary Short summary describing the purpose of this schedule
+			Summary *string `json:"summary"`
+
+			// Tag Worker tag to route jobs to specific worker groups
+			Tag *string `json:"tag"`
+
+			// Timezone IANA timezone for the schedule (e.g., 'UTC', 'Europe/Paris', 'America/New_York')
+			Timezone string `json:"timezone"`
+
+			// WsErrorHandlerMuted If true, the workspace-level error handler will not be triggered for this schedule's failures
+			WsErrorHandlerMuted *bool `json:"ws_error_handler_muted,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -110982,32 +113172,6 @@ func ParseExistsScriptByPathResponse(rsp *http.Response) (*ExistsScriptByPathRes
 	return response, nil
 }
 
-// ParseGetScriptByPathWithDraftResponse parses an HTTP response from a GetScriptByPathWithDraftWithResponse call
-func ParseGetScriptByPathWithDraftResponse(rsp *http.Response) (*GetScriptByPathWithDraftResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetScriptByPathWithDraftResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest NewScriptWithDraft
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseGetScriptByHashResponse parses an HTTP response from a GetScriptByHashWithResponse call
 func ParseGetScriptByHashResponse(rsp *http.Response) (*GetScriptByHashResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -111049,7 +113213,77 @@ func ParseGetScriptByPathResponse(rsp *http.Response) (*GetScriptByPathResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Script
+		var dest struct {
+			Archived                 bool      `json:"archived"`
+			AutoKind                 *string   `json:"auto_kind,omitempty"`
+			CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
+			Codebase                 *string   `json:"codebase,omitempty"`
+			ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
+			ConcurrencyTimeWindowS   *int      `json:"concurrency_time_window_s,omitempty"`
+			ConcurrentLimit          *int      `json:"concurrent_limit,omitempty"`
+			Content                  string    `json:"content"`
+			CreatedAt                time.Time `json:"created_at"`
+			CreatedBy                string    `json:"created_by"`
+			DebounceArgsToAccumulate *[]string `json:"debounce_args_to_accumulate,omitempty"`
+			DebounceDelayS           *int      `json:"debounce_delay_s,omitempty"`
+			DebounceKey              *string   `json:"debounce_key,omitempty"`
+			DedicatedWorker          *bool     `json:"dedicated_worker,omitempty"`
+
+			// DeleteAfterSecs If set, delete the job's args, result and logs after this many seconds following job completion
+			DeleteAfterSecs *int                    `json:"delete_after_secs,omitempty"`
+			Deleted         bool                    `json:"deleted"`
+			Description     string                  `json:"description"`
+			Draft           *map[string]interface{} `json:"draft,omitempty"`
+			DraftOnly       *bool                   `json:"draft_only,omitempty"`
+			DraftSavedAt    *time.Time              `json:"draft_saved_at,omitempty"`
+			Envs            *[]string               `json:"envs,omitempty"`
+			ExtraPerms      map[string]bool         `json:"extra_perms"`
+			HasPreprocessor bool                    `json:"has_preprocessor"`
+			Hash            string                  `json:"hash"`
+
+			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+			InheritedLabels         *[]string              `json:"inherited_labels,omitempty"`
+			IsDraft                 bool                   `json:"is_draft"`
+			IsTemplate              bool                   `json:"is_template"`
+			Kind                    GetScriptByPath200Kind `json:"kind"`
+			Labels                  *[]string              `json:"labels,omitempty"`
+			Language                ScriptLang             `json:"language"`
+			Lock                    *string                `json:"lock,omitempty"`
+			LockErrorLogs           *string                `json:"lock_error_logs,omitempty"`
+			MaxTotalDebouncesAmount *int                   `json:"max_total_debounces_amount,omitempty"`
+			MaxTotalDebouncingTime  *int                   `json:"max_total_debouncing_time,omitempty"`
+
+			// Modules Additional script modules keyed by relative file path
+			Modules         *map[string]ScriptModule `json:"modules"`
+			NoDeployed      *bool                    `json:"no_deployed,omitempty"`
+			OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
+			ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
+			Path                   string                  `json:"path"`
+			Priority               *int                    `json:"priority,omitempty"`
+			RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
+			Schema                 *map[string]interface{} `json:"schema,omitempty"`
+			Starred                bool                    `json:"starred"`
+			Summary                string                  `json:"summary"`
+			Tag                    *string                 `json:"tag,omitempty"`
+			Timeout                *int                    `json:"timeout,omitempty"`
+			VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
+			WorkspaceId            *string                 `json:"workspace_id,omitempty"`
+			WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -111169,7 +113403,84 @@ func ParseListScriptsResponse(rsp *http.Response) (*ListScriptsResponse, error) 
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []Script
+		var dest []struct {
+			Archived                 bool      `json:"archived"`
+			AutoKind                 *string   `json:"auto_kind,omitempty"`
+			CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
+			Codebase                 *string   `json:"codebase,omitempty"`
+			ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
+			ConcurrencyTimeWindowS   *int      `json:"concurrency_time_window_s,omitempty"`
+			ConcurrentLimit          *int      `json:"concurrent_limit,omitempty"`
+			Content                  string    `json:"content"`
+			CreatedAt                time.Time `json:"created_at"`
+			CreatedBy                string    `json:"created_by"`
+			DebounceArgsToAccumulate *[]string `json:"debounce_args_to_accumulate,omitempty"`
+			DebounceDelayS           *int      `json:"debounce_delay_s,omitempty"`
+			DebounceKey              *string   `json:"debounce_key,omitempty"`
+			DedicatedWorker          *bool     `json:"dedicated_worker,omitempty"`
+
+			// DeleteAfterSecs If set, delete the job's args, result and logs after this many seconds following job completion
+			DeleteAfterSecs *int   `json:"delete_after_secs,omitempty"`
+			Deleted         bool   `json:"deleted"`
+			Description     string `json:"description"`
+			DraftOnly       *bool  `json:"draft_only,omitempty"`
+
+			// DraftPath User-typed path the editor has staged but not
+			// yet deployed. Surfaced for draft-only rows so
+			// the home list can render the meaningful name
+			// instead of the autogenerated
+			// `u/{user}/draft_{uuid}` URL path. Omitted
+			// when unchanged.
+			DraftPath *string `json:"draft_path,omitempty"`
+
+			// DraftUsers Workspace users (including the authed user, and
+			// the legacy NULL-email row if any) who have a
+			// per-user draft at this path. Drives the home
+			// page's user-avatar circles inside the Draft
+			// badge. Omitted when no drafts exist.
+			DraftUsers *[]struct {
+				Username *string `json:"username"`
+			} `json:"draft_users,omitempty"`
+			Envs            *[]string       `json:"envs,omitempty"`
+			ExtraPerms      map[string]bool `json:"extra_perms"`
+			HasPreprocessor bool            `json:"has_preprocessor"`
+			Hash            string          `json:"hash"`
+
+			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+
+			// IsDraft True when the authed user has a draft for this
+			// script — either no deployed row exists at this
+			// path (draft-only) or the user saved a per-user
+			// draft on top of the deployed row.
+			IsDraft                 *bool              `json:"is_draft,omitempty"`
+			IsTemplate              bool               `json:"is_template"`
+			Kind                    ListScripts200Kind `json:"kind"`
+			Labels                  *[]string          `json:"labels,omitempty"`
+			Language                ScriptLang         `json:"language"`
+			Lock                    *string            `json:"lock,omitempty"`
+			LockErrorLogs           *string            `json:"lock_error_logs,omitempty"`
+			MaxTotalDebouncesAmount *int               `json:"max_total_debounces_amount,omitempty"`
+			MaxTotalDebouncingTime  *int               `json:"max_total_debouncing_time,omitempty"`
+
+			// Modules Additional script modules keyed by relative file path
+			Modules         *map[string]ScriptModule `json:"modules"`
+			OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
+
+			// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
+			ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
+			Path                   string                  `json:"path"`
+			Priority               *int                    `json:"priority,omitempty"`
+			RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
+			Schema                 *map[string]interface{} `json:"schema,omitempty"`
+			Starred                bool                    `json:"starred"`
+			Summary                string                  `json:"summary"`
+			Tag                    *string                 `json:"tag,omitempty"`
+			Timeout                *int                    `json:"timeout,omitempty"`
+			VisibleToRunnerOnly    *bool                   `json:"visible_to_runner_only,omitempty"`
+			WorkspaceId            *string                 `json:"workspace_id,omitempty"`
+			WsErrorHandlerMuted    *bool                   `json:"ws_error_handler_muted,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -111587,7 +113898,58 @@ func ParseGetSqsTriggerResponse(rsp *http.Response) (*GetSqsTriggerResponse, err
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest SqsTrigger
+		var dest struct {
+			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// trigger at the same path. Set by list endpoints when
+			// `include_draft_only=true` synthesizes the row from the
+			// draft. Frontend renders a "Draft" badge.
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+			// EditedAt Timestamp of the last edit
+			EditedAt time.Time `json:"edited_at"`
+
+			// EditedBy Username of the last person who edited this trigger
+			EditedBy string `json:"edited_by"`
+
+			// ExtraPerms Additional permissions for this trigger
+			ExtraPerms map[string]bool `json:"extra_perms"`
+			IsDraft    bool            `json:"is_draft"`
+
+			// IsFlow True if script_path points to a flow, false if it points to a script
+			IsFlow bool      `json:"is_flow"`
+			Labels *[]string `json:"labels,omitempty"`
+
+			// Mode job trigger mode
+			Mode       TriggerMode `json:"mode"`
+			NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+			Path string `json:"path"`
+
+			// PermissionedAs The user or group this trigger runs as (permissioned_as)
+			PermissionedAs string `json:"permissioned_as"`
+
+			// ScriptPath Path to the script or flow to execute when triggered
+			ScriptPath string `json:"script_path"`
+
+			// WorkspaceId The workspace this trigger belongs to
+			WorkspaceId string `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -112169,7 +114531,48 @@ func ParseGetVariableResponse(rsp *http.Response) (*GetVariableResponse, error) 
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ListableVariable
+		var dest struct {
+			Account     *int                    `json:"account,omitempty"`
+			Description *string                 `json:"description,omitempty"`
+			Draft       *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// variable at the same path. Frontend renders a "Draft" badge.
+			DraftOnly    *bool           `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time      `json:"draft_saved_at,omitempty"`
+			EditedAt     *time.Time      `json:"edited_at,omitempty"`
+			EditedBy     *string         `json:"edited_by,omitempty"`
+			ExpiresAt    *time.Time      `json:"expires_at,omitempty"`
+			ExtraPerms   map[string]bool `json:"extra_perms"`
+
+			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
+			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+			IsDraft         bool      `json:"is_draft"`
+			IsExpired       *bool     `json:"is_expired,omitempty"`
+			IsLinked        *bool     `json:"is_linked,omitempty"`
+			IsOauth         *bool     `json:"is_oauth,omitempty"`
+			IsRefreshed     *bool     `json:"is_refreshed,omitempty"`
+			IsSecret        bool      `json:"is_secret"`
+			Labels          *[]string `json:"labels,omitempty"`
+			NoDeployed      *bool     `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+			Path         string  `json:"path"`
+			RefreshError *string `json:"refresh_error,omitempty"`
+			Value        *string `json:"value,omitempty"`
+			WorkspaceId  string  `json:"workspace_id"`
+			WsSpecific   *bool   `json:"ws_specific,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -112431,7 +114834,58 @@ func ParseGetWebsocketTriggerResponse(rsp *http.Response) (*GetWebsocketTriggerR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest WebsocketTrigger
+		var dest struct {
+			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftOnly True when this row is a per-user draft with no deployed
+			// trigger at the same path. Set by list endpoints when
+			// `include_draft_only=true` synthesizes the row from the
+			// draft. Frontend renders a "Draft" badge.
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+
+			// EditedAt Timestamp of the last edit
+			EditedAt time.Time `json:"edited_at"`
+
+			// EditedBy Username of the last person who edited this trigger
+			EditedBy string `json:"edited_by"`
+
+			// ExtraPerms Additional permissions for this trigger
+			ExtraPerms map[string]bool `json:"extra_perms"`
+			IsDraft    bool            `json:"is_draft"`
+
+			// IsFlow True if script_path points to a flow, false if it points to a script
+			IsFlow bool      `json:"is_flow"`
+			Labels *[]string `json:"labels,omitempty"`
+
+			// Mode job trigger mode
+			Mode       TriggerMode `json:"mode"`
+			NoDeployed *bool       `json:"no_deployed,omitempty"`
+
+			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
+			// with a saved draft at the same path. Populated only on the
+			// authed user's "get by path" responses for kinds the editor
+			// surfaces a fork banner for (script, flow, app, raw_app).
+			// Empty / omitted for kinds without that UI.
+			OtherDraftsUsers *[]struct {
+				// Username Workspace username of the draft owner. `null` represents
+				// the legacy workspace-level (NULL-email) row. Emails never
+				// leave the server.
+				Username *string `json:"username"`
+			} `json:"other_drafts_users,omitempty"`
+
+			// Path The unique Windmill path for this trigger. Must be of the form `u/<user>/<path>` or `f/<folder>/<path>`. This is the trigger object path, not the HTTP route path.
+			Path string `json:"path"`
+
+			// PermissionedAs The user or group this trigger runs as (permissioned_as)
+			PermissionedAs string `json:"permissioned_as"`
+
+			// ScriptPath Path to the script or flow to execute when triggered
+			ScriptPath string `json:"script_path"`
+
+			// WorkspaceId The workspace this trigger belongs to
+			WorkspaceId string `json:"workspace_id"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
