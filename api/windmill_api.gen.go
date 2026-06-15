@@ -7707,6 +7707,9 @@ type UpdateDraftJSONBody struct {
 	// LastSync Server timestamp of the client's last known sync for this draft. Omit on first save.
 	LastSync *time.Time `json:"last_sync,omitempty"`
 
+	// Legacy Delete-only. Target the legacy workspace-level row (email NULL) instead of the current user's row. Used to discard a legacy draft from the review page.
+	Legacy *bool `json:"legacy,omitempty"`
+
 	// Value Draft content to save. `null` (or omitted) signals a delete — the row is removed under the same conflict rules.
 	Value *interface{} `json:"value"`
 }
@@ -79468,10 +79471,16 @@ type ListDraftsResponse struct {
 		// DraftOnly No deployed counterpart exists at this path — the draft is the whole item.
 		DraftOnly bool `json:"draft_only"`
 
+		// DraftPath User-typed friendly path from the draft JSON's `draft_path`, when set and different from the storage path (e.g. a never-deployed item parked at `u/{user}/draft_{uuid}`).
+		DraftPath *string `json:"draft_path,omitempty"`
+
 		// Kind Closed set of item kinds a user can autosave as a draft. Mirrors the
 		// Postgres `DRAFT_KIND` enum and the backend `UserDraftItemKind`.
 		Kind UserDraftItemKind `json:"kind"`
-		Path string            `json:"path"`
+
+		// LegacyDraft The listed draft is a legacy workspace-level row (email NULL) predating the per-user drafts migration. Only true when no per-user draft exists at this path.
+		LegacyDraft bool   `json:"legacy_draft"`
+		Path        string `json:"path"`
 
 		// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one.
 		Summary *string `json:"summary,omitempty"`
@@ -105609,10 +105618,16 @@ func ParseListDraftsResponse(rsp *http.Response) (*ListDraftsResponse, error) {
 			// DraftOnly No deployed counterpart exists at this path — the draft is the whole item.
 			DraftOnly bool `json:"draft_only"`
 
+			// DraftPath User-typed friendly path from the draft JSON's `draft_path`, when set and different from the storage path (e.g. a never-deployed item parked at `u/{user}/draft_{uuid}`).
+			DraftPath *string `json:"draft_path,omitempty"`
+
 			// Kind Closed set of item kinds a user can autosave as a draft. Mirrors the
 			// Postgres `DRAFT_KIND` enum and the backend `UserDraftItemKind`.
 			Kind UserDraftItemKind `json:"kind"`
-			Path string            `json:"path"`
+
+			// LegacyDraft The listed draft is a legacy workspace-level row (email NULL) predating the per-user drafts migration. Only true when no per-user draft exists at this path.
+			LegacyDraft bool   `json:"legacy_draft"`
+			Path        string `json:"path"`
 
 			// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one.
 			Summary *string `json:"summary,omitempty"`
