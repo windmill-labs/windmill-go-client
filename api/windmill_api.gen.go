@@ -5569,6 +5569,10 @@ type UserDraftOverlay struct {
 	// surfaces a fork banner for (script, flow, app, raw_app).
 	// Empty / omitted for kinds without that UI.
 	OtherDraftsUsers *[]struct {
+		// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+		// surfaced in the fork modal as "Last updated".
+		DraftSavedAt time.Time `json:"draft_saved_at"`
+
 		// Username Workspace username of the draft owner. `null` represents
 		// the legacy workspace-level (NULL-email) row. Emails never
 		// leave the server.
@@ -78224,6 +78228,10 @@ type GetAppByPathResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -78926,6 +78934,10 @@ type GetAzureTriggerResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -79630,6 +79642,10 @@ type GetEmailTriggerResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -80047,6 +80063,10 @@ type GetFlowByPathResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -80740,6 +80760,10 @@ type GetGcpTriggerResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -81379,6 +81403,10 @@ type GetHttpTriggerResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -84221,6 +84249,10 @@ type GetKafkaTriggerResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -84464,6 +84496,10 @@ type GetMqttTriggerResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -85120,6 +85156,10 @@ type GetNatsTriggerResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -85673,6 +85713,10 @@ type GetPostgresTriggerResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -86195,6 +86239,10 @@ type GetResourceResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -86734,6 +86782,10 @@ type GetScheduleResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -87193,6 +87245,10 @@ type GetScriptByPathResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -87844,6 +87900,10 @@ type GetSqsTriggerResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -88474,6 +88534,10 @@ type GetVariableResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -88777,6 +88841,10 @@ type GetWebsocketTriggerResponse struct {
 		// surfaces a fork banner for (script, flow, app, raw_app).
 		// Empty / omitted for kinds without that UI.
 		OtherDraftsUsers *[]struct {
+			// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+			// surfaced in the fork modal as "Last updated".
+			DraftSavedAt time.Time `json:"draft_saved_at"`
+
 			// Username Workspace username of the draft owner. `null` represents
 			// the legacy workspace-level (NULL-email) row. Emails never
 			// leave the server.
@@ -104335,6 +104403,10 @@ func ParseGetAppByPathResponse(rsp *http.Response) (*GetAppByPathResponse, error
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -105058,6 +105130,10 @@ func ParseGetAzureTriggerResponse(rsp *http.Response) (*GetAzureTriggerResponse,
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -105778,6 +105854,10 @@ func ParseGetEmailTriggerResponse(rsp *http.Response) (*GetEmailTriggerResponse,
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -106191,6 +106271,10 @@ func ParseGetFlowByPathResponse(rsp *http.Response) (*GetFlowByPathResponse, err
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -106889,6 +106973,10 @@ func ParseGetGcpTriggerResponse(rsp *http.Response) (*GetGcpTriggerResponse, err
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -107492,6 +107580,10 @@ func ParseGetHttpTriggerResponse(rsp *http.Response) (*GetHttpTriggerResponse, e
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -110335,6 +110427,10 @@ func ParseGetKafkaTriggerResponse(rsp *http.Response) (*GetKafkaTriggerResponse,
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -110560,6 +110656,10 @@ func ParseGetMqttTriggerResponse(rsp *http.Response) (*GetMqttTriggerResponse, e
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -111229,6 +111329,10 @@ func ParseGetNatsTriggerResponse(rsp *http.Response) (*GetNatsTriggerResponse, e
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -111730,6 +111834,10 @@ func ParseGetPostgresTriggerResponse(rsp *http.Response) (*GetPostgresTriggerRes
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -112241,6 +112349,10 @@ func ParseGetResourceResponse(rsp *http.Response) (*GetResourceResponse, error) 
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -112797,6 +112909,10 @@ func ParseGetScheduleResponse(rsp *http.Response) (*GetScheduleResponse, error) 
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -113279,6 +113395,10 @@ func ParseGetScriptByPathResponse(rsp *http.Response) (*GetScriptByPathResponse,
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -113947,6 +114067,10 @@ func ParseGetSqsTriggerResponse(rsp *http.Response) (*GetSqsTriggerResponse, err
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -114577,6 +114701,10 @@ func ParseGetVariableResponse(rsp *http.Response) (*GetVariableResponse, error) 
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
@@ -114883,6 +115011,10 @@ func ParseGetWebsocketTriggerResponse(rsp *http.Response) (*GetWebsocketTriggerR
 			// surfaces a fork banner for (script, flow, app, raw_app).
 			// Empty / omitted for kinds without that UI.
 			OtherDraftsUsers *[]struct {
+				// DraftSavedAt When this user's draft was last saved (`draft.created_at`),
+				// surfaced in the fork modal as "Last updated".
+				DraftSavedAt time.Time `json:"draft_saved_at"`
+
 				// Username Workspace username of the draft owner. `null` represents
 				// the legacy workspace-level (NULL-email) row. Emails never
 				// leave the server.
