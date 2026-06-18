@@ -578,6 +578,7 @@ const (
 
 // Defines values for JobTriggerKind.
 const (
+	JobTriggerKindAsset        JobTriggerKind = "asset"
 	JobTriggerKindAzure        JobTriggerKind = "azure"
 	JobTriggerKindDefaultEmail JobTriggerKind = "default_email"
 	JobTriggerKindEmail        JobTriggerKind = "email"
@@ -854,6 +855,7 @@ const (
 // Defines values for UserDraftItemKind.
 const (
 	UserDraftItemKindApp                 UserDraftItemKind = "app"
+	UserDraftItemKindDataPipeline        UserDraftItemKind = "data_pipeline"
 	UserDraftItemKindFlow                UserDraftItemKind = "flow"
 	UserDraftItemKindRawApp              UserDraftItemKind = "raw_app"
 	UserDraftItemKindResource            UserDraftItemKind = "resource"
@@ -7428,6 +7430,15 @@ type UploadS3FileFromAppParams struct {
 	ContentDisposition *string `form:"content_disposition,omitempty" json:"content_disposition,omitempty"`
 }
 
+// GetAssetsGraphParams defines parameters for GetAssetsGraph.
+type GetAssetsGraphParams struct {
+	// AssetKinds Filter by asset kinds (comma-separated list)
+	AssetKinds *string `form:"asset_kinds,omitempty" json:"asset_kinds,omitempty"`
+
+	// Folder Scope the graph to runnables in a single folder
+	Folder *string `form:"folder,omitempty" json:"folder,omitempty"`
+}
+
 // ListAssetsParams defines parameters for ListAssets.
 type ListAssetsParams struct {
 	// PerPage Number of items per page (max 1000, default 50)
@@ -8422,6 +8433,15 @@ type GetJobMetricsJSONBody struct {
 type SetJobProgressJSONBody struct {
 	FlowJobId *openapi_types.UUID `json:"flow_job_id,omitempty"`
 	Percent   *int                `json:"percent,omitempty"`
+}
+
+// ListAssetDispatchEdgesParams defines parameters for ListAssetDispatchEdges.
+type ListAssetDispatchEdgesParams struct {
+	// PathStart Folder path prefix the children live under, e.g. `f/orders/`.
+	PathStart string `form:"path_start" json:"path_start"`
+
+	// CreatedAfter Only edges dispatched at/after this instant.
+	CreatedAfter *time.Time `form:"created_after,omitempty" json:"created_after,omitempty"`
 }
 
 // CountCompletedJobsParams defines parameters for CountCompletedJobs.
@@ -14319,6 +14339,9 @@ type ClientInterface interface {
 	// UploadS3FileFromAppWithBody request with any body
 	UploadS3FileFromAppWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetAssetsGraph request
+	GetAssetsGraph(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListAssets request
 	ListAssets(ctx context.Context, workspace WorkspaceId, params *ListAssetsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14329,6 +14352,9 @@ type ClientInterface interface {
 
 	// ListFavoriteAssets request
 	ListFavoriteAssets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListPipelineFolders request
+	ListPipelineFolders(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAuditLog request
 	GetAuditLog(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14441,6 +14467,9 @@ type ClientInterface interface {
 
 	// GetDraftForUser request
 	GetDraftForUser(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetOwnDraft request
+	GetOwnDraft(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListDrafts request
 	ListDrafts(ctx context.Context, workspace WorkspaceId, params *ListDraftsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14868,6 +14897,9 @@ type ClientInterface interface {
 
 	SetJobProgress(ctx context.Context, workspace WorkspaceId, id JobId, body SetJobProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAssetDispatchEdges request
+	ListAssetDispatchEdges(ctx context.Context, workspace WorkspaceId, params *ListAssetDispatchEdgesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetCompletedCount request
 	GetCompletedCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -15128,6 +15160,9 @@ type ClientInterface interface {
 
 	// GetCompletedJobTiming request
 	GetCompletedJobTiming(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListDispatchEvents request
+	ListDispatchEvents(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetApprovalInfo request
 	GetApprovalInfo(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, params *GetApprovalInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19375,6 +19410,18 @@ func (c *Client) UploadS3FileFromAppWithBody(ctx context.Context, workspace Work
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetAssetsGraph(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAssetsGraphRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListAssets(ctx context.Context, workspace WorkspaceId, params *ListAssetsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAssetsRequest(c.Server, workspace, params)
 	if err != nil {
@@ -19413,6 +19460,18 @@ func (c *Client) ListAssetsByUsage(ctx context.Context, workspace WorkspaceId, b
 
 func (c *Client) ListFavoriteAssets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListFavoriteAssetsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListPipelineFolders(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPipelineFoldersRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -19905,6 +19964,18 @@ func (c *Client) CreateDeploymentRequestComment(ctx context.Context, workspace W
 
 func (c *Client) GetDraftForUser(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetDraftForUserRequest(c.Server, workspace, kind, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetOwnDraft(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOwnDraftRequest(c.Server, workspace, kind, path)
 	if err != nil {
 		return nil, err
 	}
@@ -21799,6 +21870,18 @@ func (c *Client) SetJobProgress(ctx context.Context, workspace WorkspaceId, id J
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListAssetDispatchEdges(ctx context.Context, workspace WorkspaceId, params *ListAssetDispatchEdgesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAssetDispatchEdgesRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetCompletedCount(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCompletedCountRequest(c.Server, workspace)
 	if err != nil {
@@ -22965,6 +23048,18 @@ func (c *Client) GetCompletedJobResultMaybe(ctx context.Context, workspace Works
 
 func (c *Client) GetCompletedJobTiming(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCompletedJobTimingRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListDispatchEvents(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDispatchEventsRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -36274,6 +36369,78 @@ func NewUploadS3FileFromAppRequestWithBody(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewGetAssetsGraphRequest generates requests for GetAssetsGraph
+func NewGetAssetsGraphRequest(server string, workspace WorkspaceId, params *GetAssetsGraphParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/assets/graph", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.AssetKinds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "asset_kinds", runtime.ParamLocationQuery, *params.AssetKinds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Folder != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "folder", runtime.ParamLocationQuery, *params.Folder); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListAssetsRequest generates requests for ListAssets
 func NewListAssetsRequest(server string, workspace WorkspaceId, params *ListAssetsParams) (*http.Request, error) {
 	var err error
@@ -36522,6 +36689,40 @@ func NewListFavoriteAssetsRequest(server string, workspace WorkspaceId) (*http.R
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/assets/list_favorites", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListPipelineFoldersRequest generates requests for ListPipelineFolders
+func NewListPipelineFoldersRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/assets/pipelines", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -38781,6 +38982,54 @@ func NewGetDraftForUserRequest(server string, workspace WorkspaceId, kind UserDr
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetOwnDraftRequest generates requests for GetOwnDraft
+func NewGetOwnDraftRequest(server string, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "kind", runtime.ParamLocationPath, kind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/drafts/get_own/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -46203,6 +46452,74 @@ func NewSetJobProgressRequestWithBody(server string, workspace WorkspaceId, id J
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListAssetDispatchEdgesRequest generates requests for ListAssetDispatchEdges
+func NewListAssetDispatchEdgesRequest(server string, workspace WorkspaceId, params *ListAssetDispatchEdgesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/asset_dispatch_edges", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, params.PathStart); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.CreatedAfter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "created_after", runtime.ParamLocationQuery, *params.CreatedAfter); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -54493,6 +54810,47 @@ func NewGetCompletedJobTimingRequest(server string, workspace WorkspaceId, id Jo
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/jobs_u/completed/get_timing/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListDispatchEventsRequest generates requests for ListDispatchEvents
+func NewListDispatchEventsRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/dispatch_events/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -72346,6 +72704,9 @@ type ClientWithResponsesInterface interface {
 	// UploadS3FileFromAppWithBodyWithResponse request with any body
 	UploadS3FileFromAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadS3FileFromAppResponse, error)
 
+	// GetAssetsGraphWithResponse request
+	GetAssetsGraphWithResponse(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*GetAssetsGraphResponse, error)
+
 	// ListAssetsWithResponse request
 	ListAssetsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetsParams, reqEditors ...RequestEditorFn) (*ListAssetsResponse, error)
 
@@ -72356,6 +72717,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListFavoriteAssetsWithResponse request
 	ListFavoriteAssetsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListFavoriteAssetsResponse, error)
+
+	// ListPipelineFoldersWithResponse request
+	ListPipelineFoldersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPipelineFoldersResponse, error)
 
 	// GetAuditLogWithResponse request
 	GetAuditLogWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetAuditLogResponse, error)
@@ -72468,6 +72832,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetDraftForUserWithResponse request
 	GetDraftForUserWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*GetDraftForUserResponse, error)
+
+	// GetOwnDraftWithResponse request
+	GetOwnDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, reqEditors ...RequestEditorFn) (*GetOwnDraftResponse, error)
 
 	// ListDraftsWithResponse request
 	ListDraftsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListDraftsParams, reqEditors ...RequestEditorFn) (*ListDraftsResponse, error)
@@ -72895,6 +73262,9 @@ type ClientWithResponsesInterface interface {
 
 	SetJobProgressWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body SetJobProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*SetJobProgressResponse, error)
 
+	// ListAssetDispatchEdgesWithResponse request
+	ListAssetDispatchEdgesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetDispatchEdgesParams, reqEditors ...RequestEditorFn) (*ListAssetDispatchEdgesResponse, error)
+
 	// GetCompletedCountWithResponse request
 	GetCompletedCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCompletedCountResponse, error)
 
@@ -73155,6 +73525,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetCompletedJobTimingWithResponse request
 	GetCompletedJobTimingWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetCompletedJobTimingResponse, error)
+
+	// ListDispatchEventsWithResponse request
+	ListDispatchEventsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*ListDispatchEventsResponse, error)
 
 	// GetApprovalInfoWithResponse request
 	GetApprovalInfoWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, params *GetApprovalInfoParams, reqEditors ...RequestEditorFn) (*GetApprovalInfoResponse, error)
@@ -78789,6 +79162,65 @@ func (r UploadS3FileFromAppResponse) StatusCode() int {
 	return 0
 }
 
+type GetAssetsGraphResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Assets []struct {
+			Kind AssetKind `json:"kind"`
+			Path string    `json:"path"`
+		} `json:"assets"`
+		Edges []struct {
+			AccessType   *AssetUsageAccessType `json:"access_type"`
+			AssetKind    AssetKind             `json:"asset_kind"`
+			AssetPath    string                `json:"asset_path"`
+			RunnableKind AssetUsageKind        `json:"runnable_kind"`
+			RunnablePath string                `json:"runnable_path"`
+		} `json:"edges"`
+		Runnables []struct {
+			// InPipeline True iff the script is a pipeline member (deployed with `// pipeline`). Omitted when false.
+			InPipeline *bool          `json:"in_pipeline,omitempty"`
+			Path       string         `json:"path"`
+			UsageKind  AssetUsageKind `json:"usage_kind"`
+		} `json:"runnables"`
+		Triggers []GetAssetsGraph_200_Triggers_Item `json:"triggers"`
+	}
+}
+type GetAssetsGraph200Triggers0 struct {
+	AssetKind    AssetKind                             `json:"asset_kind"`
+	AssetPath    string                                `json:"asset_path"`
+	RunnableKind AssetUsageKind                        `json:"runnable_kind"`
+	RunnablePath string                                `json:"runnable_path"`
+	TriggerKind  GetAssetsGraph200Triggers0TriggerKind `json:"trigger_kind"`
+}
+type GetAssetsGraph200Triggers0TriggerKind string
+type GetAssetsGraph200Triggers1 struct {
+	Path         string                                `json:"path"`
+	RunnableKind AssetUsageKind                        `json:"runnable_kind"`
+	RunnablePath string                                `json:"runnable_path"`
+	TriggerKind  GetAssetsGraph200Triggers1TriggerKind `json:"trigger_kind"`
+}
+type GetAssetsGraph200Triggers1TriggerKind string
+type GetAssetsGraph_200_Triggers_Item struct {
+	union json.RawMessage
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAssetsGraphResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAssetsGraphResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListAssetsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -78892,6 +79324,34 @@ func (r ListFavoriteAssetsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListFavoriteAssetsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListPipelineFoldersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		// Folder The folder name (without the `f/` prefix)
+		Folder string `json:"folder"`
+
+		// ScriptCount Number of pipeline-member scripts in the folder
+		ScriptCount int64 `json:"script_count"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListPipelineFoldersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListPipelineFoldersResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -79599,6 +80059,31 @@ func (r GetDraftForUserResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetDraftForUserResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetOwnDraftResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		CreatedAt time.Time   `json:"created_at"`
+		Value     interface{} `json:"value"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetOwnDraftResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOwnDraftResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -82420,6 +82905,40 @@ func (r SetJobProgressResponse) StatusCode() int {
 	return 0
 }
 
+type ListAssetDispatchEdgesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		AssetKind ListAssetDispatchEdges200AssetKind `json:"asset_kind"`
+		AssetPath string                             `json:"asset_path"`
+
+		// ChildJobId Set for `dispatched`; absent for `join_pending` inputs.
+		ChildJobId     *openapi_types.UUID              `json:"child_job_id,omitempty"`
+		CreatedAt      time.Time                        `json:"created_at"`
+		Outcome        ListAssetDispatchEdges200Outcome `json:"outcome"`
+		ProducerJobId  openapi_types.UUID               `json:"producer_job_id"`
+		SubscriberPath string                           `json:"subscriber_path"`
+	}
+}
+type ListAssetDispatchEdges200AssetKind string
+type ListAssetDispatchEdges200Outcome string
+
+// Status returns HTTPResponse.Status
+func (r ListAssetDispatchEdgesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAssetDispatchEdgesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetCompletedCountResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -83835,6 +84354,42 @@ func (r GetCompletedJobTimingResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetCompletedJobTimingResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListDispatchEventsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		AssetKind      ListDispatchEvents200AssetKind `json:"asset_kind"`
+		AssetPath      string                         `json:"asset_path"`
+		ChildJobId     *openapi_types.UUID            `json:"child_job_id,omitempty"`
+		CreatedAt      time.Time                      `json:"created_at"`
+		DebounceS      *int                           `json:"debounce_s,omitempty"`
+		Outcome        ListDispatchEvents200Outcome   `json:"outcome"`
+		Partition      *string                        `json:"partition,omitempty"`
+		Reason         *string                        `json:"reason,omitempty"`
+		ReceivedInputs *int                           `json:"received_inputs,omitempty"`
+		RequiredInputs *int                           `json:"required_inputs,omitempty"`
+		SubscriberPath string                         `json:"subscriber_path"`
+	}
+}
+type ListDispatchEvents200AssetKind string
+type ListDispatchEvents200Outcome string
+
+// Status returns HTTPResponse.Status
+func (r ListDispatchEventsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListDispatchEventsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -94006,6 +94561,15 @@ func (c *ClientWithResponses) UploadS3FileFromAppWithBodyWithResponse(ctx contex
 	return ParseUploadS3FileFromAppResponse(rsp)
 }
 
+// GetAssetsGraphWithResponse request returning *GetAssetsGraphResponse
+func (c *ClientWithResponses) GetAssetsGraphWithResponse(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*GetAssetsGraphResponse, error) {
+	rsp, err := c.GetAssetsGraph(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAssetsGraphResponse(rsp)
+}
+
 // ListAssetsWithResponse request returning *ListAssetsResponse
 func (c *ClientWithResponses) ListAssetsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetsParams, reqEditors ...RequestEditorFn) (*ListAssetsResponse, error) {
 	rsp, err := c.ListAssets(ctx, workspace, params, reqEditors...)
@@ -94039,6 +94603,15 @@ func (c *ClientWithResponses) ListFavoriteAssetsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListFavoriteAssetsResponse(rsp)
+}
+
+// ListPipelineFoldersWithResponse request returning *ListPipelineFoldersResponse
+func (c *ClientWithResponses) ListPipelineFoldersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPipelineFoldersResponse, error) {
+	rsp, err := c.ListPipelineFolders(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListPipelineFoldersResponse(rsp)
 }
 
 // GetAuditLogWithResponse request returning *GetAuditLogResponse
@@ -94397,6 +94970,15 @@ func (c *ClientWithResponses) GetDraftForUserWithResponse(ctx context.Context, w
 		return nil, err
 	}
 	return ParseGetDraftForUserResponse(rsp)
+}
+
+// GetOwnDraftWithResponse request returning *GetOwnDraftResponse
+func (c *ClientWithResponses) GetOwnDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, reqEditors ...RequestEditorFn) (*GetOwnDraftResponse, error) {
+	rsp, err := c.GetOwnDraft(ctx, workspace, kind, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOwnDraftResponse(rsp)
 }
 
 // ListDraftsWithResponse request returning *ListDraftsResponse
@@ -95767,6 +96349,15 @@ func (c *ClientWithResponses) SetJobProgressWithResponse(ctx context.Context, wo
 	return ParseSetJobProgressResponse(rsp)
 }
 
+// ListAssetDispatchEdgesWithResponse request returning *ListAssetDispatchEdgesResponse
+func (c *ClientWithResponses) ListAssetDispatchEdgesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetDispatchEdgesParams, reqEditors ...RequestEditorFn) (*ListAssetDispatchEdgesResponse, error) {
+	rsp, err := c.ListAssetDispatchEdges(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAssetDispatchEdgesResponse(rsp)
+}
+
 // GetCompletedCountWithResponse request returning *GetCompletedCountResponse
 func (c *ClientWithResponses) GetCompletedCountWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetCompletedCountResponse, error) {
 	rsp, err := c.GetCompletedCount(ctx, workspace, reqEditors...)
@@ -96614,6 +97205,15 @@ func (c *ClientWithResponses) GetCompletedJobTimingWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseGetCompletedJobTimingResponse(rsp)
+}
+
+// ListDispatchEventsWithResponse request returning *ListDispatchEventsResponse
+func (c *ClientWithResponses) ListDispatchEventsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*ListDispatchEventsResponse, error) {
+	rsp, err := c.ListDispatchEvents(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListDispatchEventsResponse(rsp)
 }
 
 // GetApprovalInfoWithResponse request returning *GetApprovalInfoResponse
@@ -105003,6 +105603,51 @@ func ParseUploadS3FileFromAppResponse(rsp *http.Response) (*UploadS3FileFromAppR
 	return response, nil
 }
 
+// ParseGetAssetsGraphResponse parses an HTTP response from a GetAssetsGraphWithResponse call
+func ParseGetAssetsGraphResponse(rsp *http.Response) (*GetAssetsGraphResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAssetsGraphResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Assets []struct {
+				Kind AssetKind `json:"kind"`
+				Path string    `json:"path"`
+			} `json:"assets"`
+			Edges []struct {
+				AccessType   *AssetUsageAccessType `json:"access_type"`
+				AssetKind    AssetKind             `json:"asset_kind"`
+				AssetPath    string                `json:"asset_path"`
+				RunnableKind AssetUsageKind        `json:"runnable_kind"`
+				RunnablePath string                `json:"runnable_path"`
+			} `json:"edges"`
+			Runnables []struct {
+				// InPipeline True iff the script is a pipeline member (deployed with `// pipeline`). Omitted when false.
+				InPipeline *bool          `json:"in_pipeline,omitempty"`
+				Path       string         `json:"path"`
+				UsageKind  AssetUsageKind `json:"usage_kind"`
+			} `json:"runnables"`
+			Triggers []GetAssetsGraph_200_Triggers_Item `json:"triggers"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListAssetsResponse parses an HTTP response from a ListAssetsWithResponse call
 func ParseListAssetsResponse(rsp *http.Response) (*ListAssetsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -105113,6 +105758,38 @@ func ParseListFavoriteAssetsResponse(rsp *http.Response) (*ListFavoriteAssetsRes
 		var dest []struct {
 			// Path The asset path
 			Path string `json:"path"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListPipelineFoldersResponse parses an HTTP response from a ListPipelineFoldersWithResponse call
+func ParseListPipelineFoldersResponse(rsp *http.Response) (*ListPipelineFoldersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListPipelineFoldersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			// Folder The folder name (without the `f/` prefix)
+			Folder string `json:"folder"`
+
+			// ScriptCount Number of pipeline-member scripts in the folder
+			ScriptCount int64 `json:"script_count"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -105832,6 +106509,35 @@ func ParseGetDraftForUserResponse(rsp *http.Response) (*GetDraftForUserResponse,
 	}
 
 	response := &GetDraftForUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CreatedAt time.Time   `json:"created_at"`
+			Value     interface{} `json:"value"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetOwnDraftResponse parses an HTTP response from a GetOwnDraftWithResponse call
+func ParseGetOwnDraftResponse(rsp *http.Response) (*GetOwnDraftResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetOwnDraftResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -108691,6 +109397,42 @@ func ParseSetJobProgressResponse(rsp *http.Response) (*SetJobProgressResponse, e
 	return response, nil
 }
 
+// ParseListAssetDispatchEdgesResponse parses an HTTP response from a ListAssetDispatchEdgesWithResponse call
+func ParseListAssetDispatchEdgesResponse(rsp *http.Response) (*ListAssetDispatchEdgesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAssetDispatchEdgesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			AssetKind ListAssetDispatchEdges200AssetKind `json:"asset_kind"`
+			AssetPath string                             `json:"asset_path"`
+
+			// ChildJobId Set for `dispatched`; absent for `join_pending` inputs.
+			ChildJobId     *openapi_types.UUID              `json:"child_job_id,omitempty"`
+			CreatedAt      time.Time                        `json:"created_at"`
+			Outcome        ListAssetDispatchEdges200Outcome `json:"outcome"`
+			ProducerJobId  openapi_types.UUID               `json:"producer_job_id"`
+			SubscriberPath string                           `json:"subscriber_path"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetCompletedCountResponse parses an HTTP response from a GetCompletedCountWithResponse call
 func ParseGetCompletedCountResponse(rsp *http.Response) (*GetCompletedCountResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -110073,6 +110815,44 @@ func ParseGetCompletedJobTimingResponse(rsp *http.Response) (*GetCompletedJobTim
 			CreatedAt  time.Time  `json:"created_at"`
 			DurationMs *int       `json:"duration_ms,omitempty"`
 			StartedAt  *time.Time `json:"started_at,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListDispatchEventsResponse parses an HTTP response from a ListDispatchEventsWithResponse call
+func ParseListDispatchEventsResponse(rsp *http.Response) (*ListDispatchEventsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListDispatchEventsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			AssetKind      ListDispatchEvents200AssetKind `json:"asset_kind"`
+			AssetPath      string                         `json:"asset_path"`
+			ChildJobId     *openapi_types.UUID            `json:"child_job_id,omitempty"`
+			CreatedAt      time.Time                      `json:"created_at"`
+			DebounceS      *int                           `json:"debounce_s,omitempty"`
+			Outcome        ListDispatchEvents200Outcome   `json:"outcome"`
+			Partition      *string                        `json:"partition,omitempty"`
+			Reason         *string                        `json:"reason,omitempty"`
+			ReceivedInputs *int                           `json:"received_inputs,omitempty"`
+			RequiredInputs *int                           `json:"required_inputs,omitempty"`
+			SubscriberPath string                         `json:"subscriber_path"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
