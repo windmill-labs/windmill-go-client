@@ -1213,6 +1213,12 @@ const (
 	ListExtendedJobsParamsStatusSuccess  ListExtendedJobsParamsStatus = "success"
 )
 
+// Defines values for MigrateLegacyDraftJSONBodyAction.
+const (
+	AssignToSelf MigrateLegacyDraftJSONBodyAction = "assign_to_self"
+	Delete       MigrateLegacyDraftJSONBodyAction = "delete"
+)
+
 // Defines values for StarJSONBodyFavoriteKind.
 const (
 	StarJSONBodyFavoriteKindApp    StarJSONBodyFavoriteKind = "app"
@@ -6962,19 +6968,6 @@ type ConnectCallbackJSONBody struct {
 	State string `json:"state"`
 }
 
-// ConnectClientCredentialsJSONBody defines parameters for ConnectClientCredentials.
-type ConnectClientCredentialsJSONBody struct {
-	// CcClientId OAuth client ID for resource-level authentication
-	CcClientId string `json:"cc_client_id"`
-
-	// CcClientSecret OAuth client secret for resource-level authentication
-	CcClientSecret string `json:"cc_client_secret"`
-
-	// CcTokenUrl OAuth token URL override for resource-level authentication
-	CcTokenUrl *string   `json:"cc_token_url,omitempty"`
-	Scopes     *[]string `json:"scopes,omitempty"`
-}
-
 // ConnectSlackCallbackInstanceJSONBody defines parameters for ConnectSlackCallbackInstance.
 type ConnectSlackCallbackInstanceJSONBody struct {
 	Code  string `json:"code"`
@@ -7703,8 +7696,26 @@ type GetDraftForUserParams struct {
 	Username *string `form:"username,omitempty" json:"username,omitempty"`
 }
 
+// ListDraftsParams defines parameters for ListDrafts.
+type ListDraftsParams struct {
+	// AllUsers List every draft in the workspace (all users), not just the current user's own + legacy rows. Other users' rows come back with `mine=false` (view-only).
+	AllUsers *bool `form:"all_users,omitempty" json:"all_users,omitempty"`
+}
+
+// MigrateLegacyDraftJSONBody defines parameters for MigrateLegacyDraft.
+type MigrateLegacyDraftJSONBody struct {
+	// Action delete the legacy draft, or take ownership of it.
+	Action MigrateLegacyDraftJSONBodyAction `json:"action"`
+}
+
+// MigrateLegacyDraftJSONBodyAction defines parameters for MigrateLegacyDraft.
+type MigrateLegacyDraftJSONBodyAction string
+
 // UpdateDraftJSONBody defines parameters for UpdateDraft.
 type UpdateDraftJSONBody struct {
+	// CreatedAt Upsert-only override for the stored creation timestamp. Normal saves omit it (stamped server-side); the localStorage→DB migration passes the draft's original write time so migrated drafts keep their age.
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
 	// Force Skip the conflict check and overwrite the server copy.
 	Force *bool `json:"force,omitempty"`
 
@@ -9827,6 +9838,19 @@ type ResolveNpmPackageVersionParams struct {
 	Tag *string `form:"tag,omitempty" json:"tag,omitempty"`
 }
 
+// ConnectClientCredentialsJSONBody defines parameters for ConnectClientCredentials.
+type ConnectClientCredentialsJSONBody struct {
+	// CcClientId OAuth client ID. Omit to use the credentials configured on the provider's instance OAuth entry.
+	CcClientId *string `json:"cc_client_id,omitempty"`
+
+	// CcClientSecret OAuth client secret. Omit to use the credentials configured on the provider's instance OAuth entry.
+	CcClientSecret *string `json:"cc_client_secret,omitempty"`
+
+	// CcInstance Instance name for built-in providers whose client-credentials token URL is instance-templated; substituted into the fixed-host registry template server-side. The token URL is never caller-supplied.
+	CcInstance *string   `json:"cc_instance,omitempty"`
+	Scopes     *[]string `json:"scopes,omitempty"`
+}
+
 // ConnectSlackCallbackJSONBody defines parameters for ConnectSlackCallback.
 type ConnectSlackCallbackJSONBody struct {
 	Code  string `json:"code"`
@@ -9841,8 +9865,8 @@ type CreateAccountJSONBody struct {
 	// CcClientSecret OAuth client secret for resource-level credentials (client_credentials flow only)
 	CcClientSecret *string `json:"cc_client_secret,omitempty"`
 
-	// CcTokenUrl OAuth token URL override for resource-level authentication (client_credentials flow only)
-	CcTokenUrl *string `json:"cc_token_url,omitempty"`
+	// CcInstance Instance name for built-in providers whose client-credentials token URL is instance-templated; substituted into the fixed-host registry template server-side (client_credentials flow only). The token URL is never caller-supplied.
+	CcInstance *string `json:"cc_instance,omitempty"`
 	Client     string  `json:"client"`
 	ExpiresIn  int     `json:"expires_in"`
 	GrantType  *string `json:"grant_type,omitempty"`
@@ -10906,9 +10930,6 @@ type NativeTriggerWebhookTextRequestBody = NativeTriggerWebhookTextBody
 // ConnectCallbackJSONRequestBody defines body for ConnectCallback for application/json ContentType.
 type ConnectCallbackJSONRequestBody ConnectCallbackJSONBody
 
-// ConnectClientCredentialsJSONRequestBody defines body for ConnectClientCredentials for application/json ContentType.
-type ConnectClientCredentialsJSONRequestBody ConnectClientCredentialsJSONBody
-
 // ConnectSlackCallbackInstanceJSONRequestBody defines body for ConnectSlackCallbackInstance for application/json ContentType.
 type ConnectSlackCallbackInstanceJSONRequestBody ConnectSlackCallbackInstanceJSONBody
 
@@ -11085,6 +11106,9 @@ type CreateDeploymentRequestJSONRequestBody CreateDeploymentRequestJSONBody
 
 // CreateDeploymentRequestCommentJSONRequestBody defines body for CreateDeploymentRequestComment for application/json ContentType.
 type CreateDeploymentRequestCommentJSONRequestBody CreateDeploymentRequestCommentJSONBody
+
+// MigrateLegacyDraftJSONRequestBody defines body for MigrateLegacyDraft for application/json ContentType.
+type MigrateLegacyDraftJSONRequestBody MigrateLegacyDraftJSONBody
 
 // UpdateDraftJSONRequestBody defines body for UpdateDraft for application/json ContentType.
 type UpdateDraftJSONRequestBody UpdateDraftJSONBody
@@ -11391,6 +11415,9 @@ type TestNatsConnectionJSONRequestBody TestNatsConnectionJSONBody
 
 // UpdateNatsTriggerJSONRequestBody defines body for UpdateNatsTrigger for application/json ContentType.
 type UpdateNatsTriggerJSONRequestBody = EditNatsTrigger
+
+// ConnectClientCredentialsJSONRequestBody defines body for ConnectClientCredentials for application/json ContentType.
+type ConnectClientCredentialsJSONRequestBody ConnectClientCredentialsJSONBody
 
 // ConnectSlackCallbackJSONRequestBody defines body for ConnectSlackCallback for application/json ContentType.
 type ConnectSlackCallbackJSONRequestBody ConnectSlackCallbackJSONBody
@@ -13830,11 +13857,6 @@ type ClientInterface interface {
 
 	ConnectCallback(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ConnectClientCredentialsWithBody request with any body
-	ConnectClientCredentialsWithBody(ctx context.Context, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	ConnectClientCredentials(ctx context.Context, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ConnectSlackCallbackInstanceWithBody request with any body
 	ConnectSlackCallbackInstanceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14421,7 +14443,12 @@ type ClientInterface interface {
 	GetDraftForUser(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListDrafts request
-	ListDrafts(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListDrafts(ctx context.Context, workspace WorkspaceId, params *ListDraftsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// MigrateLegacyDraftWithBody request with any body
+	MigrateLegacyDraftWithBody(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MigrateLegacyDraft(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body MigrateLegacyDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateDraftWithBody request with any body
 	UpdateDraftWithBody(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15358,6 +15385,11 @@ type ClientInterface interface {
 
 	// ResolveNpmPackageVersion request
 	ResolveNpmPackageVersion(ctx context.Context, workspace WorkspaceId, pPackage string, params *ResolveNpmPackageVersionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ConnectClientCredentialsWithBody request with any body
+	ConnectClientCredentialsWithBody(ctx context.Context, workspace WorkspaceId, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ConnectClientCredentials(ctx context.Context, workspace WorkspaceId, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ConnectSlackCallbackWithBody request with any body
 	ConnectSlackCallbackWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17305,30 +17337,6 @@ func (c *Client) ConnectCallbackWithBody(ctx context.Context, clientName ClientN
 
 func (c *Client) ConnectCallback(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConnectCallbackRequest(c.Server, clientName, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ConnectClientCredentialsWithBody(ctx context.Context, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewConnectClientCredentialsRequestWithBody(c.Server, client, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ConnectClientCredentials(ctx context.Context, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewConnectClientCredentialsRequest(c.Server, client, body)
 	if err != nil {
 		return nil, err
 	}
@@ -19907,8 +19915,32 @@ func (c *Client) GetDraftForUser(ctx context.Context, workspace WorkspaceId, kin
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListDrafts(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListDraftsRequest(c.Server, workspace)
+func (c *Client) ListDrafts(ctx context.Context, workspace WorkspaceId, params *ListDraftsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDraftsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateLegacyDraftWithBody(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateLegacyDraftRequestWithBody(c.Server, workspace, kind, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateLegacyDraft(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body MigrateLegacyDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateLegacyDraftRequest(c.Server, workspace, kind, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -24061,6 +24093,30 @@ func (c *Client) GetNpmPackageMetadata(ctx context.Context, workspace WorkspaceI
 
 func (c *Client) ResolveNpmPackageVersion(ctx context.Context, workspace WorkspaceId, pPackage string, params *ResolveNpmPackageVersionParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResolveNpmPackageVersionRequest(c.Server, workspace, pPackage, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectClientCredentialsWithBody(ctx context.Context, workspace WorkspaceId, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectClientCredentialsRequestWithBody(c.Server, workspace, client, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectClientCredentials(ctx context.Context, workspace WorkspaceId, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectClientCredentialsRequest(c.Server, workspace, client, body)
 	if err != nil {
 		return nil, err
 	}
@@ -30759,53 +30815,6 @@ func NewConnectCallbackRequestWithBody(server string, clientName ClientName, con
 	}
 
 	operationPath := fmt.Sprintf("/oauth/connect_callback/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewConnectClientCredentialsRequest calls the generic ConnectClientCredentials builder with application/json body
-func NewConnectClientCredentialsRequest(server string, client string, body ConnectClientCredentialsJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewConnectClientCredentialsRequestWithBody(server, client, "application/json", bodyReader)
-}
-
-// NewConnectClientCredentialsRequestWithBody generates requests for ConnectClientCredentials with any type of body
-func NewConnectClientCredentialsRequestWithBody(server string, client string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "client", runtime.ParamLocationPath, client)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/oauth/connect_client_credentials/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -38783,7 +38792,7 @@ func NewGetDraftForUserRequest(server string, workspace WorkspaceId, kind UserDr
 }
 
 // NewListDraftsRequest generates requests for ListDrafts
-func NewListDraftsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewListDraftsRequest(server string, workspace WorkspaceId, params *ListDraftsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -38808,10 +38817,93 @@ func NewListDraftsRequest(server string, workspace WorkspaceId) (*http.Request, 
 		return nil, err
 	}
 
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.AllUsers != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_users", runtime.ParamLocationQuery, *params.AllUsers); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewMigrateLegacyDraftRequest calls the generic MigrateLegacyDraft builder with application/json body
+func NewMigrateLegacyDraftRequest(server string, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body MigrateLegacyDraftJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMigrateLegacyDraftRequestWithBody(server, workspace, kind, path, "application/json", bodyReader)
+}
+
+// NewMigrateLegacyDraftRequestWithBody generates requests for MigrateLegacyDraft with any type of body
+func NewMigrateLegacyDraftRequestWithBody(server string, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "kind", runtime.ParamLocationPath, kind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/drafts/migrate_legacy/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -58549,6 +58641,60 @@ func NewResolveNpmPackageVersionRequest(server string, workspace WorkspaceId, pP
 	return req, nil
 }
 
+// NewConnectClientCredentialsRequest calls the generic ConnectClientCredentials builder with application/json body
+func NewConnectClientCredentialsRequest(server string, workspace WorkspaceId, client string, body ConnectClientCredentialsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewConnectClientCredentialsRequestWithBody(server, workspace, client, "application/json", bodyReader)
+}
+
+// NewConnectClientCredentialsRequestWithBody generates requests for ConnectClientCredentials with any type of body
+func NewConnectClientCredentialsRequestWithBody(server string, workspace WorkspaceId, client string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "client", runtime.ParamLocationPath, client)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/oauth/connect_client_credentials/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewConnectSlackCallbackRequest calls the generic ConnectSlackCallback builder with application/json body
 func NewConnectSlackCallbackRequest(server string, workspace WorkspaceId, body ConnectSlackCallbackJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -71738,11 +71884,6 @@ type ClientWithResponsesInterface interface {
 
 	ConnectCallbackWithResponse(ctx context.Context, clientName ClientName, body ConnectCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectCallbackResponse, error)
 
-	// ConnectClientCredentialsWithBodyWithResponse request with any body
-	ConnectClientCredentialsWithBodyWithResponse(ctx context.Context, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error)
-
-	ConnectClientCredentialsWithResponse(ctx context.Context, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error)
-
 	// ConnectSlackCallbackInstanceWithBodyWithResponse request with any body
 	ConnectSlackCallbackInstanceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackInstanceResponse, error)
 
@@ -72329,7 +72470,12 @@ type ClientWithResponsesInterface interface {
 	GetDraftForUserWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*GetDraftForUserResponse, error)
 
 	// ListDraftsWithResponse request
-	ListDraftsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDraftsResponse, error)
+	ListDraftsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListDraftsParams, reqEditors ...RequestEditorFn) (*ListDraftsResponse, error)
+
+	// MigrateLegacyDraftWithBodyWithResponse request with any body
+	MigrateLegacyDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateLegacyDraftResponse, error)
+
+	MigrateLegacyDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body MigrateLegacyDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateLegacyDraftResponse, error)
 
 	// UpdateDraftWithBodyWithResponse request with any body
 	UpdateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDraftResponse, error)
@@ -73266,6 +73412,11 @@ type ClientWithResponsesInterface interface {
 
 	// ResolveNpmPackageVersionWithResponse request
 	ResolveNpmPackageVersionWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, params *ResolveNpmPackageVersionParams, reqEditors ...RequestEditorFn) (*ResolveNpmPackageVersionResponse, error)
+
+	// ConnectClientCredentialsWithBodyWithResponse request with any body
+	ConnectClientCredentialsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error)
+
+	ConnectClientCredentialsWithResponse(ctx context.Context, workspace WorkspaceId, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error)
 
 	// ConnectSlackCallbackWithBodyWithResponse request with any body
 	ConnectSlackCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackResponse, error)
@@ -75771,28 +75922,6 @@ func (r ConnectCallbackResponse) StatusCode() int {
 	return 0
 }
 
-type ConnectClientCredentialsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *TokenResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r ConnectClientCredentialsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ConnectClientCredentialsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type ConnectSlackCallbackInstanceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -75839,9 +75968,11 @@ type GetOAuthConnectResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		ExtraParams *map[string]interface{} `json:"extra_params,omitempty"`
-		GrantTypes  *[]string               `json:"grant_types,omitempty"`
-		Scopes      *[]string               `json:"scopes,omitempty"`
+		// ClientCredentialsConfigured The instance OAuth entry carries shared client-credentials, so the connect dialog can skip the bring-your-own form and run the exchange server-side
+		ClientCredentialsConfigured *bool                   `json:"client_credentials_configured,omitempty"`
+		ExtraParams                 *map[string]interface{} `json:"extra_params,omitempty"`
+		GrantTypes                  *[]string               `json:"grant_types,omitempty"`
+		Scopes                      *[]string               `json:"scopes,omitempty"`
 	}
 }
 
@@ -79478,6 +79609,8 @@ type ListDraftsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]struct {
+		// CanWrite Whether the current user may deploy/discard this draft (same check the deploy/discard endpoints enforce).
+		CanWrite  bool      `json:"can_write"`
 		CreatedAt time.Time `json:"created_at"`
 
 		// DraftOnly No deployed counterpart exists at this path — the draft is the whole item.
@@ -79486,13 +79619,23 @@ type ListDraftsResponse struct {
 		// DraftPath User-typed friendly path from the draft JSON's `draft_path`, when set and different from the storage path (e.g. a never-deployed item parked at `u/{user}/draft_{uuid}`).
 		DraftPath *string `json:"draft_path,omitempty"`
 
+		// DraftUsers Draft authors at this (path, kind) — the legacy NULL-email row surfaced as a null username.
+		// Populated only for the shared full-page-editor kinds (script/flow/app/raw_app); omitted for
+		// drawer kinds, which keep their drafts private. Feeds the Draft badge's owner-avatar circles.
+		DraftUsers *[]struct {
+			Username *string `json:"username"`
+		} `json:"draft_users,omitempty"`
+
 		// Kind Closed set of item kinds a user can autosave as a draft. Mirrors the
 		// Postgres `DRAFT_KIND` enum and the backend `UserDraftItemKind`.
 		Kind UserDraftItemKind `json:"kind"`
 
 		// LegacyDraft The listed draft is a legacy workspace-level row (email NULL) predating the per-user drafts migration. Only true when no per-user draft exists at this path.
-		LegacyDraft bool   `json:"legacy_draft"`
-		Path        string `json:"path"`
+		LegacyDraft bool `json:"legacy_draft"`
+
+		// Mine The row belongs to the current user (own draft or the legacy no-owner row) and is therefore actionable. Always true in the default listing; with `all_users=true`, other users' rows are false (view-only).
+		Mine bool   `json:"mine"`
+		Path string `json:"path"`
 
 		// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one.
 		Summary *string `json:"summary,omitempty"`
@@ -79509,6 +79652,27 @@ func (r ListDraftsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListDraftsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type MigrateLegacyDraftResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r MigrateLegacyDraftResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MigrateLegacyDraftResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -85372,6 +85536,28 @@ func (r ResolveNpmPackageVersionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ResolveNpmPackageVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ConnectClientCredentialsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TokenResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ConnectClientCredentialsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ConnectClientCredentialsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -92344,23 +92530,6 @@ func (c *ClientWithResponses) ConnectCallbackWithResponse(ctx context.Context, c
 	return ParseConnectCallbackResponse(rsp)
 }
 
-// ConnectClientCredentialsWithBodyWithResponse request with arbitrary body returning *ConnectClientCredentialsResponse
-func (c *ClientWithResponses) ConnectClientCredentialsWithBodyWithResponse(ctx context.Context, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error) {
-	rsp, err := c.ConnectClientCredentialsWithBody(ctx, client, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseConnectClientCredentialsResponse(rsp)
-}
-
-func (c *ClientWithResponses) ConnectClientCredentialsWithResponse(ctx context.Context, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error) {
-	rsp, err := c.ConnectClientCredentials(ctx, client, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseConnectClientCredentialsResponse(rsp)
-}
-
 // ConnectSlackCallbackInstanceWithBodyWithResponse request with arbitrary body returning *ConnectSlackCallbackInstanceResponse
 func (c *ClientWithResponses) ConnectSlackCallbackInstanceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectSlackCallbackInstanceResponse, error) {
 	rsp, err := c.ConnectSlackCallbackInstanceWithBody(ctx, contentType, body, reqEditors...)
@@ -94231,12 +94400,29 @@ func (c *ClientWithResponses) GetDraftForUserWithResponse(ctx context.Context, w
 }
 
 // ListDraftsWithResponse request returning *ListDraftsResponse
-func (c *ClientWithResponses) ListDraftsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDraftsResponse, error) {
-	rsp, err := c.ListDrafts(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListDraftsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListDraftsParams, reqEditors ...RequestEditorFn) (*ListDraftsResponse, error) {
+	rsp, err := c.ListDrafts(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseListDraftsResponse(rsp)
+}
+
+// MigrateLegacyDraftWithBodyWithResponse request with arbitrary body returning *MigrateLegacyDraftResponse
+func (c *ClientWithResponses) MigrateLegacyDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateLegacyDraftResponse, error) {
+	rsp, err := c.MigrateLegacyDraftWithBody(ctx, workspace, kind, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateLegacyDraftResponse(rsp)
+}
+
+func (c *ClientWithResponses) MigrateLegacyDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body MigrateLegacyDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateLegacyDraftResponse, error) {
+	rsp, err := c.MigrateLegacyDraft(ctx, workspace, kind, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateLegacyDraftResponse(rsp)
 }
 
 // UpdateDraftWithBodyWithResponse request with arbitrary body returning *UpdateDraftResponse
@@ -97249,6 +97435,23 @@ func (c *ClientWithResponses) ResolveNpmPackageVersionWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseResolveNpmPackageVersionResponse(rsp)
+}
+
+// ConnectClientCredentialsWithBodyWithResponse request with arbitrary body returning *ConnectClientCredentialsResponse
+func (c *ClientWithResponses) ConnectClientCredentialsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error) {
+	rsp, err := c.ConnectClientCredentialsWithBody(ctx, workspace, client, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectClientCredentialsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ConnectClientCredentialsWithResponse(ctx context.Context, workspace WorkspaceId, client string, body ConnectClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error) {
+	rsp, err := c.ConnectClientCredentials(ctx, workspace, client, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectClientCredentialsResponse(rsp)
 }
 
 // ConnectSlackCallbackWithBodyWithResponse request with arbitrary body returning *ConnectSlackCallbackResponse
@@ -101987,32 +102190,6 @@ func ParseConnectCallbackResponse(rsp *http.Response) (*ConnectCallbackResponse,
 	return response, nil
 }
 
-// ParseConnectClientCredentialsResponse parses an HTTP response from a ConnectClientCredentialsWithResponse call
-func ParseConnectClientCredentialsResponse(rsp *http.Response) (*ConnectClientCredentialsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ConnectClientCredentialsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest TokenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseConnectSlackCallbackInstanceResponse parses an HTTP response from a ConnectSlackCallbackInstanceWithResponse call
 func ParseConnectSlackCallbackInstanceResponse(rsp *http.Response) (*ConnectSlackCallbackInstanceResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -102061,9 +102238,11 @@ func ParseGetOAuthConnectResponse(rsp *http.Response) (*GetOAuthConnectResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			ExtraParams *map[string]interface{} `json:"extra_params,omitempty"`
-			GrantTypes  *[]string               `json:"grant_types,omitempty"`
-			Scopes      *[]string               `json:"scopes,omitempty"`
+			// ClientCredentialsConfigured The instance OAuth entry carries shared client-credentials, so the connect dialog can skip the bring-your-own form and run the exchange server-side
+			ClientCredentialsConfigured *bool                   `json:"client_credentials_configured,omitempty"`
+			ExtraParams                 *map[string]interface{} `json:"extra_params,omitempty"`
+			GrantTypes                  *[]string               `json:"grant_types,omitempty"`
+			Scopes                      *[]string               `json:"scopes,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -105689,6 +105868,8 @@ func ParseListDraftsResponse(rsp *http.Response) (*ListDraftsResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
+			// CanWrite Whether the current user may deploy/discard this draft (same check the deploy/discard endpoints enforce).
+			CanWrite  bool      `json:"can_write"`
 			CreatedAt time.Time `json:"created_at"`
 
 			// DraftOnly No deployed counterpart exists at this path — the draft is the whole item.
@@ -105697,13 +105878,23 @@ func ParseListDraftsResponse(rsp *http.Response) (*ListDraftsResponse, error) {
 			// DraftPath User-typed friendly path from the draft JSON's `draft_path`, when set and different from the storage path (e.g. a never-deployed item parked at `u/{user}/draft_{uuid}`).
 			DraftPath *string `json:"draft_path,omitempty"`
 
+			// DraftUsers Draft authors at this (path, kind) — the legacy NULL-email row surfaced as a null username.
+			// Populated only for the shared full-page-editor kinds (script/flow/app/raw_app); omitted for
+			// drawer kinds, which keep their drafts private. Feeds the Draft badge's owner-avatar circles.
+			DraftUsers *[]struct {
+				Username *string `json:"username"`
+			} `json:"draft_users,omitempty"`
+
 			// Kind Closed set of item kinds a user can autosave as a draft. Mirrors the
 			// Postgres `DRAFT_KIND` enum and the backend `UserDraftItemKind`.
 			Kind UserDraftItemKind `json:"kind"`
 
 			// LegacyDraft The listed draft is a legacy workspace-level row (email NULL) predating the per-user drafts migration. Only true when no per-user draft exists at this path.
-			LegacyDraft bool   `json:"legacy_draft"`
-			Path        string `json:"path"`
+			LegacyDraft bool `json:"legacy_draft"`
+
+			// Mine The row belongs to the current user (own draft or the legacy no-owner row) and is therefore actionable. Always true in the default listing; with `all_users=true`, other users' rows are false (view-only).
+			Mine bool   `json:"mine"`
+			Path string `json:"path"`
 
 			// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one.
 			Summary *string `json:"summary,omitempty"`
@@ -105713,6 +105904,22 @@ func ParseListDraftsResponse(rsp *http.Response) (*ListDraftsResponse, error) {
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseMigrateLegacyDraftResponse parses an HTTP response from a MigrateLegacyDraftWithResponse call
+func ParseMigrateLegacyDraftResponse(rsp *http.Response) (*MigrateLegacyDraftResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MigrateLegacyDraftResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -111529,6 +111736,32 @@ func ParseResolveNpmPackageVersionResponse(rsp *http.Response) (*ResolveNpmPacka
 		var dest struct {
 			Version *string `json:"version"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseConnectClientCredentialsResponse parses an HTTP response from a ConnectClientCredentialsWithResponse call
+func ParseConnectClientCredentialsResponse(rsp *http.Response) (*ConnectClientCredentialsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ConnectClientCredentialsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TokenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
