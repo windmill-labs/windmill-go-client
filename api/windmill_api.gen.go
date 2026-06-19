@@ -84425,6 +84425,9 @@ type GetApprovalInfoResponse struct {
 
 		// UserAuthRequired whether user authentication is required to approve
 		UserAuthRequired bool `json:"user_auth_required"`
+
+		// ViewToken Share-read-link token for the flow. An authenticated workspace member can append it as a `view_token` query param on the run page to read a flow they don't otherwise have access to.
+		ViewToken *string `json:"view_token,omitempty"`
 	}
 }
 
@@ -84539,6 +84542,9 @@ type GetSuspendedJobFlowResponse struct {
 			ResumeId int    `json:"resume_id"`
 		} `json:"approvers"`
 		Job Job `json:"job"`
+
+		// ViewToken Share-read-link token for the parent flow. An authenticated workspace member can append it as a `view_token` query param on the run page to read a flow they don't otherwise have access to.
+		ViewToken *string `json:"view_token,omitempty"`
 	}
 }
 
@@ -110905,6 +110911,9 @@ func ParseGetApprovalInfoResponse(rsp *http.Response) (*GetApprovalInfoResponse,
 
 			// UserAuthRequired whether user authentication is required to approve
 			UserAuthRequired bool `json:"user_auth_required"`
+
+			// ViewToken Share-read-link token for the flow. An authenticated workspace member can append it as a `view_token` query param on the run page to read a flow they don't otherwise have access to.
+			ViewToken *string `json:"view_token,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -111021,6 +111030,9 @@ func ParseGetSuspendedJobFlowResponse(rsp *http.Response) (*GetSuspendedJobFlowR
 				ResumeId int    `json:"resume_id"`
 			} `json:"approvers"`
 			Job Job `json:"job"`
+
+			// ViewToken Share-read-link token for the parent flow. An authenticated workspace member can append it as a `view_token` query param on the run page to read a flow they don't otherwise have access to.
+			ViewToken *string `json:"view_token,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
