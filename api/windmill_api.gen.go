@@ -4306,7 +4306,10 @@ type NewScript struct {
 		Kind          AssetKind                     `json:"kind"`
 		Path          string                        `json:"path"`
 	} `json:"assets,omitempty"`
-	AutoKind                 *string   `json:"auto_kind,omitempty"`
+	AutoKind *string `json:"auto_kind,omitempty"`
+
+	// AutoParent When true, the backend resolves the parent to the current deployed head for this path within the transaction (ignoring parent_hash), instead of failing with a "lineage must be linear" error when the supplied parent_hash is stale.
+	AutoParent               *bool     `json:"auto_parent,omitempty"`
 	CacheIgnoreS3Path        *bool     `json:"cache_ignore_s3_path,omitempty"`
 	CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
 	Codebase                 *string   `json:"codebase,omitempty"`
