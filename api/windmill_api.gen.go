@@ -5543,6 +5543,7 @@ type User struct {
 	Email            string      `json:"email"`
 	Folders          []string    `json:"folders"`
 	FoldersOwners    []string    `json:"folders_owners"`
+	FoldersRead      []string    `json:"folders_read"`
 	Groups           *[]string   `json:"groups,omitempty"`
 	IsAdmin          bool        `json:"is_admin"`
 	IsServiceAccount *bool       `json:"is_service_account,omitempty"`
@@ -9870,7 +9871,10 @@ type ConnectClientCredentialsJSONBody struct {
 	CcClientSecret *string `json:"cc_client_secret,omitempty"`
 
 	// CcInstance Instance name for built-in providers whose client-credentials token URL is instance-templated; substituted into the fixed-host registry template server-side. The token URL is never caller-supplied.
-	CcInstance *string   `json:"cc_instance,omitempty"`
+	CcInstance *string `json:"cc_instance,omitempty"`
+
+	// CcTokenUrl Bring-your-own token endpoint override. Only honored together with cc_client_id/cc_client_secret and mutually exclusive with cc_instance; rejected on the shared-instance path.
+	CcTokenUrl *string   `json:"cc_token_url,omitempty"`
 	Scopes     *[]string `json:"scopes,omitempty"`
 }
 
@@ -9890,6 +9894,9 @@ type CreateAccountJSONBody struct {
 
 	// CcInstance Instance name for built-in providers whose client-credentials token URL is instance-templated; substituted into the fixed-host registry template server-side (client_credentials flow only). The token URL is never caller-supplied.
 	CcInstance *string `json:"cc_instance,omitempty"`
+
+	// CcTokenUrl Bring-your-own token endpoint override (client_credentials flow only). Only honored together with cc_client_id/cc_client_secret and mutually exclusive with cc_instance; ignored/rejected on the shared-instance path.
+	CcTokenUrl *string `json:"cc_token_url,omitempty"`
 	Client     string  `json:"client"`
 	ExpiresIn  int     `json:"expires_in"`
 	GrantType  *string `json:"grant_type,omitempty"`
@@ -77049,6 +77056,7 @@ type GetLogCleanupStatusResponse struct {
 		ProcessedService int64      `json:"processed_service"`
 		Running          bool       `json:"running"`
 		S3Deleted        int64      `json:"s3_deleted"`
+		S3NotFound       *int64     `json:"s3_not_found,omitempty"`
 		StartedAt        time.Time  `json:"started_at"`
 		TotalJobs        int64      `json:"total_jobs"`
 		TotalService     int64      `json:"total_service"`
@@ -103578,6 +103586,7 @@ func ParseGetLogCleanupStatusResponse(rsp *http.Response) (*GetLogCleanupStatusR
 			ProcessedService int64      `json:"processed_service"`
 			Running          bool       `json:"running"`
 			S3Deleted        int64      `json:"s3_deleted"`
+			S3NotFound       *int64     `json:"s3_not_found,omitempty"`
 			StartedAt        time.Time  `json:"started_at"`
 			TotalJobs        int64      `json:"total_jobs"`
 			TotalService     int64      `json:"total_service"`
