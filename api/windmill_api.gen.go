@@ -2566,6 +2566,27 @@ type EditWorkspaceUser struct {
 // EmailTrigger defines model for EmailTrigger.
 type EmailTrigger = TriggerExtraProperty
 
+// EmbedTokenResponse defines model for EmbedTokenResponse.
+type EmbedTokenResponse struct {
+	// AppPath The resolved app path; the embedder uses it to scope the app's backing localStorage per app.
+	AppPath *string `json:"app_path"`
+
+	// Expiration Expiration of the embed token.
+	Expiration *time.Time `json:"expiration"`
+
+	// RawApp Raw apps render single-iframe and skip the opaque-viewer indirection and the embed token entirely.
+	RawApp bool `json:"raw_app"`
+
+	// Sandbox Publisher opted this app into sandbox isolation. When false the viewer runs the app same-origin with its full session.
+	Sandbox bool `json:"sandbox"`
+
+	// Token Narrowly-scoped embed token for the iframe. Absent for fully anonymous or raw apps, which load without a scoped token.
+	Token *string `json:"token"`
+
+	// WorkspaceId The resolved workspace; pairs with app_path so apps at the same path in different workspaces don't share a localStorage store.
+	WorkspaceId *string `json:"workspace_id"`
+}
+
 // EndpointTool defines model for EndpointTool.
 type EndpointTool struct {
 	// BodySchema JSON schema for request body
@@ -4700,12 +4721,15 @@ type Policy struct {
 		Resource *string `json:"resource,omitempty"`
 		S3Path   *string `json:"s3_path,omitempty"`
 	} `json:"allowed_s3_keys,omitempty"`
-	ExecutionMode   *PolicyExecutionMode               `json:"execution_mode,omitempty"`
-	OnBehalfOf      *string                            `json:"on_behalf_of,omitempty"`
-	OnBehalfOfEmail *string                            `json:"on_behalf_of_email,omitempty"`
-	S3Inputs        *[]map[string]interface{}          `json:"s3_inputs,omitempty"`
-	Triggerables    *map[string]map[string]interface{} `json:"triggerables,omitempty"`
-	TriggerablesV2  *map[string]map[string]interface{} `json:"triggerables_v2,omitempty"`
+	ExecutionMode   *PolicyExecutionMode      `json:"execution_mode,omitempty"`
+	OnBehalfOf      *string                   `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail *string                   `json:"on_behalf_of_email,omitempty"`
+	S3Inputs        *[]map[string]interface{} `json:"s3_inputs,omitempty"`
+
+	// Sandbox Publisher opt-in to app sandbox isolation (alpha). When true the app is isolated from each viewer's Windmill session. When false/absent the app runs same-origin with the viewer's full session (the default, pre-isolation behavior).
+	Sandbox        *bool                              `json:"sandbox,omitempty"`
+	Triggerables   *map[string]map[string]interface{} `json:"triggerables,omitempty"`
+	TriggerablesV2 *map[string]map[string]interface{} `json:"triggerables_v2,omitempty"`
 }
 
 // PolicyExecutionMode defines model for Policy.ExecutionMode.
@@ -13704,6 +13728,9 @@ type ClientInterface interface {
 	// ListHubApps request
 	ListHubApps(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetAppEmbedTokenByCustomPath request
+	GetAppEmbedTokenByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetPublicAppByCustomPath request
 	GetPublicAppByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14304,6 +14331,9 @@ type ClientInterface interface {
 	// DeleteApp request
 	DeleteApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetAppEmbedTokenByPath request
+	GetAppEmbedTokenByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ExistsApp request
 	ExistsApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14360,6 +14390,9 @@ type ClientInterface interface {
 
 	// DeleteS3FileFromApp request
 	DeleteS3FileFromApp(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAppEmbedTokenBySecret request
+	GetAppEmbedTokenBySecret(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ExecuteComponentWithBody request with any body
 	ExecuteComponentWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16568,6 +16601,18 @@ func (c *Client) GetHubRawAppById(ctx context.Context, id PathId, reqEditors ...
 
 func (c *Client) ListHubApps(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListHubAppsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAppEmbedTokenByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppEmbedTokenByCustomPathRequest(c.Server, customPath)
 	if err != nil {
 		return nil, err
 	}
@@ -19206,6 +19251,18 @@ func (c *Client) DeleteApp(ctx context.Context, workspace WorkspaceId, path Path
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetAppEmbedTokenByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppEmbedTokenByPathRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ExistsApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsAppRequest(c.Server, workspace, path)
 	if err != nil {
@@ -19436,6 +19493,18 @@ func (c *Client) UpdateAppRawWithBody(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) DeleteS3FileFromApp(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteS3FileFromAppRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAppEmbedTokenBySecret(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppEmbedTokenBySecretRequest(c.Server, workspace, secret)
 	if err != nil {
 		return nil, err
 	}
@@ -28932,6 +29001,40 @@ func NewListHubAppsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGetAppEmbedTokenByCustomPathRequest generates requests for GetAppEmbedTokenByCustomPath
+func NewGetAppEmbedTokenByCustomPathRequest(server string, customPath CustomPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "custom_path", runtime.ParamLocationPath, customPath)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/apps_u/embed_token_by_custom_path/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetPublicAppByCustomPathRequest generates requests for GetPublicAppByCustomPath
 func NewGetPublicAppByCustomPathRequest(server string, customPath CustomPath) (*http.Request, error) {
 	var err error
@@ -35369,6 +35472,47 @@ func NewDeleteAppRequest(server string, workspace WorkspaceId, path Path) (*http
 	return req, nil
 }
 
+// NewGetAppEmbedTokenByPathRequest generates requests for GetAppEmbedTokenByPath
+func NewGetAppEmbedTokenByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/embed_token/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewExistsAppRequest generates requests for ExistsApp
 func NewExistsAppRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
 	var err error
@@ -36324,6 +36468,47 @@ func NewDeleteS3FileFromAppRequest(server string, workspace WorkspaceId, params 
 	}
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetAppEmbedTokenBySecretRequest generates requests for GetAppEmbedTokenBySecret
+func NewGetAppEmbedTokenBySecretRequest(server string, workspace WorkspaceId, secret string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "secret", runtime.ParamLocationPath, secret)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps_u/embed_token/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -72306,6 +72491,9 @@ type ClientWithResponsesInterface interface {
 	// ListHubAppsWithResponse request
 	ListHubAppsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubAppsResponse, error)
 
+	// GetAppEmbedTokenByCustomPathWithResponse request
+	GetAppEmbedTokenByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByCustomPathResponse, error)
+
 	// GetPublicAppByCustomPathWithResponse request
 	GetPublicAppByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetPublicAppByCustomPathResponse, error)
 
@@ -72906,6 +73094,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteAppWithResponse request
 	DeleteAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteAppResponse, error)
 
+	// GetAppEmbedTokenByPathWithResponse request
+	GetAppEmbedTokenByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByPathResponse, error)
+
 	// ExistsAppWithResponse request
 	ExistsAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsAppResponse, error)
 
@@ -72962,6 +73153,9 @@ type ClientWithResponsesInterface interface {
 
 	// DeleteS3FileFromAppWithResponse request
 	DeleteS3FileFromAppWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*DeleteS3FileFromAppResponse, error)
+
+	// GetAppEmbedTokenBySecretWithResponse request
+	GetAppEmbedTokenBySecretWithResponse(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenBySecretResponse, error)
 
 	// ExecuteComponentWithBodyWithResponse request with any body
 	ExecuteComponentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error)
@@ -75257,6 +75451,28 @@ func (r ListHubAppsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListHubAppsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAppEmbedTokenByCustomPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *EmbedTokenResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAppEmbedTokenByCustomPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAppEmbedTokenByCustomPathResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -79032,6 +79248,28 @@ func (r DeleteAppResponse) StatusCode() int {
 	return 0
 }
 
+type GetAppEmbedTokenByPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *EmbedTokenResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAppEmbedTokenByPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAppEmbedTokenByPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ExistsAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -79433,6 +79671,28 @@ func (r DeleteS3FileFromAppResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteS3FileFromAppResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAppEmbedTokenBySecretResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *EmbedTokenResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAppEmbedTokenBySecretResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAppEmbedTokenBySecretResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -92843,6 +93103,15 @@ func (c *ClientWithResponses) ListHubAppsWithResponse(ctx context.Context, reqEd
 	return ParseListHubAppsResponse(rsp)
 }
 
+// GetAppEmbedTokenByCustomPathWithResponse request returning *GetAppEmbedTokenByCustomPathResponse
+func (c *ClientWithResponses) GetAppEmbedTokenByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByCustomPathResponse, error) {
+	rsp, err := c.GetAppEmbedTokenByCustomPath(ctx, customPath, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAppEmbedTokenByCustomPathResponse(rsp)
+}
+
 // GetPublicAppByCustomPathWithResponse request returning *GetPublicAppByCustomPathResponse
 func (c *ClientWithResponses) GetPublicAppByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetPublicAppByCustomPathResponse, error) {
 	rsp, err := c.GetPublicAppByCustomPath(ctx, customPath, reqEditors...)
@@ -94757,6 +95026,15 @@ func (c *ClientWithResponses) DeleteAppWithResponse(ctx context.Context, workspa
 	return ParseDeleteAppResponse(rsp)
 }
 
+// GetAppEmbedTokenByPathWithResponse request returning *GetAppEmbedTokenByPathResponse
+func (c *ClientWithResponses) GetAppEmbedTokenByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByPathResponse, error) {
+	rsp, err := c.GetAppEmbedTokenByPath(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAppEmbedTokenByPathResponse(rsp)
+}
+
 // ExistsAppWithResponse request returning *ExistsAppResponse
 func (c *ClientWithResponses) ExistsAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsAppResponse, error) {
 	rsp, err := c.ExistsApp(ctx, workspace, path, reqEditors...)
@@ -94932,6 +95210,15 @@ func (c *ClientWithResponses) DeleteS3FileFromAppWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseDeleteS3FileFromAppResponse(rsp)
+}
+
+// GetAppEmbedTokenBySecretWithResponse request returning *GetAppEmbedTokenBySecretResponse
+func (c *ClientWithResponses) GetAppEmbedTokenBySecretWithResponse(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenBySecretResponse, error) {
+	rsp, err := c.GetAppEmbedTokenBySecret(ctx, workspace, secret, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAppEmbedTokenBySecretResponse(rsp)
 }
 
 // ExecuteComponentWithBodyWithResponse request with arbitrary body returning *ExecuteComponentResponse
@@ -101835,6 +102122,32 @@ func ParseListHubAppsResponse(rsp *http.Response) (*ListHubAppsResponse, error) 
 	return response, nil
 }
 
+// ParseGetAppEmbedTokenByCustomPathResponse parses an HTTP response from a GetAppEmbedTokenByCustomPathWithResponse call
+func ParseGetAppEmbedTokenByCustomPathResponse(rsp *http.Response) (*GetAppEmbedTokenByCustomPathResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAppEmbedTokenByCustomPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest EmbedTokenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetPublicAppByCustomPathResponse parses an HTTP response from a GetPublicAppByCustomPathWithResponse call
 func ParseGetPublicAppByCustomPathResponse(rsp *http.Response) (*GetPublicAppByCustomPathResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -105604,6 +105917,32 @@ func ParseDeleteAppResponse(rsp *http.Response) (*DeleteAppResponse, error) {
 	return response, nil
 }
 
+// ParseGetAppEmbedTokenByPathResponse parses an HTTP response from a GetAppEmbedTokenByPathWithResponse call
+func ParseGetAppEmbedTokenByPathResponse(rsp *http.Response) (*GetAppEmbedTokenByPathResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAppEmbedTokenByPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest EmbedTokenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseExistsAppResponse parses an HTTP response from a ExistsAppWithResponse call
 func ParseExistsAppResponse(rsp *http.Response) (*ExistsAppResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -106010,6 +106349,32 @@ func ParseDeleteS3FileFromAppResponse(rsp *http.Response) (*DeleteS3FileFromAppR
 	response := &DeleteS3FileFromAppResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetAppEmbedTokenBySecretResponse parses an HTTP response from a GetAppEmbedTokenBySecretWithResponse call
+func ParseGetAppEmbedTokenBySecretResponse(rsp *http.Response) (*GetAppEmbedTokenBySecretResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAppEmbedTokenBySecretResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest EmbedTokenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
