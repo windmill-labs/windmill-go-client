@@ -10939,6 +10939,11 @@ type ListWorkspacesAsSuperAdminParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
+// GetSessionWorkspaceStatusJSONBody defines parameters for GetSessionWorkspaceStatus.
+type GetSessionWorkspaceStatusJSONBody struct {
+	WorkspaceIds []string `json:"workspace_ids"`
+}
+
 // BlacklistAgentTokenJSONRequestBody defines body for BlacklistAgentToken for application/json ContentType.
 type BlacklistAgentTokenJSONRequestBody BlacklistAgentTokenJSONBody
 
@@ -11793,6 +11798,9 @@ type ExistsWorkspaceJSONRequestBody ExistsWorkspaceJSONBody
 
 // ExistsUsernameJSONRequestBody defines body for ExistsUsername for application/json ContentType.
 type ExistsUsernameJSONRequestBody ExistsUsernameJSONBody
+
+// GetSessionWorkspaceStatusJSONRequestBody defines body for GetSessionWorkspaceStatus for application/json ContentType.
+type GetSessionWorkspaceStatusJSONRequestBody GetSessionWorkspaceStatusJSONBody
 
 // AsDynamicInputDataRunnableRef0 returns the union data inside the DynamicInputData_RunnableRef as a DynamicInputDataRunnableRef0
 func (t DynamicInputData_RunnableRef) AsDynamicInputDataRunnableRef0() (DynamicInputDataRunnableRef0, error) {
@@ -16459,6 +16467,11 @@ type ClientInterface interface {
 
 	// ListWorkspacesAsSuperAdmin request
 	ListWorkspacesAsSuperAdmin(ctx context.Context, params *ListWorkspacesAsSuperAdminParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSessionWorkspaceStatusWithBody request with any body
+	GetSessionWorkspaceStatusWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GetSessionWorkspaceStatus(ctx context.Context, body GetSessionWorkspaceStatusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UnarchiveWorkspace request
 	UnarchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -28649,6 +28662,30 @@ func (c *Client) ListWorkspaces(ctx context.Context, reqEditors ...RequestEditor
 
 func (c *Client) ListWorkspacesAsSuperAdmin(ctx context.Context, params *ListWorkspacesAsSuperAdminParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListWorkspacesAsSuperAdminRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSessionWorkspaceStatusWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSessionWorkspaceStatusRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSessionWorkspaceStatus(ctx context.Context, body GetSessionWorkspaceStatusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSessionWorkspaceStatusRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -72354,6 +72391,46 @@ func NewListWorkspacesAsSuperAdminRequest(server string, params *ListWorkspacesA
 	return req, nil
 }
 
+// NewGetSessionWorkspaceStatusRequest calls the generic GetSessionWorkspaceStatus builder with application/json body
+func NewGetSessionWorkspaceStatusRequest(server string, body GetSessionWorkspaceStatusJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGetSessionWorkspaceStatusRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewGetSessionWorkspaceStatusRequestWithBody generates requests for GetSessionWorkspaceStatus with any type of body
+func NewGetSessionWorkspaceStatusRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workspaces/session_workspace_status")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUnarchiveWorkspaceRequest generates requests for UnarchiveWorkspace
 func NewUnarchiveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -75222,6 +75299,11 @@ type ClientWithResponsesInterface interface {
 
 	// ListWorkspacesAsSuperAdminWithResponse request
 	ListWorkspacesAsSuperAdminWithResponse(ctx context.Context, params *ListWorkspacesAsSuperAdminParams, reqEditors ...RequestEditorFn) (*ListWorkspacesAsSuperAdminResponse, error)
+
+	// GetSessionWorkspaceStatusWithBodyWithResponse request with any body
+	GetSessionWorkspaceStatusWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetSessionWorkspaceStatusResponse, error)
+
+	GetSessionWorkspaceStatusWithResponse(ctx context.Context, body GetSessionWorkspaceStatusJSONRequestBody, reqEditors ...RequestEditorFn) (*GetSessionWorkspaceStatusResponse, error)
 
 	// UnarchiveWorkspaceWithResponse request
 	UnarchiveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*UnarchiveWorkspaceResponse, error)
@@ -92955,6 +93037,29 @@ func (r ListWorkspacesAsSuperAdminResponse) StatusCode() int {
 	return 0
 }
 
+type GetSessionWorkspaceStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]GetSessionWorkspaceStatus200
+}
+type GetSessionWorkspaceStatus200 string
+
+// Status returns HTTPResponse.Status
+func (r GetSessionWorkspaceStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSessionWorkspaceStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UnarchiveWorkspaceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -101857,6 +101962,23 @@ func (c *ClientWithResponses) ListWorkspacesAsSuperAdminWithResponse(ctx context
 		return nil, err
 	}
 	return ParseListWorkspacesAsSuperAdminResponse(rsp)
+}
+
+// GetSessionWorkspaceStatusWithBodyWithResponse request with arbitrary body returning *GetSessionWorkspaceStatusResponse
+func (c *ClientWithResponses) GetSessionWorkspaceStatusWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetSessionWorkspaceStatusResponse, error) {
+	rsp, err := c.GetSessionWorkspaceStatusWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSessionWorkspaceStatusResponse(rsp)
+}
+
+func (c *ClientWithResponses) GetSessionWorkspaceStatusWithResponse(ctx context.Context, body GetSessionWorkspaceStatusJSONRequestBody, reqEditors ...RequestEditorFn) (*GetSessionWorkspaceStatusResponse, error) {
+	rsp, err := c.GetSessionWorkspaceStatus(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSessionWorkspaceStatusResponse(rsp)
 }
 
 // UnarchiveWorkspaceWithResponse request returning *UnarchiveWorkspaceResponse
@@ -119661,6 +119783,32 @@ func ParseListWorkspacesAsSuperAdminResponse(rsp *http.Response) (*ListWorkspace
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []Workspace
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSessionWorkspaceStatusResponse parses an HTTP response from a GetSessionWorkspaceStatusWithResponse call
+func ParseGetSessionWorkspaceStatusResponse(rsp *http.Response) (*GetSessionWorkspaceStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSessionWorkspaceStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]GetSessionWorkspaceStatus200
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
