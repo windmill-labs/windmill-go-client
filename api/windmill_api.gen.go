@@ -1637,6 +1637,7 @@ type CompletedJob struct {
 	FlowStatus     *FlowStatus         `json:"flow_status,omitempty"`
 	Id             openapi_types.UUID  `json:"id"`
 	IsFlowStep     bool                `json:"is_flow_step"`
+	IsRetry        *bool               `json:"is_retry,omitempty"`
 	IsSkipped      bool                `json:"is_skipped"`
 	JobKind        CompletedJobJobKind `json:"job_kind"`
 	Labels         *[]string           `json:"labels,omitempty"`
@@ -3504,6 +3505,7 @@ type Job0 struct {
 	FlowStatus     *FlowStatus         `json:"flow_status,omitempty"`
 	Id             openapi_types.UUID  `json:"id"`
 	IsFlowStep     bool                `json:"is_flow_step"`
+	IsRetry        *bool               `json:"is_retry,omitempty"`
 	IsSkipped      bool                `json:"is_skipped"`
 	JobKind        Job0JobKind         `json:"job_kind"`
 	Labels         *[]string           `json:"labels,omitempty"`
@@ -3557,6 +3559,7 @@ type Job1 struct {
 	FlowStatus     *FlowStatus         `json:"flow_status,omitempty"`
 	Id             openapi_types.UUID  `json:"id"`
 	IsFlowStep     bool                `json:"is_flow_step"`
+	IsRetry        *bool               `json:"is_retry,omitempty"`
 	JobKind        Job1JobKind         `json:"job_kind"`
 	Language       *ScriptLang         `json:"language,omitempty"`
 	LastPing       *time.Time          `json:"last_ping,omitempty"`
@@ -4856,6 +4859,7 @@ type QueuedJob struct {
 	FlowStatus     *FlowStatus         `json:"flow_status,omitempty"`
 	Id             openapi_types.UUID  `json:"id"`
 	IsFlowStep     bool                `json:"is_flow_step"`
+	IsRetry        *bool               `json:"is_retry,omitempty"`
 	JobKind        QueuedJobJobKind    `json:"job_kind"`
 	Language       *ScriptLang         `json:"language,omitempty"`
 	LastPing       *time.Time          `json:"last_ping,omitempty"`
@@ -6879,6 +6883,21 @@ type ListAutoscalingEventsParams struct {
 // UpdateConfigJSONBody defines parameters for UpdateConfig.
 type UpdateConfigJSONBody = interface{}
 
+// ReadDocsPageParams defines parameters for ReadDocsPage.
+type ReadDocsPageParams struct {
+	// Url The docs page to read, as a Source URL returned by searchDocs (e.g. https://www.windmill.dev/docs/core_concepts/jobs). A bare path (e.g. /docs/core_concepts/jobs) is also accepted.
+	Url string `form:"url" json:"url"`
+
+	// Section Optional. A heading title from the page outline to read just that section instead of the full page.
+	Section *string `form:"section,omitempty" json:"section,omitempty"`
+}
+
+// SearchDocsParams defines parameters for SearchDocs.
+type SearchDocsParams struct {
+	// Query Keywords to search for in the documentation body, e.g. "chromium worker tag" or "retry exponential backoff". Fewer, more distinctive words match better.
+	Query string `form:"query" json:"query"`
+}
+
 // QueryHubScriptsParams defines parameters for QueryHubScripts.
 type QueryHubScriptsParams struct {
 	// Text query text
@@ -6940,12 +6959,6 @@ type GetHealthStatusParams struct {
 
 // ClearIndexParamsIdxName defines parameters for ClearIndex.
 type ClearIndexParamsIdxName string
-
-// QueryDocumentationJSONBody defines parameters for QueryDocumentation.
-type QueryDocumentationJSONBody struct {
-	// Query The documentation query to send to the AI assistant
-	Query string `json:"query"`
-}
 
 // ListHubIntegrationsParams defines parameters for ListHubIntegrations.
 type ListHubIntegrationsParams struct {
@@ -9202,6 +9215,9 @@ type RunScriptPreviewParams struct {
 	// InvisibleToOwner make the run invisible to the the script owner (default false)
 	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
 
+	// Timeout custom timeout in seconds for this preview run
+	Timeout *int `form:"timeout,omitempty" json:"timeout,omitempty"`
+
 	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 }
@@ -10982,9 +10998,6 @@ type RemoveUserFromInstanceGroupJSONRequestBody RemoveUserFromInstanceGroupJSONB
 
 // UpdateInstanceGroupJSONRequestBody defines body for UpdateInstanceGroup for application/json ContentType.
 type UpdateInstanceGroupJSONRequestBody UpdateInstanceGroupJSONBody
-
-// QueryDocumentationJSONRequestBody defines body for QueryDocumentation for application/json ContentType.
-type QueryDocumentationJSONRequestBody QueryDocumentationJSONBody
 
 // DiscoverMcpOAuthJSONRequestBody defines body for DiscoverMcpOAuth for application/json ContentType.
 type DiscoverMcpOAuthJSONRequestBody DiscoverMcpOAuthJSONBody
@@ -13807,6 +13820,12 @@ type ClientInterface interface {
 
 	UpdateConfig(ctx context.Context, name Name, body UpdateConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ReadDocsPage request
+	ReadDocsPage(ctx context.Context, params *ReadDocsPageParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SearchDocs request
+	SearchDocs(ctx context.Context, params *SearchDocsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetLicenseId request
 	GetLicenseId(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -13890,11 +13909,6 @@ type ClientInterface interface {
 
 	// GetIndexStorageSizes request
 	GetIndexStorageSizes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// QueryDocumentationWithBody request with any body
-	QueryDocumentationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	QueryDocumentation(ctx context.Context, body QueryDocumentationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListHubIntegrations request
 	ListHubIntegrations(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15263,6 +15277,9 @@ type ClientInterface interface {
 
 	// GetFlowAllLogs request
 	GetFlowAllLogs(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetFlowAllLogsStructured request
+	GetFlowAllLogsStructured(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFlowDebugInfo request
 	GetFlowDebugInfo(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16924,6 +16941,30 @@ func (c *Client) UpdateConfig(ctx context.Context, name Name, body UpdateConfigJ
 	return c.Client.Do(req)
 }
 
+func (c *Client) ReadDocsPage(ctx context.Context, params *ReadDocsPageParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReadDocsPageRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SearchDocs(ctx context.Context, params *SearchDocsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSearchDocsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetLicenseId(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetLicenseIdRequest(c.Server)
 	if err != nil {
@@ -17274,30 +17315,6 @@ func (c *Client) GetIndexerStatus(ctx context.Context, reqEditors ...RequestEdit
 
 func (c *Client) GetIndexStorageSizes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetIndexStorageSizesRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) QueryDocumentationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewQueryDocumentationRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) QueryDocumentation(ctx context.Context, body QueryDocumentationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewQueryDocumentationRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -23334,6 +23351,18 @@ func (c *Client) GetSuspendedJobFlow(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) GetFlowAllLogs(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetFlowAllLogsRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetFlowAllLogsStructured(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowAllLogsStructuredRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -29751,6 +29780,112 @@ func NewUpdateConfigRequestWithBody(server string, name Name, contentType string
 	return req, nil
 }
 
+// NewReadDocsPageRequest generates requests for ReadDocsPage
+func NewReadDocsPageRequest(server string, params *ReadDocsPageParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/docs/page")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "url", runtime.ParamLocationQuery, params.Url); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Section != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "section", runtime.ParamLocationQuery, *params.Section); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSearchDocsRequest generates requests for SearchDocs
+func NewSearchDocsRequest(server string, params *SearchDocsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/docs/search")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "query", runtime.ParamLocationQuery, params.Query); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetLicenseIdRequest generates requests for GetLicenseId
 func NewGetLicenseIdRequest(server string) (*http.Request, error) {
 	var err error
@@ -30646,46 +30781,6 @@ func NewGetIndexStorageSizesRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return req, nil
-}
-
-// NewQueryDocumentationRequest calls the generic QueryDocumentation builder with application/json body
-func NewQueryDocumentationRequest(server string, body QueryDocumentationJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewQueryDocumentationRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewQueryDocumentationRequestWithBody generates requests for QueryDocumentation with any type of body
-func NewQueryDocumentationRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/inkeep")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -51891,6 +51986,22 @@ func NewRunScriptPreviewRequestWithBody(server string, workspace WorkspaceId, pa
 
 		}
 
+		if params.Timeout != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "timeout", runtime.ParamLocationQuery, *params.Timeout); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.JobId != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
@@ -55744,6 +55855,47 @@ func NewGetFlowAllLogsRequest(server string, workspace WorkspaceId, id JobId) (*
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/jobs_u/get_flow_all_logs/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetFlowAllLogsStructuredRequest generates requests for GetFlowAllLogsStructured
+func NewGetFlowAllLogsStructuredRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/get_flow_all_logs_structured/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -72639,6 +72791,12 @@ type ClientWithResponsesInterface interface {
 
 	UpdateConfigWithResponse(ctx context.Context, name Name, body UpdateConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateConfigResponse, error)
 
+	// ReadDocsPageWithResponse request
+	ReadDocsPageWithResponse(ctx context.Context, params *ReadDocsPageParams, reqEditors ...RequestEditorFn) (*ReadDocsPageResponse, error)
+
+	// SearchDocsWithResponse request
+	SearchDocsWithResponse(ctx context.Context, params *SearchDocsParams, reqEditors ...RequestEditorFn) (*SearchDocsResponse, error)
+
 	// GetLicenseIdWithResponse request
 	GetLicenseIdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLicenseIdResponse, error)
 
@@ -72722,11 +72880,6 @@ type ClientWithResponsesInterface interface {
 
 	// GetIndexStorageSizesWithResponse request
 	GetIndexStorageSizesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetIndexStorageSizesResponse, error)
-
-	// QueryDocumentationWithBodyWithResponse request with any body
-	QueryDocumentationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error)
-
-	QueryDocumentationWithResponse(ctx context.Context, body QueryDocumentationJSONRequestBody, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error)
 
 	// ListHubIntegrationsWithResponse request
 	ListHubIntegrationsWithResponse(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*ListHubIntegrationsResponse, error)
@@ -74095,6 +74248,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetFlowAllLogsWithResponse request
 	GetFlowAllLogsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetFlowAllLogsResponse, error)
+
+	// GetFlowAllLogsStructuredWithResponse request
+	GetFlowAllLogsStructuredWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetFlowAllLogsStructuredResponse, error)
 
 	// GetFlowDebugInfoWithResponse request
 	GetFlowDebugInfoWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetFlowDebugInfoResponse, error)
@@ -76025,6 +76181,63 @@ func (r UpdateConfigResponse) StatusCode() int {
 	return 0
 }
 
+type ReadDocsPageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		SourceUrl string `json:"source_url"`
+		Text      string `json:"text"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ReadDocsPageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ReadDocsPageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SearchDocsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Results []struct {
+			Score    int      `json:"score"`
+			Snippets []string `json:"snippets"`
+			Title    string   `json:"title"`
+			Url      string   `json:"url"`
+		} `json:"results"`
+
+		// Text Model-ready rendering of the results
+		Text string `json:"text"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r SearchDocsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SearchDocsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetLicenseIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -76604,28 +76817,6 @@ func (r GetIndexStorageSizesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetIndexStorageSizesResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type QueryDocumentationResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *map[string]interface{}
-}
-
-// Status returns HTTPResponse.Status
-func (r QueryDocumentationResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r QueryDocumentationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -85294,6 +85485,52 @@ func (r GetFlowAllLogsResponse) StatusCode() int {
 	return 0
 }
 
+type GetFlowAllLogsStructuredResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		// Depth depth in the flow tree (0 for the root flow job)
+		Depth      int     `json:"depth"`
+		FlowStepId *string `json:"flow_step_id"`
+		JobId      string  `json:"job_id"`
+
+		// Kind job kind (script, flow, forloopflow, ...)
+		Kind string `json:"kind"`
+
+		// Label human-readable label describing the job's position in the flow tree
+		Label string `json:"label"`
+		Logs  string `json:"logs"`
+
+		// ParentModuleType parent module type (forloopflow, branchall, ...)
+		ParentModuleType *string `json:"parent_module_type"`
+
+		// SiblingCount total number of siblings sharing the same step
+		SiblingCount int `json:"sibling_count"`
+
+		// SiblingIndex 1-based index of this job among siblings sharing the same step
+		SiblingIndex int `json:"sibling_index"`
+
+		// StepPath materialized step path (e.g. "a/b")
+		StepPath *string `json:"step_path"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetFlowAllLogsStructuredResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFlowAllLogsStructuredResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetFlowDebugInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -93429,6 +93666,24 @@ func (c *ClientWithResponses) UpdateConfigWithResponse(ctx context.Context, name
 	return ParseUpdateConfigResponse(rsp)
 }
 
+// ReadDocsPageWithResponse request returning *ReadDocsPageResponse
+func (c *ClientWithResponses) ReadDocsPageWithResponse(ctx context.Context, params *ReadDocsPageParams, reqEditors ...RequestEditorFn) (*ReadDocsPageResponse, error) {
+	rsp, err := c.ReadDocsPage(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReadDocsPageResponse(rsp)
+}
+
+// SearchDocsWithResponse request returning *SearchDocsResponse
+func (c *ClientWithResponses) SearchDocsWithResponse(ctx context.Context, params *SearchDocsParams, reqEditors ...RequestEditorFn) (*SearchDocsResponse, error) {
+	rsp, err := c.SearchDocs(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSearchDocsResponse(rsp)
+}
+
 // GetLicenseIdWithResponse request returning *GetLicenseIdResponse
 func (c *ClientWithResponses) GetLicenseIdWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLicenseIdResponse, error) {
 	rsp, err := c.GetLicenseId(ctx, reqEditors...)
@@ -93691,23 +93946,6 @@ func (c *ClientWithResponses) GetIndexStorageSizesWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseGetIndexStorageSizesResponse(rsp)
-}
-
-// QueryDocumentationWithBodyWithResponse request with arbitrary body returning *QueryDocumentationResponse
-func (c *ClientWithResponses) QueryDocumentationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error) {
-	rsp, err := c.QueryDocumentationWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseQueryDocumentationResponse(rsp)
-}
-
-func (c *ClientWithResponses) QueryDocumentationWithResponse(ctx context.Context, body QueryDocumentationJSONRequestBody, reqEditors ...RequestEditorFn) (*QueryDocumentationResponse, error) {
-	rsp, err := c.QueryDocumentation(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseQueryDocumentationResponse(rsp)
 }
 
 // ListHubIntegrationsWithResponse request returning *ListHubIntegrationsResponse
@@ -98094,6 +98332,15 @@ func (c *ClientWithResponses) GetFlowAllLogsWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseGetFlowAllLogsResponse(rsp)
+}
+
+// GetFlowAllLogsStructuredWithResponse request returning *GetFlowAllLogsStructuredResponse
+func (c *ClientWithResponses) GetFlowAllLogsStructuredWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetFlowAllLogsStructuredResponse, error) {
+	rsp, err := c.GetFlowAllLogsStructured(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFlowAllLogsStructuredResponse(rsp)
 }
 
 // GetFlowDebugInfoWithResponse request returning *GetFlowDebugInfoResponse
@@ -102768,6 +103015,71 @@ func ParseUpdateConfigResponse(rsp *http.Response) (*UpdateConfigResponse, error
 	return response, nil
 }
 
+// ParseReadDocsPageResponse parses an HTTP response from a ReadDocsPageWithResponse call
+func ParseReadDocsPageResponse(rsp *http.Response) (*ReadDocsPageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ReadDocsPageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			SourceUrl string `json:"source_url"`
+			Text      string `json:"text"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSearchDocsResponse parses an HTTP response from a SearchDocsWithResponse call
+func ParseSearchDocsResponse(rsp *http.Response) (*SearchDocsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SearchDocsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Results []struct {
+				Score    int      `json:"score"`
+				Snippets []string `json:"snippets"`
+				Title    string   `json:"title"`
+				Url      string   `json:"url"`
+			} `json:"results"`
+
+			// Text Model-ready rendering of the results
+			Text string `json:"text"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetLicenseIdResponse parses an HTTP response from a GetLicenseIdWithResponse call
 func ParseGetLicenseIdResponse(rsp *http.Response) (*GetLicenseIdResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -103359,32 +103671,6 @@ func ParseGetIndexStorageSizesResponse(rsp *http.Response) (*GetIndexStorageSize
 				S3SizeBytes   *int `json:"s3_size_bytes"`
 			} `json:"service_log_index,omitempty"`
 		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseQueryDocumentationResponse parses an HTTP response from a QueryDocumentationWithResponse call
-func ParseQueryDocumentationResponse(rsp *http.Response) (*QueryDocumentationResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &QueryDocumentationResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest map[string]interface{}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -112045,6 +112331,56 @@ func ParseGetFlowAllLogsResponse(rsp *http.Response) (*GetFlowAllLogsResponse, e
 	response := &GetFlowAllLogsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetFlowAllLogsStructuredResponse parses an HTTP response from a GetFlowAllLogsStructuredWithResponse call
+func ParseGetFlowAllLogsStructuredResponse(rsp *http.Response) (*GetFlowAllLogsStructuredResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFlowAllLogsStructuredResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			// Depth depth in the flow tree (0 for the root flow job)
+			Depth      int     `json:"depth"`
+			FlowStepId *string `json:"flow_step_id"`
+			JobId      string  `json:"job_id"`
+
+			// Kind job kind (script, flow, forloopflow, ...)
+			Kind string `json:"kind"`
+
+			// Label human-readable label describing the job's position in the flow tree
+			Label string `json:"label"`
+			Logs  string `json:"logs"`
+
+			// ParentModuleType parent module type (forloopflow, branchall, ...)
+			ParentModuleType *string `json:"parent_module_type"`
+
+			// SiblingCount total number of siblings sharing the same step
+			SiblingCount int `json:"sibling_count"`
+
+			// SiblingIndex 1-based index of this job among siblings sharing the same step
+			SiblingIndex int `json:"sibling_index"`
+
+			// StepPath materialized step path (e.g. "a/b")
+			StepPath *string `json:"step_path"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
