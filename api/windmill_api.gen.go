@@ -7063,6 +7063,15 @@ type ListLogFilesParams struct {
 	WithError *bool  `form:"with_error,omitempty" json:"with_error,omitempty"`
 }
 
+// RunAuditLogsS3BackfillJSONBody defines parameters for RunAuditLogsS3Backfill.
+type RunAuditLogsS3BackfillJSONBody struct {
+	// From inclusive lower bound of the window to export
+	From time.Time `json:"from"`
+
+	// To exclusive upper bound of the window to export
+	To time.Time `json:"to"`
+}
+
 // GetCriticalAlertsParams defines parameters for GetCriticalAlerts.
 type GetCriticalAlertsParams struct {
 	Page         *int  `form:"page,omitempty" json:"page,omitempty"`
@@ -11026,6 +11035,9 @@ type TestMetadataJSONRequestBody = TestMetadataJSONBody
 // PreviewScheduleJSONRequestBody defines body for PreviewSchedule for application/json ContentType.
 type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
 
+// RunAuditLogsS3BackfillJSONRequestBody defines body for RunAuditLogsS3Backfill for application/json ContentType.
+type RunAuditLogsS3BackfillJSONRequestBody RunAuditLogsS3BackfillJSONBody
+
 // SetGlobalJSONRequestBody defines body for SetGlobal for application/json ContentType.
 type SetGlobalJSONRequestBody SetGlobalJSONBody
 
@@ -14002,6 +14014,14 @@ type ClientInterface interface {
 
 	// ListLogFiles request
 	ListLogFiles(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunAuditLogsS3BackfillWithBody request with any body
+	RunAuditLogsS3BackfillWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunAuditLogsS3Backfill(ctx context.Context, body RunAuditLogsS3BackfillJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAuditLogsS3BackfillStatus request
+	GetAuditLogsS3BackfillStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAuditLogsS3Status request
 	GetAuditLogsS3Status(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17723,6 +17743,42 @@ func (c *Client) GetLogFile(ctx context.Context, path Path, reqEditors ...Reques
 
 func (c *Client) ListLogFiles(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListLogFilesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAuditLogsS3BackfillWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAuditLogsS3BackfillRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAuditLogsS3Backfill(ctx context.Context, body RunAuditLogsS3BackfillJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAuditLogsS3BackfillRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAuditLogsS3BackfillStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAuditLogsS3BackfillStatusRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -31891,6 +31947,73 @@ func NewListLogFilesRequest(server string, params *ListLogFilesParams) (*http.Re
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRunAuditLogsS3BackfillRequest calls the generic RunAuditLogsS3Backfill builder with application/json body
+func NewRunAuditLogsS3BackfillRequest(server string, body RunAuditLogsS3BackfillJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunAuditLogsS3BackfillRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewRunAuditLogsS3BackfillRequestWithBody generates requests for RunAuditLogsS3Backfill with any type of body
+func NewRunAuditLogsS3BackfillRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/audit_logs_s3_backfill")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetAuditLogsS3BackfillStatusRequest generates requests for GetAuditLogsS3BackfillStatus
+func NewGetAuditLogsS3BackfillStatusRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/audit_logs_s3_backfill_status")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -72974,6 +73097,14 @@ type ClientWithResponsesInterface interface {
 	// ListLogFilesWithResponse request
 	ListLogFilesWithResponse(ctx context.Context, params *ListLogFilesParams, reqEditors ...RequestEditorFn) (*ListLogFilesResponse, error)
 
+	// RunAuditLogsS3BackfillWithBodyWithResponse request with any body
+	RunAuditLogsS3BackfillWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAuditLogsS3BackfillResponse, error)
+
+	RunAuditLogsS3BackfillWithResponse(ctx context.Context, body RunAuditLogsS3BackfillJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAuditLogsS3BackfillResponse, error)
+
+	// GetAuditLogsS3BackfillStatusWithResponse request
+	GetAuditLogsS3BackfillStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetAuditLogsS3BackfillStatusResponse, error)
+
 	// GetAuditLogsS3StatusWithResponse request
 	GetAuditLogsS3StatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetAuditLogsS3StatusResponse, error)
 
@@ -77415,6 +77546,61 @@ func (r ListLogFilesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListLogFilesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunAuditLogsS3BackfillResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunAuditLogsS3BackfillResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunAuditLogsS3BackfillResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAuditLogsS3BackfillStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Errors         int64      `json:"errors"`
+		FinishedAt     *time.Time `json:"finished_at"`
+		From           time.Time  `json:"from"`
+		LastError      *string    `json:"last_error"`
+		LastTs         *time.Time `json:"last_ts"`
+		ObjectsWritten int64      `json:"objects_written"`
+		Phase          string     `json:"phase"`
+		RowsWritten    int64      `json:"rows_written"`
+		Running        bool       `json:"running"`
+		StartedAt      time.Time  `json:"started_at"`
+		To             time.Time  `json:"to"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAuditLogsS3BackfillStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAuditLogsS3BackfillStatusResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -94245,6 +94431,32 @@ func (c *ClientWithResponses) ListLogFilesWithResponse(ctx context.Context, para
 	return ParseListLogFilesResponse(rsp)
 }
 
+// RunAuditLogsS3BackfillWithBodyWithResponse request with arbitrary body returning *RunAuditLogsS3BackfillResponse
+func (c *ClientWithResponses) RunAuditLogsS3BackfillWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAuditLogsS3BackfillResponse, error) {
+	rsp, err := c.RunAuditLogsS3BackfillWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAuditLogsS3BackfillResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunAuditLogsS3BackfillWithResponse(ctx context.Context, body RunAuditLogsS3BackfillJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAuditLogsS3BackfillResponse, error) {
+	rsp, err := c.RunAuditLogsS3Backfill(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAuditLogsS3BackfillResponse(rsp)
+}
+
+// GetAuditLogsS3BackfillStatusWithResponse request returning *GetAuditLogsS3BackfillStatusResponse
+func (c *ClientWithResponses) GetAuditLogsS3BackfillStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetAuditLogsS3BackfillStatusResponse, error) {
+	rsp, err := c.GetAuditLogsS3BackfillStatus(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAuditLogsS3BackfillStatusResponse(rsp)
+}
+
 // GetAuditLogsS3StatusWithResponse request returning *GetAuditLogsS3StatusResponse
 func (c *ClientWithResponses) GetAuditLogsS3StatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetAuditLogsS3StatusResponse, error) {
 	rsp, err := c.GetAuditLogsS3Status(ctx, reqEditors...)
@@ -104269,6 +104481,60 @@ func ParseListLogFilesResponse(rsp *http.Response) (*ListLogFilesResponse, error
 			Mode        string    `json:"mode"`
 			OkLines     *int      `json:"ok_lines,omitempty"`
 			WorkerGroup *string   `json:"worker_group,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRunAuditLogsS3BackfillResponse parses an HTTP response from a RunAuditLogsS3BackfillWithResponse call
+func ParseRunAuditLogsS3BackfillResponse(rsp *http.Response) (*RunAuditLogsS3BackfillResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunAuditLogsS3BackfillResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetAuditLogsS3BackfillStatusResponse parses an HTTP response from a GetAuditLogsS3BackfillStatusWithResponse call
+func ParseGetAuditLogsS3BackfillStatusResponse(rsp *http.Response) (*GetAuditLogsS3BackfillStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAuditLogsS3BackfillStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Errors         int64      `json:"errors"`
+			FinishedAt     *time.Time `json:"finished_at"`
+			From           time.Time  `json:"from"`
+			LastError      *string    `json:"last_error"`
+			LastTs         *time.Time `json:"last_ts"`
+			ObjectsWritten int64      `json:"objects_written"`
+			Phase          string     `json:"phase"`
+			RowsWritten    int64      `json:"rows_written"`
+			Running        bool       `json:"running"`
+			StartedAt      time.Time  `json:"started_at"`
+			To             time.Time  `json:"to"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
