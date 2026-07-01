@@ -633,6 +633,13 @@ const (
 	SKIP LoggedWizardStatus = "SKIP"
 )
 
+// Defines values for MaterializedPartitionStatus.
+const (
+	MaterializedPartitionStatusFailed       MaterializedPartitionStatus = "failed"
+	MaterializedPartitionStatusMaterialized MaterializedPartitionStatus = "materialized"
+	MaterializedPartitionStatusRunning      MaterializedPartitionStatus = "running"
+)
+
 // Defines values for McpToolValueToolType.
 const (
 	Mcp McpToolValueToolType = "mcp"
@@ -1310,6 +1317,12 @@ const (
 	Scripts PruneVersionsJSONBodyResourceType = "scripts"
 )
 
+// Defines values for SetWsSpecificJSONBodyItemKind.
+const (
+	Resource SetWsSpecificJSONBodyItemKind = "resource"
+	Variable SetWsSpecificJSONBodyItemKind = "variable"
+)
+
 // AIConfig defines model for AIConfig.
 type AIConfig struct {
 	CodeCompletionModel *AIProviderModel             `json:"code_completion_model,omitempty"`
@@ -1390,6 +1403,18 @@ type AppWithLastVersionExecutionMode string
 
 // AssetKind defines model for AssetKind.
 type AssetKind string
+
+// AssetSchemaVersion defines model for AssetSchemaVersion.
+type AssetSchemaVersion struct {
+	CapturedAt time.Time `json:"captured_at"`
+	Columns    []struct {
+		Name string `json:"name"`
+		Type string `json:"type"`
+	} `json:"columns"`
+	JobId      *openapi_types.UUID `json:"job_id"`
+	SnapshotId *int64              `json:"snapshot_id"`
+	Version    int64               `json:"version"`
+}
 
 // AssetUsageAccessType defines model for AssetUsageAccessType.
 type AssetUsageAccessType string
@@ -1760,7 +1785,10 @@ type CreateWorkspace struct {
 
 // CreateWorkspaceFork defines model for CreateWorkspaceFork.
 type CreateWorkspaceFork struct {
-	Color            *string `json:"color,omitempty"`
+	Color *string `json:"color,omitempty"`
+
+	// CopyMembers Copy the parent's members (users + group memberships) into the fork so the team can work in it
+	CopyMembers      *bool `json:"copy_members,omitempty"`
 	ForkedDatatables *[]struct {
 		// Name Datatable name
 		Name string `json:"name"`
@@ -1768,8 +1796,17 @@ type CreateWorkspaceFork struct {
 		// NewDbname New database name for the fork
 		NewDbname string `json:"new_dbname"`
 	} `json:"forked_datatables,omitempty"`
-	Id   string `json:"id"`
-	Name string `json:"name"`
+	Id string `json:"id"`
+
+	// IsDevWorkspace Create the fork as a persistent dev workspace (id not required to carry the wm-fork- prefix; at most one per parent)
+	IsDevWorkspace *bool `json:"is_dev_workspace,omitempty"`
+
+	// LockProdDeploy When creating a dev workspace, lock the parent (prod) against direct deployment
+	LockProdDeploy *bool `json:"lock_prod_deploy,omitempty"`
+
+	// LockProdForking When creating a dev workspace, prevent forking the parent (prod)
+	LockProdForking *bool  `json:"lock_prod_forking,omitempty"`
+	Name            string `json:"name"`
 }
 
 // CriticalAlert defines model for CriticalAlert.
@@ -3776,6 +3813,22 @@ type Login struct {
 	Password string `json:"password"`
 }
 
+// MaterializedPartition defines model for MaterializedPartition.
+type MaterializedPartition struct {
+	AssetKind      AssetKind                   `json:"asset_kind"`
+	AssetPath      string                      `json:"asset_path"`
+	Error          *string                     `json:"error"`
+	JobId          *openapi_types.UUID         `json:"job_id"`
+	MaterializedAt time.Time                   `json:"materialized_at"`
+	Partition      string                      `json:"partition"`
+	RowCount       *int64                      `json:"row_count"`
+	SnapshotId     *int64                      `json:"snapshot_id"`
+	Status         MaterializedPartitionStatus `json:"status"`
+}
+
+// MaterializedPartitionStatus defines model for MaterializedPartition.Status.
+type MaterializedPartitionStatus string
+
 // McpToolValue Reference to an external MCP (Model Context Protocol) tool. The AI can call tools from MCP servers
 type McpToolValue struct {
 	// ExcludeTools Blacklist of tools to exclude from this MCP server
@@ -5649,6 +5702,7 @@ type UserWorkspaceList struct {
 		CreatedBy         *string           `json:"created_by"`
 		Disabled          bool              `json:"disabled"`
 		Id                string            `json:"id"`
+		IsDevWorkspace    bool              `json:"is_dev_workspace"`
 		Name              string            `json:"name"`
 		OperatorSettings  *OperatorSettings `json:"operator_settings"`
 		ParentWorkspaceId *string           `json:"parent_workspace_id"`
@@ -7489,6 +7543,12 @@ type UploadS3FileFromAppParams struct {
 	ContentDisposition *string `form:"content_disposition,omitempty" json:"content_disposition,omitempty"`
 }
 
+// ListAssetSchemasParams defines parameters for ListAssetSchemas.
+type ListAssetSchemasParams struct {
+	// Path The materialized ducklake asset path (`<ducklake>/<table>`)
+	Path string `form:"path" json:"path"`
+}
+
 // GetAssetsGraphParams defines parameters for GetAssetsGraph.
 type GetAssetsGraphParams struct {
 	// AssetKinds Filter by asset kinds (comma-separated list)
@@ -7534,6 +7594,12 @@ type ListAssetsByUsageJSONBody struct {
 		Kind AssetUsageKind `json:"kind"`
 		Path string         `json:"path"`
 	} `json:"usages"`
+}
+
+// ListAssetPartitionsParams defines parameters for ListAssetPartitions.
+type ListAssetPartitionsParams struct {
+	// Path The materialized ducklake asset path (`<ducklake>/<table>`)
+	Path string `form:"path" json:"path"`
 }
 
 // ListAuditLogsParams defines parameters for ListAuditLogs.
@@ -10591,6 +10657,13 @@ type AddUserJSONBody struct {
 	Username *string `json:"username,omitempty"`
 }
 
+// AttachDevWorkspaceJSONBody defines parameters for AttachDevWorkspace.
+type AttachDevWorkspaceJSONBody struct {
+	DevWorkspaceId  string `json:"dev_workspace_id"`
+	LockProdDeploy  *bool  `json:"lock_prod_deploy,omitempty"`
+	LockProdForking *bool  `json:"lock_prod_forking,omitempty"`
+}
+
 // ListAvailableTeamsChannelsParams defines parameters for ListAvailableTeamsChannels.
 type ListAvailableTeamsChannelsParams struct {
 	// TeamId Microsoft Teams team ID
@@ -10682,6 +10755,11 @@ type DeleteInviteJSONBody struct {
 	Email    string `json:"email"`
 	IsAdmin  bool   `json:"is_admin"`
 	Operator bool   `json:"operator"`
+}
+
+// DetachDevWorkspaceJSONBody defines parameters for DetachDevWorkspace.
+type DetachDevWorkspaceJSONBody struct {
+	DevWorkspaceId string `json:"dev_workspace_id"`
 }
 
 // DropForkedDatatableDatabasesJSONBody defines parameters for DropForkedDatatableDatabases.
@@ -10901,6 +10979,16 @@ type SetEnvironmentVariableJSONBody struct {
 	Name  string  `json:"name"`
 	Value *string `json:"value,omitempty"`
 }
+
+// SetWsSpecificJSONBody defines parameters for SetWsSpecific.
+type SetWsSpecificJSONBody struct {
+	ItemKind SetWsSpecificJSONBodyItemKind `json:"item_kind"`
+	Path     string                        `json:"path"`
+	Value    bool                          `json:"value"`
+}
+
+// SetWsSpecificJSONBodyItemKind defines parameters for SetWsSpecific.
+type SetWsSpecificJSONBodyItemKind string
 
 // SetWorkspaceSlackOauthConfigJSONBody defines parameters for SetWorkspaceSlackOauthConfig.
 type SetWorkspaceSlackOauthConfigJSONBody struct {
@@ -11674,6 +11762,9 @@ type CreateWorkspaceDependenciesJSONRequestBody = NewWorkspaceDependencies
 // AddUserJSONRequestBody defines body for AddUser for application/json ContentType.
 type AddUserJSONRequestBody AddUserJSONBody
 
+// AttachDevWorkspaceJSONRequestBody defines body for AttachDevWorkspace for application/json ContentType.
+type AttachDevWorkspaceJSONRequestBody AttachDevWorkspaceJSONBody
+
 // ChangeWorkspaceColorJSONRequestBody defines body for ChangeWorkspaceColor for application/json ContentType.
 type ChangeWorkspaceColorJSONRequestBody ChangeWorkspaceColorJSONBody
 
@@ -11712,6 +11803,9 @@ type DeleteGitSyncRepositoryJSONRequestBody DeleteGitSyncRepositoryJSONBody
 
 // DeleteInviteJSONRequestBody defines body for DeleteInvite for application/json ContentType.
 type DeleteInviteJSONRequestBody DeleteInviteJSONBody
+
+// DetachDevWorkspaceJSONRequestBody defines body for DetachDevWorkspace for application/json ContentType.
+type DetachDevWorkspaceJSONRequestBody DetachDevWorkspaceJSONBody
 
 // DropForkedDatatableDatabasesJSONRequestBody defines body for DropForkedDatatableDatabases for application/json ContentType.
 type DropForkedDatatableDatabasesJSONRequestBody DropForkedDatatableDatabasesJSONBody
@@ -11808,6 +11902,9 @@ type RunTeamsMessageTestJobJSONRequestBody RunTeamsMessageTestJobJSONBody
 
 // SetEnvironmentVariableJSONRequestBody defines body for SetEnvironmentVariable for application/json ContentType.
 type SetEnvironmentVariableJSONRequestBody SetEnvironmentVariableJSONBody
+
+// SetWsSpecificJSONRequestBody defines body for SetWsSpecific for application/json ContentType.
+type SetWsSpecificJSONRequestBody SetWsSpecificJSONBody
 
 // SetWorkspaceSlackOauthConfigJSONRequestBody defines body for SetWorkspaceSlackOauthConfig for application/json ContentType.
 type SetWorkspaceSlackOauthConfigJSONRequestBody SetWorkspaceSlackOauthConfigJSONBody
@@ -14450,6 +14547,9 @@ type ClientInterface interface {
 	// UploadS3FileFromAppWithBody request with any body
 	UploadS3FileFromAppWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAssetSchemas request
+	ListAssetSchemas(ctx context.Context, workspace WorkspaceId, params *ListAssetSchemasParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAssetsGraph request
 	GetAssetsGraph(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14463,6 +14563,9 @@ type ClientInterface interface {
 
 	// ListFavoriteAssets request
 	ListFavoriteAssets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAssetPartitions request
+	ListAssetPartitions(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListPipelineFolders request
 	ListPipelineFolders(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16090,6 +16193,11 @@ type ClientInterface interface {
 	// ArchiveWorkspace request
 	ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AttachDevWorkspaceWithBody request with any body
+	AttachDevWorkspaceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AttachDevWorkspace(ctx context.Context, workspace WorkspaceId, body AttachDevWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListAvailableTeamsChannels request
 	ListAvailableTeamsChannels(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsChannelsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16181,6 +16289,11 @@ type ClientInterface interface {
 	DeleteInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	DeleteInvite(ctx context.Context, workspace WorkspaceId, body DeleteInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DetachDevWorkspaceWithBody request with any body
+	DetachDevWorkspaceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DetachDevWorkspace(ctx context.Context, workspace WorkspaceId, body DetachDevWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DropForkedDatatableDatabasesWithBody request with any body
 	DropForkedDatatableDatabasesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16311,6 +16424,9 @@ type ClientInterface interface {
 	// GetDeployTo request
 	GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetDevWorkspace request
+	GetDevWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetImports request
 	GetImports(ctx context.Context, workspace WorkspaceId, importerPath string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16425,6 +16541,11 @@ type ClientInterface interface {
 	SetEnvironmentVariableWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetEnvironmentVariable(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetWsSpecificWithBody request with any body
+	SetWsSpecificWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetWsSpecific(ctx context.Context, workspace WorkspaceId, body SetWsSpecificJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteWorkspaceSlackOauthConfig request
 	DeleteWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19661,6 +19782,18 @@ func (c *Client) UploadS3FileFromAppWithBody(ctx context.Context, workspace Work
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListAssetSchemas(ctx context.Context, workspace WorkspaceId, params *ListAssetSchemasParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAssetSchemasRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetAssetsGraph(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAssetsGraphRequest(c.Server, workspace, params)
 	if err != nil {
@@ -19711,6 +19844,18 @@ func (c *Client) ListAssetsByUsage(ctx context.Context, workspace WorkspaceId, b
 
 func (c *Client) ListFavoriteAssets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListFavoriteAssetsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAssetPartitions(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAssetPartitionsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -26897,6 +27042,30 @@ func (c *Client) ArchiveWorkspace(ctx context.Context, workspace WorkspaceId, re
 	return c.Client.Do(req)
 }
 
+func (c *Client) AttachDevWorkspaceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAttachDevWorkspaceRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AttachDevWorkspace(ctx context.Context, workspace WorkspaceId, body AttachDevWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAttachDevWorkspaceRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListAvailableTeamsChannels(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsChannelsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAvailableTeamsChannelsRequest(c.Server, workspace, params)
 	if err != nil {
@@ -27307,6 +27476,30 @@ func (c *Client) DeleteInviteWithBody(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) DeleteInvite(ctx context.Context, workspace WorkspaceId, body DeleteInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteInviteRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DetachDevWorkspaceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDetachDevWorkspaceRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DetachDevWorkspace(ctx context.Context, workspace WorkspaceId, body DetachDevWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDetachDevWorkspaceRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -27917,6 +28110,18 @@ func (c *Client) GetDeployTo(ctx context.Context, workspace WorkspaceId, reqEdit
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetDevWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDevWorkspaceRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetImports(ctx context.Context, workspace WorkspaceId, importerPath string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetImportsRequest(c.Server, workspace, importerPath)
 	if err != nil {
@@ -28411,6 +28616,30 @@ func (c *Client) SetEnvironmentVariableWithBody(ctx context.Context, workspace W
 
 func (c *Client) SetEnvironmentVariable(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetEnvironmentVariableRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetWsSpecificWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWsSpecificRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetWsSpecific(ctx context.Context, workspace WorkspaceId, body SetWsSpecificJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWsSpecificRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -37068,6 +37297,58 @@ func NewUploadS3FileFromAppRequestWithBody(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewListAssetSchemasRequest generates requests for ListAssetSchemas
+func NewListAssetSchemasRequest(server string, workspace WorkspaceId, params *ListAssetSchemasParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/assets/asset_schemas", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, params.Path); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetAssetsGraphRequest generates requests for GetAssetsGraph
 func NewGetAssetsGraphRequest(server string, workspace WorkspaceId, params *GetAssetsGraphParams) (*http.Request, error) {
 	var err error
@@ -37395,6 +37676,58 @@ func NewListFavoriteAssetsRequest(server string, workspace WorkspaceId) (*http.R
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAssetPartitionsRequest generates requests for ListAssetPartitions
+func NewListAssetPartitionsRequest(server string, workspace WorkspaceId, params *ListAssetPartitionsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/assets/partitions", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, params.Path); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -68106,6 +68439,53 @@ func NewArchiveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Req
 	return req, nil
 }
 
+// NewAttachDevWorkspaceRequest calls the generic AttachDevWorkspace builder with application/json body
+func NewAttachDevWorkspaceRequest(server string, workspace WorkspaceId, body AttachDevWorkspaceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAttachDevWorkspaceRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewAttachDevWorkspaceRequestWithBody generates requests for AttachDevWorkspace with any type of body
+func NewAttachDevWorkspaceRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/attach_dev_workspace", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewListAvailableTeamsChannelsRequest generates requests for ListAvailableTeamsChannels
 func NewListAvailableTeamsChannelsRequest(server string, workspace WorkspaceId, params *ListAvailableTeamsChannelsParams) (*http.Request, error) {
 	var err error
@@ -69128,6 +69508,53 @@ func NewDeleteInviteRequestWithBody(server string, workspace WorkspaceId, conten
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/delete_invite", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDetachDevWorkspaceRequest calls the generic DetachDevWorkspace builder with application/json body
+func NewDetachDevWorkspaceRequest(server string, workspace WorkspaceId, body DetachDevWorkspaceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDetachDevWorkspaceRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewDetachDevWorkspaceRequestWithBody generates requests for DetachDevWorkspace with any type of body
+func NewDetachDevWorkspaceRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/detach_dev_workspace", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -70455,6 +70882,40 @@ func NewGetDeployToRequest(server string, workspace WorkspaceId) (*http.Request,
 	return req, nil
 }
 
+// NewGetDevWorkspaceRequest generates requests for GetDevWorkspace
+func NewGetDevWorkspaceRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/get_dev_workspace", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetImportsRequest generates requests for GetImports
 func NewGetImportsRequest(server string, workspace WorkspaceId, importerPath string) (*http.Request, error) {
 	var err error
@@ -71735,6 +72196,53 @@ func NewSetEnvironmentVariableRequestWithBody(server string, workspace Workspace
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/set_environment_variable", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSetWsSpecificRequest calls the generic SetWsSpecific builder with application/json body
+func NewSetWsSpecificRequest(server string, workspace WorkspaceId, body SetWsSpecificJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetWsSpecificRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetWsSpecificRequestWithBody generates requests for SetWsSpecific with any type of body
+func NewSetWsSpecificRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/set_ws_specific", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -73532,6 +74040,9 @@ type ClientWithResponsesInterface interface {
 	// UploadS3FileFromAppWithBodyWithResponse request with any body
 	UploadS3FileFromAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UploadS3FileFromAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadS3FileFromAppResponse, error)
 
+	// ListAssetSchemasWithResponse request
+	ListAssetSchemasWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetSchemasParams, reqEditors ...RequestEditorFn) (*ListAssetSchemasResponse, error)
+
 	// GetAssetsGraphWithResponse request
 	GetAssetsGraphWithResponse(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*GetAssetsGraphResponse, error)
 
@@ -73545,6 +74056,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListFavoriteAssetsWithResponse request
 	ListFavoriteAssetsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListFavoriteAssetsResponse, error)
+
+	// ListAssetPartitionsWithResponse request
+	ListAssetPartitionsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsParams, reqEditors ...RequestEditorFn) (*ListAssetPartitionsResponse, error)
 
 	// ListPipelineFoldersWithResponse request
 	ListPipelineFoldersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPipelineFoldersResponse, error)
@@ -75172,6 +75686,11 @@ type ClientWithResponsesInterface interface {
 	// ArchiveWorkspaceWithResponse request
 	ArchiveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ArchiveWorkspaceResponse, error)
 
+	// AttachDevWorkspaceWithBodyWithResponse request with any body
+	AttachDevWorkspaceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AttachDevWorkspaceResponse, error)
+
+	AttachDevWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, body AttachDevWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*AttachDevWorkspaceResponse, error)
+
 	// ListAvailableTeamsChannelsWithResponse request
 	ListAvailableTeamsChannelsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsChannelsParams, reqEditors ...RequestEditorFn) (*ListAvailableTeamsChannelsResponse, error)
 
@@ -75263,6 +75782,11 @@ type ClientWithResponsesInterface interface {
 	DeleteInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error)
 
 	DeleteInviteWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteInviteJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteInviteResponse, error)
+
+	// DetachDevWorkspaceWithBodyWithResponse request with any body
+	DetachDevWorkspaceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DetachDevWorkspaceResponse, error)
+
+	DetachDevWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, body DetachDevWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*DetachDevWorkspaceResponse, error)
 
 	// DropForkedDatatableDatabasesWithBodyWithResponse request with any body
 	DropForkedDatatableDatabasesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DropForkedDatatableDatabasesResponse, error)
@@ -75393,6 +75917,9 @@ type ClientWithResponsesInterface interface {
 	// GetDeployToWithResponse request
 	GetDeployToWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDeployToResponse, error)
 
+	// GetDevWorkspaceWithResponse request
+	GetDevWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDevWorkspaceResponse, error)
+
 	// GetImportsWithResponse request
 	GetImportsWithResponse(ctx context.Context, workspace WorkspaceId, importerPath string, reqEditors ...RequestEditorFn) (*GetImportsResponse, error)
 
@@ -75507,6 +76034,11 @@ type ClientWithResponsesInterface interface {
 	SetEnvironmentVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error)
 
 	SetEnvironmentVariableWithResponse(ctx context.Context, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error)
+
+	// SetWsSpecificWithBodyWithResponse request with any body
+	SetWsSpecificWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWsSpecificResponse, error)
+
+	SetWsSpecificWithResponse(ctx context.Context, workspace WorkspaceId, body SetWsSpecificJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWsSpecificResponse, error)
 
 	// DeleteWorkspaceSlackOauthConfigWithResponse request
 	DeleteWorkspaceSlackOauthConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DeleteWorkspaceSlackOauthConfigResponse, error)
@@ -80248,6 +80780,28 @@ func (r UploadS3FileFromAppResponse) StatusCode() int {
 	return 0
 }
 
+type ListAssetSchemasResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]AssetSchemaVersion
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAssetSchemasResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAssetSchemasResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetAssetsGraphResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -80410,6 +80964,28 @@ func (r ListFavoriteAssetsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListFavoriteAssetsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAssetPartitionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]MaterializedPartition
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAssetPartitionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAssetPartitionsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -91018,6 +91594,27 @@ func (r ArchiveWorkspaceResponse) StatusCode() int {
 	return 0
 }
 
+type AttachDevWorkspaceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AttachDevWorkspaceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AttachDevWorkspaceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListAvailableTeamsChannelsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -91522,6 +92119,27 @@ func (r DeleteInviteResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteInviteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DetachDevWorkspaceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DetachDevWorkspaceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DetachDevWorkspaceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -92182,6 +92800,31 @@ func (r GetDeployToResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetDeployToResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDevWorkspaceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Id   string `json:"id"`
+		Name string `json:"name"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDevWorkspaceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDevWorkspaceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -92923,6 +93566,27 @@ func (r SetEnvironmentVariableResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SetEnvironmentVariableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetWsSpecificResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetWsSpecificResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetWsSpecificResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -95820,6 +96484,15 @@ func (c *ClientWithResponses) UploadS3FileFromAppWithBodyWithResponse(ctx contex
 	return ParseUploadS3FileFromAppResponse(rsp)
 }
 
+// ListAssetSchemasWithResponse request returning *ListAssetSchemasResponse
+func (c *ClientWithResponses) ListAssetSchemasWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetSchemasParams, reqEditors ...RequestEditorFn) (*ListAssetSchemasResponse, error) {
+	rsp, err := c.ListAssetSchemas(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAssetSchemasResponse(rsp)
+}
+
 // GetAssetsGraphWithResponse request returning *GetAssetsGraphResponse
 func (c *ClientWithResponses) GetAssetsGraphWithResponse(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*GetAssetsGraphResponse, error) {
 	rsp, err := c.GetAssetsGraph(ctx, workspace, params, reqEditors...)
@@ -95862,6 +96535,15 @@ func (c *ClientWithResponses) ListFavoriteAssetsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListFavoriteAssetsResponse(rsp)
+}
+
+// ListAssetPartitionsWithResponse request returning *ListAssetPartitionsResponse
+func (c *ClientWithResponses) ListAssetPartitionsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsParams, reqEditors ...RequestEditorFn) (*ListAssetPartitionsResponse, error) {
+	rsp, err := c.ListAssetPartitions(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAssetPartitionsResponse(rsp)
 }
 
 // ListPipelineFoldersWithResponse request returning *ListPipelineFoldersResponse
@@ -101078,6 +101760,23 @@ func (c *ClientWithResponses) ArchiveWorkspaceWithResponse(ctx context.Context, 
 	return ParseArchiveWorkspaceResponse(rsp)
 }
 
+// AttachDevWorkspaceWithBodyWithResponse request with arbitrary body returning *AttachDevWorkspaceResponse
+func (c *ClientWithResponses) AttachDevWorkspaceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AttachDevWorkspaceResponse, error) {
+	rsp, err := c.AttachDevWorkspaceWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAttachDevWorkspaceResponse(rsp)
+}
+
+func (c *ClientWithResponses) AttachDevWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, body AttachDevWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*AttachDevWorkspaceResponse, error) {
+	rsp, err := c.AttachDevWorkspace(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAttachDevWorkspaceResponse(rsp)
+}
+
 // ListAvailableTeamsChannelsWithResponse request returning *ListAvailableTeamsChannelsResponse
 func (c *ClientWithResponses) ListAvailableTeamsChannelsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsChannelsParams, reqEditors ...RequestEditorFn) (*ListAvailableTeamsChannelsResponse, error) {
 	rsp, err := c.ListAvailableTeamsChannels(ctx, workspace, params, reqEditors...)
@@ -101378,6 +102077,23 @@ func (c *ClientWithResponses) DeleteInviteWithResponse(ctx context.Context, work
 		return nil, err
 	}
 	return ParseDeleteInviteResponse(rsp)
+}
+
+// DetachDevWorkspaceWithBodyWithResponse request with arbitrary body returning *DetachDevWorkspaceResponse
+func (c *ClientWithResponses) DetachDevWorkspaceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DetachDevWorkspaceResponse, error) {
+	rsp, err := c.DetachDevWorkspaceWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDetachDevWorkspaceResponse(rsp)
+}
+
+func (c *ClientWithResponses) DetachDevWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, body DetachDevWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*DetachDevWorkspaceResponse, error) {
+	rsp, err := c.DetachDevWorkspace(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDetachDevWorkspaceResponse(rsp)
 }
 
 // DropForkedDatatableDatabasesWithBodyWithResponse request with arbitrary body returning *DropForkedDatatableDatabasesResponse
@@ -101809,6 +102525,15 @@ func (c *ClientWithResponses) GetDeployToWithResponse(ctx context.Context, works
 	return ParseGetDeployToResponse(rsp)
 }
 
+// GetDevWorkspaceWithResponse request returning *GetDevWorkspaceResponse
+func (c *ClientWithResponses) GetDevWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetDevWorkspaceResponse, error) {
+	rsp, err := c.GetDevWorkspace(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDevWorkspaceResponse(rsp)
+}
+
 // GetImportsWithResponse request returning *GetImportsResponse
 func (c *ClientWithResponses) GetImportsWithResponse(ctx context.Context, workspace WorkspaceId, importerPath string, reqEditors ...RequestEditorFn) (*GetImportsResponse, error) {
 	rsp, err := c.GetImports(ctx, workspace, importerPath, reqEditors...)
@@ -102174,6 +102899,23 @@ func (c *ClientWithResponses) SetEnvironmentVariableWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseSetEnvironmentVariableResponse(rsp)
+}
+
+// SetWsSpecificWithBodyWithResponse request with arbitrary body returning *SetWsSpecificResponse
+func (c *ClientWithResponses) SetWsSpecificWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWsSpecificResponse, error) {
+	rsp, err := c.SetWsSpecificWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetWsSpecificResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetWsSpecificWithResponse(ctx context.Context, workspace WorkspaceId, body SetWsSpecificJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWsSpecificResponse, error) {
+	rsp, err := c.SetWsSpecific(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetWsSpecificResponse(rsp)
 }
 
 // DeleteWorkspaceSlackOauthConfigWithResponse request returning *DeleteWorkspaceSlackOauthConfigResponse
@@ -107151,6 +107893,32 @@ func ParseUploadS3FileFromAppResponse(rsp *http.Response) (*UploadS3FileFromAppR
 	return response, nil
 }
 
+// ParseListAssetSchemasResponse parses an HTTP response from a ListAssetSchemasWithResponse call
+func ParseListAssetSchemasResponse(rsp *http.Response) (*ListAssetSchemasResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAssetSchemasResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []AssetSchemaVersion
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetAssetsGraphResponse parses an HTTP response from a GetAssetsGraphWithResponse call
 func ParseGetAssetsGraphResponse(rsp *http.Response) (*GetAssetsGraphResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -107307,6 +108075,32 @@ func ParseListFavoriteAssetsResponse(rsp *http.Response) (*ListFavoriteAssetsRes
 			// Path The asset path
 			Path string `json:"path"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAssetPartitionsResponse parses an HTTP response from a ListAssetPartitionsWithResponse call
+func ParseListAssetPartitionsResponse(rsp *http.Response) (*ListAssetPartitionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAssetPartitionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []MaterializedPartition
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -117912,6 +118706,22 @@ func ParseArchiveWorkspaceResponse(rsp *http.Response) (*ArchiveWorkspaceRespons
 	return response, nil
 }
 
+// ParseAttachDevWorkspaceResponse parses an HTTP response from a AttachDevWorkspaceWithResponse call
+func ParseAttachDevWorkspaceResponse(rsp *http.Response) (*AttachDevWorkspaceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AttachDevWorkspaceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseListAvailableTeamsChannelsResponse parses an HTTP response from a ListAvailableTeamsChannelsWithResponse call
 func ParseListAvailableTeamsChannelsResponse(rsp *http.Response) (*ListAvailableTeamsChannelsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -118413,6 +119223,22 @@ func ParseDeleteInviteResponse(rsp *http.Response) (*DeleteInviteResponse, error
 	}
 
 	response := &DeleteInviteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDetachDevWorkspaceResponse parses an HTTP response from a DetachDevWorkspaceWithResponse call
+func ParseDetachDevWorkspaceResponse(rsp *http.Response) (*DetachDevWorkspaceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DetachDevWorkspaceResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -119086,6 +119912,35 @@ func ParseGetDeployToResponse(rsp *http.Response) (*GetDeployToResponse, error) 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			DeployTo *string `json:"deploy_to,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDevWorkspaceResponse parses an HTTP response from a GetDevWorkspaceWithResponse call
+func ParseGetDevWorkspaceResponse(rsp *http.Response) (*GetDevWorkspaceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDevWorkspaceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Id   string `json:"id"`
+			Name string `json:"name"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -119837,6 +120692,22 @@ func ParseSetEnvironmentVariableResponse(rsp *http.Response) (*SetEnvironmentVar
 	}
 
 	response := &SetEnvironmentVariableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSetWsSpecificResponse parses an HTTP response from a SetWsSpecificWithResponse call
+func ParseSetWsSpecificResponse(rsp *http.Response) (*SetWsSpecificResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetWsSpecificResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
