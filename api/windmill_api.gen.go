@@ -3440,6 +3440,27 @@ type HealthStatusResponse struct {
 // HealthStatusResponseStatus Overall health status
 type HealthStatusResponseStatus string
 
+// HiddenItem defines model for HiddenItem.
+type HiddenItem struct {
+	// Kind Type of the hidden item
+	Kind string `json:"kind"`
+
+	// Path Path of the hidden item
+	Path string `json:"path"`
+}
+
+// HiddenItemsSummary defines model for HiddenItemsSummary.
+type HiddenItemsSummary struct {
+	// ByKind Count of hidden items keyed by item kind (always populated)
+	ByKind map[string]int `json:"by_kind"`
+
+	// Items Kind and path of each hidden item; only populated when the caller is an admin of the relevant side (empty otherwise)
+	Items []HiddenItem `json:"items"`
+
+	// Total Total number of hidden items on this side
+	Total int `json:"total"`
+}
+
 // HttpMethod defines model for HttpMethod.
 type HttpMethod string
 
@@ -5630,8 +5651,11 @@ type User struct {
 	IsServiceAccount *bool       `json:"is_service_account,omitempty"`
 	IsSuperAdmin     bool        `json:"is_super_admin"`
 	Name             *string     `json:"name,omitempty"`
-	Operator         bool        `json:"operator"`
-	Username         string      `json:"username"`
+
+	// NonMember True when this is a superadmin viewing a workspace they are not a member of (is_admin/role reflect the superadmin fallback, not an actual membership).
+	NonMember *bool  `json:"non_member,omitempty"`
+	Operator  bool   `json:"operator"`
+	Username  string `json:"username"`
 }
 
 // UserDraftItemKind Closed set of item kinds a user can autosave as a draft. Mirrors the
@@ -5903,7 +5927,9 @@ type WorkspaceComparison struct {
 	AllBehindItemsVisible bool `json:"all_behind_items_visible"`
 
 	// Diffs List of differences found between workspaces
-	Diffs []WorkspaceItemDiff `json:"diffs"`
+	Diffs        []WorkspaceItemDiff `json:"diffs"`
+	HiddenAhead  HiddenItemsSummary  `json:"hidden_ahead"`
+	HiddenBehind HiddenItemsSummary  `json:"hidden_behind"`
 
 	// SkippedComparison Whether the comparison was skipped. This happens with old forks that where not being kept track of
 	SkippedComparison bool           `json:"skipped_comparison"`
