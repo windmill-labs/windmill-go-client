@@ -26,32 +26,34 @@ const (
 
 // Defines values for AIProvider.
 const (
-	AIProviderAnthropic   AIProvider = "anthropic"
-	AIProviderAwsBedrock  AIProvider = "aws_bedrock"
-	AIProviderAzureOpenai AIProvider = "azure_openai"
-	AIProviderCustomai    AIProvider = "customai"
-	AIProviderDeepseek    AIProvider = "deepseek"
-	AIProviderGoogleai    AIProvider = "googleai"
-	AIProviderGroq        AIProvider = "groq"
-	AIProviderMistral     AIProvider = "mistral"
-	AIProviderOpenai      AIProvider = "openai"
-	AIProviderOpenrouter  AIProvider = "openrouter"
-	AIProviderTogetherai  AIProvider = "togetherai"
+	AIProviderAnthropic    AIProvider = "anthropic"
+	AIProviderAwsBedrock   AIProvider = "aws_bedrock"
+	AIProviderAzureFoundry AIProvider = "azure_foundry"
+	AIProviderAzureOpenai  AIProvider = "azure_openai"
+	AIProviderCustomai     AIProvider = "customai"
+	AIProviderDeepseek     AIProvider = "deepseek"
+	AIProviderGoogleai     AIProvider = "googleai"
+	AIProviderGroq         AIProvider = "groq"
+	AIProviderMistral      AIProvider = "mistral"
+	AIProviderOpenai       AIProvider = "openai"
+	AIProviderOpenrouter   AIProvider = "openrouter"
+	AIProviderTogetherai   AIProvider = "togetherai"
 )
 
 // Defines values for AIProviderKind.
 const (
-	AIProviderKindAnthropic   AIProviderKind = "anthropic"
-	AIProviderKindAwsBedrock  AIProviderKind = "aws_bedrock"
-	AIProviderKindAzureOpenai AIProviderKind = "azure_openai"
-	AIProviderKindCustomai    AIProviderKind = "customai"
-	AIProviderKindDeepseek    AIProviderKind = "deepseek"
-	AIProviderKindGoogleai    AIProviderKind = "googleai"
-	AIProviderKindGroq        AIProviderKind = "groq"
-	AIProviderKindMistral     AIProviderKind = "mistral"
-	AIProviderKindOpenai      AIProviderKind = "openai"
-	AIProviderKindOpenrouter  AIProviderKind = "openrouter"
-	AIProviderKindTogetherai  AIProviderKind = "togetherai"
+	AIProviderKindAnthropic    AIProviderKind = "anthropic"
+	AIProviderKindAwsBedrock   AIProviderKind = "aws_bedrock"
+	AIProviderKindAzureFoundry AIProviderKind = "azure_foundry"
+	AIProviderKindAzureOpenai  AIProviderKind = "azure_openai"
+	AIProviderKindCustomai     AIProviderKind = "customai"
+	AIProviderKindDeepseek     AIProviderKind = "deepseek"
+	AIProviderKindGoogleai     AIProviderKind = "googleai"
+	AIProviderKindGroq         AIProviderKind = "groq"
+	AIProviderKindMistral      AIProviderKind = "mistral"
+	AIProviderKindOpenai       AIProviderKind = "openai"
+	AIProviderKindOpenrouter   AIProviderKind = "openrouter"
+	AIProviderKindTogetherai   AIProviderKind = "togetherai"
 )
 
 // Defines values for AppWithLastVersionExecutionMode.
@@ -733,6 +735,23 @@ const (
 const (
 	Json OpenapiSpecFormat = "json"
 	Yaml OpenapiSpecFormat = "yaml"
+)
+
+// Defines values for PartitionsInRangePartitionKind.
+const (
+	Daily   PartitionsInRangePartitionKind = "daily"
+	Dynamic PartitionsInRangePartitionKind = "dynamic"
+	Hourly  PartitionsInRangePartitionKind = "hourly"
+	Monthly PartitionsInRangePartitionKind = "monthly"
+	Weekly  PartitionsInRangePartitionKind = "weekly"
+)
+
+// Defines values for PartitionsInRangePartitionsStatus.
+const (
+	PartitionsInRangePartitionsStatusFailed       PartitionsInRangePartitionsStatus = "failed"
+	PartitionsInRangePartitionsStatusMaterialized PartitionsInRangePartitionsStatus = "materialized"
+	PartitionsInRangePartitionsStatusMissing      PartitionsInRangePartitionsStatus = "missing"
+	PartitionsInRangePartitionsStatusRunning      PartitionsInRangePartitionsStatus = "running"
 )
 
 // Defines values for PolicyExecutionMode.
@@ -4782,6 +4801,24 @@ type OperatorSettings struct {
 	Workers bool `json:"workers"`
 }
 
+// PartitionsInRange defines model for PartitionsInRange.
+type PartitionsInRange struct {
+	PartitionKind PartitionsInRangePartitionKind `json:"partition_kind"`
+	Partitions    []struct {
+		Partition string                            `json:"partition"`
+		Status    PartitionsInRangePartitionsStatus `json:"status"`
+	} `json:"partitions"`
+
+	// ProducerPath the pipeline script that materializes the asset (managed `// materialize` target, or a partitioned writer using the SDK helpers) — the runnable a backfill launches
+	ProducerPath string `json:"producer_path"`
+}
+
+// PartitionsInRangePartitionKind defines model for PartitionsInRange.PartitionKind.
+type PartitionsInRangePartitionKind string
+
+// PartitionsInRangePartitionsStatus defines model for PartitionsInRange.Partitions.Status.
+type PartitionsInRangePartitionsStatus string
+
 // PasswordResetResponse defines model for PasswordResetResponse.
 type PasswordResetResponse struct {
 	Message string `json:"message"`
@@ -7628,6 +7665,18 @@ type ListAssetPartitionsParams struct {
 	Path string `form:"path" json:"path"`
 }
 
+// ListAssetPartitionsInRangeParams defines parameters for ListAssetPartitionsInRange.
+type ListAssetPartitionsInRangeParams struct {
+	// Path The materialized ducklake asset path (`<ducklake>/<table>`)
+	Path string `form:"path" json:"path"`
+
+	// From Inclusive range start (YYYY-MM-DD), local to the producer's partition tz
+	From openapi_types.Date `form:"from" json:"from"`
+
+	// To Inclusive range end (YYYY-MM-DD), local to the producer's partition tz
+	To openapi_types.Date `form:"to" json:"to"`
+}
+
 // ListAuditLogsParams defines parameters for ListAuditLogs.
 type ListAuditLogsParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -8529,6 +8578,12 @@ type MoveS3FileParams struct {
 // PolarsConnectionSettingsJSONBody defines parameters for PolarsConnectionSettings.
 type PolarsConnectionSettingsJSONBody struct {
 	S3Resource *S3Resource `json:"s3_resource,omitempty"`
+}
+
+// GetStorageUsageParams defines parameters for GetStorageUsage.
+type GetStorageUsageParams struct {
+	// Refresh recount usage by listing the storage instead of returning cached values
+	Refresh *bool `form:"refresh,omitempty" json:"refresh,omitempty"`
 }
 
 // DatasetStorageTestConnectionParams defines parameters for DatasetStorageTestConnection.
@@ -14590,8 +14645,14 @@ type ClientInterface interface {
 	// ListFavoriteAssets request
 	ListFavoriteAssets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListWorkspaceMacros request
+	ListWorkspaceMacros(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListAssetPartitions request
 	ListAssetPartitions(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAssetPartitionsInRange request
+	ListAssetPartitionsInRange(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsInRangeParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListPipelineFolders request
 	ListPipelineFolders(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -15099,6 +15160,9 @@ type ClientInterface interface {
 	PolarsConnectionSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PolarsConnectionSettings(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetStorageUsage request
+	GetStorageUsage(ctx context.Context, workspace WorkspaceId, params *GetStorageUsageParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DatasetStorageTestConnection request
 	DatasetStorageTestConnection(ctx context.Context, workspace WorkspaceId, params *DatasetStorageTestConnectionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19880,8 +19944,32 @@ func (c *Client) ListFavoriteAssets(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListWorkspaceMacros(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListWorkspaceMacrosRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListAssetPartitions(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAssetPartitionsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAssetPartitionsInRange(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsInRangeParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAssetPartitionsInRangeRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -22114,6 +22202,18 @@ func (c *Client) PolarsConnectionSettingsWithBody(ctx context.Context, workspace
 
 func (c *Client) PolarsConnectionSettings(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPolarsConnectionSettingsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetStorageUsage(ctx context.Context, workspace WorkspaceId, params *GetStorageUsageParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetStorageUsageRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -37712,6 +37812,40 @@ func NewListFavoriteAssetsRequest(server string, workspace WorkspaceId) (*http.R
 	return req, nil
 }
 
+// NewListWorkspaceMacrosRequest generates requests for ListWorkspaceMacros
+func NewListWorkspaceMacrosRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/assets/macros", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListAssetPartitionsRequest generates requests for ListAssetPartitions
 func NewListAssetPartitionsRequest(server string, workspace WorkspaceId, params *ListAssetPartitionsParams) (*http.Request, error) {
 	var err error
@@ -37742,6 +37876,82 @@ func NewListAssetPartitionsRequest(server string, workspace WorkspaceId, params 
 		queryValues := queryURL.Query()
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, params.Path); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAssetPartitionsInRangeRequest generates requests for ListAssetPartitionsInRange
+func NewListAssetPartitionsInRangeRequest(server string, workspace WorkspaceId, params *ListAssetPartitionsInRangeParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/assets/partitions_in_range", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, params.Path); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "from", runtime.ParamLocationQuery, params.From); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "to", runtime.ParamLocationQuery, params.To); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -46856,6 +47066,62 @@ func NewPolarsConnectionSettingsRequestWithBody(server string, workspace Workspa
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetStorageUsageRequest generates requests for GetStorageUsage
+func NewGetStorageUsageRequest(server string, workspace WorkspaceId, params *GetStorageUsageParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/storage_usage", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Refresh != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "refresh", runtime.ParamLocationQuery, *params.Refresh); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -74083,8 +74349,14 @@ type ClientWithResponsesInterface interface {
 	// ListFavoriteAssetsWithResponse request
 	ListFavoriteAssetsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListFavoriteAssetsResponse, error)
 
+	// ListWorkspaceMacrosWithResponse request
+	ListWorkspaceMacrosWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListWorkspaceMacrosResponse, error)
+
 	// ListAssetPartitionsWithResponse request
 	ListAssetPartitionsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsParams, reqEditors ...RequestEditorFn) (*ListAssetPartitionsResponse, error)
+
+	// ListAssetPartitionsInRangeWithResponse request
+	ListAssetPartitionsInRangeWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsInRangeParams, reqEditors ...RequestEditorFn) (*ListAssetPartitionsInRangeResponse, error)
 
 	// ListPipelineFoldersWithResponse request
 	ListPipelineFoldersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPipelineFoldersResponse, error)
@@ -74592,6 +74864,9 @@ type ClientWithResponsesInterface interface {
 	PolarsConnectionSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error)
 
 	PolarsConnectionSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsResponse, error)
+
+	// GetStorageUsageWithResponse request
+	GetStorageUsageWithResponse(ctx context.Context, workspace WorkspaceId, params *GetStorageUsageParams, reqEditors ...RequestEditorFn) (*GetStorageUsageResponse, error)
 
 	// DatasetStorageTestConnectionWithResponse request
 	DatasetStorageTestConnectionWithResponse(ctx context.Context, workspace WorkspaceId, params *DatasetStorageTestConnectionParams, reqEditors ...RequestEditorFn) (*DatasetStorageTestConnectionResponse, error)
@@ -80843,11 +81118,28 @@ type GetAssetsGraphResponse struct {
 			RunnableKind AssetUsageKind        `json:"runnable_kind"`
 			RunnablePath string                `json:"runnable_path"`
 		} `json:"edges"`
+
+		// MacroEdges Macro-library → consumer edges (deploy-recorded call detection plus `// use`). Omitted when empty.
+		MacroEdges *[]struct {
+			ConsumerPath string   `json:"consumer_path"`
+			LibPath      string   `json:"lib_path"`
+			MacroNames   []string `json:"macro_names"`
+			ViaUse       bool     `json:"via_use"`
+		} `json:"macro_edges,omitempty"`
 		Runnables []struct {
 			// InPipeline True iff the script is a pipeline member (deployed with `// pipeline`). Omitted when false.
-			InPipeline *bool          `json:"in_pipeline,omitempty"`
-			Path       string         `json:"path"`
-			UsageKind  AssetUsageKind `json:"usage_kind"`
+			InPipeline *bool `json:"in_pipeline,omitempty"`
+
+			// Macros Macros this script provides to the workspace registry (deployed `// macros` library). Omitted when empty.
+			Macros *[]struct {
+				IsTable bool   `json:"is_table"`
+				Name    string `json:"name"`
+
+				// Params verbatim parameter list
+				Params string `json:"params"`
+			} `json:"macros,omitempty"`
+			Path      string         `json:"path"`
+			UsageKind AssetUsageKind `json:"usage_kind"`
 		} `json:"runnables"`
 		Triggers []GetAssetsGraph_200_Triggers_Item `json:"triggers"`
 	}
@@ -80996,6 +81288,39 @@ func (r ListFavoriteAssetsResponse) StatusCode() int {
 	return 0
 }
 
+type ListWorkspaceMacrosResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		// Body verbatim body after AS [TABLE]
+		Body    string `json:"body"`
+		IsTable bool   `json:"is_table"`
+		Name    string `json:"name"`
+
+		// Params verbatim parameter list
+		Params string `json:"params"`
+
+		// ProviderPath path of the `// macros` library script
+		ProviderPath string `json:"provider_path"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListWorkspaceMacrosResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListWorkspaceMacrosResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListAssetPartitionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -81012,6 +81337,28 @@ func (r ListAssetPartitionsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListAssetPartitionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAssetPartitionsInRangeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PartitionsInRange
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAssetPartitionsInRangeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAssetPartitionsInRangeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -84362,6 +84709,37 @@ func (r PolarsConnectionSettingsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PolarsConnectionSettingsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetStorageUsageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// QuotaBytes only present on Community Edition, where workspace storage is capped
+		QuotaBytes *int64 `json:"quota_bytes,omitempty"`
+		Storages   []struct {
+			Bytes      int64     `json:"bytes"`
+			ComputedAt time.Time `json:"computed_at"`
+			Storage    string    `json:"storage"`
+		} `json:"storages"`
+		TotalBytes int64 `json:"total_bytes"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetStorageUsageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetStorageUsageResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -91773,6 +92151,7 @@ type GetCloudQuotasResponse struct {
 	JSON200      *struct {
 		Apps      QuotaInfo `json:"apps"`
 		Flows     QuotaInfo `json:"flows"`
+		Forks     QuotaInfo `json:"forks"`
 		Resources QuotaInfo `json:"resources"`
 		Scripts   QuotaInfo `json:"scripts"`
 		Variables QuotaInfo `json:"variables"`
@@ -96563,6 +96942,15 @@ func (c *ClientWithResponses) ListFavoriteAssetsWithResponse(ctx context.Context
 	return ParseListFavoriteAssetsResponse(rsp)
 }
 
+// ListWorkspaceMacrosWithResponse request returning *ListWorkspaceMacrosResponse
+func (c *ClientWithResponses) ListWorkspaceMacrosWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListWorkspaceMacrosResponse, error) {
+	rsp, err := c.ListWorkspaceMacros(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListWorkspaceMacrosResponse(rsp)
+}
+
 // ListAssetPartitionsWithResponse request returning *ListAssetPartitionsResponse
 func (c *ClientWithResponses) ListAssetPartitionsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsParams, reqEditors ...RequestEditorFn) (*ListAssetPartitionsResponse, error) {
 	rsp, err := c.ListAssetPartitions(ctx, workspace, params, reqEditors...)
@@ -96570,6 +96958,15 @@ func (c *ClientWithResponses) ListAssetPartitionsWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseListAssetPartitionsResponse(rsp)
+}
+
+// ListAssetPartitionsInRangeWithResponse request returning *ListAssetPartitionsInRangeResponse
+func (c *ClientWithResponses) ListAssetPartitionsInRangeWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetPartitionsInRangeParams, reqEditors ...RequestEditorFn) (*ListAssetPartitionsInRangeResponse, error) {
+	rsp, err := c.ListAssetPartitionsInRange(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAssetPartitionsInRangeResponse(rsp)
 }
 
 // ListPipelineFoldersWithResponse request returning *ListPipelineFoldersResponse
@@ -98193,6 +98590,15 @@ func (c *ClientWithResponses) PolarsConnectionSettingsWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParsePolarsConnectionSettingsResponse(rsp)
+}
+
+// GetStorageUsageWithResponse request returning *GetStorageUsageResponse
+func (c *ClientWithResponses) GetStorageUsageWithResponse(ctx context.Context, workspace WorkspaceId, params *GetStorageUsageParams, reqEditors ...RequestEditorFn) (*GetStorageUsageResponse, error) {
+	rsp, err := c.GetStorageUsage(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetStorageUsageResponse(rsp)
 }
 
 // DatasetStorageTestConnectionWithResponse request returning *DatasetStorageTestConnectionResponse
@@ -107972,11 +108378,28 @@ func ParseGetAssetsGraphResponse(rsp *http.Response) (*GetAssetsGraphResponse, e
 				RunnableKind AssetUsageKind        `json:"runnable_kind"`
 				RunnablePath string                `json:"runnable_path"`
 			} `json:"edges"`
+
+			// MacroEdges Macro-library → consumer edges (deploy-recorded call detection plus `// use`). Omitted when empty.
+			MacroEdges *[]struct {
+				ConsumerPath string   `json:"consumer_path"`
+				LibPath      string   `json:"lib_path"`
+				MacroNames   []string `json:"macro_names"`
+				ViaUse       bool     `json:"via_use"`
+			} `json:"macro_edges,omitempty"`
 			Runnables []struct {
 				// InPipeline True iff the script is a pipeline member (deployed with `// pipeline`). Omitted when false.
-				InPipeline *bool          `json:"in_pipeline,omitempty"`
-				Path       string         `json:"path"`
-				UsageKind  AssetUsageKind `json:"usage_kind"`
+				InPipeline *bool `json:"in_pipeline,omitempty"`
+
+				// Macros Macros this script provides to the workspace registry (deployed `// macros` library). Omitted when empty.
+				Macros *[]struct {
+					IsTable bool   `json:"is_table"`
+					Name    string `json:"name"`
+
+					// Params verbatim parameter list
+					Params string `json:"params"`
+				} `json:"macros,omitempty"`
+				Path      string         `json:"path"`
+				UsageKind AssetUsageKind `json:"usage_kind"`
 			} `json:"runnables"`
 			Triggers []GetAssetsGraph_200_Triggers_Item `json:"triggers"`
 		}
@@ -108111,6 +108534,43 @@ func ParseListFavoriteAssetsResponse(rsp *http.Response) (*ListFavoriteAssetsRes
 	return response, nil
 }
 
+// ParseListWorkspaceMacrosResponse parses an HTTP response from a ListWorkspaceMacrosWithResponse call
+func ParseListWorkspaceMacrosResponse(rsp *http.Response) (*ListWorkspaceMacrosResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListWorkspaceMacrosResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			// Body verbatim body after AS [TABLE]
+			Body    string `json:"body"`
+			IsTable bool   `json:"is_table"`
+			Name    string `json:"name"`
+
+			// Params verbatim parameter list
+			Params string `json:"params"`
+
+			// ProviderPath path of the `// macros` library script
+			ProviderPath string `json:"provider_path"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListAssetPartitionsResponse parses an HTTP response from a ListAssetPartitionsWithResponse call
 func ParseListAssetPartitionsResponse(rsp *http.Response) (*ListAssetPartitionsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -108127,6 +108587,32 @@ func ParseListAssetPartitionsResponse(rsp *http.Response) (*ListAssetPartitionsR
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []MaterializedPartition
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAssetPartitionsInRangeResponse parses an HTTP response from a ListAssetPartitionsInRangeWithResponse call
+func ParseListAssetPartitionsInRangeResponse(rsp *http.Response) (*ListAssetPartitionsInRangeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAssetPartitionsInRangeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PartitionsInRange
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -111493,6 +111979,41 @@ func ParsePolarsConnectionSettingsResponse(rsp *http.Response) (*PolarsConnectio
 			Key          *string            `json:"key,omitempty"`
 			Secret       *string            `json:"secret,omitempty"`
 			UseSsl       bool               `json:"use_ssl"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetStorageUsageResponse parses an HTTP response from a GetStorageUsageWithResponse call
+func ParseGetStorageUsageResponse(rsp *http.Response) (*GetStorageUsageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetStorageUsageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// QuotaBytes only present on Community Edition, where workspace storage is capped
+			QuotaBytes *int64 `json:"quota_bytes,omitempty"`
+			Storages   []struct {
+				Bytes      int64     `json:"bytes"`
+				ComputedAt time.Time `json:"computed_at"`
+				Storage    string    `json:"storage"`
+			} `json:"storages"`
+			TotalBytes int64 `json:"total_bytes"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -118885,6 +119406,7 @@ func ParseGetCloudQuotasResponse(rsp *http.Response) (*GetCloudQuotasResponse, e
 		var dest struct {
 			Apps      QuotaInfo `json:"apps"`
 			Flows     QuotaInfo `json:"flows"`
+			Forks     QuotaInfo `json:"forks"`
 			Resources QuotaInfo `json:"resources"`
 			Scripts   QuotaInfo `json:"scripts"`
 			Variables QuotaInfo `json:"variables"`
