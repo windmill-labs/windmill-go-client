@@ -250,6 +250,15 @@ const (
 	CompletedJobJobKindUnassignedSinglestepflow CompletedJobJobKind = "unassigned_singlestepflow"
 )
 
+// Defines values for ContractWarningKind.
+const (
+	MissingColumn             ContractWarningKind = "missing_column"
+	MissingLineageSource      ContractWarningKind = "missing_lineage_source"
+	MissingRelationshipColumn ContractWarningKind = "missing_relationship_column"
+	RelationshipTypeMismatch  ContractWarningKind = "relationship_type_mismatch"
+	Suppressed                ContractWarningKind = "suppressed"
+)
+
 // Defines values for CustomInstanceDbTag.
 const (
 	CustomInstanceDbTagDatatable CustomInstanceDbTag = "datatable"
@@ -287,6 +296,12 @@ const (
 	DucklakeSettingsDucklakesCatalogResourceTypeInstance   DucklakeSettingsDucklakesCatalogResourceType = "instance"
 	DucklakeSettingsDucklakesCatalogResourceTypeMysql      DucklakeSettingsDucklakesCatalogResourceType = "mysql"
 	DucklakeSettingsDucklakesCatalogResourceTypePostgresql DucklakeSettingsDucklakesCatalogResourceType = "postgresql"
+)
+
+// Defines values for DucklakeSettingsDucklakesForkBehavior.
+const (
+	Isolated DucklakeSettingsDucklakesForkBehavior = "isolated"
+	Shared   DucklakeSettingsDucklakesForkBehavior = "shared"
 )
 
 // Defines values for DynamicInputDataRunnableRef0Source.
@@ -584,6 +599,7 @@ const (
 	JobTriggerKindAzure        JobTriggerKind = "azure"
 	JobTriggerKindDefaultEmail JobTriggerKind = "default_email"
 	JobTriggerKindEmail        JobTriggerKind = "email"
+	JobTriggerKindFreshness    JobTriggerKind = "freshness"
 	JobTriggerKindGcp          JobTriggerKind = "gcp"
 	JobTriggerKindGithub       JobTriggerKind = "github"
 	JobTriggerKindGoogle       JobTriggerKind = "google"
@@ -1741,6 +1757,24 @@ type ContextualVariable struct {
 	Value       string `json:"value"`
 }
 
+// ContractWarning One save-time schema-contract warning: a consumer reference that does
+// not match the referenced asset's latest captured schema.
+// `schema_version`/`captured_at` identify the capture the check ran
+// against (as-of the producer's last run, not its latest save).
+type ContractWarning struct {
+	AssetPath     string              `json:"asset_path"`
+	CapturedAt    *time.Time          `json:"captured_at,omitempty"`
+	Column        *string             `json:"column,omitempty"`
+	ExpectedType  *string             `json:"expected_type,omitempty"`
+	FoundType     *string             `json:"found_type,omitempty"`
+	Kind          ContractWarningKind `json:"kind"`
+	Message       string              `json:"message"`
+	SchemaVersion *int64              `json:"schema_version,omitempty"`
+}
+
+// ContractWarningKind defines model for ContractWarning.Kind.
+type ContractWarningKind string
+
 // CreateInput defines model for CreateInput.
 type CreateInput struct {
 	Args map[string]interface{} `json:"args"`
@@ -1826,6 +1860,9 @@ type CreateWorkspaceFork struct {
 	// LockProdForking When creating a dev workspace, prevent forking the parent (prod)
 	LockProdForking *bool  `json:"lock_prod_forking,omitempty"`
 	Name            string `json:"name"`
+
+	// SharedDucklakes Lake names the fork SHARES with the parent (reads and writes the parent's lake directly). Every lake not listed gets the default isolated fork namespace with read-defer to the parent.
+	SharedDucklakes *[]string `json:"shared_ducklakes,omitempty"`
 }
 
 // CriticalAlert defines model for CriticalAlert.
@@ -2031,7 +2068,26 @@ type DucklakeSettings struct {
 			ResourceType DucklakeSettingsDucklakesCatalogResourceType `json:"resource_type"`
 		} `json:"catalog"`
 		ExtraArgs *string `json:"extra_args,omitempty"`
-		Storage   struct {
+
+		// ForkBehavior Fork workspaces only - how this lake behaves in the fork, stamped at fork creation. Absent = isolated (fork-scoped namespace + read-defer to parent).
+		ForkBehavior *DucklakeSettingsDucklakesForkBehavior `json:"fork_behavior,omitempty"`
+
+		// Maintenance Scheduled maintenance (enterprise) - snapshot expiry, adjacent-file compaction and orphaned-file cleanup, run as a managed per-lake schedule
+		Maintenance *struct {
+			// Compaction merge adjacent small parquet files (default true)
+			Compaction *bool `json:"compaction,omitempty"`
+			Enabled    bool  `json:"enabled"`
+
+			// OrphanCleanup delete orphaned files older than max(retention, 1 day) (default true)
+			OrphanCleanup *bool `json:"orphan_cleanup,omitempty"`
+
+			// RetentionDays snapshot retention window in days (default 7); time-travel older than this stops working
+			RetentionDays *int `json:"retention_days,omitempty"`
+
+			// Schedule cron cadence (v2, UTC); defaults to daily at 03h with a per-lake minute offset
+			Schedule *string `json:"schedule,omitempty"`
+		} `json:"maintenance,omitempty"`
+		Storage struct {
 			Path    string  `json:"path"`
 			Storage *string `json:"storage,omitempty"`
 		} `json:"storage"`
@@ -2040,6 +2096,9 @@ type DucklakeSettings struct {
 
 // DucklakeSettingsDucklakesCatalogResourceType defines model for DucklakeSettings.Ducklakes.Catalog.ResourceType.
 type DucklakeSettingsDucklakesCatalogResourceType string
+
+// DucklakeSettingsDucklakesForkBehavior Fork workspaces only - how this lake behaves in the fork, stamped at fork creation. Absent = isolated (fork-scoped namespace + read-defer to parent).
+type DucklakeSettingsDucklakesForkBehavior string
 
 // DynamicInputData defines model for DynamicInputData.
 type DynamicInputData struct {
@@ -6114,7 +6173,7 @@ type SchemasAiAgent struct {
 		Provider ProviderTransform `json:"provider"`
 
 		// Streaming Boolean. If true, stream the AI response incrementally.
-		// Streaming events include: token_delta, tool_call, tool_call_arguments, tool_execution, tool_result
+		// Streaming events include: token_delta, reasoning_token_delta, tool_call, tool_call_arguments, tool_execution, tool_result
 		Streaming *SchemasInputTransform `json:"streaming,omitempty"`
 
 		// SystemPrompt System instructions that guide the AI's behavior, persona, and response style. Optional.
@@ -6609,6 +6668,9 @@ type SchemasProviderConfig struct {
 
 	// Model Model identifier (e.g., 'gpt-4', 'claude-3-opus-20240229', 'gemini-pro')
 	Model string `json:"model"`
+
+	// ReasoningEffort Provider-native reasoning effort token (e.g. 'low', 'high', 'none') for models that support extended thinking. Optional; unset leaves the provider default.
+	ReasoningEffort *string `json:"reasoning_effort,omitempty"`
 
 	// Resource Resource reference in format '$res:{resource_path}' pointing to provider credentials
 	Resource string `json:"resource"`
@@ -10364,6 +10426,12 @@ type SetScheduleEnabledJSONBody struct {
 	Force *bool `json:"force,omitempty"`
 }
 
+// CheckSchemaContractsJSONBody defines parameters for CheckSchemaContracts.
+type CheckSchemaContractsJSONBody struct {
+	Content  string     `json:"content"`
+	Language ScriptLang `json:"language"`
+}
+
 // GetCiTestResultsParamsKind defines parameters for GetCiTestResults.
 type GetCiTestResultsParamsKind string
 
@@ -11755,6 +11823,9 @@ type SetScheduleEnabledJSONRequestBody SetScheduleEnabledJSONBody
 
 // UpdateScheduleJSONRequestBody defines body for UpdateSchedule for application/json ContentType.
 type UpdateScheduleJSONRequestBody = EditSchedule
+
+// CheckSchemaContractsJSONRequestBody defines body for CheckSchemaContracts for application/json ContentType.
+type CheckSchemaContractsJSONRequestBody CheckSchemaContractsJSONBody
 
 // GetCiTestResultsBatchJSONRequestBody defines body for GetCiTestResultsBatch for application/json ContentType.
 type GetCiTestResultsBatchJSONRequestBody GetCiTestResultsBatchJSONBody
@@ -15973,6 +16044,11 @@ type ClientInterface interface {
 	// ArchiveScriptByPath request
 	ArchiveScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CheckSchemaContractsWithBody request with any body
+	CheckSchemaContractsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CheckSchemaContracts(ctx context.Context, workspace WorkspaceId, body CheckSchemaContractsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetCiTestResults request
 	GetCiTestResults(ctx context.Context, workspace WorkspaceId, kind GetCiTestResultsParamsKind, path string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16389,6 +16465,9 @@ type ClientInterface interface {
 	DropForkedDatatableDatabasesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	DropForkedDatatableDatabases(ctx context.Context, workspace WorkspaceId, body DropForkedDatatableDatabasesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DropForkedDucklakeNamespaces request
+	DropForkedDucklakeNamespaces(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditAutoInviteWithBody request with any body
 	EditAutoInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -25812,6 +25891,30 @@ func (c *Client) ArchiveScriptByPath(ctx context.Context, workspace WorkspaceId,
 	return c.Client.Do(req)
 }
 
+func (c *Client) CheckSchemaContractsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCheckSchemaContractsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CheckSchemaContracts(ctx context.Context, workspace WorkspaceId, body CheckSchemaContractsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCheckSchemaContractsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetCiTestResults(ctx context.Context, workspace WorkspaceId, kind GetCiTestResultsParamsKind, path string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCiTestResultsRequest(c.Server, workspace, kind, path)
 	if err != nil {
@@ -27650,6 +27753,18 @@ func (c *Client) DropForkedDatatableDatabasesWithBody(ctx context.Context, works
 
 func (c *Client) DropForkedDatatableDatabases(ctx context.Context, workspace WorkspaceId, body DropForkedDatatableDatabasesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDropForkedDatatableDatabasesRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DropForkedDucklakeNamespaces(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDropForkedDucklakeNamespacesRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -64108,6 +64223,53 @@ func NewArchiveScriptByPathRequest(server string, workspace WorkspaceId, path Sc
 	return req, nil
 }
 
+// NewCheckSchemaContractsRequest calls the generic CheckSchemaContracts builder with application/json body
+func NewCheckSchemaContractsRequest(server string, workspace WorkspaceId, body CheckSchemaContractsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCheckSchemaContractsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCheckSchemaContractsRequestWithBody generates requests for CheckSchemaContracts with any type of body
+func NewCheckSchemaContractsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/check_schema_contracts", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetCiTestResultsRequest generates requests for GetCiTestResults
 func NewGetCiTestResultsRequest(server string, workspace WorkspaceId, kind GetCiTestResultsParamsKind, path string) (*http.Request, error) {
 	var err error
@@ -69913,6 +70075,40 @@ func NewDropForkedDatatableDatabasesRequestWithBody(server string, workspace Wor
 	return req, nil
 }
 
+// NewDropForkedDucklakeNamespacesRequest generates requests for DropForkedDucklakeNamespaces
+func NewDropForkedDucklakeNamespacesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/drop_forked_ducklake_namespaces", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewEditAutoInviteRequest calls the generic EditAutoInvite builder with application/json body
 func NewEditAutoInviteRequest(server string, workspace WorkspaceId, body EditAutoInviteJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -75677,6 +75873,11 @@ type ClientWithResponsesInterface interface {
 	// ArchiveScriptByPathWithResponse request
 	ArchiveScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*ArchiveScriptByPathResponse, error)
 
+	// CheckSchemaContractsWithBodyWithResponse request with any body
+	CheckSchemaContractsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CheckSchemaContractsResponse, error)
+
+	CheckSchemaContractsWithResponse(ctx context.Context, workspace WorkspaceId, body CheckSchemaContractsJSONRequestBody, reqEditors ...RequestEditorFn) (*CheckSchemaContractsResponse, error)
+
 	// GetCiTestResultsWithResponse request
 	GetCiTestResultsWithResponse(ctx context.Context, workspace WorkspaceId, kind GetCiTestResultsParamsKind, path string, reqEditors ...RequestEditorFn) (*GetCiTestResultsResponse, error)
 
@@ -76093,6 +76294,9 @@ type ClientWithResponsesInterface interface {
 	DropForkedDatatableDatabasesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DropForkedDatatableDatabasesResponse, error)
 
 	DropForkedDatatableDatabasesWithResponse(ctx context.Context, workspace WorkspaceId, body DropForkedDatatableDatabasesJSONRequestBody, reqEditors ...RequestEditorFn) (*DropForkedDatatableDatabasesResponse, error)
+
+	// DropForkedDucklakeNamespacesWithResponse request
+	DropForkedDucklakeNamespacesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DropForkedDucklakeNamespacesResponse, error)
 
 	// EditAutoInviteWithBodyWithResponse request with any body
 	EditAutoInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditAutoInviteResponse, error)
@@ -81108,8 +81312,10 @@ type GetAssetsGraphResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Assets []struct {
-			Kind AssetKind `json:"kind"`
-			Path string    `json:"path"`
+			// ForkMaterialization Fork workspaces only — 'fork' when this ducklake asset was materialized in the fork itself, 'deferred' when reads fall back to the parent workspace's current table via a defer view. Omitted otherwise.
+			ForkMaterialization *GetAssetsGraph200AssetsForkMaterialization `json:"fork_materialization,omitempty"`
+			Kind                AssetKind                                   `json:"kind"`
+			Path                string                                      `json:"path"`
 		} `json:"assets"`
 		Edges []struct {
 			AccessType   *AssetUsageAccessType `json:"access_type"`
@@ -81144,6 +81350,7 @@ type GetAssetsGraphResponse struct {
 		Triggers []GetAssetsGraph_200_Triggers_Item `json:"triggers"`
 	}
 }
+type GetAssetsGraph200AssetsForkMaterialization string
 type GetAssetsGraph200Triggers0 struct {
 	AssetKind    AssetKind                             `json:"asset_kind"`
 	AssetPath    string                                `json:"asset_path"`
@@ -89849,6 +90056,30 @@ func (r ArchiveScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
+type CheckSchemaContractsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Warnings []ContractWarning `json:"warnings"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CheckSchemaContractsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CheckSchemaContractsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetCiTestResultsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -92567,6 +92798,28 @@ func (r DropForkedDatatableDatabasesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DropForkedDatatableDatabasesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DropForkedDucklakeNamespacesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r DropForkedDucklakeNamespacesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DropForkedDucklakeNamespacesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -101204,6 +101457,23 @@ func (c *ClientWithResponses) ArchiveScriptByPathWithResponse(ctx context.Contex
 	return ParseArchiveScriptByPathResponse(rsp)
 }
 
+// CheckSchemaContractsWithBodyWithResponse request with arbitrary body returning *CheckSchemaContractsResponse
+func (c *ClientWithResponses) CheckSchemaContractsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CheckSchemaContractsResponse, error) {
+	rsp, err := c.CheckSchemaContractsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCheckSchemaContractsResponse(rsp)
+}
+
+func (c *ClientWithResponses) CheckSchemaContractsWithResponse(ctx context.Context, workspace WorkspaceId, body CheckSchemaContractsJSONRequestBody, reqEditors ...RequestEditorFn) (*CheckSchemaContractsResponse, error) {
+	rsp, err := c.CheckSchemaContracts(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCheckSchemaContractsResponse(rsp)
+}
+
 // GetCiTestResultsWithResponse request returning *GetCiTestResultsResponse
 func (c *ClientWithResponses) GetCiTestResultsWithResponse(ctx context.Context, workspace WorkspaceId, kind GetCiTestResultsParamsKind, path string, reqEditors ...RequestEditorFn) (*GetCiTestResultsResponse, error) {
 	rsp, err := c.GetCiTestResults(ctx, workspace, kind, path, reqEditors...)
@@ -102543,6 +102813,15 @@ func (c *ClientWithResponses) DropForkedDatatableDatabasesWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseDropForkedDatatableDatabasesResponse(rsp)
+}
+
+// DropForkedDucklakeNamespacesWithResponse request returning *DropForkedDucklakeNamespacesResponse
+func (c *ClientWithResponses) DropForkedDucklakeNamespacesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DropForkedDucklakeNamespacesResponse, error) {
+	rsp, err := c.DropForkedDucklakeNamespaces(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDropForkedDucklakeNamespacesResponse(rsp)
 }
 
 // EditAutoInviteWithBodyWithResponse request with arbitrary body returning *EditAutoInviteResponse
@@ -108368,8 +108647,10 @@ func ParseGetAssetsGraphResponse(rsp *http.Response) (*GetAssetsGraphResponse, e
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Assets []struct {
-				Kind AssetKind `json:"kind"`
-				Path string    `json:"path"`
+				// ForkMaterialization Fork workspaces only — 'fork' when this ducklake asset was materialized in the fork itself, 'deferred' when reads fall back to the parent workspace's current table via a defer view. Omitted otherwise.
+				ForkMaterialization *GetAssetsGraph200AssetsForkMaterialization `json:"fork_materialization,omitempty"`
+				Kind                AssetKind                                   `json:"kind"`
+				Path                string                                      `json:"path"`
 			} `json:"assets"`
 			Edges []struct {
 				AccessType   *AssetUsageAccessType `json:"access_type"`
@@ -117059,6 +117340,34 @@ func ParseArchiveScriptByPathResponse(rsp *http.Response) (*ArchiveScriptByPathR
 	return response, nil
 }
 
+// ParseCheckSchemaContractsResponse parses an HTTP response from a CheckSchemaContractsWithResponse call
+func ParseCheckSchemaContractsResponse(rsp *http.Response) (*CheckSchemaContractsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CheckSchemaContractsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Warnings []ContractWarning `json:"warnings"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetCiTestResultsResponse parses an HTTP response from a GetCiTestResultsWithResponse call
 func ParseGetCiTestResultsResponse(rsp *http.Response) (*GetCiTestResultsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -119803,6 +120112,32 @@ func ParseDropForkedDatatableDatabasesResponse(rsp *http.Response) (*DropForkedD
 	}
 
 	response := &DropForkedDatatableDatabasesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDropForkedDucklakeNamespacesResponse parses an HTTP response from a DropForkedDucklakeNamespacesWithResponse call
+func ParseDropForkedDucklakeNamespacesResponse(rsp *http.Response) (*DropForkedDucklakeNamespacesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DropForkedDucklakeNamespacesResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
