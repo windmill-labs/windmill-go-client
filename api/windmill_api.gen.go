@@ -81347,6 +81347,16 @@ type GetAssetsGraphResponse struct {
 			Path      string         `json:"path"`
 			UsageKind AssetUsageKind `json:"usage_kind"`
 		} `json:"runnables"`
+
+		// TestEdges Ordering-only "must-run-after" edges — a `// data_test relationships` (or custom test reading a pipeline asset) requires the referenced asset's producer to run before the tested script. Not a data-consumption edge; fed into the cascade topo-sort so cold runs order correctly. Omitted when empty.
+		TestEdges *[]struct {
+			AssetKind    AssetKind      `json:"asset_kind"`
+			AssetPath    string         `json:"asset_path"`
+			ProducerKind AssetUsageKind `json:"producer_kind"`
+			ProducerPath string         `json:"producer_path"`
+			RunnableKind AssetUsageKind `json:"runnable_kind"`
+			RunnablePath string         `json:"runnable_path"`
+		} `json:"test_edges,omitempty"`
 		Triggers []GetAssetsGraph_200_Triggers_Item `json:"triggers"`
 	}
 }
@@ -108682,6 +108692,16 @@ func ParseGetAssetsGraphResponse(rsp *http.Response) (*GetAssetsGraphResponse, e
 				Path      string         `json:"path"`
 				UsageKind AssetUsageKind `json:"usage_kind"`
 			} `json:"runnables"`
+
+			// TestEdges Ordering-only "must-run-after" edges — a `// data_test relationships` (or custom test reading a pipeline asset) requires the referenced asset's producer to run before the tested script. Not a data-consumption edge; fed into the cascade topo-sort so cold runs order correctly. Omitted when empty.
+			TestEdges *[]struct {
+				AssetKind    AssetKind      `json:"asset_kind"`
+				AssetPath    string         `json:"asset_path"`
+				ProducerKind AssetUsageKind `json:"producer_kind"`
+				ProducerPath string         `json:"producer_path"`
+				RunnableKind AssetUsageKind `json:"runnable_kind"`
+				RunnablePath string         `json:"runnable_path"`
+			} `json:"test_edges,omitempty"`
 			Triggers []GetAssetsGraph_200_Triggers_Item `json:"triggers"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
