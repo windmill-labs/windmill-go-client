@@ -259,6 +259,12 @@ const (
 	Suppressed                ContractWarningKind = "suppressed"
 )
 
+// Defines values for CreateWorkspaceForkDevWorkspaceLabel.
+const (
+	CreateWorkspaceForkDevWorkspaceLabelDev     CreateWorkspaceForkDevWorkspaceLabel = "dev"
+	CreateWorkspaceForkDevWorkspaceLabelStaging CreateWorkspaceForkDevWorkspaceLabel = "staging"
+)
+
 // Defines values for CustomInstanceDbTag.
 const (
 	CustomInstanceDbTagDatatable CustomInstanceDbTag = "datatable"
@@ -1332,6 +1338,12 @@ const (
 	GetCiTestResultsBatchJSONBodyItemsKindScript   GetCiTestResultsBatchJSONBodyItemsKind = "script"
 )
 
+// Defines values for AttachDevWorkspaceJSONBodyDevWorkspaceLabel.
+const (
+	AttachDevWorkspaceJSONBodyDevWorkspaceLabelDev     AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "dev"
+	AttachDevWorkspaceJSONBodyDevWorkspaceLabelStaging AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "staging"
+)
+
 // Defines values for ImportPgDatabaseJSONBodyForkBehavior.
 const (
 	KeepOriginal  ImportPgDatabaseJSONBodyForkBehavior = "keep_original"
@@ -1350,6 +1362,12 @@ const (
 	Apps    PruneVersionsJSONBodyResourceType = "apps"
 	Flows   PruneVersionsJSONBodyResourceType = "flows"
 	Scripts PruneVersionsJSONBodyResourceType = "scripts"
+)
+
+// Defines values for SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel.
+const (
+	Dev     SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel = "dev"
+	Staging SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel = "staging"
 )
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
@@ -1841,8 +1859,11 @@ type CreateWorkspaceFork struct {
 	Color *string `json:"color,omitempty"`
 
 	// CopyMembers Copy the parent's members (users + group memberships) into the fork so the team can work in it
-	CopyMembers      *bool `json:"copy_members,omitempty"`
-	ForkedDatatables *[]struct {
+	CopyMembers *bool `json:"copy_members,omitempty"`
+
+	// DevWorkspaceLabel Cosmetic display label for the dev workspace (badge text + wording only); ignored for non-dev forks
+	DevWorkspaceLabel *CreateWorkspaceForkDevWorkspaceLabel `json:"dev_workspace_label,omitempty"`
+	ForkedDatatables  *[]struct {
 		// Name Datatable name
 		Name string `json:"name"`
 
@@ -1864,6 +1885,9 @@ type CreateWorkspaceFork struct {
 	// SharedDucklakes Lake names the fork SHARES with the parent (reads and writes the parent's lake directly). Every lake not listed gets the default isolated fork namespace with read-defer to the parent.
 	SharedDucklakes *[]string `json:"shared_ducklakes,omitempty"`
 }
+
+// CreateWorkspaceForkDevWorkspaceLabel Cosmetic display label for the dev workspace (badge text + wording only); ignored for non-dev forks
+type CreateWorkspaceForkDevWorkspaceLabel string
 
 // CriticalAlert defines model for CriticalAlert.
 type CriticalAlert struct {
@@ -5818,8 +5842,11 @@ type UserUsage struct {
 type UserWorkspaceList struct {
 	Email      string `json:"email"`
 	Workspaces []struct {
-		Color             string            `json:"color"`
-		CreatedBy         *string           `json:"created_by"`
+		Color     string  `json:"color"`
+		CreatedBy *string `json:"created_by"`
+
+		// DevWorkspaceLabel Cosmetic display label of the dev workspace ('dev' | 'staging'); null defaults to 'dev'
+		DevWorkspaceLabel *string           `json:"dev_workspace_label"`
 		Disabled          bool              `json:"disabled"`
 		Id                string            `json:"id"`
 		IsDevWorkspace    bool              `json:"is_dev_workspace"`
@@ -10808,10 +10835,14 @@ type AddUserJSONBody struct {
 
 // AttachDevWorkspaceJSONBody defines parameters for AttachDevWorkspace.
 type AttachDevWorkspaceJSONBody struct {
-	DevWorkspaceId  string `json:"dev_workspace_id"`
-	LockProdDeploy  *bool  `json:"lock_prod_deploy,omitempty"`
-	LockProdForking *bool  `json:"lock_prod_forking,omitempty"`
+	DevWorkspaceId    string                                       `json:"dev_workspace_id"`
+	DevWorkspaceLabel *AttachDevWorkspaceJSONBodyDevWorkspaceLabel `json:"dev_workspace_label,omitempty"`
+	LockProdDeploy    *bool                                        `json:"lock_prod_deploy,omitempty"`
+	LockProdForking   *bool                                        `json:"lock_prod_forking,omitempty"`
 }
+
+// AttachDevWorkspaceJSONBodyDevWorkspaceLabel defines parameters for AttachDevWorkspace.
+type AttachDevWorkspaceJSONBodyDevWorkspaceLabel string
 
 // ListAvailableTeamsChannelsParams defines parameters for ListAvailableTeamsChannels.
 type ListAvailableTeamsChannelsParams struct {
@@ -11122,6 +11153,14 @@ type RunTeamsMessageTestJobJSONBody struct {
 	HubScriptPath *string `json:"hub_script_path,omitempty"`
 	TestMsg       *string `json:"test_msg,omitempty"`
 }
+
+// SetDevWorkspaceLabelJSONBody defines parameters for SetDevWorkspaceLabel.
+type SetDevWorkspaceLabelJSONBody struct {
+	DevWorkspaceLabel *SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel `json:"dev_workspace_label,omitempty"`
+}
+
+// SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel defines parameters for SetDevWorkspaceLabel.
+type SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel string
 
 // SetEnvironmentVariableJSONBody defines parameters for SetEnvironmentVariable.
 type SetEnvironmentVariableJSONBody struct {
@@ -12051,6 +12090,9 @@ type RunSlackMessageTestJobJSONRequestBody RunSlackMessageTestJobJSONBody
 
 // RunTeamsMessageTestJobJSONRequestBody defines body for RunTeamsMessageTestJob for application/json ContentType.
 type RunTeamsMessageTestJobJSONRequestBody RunTeamsMessageTestJobJSONBody
+
+// SetDevWorkspaceLabelJSONRequestBody defines body for SetDevWorkspaceLabel for application/json ContentType.
+type SetDevWorkspaceLabelJSONRequestBody SetDevWorkspaceLabelJSONBody
 
 // SetEnvironmentVariableJSONRequestBody defines body for SetEnvironmentVariable for application/json ContentType.
 type SetEnvironmentVariableJSONRequestBody SetEnvironmentVariableJSONBody
@@ -16705,6 +16747,11 @@ type ClientInterface interface {
 	RunTeamsMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunTeamsMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetDevWorkspaceLabelWithBody request with any body
+	SetDevWorkspaceLabelWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetDevWorkspaceLabel(ctx context.Context, workspace WorkspaceId, body SetDevWorkspaceLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SetEnvironmentVariableWithBody request with any body
 	SetEnvironmentVariableWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -28833,6 +28880,30 @@ func (c *Client) RunTeamsMessageTestJobWithBody(ctx context.Context, workspace W
 
 func (c *Client) RunTeamsMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunTeamsMessageTestJobRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetDevWorkspaceLabelWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetDevWorkspaceLabelRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetDevWorkspaceLabel(ctx context.Context, workspace WorkspaceId, body SetDevWorkspaceLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetDevWorkspaceLabelRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -72656,6 +72727,53 @@ func NewRunTeamsMessageTestJobRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewSetDevWorkspaceLabelRequest calls the generic SetDevWorkspaceLabel builder with application/json body
+func NewSetDevWorkspaceLabelRequest(server string, workspace WorkspaceId, body SetDevWorkspaceLabelJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetDevWorkspaceLabelRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetDevWorkspaceLabelRequestWithBody generates requests for SetDevWorkspaceLabel with any type of body
+func NewSetDevWorkspaceLabelRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/set_dev_workspace_label", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewSetEnvironmentVariableRequest calls the generic SetEnvironmentVariable builder with application/json body
 func NewSetEnvironmentVariableRequest(server string, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -76534,6 +76652,11 @@ type ClientWithResponsesInterface interface {
 	RunTeamsMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error)
 
 	RunTeamsMessageTestJobWithResponse(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error)
+
+	// SetDevWorkspaceLabelWithBodyWithResponse request with any body
+	SetDevWorkspaceLabelWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetDevWorkspaceLabelResponse, error)
+
+	SetDevWorkspaceLabelWithResponse(ctx context.Context, workspace WorkspaceId, body SetDevWorkspaceLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*SetDevWorkspaceLabelResponse, error)
 
 	// SetEnvironmentVariableWithBodyWithResponse request with any body
 	SetEnvironmentVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error)
@@ -93478,8 +93601,10 @@ type GetDevWorkspaceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Id   string `json:"id"`
-		Name string `json:"name"`
+		// DevWorkspaceLabel Cosmetic display label ('dev' | 'staging'); null defaults to 'dev'
+		DevWorkspaceLabel *string `json:"dev_workspace_label"`
+		Id                string  `json:"id"`
+		Name              string  `json:"name"`
 	}
 }
 
@@ -94213,6 +94338,27 @@ func (r RunTeamsMessageTestJobResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunTeamsMessageTestJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetDevWorkspaceLabelResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetDevWorkspaceLabelResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetDevWorkspaceLabelResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -103603,6 +103749,23 @@ func (c *ClientWithResponses) RunTeamsMessageTestJobWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseRunTeamsMessageTestJobResponse(rsp)
+}
+
+// SetDevWorkspaceLabelWithBodyWithResponse request with arbitrary body returning *SetDevWorkspaceLabelResponse
+func (c *ClientWithResponses) SetDevWorkspaceLabelWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetDevWorkspaceLabelResponse, error) {
+	rsp, err := c.SetDevWorkspaceLabelWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetDevWorkspaceLabelResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetDevWorkspaceLabelWithResponse(ctx context.Context, workspace WorkspaceId, body SetDevWorkspaceLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*SetDevWorkspaceLabelResponse, error) {
+	rsp, err := c.SetDevWorkspaceLabel(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetDevWorkspaceLabelResponse(rsp)
 }
 
 // SetEnvironmentVariableWithBodyWithResponse request with arbitrary body returning *SetEnvironmentVariableResponse
@@ -120842,8 +121005,10 @@ func ParseGetDevWorkspaceResponse(rsp *http.Response) (*GetDevWorkspaceResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Id   string `json:"id"`
-			Name string `json:"name"`
+			// DevWorkspaceLabel Cosmetic display label ('dev' | 'staging'); null defaults to 'dev'
+			DevWorkspaceLabel *string `json:"dev_workspace_label"`
+			Id                string  `json:"id"`
+			Name              string  `json:"name"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -121579,6 +121744,22 @@ func ParseRunTeamsMessageTestJobResponse(rsp *http.Response) (*RunTeamsMessageTe
 	}
 
 	response := &RunTeamsMessageTestJobResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSetDevWorkspaceLabelResponse parses an HTTP response from a SetDevWorkspaceLabelWithResponse call
+func ParseSetDevWorkspaceLabelResponse(rsp *http.Response) (*SetDevWorkspaceLabelResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetDevWorkspaceLabelResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
