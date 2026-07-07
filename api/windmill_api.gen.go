@@ -277,6 +277,13 @@ const (
 	DataTableSettingsDatatablesDatabaseResourceTypePostgresql DataTableSettingsDatatablesDatabaseResourceType = "postgresql"
 )
 
+// Defines values for DatatableMigrationWithStatusStatus.
+const (
+	DatatableMigrationWithStatusStatusNotRun  DatatableMigrationWithStatusStatus = "not_run"
+	DatatableMigrationWithStatusStatusRan     DatatableMigrationWithStatusStatus = "ran"
+	DatatableMigrationWithStatusStatusUnknown DatatableMigrationWithStatusStatus = "unknown"
+)
+
 // Defines values for DeliveryType.
 const (
 	Pull DeliveryType = "pull"
@@ -950,10 +957,10 @@ const (
 
 // Defines values for WindmillFilePreviewContentType.
 const (
-	Csv     WindmillFilePreviewContentType = "Csv"
-	Parquet WindmillFilePreviewContentType = "Parquet"
-	RawText WindmillFilePreviewContentType = "RawText"
-	Unknown WindmillFilePreviewContentType = "Unknown"
+	WindmillFilePreviewContentTypeCsv     WindmillFilePreviewContentType = "Csv"
+	WindmillFilePreviewContentTypeParquet WindmillFilePreviewContentType = "Parquet"
+	WindmillFilePreviewContentTypeRawText WindmillFilePreviewContentType = "RawText"
+	WindmillFilePreviewContentTypeUnknown WindmillFilePreviewContentType = "Unknown"
 )
 
 // Defines values for WorkspaceItemDiffKind.
@@ -1663,6 +1670,9 @@ type CompareSummary struct {
 	// Conflicts Number of items that are both ahead and behind (conflicts)
 	Conflicts int `json:"conflicts"`
 
+	// DatatableMigrationsChanged Number of data table migrations with differences
+	DatatableMigrationsChanged int `json:"datatable_migrations_changed"`
+
 	// FlowsChanged Number of flows with differences
 	FlowsChanged int `json:"flows_changed"`
 
@@ -1959,6 +1969,9 @@ type DataTableSettings struct {
 			// Schema Schema snapshot at fork time
 			Schema *map[string]interface{} `json:"schema,omitempty"`
 		} `json:"forked_from,omitempty"`
+
+		// MigrationsEnabled Whether the SQL migrations feature is opted in for this data table
+		MigrationsEnabled *bool `json:"migrations_enabled,omitempty"`
 	} `json:"datatables"`
 }
 
@@ -1994,6 +2007,27 @@ type DatabaseHealth struct {
 	// Pool Database connection pool statistics
 	Pool PoolStats `json:"pool"`
 }
+
+// DatatableMigration defines model for DatatableMigration.
+type DatatableMigration struct {
+	CodeDown  *string `json:"code_down,omitempty"`
+	CodeUp    string  `json:"code_up"`
+	Datatable string  `json:"datatable"`
+	Name      string  `json:"name"`
+	Timestamp int64   `json:"timestamp"`
+}
+
+// DatatableMigrationWithStatus defines model for DatatableMigrationWithStatus.
+type DatatableMigrationWithStatus struct {
+	CodeDown  *string                            `json:"code_down,omitempty"`
+	CodeUp    string                             `json:"code_up"`
+	Name      string                             `json:"name"`
+	Status    DatatableMigrationWithStatusStatus `json:"status"`
+	Timestamp int64                              `json:"timestamp"`
+}
+
+// DatatableMigrationWithStatusStatus defines model for DatatableMigrationWithStatus.Status.
+type DatatableMigrationWithStatusStatus string
 
 // DeleteGcpSubscription defines model for DeleteGcpSubscription.
 type DeleteGcpSubscription struct {
@@ -10889,6 +10923,13 @@ type ConnectTeamsJSONBody struct {
 	TeamName *string `json:"team_name,omitempty"`
 }
 
+// CreateDatatableMigrationJSONBody defines parameters for CreateDatatableMigration.
+type CreateDatatableMigrationJSONBody struct {
+	CodeDown *string `json:"code_down,omitempty"`
+	CodeUp   string  `json:"code_up"`
+	Name     string  `json:"name"`
+}
+
 // CreatePgDatabaseJSONBody defines parameters for CreatePgDatabase.
 type CreatePgDatabaseJSONBody struct {
 	// Source Datatable source to determine connection info: 'datatable://name' or '$res:path'
@@ -10956,6 +10997,14 @@ type EditAutoInviteJSONBody struct {
 
 // EditDataTableConfigJSONBody defines parameters for EditDataTableConfig.
 type EditDataTableConfigJSONBody struct {
+	// DeletedDatatables data tables removed in this save, so their migrations are deleted
+	DeletedDatatables *[]string `json:"deleted_datatables,omitempty"`
+
+	// Renames data tables renamed in this save, so their migrations cascade
+	Renames *[]struct {
+		From string `json:"from"`
+		To   string `json:"to"`
+	} `json:"renames,omitempty"`
 	Settings DataTableSettings `json:"settings"`
 }
 
@@ -11140,6 +11189,21 @@ type SetPublicAppRateLimitJSONBody struct {
 	PublicAppExecutionLimitPerMinute *int `json:"public_app_execution_limit_per_minute,omitempty"`
 }
 
+// RollbackDatatableMigrationsParams defines parameters for RollbackDatatableMigrations.
+type RollbackDatatableMigrationsParams struct {
+	// Only roll back this specific applied migration version instead of the latest
+	Only *int64 `form:"only,omitempty" json:"only,omitempty"`
+}
+
+// RunDatatableMigrationsParams defines parameters for RunDatatableMigrations.
+type RunDatatableMigrationsParams struct {
+	// UpTo only apply pending migrations up to and including this version
+	UpTo *int64 `form:"up_to,omitempty" json:"up_to,omitempty"`
+
+	// Only apply only this specific migration version, ignoring others
+	Only *int64 `form:"only,omitempty" json:"only,omitempty"`
+}
+
 // RunSlackMessageTestJobJSONBody defines parameters for RunSlackMessageTestJob.
 type RunSlackMessageTestJobJSONBody struct {
 	Channel       *string `json:"channel,omitempty"`
@@ -11187,6 +11251,14 @@ type SetWorkspaceSlackOauthConfigJSONBody struct {
 // SetThresholdAlertJSONBody defines parameters for SetThresholdAlert.
 type SetThresholdAlertJSONBody struct {
 	ThresholdAlertAmount *float32 `json:"threshold_alert_amount,omitempty"`
+}
+
+// UpsertDatatableMigrationJSONBody defines parameters for UpsertDatatableMigration.
+type UpsertDatatableMigrationJSONBody struct {
+	CodeDown  *string `json:"code_down,omitempty"`
+	CodeUp    string  `json:"code_up"`
+	Name      string  `json:"name"`
+	Timestamp int64   `json:"timestamp"`
 }
 
 // GetCustomTagsParams defines parameters for GetCustomTags.
@@ -11971,6 +12043,9 @@ type ConnectSlackJSONRequestBody ConnectSlackJSONBody
 // ConnectTeamsJSONRequestBody defines body for ConnectTeams for application/json ContentType.
 type ConnectTeamsJSONRequestBody ConnectTeamsJSONBody
 
+// CreateDatatableMigrationJSONRequestBody defines body for CreateDatatableMigration for application/json ContentType.
+type CreateDatatableMigrationJSONRequestBody CreateDatatableMigrationJSONBody
+
 // CreateWorkspaceForkJSONRequestBody defines body for CreateWorkspaceFork for application/json ContentType.
 type CreateWorkspaceForkJSONRequestBody = CreateWorkspaceFork
 
@@ -12105,6 +12180,9 @@ type SetWorkspaceSlackOauthConfigJSONRequestBody SetWorkspaceSlackOauthConfigJSO
 
 // SetThresholdAlertJSONRequestBody defines body for SetThresholdAlert for application/json ContentType.
 type SetThresholdAlertJSONRequestBody SetThresholdAlertJSONBody
+
+// UpsertDatatableMigrationJSONRequestBody defines body for UpsertDatatableMigration for application/json ContentType.
+type UpsertDatatableMigrationJSONRequestBody UpsertDatatableMigrationJSONBody
 
 // CreateWorkspaceJSONRequestBody defines body for CreateWorkspace for application/json ContentType.
 type CreateWorkspaceJSONRequestBody = CreateWorkspace
@@ -16443,6 +16521,11 @@ type ClientInterface interface {
 
 	ConnectTeams(ctx context.Context, workspace WorkspaceId, body ConnectTeamsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateDatatableMigrationWithBody request with any body
+	CreateDatatableMigrationWithBody(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateDatatableMigration(ctx context.Context, workspace WorkspaceId, datatableName string, body CreateDatatableMigrationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateWorkspaceForkWithBody request with any body
 	CreateWorkspaceForkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16477,6 +16560,9 @@ type ClientInterface interface {
 	// WorkspaceAcknowledgeCriticalAlert request
 	WorkspaceAcknowledgeCriticalAlert(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetDatatableMigrationsStatus request
+	GetDatatableMigrationsStatus(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetWorkspaceDefaultApp request
 	GetWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16487,6 +16573,9 @@ type ClientInterface interface {
 	EditDefaultScriptsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditDefaultScripts(ctx context.Context, workspace WorkspaceId, body EditDefaultScriptsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteDatatableMigration request
+	DeleteDatatableMigration(ctx context.Context, workspace WorkspaceId, datatableName string, timestamp int64, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteGitSyncRepositoryWithBody request with any body
 	DeleteGitSyncRepositoryWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16502,6 +16591,9 @@ type ClientInterface interface {
 	DetachDevWorkspaceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	DetachDevWorkspace(ctx context.Context, workspace WorkspaceId, body DetachDevWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DisableDatatableMigrations request
+	DisableDatatableMigrations(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DropForkedDatatableDatabasesWithBody request with any body
 	DropForkedDatatableDatabasesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16591,6 +16683,9 @@ type ClientInterface interface {
 
 	EditWebhook(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EnableDatatableMigrations request
+	EnableDatatableMigrations(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetWorkspaceEncryptionKey request
 	GetWorkspaceEncryptionKey(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16603,6 +16698,9 @@ type ClientInterface interface {
 	ExportPgSchemaWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ExportPgSchema(ctx context.Context, workspace WorkspaceId, body ExportPgSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GenerateInitialDatatableMigration request
+	GenerateInitialDatatableMigration(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetWorkspaceAsSuperAdmin request
 	GetWorkspaceAsSuperAdmin(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16672,6 +16770,9 @@ type ClientInterface interface {
 	// LeaveWorkspace request
 	LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListDatatableMigrations request
+	ListDatatableMigrations(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListDataTableSchemas request
 	ListDataTableSchemas(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16738,6 +16839,12 @@ type ClientInterface interface {
 	// ResetDiffTally request
 	ResetDiffTally(ctx context.Context, workspace WorkspaceId, forkWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RollbackDatatableMigrations request
+	RollbackDatatableMigrations(ctx context.Context, workspace WorkspaceId, datatableName string, params *RollbackDatatableMigrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunDatatableMigrations request
+	RunDatatableMigrations(ctx context.Context, workspace WorkspaceId, datatableName string, params *RunDatatableMigrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RunSlackMessageTestJobWithBody request with any body
 	RunSlackMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16781,6 +16888,11 @@ type ClientInterface interface {
 	SetThresholdAlertWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetThresholdAlert(ctx context.Context, workspace WorkspaceId, body SetThresholdAlertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpsertDatatableMigrationWithBody request with any body
+	UpsertDatatableMigrationWithBody(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpsertDatatableMigration(ctx context.Context, workspace WorkspaceId, datatableName string, body UpsertDatatableMigrationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetWorkspaceUsage request
 	GetWorkspaceUsage(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -27510,6 +27622,30 @@ func (c *Client) ConnectTeams(ctx context.Context, workspace WorkspaceId, body C
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreateDatatableMigrationWithBody(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDatatableMigrationRequestWithBody(c.Server, workspace, datatableName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDatatableMigration(ctx context.Context, workspace WorkspaceId, datatableName string, body CreateDatatableMigrationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDatatableMigrationRequest(c.Server, workspace, datatableName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateWorkspaceForkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateWorkspaceForkRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -27666,6 +27802,18 @@ func (c *Client) WorkspaceAcknowledgeCriticalAlert(ctx context.Context, workspac
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetDatatableMigrationsStatus(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDatatableMigrationsStatusRequest(c.Server, workspace, datatableName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetWorkspaceDefaultAppRequest(c.Server, workspace)
 	if err != nil {
@@ -27704,6 +27852,18 @@ func (c *Client) EditDefaultScriptsWithBody(ctx context.Context, workspace Works
 
 func (c *Client) EditDefaultScripts(ctx context.Context, workspace WorkspaceId, body EditDefaultScriptsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditDefaultScriptsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteDatatableMigration(ctx context.Context, workspace WorkspaceId, datatableName string, timestamp int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteDatatableMigrationRequest(c.Server, workspace, datatableName, timestamp)
 	if err != nil {
 		return nil, err
 	}
@@ -27776,6 +27936,18 @@ func (c *Client) DetachDevWorkspaceWithBody(ctx context.Context, workspace Works
 
 func (c *Client) DetachDevWorkspace(ctx context.Context, workspace WorkspaceId, body DetachDevWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDetachDevWorkspaceRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DisableDatatableMigrations(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDisableDatatableMigrationsRequest(c.Server, workspace, datatableName)
 	if err != nil {
 		return nil, err
 	}
@@ -28206,6 +28378,18 @@ func (c *Client) EditWebhook(ctx context.Context, workspace WorkspaceId, body Ed
 	return c.Client.Do(req)
 }
 
+func (c *Client) EnableDatatableMigrations(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEnableDatatableMigrationsRequest(c.Server, workspace, datatableName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetWorkspaceEncryptionKey(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetWorkspaceEncryptionKeyRequest(c.Server, workspace)
 	if err != nil {
@@ -28256,6 +28440,18 @@ func (c *Client) ExportPgSchemaWithBody(ctx context.Context, workspace Workspace
 
 func (c *Client) ExportPgSchema(ctx context.Context, workspace WorkspaceId, body ExportPgSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExportPgSchemaRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GenerateInitialDatatableMigration(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGenerateInitialDatatableMigrationRequest(c.Server, workspace, datatableName)
 	if err != nil {
 		return nil, err
 	}
@@ -28554,6 +28750,18 @@ func (c *Client) LeaveWorkspace(ctx context.Context, workspace WorkspaceId, reqE
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListDatatableMigrations(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDatatableMigrationsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListDataTableSchemas(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListDataTableSchemasRequest(c.Server, workspace)
 	if err != nil {
@@ -28842,6 +29050,30 @@ func (c *Client) ResetDiffTally(ctx context.Context, workspace WorkspaceId, fork
 	return c.Client.Do(req)
 }
 
+func (c *Client) RollbackDatatableMigrations(ctx context.Context, workspace WorkspaceId, datatableName string, params *RollbackDatatableMigrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRollbackDatatableMigrationsRequest(c.Server, workspace, datatableName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunDatatableMigrations(ctx context.Context, workspace WorkspaceId, datatableName string, params *RunDatatableMigrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunDatatableMigrationsRequest(c.Server, workspace, datatableName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) RunSlackMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunSlackMessageTestJobRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -29036,6 +29268,30 @@ func (c *Client) SetThresholdAlertWithBody(ctx context.Context, workspace Worksp
 
 func (c *Client) SetThresholdAlert(ctx context.Context, workspace WorkspaceId, body SetThresholdAlertJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetThresholdAlertRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpsertDatatableMigrationWithBody(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpsertDatatableMigrationRequestWithBody(c.Server, workspace, datatableName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpsertDatatableMigration(ctx context.Context, workspace WorkspaceId, datatableName string, body UpsertDatatableMigrationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpsertDatatableMigrationRequest(c.Server, workspace, datatableName, body)
 	if err != nil {
 		return nil, err
 	}
@@ -69445,6 +69701,60 @@ func NewConnectTeamsRequestWithBody(server string, workspace WorkspaceId, conten
 	return req, nil
 }
 
+// NewCreateDatatableMigrationRequest calls the generic CreateDatatableMigration builder with application/json body
+func NewCreateDatatableMigrationRequest(server string, workspace WorkspaceId, datatableName string, body CreateDatatableMigrationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateDatatableMigrationRequestWithBody(server, workspace, datatableName, "application/json", bodyReader)
+}
+
+// NewCreateDatatableMigrationRequestWithBody generates requests for CreateDatatableMigration with any type of body
+func NewCreateDatatableMigrationRequestWithBody(server string, workspace WorkspaceId, datatableName string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/create_datatable_migration/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateWorkspaceForkRequest calls the generic CreateWorkspaceFork builder with application/json body
 func NewCreateWorkspaceForkRequest(server string, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -69843,6 +70153,47 @@ func NewWorkspaceAcknowledgeCriticalAlertRequest(server string, workspace Worksp
 	return req, nil
 }
 
+// NewGetDatatableMigrationsStatusRequest generates requests for GetDatatableMigrationsStatus
+func NewGetDatatableMigrationsStatusRequest(server string, workspace WorkspaceId, datatableName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/datatable_migrations_status/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetWorkspaceDefaultAppRequest generates requests for GetWorkspaceDefaultApp
 func NewGetWorkspaceDefaultAppRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -69954,6 +70305,54 @@ func NewEditDefaultScriptsRequestWithBody(server string, workspace WorkspaceId, 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteDatatableMigrationRequest generates requests for DeleteDatatableMigration
+func NewDeleteDatatableMigrationRequest(server string, workspace WorkspaceId, datatableName string, timestamp int64) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "timestamp", runtime.ParamLocationPath, timestamp)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/delete_datatable_migration/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -70095,6 +70494,47 @@ func NewDetachDevWorkspaceRequestWithBody(server string, workspace WorkspaceId, 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDisableDatatableMigrationsRequest generates requests for DisableDatatableMigrations
+func NewDisableDatatableMigrationsRequest(server string, workspace WorkspaceId, datatableName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/disable_datatable_migrations/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -70932,6 +71372,47 @@ func NewEditWebhookRequestWithBody(server string, workspace WorkspaceId, content
 	return req, nil
 }
 
+// NewEnableDatatableMigrationsRequest generates requests for EnableDatatableMigrations
+func NewEnableDatatableMigrationsRequest(server string, workspace WorkspaceId, datatableName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/enable_datatable_migrations/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetWorkspaceEncryptionKeyRequest generates requests for GetWorkspaceEncryptionKey
 func NewGetWorkspaceEncryptionKeyRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -71056,6 +71537,47 @@ func NewExportPgSchemaRequestWithBody(server string, workspace WorkspaceId, cont
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGenerateInitialDatatableMigrationRequest generates requests for GenerateInitialDatatableMigration
+func NewGenerateInitialDatatableMigrationRequest(server string, workspace WorkspaceId, datatableName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/generate_initial_datatable_migration/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -71870,6 +72392,40 @@ func NewLeaveWorkspaceRequest(server string, workspace WorkspaceId) (*http.Reque
 	return req, nil
 }
 
+// NewListDatatableMigrationsRequest generates requests for ListDatatableMigrations
+func NewListDatatableMigrationsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/list_datatable_migrations", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListDataTableSchemasRequest generates requests for ListDataTableSchemas
 func NewListDataTableSchemasRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -72633,6 +73189,148 @@ func NewResetDiffTallyRequest(server string, workspace WorkspaceId, forkWorkspac
 	return req, nil
 }
 
+// NewRollbackDatatableMigrationsRequest generates requests for RollbackDatatableMigrations
+func NewRollbackDatatableMigrationsRequest(server string, workspace WorkspaceId, datatableName string, params *RollbackDatatableMigrationsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/rollback_datatable_migrations/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Only != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "only", runtime.ParamLocationQuery, *params.Only); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRunDatatableMigrationsRequest generates requests for RunDatatableMigrations
+func NewRunDatatableMigrationsRequest(server string, workspace WorkspaceId, datatableName string, params *RunDatatableMigrationsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/run_datatable_migrations/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.UpTo != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "up_to", runtime.ParamLocationQuery, *params.UpTo); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Only != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "only", runtime.ParamLocationQuery, *params.Only); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewRunSlackMessageTestJobRequest calls the generic RunSlackMessageTestJob builder with application/json body
 func NewRunSlackMessageTestJobRequest(server string, workspace WorkspaceId, body RunSlackMessageTestJobJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -73045,6 +73743,60 @@ func NewSetThresholdAlertRequestWithBody(server string, workspace WorkspaceId, c
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/threshold_alert", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpsertDatatableMigrationRequest calls the generic UpsertDatatableMigration builder with application/json body
+func NewUpsertDatatableMigrationRequest(server string, workspace WorkspaceId, datatableName string, body UpsertDatatableMigrationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpsertDatatableMigrationRequestWithBody(server, workspace, datatableName, "application/json", bodyReader)
+}
+
+// NewUpsertDatatableMigrationRequestWithBody generates requests for UpsertDatatableMigration with any type of body
+func NewUpsertDatatableMigrationRequestWithBody(server string, workspace WorkspaceId, datatableName string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/upsert_datatable_migration/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -76348,6 +77100,11 @@ type ClientWithResponsesInterface interface {
 
 	ConnectTeamsWithResponse(ctx context.Context, workspace WorkspaceId, body ConnectTeamsJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectTeamsResponse, error)
 
+	// CreateDatatableMigrationWithBodyWithResponse request with any body
+	CreateDatatableMigrationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDatatableMigrationResponse, error)
+
+	CreateDatatableMigrationWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, body CreateDatatableMigrationJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDatatableMigrationResponse, error)
+
 	// CreateWorkspaceForkWithBodyWithResponse request with any body
 	CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
 
@@ -76382,6 +77139,9 @@ type ClientWithResponsesInterface interface {
 	// WorkspaceAcknowledgeCriticalAlertWithResponse request
 	WorkspaceAcknowledgeCriticalAlertWithResponse(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*WorkspaceAcknowledgeCriticalAlertResponse, error)
 
+	// GetDatatableMigrationsStatusWithResponse request
+	GetDatatableMigrationsStatusWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*GetDatatableMigrationsStatusResponse, error)
+
 	// GetWorkspaceDefaultAppWithResponse request
 	GetWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceDefaultAppResponse, error)
 
@@ -76392,6 +77152,9 @@ type ClientWithResponsesInterface interface {
 	EditDefaultScriptsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDefaultScriptsResponse, error)
 
 	EditDefaultScriptsWithResponse(ctx context.Context, workspace WorkspaceId, body EditDefaultScriptsJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDefaultScriptsResponse, error)
+
+	// DeleteDatatableMigrationWithResponse request
+	DeleteDatatableMigrationWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, timestamp int64, reqEditors ...RequestEditorFn) (*DeleteDatatableMigrationResponse, error)
 
 	// DeleteGitSyncRepositoryWithBodyWithResponse request with any body
 	DeleteGitSyncRepositoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteGitSyncRepositoryResponse, error)
@@ -76407,6 +77170,9 @@ type ClientWithResponsesInterface interface {
 	DetachDevWorkspaceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DetachDevWorkspaceResponse, error)
 
 	DetachDevWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, body DetachDevWorkspaceJSONRequestBody, reqEditors ...RequestEditorFn) (*DetachDevWorkspaceResponse, error)
+
+	// DisableDatatableMigrationsWithResponse request
+	DisableDatatableMigrationsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*DisableDatatableMigrationsResponse, error)
 
 	// DropForkedDatatableDatabasesWithBodyWithResponse request with any body
 	DropForkedDatatableDatabasesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DropForkedDatatableDatabasesResponse, error)
@@ -76496,6 +77262,9 @@ type ClientWithResponsesInterface interface {
 
 	EditWebhookWithResponse(ctx context.Context, workspace WorkspaceId, body EditWebhookJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
 
+	// EnableDatatableMigrationsWithResponse request
+	EnableDatatableMigrationsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*EnableDatatableMigrationsResponse, error)
+
 	// GetWorkspaceEncryptionKeyWithResponse request
 	GetWorkspaceEncryptionKeyWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceEncryptionKeyResponse, error)
 
@@ -76508,6 +77277,9 @@ type ClientWithResponsesInterface interface {
 	ExportPgSchemaWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExportPgSchemaResponse, error)
 
 	ExportPgSchemaWithResponse(ctx context.Context, workspace WorkspaceId, body ExportPgSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*ExportPgSchemaResponse, error)
+
+	// GenerateInitialDatatableMigrationWithResponse request
+	GenerateInitialDatatableMigrationWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*GenerateInitialDatatableMigrationResponse, error)
 
 	// GetWorkspaceAsSuperAdminWithResponse request
 	GetWorkspaceAsSuperAdminWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceAsSuperAdminResponse, error)
@@ -76577,6 +77349,9 @@ type ClientWithResponsesInterface interface {
 	// LeaveWorkspaceWithResponse request
 	LeaveWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*LeaveWorkspaceResponse, error)
 
+	// ListDatatableMigrationsWithResponse request
+	ListDatatableMigrationsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDatatableMigrationsResponse, error)
+
 	// ListDataTableSchemasWithResponse request
 	ListDataTableSchemasWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTableSchemasResponse, error)
 
@@ -76643,6 +77418,12 @@ type ClientWithResponsesInterface interface {
 	// ResetDiffTallyWithResponse request
 	ResetDiffTallyWithResponse(ctx context.Context, workspace WorkspaceId, forkWorkspaceId string, reqEditors ...RequestEditorFn) (*ResetDiffTallyResponse, error)
 
+	// RollbackDatatableMigrationsWithResponse request
+	RollbackDatatableMigrationsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, params *RollbackDatatableMigrationsParams, reqEditors ...RequestEditorFn) (*RollbackDatatableMigrationsResponse, error)
+
+	// RunDatatableMigrationsWithResponse request
+	RunDatatableMigrationsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, params *RunDatatableMigrationsParams, reqEditors ...RequestEditorFn) (*RunDatatableMigrationsResponse, error)
+
 	// RunSlackMessageTestJobWithBodyWithResponse request with any body
 	RunSlackMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error)
 
@@ -76686,6 +77467,11 @@ type ClientWithResponsesInterface interface {
 	SetThresholdAlertWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetThresholdAlertResponse, error)
 
 	SetThresholdAlertWithResponse(ctx context.Context, workspace WorkspaceId, body SetThresholdAlertJSONRequestBody, reqEditors ...RequestEditorFn) (*SetThresholdAlertResponse, error)
+
+	// UpsertDatatableMigrationWithBodyWithResponse request with any body
+	UpsertDatatableMigrationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpsertDatatableMigrationResponse, error)
+
+	UpsertDatatableMigrationWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, body UpsertDatatableMigrationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpsertDatatableMigrationResponse, error)
 
 	// GetWorkspaceUsageWithResponse request
 	GetWorkspaceUsageWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceUsageResponse, error)
@@ -92602,6 +93388,28 @@ func (r ConnectTeamsResponse) StatusCode() int {
 	return 0
 }
 
+type CreateDatatableMigrationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DatatableMigration
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateDatatableMigrationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateDatatableMigrationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateWorkspaceForkResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -92783,6 +93591,32 @@ func (r WorkspaceAcknowledgeCriticalAlertResponse) StatusCode() int {
 	return 0
 }
 
+type GetDatatableMigrationsStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Enabled    bool                           `json:"enabled"`
+		Error      *string                        `json:"error,omitempty"`
+		Migrations []DatatableMigrationWithStatus `json:"migrations"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDatatableMigrationsStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDatatableMigrationsStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetWorkspaceDefaultAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -92851,6 +93685,27 @@ func (r EditDefaultScriptsResponse) StatusCode() int {
 	return 0
 }
 
+type DeleteDatatableMigrationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteDatatableMigrationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteDatatableMigrationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DeleteGitSyncRepositoryResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -92909,6 +93764,27 @@ func (r DetachDevWorkspaceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DetachDevWorkspaceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DisableDatatableMigrationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DisableDatatableMigrationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DisableDatatableMigrationsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -93307,6 +94183,27 @@ func (r EditWebhookResponse) StatusCode() int {
 	return 0
 }
 
+type EnableDatatableMigrationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EnableDatatableMigrationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EnableDatatableMigrationsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetWorkspaceEncryptionKeyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -93367,6 +94264,28 @@ func (r ExportPgSchemaResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ExportPgSchemaResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GenerateInitialDatatableMigrationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DatatableMigration
+}
+
+// Status returns HTTPResponse.Status
+func (r GenerateInitialDatatableMigrationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GenerateInitialDatatableMigrationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -93895,6 +94814,28 @@ func (r LeaveWorkspaceResponse) StatusCode() int {
 	return 0
 }
 
+type ListDatatableMigrationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]DatatableMigration
+}
+
+// Status returns HTTPResponse.Status
+func (r ListDatatableMigrationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListDatatableMigrationsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListDataTableSchemasResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -94302,6 +95243,60 @@ func (r ResetDiffTallyResponse) StatusCode() int {
 	return 0
 }
 
+type RollbackDatatableMigrationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		RolledBack []struct {
+			Name    string `json:"name"`
+			Version int64  `json:"version"`
+		} `json:"rolled_back"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r RollbackDatatableMigrationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RollbackDatatableMigrationsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunDatatableMigrationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Applied []struct {
+			Name    string `json:"name"`
+			Version int64  `json:"version"`
+		} `json:"applied"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r RunDatatableMigrationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunDatatableMigrationsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RunSlackMessageTestJobResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -94516,6 +95511,27 @@ func (r SetThresholdAlertResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SetThresholdAlertResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpsertDatatableMigrationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpsertDatatableMigrationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpsertDatatableMigrationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -102756,6 +103772,23 @@ func (c *ClientWithResponses) ConnectTeamsWithResponse(ctx context.Context, work
 	return ParseConnectTeamsResponse(rsp)
 }
 
+// CreateDatatableMigrationWithBodyWithResponse request with arbitrary body returning *CreateDatatableMigrationResponse
+func (c *ClientWithResponses) CreateDatatableMigrationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDatatableMigrationResponse, error) {
+	rsp, err := c.CreateDatatableMigrationWithBody(ctx, workspace, datatableName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDatatableMigrationResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateDatatableMigrationWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, body CreateDatatableMigrationJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDatatableMigrationResponse, error) {
+	rsp, err := c.CreateDatatableMigration(ctx, workspace, datatableName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDatatableMigrationResponse(rsp)
+}
+
 // CreateWorkspaceForkWithBodyWithResponse request with arbitrary body returning *CreateWorkspaceForkResponse
 func (c *ClientWithResponses) CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error) {
 	rsp, err := c.CreateWorkspaceForkWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -102868,6 +103901,15 @@ func (c *ClientWithResponses) WorkspaceAcknowledgeCriticalAlertWithResponse(ctx 
 	return ParseWorkspaceAcknowledgeCriticalAlertResponse(rsp)
 }
 
+// GetDatatableMigrationsStatusWithResponse request returning *GetDatatableMigrationsStatusResponse
+func (c *ClientWithResponses) GetDatatableMigrationsStatusWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*GetDatatableMigrationsStatusResponse, error) {
+	rsp, err := c.GetDatatableMigrationsStatus(ctx, workspace, datatableName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDatatableMigrationsStatusResponse(rsp)
+}
+
 // GetWorkspaceDefaultAppWithResponse request returning *GetWorkspaceDefaultAppResponse
 func (c *ClientWithResponses) GetWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceDefaultAppResponse, error) {
 	rsp, err := c.GetWorkspaceDefaultApp(ctx, workspace, reqEditors...)
@@ -102901,6 +103943,15 @@ func (c *ClientWithResponses) EditDefaultScriptsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseEditDefaultScriptsResponse(rsp)
+}
+
+// DeleteDatatableMigrationWithResponse request returning *DeleteDatatableMigrationResponse
+func (c *ClientWithResponses) DeleteDatatableMigrationWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, timestamp int64, reqEditors ...RequestEditorFn) (*DeleteDatatableMigrationResponse, error) {
+	rsp, err := c.DeleteDatatableMigration(ctx, workspace, datatableName, timestamp, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteDatatableMigrationResponse(rsp)
 }
 
 // DeleteGitSyncRepositoryWithBodyWithResponse request with arbitrary body returning *DeleteGitSyncRepositoryResponse
@@ -102952,6 +104003,15 @@ func (c *ClientWithResponses) DetachDevWorkspaceWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseDetachDevWorkspaceResponse(rsp)
+}
+
+// DisableDatatableMigrationsWithResponse request returning *DisableDatatableMigrationsResponse
+func (c *ClientWithResponses) DisableDatatableMigrationsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*DisableDatatableMigrationsResponse, error) {
+	rsp, err := c.DisableDatatableMigrations(ctx, workspace, datatableName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDisableDatatableMigrationsResponse(rsp)
 }
 
 // DropForkedDatatableDatabasesWithBodyWithResponse request with arbitrary body returning *DropForkedDatatableDatabasesResponse
@@ -103252,6 +104312,15 @@ func (c *ClientWithResponses) EditWebhookWithResponse(ctx context.Context, works
 	return ParseEditWebhookResponse(rsp)
 }
 
+// EnableDatatableMigrationsWithResponse request returning *EnableDatatableMigrationsResponse
+func (c *ClientWithResponses) EnableDatatableMigrationsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*EnableDatatableMigrationsResponse, error) {
+	rsp, err := c.EnableDatatableMigrations(ctx, workspace, datatableName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEnableDatatableMigrationsResponse(rsp)
+}
+
 // GetWorkspaceEncryptionKeyWithResponse request returning *GetWorkspaceEncryptionKeyResponse
 func (c *ClientWithResponses) GetWorkspaceEncryptionKeyWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceEncryptionKeyResponse, error) {
 	rsp, err := c.GetWorkspaceEncryptionKey(ctx, workspace, reqEditors...)
@@ -103293,6 +104362,15 @@ func (c *ClientWithResponses) ExportPgSchemaWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseExportPgSchemaResponse(rsp)
+}
+
+// GenerateInitialDatatableMigrationWithResponse request returning *GenerateInitialDatatableMigrationResponse
+func (c *ClientWithResponses) GenerateInitialDatatableMigrationWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*GenerateInitialDatatableMigrationResponse, error) {
+	rsp, err := c.GenerateInitialDatatableMigration(ctx, workspace, datatableName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGenerateInitialDatatableMigrationResponse(rsp)
 }
 
 // GetWorkspaceAsSuperAdminWithResponse request returning *GetWorkspaceAsSuperAdminResponse
@@ -103507,6 +104585,15 @@ func (c *ClientWithResponses) LeaveWorkspaceWithResponse(ctx context.Context, wo
 	return ParseLeaveWorkspaceResponse(rsp)
 }
 
+// ListDatatableMigrationsWithResponse request returning *ListDatatableMigrationsResponse
+func (c *ClientWithResponses) ListDatatableMigrationsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDatatableMigrationsResponse, error) {
+	rsp, err := c.ListDatatableMigrations(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListDatatableMigrationsResponse(rsp)
+}
+
 // ListDataTableSchemasWithResponse request returning *ListDataTableSchemasResponse
 func (c *ClientWithResponses) ListDataTableSchemasWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTableSchemasResponse, error) {
 	rsp, err := c.ListDataTableSchemas(ctx, workspace, reqEditors...)
@@ -103717,6 +104804,24 @@ func (c *ClientWithResponses) ResetDiffTallyWithResponse(ctx context.Context, wo
 	return ParseResetDiffTallyResponse(rsp)
 }
 
+// RollbackDatatableMigrationsWithResponse request returning *RollbackDatatableMigrationsResponse
+func (c *ClientWithResponses) RollbackDatatableMigrationsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, params *RollbackDatatableMigrationsParams, reqEditors ...RequestEditorFn) (*RollbackDatatableMigrationsResponse, error) {
+	rsp, err := c.RollbackDatatableMigrations(ctx, workspace, datatableName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRollbackDatatableMigrationsResponse(rsp)
+}
+
+// RunDatatableMigrationsWithResponse request returning *RunDatatableMigrationsResponse
+func (c *ClientWithResponses) RunDatatableMigrationsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, params *RunDatatableMigrationsParams, reqEditors ...RequestEditorFn) (*RunDatatableMigrationsResponse, error) {
+	rsp, err := c.RunDatatableMigrations(ctx, workspace, datatableName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunDatatableMigrationsResponse(rsp)
+}
+
 // RunSlackMessageTestJobWithBodyWithResponse request with arbitrary body returning *RunSlackMessageTestJobResponse
 func (c *ClientWithResponses) RunSlackMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunSlackMessageTestJobResponse, error) {
 	rsp, err := c.RunSlackMessageTestJobWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -103861,6 +104966,23 @@ func (c *ClientWithResponses) SetThresholdAlertWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseSetThresholdAlertResponse(rsp)
+}
+
+// UpsertDatatableMigrationWithBodyWithResponse request with arbitrary body returning *UpsertDatatableMigrationResponse
+func (c *ClientWithResponses) UpsertDatatableMigrationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpsertDatatableMigrationResponse, error) {
+	rsp, err := c.UpsertDatatableMigrationWithBody(ctx, workspace, datatableName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpsertDatatableMigrationResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpsertDatatableMigrationWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, body UpsertDatatableMigrationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpsertDatatableMigrationResponse, error) {
+	rsp, err := c.UpsertDatatableMigration(ctx, workspace, datatableName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpsertDatatableMigrationResponse(rsp)
 }
 
 // GetWorkspaceUsageWithResponse request returning *GetWorkspaceUsageResponse
@@ -119971,6 +121093,32 @@ func ParseConnectTeamsResponse(rsp *http.Response) (*ConnectTeamsResponse, error
 	return response, nil
 }
 
+// ParseCreateDatatableMigrationResponse parses an HTTP response from a CreateDatatableMigrationWithResponse call
+func ParseCreateDatatableMigrationResponse(rsp *http.Response) (*CreateDatatableMigrationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateDatatableMigrationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DatatableMigration
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateWorkspaceForkResponse parses an HTTP response from a CreateWorkspaceForkWithResponse call
 func ParseCreateWorkspaceForkResponse(rsp *http.Response) (*CreateWorkspaceForkResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -120157,6 +121305,36 @@ func ParseWorkspaceAcknowledgeCriticalAlertResponse(rsp *http.Response) (*Worksp
 	return response, nil
 }
 
+// ParseGetDatatableMigrationsStatusResponse parses an HTTP response from a GetDatatableMigrationsStatusWithResponse call
+func ParseGetDatatableMigrationsStatusResponse(rsp *http.Response) (*GetDatatableMigrationsStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDatatableMigrationsStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Enabled    bool                           `json:"enabled"`
+			Error      *string                        `json:"error,omitempty"`
+			Migrations []DatatableMigrationWithStatus `json:"migrations"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetWorkspaceDefaultAppResponse parses an HTTP response from a GetWorkspaceDefaultAppWithResponse call
 func ParseGetWorkspaceDefaultAppResponse(rsp *http.Response) (*GetWorkspaceDefaultAppResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -120228,6 +121406,22 @@ func ParseEditDefaultScriptsResponse(rsp *http.Response) (*EditDefaultScriptsRes
 	return response, nil
 }
 
+// ParseDeleteDatatableMigrationResponse parses an HTTP response from a DeleteDatatableMigrationWithResponse call
+func ParseDeleteDatatableMigrationResponse(rsp *http.Response) (*DeleteDatatableMigrationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteDatatableMigrationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseDeleteGitSyncRepositoryResponse parses an HTTP response from a DeleteGitSyncRepositoryWithResponse call
 func ParseDeleteGitSyncRepositoryResponse(rsp *http.Response) (*DeleteGitSyncRepositoryResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -120279,6 +121473,22 @@ func ParseDetachDevWorkspaceResponse(rsp *http.Response) (*DetachDevWorkspaceRes
 	}
 
 	response := &DetachDevWorkspaceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDisableDatatableMigrationsResponse parses an HTTP response from a DisableDatatableMigrationsWithResponse call
+func ParseDisableDatatableMigrationsResponse(rsp *http.Response) (*DisableDatatableMigrationsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DisableDatatableMigrationsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -120669,6 +121879,22 @@ func ParseEditWebhookResponse(rsp *http.Response) (*EditWebhookResponse, error) 
 	return response, nil
 }
 
+// ParseEnableDatatableMigrationsResponse parses an HTTP response from a EnableDatatableMigrationsWithResponse call
+func ParseEnableDatatableMigrationsResponse(rsp *http.Response) (*EnableDatatableMigrationsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EnableDatatableMigrationsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetWorkspaceEncryptionKeyResponse parses an HTTP response from a GetWorkspaceEncryptionKeyWithResponse call
 func ParseGetWorkspaceEncryptionKeyResponse(rsp *http.Response) (*GetWorkspaceEncryptionKeyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -120724,6 +121950,32 @@ func ParseExportPgSchemaResponse(rsp *http.Response) (*ExportPgSchemaResponse, e
 	response := &ExportPgSchemaResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGenerateInitialDatatableMigrationResponse parses an HTTP response from a GenerateInitialDatatableMigrationWithResponse call
+func ParseGenerateInitialDatatableMigrationResponse(rsp *http.Response) (*GenerateInitialDatatableMigrationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GenerateInitialDatatableMigrationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DatatableMigration
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -121295,6 +122547,32 @@ func ParseLeaveWorkspaceResponse(rsp *http.Response) (*LeaveWorkspaceResponse, e
 	return response, nil
 }
 
+// ParseListDatatableMigrationsResponse parses an HTTP response from a ListDatatableMigrationsWithResponse call
+func ParseListDatatableMigrationsResponse(rsp *http.Response) (*ListDatatableMigrationsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListDatatableMigrationsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []DatatableMigration
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListDataTableSchemasResponse parses an HTTP response from a ListDataTableSchemasWithResponse call
 func ParseListDataTableSchemasResponse(rsp *http.Response) (*ListDataTableSchemasResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -121719,6 +122997,68 @@ func ParseResetDiffTallyResponse(rsp *http.Response) (*ResetDiffTallyResponse, e
 	return response, nil
 }
 
+// ParseRollbackDatatableMigrationsResponse parses an HTTP response from a RollbackDatatableMigrationsWithResponse call
+func ParseRollbackDatatableMigrationsResponse(rsp *http.Response) (*RollbackDatatableMigrationsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RollbackDatatableMigrationsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			RolledBack []struct {
+				Name    string `json:"name"`
+				Version int64  `json:"version"`
+			} `json:"rolled_back"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRunDatatableMigrationsResponse parses an HTTP response from a RunDatatableMigrationsWithResponse call
+func ParseRunDatatableMigrationsResponse(rsp *http.Response) (*RunDatatableMigrationsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunDatatableMigrationsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Applied []struct {
+				Name    string `json:"name"`
+				Version int64  `json:"version"`
+			} `json:"applied"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseRunSlackMessageTestJobResponse parses an HTTP response from a RunSlackMessageTestJobWithResponse call
 func ParseRunSlackMessageTestJobResponse(rsp *http.Response) (*RunSlackMessageTestJobResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -121900,6 +123240,22 @@ func ParseSetThresholdAlertResponse(rsp *http.Response) (*SetThresholdAlertRespo
 	}
 
 	response := &SetThresholdAlertResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpsertDatatableMigrationResponse parses an HTTP response from a UpsertDatatableMigrationWithResponse call
+func ParseUpsertDatatableMigrationResponse(rsp *http.Response) (*UpsertDatatableMigrationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpsertDatatableMigrationResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
