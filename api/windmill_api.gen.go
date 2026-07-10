@@ -1102,6 +1102,7 @@ const (
 	SchemasRawScriptLanguageBash       SchemasRawScriptLanguage = "bash"
 	SchemasRawScriptLanguageBigquery   SchemasRawScriptLanguage = "bigquery"
 	SchemasRawScriptLanguageBun        SchemasRawScriptLanguage = "bun"
+	SchemasRawScriptLanguageBunnative  SchemasRawScriptLanguage = "bunnative"
 	SchemasRawScriptLanguageCsharp     SchemasRawScriptLanguage = "csharp"
 	SchemasRawScriptLanguageDeno       SchemasRawScriptLanguage = "deno"
 	SchemasRawScriptLanguageDuckdb     SchemasRawScriptLanguage = "duckdb"
