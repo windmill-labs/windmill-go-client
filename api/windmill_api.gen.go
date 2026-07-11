@@ -7691,6 +7691,12 @@ type DeleteS3FileFromAppParams struct {
 	DeleteToken string `form:"delete_token" json:"delete_token"`
 }
 
+// AppDownloadS3ParquetFileAsCsvParams defines parameters for AppDownloadS3ParquetFileAsCsv.
+type AppDownloadS3ParquetFileAsCsvParams struct {
+	FileKey string  `form:"file_key" json:"file_key"`
+	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
+}
+
 // ExecuteComponentJSONBody defines parameters for ExecuteComponent.
 type ExecuteComponentJSONBody struct {
 	Args                          interface{}             `json:"args"`
@@ -7717,6 +7723,57 @@ type ExecuteComponentJSONBody struct {
 	// TempScriptRefs Map of relative-import script path -> temp storage hash. Only honored for inline-script (raw_code) execution so app dev resolves those imports from not-yet-deployed local content.
 	TempScriptRefs *map[string]string `json:"temp_script_refs"`
 	Version        *int               `json:"version,omitempty"`
+}
+
+// AppLoadCsvPreviewParams defines parameters for AppLoadCsvPreview.
+type AppLoadCsvPreviewParams struct {
+	FileKey      string   `form:"file_key" json:"file_key"`
+	Offset       *float32 `form:"offset,omitempty" json:"offset,omitempty"`
+	Limit        *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+	SortCol      *string  `form:"sort_col,omitempty" json:"sort_col,omitempty"`
+	SortDesc     *bool    `form:"sort_desc,omitempty" json:"sort_desc,omitempty"`
+	SearchCol    *string  `form:"search_col,omitempty" json:"search_col,omitempty"`
+	SearchTerm   *string  `form:"search_term,omitempty" json:"search_term,omitempty"`
+	Storage      *string  `form:"storage,omitempty" json:"storage,omitempty"`
+	CsvSeparator *string  `form:"csv_separator,omitempty" json:"csv_separator,omitempty"`
+}
+
+// AppLoadFileMetadataParams defines parameters for AppLoadFileMetadata.
+type AppLoadFileMetadataParams struct {
+	FileKey string  `form:"file_key" json:"file_key"`
+	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
+}
+
+// AppLoadFilePreviewParams defines parameters for AppLoadFilePreview.
+type AppLoadFilePreviewParams struct {
+	FileKey         string  `form:"file_key" json:"file_key"`
+	FileSizeInBytes *int    `form:"file_size_in_bytes,omitempty" json:"file_size_in_bytes,omitempty"`
+	FileMimeType    *string `form:"file_mime_type,omitempty" json:"file_mime_type,omitempty"`
+	CsvSeparator    *string `form:"csv_separator,omitempty" json:"csv_separator,omitempty"`
+	CsvHasHeader    *bool   `form:"csv_has_header,omitempty" json:"csv_has_header,omitempty"`
+	ReadBytesFrom   int     `form:"read_bytes_from" json:"read_bytes_from"`
+	ReadBytesLength int     `form:"read_bytes_length" json:"read_bytes_length"`
+	Storage         *string `form:"storage,omitempty" json:"storage,omitempty"`
+}
+
+// AppLoadParquetPreviewParams defines parameters for AppLoadParquetPreview.
+type AppLoadParquetPreviewParams struct {
+	FileKey    string   `form:"file_key" json:"file_key"`
+	Offset     *float32 `form:"offset,omitempty" json:"offset,omitempty"`
+	Limit      *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+	SortCol    *string  `form:"sort_col,omitempty" json:"sort_col,omitempty"`
+	SortDesc   *bool    `form:"sort_desc,omitempty" json:"sort_desc,omitempty"`
+	SearchCol  *string  `form:"search_col,omitempty" json:"search_col,omitempty"`
+	SearchTerm *string  `form:"search_term,omitempty" json:"search_term,omitempty"`
+	Storage    *string  `form:"storage,omitempty" json:"storage,omitempty"`
+}
+
+// AppLoadTableCountParams defines parameters for AppLoadTableCount.
+type AppLoadTableCountParams struct {
+	FileKey    string  `form:"file_key" json:"file_key"`
+	SearchCol  *string `form:"search_col,omitempty" json:"search_col,omitempty"`
+	SearchTerm *string `form:"search_term,omitempty" json:"search_term,omitempty"`
+	Storage    *string `form:"storage,omitempty" json:"storage,omitempty"`
 }
 
 // UploadS3FileFromAppParams defines parameters for UploadS3FileFromApp.
@@ -14803,6 +14860,9 @@ type ClientInterface interface {
 	// DeleteS3FileFromApp request
 	DeleteS3FileFromApp(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AppDownloadS3ParquetFileAsCsv request
+	AppDownloadS3ParquetFileAsCsv(ctx context.Context, workspace WorkspaceId, path Path, params *AppDownloadS3ParquetFileAsCsvParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAppEmbedTokenBySecret request
 	GetAppEmbedTokenBySecret(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -14810,6 +14870,21 @@ type ClientInterface interface {
 	ExecuteComponentWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ExecuteComponent(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AppLoadCsvPreview request
+	AppLoadCsvPreview(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AppLoadFileMetadata request
+	AppLoadFileMetadata(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadFileMetadataParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AppLoadFilePreview request
+	AppLoadFilePreview(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AppLoadParquetPreview request
+	AppLoadParquetPreview(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AppLoadTableCount request
+	AppLoadTableCount(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadTableCountParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetPublicAppBySecret request
 	GetPublicAppBySecret(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20039,6 +20114,18 @@ func (c *Client) DeleteS3FileFromApp(ctx context.Context, workspace WorkspaceId,
 	return c.Client.Do(req)
 }
 
+func (c *Client) AppDownloadS3ParquetFileAsCsv(ctx context.Context, workspace WorkspaceId, path Path, params *AppDownloadS3ParquetFileAsCsvParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAppDownloadS3ParquetFileAsCsvRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetAppEmbedTokenBySecret(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAppEmbedTokenBySecretRequest(c.Server, workspace, secret)
 	if err != nil {
@@ -20065,6 +20152,66 @@ func (c *Client) ExecuteComponentWithBody(ctx context.Context, workspace Workspa
 
 func (c *Client) ExecuteComponent(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExecuteComponentRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AppLoadCsvPreview(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAppLoadCsvPreviewRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AppLoadFileMetadata(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadFileMetadataParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAppLoadFileMetadataRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AppLoadFilePreview(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadFilePreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAppLoadFilePreviewRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AppLoadParquetPreview(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAppLoadParquetPreviewRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AppLoadTableCount(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadTableCountParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAppLoadTableCountRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -37528,6 +37675,81 @@ func NewDeleteS3FileFromAppRequest(server string, workspace WorkspaceId, params 
 	return req, nil
 }
 
+// NewAppDownloadS3ParquetFileAsCsvRequest generates requests for AppDownloadS3ParquetFileAsCsv
+func NewAppDownloadS3ParquetFileAsCsvRequest(server string, workspace WorkspaceId, path Path, params *AppDownloadS3ParquetFileAsCsvParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps_u/download_s3_parquet_file_as_csv/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetAppEmbedTokenBySecretRequest generates requests for GetAppEmbedTokenBySecret
 func NewGetAppEmbedTokenBySecretRequest(server string, workspace WorkspaceId, secret string) (*http.Request, error) {
 	var err error
@@ -37619,6 +37841,709 @@ func NewExecuteComponentRequestWithBody(server string, workspace WorkspaceId, pa
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAppLoadCsvPreviewRequest generates requests for AppLoadCsvPreview
+func NewAppLoadCsvPreviewRequest(server string, workspace WorkspaceId, path Path, params *AppLoadCsvPreviewParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps_u/load_csv_preview/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Offset != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "offset", runtime.ParamLocationQuery, *params.Offset); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SortCol != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort_col", runtime.ParamLocationQuery, *params.SortCol); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SortDesc != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort_desc", runtime.ParamLocationQuery, *params.SortDesc); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SearchCol != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_col", runtime.ParamLocationQuery, *params.SearchCol); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SearchTerm != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_term", runtime.ParamLocationQuery, *params.SearchTerm); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CsvSeparator != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_separator", runtime.ParamLocationQuery, *params.CsvSeparator); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAppLoadFileMetadataRequest generates requests for AppLoadFileMetadata
+func NewAppLoadFileMetadataRequest(server string, workspace WorkspaceId, path Path, params *AppLoadFileMetadataParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps_u/load_file_metadata/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAppLoadFilePreviewRequest generates requests for AppLoadFilePreview
+func NewAppLoadFilePreviewRequest(server string, workspace WorkspaceId, path Path, params *AppLoadFilePreviewParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps_u/load_file_preview/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.FileSizeInBytes != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_size_in_bytes", runtime.ParamLocationQuery, *params.FileSizeInBytes); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.FileMimeType != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_mime_type", runtime.ParamLocationQuery, *params.FileMimeType); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CsvSeparator != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_separator", runtime.ParamLocationQuery, *params.CsvSeparator); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CsvHasHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_has_header", runtime.ParamLocationQuery, *params.CsvHasHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "read_bytes_from", runtime.ParamLocationQuery, params.ReadBytesFrom); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "read_bytes_length", runtime.ParamLocationQuery, params.ReadBytesLength); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAppLoadParquetPreviewRequest generates requests for AppLoadParquetPreview
+func NewAppLoadParquetPreviewRequest(server string, workspace WorkspaceId, path Path, params *AppLoadParquetPreviewParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps_u/load_parquet_preview/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Offset != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "offset", runtime.ParamLocationQuery, *params.Offset); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SortCol != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort_col", runtime.ParamLocationQuery, *params.SortCol); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SortDesc != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort_desc", runtime.ParamLocationQuery, *params.SortDesc); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SearchCol != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_col", runtime.ParamLocationQuery, *params.SearchCol); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SearchTerm != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_term", runtime.ParamLocationQuery, *params.SearchTerm); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAppLoadTableCountRequest generates requests for AppLoadTableCount
+func NewAppLoadTableCountRequest(server string, workspace WorkspaceId, path Path, params *AppLoadTableCountParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps_u/load_table_count/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "file_key", runtime.ParamLocationQuery, params.FileKey); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.SearchCol != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_col", runtime.ParamLocationQuery, *params.SearchCol); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SearchTerm != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_term", runtime.ParamLocationQuery, *params.SearchTerm); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -75382,6 +76307,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteS3FileFromAppWithResponse request
 	DeleteS3FileFromAppWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*DeleteS3FileFromAppResponse, error)
 
+	// AppDownloadS3ParquetFileAsCsvWithResponse request
+	AppDownloadS3ParquetFileAsCsvWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppDownloadS3ParquetFileAsCsvParams, reqEditors ...RequestEditorFn) (*AppDownloadS3ParquetFileAsCsvResponse, error)
+
 	// GetAppEmbedTokenBySecretWithResponse request
 	GetAppEmbedTokenBySecretWithResponse(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenBySecretResponse, error)
 
@@ -75389,6 +76317,21 @@ type ClientWithResponsesInterface interface {
 	ExecuteComponentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error)
 
 	ExecuteComponentWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error)
+
+	// AppLoadCsvPreviewWithResponse request
+	AppLoadCsvPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*AppLoadCsvPreviewResponse, error)
+
+	// AppLoadFileMetadataWithResponse request
+	AppLoadFileMetadataWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadFileMetadataParams, reqEditors ...RequestEditorFn) (*AppLoadFileMetadataResponse, error)
+
+	// AppLoadFilePreviewWithResponse request
+	AppLoadFilePreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadFilePreviewParams, reqEditors ...RequestEditorFn) (*AppLoadFilePreviewResponse, error)
+
+	// AppLoadParquetPreviewWithResponse request
+	AppLoadParquetPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*AppLoadParquetPreviewResponse, error)
+
+	// AppLoadTableCountWithResponse request
+	AppLoadTableCountWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadTableCountParams, reqEditors ...RequestEditorFn) (*AppLoadTableCountResponse, error)
 
 	// GetPublicAppBySecretWithResponse request
 	GetPublicAppBySecretWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicAppBySecretResponse, error)
@@ -82083,6 +83026,27 @@ func (r DeleteS3FileFromAppResponse) StatusCode() int {
 	return 0
 }
 
+type AppDownloadS3ParquetFileAsCsvResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AppDownloadS3ParquetFileAsCsvResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AppDownloadS3ParquetFileAsCsvResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetAppEmbedTokenBySecretResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -82120,6 +83084,116 @@ func (r ExecuteComponentResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ExecuteComponentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AppLoadCsvPreviewResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AppLoadCsvPreviewResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AppLoadCsvPreviewResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AppLoadFileMetadataResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *WindmillFileMetadata
+}
+
+// Status returns HTTPResponse.Status
+func (r AppLoadFileMetadataResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AppLoadFileMetadataResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AppLoadFilePreviewResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *WindmillFilePreview
+}
+
+// Status returns HTTPResponse.Status
+func (r AppLoadFilePreviewResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AppLoadFilePreviewResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AppLoadParquetPreviewResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AppLoadParquetPreviewResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AppLoadParquetPreviewResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AppLoadTableCountResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Count *float32 `json:"count,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AppLoadTableCountResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AppLoadTableCountResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -98262,6 +99336,15 @@ func (c *ClientWithResponses) DeleteS3FileFromAppWithResponse(ctx context.Contex
 	return ParseDeleteS3FileFromAppResponse(rsp)
 }
 
+// AppDownloadS3ParquetFileAsCsvWithResponse request returning *AppDownloadS3ParquetFileAsCsvResponse
+func (c *ClientWithResponses) AppDownloadS3ParquetFileAsCsvWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppDownloadS3ParquetFileAsCsvParams, reqEditors ...RequestEditorFn) (*AppDownloadS3ParquetFileAsCsvResponse, error) {
+	rsp, err := c.AppDownloadS3ParquetFileAsCsv(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAppDownloadS3ParquetFileAsCsvResponse(rsp)
+}
+
 // GetAppEmbedTokenBySecretWithResponse request returning *GetAppEmbedTokenBySecretResponse
 func (c *ClientWithResponses) GetAppEmbedTokenBySecretWithResponse(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenBySecretResponse, error) {
 	rsp, err := c.GetAppEmbedTokenBySecret(ctx, workspace, secret, reqEditors...)
@@ -98286,6 +99369,51 @@ func (c *ClientWithResponses) ExecuteComponentWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseExecuteComponentResponse(rsp)
+}
+
+// AppLoadCsvPreviewWithResponse request returning *AppLoadCsvPreviewResponse
+func (c *ClientWithResponses) AppLoadCsvPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*AppLoadCsvPreviewResponse, error) {
+	rsp, err := c.AppLoadCsvPreview(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAppLoadCsvPreviewResponse(rsp)
+}
+
+// AppLoadFileMetadataWithResponse request returning *AppLoadFileMetadataResponse
+func (c *ClientWithResponses) AppLoadFileMetadataWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadFileMetadataParams, reqEditors ...RequestEditorFn) (*AppLoadFileMetadataResponse, error) {
+	rsp, err := c.AppLoadFileMetadata(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAppLoadFileMetadataResponse(rsp)
+}
+
+// AppLoadFilePreviewWithResponse request returning *AppLoadFilePreviewResponse
+func (c *ClientWithResponses) AppLoadFilePreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadFilePreviewParams, reqEditors ...RequestEditorFn) (*AppLoadFilePreviewResponse, error) {
+	rsp, err := c.AppLoadFilePreview(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAppLoadFilePreviewResponse(rsp)
+}
+
+// AppLoadParquetPreviewWithResponse request returning *AppLoadParquetPreviewResponse
+func (c *ClientWithResponses) AppLoadParquetPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadParquetPreviewParams, reqEditors ...RequestEditorFn) (*AppLoadParquetPreviewResponse, error) {
+	rsp, err := c.AppLoadParquetPreview(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAppLoadParquetPreviewResponse(rsp)
+}
+
+// AppLoadTableCountWithResponse request returning *AppLoadTableCountResponse
+func (c *ClientWithResponses) AppLoadTableCountWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadTableCountParams, reqEditors ...RequestEditorFn) (*AppLoadTableCountResponse, error) {
+	rsp, err := c.AppLoadTableCount(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAppLoadTableCountResponse(rsp)
 }
 
 // GetPublicAppBySecretWithResponse request returning *GetPublicAppBySecretResponse
@@ -109777,6 +110905,22 @@ func ParseDeleteS3FileFromAppResponse(rsp *http.Response) (*DeleteS3FileFromAppR
 	return response, nil
 }
 
+// ParseAppDownloadS3ParquetFileAsCsvResponse parses an HTTP response from a AppDownloadS3ParquetFileAsCsvWithResponse call
+func ParseAppDownloadS3ParquetFileAsCsvResponse(rsp *http.Response) (*AppDownloadS3ParquetFileAsCsvResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AppDownloadS3ParquetFileAsCsvResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetAppEmbedTokenBySecretResponse parses an HTTP response from a GetAppEmbedTokenBySecretWithResponse call
 func ParseGetAppEmbedTokenBySecretResponse(rsp *http.Response) (*GetAppEmbedTokenBySecretResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -109814,6 +110958,118 @@ func ParseExecuteComponentResponse(rsp *http.Response) (*ExecuteComponentRespons
 	response := &ExecuteComponentResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseAppLoadCsvPreviewResponse parses an HTTP response from a AppLoadCsvPreviewWithResponse call
+func ParseAppLoadCsvPreviewResponse(rsp *http.Response) (*AppLoadCsvPreviewResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AppLoadCsvPreviewResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseAppLoadFileMetadataResponse parses an HTTP response from a AppLoadFileMetadataWithResponse call
+func ParseAppLoadFileMetadataResponse(rsp *http.Response) (*AppLoadFileMetadataResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AppLoadFileMetadataResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WindmillFileMetadata
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAppLoadFilePreviewResponse parses an HTTP response from a AppLoadFilePreviewWithResponse call
+func ParseAppLoadFilePreviewResponse(rsp *http.Response) (*AppLoadFilePreviewResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AppLoadFilePreviewResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WindmillFilePreview
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAppLoadParquetPreviewResponse parses an HTTP response from a AppLoadParquetPreviewWithResponse call
+func ParseAppLoadParquetPreviewResponse(rsp *http.Response) (*AppLoadParquetPreviewResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AppLoadParquetPreviewResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseAppLoadTableCountResponse parses an HTTP response from a AppLoadTableCountWithResponse call
+func ParseAppLoadTableCountResponse(rsp *http.Response) (*AppLoadTableCountResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AppLoadTableCountResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Count *float32 `json:"count,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
