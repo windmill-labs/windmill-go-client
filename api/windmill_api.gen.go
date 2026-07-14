@@ -1416,6 +1416,9 @@ type AIProviderModel struct {
 
 // AgentTool A tool available to an AI agent. Can be a flow module or an external MCP (Model Context Protocol) tool
 type AgentTool struct {
+	// Description Free-text description of the tool given to the AI to decide when and how to call it. Overrides the description auto-derived from the underlying script.
+	Description *string `json:"description,omitempty"`
+
 	// Id Unique identifier for this tool. Cannot contain spaces - use underscores instead (e.g., 'get_user_data' not 'get user data')
 	Id string `json:"id"`
 
