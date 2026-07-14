@@ -608,6 +608,7 @@ const (
 
 // Defines values for JobTriggerKind.
 const (
+	JobTriggerKindApp          JobTriggerKind = "app"
 	JobTriggerKindAsset        JobTriggerKind = "asset"
 	JobTriggerKindAzure        JobTriggerKind = "azure"
 	JobTriggerKindDefaultEmail JobTriggerKind = "default_email"
