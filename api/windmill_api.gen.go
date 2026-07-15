@@ -7020,6 +7020,12 @@ type RunnableTypeQuery = RunnableType
 // Running defines model for Running.
 type Running = bool
 
+// S3Exp defines model for S3Exp.
+type S3Exp = string
+
+// S3Sig defines model for S3Sig.
+type S3Sig = string
+
 // SchedulePath defines model for SchedulePath.
 type SchedulePath = string
 
@@ -7699,6 +7705,12 @@ type DeleteS3FileFromAppParams struct {
 type AppDownloadS3ParquetFileAsCsvParams struct {
 	FileKey string  `form:"file_key" json:"file_key"`
 	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
+
+	// Sig HMAC signature of a presigned S3 object (bypasses the app provenance gate)
+	Sig *S3Sig `form:"sig,omitempty" json:"sig,omitempty"`
+
+	// Exp Expiry timestamp of a presigned S3 object signature
+	Exp *S3Exp `form:"exp,omitempty" json:"exp,omitempty"`
 }
 
 // ExecuteComponentJSONBody defines parameters for ExecuteComponent.
@@ -7740,12 +7752,24 @@ type AppLoadCsvPreviewParams struct {
 	SearchTerm   *string  `form:"search_term,omitempty" json:"search_term,omitempty"`
 	Storage      *string  `form:"storage,omitempty" json:"storage,omitempty"`
 	CsvSeparator *string  `form:"csv_separator,omitempty" json:"csv_separator,omitempty"`
+
+	// Sig HMAC signature of a presigned S3 object (bypasses the app provenance gate)
+	Sig *S3Sig `form:"sig,omitempty" json:"sig,omitempty"`
+
+	// Exp Expiry timestamp of a presigned S3 object signature
+	Exp *S3Exp `form:"exp,omitempty" json:"exp,omitempty"`
 }
 
 // AppLoadFileMetadataParams defines parameters for AppLoadFileMetadata.
 type AppLoadFileMetadataParams struct {
 	FileKey string  `form:"file_key" json:"file_key"`
 	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
+
+	// Sig HMAC signature of a presigned S3 object (bypasses the app provenance gate)
+	Sig *S3Sig `form:"sig,omitempty" json:"sig,omitempty"`
+
+	// Exp Expiry timestamp of a presigned S3 object signature
+	Exp *S3Exp `form:"exp,omitempty" json:"exp,omitempty"`
 }
 
 // AppLoadFilePreviewParams defines parameters for AppLoadFilePreview.
@@ -7758,6 +7782,12 @@ type AppLoadFilePreviewParams struct {
 	ReadBytesFrom   int     `form:"read_bytes_from" json:"read_bytes_from"`
 	ReadBytesLength int     `form:"read_bytes_length" json:"read_bytes_length"`
 	Storage         *string `form:"storage,omitempty" json:"storage,omitempty"`
+
+	// Sig HMAC signature of a presigned S3 object (bypasses the app provenance gate)
+	Sig *S3Sig `form:"sig,omitempty" json:"sig,omitempty"`
+
+	// Exp Expiry timestamp of a presigned S3 object signature
+	Exp *S3Exp `form:"exp,omitempty" json:"exp,omitempty"`
 }
 
 // AppLoadParquetPreviewParams defines parameters for AppLoadParquetPreview.
@@ -7770,6 +7800,12 @@ type AppLoadParquetPreviewParams struct {
 	SearchCol  *string  `form:"search_col,omitempty" json:"search_col,omitempty"`
 	SearchTerm *string  `form:"search_term,omitempty" json:"search_term,omitempty"`
 	Storage    *string  `form:"storage,omitempty" json:"storage,omitempty"`
+
+	// Sig HMAC signature of a presigned S3 object (bypasses the app provenance gate)
+	Sig *S3Sig `form:"sig,omitempty" json:"sig,omitempty"`
+
+	// Exp Expiry timestamp of a presigned S3 object signature
+	Exp *S3Exp `form:"exp,omitempty" json:"exp,omitempty"`
 }
 
 // AppLoadTableCountParams defines parameters for AppLoadTableCount.
@@ -7778,6 +7814,12 @@ type AppLoadTableCountParams struct {
 	SearchCol  *string `form:"search_col,omitempty" json:"search_col,omitempty"`
 	SearchTerm *string `form:"search_term,omitempty" json:"search_term,omitempty"`
 	Storage    *string `form:"storage,omitempty" json:"storage,omitempty"`
+
+	// Sig HMAC signature of a presigned S3 object (bypasses the app provenance gate)
+	Sig *S3Sig `form:"sig,omitempty" json:"sig,omitempty"`
+
+	// Exp Expiry timestamp of a presigned S3 object signature
+	Exp *S3Exp `form:"exp,omitempty" json:"exp,omitempty"`
 }
 
 // UploadS3FileFromAppParams defines parameters for UploadS3FileFromApp.
@@ -37743,6 +37785,38 @@ func NewAppDownloadS3ParquetFileAsCsvRequest(server string, workspace WorkspaceI
 
 		}
 
+		if params.Sig != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sig", runtime.ParamLocationQuery, *params.Sig); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Exp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "exp", runtime.ParamLocationQuery, *params.Exp); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -38025,6 +38099,38 @@ func NewAppLoadCsvPreviewRequest(server string, workspace WorkspaceId, path Path
 
 		}
 
+		if params.Sig != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sig", runtime.ParamLocationQuery, *params.Sig); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Exp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "exp", runtime.ParamLocationQuery, *params.Exp); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -38087,6 +38193,38 @@ func NewAppLoadFileMetadataRequest(server string, workspace WorkspaceId, path Pa
 		if params.Storage != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Sig != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sig", runtime.ParamLocationQuery, *params.Sig); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Exp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "exp", runtime.ParamLocationQuery, *params.Exp); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -38250,6 +38388,38 @@ func NewAppLoadFilePreviewRequest(server string, workspace WorkspaceId, path Pat
 		if params.Storage != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Sig != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sig", runtime.ParamLocationQuery, *params.Sig); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Exp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "exp", runtime.ParamLocationQuery, *params.Exp); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -38434,6 +38604,38 @@ func NewAppLoadParquetPreviewRequest(server string, workspace WorkspaceId, path 
 
 		}
 
+		if params.Sig != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sig", runtime.ParamLocationQuery, *params.Sig); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Exp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "exp", runtime.ParamLocationQuery, *params.Exp); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -38528,6 +38730,38 @@ func NewAppLoadTableCountRequest(server string, workspace WorkspaceId, path Path
 		if params.Storage != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Sig != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sig", runtime.ParamLocationQuery, *params.Sig); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Exp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "exp", runtime.ParamLocationQuery, *params.Exp); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
