@@ -2274,6 +2274,34 @@ type EditErrorHandlerNew struct {
 	Path *string `json:"path,omitempty"`
 }
 
+// EditFlow defines model for EditFlow.
+type EditFlow struct {
+	DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
+
+	// Description Detailed documentation for this flow
+	Description     *string   `json:"description,omitempty"`
+	Labels          *[]string `json:"labels,omitempty"`
+	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+	Path            *string   `json:"path,omitempty"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
+	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
+	Priority           *int  `json:"priority,omitempty"`
+
+	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
+	Schema *map[string]interface{} `json:"schema,omitempty"`
+
+	// Summary Short description of what this flow does
+	Summary string   `json:"summary"`
+	Tag     *string  `json:"tag,omitempty"`
+	Timeout *float32 `json:"timeout,omitempty"`
+
+	// Value The flow structure containing modules and optional preprocessor/failure handlers
+	Value               SchemasFlowValue `json:"value"`
+	VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
+	WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
+}
+
 // EditHttpTrigger defines model for EditHttpTrigger.
 type EditHttpTrigger struct {
 	AuthenticationMethod AuthenticationMethod `json:"authentication_method"`
@@ -8428,7 +8456,7 @@ type UpdateFlowJSONBody struct {
 	Description     *string   `json:"description,omitempty"`
 	Labels          *[]string `json:"labels,omitempty"`
 	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
-	Path            string    `json:"path"`
+	Path            *string   `json:"path,omitempty"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
 	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
