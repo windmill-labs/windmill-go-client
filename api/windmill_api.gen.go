@@ -199,6 +199,13 @@ const (
 	Invite AutoInviteConfigMode = "invite"
 )
 
+// Defines values for AutoPullMode.
+const (
+	AutoPullModeAuto    AutoPullMode = "auto"
+	AutoPullModePolling AutoPullMode = "polling"
+	AutoPullModeWebhook AutoPullMode = "webhook"
+)
+
 // Defines values for AwsAuthResourceType.
 const (
 	Credentials AwsAuthResourceType = "credentials"
@@ -714,9 +721,9 @@ const (
 
 // Defines values for NativeServiceName.
 const (
-	Github    NativeServiceName = "github"
-	Google    NativeServiceName = "google"
-	Nextcloud NativeServiceName = "nextcloud"
+	NativeServiceNameGithub    NativeServiceName = "github"
+	NativeServiceNameGoogle    NativeServiceName = "google"
+	NativeServiceNameNextcloud NativeServiceName = "nextcloud"
 )
 
 // Defines values for NewKafkaTriggerAutoOffsetReset.
@@ -1373,12 +1380,6 @@ const (
 	Scripts PruneVersionsJSONBodyResourceType = "scripts"
 )
 
-// Defines values for SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel.
-const (
-	Dev     SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel = "dev"
-	Staging SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel = "staging"
-)
-
 // Defines values for SetWsSpecificJSONBodyItemKind.
 const (
 	Resource SetWsSpecificJSONBodyItemKind = "resource"
@@ -1523,6 +1524,31 @@ type AutoInviteConfig struct {
 
 // AutoInviteConfigMode defines model for AutoInviteConfig.Mode.
 type AutoInviteConfigMode string
+
+// AutoPullMode defines model for AutoPullMode.
+type AutoPullMode string
+
+// AutoPullSettings defines model for AutoPullSettings.
+type AutoPullSettings struct {
+	Enabled        bool               `json:"enabled"`
+	LastPullStatus *AutoPullStatus    `json:"last_pull_status,omitempty"`
+	LastSyncedSha  *map[string]string `json:"last_synced_sha,omitempty"`
+	Mode           *AutoPullMode      `json:"mode,omitempty"`
+	PollIntervalS  *int               `json:"poll_interval_s,omitempty"`
+	SyncForks      *bool              `json:"sync_forks,omitempty"`
+	WebhookError   *string            `json:"webhook_error,omitempty"`
+	WebhookId      *int64             `json:"webhook_id,omitempty"`
+	WebhookSecret  *string            `json:"webhook_secret,omitempty"`
+}
+
+// AutoPullStatus defines model for AutoPullStatus.
+type AutoPullStatus struct {
+	At        int64               `json:"at"`
+	Error     *string             `json:"error,omitempty"`
+	JobId     *openapi_types.UUID `json:"job_id,omitempty"`
+	Success   bool                `json:"success"`
+	SyncedSha *string             `json:"synced_sha,omitempty"`
+}
 
 // AutoscalingEvent defines model for AutoscalingEvent.
 type AutoscalingEvent struct {
@@ -3422,12 +3448,18 @@ type GetAllTopicSubscription struct {
 
 // GitRepositorySettings defines model for GitRepositorySettings.
 type GitRepositorySettings struct {
+	AutoPull             *AutoPullSettings    `json:"auto_pull,omitempty"`
 	Collapsed            *bool                `json:"collapsed,omitempty"`
 	ExcludeTypesOverride *[]GitSyncObjectType `json:"exclude_types_override,omitempty"`
+	ForkOpenPrs          *bool                `json:"fork_open_prs,omitempty"`
 	GitRepoResourcePath  string               `json:"git_repo_resource_path"`
 	GroupByFolder        *bool                `json:"group_by_folder,omitempty"`
-	ScriptPath           *string              `json:"script_path,omitempty"`
-	Settings             *struct {
+
+	// OpenPrError server-owned, last failure opening a PR for a deploy branch of this repo
+	OpenPrError      *string `json:"open_pr_error,omitempty"`
+	PromotionOpenPrs *bool   `json:"promotion_open_prs,omitempty"`
+	ScriptPath       *string `json:"script_path,omitempty"`
+	Settings         *struct {
 		ExcludePath      *[]string            `json:"exclude_path,omitempty"`
 		ExtraIncludePath *[]string            `json:"extra_include_path,omitempty"`
 		IncludePath      *[]string            `json:"include_path,omitempty"`
@@ -8138,6 +8170,9 @@ type GetDraftForUserParams struct {
 type ListDraftsParams struct {
 	// AllUsers List every draft in the workspace (all users), not just the current user's own + legacy rows. Other users' rows come back with `mine=false` (view-only).
 	AllUsers *bool `form:"all_users,omitempty" json:"all_users,omitempty"`
+
+	// CompareToWorkspace A fork passes its parent workspace id here to have each row flagged with `unchanged_from_parent`. Ignored unless it is exactly this workspace's parent.
+	CompareToWorkspace *string `form:"compare_to_workspace,omitempty" json:"compare_to_workspace,omitempty"`
 }
 
 // MigrateLegacyDraftJSONBody defines parameters for MigrateLegacyDraft.
@@ -11322,14 +11357,6 @@ type RunTeamsMessageTestJobJSONBody struct {
 	TestMsg       *string `json:"test_msg,omitempty"`
 }
 
-// SetDevWorkspaceLabelJSONBody defines parameters for SetDevWorkspaceLabel.
-type SetDevWorkspaceLabelJSONBody struct {
-	DevWorkspaceLabel *SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel `json:"dev_workspace_label,omitempty"`
-}
-
-// SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel defines parameters for SetDevWorkspaceLabel.
-type SetDevWorkspaceLabelJSONBodyDevWorkspaceLabel string
-
 // SetEnvironmentVariableJSONBody defines parameters for SetEnvironmentVariable.
 type SetEnvironmentVariableJSONBody struct {
 	Name  string  `json:"name"`
@@ -12269,9 +12296,6 @@ type RunSlackMessageTestJobJSONRequestBody RunSlackMessageTestJobJSONBody
 
 // RunTeamsMessageTestJobJSONRequestBody defines body for RunTeamsMessageTestJob for application/json ContentType.
 type RunTeamsMessageTestJobJSONRequestBody RunTeamsMessageTestJobJSONBody
-
-// SetDevWorkspaceLabelJSONRequestBody defines body for SetDevWorkspaceLabel for application/json ContentType.
-type SetDevWorkspaceLabelJSONRequestBody SetDevWorkspaceLabelJSONBody
 
 // SetEnvironmentVariableJSONRequestBody defines body for SetEnvironmentVariable for application/json ContentType.
 type SetEnvironmentVariableJSONRequestBody SetEnvironmentVariableJSONBody
@@ -16976,11 +17000,6 @@ type ClientInterface interface {
 	RunTeamsMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunTeamsMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// SetDevWorkspaceLabelWithBody request with any body
-	SetDevWorkspaceLabelWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	SetDevWorkspaceLabel(ctx context.Context, workspace WorkspaceId, body SetDevWorkspaceLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SetEnvironmentVariableWithBody request with any body
 	SetEnvironmentVariableWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -29306,30 +29325,6 @@ func (c *Client) RunTeamsMessageTestJobWithBody(ctx context.Context, workspace W
 
 func (c *Client) RunTeamsMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunTeamsMessageTestJobRequest(c.Server, workspace, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SetDevWorkspaceLabelWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetDevWorkspaceLabelRequestWithBody(c.Server, workspace, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) SetDevWorkspaceLabel(ctx context.Context, workspace WorkspaceId, body SetDevWorkspaceLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSetDevWorkspaceLabelRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -41946,6 +41941,22 @@ func NewListDraftsRequest(server string, workspace WorkspaceId, params *ListDraf
 		if params.AllUsers != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_users", runtime.ParamLocationQuery, *params.AllUsers); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CompareToWorkspace != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "compare_to_workspace", runtime.ParamLocationQuery, *params.CompareToWorkspace); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -74589,53 +74600,6 @@ func NewRunTeamsMessageTestJobRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
-// NewSetDevWorkspaceLabelRequest calls the generic SetDevWorkspaceLabel builder with application/json body
-func NewSetDevWorkspaceLabelRequest(server string, workspace WorkspaceId, body SetDevWorkspaceLabelJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewSetDevWorkspaceLabelRequestWithBody(server, workspace, "application/json", bodyReader)
-}
-
-// NewSetDevWorkspaceLabelRequestWithBody generates requests for SetDevWorkspaceLabel with any type of body
-func NewSetDevWorkspaceLabelRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/workspaces/set_dev_workspace_label", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewSetEnvironmentVariableRequest calls the generic SetEnvironmentVariable builder with application/json body
 func NewSetEnvironmentVariableRequest(server string, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -78615,11 +78579,6 @@ type ClientWithResponsesInterface interface {
 	RunTeamsMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error)
 
 	RunTeamsMessageTestJobWithResponse(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error)
-
-	// SetDevWorkspaceLabelWithBodyWithResponse request with any body
-	SetDevWorkspaceLabelWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetDevWorkspaceLabelResponse, error)
-
-	SetDevWorkspaceLabelWithResponse(ctx context.Context, workspace WorkspaceId, body SetDevWorkspaceLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*SetDevWorkspaceLabelResponse, error)
 
 	// SetEnvironmentVariableWithBodyWithResponse request with any body
 	SetEnvironmentVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error)
@@ -84598,6 +84557,9 @@ type ListDraftsResponse struct {
 
 		// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one.
 		Summary *string `json:"summary,omitempty"`
+
+		// UnchangedFromParent Only present when `compare_to_workspace` was passed. True when this draft is identical to the parent's draft at the same path/kind/owner (cloned in on fork and never edited here).
+		UnchangedFromParent *bool `json:"unchanged_from_parent,omitempty"`
 	}
 }
 
@@ -96652,27 +96614,6 @@ func (r RunTeamsMessageTestJobResponse) StatusCode() int {
 	return 0
 }
 
-type SetDevWorkspaceLabelResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r SetDevWorkspaceLabelResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r SetDevWorkspaceLabelResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type SetEnvironmentVariableResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -106223,23 +106164,6 @@ func (c *ClientWithResponses) RunTeamsMessageTestJobWithResponse(ctx context.Con
 	return ParseRunTeamsMessageTestJobResponse(rsp)
 }
 
-// SetDevWorkspaceLabelWithBodyWithResponse request with arbitrary body returning *SetDevWorkspaceLabelResponse
-func (c *ClientWithResponses) SetDevWorkspaceLabelWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetDevWorkspaceLabelResponse, error) {
-	rsp, err := c.SetDevWorkspaceLabelWithBody(ctx, workspace, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSetDevWorkspaceLabelResponse(rsp)
-}
-
-func (c *ClientWithResponses) SetDevWorkspaceLabelWithResponse(ctx context.Context, workspace WorkspaceId, body SetDevWorkspaceLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*SetDevWorkspaceLabelResponse, error) {
-	rsp, err := c.SetDevWorkspaceLabel(ctx, workspace, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseSetDevWorkspaceLabelResponse(rsp)
-}
-
 // SetEnvironmentVariableWithBodyWithResponse request with arbitrary body returning *SetEnvironmentVariableResponse
 func (c *ClientWithResponses) SetEnvironmentVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error) {
 	rsp, err := c.SetEnvironmentVariableWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -112539,6 +112463,9 @@ func ParseListDraftsResponse(rsp *http.Response) (*ListDraftsResponse, error) {
 
 			// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one.
 			Summary *string `json:"summary,omitempty"`
+
+			// UnchangedFromParent Only present when `compare_to_workspace` was passed. True when this draft is identical to the parent's draft at the same path/kind/owner (cloned in on fork and never edited here).
+			UnchangedFromParent *bool `json:"unchanged_from_parent,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -124579,22 +124506,6 @@ func ParseRunTeamsMessageTestJobResponse(rsp *http.Response) (*RunTeamsMessageTe
 	}
 
 	response := &RunTeamsMessageTestJobResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseSetDevWorkspaceLabelResponse parses an HTTP response from a SetDevWorkspaceLabelWithResponse call
-func ParseSetDevWorkspaceLabelResponse(rsp *http.Response) (*SetDevWorkspaceLabelResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &SetDevWorkspaceLabelResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
