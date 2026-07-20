@@ -11267,6 +11267,12 @@ type GetSecondaryStorageNamesParams struct {
 	IncludeDefault *bool `form:"include_default,omitempty" json:"include_default,omitempty"`
 }
 
+// GetGitSyncDeployModeParams defines parameters for GetGitSyncDeployMode.
+type GetGitSyncDeployModeParams struct {
+	// Branch The branch the caller would push.
+	Branch *string `form:"branch,omitempty" json:"branch,omitempty"`
+}
+
 // ImportPgDatabaseJSONBody defines parameters for ImportPgDatabase.
 type ImportPgDatabaseJSONBody struct {
 	ForkBehavior ImportPgDatabaseJSONBodyForkBehavior `json:"fork_behavior"`
@@ -11301,12 +11307,15 @@ type ListWsSpecificVersionsParams struct {
 // ListWsSpecificVersionsParamsKind defines parameters for ListWsSpecificVersions.
 type ListWsSpecificVersionsParamsKind string
 
-// LogAiChatJSONBody defines parameters for LogAiChat.
-type LogAiChatJSONBody struct {
-	Mode      string `json:"mode"`
-	Model     string `json:"model"`
-	Provider  string `json:"provider"`
-	SessionId string `json:"session_id"`
+// LogFeatureUsageJSONBody defines parameters for LogFeatureUsage.
+type LogFeatureUsageJSONBody struct {
+	Events []struct {
+		EntityId *string `json:"entity_id,omitempty"`
+		Feature  string  `json:"feature"`
+		Key      *string `json:"key,omitempty"`
+		Kind     string  `json:"kind"`
+		Value    *int    `json:"value,omitempty"`
+	} `json:"events"`
 }
 
 // GetPremiumInfoParams defines parameters for GetPremiumInfo.
@@ -12301,8 +12310,8 @@ type ImportPgDatabaseJSONRequestBody ImportPgDatabaseJSONBody
 // InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
 type InviteUserJSONRequestBody InviteUserJSONBody
 
-// LogAiChatJSONRequestBody defines body for LogAiChat for application/json ContentType.
-type LogAiChatJSONRequestBody LogAiChatJSONBody
+// LogFeatureUsageJSONRequestBody defines body for LogFeatureUsage for application/json ContentType.
+type LogFeatureUsageJSONRequestBody LogFeatureUsageJSONBody
 
 // UpdateOperatorSettingsJSONRequestBody defines body for UpdateOperatorSettings for application/json ContentType.
 type UpdateOperatorSettingsJSONRequestBody = OperatorSettings
@@ -16925,6 +16934,9 @@ type ClientInterface interface {
 	// GetWorkspaceName request
 	GetWorkspaceName(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetGitSyncDeployMode request
+	GetGitSyncDeployMode(ctx context.Context, workspace WorkspaceId, params *GetGitSyncDeployModeParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetGitSyncEnabled request
 	GetGitSyncEnabled(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16968,10 +16980,10 @@ type ClientInterface interface {
 	// ListWsSpecificVersions request
 	ListWsSpecificVersions(ctx context.Context, workspace WorkspaceId, params *ListWsSpecificVersionsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// LogAiChatWithBody request with any body
-	LogAiChatWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// LogFeatureUsageWithBody request with any body
+	LogFeatureUsageWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	LogAiChat(ctx context.Context, workspace WorkspaceId, body LogAiChatJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	LogFeatureUsage(ctx context.Context, workspace WorkspaceId, body LogFeatureUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateOperatorSettingsWithBody request with any body
 	UpdateOperatorSettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -28907,6 +28919,18 @@ func (c *Client) GetWorkspaceName(ctx context.Context, workspace WorkspaceId, re
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetGitSyncDeployMode(ctx context.Context, workspace WorkspaceId, params *GetGitSyncDeployModeParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGitSyncDeployModeRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetGitSyncEnabled(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetGitSyncEnabledRequest(c.Server, workspace)
 	if err != nil {
@@ -29087,8 +29111,8 @@ func (c *Client) ListWsSpecificVersions(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) LogAiChatWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewLogAiChatRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) LogFeatureUsageWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLogFeatureUsageRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -29099,8 +29123,8 @@ func (c *Client) LogAiChatWithBody(ctx context.Context, workspace WorkspaceId, c
 	return c.Client.Do(req)
 }
 
-func (c *Client) LogAiChat(ctx context.Context, workspace WorkspaceId, body LogAiChatJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewLogAiChatRequest(c.Server, workspace, body)
+func (c *Client) LogFeatureUsage(ctx context.Context, workspace WorkspaceId, body LogFeatureUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLogFeatureUsageRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -73399,6 +73423,62 @@ func NewGetWorkspaceNameRequest(server string, workspace WorkspaceId) (*http.Req
 	return req, nil
 }
 
+// NewGetGitSyncDeployModeRequest generates requests for GetGitSyncDeployMode
+func NewGetGitSyncDeployModeRequest(server string, workspace WorkspaceId, params *GetGitSyncDeployModeParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/git_sync_deploy_mode", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Branch != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "branch", runtime.ParamLocationQuery, *params.Branch); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetGitSyncEnabledRequest generates requests for GetGitSyncEnabled
 func NewGetGitSyncEnabledRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -73897,19 +73977,19 @@ func NewListWsSpecificVersionsRequest(server string, workspace WorkspaceId, para
 	return req, nil
 }
 
-// NewLogAiChatRequest calls the generic LogAiChat builder with application/json body
-func NewLogAiChatRequest(server string, workspace WorkspaceId, body LogAiChatJSONRequestBody) (*http.Request, error) {
+// NewLogFeatureUsageRequest calls the generic LogFeatureUsage builder with application/json body
+func NewLogFeatureUsageRequest(server string, workspace WorkspaceId, body LogFeatureUsageJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewLogAiChatRequestWithBody(server, workspace, "application/json", bodyReader)
+	return NewLogFeatureUsageRequestWithBody(server, workspace, "application/json", bodyReader)
 }
 
-// NewLogAiChatRequestWithBody generates requests for LogAiChat with any type of body
-func NewLogAiChatRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+// NewLogFeatureUsageRequestWithBody generates requests for LogFeatureUsage with any type of body
+func NewLogFeatureUsageRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -73924,7 +74004,7 @@ func NewLogAiChatRequestWithBody(server string, workspace WorkspaceId, contentTy
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/w/%s/workspaces/log_chat", pathParam0)
+	operationPath := fmt.Sprintf("/w/%s/workspaces/log_feature_usage", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -78504,6 +78584,9 @@ type ClientWithResponsesInterface interface {
 	// GetWorkspaceNameWithResponse request
 	GetWorkspaceNameWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceNameResponse, error)
 
+	// GetGitSyncDeployModeWithResponse request
+	GetGitSyncDeployModeWithResponse(ctx context.Context, workspace WorkspaceId, params *GetGitSyncDeployModeParams, reqEditors ...RequestEditorFn) (*GetGitSyncDeployModeResponse, error)
+
 	// GetGitSyncEnabledWithResponse request
 	GetGitSyncEnabledWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetGitSyncEnabledResponse, error)
 
@@ -78547,10 +78630,10 @@ type ClientWithResponsesInterface interface {
 	// ListWsSpecificVersionsWithResponse request
 	ListWsSpecificVersionsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListWsSpecificVersionsParams, reqEditors ...RequestEditorFn) (*ListWsSpecificVersionsResponse, error)
 
-	// LogAiChatWithBodyWithResponse request with any body
-	LogAiChatWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LogAiChatResponse, error)
+	// LogFeatureUsageWithBodyWithResponse request with any body
+	LogFeatureUsageWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LogFeatureUsageResponse, error)
 
-	LogAiChatWithResponse(ctx context.Context, workspace WorkspaceId, body LogAiChatJSONRequestBody, reqEditors ...RequestEditorFn) (*LogAiChatResponse, error)
+	LogFeatureUsageWithResponse(ctx context.Context, workspace WorkspaceId, body LogFeatureUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*LogFeatureUsageResponse, error)
 
 	// UpdateOperatorSettingsWithBodyWithResponse request with any body
 	UpdateOperatorSettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateOperatorSettingsResponse, error)
@@ -96004,6 +96087,34 @@ func (r GetWorkspaceNameResponse) StatusCode() int {
 	return 0
 }
 
+type GetGitSyncDeployModeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Configured At least one git-sync repository is configured.
+		Configured bool `json:"configured"`
+
+		// DeployOnPush True means a `git push` is confirmed to deploy via auto-pull: exactly one licensed, deliverable repository tracks the branch. False is *not confirmed* rather than a definite no — it also covers unlicensed, ambiguous (several repos track it), and conservative false-negatives; determine the deploy path another way (CI `git push`, or `wmill sync push`).
+		DeployOnPush bool `json:"deploy_on_push"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGitSyncDeployModeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGitSyncDeployModeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetGitSyncEnabledResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -96301,13 +96412,13 @@ func (r ListWsSpecificVersionsResponse) StatusCode() int {
 	return 0
 }
 
-type LogAiChatResponse struct {
+type LogFeatureUsageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r LogAiChatResponse) Status() string {
+func (r LogFeatureUsageResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -96315,7 +96426,7 @@ func (r LogAiChatResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r LogAiChatResponse) StatusCode() int {
+func (r LogFeatureUsageResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -105860,6 +105971,15 @@ func (c *ClientWithResponses) GetWorkspaceNameWithResponse(ctx context.Context, 
 	return ParseGetWorkspaceNameResponse(rsp)
 }
 
+// GetGitSyncDeployModeWithResponse request returning *GetGitSyncDeployModeResponse
+func (c *ClientWithResponses) GetGitSyncDeployModeWithResponse(ctx context.Context, workspace WorkspaceId, params *GetGitSyncDeployModeParams, reqEditors ...RequestEditorFn) (*GetGitSyncDeployModeResponse, error) {
+	rsp, err := c.GetGitSyncDeployMode(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGitSyncDeployModeResponse(rsp)
+}
+
 // GetGitSyncEnabledWithResponse request returning *GetGitSyncEnabledResponse
 func (c *ClientWithResponses) GetGitSyncEnabledWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetGitSyncEnabledResponse, error) {
 	rsp, err := c.GetGitSyncEnabled(ctx, workspace, reqEditors...)
@@ -105993,21 +106113,21 @@ func (c *ClientWithResponses) ListWsSpecificVersionsWithResponse(ctx context.Con
 	return ParseListWsSpecificVersionsResponse(rsp)
 }
 
-// LogAiChatWithBodyWithResponse request with arbitrary body returning *LogAiChatResponse
-func (c *ClientWithResponses) LogAiChatWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LogAiChatResponse, error) {
-	rsp, err := c.LogAiChatWithBody(ctx, workspace, contentType, body, reqEditors...)
+// LogFeatureUsageWithBodyWithResponse request with arbitrary body returning *LogFeatureUsageResponse
+func (c *ClientWithResponses) LogFeatureUsageWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LogFeatureUsageResponse, error) {
+	rsp, err := c.LogFeatureUsageWithBody(ctx, workspace, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseLogAiChatResponse(rsp)
+	return ParseLogFeatureUsageResponse(rsp)
 }
 
-func (c *ClientWithResponses) LogAiChatWithResponse(ctx context.Context, workspace WorkspaceId, body LogAiChatJSONRequestBody, reqEditors ...RequestEditorFn) (*LogAiChatResponse, error) {
-	rsp, err := c.LogAiChat(ctx, workspace, body, reqEditors...)
+func (c *ClientWithResponses) LogFeatureUsageWithResponse(ctx context.Context, workspace WorkspaceId, body LogFeatureUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*LogFeatureUsageResponse, error) {
+	rsp, err := c.LogFeatureUsage(ctx, workspace, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseLogAiChatResponse(rsp)
+	return ParseLogFeatureUsageResponse(rsp)
 }
 
 // UpdateOperatorSettingsWithBodyWithResponse request with arbitrary body returning *UpdateOperatorSettingsResponse
@@ -123891,6 +124011,38 @@ func ParseGetWorkspaceNameResponse(rsp *http.Response) (*GetWorkspaceNameRespons
 	return response, nil
 }
 
+// ParseGetGitSyncDeployModeResponse parses an HTTP response from a GetGitSyncDeployModeWithResponse call
+func ParseGetGitSyncDeployModeResponse(rsp *http.Response) (*GetGitSyncDeployModeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGitSyncDeployModeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Configured At least one git-sync repository is configured.
+			Configured bool `json:"configured"`
+
+			// DeployOnPush True means a `git push` is confirmed to deploy via auto-pull: exactly one licensed, deliverable repository tracks the branch. False is *not confirmed* rather than a definite no — it also covers unlicensed, ambiguous (several repos track it), and conservative false-negatives; determine the deploy path another way (CI `git push`, or `wmill sync push`).
+			DeployOnPush bool `json:"deploy_on_push"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetGitSyncEnabledResponse parses an HTTP response from a GetGitSyncEnabledWithResponse call
 func ParseGetGitSyncEnabledResponse(rsp *http.Response) (*GetGitSyncEnabledResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -124212,15 +124364,15 @@ func ParseListWsSpecificVersionsResponse(rsp *http.Response) (*ListWsSpecificVer
 	return response, nil
 }
 
-// ParseLogAiChatResponse parses an HTTP response from a LogAiChatWithResponse call
-func ParseLogAiChatResponse(rsp *http.Response) (*LogAiChatResponse, error) {
+// ParseLogFeatureUsageResponse parses an HTTP response from a LogFeatureUsageWithResponse call
+func ParseLogFeatureUsageResponse(rsp *http.Response) (*LogFeatureUsageResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &LogAiChatResponse{
+	response := &LogFeatureUsageResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
