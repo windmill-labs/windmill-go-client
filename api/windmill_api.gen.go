@@ -858,6 +858,13 @@ const (
 	RestartedFromBranchChosenTypeDefault RestartedFromBranchChosenType = "default"
 )
 
+// Defines values for RunnableItemType.
+const (
+	RunnableItemTypeApp    RunnableItemType = "app"
+	RunnableItemTypeFlow   RunnableItemType = "flow"
+	RunnableItemTypeScript RunnableItemType = "script"
+)
+
 // Defines values for RunnableKind.
 const (
 	RunnableKindFlow   RunnableKind = "flow"
@@ -1355,6 +1362,12 @@ const (
 	ListFilteredJobsUuidsParamsStatusSuccess  ListFilteredJobsUuidsParamsStatus = "success"
 )
 
+// Defines values for ListRunnablesParamsOrderBy.
+const (
+	ListRunnablesParamsOrderByName    ListRunnablesParamsOrderBy = "name"
+	ListRunnablesParamsOrderByUpdated ListRunnablesParamsOrderBy = "updated"
+)
+
 // Defines values for SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType.
 const (
 	SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerTypeError    SetDefaultErrorOrRecoveryHandlerJSONBodyHandlerType = "error"
@@ -1404,8 +1417,8 @@ const (
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
 const (
-	Resource SetWsSpecificJSONBodyItemKind = "resource"
-	Variable SetWsSpecificJSONBodyItemKind = "variable"
+	SetWsSpecificJSONBodyItemKindResource SetWsSpecificJSONBodyItemKind = "resource"
+	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
 )
 
 // AIConfig defines model for AIConfig.
@@ -1816,7 +1829,18 @@ type CompletedJob struct {
 	RawCode        *string `json:"raw_code,omitempty"`
 
 	// RawFlow The flow structure containing modules and optional preprocessor/failure handlers
-	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
+	RawFlow        *FlowValue `json:"raw_flow,omitempty"`
+	ResolutionNote *string    `json:"resolution_note,omitempty"`
+
+	// Resolved whether this failure has been marked as handled
+	Resolved   *bool      `json:"resolved,omitempty"`
+	ResolvedAt *time.Time `json:"resolved_at,omitempty"`
+
+	// ResolvedAutomatically true when a succeeding retry resolved this rather than a person. Explicit rather than inferred from an absent resolved_by, which is also absent for a manual resolution outside enterprise
+	ResolvedAutomatically *bool `json:"resolved_automatically,omitempty"`
+
+	// ResolvedBy who resolved the failure. Enterprise-only, so also absent for a manual resolution outside enterprise; use resolved_automatically to tell the two apart
+	ResolvedBy           *string         `json:"resolved_by,omitempty"`
 	Result               *interface{}    `json:"result,omitempty"`
 	SchedulePath         *string         `json:"schedule_path,omitempty"`
 	ScriptHash           *string         `json:"script_hash,omitempty"`
@@ -3894,7 +3918,18 @@ type Job0 struct {
 	RawCode        *string `json:"raw_code,omitempty"`
 
 	// RawFlow The flow structure containing modules and optional preprocessor/failure handlers
-	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
+	RawFlow        *FlowValue `json:"raw_flow,omitempty"`
+	ResolutionNote *string    `json:"resolution_note,omitempty"`
+
+	// Resolved whether this failure has been marked as handled
+	Resolved   *bool      `json:"resolved,omitempty"`
+	ResolvedAt *time.Time `json:"resolved_at,omitempty"`
+
+	// ResolvedAutomatically true when a succeeding retry resolved this rather than a person. Explicit rather than inferred from an absent resolved_by, which is also absent for a manual resolution outside enterprise
+	ResolvedAutomatically *bool `json:"resolved_automatically,omitempty"`
+
+	// ResolvedBy who resolved the failure. Enterprise-only, so also absent for a manual resolution outside enterprise; use resolved_automatically to tell the two apart
+	ResolvedBy           *string         `json:"resolved_by,omitempty"`
 	Result               *interface{}    `json:"result,omitempty"`
 	SchedulePath         *string         `json:"schedule_path,omitempty"`
 	ScriptHash           *string         `json:"script_hash,omitempty"`
@@ -5607,6 +5642,44 @@ type RuleBypasserGroups = []string
 
 // RuleBypasserUsers Users that can bypass this ruleset
 type RuleBypasserUsers = []string
+
+// RunnableItem A row in the merged runnables listing. `type` is the discriminator;
+// kind-specific fields (hash/language/kind for scripts, execution_mode/
+// version for apps) are present only for that kind. `edited_at` is the
+// unified last-updated time (a script's created_at, a flow/app's edit
+// time).
+type RunnableItem struct {
+	Archived        *bool                     `json:"archived,omitempty"`
+	AutoKind        *string                   `json:"auto_kind,omitempty"`
+	DraftOnly       *bool                     `json:"draft_only"`
+	DraftPath       *string                   `json:"draft_path,omitempty"`
+	DraftUsers      *[]map[string]interface{} `json:"draft_users,omitempty"`
+	EditedAt        *time.Time                `json:"edited_at,omitempty"`
+	ExecutionMode   *string                   `json:"execution_mode,omitempty"`
+	ExtraPerms      *map[string]bool          `json:"extra_perms,omitempty"`
+	HasDeployErrors *bool                     `json:"has_deploy_errors,omitempty"`
+
+	// Hash script version hash as a 16-char hex string
+	Hash                *string          `json:"hash,omitempty"`
+	Id                  *int64           `json:"id,omitempty"`
+	InheritedLabels     *[]string        `json:"inherited_labels,omitempty"`
+	IsDraft             *bool            `json:"is_draft,omitempty"`
+	Kind                *string          `json:"kind,omitempty"`
+	Labels              *[]string        `json:"labels,omitempty"`
+	Language            *string          `json:"language,omitempty"`
+	Path                string           `json:"path"`
+	RawApp              *bool            `json:"raw_app,omitempty"`
+	Starred             *bool            `json:"starred,omitempty"`
+	Summary             *string          `json:"summary,omitempty"`
+	Type                RunnableItemType `json:"type"`
+	UseCodebase         *bool            `json:"use_codebase,omitempty"`
+	Version             *int64           `json:"version,omitempty"`
+	WorkspaceId         *string          `json:"workspace_id,omitempty"`
+	WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
+}
+
+// RunnableItemType defines model for RunnableItem.Type.
+type RunnableItemType string
 
 // RunnableKind defines model for RunnableKind.
 type RunnableKind string
@@ -8518,6 +8591,9 @@ type ListExtendedJobsParams struct {
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
 
+	// Resolved filter on whether a failure has been marked as handled. true keeps only resolved failures, false hides them
+	Resolved *bool `form:"resolved,omitempty" json:"resolved,omitempty"`
+
 	// IsFlowStep is the job a flow step
 	IsFlowStep *bool `form:"is_flow_step,omitempty" json:"is_flow_step,omitempty"`
 
@@ -8890,6 +8966,12 @@ type ListFoldersParams struct {
 
 // ListFolderNamesParams defines parameters for ListFolderNames.
 type ListFolderNamesParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
 	// OnlyMemberOf only list the folders the user is member of (default false)
 	OnlyMemberOf *bool `form:"only_member_of,omitempty" json:"only_member_of,omitempty"`
 }
@@ -9171,6 +9253,14 @@ type PublishHubRawAppParams struct {
 
 // PublishHubRawAppEmbedParams defines parameters for PublishHubRawAppEmbed.
 type PublishHubRawAppEmbedParams struct {
+	// Folder workspace folder scoping the Hub publication: a workspace can publish
+	// one Hub project per folder and the Hub-side source key is
+	// `{workspace}:{folder}`
+	Folder HubPublishFolder `form:"folder" json:"folder"`
+}
+
+// PublishHubRawAppRecordingParams defines parameters for PublishHubRawAppRecording.
+type PublishHubRawAppRecordingParams struct {
 	// Folder workspace folder scoping the Hub publication: a workspace can publish
 	// one Hub project per folder and the Hub-side source key is
 	// `{workspace}:{folder}`
@@ -9561,6 +9651,9 @@ type ListCompletedJobsParams struct {
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
 
+	// Resolved filter on whether a failure has been marked as handled. true keeps only resolved failures, false hides them
+	Resolved *bool `form:"resolved,omitempty" json:"resolved,omitempty"`
+
 	// IsFlowStep is the job a flow step
 	IsFlowStep *bool `form:"is_flow_step,omitempty" json:"is_flow_step,omitempty"`
 
@@ -9573,6 +9666,22 @@ type ListCompletedJobsParams struct {
 
 // ListCompletedJobsParamsStatus defines parameters for ListCompletedJobs.
 type ListCompletedJobsParamsStatus string
+
+// ResolveCompletedJobsJSONBody defines parameters for ResolveCompletedJobs.
+type ResolveCompletedJobsJSONBody struct {
+	JobIds []openapi_types.UUID `json:"job_ids"`
+
+	// Note a person's explanation of why the failure is considered handled. Enterprise-only: ignored outside enterprise
+	Note *string `json:"note,omitempty"`
+
+	// SupersededBy id of a later successful run of the same runnable that supersedes the failure. Verified server-side, and the resulting note is the server's own wording, so it is recorded regardless of licence. A claim that cannot be verified resolves nothing
+	SupersededBy *openapi_types.UUID `json:"superseded_by,omitempty"`
+}
+
+// UnresolveCompletedJobsJSONBody defines parameters for UnresolveCompletedJobs.
+type UnresolveCompletedJobsJSONBody struct {
+	JobIds []openapi_types.UUID `json:"job_ids"`
+}
 
 // DeleteJobsJSONBody defines parameters for DeleteJobs.
 type DeleteJobsJSONBody = []openapi_types.UUID
@@ -9670,6 +9779,9 @@ type ListJobsParams struct {
 
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
+
+	// Resolved filter on whether a failure has been marked as handled. true keeps only resolved failures, false hides them
+	Resolved *bool `form:"resolved,omitempty" json:"resolved,omitempty"`
 
 	// IsFlowStep is the job a flow step
 	IsFlowStep *bool `form:"is_flow_step,omitempty" json:"is_flow_step,omitempty"`
@@ -9778,6 +9890,9 @@ type ListFilteredJobsUuidsParams struct {
 
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
+
+	// Resolved filter on whether a failure has been marked as handled. true keeps only resolved failures, false hides them
+	Resolved *bool `form:"resolved,omitempty" json:"resolved,omitempty"`
 
 	// IsFlowStep is the job a flow step
 	IsFlowStep *bool `form:"is_flow_step,omitempty" json:"is_flow_step,omitempty"`
@@ -10583,6 +10698,11 @@ type GetTeamsApprovalPayloadParams struct {
 	CancelButtonText *string `form:"cancel_button_text,omitempty" json:"cancel_button_text,omitempty"`
 }
 
+// GetWacApprovalUrlsParams defines parameters for GetWacApprovalUrls.
+type GetWacApprovalUrlsParams struct {
+	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
+}
+
 // CancelSuspendedJobGetParams defines parameters for CancelSuspendedJobGet.
 type CancelSuspendedJobGetParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
@@ -11111,6 +11231,38 @@ type ListResourceParams struct {
 type UpdateResourceValueJSONBody struct {
 	Value *interface{} `json:"value,omitempty"`
 }
+
+// ListRunnablesParams defines parameters for ListRunnables.
+type ListRunnablesParams struct {
+	// OrderBy sort key: 'updated' (default) or 'name'
+	OrderBy *ListRunnablesParamsOrderBy `form:"order_by,omitempty" json:"order_by,omitempty"`
+
+	// OrderDesc order by desc order (default true)
+	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
+
+	// Kinds comma-separated subset of script,flow,app (default all)
+	Kinds        *string `form:"kinds,omitempty" json:"kinds,omitempty"`
+	ShowArchived *bool   `form:"show_archived,omitempty" json:"show_archived,omitempty"`
+
+	// IncludeWithoutMain include library scripts (no runnable main)
+	IncludeWithoutMain *bool `form:"include_without_main,omitempty" json:"include_without_main,omitempty"`
+
+	// PathStart restrict to paths under this prefix
+	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
+	Label     *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// Search case-insensitive substring match on summary or path
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// Cursor opaque keyset cursor from a previous page's next_cursor
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ListRunnablesParamsOrderBy defines parameters for ListRunnables.
+type ListRunnablesParamsOrderBy string
 
 // GetScheduleParams defines parameters for GetSchedule.
 type GetScheduleParams struct {
@@ -12402,6 +12554,9 @@ type PublishHubRawAppJSONRequestBody = PublishRawAppBody
 // PublishHubRawAppEmbedJSONRequestBody defines body for PublishHubRawAppEmbed for application/json ContentType.
 type PublishHubRawAppEmbedJSONRequestBody = RawAppEmbedBody
 
+// PublishHubRawAppRecordingJSONRequestBody defines body for PublishHubRawAppRecording for application/json ContentType.
+type PublishHubRawAppRecordingJSONRequestBody = RecordingBody
+
 // PublishHubResourceTypeJSONRequestBody defines body for PublishHubResourceType for application/json ContentType.
 type PublishHubResourceTypeJSONRequestBody = PublishResourceTypeBody
 
@@ -12446,6 +12601,12 @@ type SetJobProgressJSONRequestBody SetJobProgressJSONBody
 
 // ImportCompletedJobsJSONRequestBody defines body for ImportCompletedJobs for application/json ContentType.
 type ImportCompletedJobsJSONRequestBody = ImportCompletedJobsJSONBody
+
+// ResolveCompletedJobsJSONRequestBody defines body for ResolveCompletedJobs for application/json ContentType.
+type ResolveCompletedJobsJSONRequestBody ResolveCompletedJobsJSONBody
+
+// UnresolveCompletedJobsJSONRequestBody defines body for UnresolveCompletedJobs for application/json ContentType.
+type UnresolveCompletedJobsJSONRequestBody UnresolveCompletedJobsJSONBody
 
 // DeleteJobsJSONRequestBody defines body for DeleteJobs for application/json ContentType.
 type DeleteJobsJSONRequestBody = DeleteJobsJSONBody
@@ -16140,6 +16301,11 @@ type ClientInterface interface {
 
 	PublishHubRawAppEmbed(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, body PublishHubRawAppEmbedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// PublishHubRawAppRecordingWithBody request with any body
+	PublishHubRawAppRecordingWithBody(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PublishHubRawAppRecording(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, body PublishHubRawAppRecordingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// PublishHubResourceTypeWithBody request with any body
 	PublishHubResourceTypeWithBody(ctx context.Context, workspace WorkspaceId, params *PublishHubResourceTypeParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16301,6 +16467,16 @@ type ClientInterface interface {
 
 	// ListCompletedJobs request
 	ListCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResolveCompletedJobsWithBody request with any body
+	ResolveCompletedJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ResolveCompletedJobs(ctx context.Context, workspace WorkspaceId, body ResolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UnresolveCompletedJobsWithBody request with any body
+	UnresolveCompletedJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UnresolveCompletedJobs(ctx context.Context, workspace WorkspaceId, body UnresolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteJobsWithBody request with any body
 	DeleteJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16517,6 +16693,9 @@ type ClientInterface interface {
 
 	// GetTeamsApprovalPayload request
 	GetTeamsApprovalPayload(ctx context.Context, workspace WorkspaceId, id JobId, params *GetTeamsApprovalPayloadParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetWacApprovalUrls request
+	GetWacApprovalUrls(ctx context.Context, workspace WorkspaceId, id JobId, stepKey string, params *GetWacApprovalUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunCodeWorkflowTaskWithBody request with any body
 	RunCodeWorkflowTaskWithBody(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17009,6 +17188,9 @@ type ClientInterface interface {
 	UpdateResourceValueWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateResourceValue(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceValueJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListRunnables request
+	ListRunnables(ctx context.Context, workspace WorkspaceId, params *ListRunnablesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateScheduleWithBody request with any body
 	CreateScheduleWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -23503,6 +23685,30 @@ func (c *Client) PublishHubRawAppEmbed(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
+func (c *Client) PublishHubRawAppRecordingWithBody(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPublishHubRawAppRecordingRequestWithBody(c.Server, workspace, id, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PublishHubRawAppRecording(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, body PublishHubRawAppRecordingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPublishHubRawAppRecordingRequest(c.Server, workspace, id, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) PublishHubResourceTypeWithBody(ctx context.Context, workspace WorkspaceId, params *PublishHubResourceTypeParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPublishHubResourceTypeRequestWithBody(c.Server, workspace, params, contentType, body)
 	if err != nil {
@@ -24201,6 +24407,54 @@ func (c *Client) ImportCompletedJobs(ctx context.Context, workspace WorkspaceId,
 
 func (c *Client) ListCompletedJobs(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListCompletedJobsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResolveCompletedJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResolveCompletedJobsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResolveCompletedJobs(ctx context.Context, workspace WorkspaceId, body ResolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResolveCompletedJobsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UnresolveCompletedJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnresolveCompletedJobsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UnresolveCompletedJobs(ctx context.Context, workspace WorkspaceId, body UnresolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnresolveCompletedJobsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -25185,6 +25439,18 @@ func (c *Client) GetSlackApprovalPayload(ctx context.Context, workspace Workspac
 
 func (c *Client) GetTeamsApprovalPayload(ctx context.Context, workspace WorkspaceId, id JobId, params *GetTeamsApprovalPayloadParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetTeamsApprovalPayloadRequest(c.Server, workspace, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetWacApprovalUrls(ctx context.Context, workspace WorkspaceId, id JobId, stepKey string, params *GetWacApprovalUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetWacApprovalUrlsRequest(c.Server, workspace, id, stepKey, params)
 	if err != nil {
 		return nil, err
 	}
@@ -27345,6 +27611,18 @@ func (c *Client) UpdateResourceValueWithBody(ctx context.Context, workspace Work
 
 func (c *Client) UpdateResourceValue(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceValueJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateResourceValueRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListRunnables(ctx context.Context, workspace WorkspaceId, params *ListRunnablesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListRunnablesRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -43216,6 +43494,22 @@ func NewListExtendedJobsRequest(server string, workspace WorkspaceId, params *Li
 
 		}
 
+		if params.Resolved != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resolved", runtime.ParamLocationQuery, *params.Resolved); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.IsFlowStep != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow_step", runtime.ParamLocationQuery, *params.IsFlowStep); err != nil {
@@ -46367,6 +46661,38 @@ func NewListFolderNamesRequest(server string, workspace WorkspaceId, params *Lis
 	if params != nil {
 		queryValues := queryURL.Query()
 
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.OnlyMemberOf != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "only_member_of", runtime.ParamLocationQuery, *params.OnlyMemberOf); err != nil {
@@ -49293,6 +49619,78 @@ func NewPublishHubRawAppEmbedRequestWithBody(server string, workspace WorkspaceI
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/hub/raw_apps/%s/embed", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "folder", runtime.ParamLocationQuery, params.Folder); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPublishHubRawAppRecordingRequest calls the generic PublishHubRawAppRecording builder with application/json body
+func NewPublishHubRawAppRecordingRequest(server string, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, body PublishHubRawAppRecordingJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPublishHubRawAppRecordingRequestWithBody(server, workspace, id, params, "application/json", bodyReader)
+}
+
+// NewPublishHubRawAppRecordingRequestWithBody generates requests for PublishHubRawAppRecording with any type of body
+func NewPublishHubRawAppRecordingRequestWithBody(server string, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/hub/raw_apps/%s/recording", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -53278,6 +53676,22 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 
 		}
 
+		if params.Resolved != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resolved", runtime.ParamLocationQuery, *params.Resolved); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.IsFlowStep != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow_step", runtime.ParamLocationQuery, *params.IsFlowStep); err != nil {
@@ -53333,6 +53747,100 @@ func NewListCompletedJobsRequest(server string, workspace WorkspaceId, params *L
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewResolveCompletedJobsRequest calls the generic ResolveCompletedJobs builder with application/json body
+func NewResolveCompletedJobsRequest(server string, workspace WorkspaceId, body ResolveCompletedJobsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewResolveCompletedJobsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewResolveCompletedJobsRequestWithBody generates requests for ResolveCompletedJobs with any type of body
+func NewResolveCompletedJobsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/completed/resolve", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUnresolveCompletedJobsRequest calls the generic UnresolveCompletedJobs builder with application/json body
+func NewUnresolveCompletedJobsRequest(server string, workspace WorkspaceId, body UnresolveCompletedJobsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUnresolveCompletedJobsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewUnresolveCompletedJobsRequestWithBody generates requests for UnresolveCompletedJobs with any type of body
+func NewUnresolveCompletedJobsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/completed/unresolve", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -54160,6 +54668,22 @@ func NewListJobsRequest(server string, workspace WorkspaceId, params *ListJobsPa
 
 		}
 
+		if params.Resolved != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resolved", runtime.ParamLocationQuery, *params.Resolved); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.IsFlowStep != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_flow_step", runtime.ParamLocationQuery, *params.IsFlowStep); err != nil {
@@ -54731,6 +55255,22 @@ func NewListFilteredJobsUuidsRequest(server string, workspace WorkspaceId, param
 		if params.IsSkipped != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_skipped", runtime.ParamLocationQuery, *params.IsSkipped); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Resolved != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resolved", runtime.ParamLocationQuery, *params.Resolved); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -60426,6 +60966,76 @@ func NewGetTeamsApprovalPayloadRequest(server string, workspace WorkspaceId, id 
 		if params.CancelButtonText != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cancel_button_text", runtime.ParamLocationQuery, *params.CancelButtonText); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetWacApprovalUrlsRequest generates requests for GetWacApprovalUrls
+func NewGetWacApprovalUrlsRequest(server string, workspace WorkspaceId, id JobId, stepKey string, params *GetWacApprovalUrlsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "step_key", runtime.ParamLocationPath, stepKey)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/wac_approval_urls/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Approver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "approver", runtime.ParamLocationQuery, *params.Approver); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -68138,6 +68748,206 @@ func NewUpdateResourceValueRequestWithBody(server string, workspace WorkspaceId,
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListRunnablesRequest generates requests for ListRunnables
+func NewListRunnablesRequest(server string, workspace WorkspaceId, params *ListRunnablesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/runnables/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.OrderBy != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order_by", runtime.ParamLocationQuery, *params.OrderBy); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.OrderDesc != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order_desc", runtime.ParamLocationQuery, *params.OrderDesc); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Kinds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kinds", runtime.ParamLocationQuery, *params.Kinds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ShowArchived != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "show_archived", runtime.ParamLocationQuery, *params.ShowArchived); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeWithoutMain != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_without_main", runtime.ParamLocationQuery, *params.IncludeWithoutMain); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PathStart != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Label != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "label", runtime.ParamLocationQuery, *params.Label); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Search != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Cursor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cursor", runtime.ParamLocationQuery, *params.Cursor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -80298,6 +81108,11 @@ type ClientWithResponsesInterface interface {
 
 	PublishHubRawAppEmbedWithResponse(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, body PublishHubRawAppEmbedJSONRequestBody, reqEditors ...RequestEditorFn) (*PublishHubRawAppEmbedResponse, error)
 
+	// PublishHubRawAppRecordingWithBodyWithResponse request with any body
+	PublishHubRawAppRecordingWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PublishHubRawAppRecordingResponse, error)
+
+	PublishHubRawAppRecordingWithResponse(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, body PublishHubRawAppRecordingJSONRequestBody, reqEditors ...RequestEditorFn) (*PublishHubRawAppRecordingResponse, error)
+
 	// PublishHubResourceTypeWithBodyWithResponse request with any body
 	PublishHubResourceTypeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *PublishHubResourceTypeParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PublishHubResourceTypeResponse, error)
 
@@ -80459,6 +81274,16 @@ type ClientWithResponsesInterface interface {
 
 	// ListCompletedJobsWithResponse request
 	ListCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListCompletedJobsParams, reqEditors ...RequestEditorFn) (*ListCompletedJobsResponse, error)
+
+	// ResolveCompletedJobsWithBodyWithResponse request with any body
+	ResolveCompletedJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResolveCompletedJobsResponse, error)
+
+	ResolveCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, body ResolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*ResolveCompletedJobsResponse, error)
+
+	// UnresolveCompletedJobsWithBodyWithResponse request with any body
+	UnresolveCompletedJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UnresolveCompletedJobsResponse, error)
+
+	UnresolveCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, body UnresolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*UnresolveCompletedJobsResponse, error)
 
 	// DeleteJobsWithBodyWithResponse request with any body
 	DeleteJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteJobsResponse, error)
@@ -80675,6 +81500,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetTeamsApprovalPayloadWithResponse request
 	GetTeamsApprovalPayloadWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetTeamsApprovalPayloadParams, reqEditors ...RequestEditorFn) (*GetTeamsApprovalPayloadResponse, error)
+
+	// GetWacApprovalUrlsWithResponse request
+	GetWacApprovalUrlsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepKey string, params *GetWacApprovalUrlsParams, reqEditors ...RequestEditorFn) (*GetWacApprovalUrlsResponse, error)
 
 	// RunCodeWorkflowTaskWithBodyWithResponse request with any body
 	RunCodeWorkflowTaskWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunCodeWorkflowTaskResponse, error)
@@ -81167,6 +81995,9 @@ type ClientWithResponsesInterface interface {
 	UpdateResourceValueWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResourceValueResponse, error)
 
 	UpdateResourceValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceValueJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateResourceValueResponse, error)
+
+	// ListRunnablesWithResponse request
+	ListRunnablesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListRunnablesParams, reqEditors ...RequestEditorFn) (*ListRunnablesResponse, error)
 
 	// CreateScheduleWithBodyWithResponse request with any body
 	CreateScheduleWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateScheduleResponse, error)
@@ -90447,6 +91278,27 @@ func (r PublishHubRawAppEmbedResponse) StatusCode() int {
 	return 0
 }
 
+type PublishHubRawAppRecordingResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r PublishHubRawAppRecordingResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PublishHubRawAppRecordingResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type PublishHubResourceTypeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -91471,6 +92323,50 @@ func (r ListCompletedJobsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListCompletedJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ResolveCompletedJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]openapi_types.UUID
+}
+
+// Status returns HTTPResponse.Status
+func (r ResolveCompletedJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResolveCompletedJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UnresolveCompletedJobsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]openapi_types.UUID
+}
+
+// Status returns HTTPResponse.Status
+func (r UnresolveCompletedJobsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UnresolveCompletedJobsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -92599,6 +93495,32 @@ func (r GetTeamsApprovalPayloadResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetTeamsApprovalPayloadResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetWacApprovalUrlsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		ApprovalPage string `json:"approvalPage"`
+		Cancel       string `json:"cancel"`
+		Resume       string `json:"resume"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetWacApprovalUrlsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetWacApprovalUrlsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -95825,6 +96747,31 @@ func (r UpdateResourceValueResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateResourceValueResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListRunnablesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Items      []RunnableItem `json:"items"`
+		NextCursor *string        `json:"next_cursor,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListRunnablesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListRunnablesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -105358,6 +106305,23 @@ func (c *ClientWithResponses) PublishHubRawAppEmbedWithResponse(ctx context.Cont
 	return ParsePublishHubRawAppEmbedResponse(rsp)
 }
 
+// PublishHubRawAppRecordingWithBodyWithResponse request with arbitrary body returning *PublishHubRawAppRecordingResponse
+func (c *ClientWithResponses) PublishHubRawAppRecordingWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PublishHubRawAppRecordingResponse, error) {
+	rsp, err := c.PublishHubRawAppRecordingWithBody(ctx, workspace, id, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePublishHubRawAppRecordingResponse(rsp)
+}
+
+func (c *ClientWithResponses) PublishHubRawAppRecordingWithResponse(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, body PublishHubRawAppRecordingJSONRequestBody, reqEditors ...RequestEditorFn) (*PublishHubRawAppRecordingResponse, error) {
+	rsp, err := c.PublishHubRawAppRecording(ctx, workspace, id, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePublishHubRawAppRecordingResponse(rsp)
+}
+
 // PublishHubResourceTypeWithBodyWithResponse request with arbitrary body returning *PublishHubResourceTypeResponse
 func (c *ClientWithResponses) PublishHubResourceTypeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *PublishHubResourceTypeParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PublishHubResourceTypeResponse, error) {
 	rsp, err := c.PublishHubResourceTypeWithBody(ctx, workspace, params, contentType, body, reqEditors...)
@@ -105872,6 +106836,40 @@ func (c *ClientWithResponses) ListCompletedJobsWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseListCompletedJobsResponse(rsp)
+}
+
+// ResolveCompletedJobsWithBodyWithResponse request with arbitrary body returning *ResolveCompletedJobsResponse
+func (c *ClientWithResponses) ResolveCompletedJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResolveCompletedJobsResponse, error) {
+	rsp, err := c.ResolveCompletedJobsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResolveCompletedJobsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ResolveCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, body ResolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*ResolveCompletedJobsResponse, error) {
+	rsp, err := c.ResolveCompletedJobs(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResolveCompletedJobsResponse(rsp)
+}
+
+// UnresolveCompletedJobsWithBodyWithResponse request with arbitrary body returning *UnresolveCompletedJobsResponse
+func (c *ClientWithResponses) UnresolveCompletedJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UnresolveCompletedJobsResponse, error) {
+	rsp, err := c.UnresolveCompletedJobsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnresolveCompletedJobsResponse(rsp)
+}
+
+func (c *ClientWithResponses) UnresolveCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, body UnresolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*UnresolveCompletedJobsResponse, error) {
+	rsp, err := c.UnresolveCompletedJobs(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnresolveCompletedJobsResponse(rsp)
 }
 
 // DeleteJobsWithBodyWithResponse request with arbitrary body returning *DeleteJobsResponse
@@ -106580,6 +107578,15 @@ func (c *ClientWithResponses) GetTeamsApprovalPayloadWithResponse(ctx context.Co
 		return nil, err
 	}
 	return ParseGetTeamsApprovalPayloadResponse(rsp)
+}
+
+// GetWacApprovalUrlsWithResponse request returning *GetWacApprovalUrlsResponse
+func (c *ClientWithResponses) GetWacApprovalUrlsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepKey string, params *GetWacApprovalUrlsParams, reqEditors ...RequestEditorFn) (*GetWacApprovalUrlsResponse, error) {
+	rsp, err := c.GetWacApprovalUrls(ctx, workspace, id, stepKey, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetWacApprovalUrlsResponse(rsp)
 }
 
 // RunCodeWorkflowTaskWithBodyWithResponse request with arbitrary body returning *RunCodeWorkflowTaskResponse
@@ -108152,6 +109159,15 @@ func (c *ClientWithResponses) UpdateResourceValueWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseUpdateResourceValueResponse(rsp)
+}
+
+// ListRunnablesWithResponse request returning *ListRunnablesResponse
+func (c *ClientWithResponses) ListRunnablesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListRunnablesParams, reqEditors ...RequestEditorFn) (*ListRunnablesResponse, error) {
+	rsp, err := c.ListRunnables(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListRunnablesResponse(rsp)
 }
 
 // CreateScheduleWithBodyWithResponse request with arbitrary body returning *CreateScheduleResponse
@@ -119269,6 +120285,22 @@ func ParsePublishHubRawAppEmbedResponse(rsp *http.Response) (*PublishHubRawAppEm
 	return response, nil
 }
 
+// ParsePublishHubRawAppRecordingResponse parses an HTTP response from a PublishHubRawAppRecordingWithResponse call
+func ParsePublishHubRawAppRecordingResponse(rsp *http.Response) (*PublishHubRawAppRecordingResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PublishHubRawAppRecordingResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParsePublishHubResourceTypeResponse parses an HTTP response from a PublishHubResourceTypeWithResponse call
 func ParsePublishHubResourceTypeResponse(rsp *http.Response) (*PublishHubResourceTypeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -120346,6 +121378,58 @@ func ParseListCompletedJobsResponse(rsp *http.Response) (*ListCompletedJobsRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []CompletedJob
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseResolveCompletedJobsResponse parses an HTTP response from a ResolveCompletedJobsWithResponse call
+func ParseResolveCompletedJobsResponse(rsp *http.Response) (*ResolveCompletedJobsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResolveCompletedJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []openapi_types.UUID
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUnresolveCompletedJobsResponse parses an HTTP response from a UnresolveCompletedJobsWithResponse call
+func ParseUnresolveCompletedJobsResponse(rsp *http.Response) (*UnresolveCompletedJobsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UnresolveCompletedJobsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []openapi_types.UUID
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -121435,6 +122519,36 @@ func ParseGetTeamsApprovalPayloadResponse(rsp *http.Response) (*GetTeamsApproval
 	response := &GetTeamsApprovalPayloadResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetWacApprovalUrlsResponse parses an HTTP response from a GetWacApprovalUrlsWithResponse call
+func ParseGetWacApprovalUrlsResponse(rsp *http.Response) (*GetWacApprovalUrlsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetWacApprovalUrlsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			ApprovalPage string `json:"approvalPage"`
+			Cancel       string `json:"cancel"`
+			Resume       string `json:"resume"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -124593,6 +125707,35 @@ func ParseUpdateResourceValueResponse(rsp *http.Response) (*UpdateResourceValueR
 	response := &UpdateResourceValueResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListRunnablesResponse parses an HTTP response from a ListRunnablesWithResponse call
+func ParseListRunnablesResponse(rsp *http.Response) (*ListRunnablesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListRunnablesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Items      []RunnableItem `json:"items"`
+			NextCursor *string        `json:"next_cursor,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
