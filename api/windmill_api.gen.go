@@ -7119,7 +7119,7 @@ type SchemasInputTransform struct {
 	union json.RawMessage
 }
 
-// SchemasJavascriptTransform JavaScript expression evaluated at runtime. Can reference previous step results via 'results.step_id' or flow inputs via 'flow_input.property'. Inside loops, use 'flow_input.iter.value' for the current iteration value
+// SchemasJavascriptTransform JavaScript expression evaluated at runtime. Can reference previous step results via 'results.step_id' or flow inputs via 'flow_input.property'. Inside for loops, use 'flow_input.iter.value' for the current iteration value (in while loops it equals 'flow_input.iter.index')
 type SchemasJavascriptTransform struct {
 	// Expr JavaScript expression returning the value. Available variables - results (object with all previous step results), flow_input (flow inputs), flow_input.iter (in loops)
 	Expr string                         `json:"expr"`
@@ -7304,9 +7304,9 @@ type SchemasStopAfterIf struct {
 	SkipIfStopped *bool `json:"skip_if_stopped,omitempty"`
 }
 
-// SchemasWhileloopFlow Executes nested modules repeatedly while a condition is true. The loop checks the condition after each iteration. Use stop_after_if on modules to control loop termination
+// SchemasWhileloopFlow Executes nested modules repeatedly until stopped. The implicit iterator is the iteration counter, so 'flow_input.iter.value' equals 'flow_input.iter.index' (0, 1, 2, ...) and never carries state. To carry state across iterations, a step reads its own previous-iteration result via 'results.<its_own_id>' with a first-iteration fallback - the loop's stop_after_if must then be on that inner step (a plain single-step body with stop_after_if on the loop module does not resolve 'results' across iterations and never terminates); plain counters can instead be derived from 'flow_input.iter.index', which works in every configuration. stop_after_if is evaluated after each iteration - on the loop module 'result' is the last iteration's result
 type SchemasWhileloopFlow struct {
-	// Modules Steps to execute in each iteration. Use stop_after_if to control when the loop ends
+	// Modules Steps to execute in each iteration
 	Modules []SchemasFlowModule `json:"modules"`
 
 	// Parallel If true, iterations run concurrently (use with caution in while loops)
@@ -7865,6 +7865,11 @@ type SendMessageToConversationJSONBody struct {
 type AcceptInviteJSONBody struct {
 	Username    *string `json:"username,omitempty"`
 	WorkspaceId string  `json:"workspace_id"`
+}
+
+// GlobalUserChangeEmailJSONBody defines parameters for GlobalUserChangeEmail.
+type GlobalUserChangeEmailJSONBody struct {
+	NewEmail string `json:"new_email"`
 }
 
 // CreateUserGloballyJSONBody defines parameters for CreateUserGlobally.
@@ -11215,6 +11220,15 @@ type UpdateResourceValueJSONBody struct {
 	Value *interface{} `json:"value,omitempty"`
 }
 
+// CountRunnablesByOwnerParams defines parameters for CountRunnablesByOwner.
+type CountRunnablesByOwnerParams struct {
+	// Kinds comma-separated subset of script,flow,app (default all)
+	Kinds *string `form:"kinds,omitempty" json:"kinds,omitempty"`
+
+	// IncludeWithoutMain include library scripts (no runnable main)
+	IncludeWithoutMain *bool `form:"include_without_main,omitempty" json:"include_without_main,omitempty"`
+}
+
 // ListRunnablesParams defines parameters for ListRunnables.
 type ListRunnablesParams struct {
 	// OrderBy sort key: 'updated' (default) or 'name'
@@ -12278,6 +12292,9 @@ type SendMessageToConversationJSONRequestBody SendMessageToConversationJSONBody
 
 // AcceptInviteJSONRequestBody defines body for AcceptInvite for application/json ContentType.
 type AcceptInviteJSONRequestBody AcceptInviteJSONBody
+
+// GlobalUserChangeEmailJSONRequestBody defines body for GlobalUserChangeEmail for application/json ContentType.
+type GlobalUserChangeEmailJSONRequestBody GlobalUserChangeEmailJSONBody
 
 // CreateUserGloballyJSONRequestBody defines body for CreateUserGlobally for application/json ContentType.
 type CreateUserGloballyJSONRequestBody CreateUserGloballyJSONBody
@@ -15471,6 +15488,11 @@ type ClientInterface interface {
 	// GetRunnable request
 	GetRunnable(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GlobalUserChangeEmailWithBody request with any body
+	GlobalUserChangeEmailWithBody(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GlobalUserChangeEmail(ctx context.Context, email string, body GlobalUserChangeEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateUserGloballyWithBody request with any body
 	CreateUserGloballyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17163,6 +17185,9 @@ type ClientInterface interface {
 	UpdateResourceValueWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateResourceValue(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceValueJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CountRunnablesByOwner request
+	CountRunnablesByOwner(ctx context.Context, workspace WorkspaceId, params *CountRunnablesByOwnerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListRunnables request
 	ListRunnables(ctx context.Context, workspace WorkspaceId, params *ListRunnablesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20074,6 +20099,30 @@ func (c *Client) AcceptInvite(ctx context.Context, body AcceptInviteJSONRequestB
 
 func (c *Client) GetRunnable(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetRunnableRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GlobalUserChangeEmailWithBody(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGlobalUserChangeEmailRequestWithBody(c.Server, email, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GlobalUserChangeEmail(ctx context.Context, email string, body GlobalUserChangeEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGlobalUserChangeEmailRequest(c.Server, email, body)
 	if err != nil {
 		return nil, err
 	}
@@ -27562,6 +27611,18 @@ func (c *Client) UpdateResourceValueWithBody(ctx context.Context, workspace Work
 
 func (c *Client) UpdateResourceValue(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceValueJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateResourceValueRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CountRunnablesByOwner(ctx context.Context, workspace WorkspaceId, params *CountRunnablesByOwnerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCountRunnablesByOwnerRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -36397,6 +36458,53 @@ func NewGetRunnableRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGlobalUserChangeEmailRequest calls the generic GlobalUserChangeEmail builder with application/json body
+func NewGlobalUserChangeEmailRequest(server string, email string, body GlobalUserChangeEmailJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGlobalUserChangeEmailRequestWithBody(server, email, "application/json", bodyReader)
+}
+
+// NewGlobalUserChangeEmailRequestWithBody generates requests for GlobalUserChangeEmail with any type of body
+func NewGlobalUserChangeEmailRequestWithBody(server string, email string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "email", runtime.ParamLocationPath, email)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/change_email/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -68631,6 +68739,78 @@ func NewUpdateResourceValueRequestWithBody(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewCountRunnablesByOwnerRequest generates requests for CountRunnablesByOwner
+func NewCountRunnablesByOwnerRequest(server string, workspace WorkspaceId, params *CountRunnablesByOwnerParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/runnables/counts", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Kinds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kinds", runtime.ParamLocationQuery, *params.Kinds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeWithoutMain != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_without_main", runtime.ParamLocationQuery, *params.IncludeWithoutMain); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListRunnablesRequest generates requests for ListRunnables
 func NewListRunnablesRequest(server string, workspace WorkspaceId, params *ListRunnablesParams) (*http.Request, error) {
 	var err error
@@ -80177,6 +80357,11 @@ type ClientWithResponsesInterface interface {
 	// GetRunnableWithResponse request
 	GetRunnableWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetRunnableResponse, error)
 
+	// GlobalUserChangeEmailWithBodyWithResponse request with any body
+	GlobalUserChangeEmailWithBodyWithResponse(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GlobalUserChangeEmailResponse, error)
+
+	GlobalUserChangeEmailWithResponse(ctx context.Context, email string, body GlobalUserChangeEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*GlobalUserChangeEmailResponse, error)
+
 	// CreateUserGloballyWithBodyWithResponse request with any body
 	CreateUserGloballyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateUserGloballyResponse, error)
 
@@ -81869,6 +82054,9 @@ type ClientWithResponsesInterface interface {
 	UpdateResourceValueWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResourceValueResponse, error)
 
 	UpdateResourceValueWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceValueJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateResourceValueResponse, error)
+
+	// CountRunnablesByOwnerWithResponse request
+	CountRunnablesByOwnerWithResponse(ctx context.Context, workspace WorkspaceId, params *CountRunnablesByOwnerParams, reqEditors ...RequestEditorFn) (*CountRunnablesByOwnerResponse, error)
 
 	// ListRunnablesWithResponse request
 	ListRunnablesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListRunnablesParams, reqEditors ...RequestEditorFn) (*ListRunnablesResponse, error)
@@ -85881,6 +86069,27 @@ func (r GetRunnableResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetRunnableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GlobalUserChangeEmailResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GlobalUserChangeEmailResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GlobalUserChangeEmailResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -96606,6 +96815,31 @@ func (r UpdateResourceValueResponse) StatusCode() int {
 	return 0
 }
 
+type CountRunnablesByOwnerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Counts owner prefix (f/<folder> or u/<user>) to count
+		Counts map[string]int `json:"counts"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CountRunnablesByOwnerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CountRunnablesByOwnerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListRunnablesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -103560,6 +103794,23 @@ func (c *ClientWithResponses) GetRunnableWithResponse(ctx context.Context, reqEd
 	return ParseGetRunnableResponse(rsp)
 }
 
+// GlobalUserChangeEmailWithBodyWithResponse request with arbitrary body returning *GlobalUserChangeEmailResponse
+func (c *ClientWithResponses) GlobalUserChangeEmailWithBodyWithResponse(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GlobalUserChangeEmailResponse, error) {
+	rsp, err := c.GlobalUserChangeEmailWithBody(ctx, email, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGlobalUserChangeEmailResponse(rsp)
+}
+
+func (c *ClientWithResponses) GlobalUserChangeEmailWithResponse(ctx context.Context, email string, body GlobalUserChangeEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*GlobalUserChangeEmailResponse, error) {
+	rsp, err := c.GlobalUserChangeEmail(ctx, email, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGlobalUserChangeEmailResponse(rsp)
+}
+
 // CreateUserGloballyWithBodyWithResponse request with arbitrary body returning *CreateUserGloballyResponse
 func (c *ClientWithResponses) CreateUserGloballyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateUserGloballyResponse, error) {
 	rsp, err := c.CreateUserGloballyWithBody(ctx, contentType, body, reqEditors...)
@@ -108995,6 +109246,15 @@ func (c *ClientWithResponses) UpdateResourceValueWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseUpdateResourceValueResponse(rsp)
+}
+
+// CountRunnablesByOwnerWithResponse request returning *CountRunnablesByOwnerResponse
+func (c *ClientWithResponses) CountRunnablesByOwnerWithResponse(ctx context.Context, workspace WorkspaceId, params *CountRunnablesByOwnerParams, reqEditors ...RequestEditorFn) (*CountRunnablesByOwnerResponse, error) {
+	rsp, err := c.CountRunnablesByOwner(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCountRunnablesByOwnerResponse(rsp)
 }
 
 // ListRunnablesWithResponse request returning *ListRunnablesResponse
@@ -114970,6 +115230,22 @@ func ParseGetRunnableResponse(rsp *http.Response) (*GetRunnableResponse, error) 
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGlobalUserChangeEmailResponse parses an HTTP response from a GlobalUserChangeEmailWithResponse call
+func ParseGlobalUserChangeEmailResponse(rsp *http.Response) (*GlobalUserChangeEmailResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GlobalUserChangeEmailResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -125527,6 +125803,35 @@ func ParseUpdateResourceValueResponse(rsp *http.Response) (*UpdateResourceValueR
 	response := &UpdateResourceValueResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCountRunnablesByOwnerResponse parses an HTTP response from a CountRunnablesByOwnerWithResponse call
+func ParseCountRunnablesByOwnerResponse(rsp *http.Response) (*CountRunnablesByOwnerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CountRunnablesByOwnerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Counts owner prefix (f/<folder> or u/<user>) to count
+			Counts map[string]int `json:"counts"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
