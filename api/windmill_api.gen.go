@@ -5530,15 +5530,6 @@ type QuotaInfo struct {
 	Used     int `json:"used"`
 }
 
-// RawAppEmbedBody defines model for RawAppEmbedBody.
-type RawAppEmbedBody struct {
-	// ExternalEmbedUrl explicit `null` clears the embed (unpublish)
-	ExternalEmbedUrl *string `json:"external_embed_url"`
-
-	// ProjectSlug hub project slug (3-50 chars, lowercase alphanumeric and hyphens, no leading/trailing hyphen)
-	ProjectSlug HubProjectSlug `json:"project_slug"`
-}
-
 // RawScriptForDependencies defines model for RawScriptForDependencies.
 type RawScriptForDependencies struct {
 	Language ScriptLang `json:"language"`
@@ -9251,14 +9242,6 @@ type PublishHubRawAppParams struct {
 	Folder HubPublishFolder `form:"folder" json:"folder"`
 }
 
-// PublishHubRawAppEmbedParams defines parameters for PublishHubRawAppEmbed.
-type PublishHubRawAppEmbedParams struct {
-	// Folder workspace folder scoping the Hub publication: a workspace can publish
-	// one Hub project per folder and the Hub-side source key is
-	// `{workspace}:{folder}`
-	Folder HubPublishFolder `form:"folder" json:"folder"`
-}
-
 // PublishHubRawAppRecordingParams defines parameters for PublishHubRawAppRecording.
 type PublishHubRawAppRecordingParams struct {
 	// Folder workspace folder scoping the Hub publication: a workspace can publish
@@ -12550,9 +12533,6 @@ type PublishHubDraftJSONRequestBody = PublishDraftBody
 
 // PublishHubRawAppJSONRequestBody defines body for PublishHubRawApp for application/json ContentType.
 type PublishHubRawAppJSONRequestBody = PublishRawAppBody
-
-// PublishHubRawAppEmbedJSONRequestBody defines body for PublishHubRawAppEmbed for application/json ContentType.
-type PublishHubRawAppEmbedJSONRequestBody = RawAppEmbedBody
 
 // PublishHubRawAppRecordingJSONRequestBody defines body for PublishHubRawAppRecording for application/json ContentType.
 type PublishHubRawAppRecordingJSONRequestBody = RecordingBody
@@ -16295,11 +16275,6 @@ type ClientInterface interface {
 	PublishHubRawAppWithBody(ctx context.Context, workspace WorkspaceId, params *PublishHubRawAppParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PublishHubRawApp(ctx context.Context, workspace WorkspaceId, params *PublishHubRawAppParams, body PublishHubRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PublishHubRawAppEmbedWithBody request with any body
-	PublishHubRawAppEmbedWithBody(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PublishHubRawAppEmbed(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, body PublishHubRawAppEmbedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PublishHubRawAppRecordingWithBody request with any body
 	PublishHubRawAppRecordingWithBody(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -23651,30 +23626,6 @@ func (c *Client) PublishHubRawAppWithBody(ctx context.Context, workspace Workspa
 
 func (c *Client) PublishHubRawApp(ctx context.Context, workspace WorkspaceId, params *PublishHubRawAppParams, body PublishHubRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPublishHubRawAppRequest(c.Server, workspace, params, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PublishHubRawAppEmbedWithBody(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPublishHubRawAppEmbedRequestWithBody(c.Server, workspace, id, params, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PublishHubRawAppEmbed(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, body PublishHubRawAppEmbedJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPublishHubRawAppEmbedRequest(c.Server, workspace, id, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -49547,78 +49498,6 @@ func NewPublishHubRawAppRequestWithBody(server string, workspace WorkspaceId, pa
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/hub/raw_apps", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "folder", runtime.ParamLocationQuery, params.Folder); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewPublishHubRawAppEmbedRequest calls the generic PublishHubRawAppEmbed builder with application/json body
-func NewPublishHubRawAppEmbedRequest(server string, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, body PublishHubRawAppEmbedJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPublishHubRawAppEmbedRequestWithBody(server, workspace, id, params, "application/json", bodyReader)
-}
-
-// NewPublishHubRawAppEmbedRequestWithBody generates requests for PublishHubRawAppEmbed with any type of body
-func NewPublishHubRawAppEmbedRequestWithBody(server string, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/hub/raw_apps/%s/embed", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -81103,11 +80982,6 @@ type ClientWithResponsesInterface interface {
 
 	PublishHubRawAppWithResponse(ctx context.Context, workspace WorkspaceId, params *PublishHubRawAppParams, body PublishHubRawAppJSONRequestBody, reqEditors ...RequestEditorFn) (*PublishHubRawAppResponse, error)
 
-	// PublishHubRawAppEmbedWithBodyWithResponse request with any body
-	PublishHubRawAppEmbedWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PublishHubRawAppEmbedResponse, error)
-
-	PublishHubRawAppEmbedWithResponse(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, body PublishHubRawAppEmbedJSONRequestBody, reqEditors ...RequestEditorFn) (*PublishHubRawAppEmbedResponse, error)
-
 	// PublishHubRawAppRecordingWithBodyWithResponse request with any body
 	PublishHubRawAppRecordingWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PublishHubRawAppRecordingResponse, error)
 
@@ -91251,27 +91125,6 @@ func (r PublishHubRawAppResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PublishHubRawAppResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PublishHubRawAppEmbedResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r PublishHubRawAppEmbedResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PublishHubRawAppEmbedResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -106288,23 +106141,6 @@ func (c *ClientWithResponses) PublishHubRawAppWithResponse(ctx context.Context, 
 	return ParsePublishHubRawAppResponse(rsp)
 }
 
-// PublishHubRawAppEmbedWithBodyWithResponse request with arbitrary body returning *PublishHubRawAppEmbedResponse
-func (c *ClientWithResponses) PublishHubRawAppEmbedWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PublishHubRawAppEmbedResponse, error) {
-	rsp, err := c.PublishHubRawAppEmbedWithBody(ctx, workspace, id, params, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePublishHubRawAppEmbedResponse(rsp)
-}
-
-func (c *ClientWithResponses) PublishHubRawAppEmbedWithResponse(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppEmbedParams, body PublishHubRawAppEmbedJSONRequestBody, reqEditors ...RequestEditorFn) (*PublishHubRawAppEmbedResponse, error) {
-	rsp, err := c.PublishHubRawAppEmbed(ctx, workspace, id, params, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePublishHubRawAppEmbedResponse(rsp)
-}
-
 // PublishHubRawAppRecordingWithBodyWithResponse request with arbitrary body returning *PublishHubRawAppRecordingResponse
 func (c *ClientWithResponses) PublishHubRawAppRecordingWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id int64, params *PublishHubRawAppRecordingParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PublishHubRawAppRecordingResponse, error) {
 	rsp, err := c.PublishHubRawAppRecordingWithBody(ctx, workspace, id, params, contentType, body, reqEditors...)
@@ -120262,22 +120098,6 @@ func ParsePublishHubRawAppResponse(rsp *http.Response) (*PublishHubRawAppRespons
 	}
 
 	response := &PublishHubRawAppResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParsePublishHubRawAppEmbedResponse parses an HTTP response from a PublishHubRawAppEmbedWithResponse call
-func ParsePublishHubRawAppEmbedResponse(rsp *http.Response) (*PublishHubRawAppEmbedResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PublishHubRawAppEmbedResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
