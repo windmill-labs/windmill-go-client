@@ -11227,6 +11227,9 @@ type CountRunnablesByOwnerParams struct {
 
 	// IncludeWithoutMain include library scripts (no runnable main)
 	IncludeWithoutMain *bool `form:"include_without_main,omitempty" json:"include_without_main,omitempty"`
+
+	// IncludeDraftOnly also count the caller's drafts at paths with no deployed row, matching the same flag on /runnables/list
+	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // ListRunnablesParams defines parameters for ListRunnables.
@@ -11256,6 +11259,9 @@ type ListRunnablesParams struct {
 
 	// Cursor opaque keyset cursor from a previous page's next_cursor
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// IncludeDraftOnly also list the caller's drafts at paths with no deployed row, sorted and paginated with the deployed ones. Ignored for operators, in the archived view, and under a label filter (a draft carries no labels).
+	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
 // ListRunnablesParamsOrderBy defines parameters for ListRunnables.
@@ -68800,6 +68806,22 @@ func NewCountRunnablesByOwnerRequest(server string, workspace WorkspaceId, param
 
 		}
 
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -68987,6 +69009,22 @@ func NewListRunnablesRequest(server string, workspace WorkspaceId, params *ListR
 		if params.Cursor != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cursor", runtime.ParamLocationQuery, *params.Cursor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeDraftOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_draft_only", runtime.ParamLocationQuery, *params.IncludeDraftOnly); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
