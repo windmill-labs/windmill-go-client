@@ -2037,12 +2037,14 @@ type CustomInstanceDb struct {
 
 // CustomInstanceDbLogs defines model for CustomInstanceDbLogs.
 type CustomInstanceDbLogs struct {
-	CreatedDatabase     *LoggedWizardStatus `json:"created_database,omitempty"`
-	DatabaseCredentials *LoggedWizardStatus `json:"database_credentials,omitempty"`
-	DbConnect           *LoggedWizardStatus `json:"db_connect,omitempty"`
-	GrantPermissions    *LoggedWizardStatus `json:"grant_permissions,omitempty"`
-	SuperAdmin          *LoggedWizardStatus `json:"super_admin,omitempty"`
-	ValidDbname         *LoggedWizardStatus `json:"valid_dbname,omitempty"`
+	CreatedDatabase      *LoggedWizardStatus `json:"created_database,omitempty"`
+	DatabaseCredentials  *LoggedWizardStatus `json:"database_credentials,omitempty"`
+	DbConnect            *LoggedWizardStatus `json:"db_connect,omitempty"`
+	GrantPermissions     *LoggedWizardStatus `json:"grant_permissions,omitempty"`
+	ReplicationUser      *LoggedWizardStatus `json:"replication_user,omitempty"`
+	ReplicationUserError *string             `json:"replication_user_error,omitempty"`
+	SuperAdmin           *LoggedWizardStatus `json:"super_admin,omitempty"`
+	ValidDbname          *LoggedWizardStatus `json:"valid_dbname,omitempty"`
 }
 
 // CustomInstanceDbTag defines model for CustomInstanceDbTag.
@@ -6655,6 +6657,12 @@ type WorkspaceReassignment struct {
 
 // SchemasAiAgent AI agent step that can use tools to accomplish tasks. The agent receives inputs and can call any of its configured tools to complete the task
 type SchemasAiAgent struct {
+	// Agent Path of a reusable `ai_agent` resource (hybrid linking). When set, the agent brain
+	// config (provider/model/system prompt/etc.) and tool set are resolved at runtime from
+	// that resource; the module's input_transforms then only carry the flow-local inputs
+	// (user_message/user_attachments).
+	Agent *string `json:"agent,omitempty"`
+
 	// InputTransforms Input parameters for the AI agent mapped to their values
 	InputTransforms struct {
 		// MaxCompletionTokens Integer. Maximum number of tokens the AI will generate in its response.
@@ -6675,10 +6683,10 @@ type SchemasAiAgent struct {
 
 		// OutputType Output format type.
 		// Valid values: 'text' (default) - plain text response, 'image' - image generation
-		OutputType SchemasInputTransform `json:"output_type"`
+		OutputType *SchemasInputTransform `json:"output_type,omitempty"`
 
 		// Provider Provider configuration - can be static (ProviderConfig), JavaScript expression, or AI-determined
-		Provider ProviderTransform `json:"provider"`
+		Provider *ProviderTransform `json:"provider,omitempty"`
 
 		// Streaming Boolean. If true, stream the AI response incrementally.
 		// Streaming events include: token_delta, reasoning_token_delta, tool_call, tool_call_arguments, tool_execution, tool_result
@@ -6712,8 +6720,15 @@ type SchemasAiAgent struct {
 	// Tag Worker group tag for execution routing. If not set, the AI agent step runs on the flow's tag (default `flow`)
 	Tag *string `json:"tag,omitempty"`
 
+	// ToolInputs Host-local wiring for an agent's tool inputs, keyed by tool id then input key. Binds the
+	// referenced agent's tools to this flow's context (flow_input/results) without mutating the
+	// shared resource; overlaid onto the tools' input_transforms at runtime — including when
+	// `agent` is unset, since a step forked for editing keeps these overrides until it is saved
+	// back or unlinked.
+	ToolInputs *map[string]map[string]SchemasInputTransform `json:"tool_inputs,omitempty"`
+
 	// Tools Array of tools the agent can use. The agent decides which tools to call based on the task
-	Tools []AgentTool        `json:"tools"`
+	Tools *[]AgentTool       `json:"tools,omitempty"`
 	Type  SchemasAiAgentType `json:"type"`
 }
 
@@ -10747,6 +10762,15 @@ type GetJobParams struct {
 // GetSuspendedJobFlowParams defines parameters for GetSuspendedJobFlow.
 type GetSuspendedJobFlowParams struct {
 	Approver *string `form:"approver,omitempty" json:"approver,omitempty"`
+}
+
+// GetFlowAllResultsParams defines parameters for GetFlowAllResults.
+type GetFlowAllResultsParams struct {
+	// MaxResultLen per-entry cap (in characters of JSON text) on result_prefix (default 2000, max 30000)
+	MaxResultLen *int `form:"max_result_len,omitempty" json:"max_result_len,omitempty"`
+
+	// Step step address to resolve to a single job instead of enumerating the tree: "b", "b/c", "b[12]" (1-based iteration/branch), composable as "b[12]/c"
+	Step *string `form:"step,omitempty" json:"step,omitempty"`
 }
 
 // GetJobLogsParams defines parameters for GetJobLogs.
@@ -16754,6 +16778,9 @@ type ClientInterface interface {
 	// GetFlowAllLogsStructured request
 	GetFlowAllLogsStructured(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetFlowAllResults request
+	GetFlowAllResults(ctx context.Context, workspace WorkspaceId, id JobId, params *GetFlowAllResultsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetFlowDebugInfo request
 	GetFlowDebugInfo(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17953,6 +17980,9 @@ type ClientInterface interface {
 	SetWorkspaceSlackOauthConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackOauthConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestDataTableConnection request
+	TestDataTableConnection(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetThresholdAlert request
 	GetThresholdAlert(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -25695,6 +25725,18 @@ func (c *Client) GetFlowAllLogsStructured(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetFlowAllResults(ctx context.Context, workspace WorkspaceId, id JobId, params *GetFlowAllResultsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowAllResultsRequest(c.Server, workspace, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetFlowDebugInfo(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetFlowDebugInfoRequest(c.Server, workspace, id)
 	if err != nil {
@@ -31001,6 +31043,18 @@ func (c *Client) SetWorkspaceSlackOauthConfigWithBody(ctx context.Context, works
 
 func (c *Client) SetWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackOauthConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetWorkspaceSlackOauthConfigRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestDataTableConnection(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestDataTableConnectionRequest(c.Server, workspace, datatableName)
 	if err != nil {
 		return nil, err
 	}
@@ -62031,6 +62085,85 @@ func NewGetFlowAllLogsStructuredRequest(server string, workspace WorkspaceId, id
 	return req, nil
 }
 
+// NewGetFlowAllResultsRequest generates requests for GetFlowAllResults
+func NewGetFlowAllResultsRequest(server string, workspace WorkspaceId, id JobId, params *GetFlowAllResultsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs_u/get_flow_all_results/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.MaxResultLen != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_result_len", runtime.ParamLocationQuery, *params.MaxResultLen); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Step != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "step", runtime.ParamLocationQuery, *params.Step); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetFlowDebugInfoRequest generates requests for GetFlowDebugInfo
 func NewGetFlowDebugInfoRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
 	var err error
@@ -78922,6 +79055,47 @@ func NewSetWorkspaceSlackOauthConfigRequestWithBody(server string, workspace Wor
 	return req, nil
 }
 
+// NewTestDataTableConnectionRequest generates requests for TestDataTableConnection
+func NewTestDataTableConnectionRequest(server string, workspace WorkspaceId, datatableName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/test_datatable_connection/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetThresholdAlertRequest generates requests for GetThresholdAlert
 func NewGetThresholdAlertRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -81655,6 +81829,9 @@ type ClientWithResponsesInterface interface {
 	// GetFlowAllLogsStructuredWithResponse request
 	GetFlowAllLogsStructuredWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetFlowAllLogsStructuredResponse, error)
 
+	// GetFlowAllResultsWithResponse request
+	GetFlowAllResultsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetFlowAllResultsParams, reqEditors ...RequestEditorFn) (*GetFlowAllResultsResponse, error)
+
 	// GetFlowDebugInfoWithResponse request
 	GetFlowDebugInfoWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetFlowDebugInfoResponse, error)
 
@@ -82854,6 +83031,9 @@ type ClientWithResponsesInterface interface {
 	SetWorkspaceSlackOauthConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackOauthConfigResponse, error)
 
 	SetWorkspaceSlackOauthConfigWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackOauthConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackOauthConfigResponse, error)
+
+	// TestDataTableConnectionWithResponse request
+	TestDataTableConnectionWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*TestDataTableConnectionResponse, error)
 
 	// GetThresholdAlertWithResponse request
 	GetThresholdAlertWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetThresholdAlertResponse, error)
@@ -94058,6 +94238,75 @@ func (r GetFlowAllLogsStructuredResponse) StatusCode() int {
 	return 0
 }
 
+type GetFlowAllResultsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// EnclosingJob set when the requested job is itself a step of a larger flow run; id of the flow run directly enclosing it
+		EnclosingJob *openapi_types.UUID `json:"enclosing_job,omitempty"`
+		Entries      []struct {
+			// Depth depth in the flow tree (0 for the root flow job)
+			Depth      int     `json:"depth"`
+			DurationMs *int64  `json:"duration_ms,omitempty"`
+			FlowStepId *string `json:"flow_step_id"`
+			JobId      string  `json:"job_id"`
+
+			// Kind job kind (script, flow, forloopflow, ...)
+			Kind string `json:"kind"`
+
+			// Label human-readable label describing the job's position in the flow tree
+			Label string `json:"label"`
+
+			// ParentModuleType parent module type (forloopflow, branchall, ...)
+			ParentModuleType *string `json:"parent_module_type"`
+
+			// ResultLength full length in characters of the result JSON text (greater than the prefix length when truncated)
+			ResultLength *int `json:"result_length,omitempty"`
+
+			// ResultPrefix result JSON text truncated to the per-entry budget; absent until the job has completed
+			ResultPrefix *string `json:"result_prefix,omitempty"`
+
+			// SiblingCount total number of siblings sharing the same step
+			SiblingCount int `json:"sibling_count"`
+
+			// SiblingIndex 1-based index of this job among siblings sharing the same step
+			SiblingIndex int                               `json:"sibling_index"`
+			StartedAt    *time.Time                        `json:"started_at,omitempty"`
+			Status       GetFlowAllResults200EntriesStatus `json:"status"`
+
+			// StepPath materialized step path (e.g. "a/b")
+			StepPath *string `json:"step_path"`
+			Success  *bool   `json:"success,omitempty"`
+		} `json:"entries"`
+
+		// ScopeFiltered true when the caller's token is tag-scoped; steps running on other tags are omitted
+		ScopeFiltered *bool `json:"scope_filtered,omitempty"`
+
+		// StepError set when step was provided but could not be resolved; a diagnostic listing available step ids or iteration statuses
+		StepError *string `json:"step_error,omitempty"`
+
+		// Truncated true when the tree has more jobs than the entry cap; entries then hold the depth-first prefix
+		Truncated *bool `json:"truncated,omitempty"`
+	}
+}
+type GetFlowAllResults200EntriesStatus string
+
+// Status returns HTTPResponse.Status
+func (r GetFlowAllResultsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetFlowAllResultsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetFlowDebugInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -101766,6 +102015,36 @@ func (r SetWorkspaceSlackOauthConfigResponse) StatusCode() int {
 	return 0
 }
 
+type TestDataTableConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		CanCreateSchema       bool     `json:"can_create_schema"`
+		CanCreateTable        bool     `json:"can_create_table"`
+		MigrationsTableExists bool     `json:"migrations_table_exists"`
+		Schema                *string  `json:"schema"`
+		SuggestedGrants       []string `json:"suggested_grants"`
+		SuggestedSearchPath   *string  `json:"suggested_search_path,omitempty"`
+		User                  string   `json:"user"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r TestDataTableConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestDataTableConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetThresholdAlertResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -107882,6 +108161,15 @@ func (c *ClientWithResponses) GetFlowAllLogsStructuredWithResponse(ctx context.C
 	return ParseGetFlowAllLogsStructuredResponse(rsp)
 }
 
+// GetFlowAllResultsWithResponse request returning *GetFlowAllResultsResponse
+func (c *ClientWithResponses) GetFlowAllResultsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *GetFlowAllResultsParams, reqEditors ...RequestEditorFn) (*GetFlowAllResultsResponse, error) {
+	rsp, err := c.GetFlowAllResults(ctx, workspace, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetFlowAllResultsResponse(rsp)
+}
+
 // GetFlowDebugInfoWithResponse request returning *GetFlowDebugInfoResponse
 func (c *ClientWithResponses) GetFlowDebugInfoWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetFlowDebugInfoResponse, error) {
 	rsp, err := c.GetFlowDebugInfo(ctx, workspace, id, reqEditors...)
@@ -111738,6 +112026,15 @@ func (c *ClientWithResponses) SetWorkspaceSlackOauthConfigWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseSetWorkspaceSlackOauthConfigResponse(rsp)
+}
+
+// TestDataTableConnectionWithResponse request returning *TestDataTableConnectionResponse
+func (c *ClientWithResponses) TestDataTableConnectionWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*TestDataTableConnectionResponse, error) {
+	rsp, err := c.TestDataTableConnection(ctx, workspace, datatableName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestDataTableConnectionResponse(rsp)
 }
 
 // GetThresholdAlertWithResponse request returning *GetThresholdAlertResponse
@@ -123127,6 +123424,78 @@ func ParseGetFlowAllLogsStructuredResponse(rsp *http.Response) (*GetFlowAllLogsS
 	return response, nil
 }
 
+// ParseGetFlowAllResultsResponse parses an HTTP response from a GetFlowAllResultsWithResponse call
+func ParseGetFlowAllResultsResponse(rsp *http.Response) (*GetFlowAllResultsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetFlowAllResultsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// EnclosingJob set when the requested job is itself a step of a larger flow run; id of the flow run directly enclosing it
+			EnclosingJob *openapi_types.UUID `json:"enclosing_job,omitempty"`
+			Entries      []struct {
+				// Depth depth in the flow tree (0 for the root flow job)
+				Depth      int     `json:"depth"`
+				DurationMs *int64  `json:"duration_ms,omitempty"`
+				FlowStepId *string `json:"flow_step_id"`
+				JobId      string  `json:"job_id"`
+
+				// Kind job kind (script, flow, forloopflow, ...)
+				Kind string `json:"kind"`
+
+				// Label human-readable label describing the job's position in the flow tree
+				Label string `json:"label"`
+
+				// ParentModuleType parent module type (forloopflow, branchall, ...)
+				ParentModuleType *string `json:"parent_module_type"`
+
+				// ResultLength full length in characters of the result JSON text (greater than the prefix length when truncated)
+				ResultLength *int `json:"result_length,omitempty"`
+
+				// ResultPrefix result JSON text truncated to the per-entry budget; absent until the job has completed
+				ResultPrefix *string `json:"result_prefix,omitempty"`
+
+				// SiblingCount total number of siblings sharing the same step
+				SiblingCount int `json:"sibling_count"`
+
+				// SiblingIndex 1-based index of this job among siblings sharing the same step
+				SiblingIndex int                               `json:"sibling_index"`
+				StartedAt    *time.Time                        `json:"started_at,omitempty"`
+				Status       GetFlowAllResults200EntriesStatus `json:"status"`
+
+				// StepPath materialized step path (e.g. "a/b")
+				StepPath *string `json:"step_path"`
+				Success  *bool   `json:"success,omitempty"`
+			} `json:"entries"`
+
+			// ScopeFiltered true when the caller's token is tag-scoped; steps running on other tags are omitted
+			ScopeFiltered *bool `json:"scope_filtered,omitempty"`
+
+			// StepError set when step was provided but could not be resolved; a diagnostic listing available step ids or iteration statuses
+			StepError *string `json:"step_error,omitempty"`
+
+			// Truncated true when the tree has more jobs than the entry cap; entries then hold the depth-first prefix
+			Truncated *bool `json:"truncated,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetFlowDebugInfoResponse parses an HTTP response from a GetFlowDebugInfoWithResponse call
 func ParseGetFlowDebugInfoResponse(rsp *http.Response) (*GetFlowDebugInfoResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -130822,6 +131191,40 @@ func ParseSetWorkspaceSlackOauthConfigResponse(rsp *http.Response) (*SetWorkspac
 	response := &SetWorkspaceSlackOauthConfigResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestDataTableConnectionResponse parses an HTTP response from a TestDataTableConnectionWithResponse call
+func ParseTestDataTableConnectionResponse(rsp *http.Response) (*TestDataTableConnectionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestDataTableConnectionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CanCreateSchema       bool     `json:"can_create_schema"`
+			CanCreateTable        bool     `json:"can_create_table"`
+			MigrationsTableExists bool     `json:"migrations_table_exists"`
+			Schema                *string  `json:"schema"`
+			SuggestedGrants       []string `json:"suggested_grants"`
+			SuggestedSearchPath   *string  `json:"suggested_search_path,omitempty"`
+			User                  string   `json:"user"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
