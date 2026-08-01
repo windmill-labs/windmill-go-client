@@ -63,13 +63,44 @@ const (
 	AppWithLastVersionExecutionModeViewer    AppWithLastVersionExecutionMode = "viewer"
 )
 
+// Defines values for AssetGraphAssetsForkMaterialization.
+const (
+	Deferred AssetGraphAssetsForkMaterialization = "deferred"
+	Fork     AssetGraphAssetsForkMaterialization = "fork"
+)
+
+// Defines values for AssetGraphTriggers0TriggerKind.
+const (
+	AssetGraphTriggers0TriggerKindAsset AssetGraphTriggers0TriggerKind = "asset"
+)
+
+// Defines values for AssetGraphTriggers1TriggerKind.
+const (
+	AssetGraphTriggers1TriggerKindEmail    AssetGraphTriggers1TriggerKind = "email"
+	AssetGraphTriggers1TriggerKindGcp      AssetGraphTriggers1TriggerKind = "gcp"
+	AssetGraphTriggers1TriggerKindKafka    AssetGraphTriggers1TriggerKind = "kafka"
+	AssetGraphTriggers1TriggerKindMqtt     AssetGraphTriggers1TriggerKind = "mqtt"
+	AssetGraphTriggers1TriggerKindNats     AssetGraphTriggers1TriggerKind = "nats"
+	AssetGraphTriggers1TriggerKindPostgres AssetGraphTriggers1TriggerKind = "postgres"
+	AssetGraphTriggers1TriggerKindSchedule AssetGraphTriggers1TriggerKind = "schedule"
+	AssetGraphTriggers1TriggerKindSqs      AssetGraphTriggers1TriggerKind = "sqs"
+)
+
 // Defines values for AssetKind.
 const (
 	AssetKindDatatable AssetKind = "datatable"
+	AssetKindDbt       AssetKind = "dbt"
 	AssetKindDucklake  AssetKind = "ducklake"
 	AssetKindResource  AssetKind = "resource"
 	AssetKindS3object  AssetKind = "s3object"
 	AssetKindVolume    AssetKind = "volume"
+)
+
+// Defines values for AssetProgressStatus.
+const (
+	AssetProgressStatusFailed       AssetProgressStatus = "failed"
+	AssetProgressStatusMaterialized AssetProgressStatus = "materialized"
+	AssetProgressStatusRunning      AssetProgressStatus = "running"
 )
 
 // Defines values for AssetUsageAccessType.
@@ -301,6 +332,14 @@ const (
 	DatatableMigrationWithStatusStatusUnknown DatatableMigrationWithStatusStatus = "unknown"
 )
 
+// Defines values for DbtAssetProvenanceResourceType.
+const (
+	Model    DbtAssetProvenanceResourceType = "model"
+	Seed     DbtAssetProvenanceResourceType = "seed"
+	Snapshot DbtAssetProvenanceResourceType = "snapshot"
+	Source   DbtAssetProvenanceResourceType = "source"
+)
+
 // Defines values for DeliveryType.
 const (
 	Pull DeliveryType = "pull"
@@ -496,6 +535,7 @@ const (
 // Defines values for GitSyncObjectType.
 const (
 	GitSyncObjectTypeApp                   GitSyncObjectType = "app"
+	GitSyncObjectTypeDatatablemigration    GitSyncObjectType = "datatablemigration"
 	GitSyncObjectTypeFlow                  GitSyncObjectType = "flow"
 	GitSyncObjectTypeFolder                GitSyncObjectType = "folder"
 	GitSyncObjectTypeGroup                 GitSyncObjectType = "group"
@@ -642,6 +682,7 @@ const (
 	JobTriggerKindPostgres     JobTriggerKind = "postgres"
 	JobTriggerKindSchedule     JobTriggerKind = "schedule"
 	JobTriggerKindSqs          JobTriggerKind = "sqs"
+	JobTriggerKindUi           JobTriggerKind = "ui"
 	JobTriggerKindWebhook      JobTriggerKind = "webhook"
 	JobTriggerKindWebsocket    JobTriggerKind = "websocket"
 )
@@ -732,9 +773,9 @@ const (
 
 // Defines values for NativeServiceName.
 const (
-	NativeServiceNameGithub    NativeServiceName = "github"
-	NativeServiceNameGoogle    NativeServiceName = "google"
-	NativeServiceNameNextcloud NativeServiceName = "nextcloud"
+	Github    NativeServiceName = "github"
+	Google    NativeServiceName = "google"
+	Nextcloud NativeServiceName = "nextcloud"
 )
 
 // Defines values for NewKafkaTriggerAutoOffsetReset.
@@ -896,6 +937,7 @@ const (
 	ScriptLangBun        ScriptLang = "bun"
 	ScriptLangBunnative  ScriptLang = "bunnative"
 	ScriptLangCsharp     ScriptLang = "csharp"
+	ScriptLangDbt        ScriptLang = "dbt"
 	ScriptLangDeno       ScriptLang = "deno"
 	ScriptLangDuckdb     ScriptLang = "duckdb"
 	ScriptLangGo         ScriptLang = "go"
@@ -1089,7 +1131,7 @@ const (
 
 // Defines values for SchemasIdentityType.
 const (
-	SchemasIdentityTypeIdentity SchemasIdentityType = "identity"
+	Identity SchemasIdentityType = "identity"
 )
 
 // Defines values for SchemasJavascriptTransformType.
@@ -1124,6 +1166,7 @@ const (
 // Defines values for SchemasRawScriptAssetsKind.
 const (
 	SchemasRawScriptAssetsKindDatatable SchemasRawScriptAssetsKind = "datatable"
+	SchemasRawScriptAssetsKindDbt       SchemasRawScriptAssetsKind = "dbt"
 	SchemasRawScriptAssetsKindDucklake  SchemasRawScriptAssetsKind = "ducklake"
 	SchemasRawScriptAssetsKindResource  SchemasRawScriptAssetsKind = "resource"
 	SchemasRawScriptAssetsKindS3object  SchemasRawScriptAssetsKind = "s3object"
@@ -1132,30 +1175,30 @@ const (
 
 // Defines values for SchemasRawScriptLanguage.
 const (
-	SchemasRawScriptLanguageAnsible    SchemasRawScriptLanguage = "ansible"
-	SchemasRawScriptLanguageBash       SchemasRawScriptLanguage = "bash"
-	SchemasRawScriptLanguageBigquery   SchemasRawScriptLanguage = "bigquery"
-	SchemasRawScriptLanguageBun        SchemasRawScriptLanguage = "bun"
-	SchemasRawScriptLanguageBunnative  SchemasRawScriptLanguage = "bunnative"
-	SchemasRawScriptLanguageCsharp     SchemasRawScriptLanguage = "csharp"
-	SchemasRawScriptLanguageDeno       SchemasRawScriptLanguage = "deno"
-	SchemasRawScriptLanguageDuckdb     SchemasRawScriptLanguage = "duckdb"
-	SchemasRawScriptLanguageGo         SchemasRawScriptLanguage = "go"
-	SchemasRawScriptLanguageGraphql    SchemasRawScriptLanguage = "graphql"
-	SchemasRawScriptLanguageJava       SchemasRawScriptLanguage = "java"
-	SchemasRawScriptLanguageMssql      SchemasRawScriptLanguage = "mssql"
-	SchemasRawScriptLanguageMysql      SchemasRawScriptLanguage = "mysql"
-	SchemasRawScriptLanguageNativets   SchemasRawScriptLanguage = "nativets"
-	SchemasRawScriptLanguageNu         SchemasRawScriptLanguage = "nu"
-	SchemasRawScriptLanguageOracledb   SchemasRawScriptLanguage = "oracledb"
-	SchemasRawScriptLanguagePhp        SchemasRawScriptLanguage = "php"
-	SchemasRawScriptLanguagePostgresql SchemasRawScriptLanguage = "postgresql"
-	SchemasRawScriptLanguagePowershell SchemasRawScriptLanguage = "powershell"
-	SchemasRawScriptLanguagePython3    SchemasRawScriptLanguage = "python3"
-	SchemasRawScriptLanguageRlang      SchemasRawScriptLanguage = "rlang"
-	SchemasRawScriptLanguageRuby       SchemasRawScriptLanguage = "ruby"
-	SchemasRawScriptLanguageRust       SchemasRawScriptLanguage = "rust"
-	SchemasRawScriptLanguageSnowflake  SchemasRawScriptLanguage = "snowflake"
+	Ansible    SchemasRawScriptLanguage = "ansible"
+	Bash       SchemasRawScriptLanguage = "bash"
+	Bigquery   SchemasRawScriptLanguage = "bigquery"
+	Bun        SchemasRawScriptLanguage = "bun"
+	Bunnative  SchemasRawScriptLanguage = "bunnative"
+	Csharp     SchemasRawScriptLanguage = "csharp"
+	Deno       SchemasRawScriptLanguage = "deno"
+	Duckdb     SchemasRawScriptLanguage = "duckdb"
+	Go         SchemasRawScriptLanguage = "go"
+	Graphql    SchemasRawScriptLanguage = "graphql"
+	Java       SchemasRawScriptLanguage = "java"
+	Mssql      SchemasRawScriptLanguage = "mssql"
+	Mysql      SchemasRawScriptLanguage = "mysql"
+	Nativets   SchemasRawScriptLanguage = "nativets"
+	Nu         SchemasRawScriptLanguage = "nu"
+	Oracledb   SchemasRawScriptLanguage = "oracledb"
+	Php        SchemasRawScriptLanguage = "php"
+	Postgresql SchemasRawScriptLanguage = "postgresql"
+	Powershell SchemasRawScriptLanguage = "powershell"
+	Python3    SchemasRawScriptLanguage = "python3"
+	Rlang      SchemasRawScriptLanguage = "rlang"
+	Ruby       SchemasRawScriptLanguage = "ruby"
+	Rust       SchemasRawScriptLanguage = "rust"
+	Snowflake  SchemasRawScriptLanguage = "snowflake"
 )
 
 // Defines values for SchemasRawScriptType.
@@ -1417,8 +1460,8 @@ const (
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
 const (
-	SetWsSpecificJSONBodyItemKindResource SetWsSpecificJSONBodyItemKind = "resource"
-	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
+	Resource SetWsSpecificJSONBodyItemKind = "resource"
+	Variable SetWsSpecificJSONBodyItemKind = "variable"
 )
 
 // AIConfig defines model for AIConfig.
@@ -1523,8 +1566,119 @@ type AppWithLastVersion struct {
 // AppWithLastVersionExecutionMode defines model for AppWithLastVersion.ExecutionMode.
 type AppWithLastVersionExecutionMode string
 
+// AssetGraph defines model for AssetGraph.
+type AssetGraph struct {
+	Assets []struct {
+		// Dbt What dbt says about the model, snapshot, seed or source that produces (or, for a source, is read at) this relation. A dbt project is one runnable node with many model assets, so per-model metadata belongs here rather than on the script.
+		Dbt *DbtAssetProvenance `json:"dbt,omitempty"`
+
+		// ForkMaterialization Fork workspaces only — 'fork' when this ducklake asset was materialized in the fork itself, 'deferred' when reads fall back to the parent workspace's current table via a defer view. Omitted otherwise.
+		ForkMaterialization *AssetGraphAssetsForkMaterialization `json:"fork_materialization,omitempty"`
+		Kind                AssetKind                            `json:"kind"`
+		Path                string                               `json:"path"`
+	} `json:"assets"`
+
+	// DbtEdges `ref()` lineage BETWEEN two dbt models, in the terms the canvas draws — the relations, not dbt's node ids. Without it every model hangs off the one dbt runnable and the project reads as a flat fan-out. Omitted when empty.
+	DbtEdges *[]struct {
+		FromAssetPath string `json:"from_asset_path"`
+		ToAssetPath   string `json:"to_asset_path"`
+	} `json:"dbt_edges,omitempty"`
+
+	// DbtSnapshotJob The job whose own snapshot the dbt half was resolved from, when one was asked for and found. A run page polls the graph while its job runs, because a dynamic descriptor's snapshot is written mid-run, and this is what tells it to stop. Omitted when the answer came from the version's deployed graph.
+	DbtSnapshotJob *openapi_types.UUID `json:"dbt_snapshot_job,omitempty"`
+	Edges          []struct {
+		AccessType   *AssetUsageAccessType `json:"access_type"`
+		AssetKind    AssetKind             `json:"asset_kind"`
+		AssetPath    string                `json:"asset_path"`
+		RunnableKind AssetUsageKind        `json:"runnable_kind"`
+		RunnablePath string                `json:"runnable_path"`
+	} `json:"edges"`
+
+	// MacroEdges Macro-library → consumer edges (deploy-recorded call detection plus `// use`). Omitted when empty.
+	MacroEdges *[]struct {
+		ConsumerPath string   `json:"consumer_path"`
+		LibPath      string   `json:"lib_path"`
+		MacroNames   []string `json:"macro_names"`
+		ViaUse       bool     `json:"via_use"`
+	} `json:"macro_edges,omitempty"`
+	Runnables []struct {
+		// Dbt Set on a `dbt` script, which owns a whole project rather than a single output. Omitted otherwise.
+		Dbt *struct {
+			ModelCount int `json:"model_count"`
+		} `json:"dbt,omitempty"`
+
+		// InPipeline True iff the script is a pipeline member (deployed with `// pipeline`). Omitted when false.
+		InPipeline *bool `json:"in_pipeline,omitempty"`
+
+		// Macros Macros this script provides to the workspace registry (deployed `// macros` library). Omitted when empty.
+		Macros *[]struct {
+			IsTable bool   `json:"is_table"`
+			Name    string `json:"name"`
+
+			// Params verbatim parameter list
+			Params string `json:"params"`
+		} `json:"macros,omitempty"`
+		Path      string         `json:"path"`
+		UsageKind AssetUsageKind `json:"usage_kind"`
+	} `json:"runnables"`
+
+	// TestEdges Ordering-only "must-run-after" edges — a `// data_test relationships` (or custom test reading a pipeline asset) requires the referenced asset's producer to run before the tested script. Not a data-consumption edge; fed into the cascade topo-sort so cold runs order correctly. Omitted when empty.
+	TestEdges *[]struct {
+		AssetKind    AssetKind      `json:"asset_kind"`
+		AssetPath    string         `json:"asset_path"`
+		ProducerKind AssetUsageKind `json:"producer_kind"`
+		ProducerPath string         `json:"producer_path"`
+		RunnableKind AssetUsageKind `json:"runnable_kind"`
+		RunnablePath string         `json:"runnable_path"`
+	} `json:"test_edges,omitempty"`
+	Triggers []AssetGraph_Triggers_Item `json:"triggers"`
+}
+
+// AssetGraphAssetsForkMaterialization Fork workspaces only — 'fork' when this ducklake asset was materialized in the fork itself, 'deferred' when reads fall back to the parent workspace's current table via a defer view. Omitted otherwise.
+type AssetGraphAssetsForkMaterialization string
+
+// AssetGraphTriggers0 Asset trigger edge (`// on <asset>`)
+type AssetGraphTriggers0 struct {
+	AssetKind    AssetKind                      `json:"asset_kind"`
+	AssetPath    string                         `json:"asset_path"`
+	RunnableKind AssetUsageKind                 `json:"runnable_kind"`
+	RunnablePath string                         `json:"runnable_path"`
+	TriggerKind  AssetGraphTriggers0TriggerKind `json:"trigger_kind"`
+}
+
+// AssetGraphTriggers0TriggerKind defines model for AssetGraph.Triggers.0.TriggerKind.
+type AssetGraphTriggers0TriggerKind string
+
+// AssetGraphTriggers1 Native trigger edge (schedule, email, kafka, ...). `path` is the trigger row's path.
+type AssetGraphTriggers1 struct {
+	Path         string                         `json:"path"`
+	RunnableKind AssetUsageKind                 `json:"runnable_kind"`
+	RunnablePath string                         `json:"runnable_path"`
+	TriggerKind  AssetGraphTriggers1TriggerKind `json:"trigger_kind"`
+}
+
+// AssetGraphTriggers1TriggerKind defines model for AssetGraph.Triggers.1.TriggerKind.
+type AssetGraphTriggers1TriggerKind string
+
+// AssetGraph_Triggers_Item defines model for AssetGraph.triggers.Item.
+type AssetGraph_Triggers_Item struct {
+	union json.RawMessage
+}
+
 // AssetKind defines model for AssetKind.
 type AssetKind string
+
+// AssetProgress defines model for AssetProgress.
+type AssetProgress struct {
+	AssetKind AssetKind           `json:"asset_kind"`
+	AssetPath string              `json:"asset_path"`
+	Error     *string             `json:"error"`
+	RowCount  *int64              `json:"row_count"`
+	Status    AssetProgressStatus `json:"status"`
+}
+
+// AssetProgressStatus defines model for AssetProgress.Status.
+type AssetProgressStatus string
 
 // AssetSchemaVersion defines model for AssetSchemaVersion.
 type AssetSchemaVersion struct {
@@ -1595,6 +1749,7 @@ type AutoPullSettings struct {
 	WebhookError   *string            `json:"webhook_error,omitempty"`
 	WebhookId      *int64             `json:"webhook_id,omitempty"`
 	WebhookSecret  *string            `json:"webhook_secret,omitempty"`
+	WebhookUrl     *string            `json:"webhook_url,omitempty"`
 }
 
 // AutoPullStatus defines model for AutoPullStatus.
@@ -1840,15 +1995,18 @@ type CompletedJob struct {
 	ResolvedAutomatically *bool `json:"resolved_automatically,omitempty"`
 
 	// ResolvedBy who resolved the failure. Enterprise-only, so also absent for a manual resolution outside enterprise; use resolved_automatically to tell the two apart
-	ResolvedBy           *string         `json:"resolved_by,omitempty"`
-	Result               *interface{}    `json:"result,omitempty"`
-	SchedulePath         *string         `json:"schedule_path,omitempty"`
-	ScriptHash           *string         `json:"script_hash,omitempty"`
-	ScriptPath           *string         `json:"script_path,omitempty"`
-	SelfWaitTimeMs       *float32        `json:"self_wait_time_ms,omitempty"`
-	StartedAt            time.Time       `json:"started_at"`
-	Success              bool            `json:"success"`
-	Tag                  string          `json:"tag"`
+	ResolvedBy     *string      `json:"resolved_by,omitempty"`
+	Result         *interface{} `json:"result,omitempty"`
+	SchedulePath   *string      `json:"schedule_path,omitempty"`
+	ScriptHash     *string      `json:"script_hash,omitempty"`
+	ScriptPath     *string      `json:"script_path,omitempty"`
+	SelfWaitTimeMs *float32     `json:"self_wait_time_ms,omitempty"`
+	StartedAt      time.Time    `json:"started_at"`
+	Success        bool         `json:"success"`
+	Tag            string       `json:"tag"`
+
+	// TriggerKind job trigger kind (schedule, http, websocket...)
+	TriggerKind          *JobTriggerKind `json:"trigger_kind,omitempty"`
 	VisibleToOwner       bool            `json:"visible_to_owner"`
 	Worker               *string         `json:"worker,omitempty"`
 	WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
@@ -2154,6 +2312,60 @@ type DatatableMigrationWithStatus struct {
 // DatatableMigrationWithStatusStatus defines model for DatatableMigrationWithStatus.Status.
 type DatatableMigrationWithStatusStatus string
 
+// DbtAssetProvenance What dbt says about the model, snapshot, seed or source that produces (or, for a source, is read at) this relation. A dbt project is one runnable node with many model assets, so per-model metadata belongs here rather than on the script.
+type DbtAssetProvenance struct {
+	// Columns Declared column metadata (name -> description). NOT column lineage — `manifest.json` carries none.
+	Columns   *map[string]interface{} `json:"columns,omitempty"`
+	DataTests *[]struct {
+		Args   *map[string]interface{} `json:"args,omitempty"`
+		Column *string                 `json:"column,omitempty"`
+
+		// Kind One of the four generic tests, or a package test's namespaced name (`dbt_utils.accepted_range`).
+		Kind string `json:"kind"`
+
+		// Severity Lowercased. dbt's severity decides whether a failure fails the run.
+		Severity *string `json:"severity,omitempty"`
+	} `json:"data_tests,omitempty"`
+	Description *string `json:"description,omitempty"`
+
+	// Freshness A source's declared freshness policy, for the staleness chip.
+	Freshness *map[string]interface{} `json:"freshness,omitempty"`
+
+	// MaterializeStrategy The Windmill write strategy it maps to, absent for `view` and `ephemeral`, which have none.
+	MaterializeStrategy *string `json:"materialize_strategy,omitempty"`
+
+	// Materialized dbt's own word (`table`, `view`, `incremental`, `snapshot`).
+	Materialized *string `json:"materialized,omitempty"`
+
+	// OriginalFilePath Its path inside the dbt project, e.g. `models/staging/stg_orders.sql`.
+	OriginalFilePath *string `json:"original_file_path,omitempty"`
+
+	// RawCode The model's SQL as written, at the deploy this graph belongs to. Omitted when the caller cannot read the script.
+	RawCode      *string                        `json:"raw_code,omitempty"`
+	ResourceType DbtAssetProvenanceResourceType `json:"resource_type"`
+	Tags         *[]string                      `json:"tags,omitempty"`
+
+	// UniqueId dbt's own node id, e.g. `model.jaffle_shop.customers`.
+	UniqueId string `json:"unique_id"`
+}
+
+// DbtAssetProvenanceResourceType defines model for DbtAssetProvenance.ResourceType.
+type DbtAssetProvenanceResourceType string
+
+// DbtWarehouseConnection defines model for DbtWarehouseConnection.
+type DbtWarehouseConnection struct {
+	Target *string `json:"target,omitempty"`
+
+	// Value the resolved resource, rendered into profiles.yml
+	Value interface{} `json:"value"`
+}
+
+// DbtWarehouses Warehouses a dbt project may run against, by name. `main` is the one a project gets when its descriptor names none. Each entry points at a resource; it never holds credentials.
+type DbtWarehouses map[string]struct {
+	ResourcePath string  `json:"resource_path"`
+	Target       *string `json:"target,omitempty"`
+}
+
 // DeleteGcpSubscription defines model for DeleteGcpSubscription.
 type DeleteGcpSubscription struct {
 	SubscriptionId string `json:"subscription_id"`
@@ -2415,12 +2627,15 @@ type EditFlow struct {
 	DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description     *string   `json:"description,omitempty"`
-	Labels          *[]string `json:"labels,omitempty"`
-	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
-	Path            *string   `json:"path,omitempty"`
+	Description *string   `json:"description,omitempty"`
+	Labels      *[]string `json:"labels,omitempty"`
 
-	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
+	// OnBehalfOf Authorization identity to run as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. Supply this or on_behalf_of_email; when only the address is given it is resolved to the account it names, and an address naming nobody is rejected. A pair that disagrees is rejected.
+	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+	Path            *string `json:"path,omitempty"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email / on_behalf_of pair instead of overwriting it with the caller's own identity.
 	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
 	Priority           *int  `json:"priority,omitempty"`
 
@@ -3188,9 +3403,12 @@ type Flow struct {
 	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
 	Labels          *[]string `json:"labels,omitempty"`
 	LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
-	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
-	Path            string    `json:"path"`
-	Priority        *int      `json:"priority,omitempty"`
+
+	// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
+	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+	Path            string  `json:"path"`
+	Priority        *int    `json:"priority,omitempty"`
 
 	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 	Schema  *map[string]interface{} `json:"schema,omitempty"`
@@ -3297,17 +3515,20 @@ type FlowMetadata struct {
 	ExtraPerms      ExtraPerms `json:"extra_perms"`
 
 	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
-	InheritedLabels     *[]string `json:"inherited_labels,omitempty"`
-	Labels              *[]string `json:"labels,omitempty"`
-	OnBehalfOfEmail     *string   `json:"on_behalf_of_email,omitempty"`
-	Path                string    `json:"path"`
-	Priority            *int      `json:"priority,omitempty"`
-	Starred             *bool     `json:"starred,omitempty"`
-	Tag                 *string   `json:"tag,omitempty"`
-	Timeout             *float32  `json:"timeout,omitempty"`
-	VisibleToRunnerOnly *bool     `json:"visible_to_runner_only,omitempty"`
-	WorkspaceId         *string   `json:"workspace_id,omitempty"`
-	WsErrorHandlerMuted *bool     `json:"ws_error_handler_muted,omitempty"`
+	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+	Labels          *[]string `json:"labels,omitempty"`
+
+	// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
+	OnBehalfOf          *string  `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail     *string  `json:"on_behalf_of_email,omitempty"`
+	Path                string   `json:"path"`
+	Priority            *int     `json:"priority,omitempty"`
+	Starred             *bool    `json:"starred,omitempty"`
+	Tag                 *string  `json:"tag,omitempty"`
+	Timeout             *float32 `json:"timeout,omitempty"`
+	VisibleToRunnerOnly *bool    `json:"visible_to_runner_only,omitempty"`
+	WorkspaceId         *string  `json:"workspace_id,omitempty"`
+	WsErrorHandlerMuted *bool    `json:"ws_error_handler_muted,omitempty"`
 }
 
 // FlowModuleTool defines model for FlowModuleTool.
@@ -3931,15 +4152,18 @@ type Job0 struct {
 	ResolvedAutomatically *bool `json:"resolved_automatically,omitempty"`
 
 	// ResolvedBy who resolved the failure. Enterprise-only, so also absent for a manual resolution outside enterprise; use resolved_automatically to tell the two apart
-	ResolvedBy           *string         `json:"resolved_by,omitempty"`
-	Result               *interface{}    `json:"result,omitempty"`
-	SchedulePath         *string         `json:"schedule_path,omitempty"`
-	ScriptHash           *string         `json:"script_hash,omitempty"`
-	ScriptPath           *string         `json:"script_path,omitempty"`
-	SelfWaitTimeMs       *float32        `json:"self_wait_time_ms,omitempty"`
-	StartedAt            time.Time       `json:"started_at"`
-	Success              bool            `json:"success"`
-	Tag                  string          `json:"tag"`
+	ResolvedBy     *string      `json:"resolved_by,omitempty"`
+	Result         *interface{} `json:"result,omitempty"`
+	SchedulePath   *string      `json:"schedule_path,omitempty"`
+	ScriptHash     *string      `json:"script_hash,omitempty"`
+	ScriptPath     *string      `json:"script_path,omitempty"`
+	SelfWaitTimeMs *float32     `json:"self_wait_time_ms,omitempty"`
+	StartedAt      time.Time    `json:"started_at"`
+	Success        bool         `json:"success"`
+	Tag            string       `json:"tag"`
+
+	// TriggerKind job trigger kind (schedule, http, websocket...)
+	TriggerKind          *JobTriggerKind `json:"trigger_kind,omitempty"`
 	Type                 *Job0Type       `json:"type,omitempty"`
 	VisibleToOwner       bool            `json:"visible_to_owner"`
 	Worker               *string         `json:"worker,omitempty"`
@@ -3984,16 +4208,19 @@ type Job1 struct {
 	RawCode        *string `json:"raw_code,omitempty"`
 
 	// RawFlow The flow structure containing modules and optional preprocessor/failure handlers
-	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
-	Running              bool            `json:"running"`
-	SchedulePath         *string         `json:"schedule_path,omitempty"`
-	ScheduledFor         *time.Time      `json:"scheduled_for,omitempty"`
-	ScriptHash           *string         `json:"script_hash,omitempty"`
-	ScriptPath           *string         `json:"script_path,omitempty"`
-	SelfWaitTimeMs       *float32        `json:"self_wait_time_ms,omitempty"`
-	StartedAt            *time.Time      `json:"started_at,omitempty"`
-	Suspend              *float32        `json:"suspend,omitempty"`
-	Tag                  string          `json:"tag"`
+	RawFlow        *FlowValue `json:"raw_flow,omitempty"`
+	Running        bool       `json:"running"`
+	SchedulePath   *string    `json:"schedule_path,omitempty"`
+	ScheduledFor   *time.Time `json:"scheduled_for,omitempty"`
+	ScriptHash     *string    `json:"script_hash,omitempty"`
+	ScriptPath     *string    `json:"script_path,omitempty"`
+	SelfWaitTimeMs *float32   `json:"self_wait_time_ms,omitempty"`
+	StartedAt      *time.Time `json:"started_at,omitempty"`
+	Suspend        *float32   `json:"suspend,omitempty"`
+	Tag            string     `json:"tag"`
+
+	// TriggerKind job trigger kind (schedule, http, websocket...)
+	TriggerKind          *JobTriggerKind `json:"trigger_kind,omitempty"`
 	Type                 *Job1Type       `json:"type,omitempty"`
 	VisibleToOwner       bool            `json:"visible_to_owner"`
 	Worker               *string         `json:"worker,omitempty"`
@@ -4825,12 +5052,15 @@ type NewScript struct {
 	MaxTotalDebouncingTime  *int           `json:"max_total_debouncing_time,omitempty"`
 
 	// Modules Additional script modules keyed by relative file path
-	Modules         *map[string]ScriptModule `json:"modules"`
-	OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
-	ParentHash      *string                  `json:"parent_hash,omitempty"`
-	Path            string                   `json:"path"`
+	Modules *map[string]ScriptModule `json:"modules"`
 
-	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
+	// OnBehalfOf Authorization identity to run as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. Supply this or on_behalf_of_email; when only the address is given it is resolved to the account it names, and an address naming nobody is rejected. A pair that disagrees is rejected.
+	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+	ParentHash      *string `json:"parent_hash,omitempty"`
+	Path            string  `json:"path"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email / on_behalf_of pair instead of overwriting it with the caller's own identity.
 	PreserveOnBehalfOf     *bool                   `json:"preserve_on_behalf_of,omitempty"`
 	Priority               *int                    `json:"priority,omitempty"`
 	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
@@ -5070,7 +5300,10 @@ type OpenFlow struct {
 	// Description Detailed documentation for this flow
 	Description *string `json:"description,omitempty"`
 
-	// OnBehalfOfEmail The flow will be run with the permissions of the user with this email.
+	// OnBehalfOf The flow runs with the permissions of this identity: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it. Omit it when writing and it is resolved from that address instead.
+	OnBehalfOf *string `json:"on_behalf_of,omitempty"`
+
+	// OnBehalfOfEmail Address of the account the flow runs on behalf of. Derived from on_behalf_of on read; accepted on write, where it is resolved to the account it names.
 	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
 	// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
@@ -5088,12 +5321,15 @@ type OpenFlowWPath struct {
 	DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description     *string   `json:"description,omitempty"`
-	Labels          *[]string `json:"labels,omitempty"`
-	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
-	Path            string    `json:"path"`
+	Description *string   `json:"description,omitempty"`
+	Labels      *[]string `json:"labels,omitempty"`
 
-	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
+	// OnBehalfOf Authorization identity to run as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. Supply this or on_behalf_of_email; when only the address is given it is resolved to the account it names, and an address naming nobody is rejected. A pair that disagrees is rejected.
+	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+	Path            string  `json:"path"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email / on_behalf_of pair instead of overwriting it with the caller's own identity.
 	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
 	Priority           *int  `json:"priority,omitempty"`
 
@@ -5506,16 +5742,19 @@ type QueuedJob struct {
 	RawCode        *string `json:"raw_code,omitempty"`
 
 	// RawFlow The flow structure containing modules and optional preprocessor/failure handlers
-	RawFlow              *FlowValue      `json:"raw_flow,omitempty"`
-	Running              bool            `json:"running"`
-	SchedulePath         *string         `json:"schedule_path,omitempty"`
-	ScheduledFor         *time.Time      `json:"scheduled_for,omitempty"`
-	ScriptHash           *string         `json:"script_hash,omitempty"`
-	ScriptPath           *string         `json:"script_path,omitempty"`
-	SelfWaitTimeMs       *float32        `json:"self_wait_time_ms,omitempty"`
-	StartedAt            *time.Time      `json:"started_at,omitempty"`
-	Suspend              *float32        `json:"suspend,omitempty"`
-	Tag                  string          `json:"tag"`
+	RawFlow        *FlowValue `json:"raw_flow,omitempty"`
+	Running        bool       `json:"running"`
+	SchedulePath   *string    `json:"schedule_path,omitempty"`
+	ScheduledFor   *time.Time `json:"scheduled_for,omitempty"`
+	ScriptHash     *string    `json:"script_hash,omitempty"`
+	ScriptPath     *string    `json:"script_path,omitempty"`
+	SelfWaitTimeMs *float32   `json:"self_wait_time_ms,omitempty"`
+	StartedAt      *time.Time `json:"started_at,omitempty"`
+	Suspend        *float32   `json:"suspend,omitempty"`
+	Tag            string     `json:"tag"`
+
+	// TriggerKind job trigger kind (schedule, http, websocket...)
+	TriggerKind          *JobTriggerKind `json:"trigger_kind,omitempty"`
 	VisibleToOwner       bool            `json:"visible_to_owner"`
 	Worker               *string         `json:"worker,omitempty"`
 	WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
@@ -5988,8 +6227,11 @@ type Script struct {
 	MaxTotalDebouncingTime  *int       `json:"max_total_debouncing_time,omitempty"`
 
 	// Modules Additional script modules keyed by relative file path
-	Modules         *map[string]ScriptModule `json:"modules"`
-	OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
+	Modules *map[string]ScriptModule `json:"modules"`
+
+	// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
+	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
 	// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
 	ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
@@ -6533,9 +6775,12 @@ type WorkspaceComparison struct {
 	AllBehindItemsVisible bool `json:"all_behind_items_visible"`
 
 	// Diffs List of differences found between workspaces
-	Diffs        []WorkspaceItemDiff `json:"diffs"`
-	HiddenAhead  HiddenItemsSummary  `json:"hidden_ahead"`
-	HiddenBehind HiddenItemsSummary  `json:"hidden_behind"`
+	Diffs []WorkspaceItemDiff `json:"diffs"`
+
+	// FullScanAt For a pair outside the fork lineage, when its candidate set was last seeded by an explicit full scan. Absent when the pair has never been scanned (an empty `diffs` then says nothing about whether the workspaces agree) or when the pair is a lineage pair, which the tally keeps current.
+	FullScanAt   *time.Time         `json:"full_scan_at,omitempty"`
+	HiddenAhead  HiddenItemsSummary `json:"hidden_ahead"`
+	HiddenBehind HiddenItemsSummary `json:"hidden_behind"`
 
 	// SkippedComparison Whether the comparison was skipped. This happens with old forks that where not being kept track of
 	SkippedComparison bool           `json:"skipped_comparison"`
@@ -8356,6 +8601,9 @@ type GetAssetsGraphParams struct {
 
 	// Folder Scope the graph to runnables in a single folder
 	Folder *string `form:"folder,omitempty" json:"folder,omitempty"`
+
+	// DbtScriptHash Render the dbt half of the graph as one version of a dbt script had it, rather than as the currently deployed one. Given this, `folder` no longer scopes the dbt nodes: the pinned version's own models and lineage are the answer, including models a later deploy removed.
+	DbtScriptHash *string `form:"dbt_script_hash,omitempty" json:"dbt_script_hash,omitempty"`
 }
 
 // ListAssetsParams defines parameters for ListAssets.
@@ -8645,6 +8893,14 @@ type ListDataMetricsParams struct {
 	CursorScript *string `form:"cursor_script,omitempty" json:"cursor_script,omitempty"`
 }
 
+// RecordDbtRunProgressJSONBody defines parameters for RecordDbtRunProgress.
+type RecordDbtRunProgressJSONBody = []struct {
+	AssetPath string  `json:"asset_path"`
+	Error     *string `json:"error,omitempty"`
+	RowCount  *int    `json:"row_count,omitempty"`
+	Status    string  `json:"status"`
+}
+
 // CreateDeploymentRequestJSONBody defines parameters for CreateDeploymentRequest.
 type CreateDeploymentRequestJSONBody struct {
 	// Assignees Usernames in the parent workspace. Must be admin or wm_deployers.
@@ -8809,12 +9065,15 @@ type CreateFlowJSONBody struct {
 	DeploymentMessage *string `json:"deployment_message,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description     *string   `json:"description,omitempty"`
-	Labels          *[]string `json:"labels,omitempty"`
-	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
-	Path            string    `json:"path"`
+	Description *string   `json:"description,omitempty"`
+	Labels      *[]string `json:"labels,omitempty"`
 
-	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
+	// OnBehalfOf Authorization identity to run as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. Supply this or on_behalf_of_email; when only the address is given it is resolved to the account it names, and an address naming nobody is rejected. A pair that disagrees is rejected.
+	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+	Path            string  `json:"path"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email / on_behalf_of pair instead of overwriting it with the caller's own identity.
 	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
 	Priority           *int  `json:"priority,omitempty"`
 
@@ -8924,12 +9183,15 @@ type UpdateFlowJSONBody struct {
 	DeploymentMessage *string `json:"deployment_message,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description     *string   `json:"description,omitempty"`
-	Labels          *[]string `json:"labels,omitempty"`
-	OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
-	Path            *string   `json:"path,omitempty"`
+	Description *string   `json:"description,omitempty"`
+	Labels      *[]string `json:"labels,omitempty"`
 
-	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email value instead of overwriting it.
+	// OnBehalfOf Authorization identity to run as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. Supply this or on_behalf_of_email; when only the address is given it is resolved to the account it names, and an address naming nobody is rejected. A pair that disagrees is rejected.
+	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+	Path            *string `json:"path,omitempty"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email / on_behalf_of pair instead of overwriting it with the caller's own identity.
 	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
 	Priority           *int  `json:"priority,omitempty"`
 
@@ -9684,6 +9946,18 @@ type ResolveCompletedJobsJSONBody struct {
 // UnresolveCompletedJobsJSONBody defines parameters for UnresolveCompletedJobs.
 type UnresolveCompletedJobsJSONBody struct {
 	JobIds []openapi_types.UUID `json:"job_ids"`
+}
+
+// GetDbtRunGraphParams defines parameters for GetDbtRunGraph.
+type GetDbtRunGraphParams struct {
+	// AssetKinds Filter by asset kinds (comma-separated list)
+	AssetKinds *string `form:"asset_kinds,omitempty" json:"asset_kinds,omitempty"`
+
+	// Folder Scope the graph to runnables in a single folder
+	Folder *string `form:"folder,omitempty" json:"folder,omitempty"`
+
+	// DbtScriptHash Fallback only, for a job that names no deployed script — a preview or a flow. For a script job the version comes from the job row itself, so this is ignored: which deploy's models, SQL and `ref()` lineage are shown is not the caller's to choose.
+	DbtScriptHash *string `form:"dbt_script_hash,omitempty" json:"dbt_script_hash,omitempty"`
 }
 
 // DeleteJobsJSONBody defines parameters for DeleteJobs.
@@ -11890,14 +12164,15 @@ type EditDataTableConfigJSONBody struct {
 	Settings DataTableSettings `json:"settings"`
 }
 
+// EditDbtWarehousesJSONBody defines parameters for EditDbtWarehouses.
+type EditDbtWarehousesJSONBody struct {
+	// DbtWarehouses Warehouses a dbt project may run against, by name. `main` is the one a project gets when its descriptor names none. Each entry points at a resource; it never holds credentials.
+	DbtWarehouses *DbtWarehouses `json:"dbt_warehouses,omitempty"`
+}
+
 // EditWorkspaceDefaultAppJSONBody defines parameters for EditWorkspaceDefaultApp.
 type EditWorkspaceDefaultAppJSONBody struct {
 	DefaultAppPath *string `json:"default_app_path,omitempty"`
-}
-
-// EditDeployToJSONBody defines parameters for EditDeployTo.
-type EditDeployToJSONBody struct {
-	DeployTo *string `json:"deploy_to,omitempty"`
 }
 
 // EditWorkspaceDeployUISettingsJSONBody defines parameters for EditWorkspaceDeployUISettings.
@@ -12442,6 +12717,9 @@ type MoveCapturesAndConfigsJSONRequestBody MoveCapturesAndConfigsJSONBody
 
 // SetCaptureConfigJSONRequestBody defines body for SetCaptureConfig for application/json ContentType.
 type SetCaptureConfigJSONRequestBody SetCaptureConfigJSONBody
+
+// RecordDbtRunProgressJSONRequestBody defines body for RecordDbtRunProgress for application/json ContentType.
+type RecordDbtRunProgressJSONRequestBody = RecordDbtRunProgressJSONBody
 
 // CreateDeploymentRequestJSONRequestBody defines body for CreateDeploymentRequest for application/json ContentType.
 type CreateDeploymentRequestJSONRequestBody CreateDeploymentRequestJSONBody
@@ -13031,11 +13309,11 @@ type EditCopilotConfigJSONRequestBody = AIConfig
 // EditDataTableConfigJSONRequestBody defines body for EditDataTableConfig for application/json ContentType.
 type EditDataTableConfigJSONRequestBody EditDataTableConfigJSONBody
 
+// EditDbtWarehousesJSONRequestBody defines body for EditDbtWarehouses for application/json ContentType.
+type EditDbtWarehousesJSONRequestBody EditDbtWarehousesJSONBody
+
 // EditWorkspaceDefaultAppJSONRequestBody defines body for EditWorkspaceDefaultApp for application/json ContentType.
 type EditWorkspaceDefaultAppJSONRequestBody EditWorkspaceDefaultAppJSONBody
-
-// EditDeployToJSONRequestBody defines body for EditDeployTo for application/json ContentType.
-type EditDeployToJSONRequestBody EditDeployToJSONBody
 
 // EditWorkspaceDeployUISettingsJSONRequestBody defines body for EditWorkspaceDeployUISettings for application/json ContentType.
 type EditWorkspaceDeployUISettingsJSONRequestBody EditWorkspaceDeployUISettingsJSONBody
@@ -13138,6 +13416,68 @@ type ExistsUsernameJSONRequestBody ExistsUsernameJSONBody
 
 // GetSessionWorkspaceStatusJSONRequestBody defines body for GetSessionWorkspaceStatus for application/json ContentType.
 type GetSessionWorkspaceStatusJSONRequestBody GetSessionWorkspaceStatusJSONBody
+
+// AsAssetGraphTriggers0 returns the union data inside the AssetGraph_Triggers_Item as a AssetGraphTriggers0
+func (t AssetGraph_Triggers_Item) AsAssetGraphTriggers0() (AssetGraphTriggers0, error) {
+	var body AssetGraphTriggers0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAssetGraphTriggers0 overwrites any union data inside the AssetGraph_Triggers_Item as the provided AssetGraphTriggers0
+func (t *AssetGraph_Triggers_Item) FromAssetGraphTriggers0(v AssetGraphTriggers0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAssetGraphTriggers0 performs a merge with any union data inside the AssetGraph_Triggers_Item, using the provided AssetGraphTriggers0
+func (t *AssetGraph_Triggers_Item) MergeAssetGraphTriggers0(v AssetGraphTriggers0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAssetGraphTriggers1 returns the union data inside the AssetGraph_Triggers_Item as a AssetGraphTriggers1
+func (t AssetGraph_Triggers_Item) AsAssetGraphTriggers1() (AssetGraphTriggers1, error) {
+	var body AssetGraphTriggers1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAssetGraphTriggers1 overwrites any union data inside the AssetGraph_Triggers_Item as the provided AssetGraphTriggers1
+func (t *AssetGraph_Triggers_Item) FromAssetGraphTriggers1(v AssetGraphTriggers1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAssetGraphTriggers1 performs a merge with any union data inside the AssetGraph_Triggers_Item, using the provided AssetGraphTriggers1
+func (t *AssetGraph_Triggers_Item) MergeAssetGraphTriggers1(v AssetGraphTriggers1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t AssetGraph_Triggers_Item) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *AssetGraph_Triggers_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // AsDynamicInputDataRunnableRef0 returns the union data inside the DynamicInputData_RunnableRef as a DynamicInputDataRunnableRef0
 func (t DynamicInputData_RunnableRef) AsDynamicInputDataRunnableRef0() (DynamicInputDataRunnableRef0, error) {
@@ -15356,6 +15696,9 @@ type ClientInterface interface {
 	// GetStats request
 	GetStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GithubAppStaleWebhooks request
+	GithubAppStaleWebhooks(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetGlobal request
 	GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -15936,6 +16279,17 @@ type ClientInterface interface {
 	// ListDataMetrics request
 	ListDataMetrics(ctx context.Context, workspace WorkspaceId, params *ListDataMetricsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RecordDbtRunProgressWithBody request with any body
+	RecordDbtRunProgressWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RecordDbtRunProgress(ctx context.Context, workspace WorkspaceId, body RecordDbtRunProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDbtWarehouse request
+	GetDbtWarehouse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DbtWarehouseExists request
+	DbtWarehouseExists(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateDeploymentRequestWithBody request with any body
 	CreateDeploymentRequestWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16505,6 +16859,15 @@ type ClientInterface interface {
 
 	UnresolveCompletedJobs(ctx context.Context, workspace WorkspaceId, body UnresolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetDbtRunGraph request
+	GetDbtRunGraph(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunGraphParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDbtResumable request
+	GetDbtResumable(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDbtResumableForScript request
+	GetDbtResumableForScript(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteJobsWithBody request with any body
 	DeleteJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16683,6 +17046,9 @@ type ClientInterface interface {
 	RunScriptPreviewInlineWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunScriptPreviewInline(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetRunProgress request
+	GetRunProgress(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunWaitResultFlowByPathWithBody request with any body
 	RunWaitResultFlowByPathWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17720,15 +18086,15 @@ type ClientInterface interface {
 
 	EditDataTableConfig(ctx context.Context, workspace WorkspaceId, body EditDataTableConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditDbtWarehousesWithBody request with any body
+	EditDbtWarehousesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditDbtWarehouses(ctx context.Context, workspace WorkspaceId, body EditDbtWarehousesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditWorkspaceDefaultAppWithBody request with any body
 	EditWorkspaceDefaultAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDefaultAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// EditDeployToWithBody request with any body
-	EditDeployToWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	EditDeployTo(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditWorkspaceDeployUISettingsWithBody request with any body
 	EditWorkspaceDeployUISettingsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17959,6 +18325,9 @@ type ClientInterface interface {
 	RunTeamsMessageTestJobWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunTeamsMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SeedFullDiffScan request
+	SeedFullDiffScan(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SetEnvironmentVariableWithBody request with any body
 	SetEnvironmentVariableWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19415,6 +19784,18 @@ func (c *Client) DropCustomInstanceDb(ctx context.Context, name string, reqEdito
 
 func (c *Client) GetStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetStatsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GithubAppStaleWebhooks(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGithubAppStaleWebhooksRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -21969,6 +22350,54 @@ func (c *Client) ListDataMetrics(ctx context.Context, workspace WorkspaceId, par
 	return c.Client.Do(req)
 }
 
+func (c *Client) RecordDbtRunProgressWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRecordDbtRunProgressRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RecordDbtRunProgress(ctx context.Context, workspace WorkspaceId, body RecordDbtRunProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRecordDbtRunProgressRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDbtWarehouse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDbtWarehouseRequest(c.Server, workspace, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DbtWarehouseExists(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDbtWarehouseExistsRequest(c.Server, workspace, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateDeploymentRequestWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateDeploymentRequestRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -24501,6 +24930,42 @@ func (c *Client) UnresolveCompletedJobs(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetDbtRunGraph(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunGraphParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDbtRunGraphRequest(c.Server, workspace, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDbtResumable(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDbtResumableRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDbtResumableForScript(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDbtResumableForScriptRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) DeleteJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteJobsRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -25307,6 +25772,18 @@ func (c *Client) RunScriptPreviewInlineWithBody(ctx context.Context, workspace W
 
 func (c *Client) RunScriptPreviewInline(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunScriptPreviewInlineRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetRunProgress(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRunProgressRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -29889,6 +30366,30 @@ func (c *Client) EditDataTableConfig(ctx context.Context, workspace WorkspaceId,
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditDbtWarehousesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditDbtWarehousesRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditDbtWarehouses(ctx context.Context, workspace WorkspaceId, body EditDbtWarehousesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditDbtWarehousesRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditWorkspaceDefaultAppWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditWorkspaceDefaultAppRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -29903,30 +30404,6 @@ func (c *Client) EditWorkspaceDefaultAppWithBody(ctx context.Context, workspace 
 
 func (c *Client) EditWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDefaultAppJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditWorkspaceDefaultAppRequest(c.Server, workspace, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) EditDeployToWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewEditDeployToRequestWithBody(c.Server, workspace, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) EditDeployTo(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewEditDeployToRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -30947,6 +31424,18 @@ func (c *Client) RunTeamsMessageTestJobWithBody(ctx context.Context, workspace W
 
 func (c *Client) RunTeamsMessageTestJob(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunTeamsMessageTestJobRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SeedFullDiffScan(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSeedFullDiffScanRequest(c.Server, workspace, targetWorkspaceId)
 	if err != nil {
 		return nil, err
 	}
@@ -34906,6 +35395,33 @@ func NewGetStatsRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/settings/get_stats")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGithubAppStaleWebhooksRequest generates requests for GithubAppStaleWebhooks
+func NewGithubAppStaleWebhooksRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/github_app_stale_webhooks")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -41317,6 +41833,22 @@ func NewGetAssetsGraphRequest(server string, workspace WorkspaceId, params *GetA
 
 		}
 
+		if params.DbtScriptHash != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dbt_script_hash", runtime.ParamLocationQuery, *params.DbtScriptHash); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -43878,6 +44410,135 @@ func NewListDataMetricsRequest(server string, workspace WorkspaceId, params *Lis
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRecordDbtRunProgressRequest calls the generic RecordDbtRunProgress builder with application/json body
+func NewRecordDbtRunProgressRequest(server string, workspace WorkspaceId, body RecordDbtRunProgressJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRecordDbtRunProgressRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRecordDbtRunProgressRequestWithBody generates requests for RecordDbtRunProgress with any type of body
+func NewRecordDbtRunProgressRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/dbt/run_progress", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetDbtWarehouseRequest generates requests for GetDbtWarehouse
+func NewGetDbtWarehouseRequest(server string, workspace WorkspaceId, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/dbt/warehouse/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDbtWarehouseExistsRequest generates requests for DbtWarehouseExists
+func NewDbtWarehouseExistsRequest(server string, workspace WorkspaceId, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/dbt/warehouse_exists/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -53892,6 +54553,183 @@ func NewUnresolveCompletedJobsRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewGetDbtRunGraphRequest generates requests for GetDbtRunGraph
+func NewGetDbtRunGraphRequest(server string, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunGraphParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/dbt_graph/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.AssetKinds != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "asset_kinds", runtime.ParamLocationQuery, *params.AssetKinds); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Folder != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "folder", runtime.ParamLocationQuery, *params.Folder); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.DbtScriptHash != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dbt_script_hash", runtime.ParamLocationQuery, *params.DbtScriptHash); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetDbtResumableRequest generates requests for GetDbtResumable
+func NewGetDbtResumableRequest(server string, workspace WorkspaceId, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/dbt_resumable/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetDbtResumableForScriptRequest generates requests for GetDbtResumableForScript
+func NewGetDbtResumableForScriptRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/dbt_resumable_script/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewDeleteJobsRequest calls the generic DeleteJobs builder with application/json body
 func NewDeleteJobsRequest(server string, workspace WorkspaceId, body DeleteJobsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -59789,6 +60627,47 @@ func NewRunScriptPreviewInlineRequestWithBody(server string, workspace Workspace
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetRunProgressRequest generates requests for GetRunProgress
+func NewGetRunProgressRequest(server string, workspace WorkspaceId, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_progress/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -76126,6 +77005,53 @@ func NewEditDataTableConfigRequestWithBody(server string, workspace WorkspaceId,
 	return req, nil
 }
 
+// NewEditDbtWarehousesRequest calls the generic EditDbtWarehouses builder with application/json body
+func NewEditDbtWarehousesRequest(server string, workspace WorkspaceId, body EditDbtWarehousesJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditDbtWarehousesRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditDbtWarehousesRequestWithBody generates requests for EditDbtWarehouses with any type of body
+func NewEditDbtWarehousesRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_dbt_warehouses", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditWorkspaceDefaultAppRequest calls the generic EditWorkspaceDefaultApp builder with application/json body
 func NewEditWorkspaceDefaultAppRequest(server string, workspace WorkspaceId, body EditWorkspaceDefaultAppJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -76154,53 +77080,6 @@ func NewEditWorkspaceDefaultAppRequestWithBody(server string, workspace Workspac
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_default_app", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewEditDeployToRequest calls the generic EditDeployTo builder with application/json body
-func NewEditDeployToRequest(server string, workspace WorkspaceId, body EditDeployToJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewEditDeployToRequestWithBody(server, workspace, "application/json", bodyReader)
-}
-
-// NewEditDeployToRequestWithBody generates requests for EditDeployTo with any type of body
-func NewEditDeployToRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_deploy_to", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -78846,6 +79725,47 @@ func NewRunTeamsMessageTestJobRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewSeedFullDiffScanRequest generates requests for SeedFullDiffScan
+func NewSeedFullDiffScanRequest(server string, workspace WorkspaceId, targetWorkspaceId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "target_workspace_id", runtime.ParamLocationPath, targetWorkspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/seed_full_diff/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewSetEnvironmentVariableRequest calls the generic SetEnvironmentVariable builder with application/json body
 func NewSetEnvironmentVariableRequest(server string, workspace WorkspaceId, body SetEnvironmentVariableJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -80407,6 +81327,9 @@ type ClientWithResponsesInterface interface {
 	// GetStatsWithResponse request
 	GetStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetStatsResponse, error)
 
+	// GithubAppStaleWebhooksWithResponse request
+	GithubAppStaleWebhooksWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GithubAppStaleWebhooksResponse, error)
+
 	// GetGlobalWithResponse request
 	GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error)
 
@@ -80987,6 +81910,17 @@ type ClientWithResponsesInterface interface {
 	// ListDataMetricsWithResponse request
 	ListDataMetricsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListDataMetricsParams, reqEditors ...RequestEditorFn) (*ListDataMetricsResponse, error)
 
+	// RecordDbtRunProgressWithBodyWithResponse request with any body
+	RecordDbtRunProgressWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RecordDbtRunProgressResponse, error)
+
+	RecordDbtRunProgressWithResponse(ctx context.Context, workspace WorkspaceId, body RecordDbtRunProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*RecordDbtRunProgressResponse, error)
+
+	// GetDbtWarehouseWithResponse request
+	GetDbtWarehouseWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*GetDbtWarehouseResponse, error)
+
+	// DbtWarehouseExistsWithResponse request
+	DbtWarehouseExistsWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*DbtWarehouseExistsResponse, error)
+
 	// CreateDeploymentRequestWithBodyWithResponse request with any body
 	CreateDeploymentRequestWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestResponse, error)
 
@@ -81556,6 +82490,15 @@ type ClientWithResponsesInterface interface {
 
 	UnresolveCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, body UnresolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*UnresolveCompletedJobsResponse, error)
 
+	// GetDbtRunGraphWithResponse request
+	GetDbtRunGraphWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunGraphParams, reqEditors ...RequestEditorFn) (*GetDbtRunGraphResponse, error)
+
+	// GetDbtResumableWithResponse request
+	GetDbtResumableWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetDbtResumableResponse, error)
+
+	// GetDbtResumableForScriptWithResponse request
+	GetDbtResumableForScriptWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetDbtResumableForScriptResponse, error)
+
 	// DeleteJobsWithBodyWithResponse request with any body
 	DeleteJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteJobsResponse, error)
 
@@ -81734,6 +82677,9 @@ type ClientWithResponsesInterface interface {
 	RunScriptPreviewInlineWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptPreviewInlineResponse, error)
 
 	RunScriptPreviewInlineWithResponse(ctx context.Context, workspace WorkspaceId, body RunScriptPreviewInlineJSONRequestBody, reqEditors ...RequestEditorFn) (*RunScriptPreviewInlineResponse, error)
+
+	// GetRunProgressWithResponse request
+	GetRunProgressWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetRunProgressResponse, error)
 
 	// RunWaitResultFlowByPathWithBodyWithResponse request with any body
 	RunWaitResultFlowByPathWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunWaitResultFlowByPathParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunWaitResultFlowByPathResponse, error)
@@ -82771,15 +83717,15 @@ type ClientWithResponsesInterface interface {
 
 	EditDataTableConfigWithResponse(ctx context.Context, workspace WorkspaceId, body EditDataTableConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDataTableConfigResponse, error)
 
+	// EditDbtWarehousesWithBodyWithResponse request with any body
+	EditDbtWarehousesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDbtWarehousesResponse, error)
+
+	EditDbtWarehousesWithResponse(ctx context.Context, workspace WorkspaceId, body EditDbtWarehousesJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDbtWarehousesResponse, error)
+
 	// EditWorkspaceDefaultAppWithBodyWithResponse request with any body
 	EditWorkspaceDefaultAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceDefaultAppResponse, error)
 
 	EditWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, body EditWorkspaceDefaultAppJSONRequestBody, reqEditors ...RequestEditorFn) (*EditWorkspaceDefaultAppResponse, error)
-
-	// EditDeployToWithBodyWithResponse request with any body
-	EditDeployToWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error)
-
-	EditDeployToWithResponse(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error)
 
 	// EditWorkspaceDeployUISettingsWithBodyWithResponse request with any body
 	EditWorkspaceDeployUISettingsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceDeployUISettingsResponse, error)
@@ -83010,6 +83956,9 @@ type ClientWithResponsesInterface interface {
 	RunTeamsMessageTestJobWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error)
 
 	RunTeamsMessageTestJobWithResponse(ctx context.Context, workspace WorkspaceId, body RunTeamsMessageTestJobJSONRequestBody, reqEditors ...RequestEditorFn) (*RunTeamsMessageTestJobResponse, error)
+
+	// SeedFullDiffScanWithResponse request
+	SeedFullDiffScanWithResponse(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*SeedFullDiffScanResponse, error)
 
 	// SetEnvironmentVariableWithBodyWithResponse request with any body
 	SetEnvironmentVariableWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetEnvironmentVariableResponse, error)
@@ -85294,6 +86243,32 @@ func (r GetStatsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetStatsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GithubAppStaleWebhooksResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		GitRepoResourcePath string  `json:"git_repo_resource_path"`
+		RegisteredUrl       *string `json:"registered_url"`
+		WorkspaceId         string  `json:"workspace_id"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GithubAppStaleWebhooksResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GithubAppStaleWebhooksResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -88172,74 +89147,7 @@ func (r ListAssetSchemasResponse) StatusCode() int {
 type GetAssetsGraphResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
-		Assets []struct {
-			// ForkMaterialization Fork workspaces only — 'fork' when this ducklake asset was materialized in the fork itself, 'deferred' when reads fall back to the parent workspace's current table via a defer view. Omitted otherwise.
-			ForkMaterialization *GetAssetsGraph200AssetsForkMaterialization `json:"fork_materialization,omitempty"`
-			Kind                AssetKind                                   `json:"kind"`
-			Path                string                                      `json:"path"`
-		} `json:"assets"`
-		Edges []struct {
-			AccessType   *AssetUsageAccessType `json:"access_type"`
-			AssetKind    AssetKind             `json:"asset_kind"`
-			AssetPath    string                `json:"asset_path"`
-			RunnableKind AssetUsageKind        `json:"runnable_kind"`
-			RunnablePath string                `json:"runnable_path"`
-		} `json:"edges"`
-
-		// MacroEdges Macro-library → consumer edges (deploy-recorded call detection plus `// use`). Omitted when empty.
-		MacroEdges *[]struct {
-			ConsumerPath string   `json:"consumer_path"`
-			LibPath      string   `json:"lib_path"`
-			MacroNames   []string `json:"macro_names"`
-			ViaUse       bool     `json:"via_use"`
-		} `json:"macro_edges,omitempty"`
-		Runnables []struct {
-			// InPipeline True iff the script is a pipeline member (deployed with `// pipeline`). Omitted when false.
-			InPipeline *bool `json:"in_pipeline,omitempty"`
-
-			// Macros Macros this script provides to the workspace registry (deployed `// macros` library). Omitted when empty.
-			Macros *[]struct {
-				IsTable bool   `json:"is_table"`
-				Name    string `json:"name"`
-
-				// Params verbatim parameter list
-				Params string `json:"params"`
-			} `json:"macros,omitempty"`
-			Path      string         `json:"path"`
-			UsageKind AssetUsageKind `json:"usage_kind"`
-		} `json:"runnables"`
-
-		// TestEdges Ordering-only "must-run-after" edges — a `// data_test relationships` (or custom test reading a pipeline asset) requires the referenced asset's producer to run before the tested script. Not a data-consumption edge; fed into the cascade topo-sort so cold runs order correctly. Omitted when empty.
-		TestEdges *[]struct {
-			AssetKind    AssetKind      `json:"asset_kind"`
-			AssetPath    string         `json:"asset_path"`
-			ProducerKind AssetUsageKind `json:"producer_kind"`
-			ProducerPath string         `json:"producer_path"`
-			RunnableKind AssetUsageKind `json:"runnable_kind"`
-			RunnablePath string         `json:"runnable_path"`
-		} `json:"test_edges,omitempty"`
-		Triggers []GetAssetsGraph_200_Triggers_Item `json:"triggers"`
-	}
-}
-type GetAssetsGraph200AssetsForkMaterialization string
-type GetAssetsGraph200Triggers0 struct {
-	AssetKind    AssetKind                             `json:"asset_kind"`
-	AssetPath    string                                `json:"asset_path"`
-	RunnableKind AssetUsageKind                        `json:"runnable_kind"`
-	RunnablePath string                                `json:"runnable_path"`
-	TriggerKind  GetAssetsGraph200Triggers0TriggerKind `json:"trigger_kind"`
-}
-type GetAssetsGraph200Triggers0TriggerKind string
-type GetAssetsGraph200Triggers1 struct {
-	Path         string                                `json:"path"`
-	RunnableKind AssetUsageKind                        `json:"runnable_kind"`
-	RunnablePath string                                `json:"runnable_path"`
-	TriggerKind  GetAssetsGraph200Triggers1TriggerKind `json:"trigger_kind"`
-}
-type GetAssetsGraph200Triggers1TriggerKind string
-type GetAssetsGraph_200_Triggers_Item struct {
-	union json.RawMessage
+	JSON200      *AssetGraph
 }
 
 // Status returns HTTPResponse.Status
@@ -89056,6 +89964,70 @@ func (r ListDataMetricsResponse) StatusCode() int {
 	return 0
 }
 
+type RecordDbtRunProgressResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RecordDbtRunProgressResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RecordDbtRunProgressResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDbtWarehouseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DbtWarehouseConnection
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDbtWarehouseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDbtWarehouseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DbtWarehouseExistsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DbtWarehouseExistsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DbtWarehouseExistsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateDeploymentRequestResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -89853,7 +90825,10 @@ type GetFlowByPathResponse struct {
 		Labels          *[]string `json:"labels,omitempty"`
 		LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
 		NoDeployed      *bool     `json:"no_deployed,omitempty"`
-		OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+
+		// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
+		OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+		OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
 		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
 		// with a saved draft at the same path. Populated only on the
@@ -90034,12 +91009,15 @@ type ListFlowsResponse struct {
 		// flow — either no deployed row exists at this
 		// path (draft-only) or the user saved a per-user
 		// draft on top of the deployed row.
-		IsDraft         *bool     `json:"is_draft,omitempty"`
-		Labels          *[]string `json:"labels,omitempty"`
-		LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
-		OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
-		Path            string    `json:"path"`
-		Priority        *int      `json:"priority,omitempty"`
+		IsDraft       *bool     `json:"is_draft,omitempty"`
+		Labels        *[]string `json:"labels,omitempty"`
+		LockErrorLogs *string   `json:"lock_error_logs,omitempty"`
+
+		// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
+		OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+		OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+		Path            string  `json:"path"`
+		Priority        *int    `json:"priority,omitempty"`
 
 		// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 		Schema  *map[string]interface{} `json:"schema,omitempty"`
@@ -92653,6 +93631,72 @@ func (r UnresolveCompletedJobsResponse) StatusCode() int {
 	return 0
 }
 
+type GetDbtRunGraphResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AssetGraph
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDbtRunGraphResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDbtRunGraphResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDbtResumableResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *openapi_types.UUID
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDbtResumableResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDbtResumableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDbtResumableForScriptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *openapi_types.UUID
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDbtResumableForScriptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDbtResumableForScriptResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DeleteJobsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -93579,6 +94623,28 @@ func (r RunScriptPreviewInlineResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunScriptPreviewInlineResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetRunProgressResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]AssetProgress
+}
+
+// Status returns HTTPResponse.Status
+func (r GetRunProgressResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetRunProgressResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -97778,9 +98844,12 @@ type GetScriptByPathResponse struct {
 		MaxTotalDebouncingTime  *int                   `json:"max_total_debouncing_time,omitempty"`
 
 		// Modules Additional script modules keyed by relative file path
-		Modules         *map[string]ScriptModule `json:"modules"`
-		NoDeployed      *bool                    `json:"no_deployed,omitempty"`
-		OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
+		Modules    *map[string]ScriptModule `json:"modules"`
+		NoDeployed *bool                    `json:"no_deployed,omitempty"`
+
+		// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
+		OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+		OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
 		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
 		// with a saved draft at the same path. Populated only on the
@@ -97982,8 +99051,11 @@ type ListScriptsResponse struct {
 		MaxTotalDebouncingTime  *int               `json:"max_total_debouncing_time,omitempty"`
 
 		// Modules Additional script modules keyed by relative file path
-		Modules         *map[string]ScriptModule `json:"modules"`
-		OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
+		Modules *map[string]ScriptModule `json:"modules"`
+
+		// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
+		OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+		OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
 		// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
 		ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
@@ -100439,6 +101511,28 @@ func (r EditDataTableConfigResponse) StatusCode() int {
 	return 0
 }
 
+type EditDbtWarehousesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r EditDbtWarehousesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditDbtWarehousesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditWorkspaceDefaultAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -100454,27 +101548,6 @@ func (r EditWorkspaceDefaultAppResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r EditWorkspaceDefaultAppResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type EditDeployToResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r EditDeployToResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r EditDeployToResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -101161,13 +102234,15 @@ type GetSettingsResponse struct {
 		AiConfig *AIConfig `json:"ai_config,omitempty"`
 
 		// AutoInvite Configuration for auto-inviting users to the workspace
-		AutoInvite     *AutoInviteConfig          `json:"auto_invite,omitempty"`
-		Color          *string                    `json:"color,omitempty"`
-		CustomerId     *string                    `json:"customer_id,omitempty"`
-		Datatable      *DataTableSettings         `json:"datatable,omitempty"`
+		AutoInvite *AutoInviteConfig  `json:"auto_invite,omitempty"`
+		Color      *string            `json:"color,omitempty"`
+		CustomerId *string            `json:"customer_id,omitempty"`
+		Datatable  *DataTableSettings `json:"datatable,omitempty"`
+
+		// DbtWarehouses Warehouses a dbt project may run against, by name. `main` is the one a project gets when its descriptor names none. Each entry points at a resource; it never holds credentials.
+		DbtWarehouses  *DbtWarehouses             `json:"dbt_warehouses,omitempty"`
 		DefaultApp     *string                    `json:"default_app,omitempty"`
 		DefaultScripts *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
-		DeployTo       *string                    `json:"deploy_to,omitempty"`
 		DeployUi       *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
 		Ducklake       *DucklakeSettings          `json:"ducklake,omitempty"`
 
@@ -101898,6 +102973,32 @@ func (r RunTeamsMessageTestJobResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunTeamsMessageTestJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SeedFullDiffScanResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Candidates Number of candidate items the comparison will evaluate
+		Candidates int       `json:"candidates"`
+		ScannedAt  time.Time `json:"scanned_at"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r SeedFullDiffScanResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SeedFullDiffScanResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -103587,6 +104688,15 @@ func (c *ClientWithResponses) GetStatsWithResponse(ctx context.Context, reqEdito
 		return nil, err
 	}
 	return ParseGetStatsResponse(rsp)
+}
+
+// GithubAppStaleWebhooksWithResponse request returning *GithubAppStaleWebhooksResponse
+func (c *ClientWithResponses) GithubAppStaleWebhooksWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GithubAppStaleWebhooksResponse, error) {
+	rsp, err := c.GithubAppStaleWebhooks(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGithubAppStaleWebhooksResponse(rsp)
 }
 
 // GetGlobalWithResponse request returning *GetGlobalResponse
@@ -105441,6 +106551,41 @@ func (c *ClientWithResponses) ListDataMetricsWithResponse(ctx context.Context, w
 	return ParseListDataMetricsResponse(rsp)
 }
 
+// RecordDbtRunProgressWithBodyWithResponse request with arbitrary body returning *RecordDbtRunProgressResponse
+func (c *ClientWithResponses) RecordDbtRunProgressWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RecordDbtRunProgressResponse, error) {
+	rsp, err := c.RecordDbtRunProgressWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRecordDbtRunProgressResponse(rsp)
+}
+
+func (c *ClientWithResponses) RecordDbtRunProgressWithResponse(ctx context.Context, workspace WorkspaceId, body RecordDbtRunProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*RecordDbtRunProgressResponse, error) {
+	rsp, err := c.RecordDbtRunProgress(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRecordDbtRunProgressResponse(rsp)
+}
+
+// GetDbtWarehouseWithResponse request returning *GetDbtWarehouseResponse
+func (c *ClientWithResponses) GetDbtWarehouseWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*GetDbtWarehouseResponse, error) {
+	rsp, err := c.GetDbtWarehouse(ctx, workspace, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDbtWarehouseResponse(rsp)
+}
+
+// DbtWarehouseExistsWithResponse request returning *DbtWarehouseExistsResponse
+func (c *ClientWithResponses) DbtWarehouseExistsWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*DbtWarehouseExistsResponse, error) {
+	rsp, err := c.DbtWarehouseExists(ctx, workspace, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDbtWarehouseExistsResponse(rsp)
+}
+
 // CreateDeploymentRequestWithBodyWithResponse request with arbitrary body returning *CreateDeploymentRequestResponse
 func (c *ClientWithResponses) CreateDeploymentRequestWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestResponse, error) {
 	rsp, err := c.CreateDeploymentRequestWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -107276,6 +108421,33 @@ func (c *ClientWithResponses) UnresolveCompletedJobsWithResponse(ctx context.Con
 	return ParseUnresolveCompletedJobsResponse(rsp)
 }
 
+// GetDbtRunGraphWithResponse request returning *GetDbtRunGraphResponse
+func (c *ClientWithResponses) GetDbtRunGraphWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunGraphParams, reqEditors ...RequestEditorFn) (*GetDbtRunGraphResponse, error) {
+	rsp, err := c.GetDbtRunGraph(ctx, workspace, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDbtRunGraphResponse(rsp)
+}
+
+// GetDbtResumableWithResponse request returning *GetDbtResumableResponse
+func (c *ClientWithResponses) GetDbtResumableWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetDbtResumableResponse, error) {
+	rsp, err := c.GetDbtResumable(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDbtResumableResponse(rsp)
+}
+
+// GetDbtResumableForScriptWithResponse request returning *GetDbtResumableForScriptResponse
+func (c *ClientWithResponses) GetDbtResumableForScriptWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetDbtResumableForScriptResponse, error) {
+	rsp, err := c.GetDbtResumableForScript(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDbtResumableForScriptResponse(rsp)
+}
+
 // DeleteJobsWithBodyWithResponse request with arbitrary body returning *DeleteJobsResponse
 func (c *ClientWithResponses) DeleteJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteJobsResponse, error) {
 	rsp, err := c.DeleteJobsWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -107861,6 +109033,15 @@ func (c *ClientWithResponses) RunScriptPreviewInlineWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseRunScriptPreviewInlineResponse(rsp)
+}
+
+// GetRunProgressWithResponse request returning *GetRunProgressResponse
+func (c *ClientWithResponses) GetRunProgressWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetRunProgressResponse, error) {
+	rsp, err := c.GetRunProgress(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetRunProgressResponse(rsp)
 }
 
 // RunWaitResultFlowByPathWithBodyWithResponse request with arbitrary body returning *RunWaitResultFlowByPathResponse
@@ -111185,6 +112366,23 @@ func (c *ClientWithResponses) EditDataTableConfigWithResponse(ctx context.Contex
 	return ParseEditDataTableConfigResponse(rsp)
 }
 
+// EditDbtWarehousesWithBodyWithResponse request with arbitrary body returning *EditDbtWarehousesResponse
+func (c *ClientWithResponses) EditDbtWarehousesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDbtWarehousesResponse, error) {
+	rsp, err := c.EditDbtWarehousesWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditDbtWarehousesResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditDbtWarehousesWithResponse(ctx context.Context, workspace WorkspaceId, body EditDbtWarehousesJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDbtWarehousesResponse, error) {
+	rsp, err := c.EditDbtWarehouses(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditDbtWarehousesResponse(rsp)
+}
+
 // EditWorkspaceDefaultAppWithBodyWithResponse request with arbitrary body returning *EditWorkspaceDefaultAppResponse
 func (c *ClientWithResponses) EditWorkspaceDefaultAppWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWorkspaceDefaultAppResponse, error) {
 	rsp, err := c.EditWorkspaceDefaultAppWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -111200,23 +112398,6 @@ func (c *ClientWithResponses) EditWorkspaceDefaultAppWithResponse(ctx context.Co
 		return nil, err
 	}
 	return ParseEditWorkspaceDefaultAppResponse(rsp)
-}
-
-// EditDeployToWithBodyWithResponse request with arbitrary body returning *EditDeployToResponse
-func (c *ClientWithResponses) EditDeployToWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error) {
-	rsp, err := c.EditDeployToWithBody(ctx, workspace, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseEditDeployToResponse(rsp)
-}
-
-func (c *ClientWithResponses) EditDeployToWithResponse(ctx context.Context, workspace WorkspaceId, body EditDeployToJSONRequestBody, reqEditors ...RequestEditorFn) (*EditDeployToResponse, error) {
-	rsp, err := c.EditDeployTo(ctx, workspace, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseEditDeployToResponse(rsp)
 }
 
 // EditWorkspaceDeployUISettingsWithBodyWithResponse request with arbitrary body returning *EditWorkspaceDeployUISettingsResponse
@@ -111957,6 +113138,15 @@ func (c *ClientWithResponses) RunTeamsMessageTestJobWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseRunTeamsMessageTestJobResponse(rsp)
+}
+
+// SeedFullDiffScanWithResponse request returning *SeedFullDiffScanResponse
+func (c *ClientWithResponses) SeedFullDiffScanWithResponse(ctx context.Context, workspace WorkspaceId, targetWorkspaceId string, reqEditors ...RequestEditorFn) (*SeedFullDiffScanResponse, error) {
+	rsp, err := c.SeedFullDiffScan(ctx, workspace, targetWorkspaceId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSeedFullDiffScanResponse(rsp)
 }
 
 // SetEnvironmentVariableWithBodyWithResponse request with arbitrary body returning *SetEnvironmentVariableResponse
@@ -114560,6 +115750,36 @@ func ParseGetStatsResponse(rsp *http.Response) (*GetStatsResponse, error) {
 		var dest struct {
 			Data      *string `json:"data,omitempty"`
 			Signature *string `json:"signature,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGithubAppStaleWebhooksResponse parses an HTTP response from a GithubAppStaleWebhooksWithResponse call
+func ParseGithubAppStaleWebhooksResponse(rsp *http.Response) (*GithubAppStaleWebhooksResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GithubAppStaleWebhooksResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			GitRepoResourcePath string  `json:"git_repo_resource_path"`
+			RegisteredUrl       *string `json:"registered_url"`
+			WorkspaceId         string  `json:"workspace_id"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -117392,55 +118612,7 @@ func ParseGetAssetsGraphResponse(rsp *http.Response) (*GetAssetsGraphResponse, e
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Assets []struct {
-				// ForkMaterialization Fork workspaces only — 'fork' when this ducklake asset was materialized in the fork itself, 'deferred' when reads fall back to the parent workspace's current table via a defer view. Omitted otherwise.
-				ForkMaterialization *GetAssetsGraph200AssetsForkMaterialization `json:"fork_materialization,omitempty"`
-				Kind                AssetKind                                   `json:"kind"`
-				Path                string                                      `json:"path"`
-			} `json:"assets"`
-			Edges []struct {
-				AccessType   *AssetUsageAccessType `json:"access_type"`
-				AssetKind    AssetKind             `json:"asset_kind"`
-				AssetPath    string                `json:"asset_path"`
-				RunnableKind AssetUsageKind        `json:"runnable_kind"`
-				RunnablePath string                `json:"runnable_path"`
-			} `json:"edges"`
-
-			// MacroEdges Macro-library → consumer edges (deploy-recorded call detection plus `// use`). Omitted when empty.
-			MacroEdges *[]struct {
-				ConsumerPath string   `json:"consumer_path"`
-				LibPath      string   `json:"lib_path"`
-				MacroNames   []string `json:"macro_names"`
-				ViaUse       bool     `json:"via_use"`
-			} `json:"macro_edges,omitempty"`
-			Runnables []struct {
-				// InPipeline True iff the script is a pipeline member (deployed with `// pipeline`). Omitted when false.
-				InPipeline *bool `json:"in_pipeline,omitempty"`
-
-				// Macros Macros this script provides to the workspace registry (deployed `// macros` library). Omitted when empty.
-				Macros *[]struct {
-					IsTable bool   `json:"is_table"`
-					Name    string `json:"name"`
-
-					// Params verbatim parameter list
-					Params string `json:"params"`
-				} `json:"macros,omitempty"`
-				Path      string         `json:"path"`
-				UsageKind AssetUsageKind `json:"usage_kind"`
-			} `json:"runnables"`
-
-			// TestEdges Ordering-only "must-run-after" edges — a `// data_test relationships` (or custom test reading a pipeline asset) requires the referenced asset's producer to run before the tested script. Not a data-consumption edge; fed into the cascade topo-sort so cold runs order correctly. Omitted when empty.
-			TestEdges *[]struct {
-				AssetKind    AssetKind      `json:"asset_kind"`
-				AssetPath    string         `json:"asset_path"`
-				ProducerKind AssetUsageKind `json:"producer_kind"`
-				ProducerPath string         `json:"producer_path"`
-				RunnableKind AssetUsageKind `json:"runnable_kind"`
-				RunnablePath string         `json:"runnable_path"`
-			} `json:"test_edges,omitempty"`
-			Triggers []GetAssetsGraph_200_Triggers_Item `json:"triggers"`
-		}
+		var dest AssetGraph
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -118292,6 +119464,64 @@ func ParseListDataMetricsResponse(rsp *http.Response) (*ListDataMetricsResponse,
 	return response, nil
 }
 
+// ParseRecordDbtRunProgressResponse parses an HTTP response from a RecordDbtRunProgressWithResponse call
+func ParseRecordDbtRunProgressResponse(rsp *http.Response) (*RecordDbtRunProgressResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RecordDbtRunProgressResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetDbtWarehouseResponse parses an HTTP response from a GetDbtWarehouseWithResponse call
+func ParseGetDbtWarehouseResponse(rsp *http.Response) (*GetDbtWarehouseResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDbtWarehouseResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DbtWarehouseConnection
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDbtWarehouseExistsResponse parses an HTTP response from a DbtWarehouseExistsWithResponse call
+func ParseDbtWarehouseExistsResponse(rsp *http.Response) (*DbtWarehouseExistsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DbtWarehouseExistsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCreateDeploymentRequestResponse parses an HTTP response from a CreateDeploymentRequestWithResponse call
 func ParseCreateDeploymentRequestResponse(rsp *http.Response) (*CreateDeploymentRequestResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -119107,7 +120337,10 @@ func ParseGetFlowByPathResponse(rsp *http.Response) (*GetFlowByPathResponse, err
 			Labels          *[]string `json:"labels,omitempty"`
 			LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
 			NoDeployed      *bool     `json:"no_deployed,omitempty"`
-			OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
+
+			// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
+			OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+			OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
 			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
 			// with a saved draft at the same path. Populated only on the
@@ -119299,12 +120532,15 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			// flow — either no deployed row exists at this
 			// path (draft-only) or the user saved a per-user
 			// draft on top of the deployed row.
-			IsDraft         *bool     `json:"is_draft,omitempty"`
-			Labels          *[]string `json:"labels,omitempty"`
-			LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
-			OnBehalfOfEmail *string   `json:"on_behalf_of_email,omitempty"`
-			Path            string    `json:"path"`
-			Priority        *int      `json:"priority,omitempty"`
+			IsDraft       *bool     `json:"is_draft,omitempty"`
+			Labels        *[]string `json:"labels,omitempty"`
+			LockErrorLogs *string   `json:"lock_error_logs,omitempty"`
+
+			// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
+			OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+			OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+			Path            string  `json:"path"`
+			Priority        *int    `json:"priority,omitempty"`
 
 			// Schema JSON Schema for flow inputs. Use this to define input parameters, their types, defaults, and validation. For resource inputs, set type to 'object' and format to 'resource-<type>' (e.g., 'resource-stripe')
 			Schema  *map[string]interface{} `json:"schema,omitempty"`
@@ -121871,6 +123107,84 @@ func ParseUnresolveCompletedJobsResponse(rsp *http.Response) (*UnresolveComplete
 	return response, nil
 }
 
+// ParseGetDbtRunGraphResponse parses an HTTP response from a GetDbtRunGraphWithResponse call
+func ParseGetDbtRunGraphResponse(rsp *http.Response) (*GetDbtRunGraphResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDbtRunGraphResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AssetGraph
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDbtResumableResponse parses an HTTP response from a GetDbtResumableWithResponse call
+func ParseGetDbtResumableResponse(rsp *http.Response) (*GetDbtResumableResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDbtResumableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest openapi_types.UUID
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDbtResumableForScriptResponse parses an HTTP response from a GetDbtResumableForScriptWithResponse call
+func ParseGetDbtResumableForScriptResponse(rsp *http.Response) (*GetDbtResumableForScriptResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDbtResumableForScriptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest openapi_types.UUID
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseDeleteJobsResponse parses an HTTP response from a DeleteJobsWithResponse call
 func ParseDeleteJobsResponse(rsp *http.Response) (*DeleteJobsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -122731,6 +124045,32 @@ func ParseRunScriptPreviewInlineResponse(rsp *http.Response) (*RunScriptPreviewI
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetRunProgressResponse parses an HTTP response from a GetRunProgressWithResponse call
+func ParseGetRunProgressResponse(rsp *http.Response) (*GetRunProgressResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetRunProgressResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []AssetProgress
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -126932,9 +128272,12 @@ func ParseGetScriptByPathResponse(rsp *http.Response) (*GetScriptByPathResponse,
 			MaxTotalDebouncingTime  *int                   `json:"max_total_debouncing_time,omitempty"`
 
 			// Modules Additional script modules keyed by relative file path
-			Modules         *map[string]ScriptModule `json:"modules"`
-			NoDeployed      *bool                    `json:"no_deployed,omitempty"`
-			OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
+			Modules    *map[string]ScriptModule `json:"modules"`
+			NoDeployed *bool                    `json:"no_deployed,omitempty"`
+
+			// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
+			OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+			OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
 			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
 			// with a saved draft at the same path. Populated only on the
@@ -127146,8 +128489,11 @@ func ParseListScriptsResponse(rsp *http.Response) (*ListScriptsResponse, error) 
 			MaxTotalDebouncingTime  *int               `json:"max_total_debouncing_time,omitempty"`
 
 			// Modules Additional script modules keyed by relative file path
-			Modules         *map[string]ScriptModule `json:"modules"`
-			OnBehalfOfEmail *string                  `json:"on_behalf_of_email,omitempty"`
+			Modules *map[string]ScriptModule `json:"modules"`
+
+			// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
+			OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
+			OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
 			// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
 			ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
@@ -129596,6 +130942,32 @@ func ParseEditDataTableConfigResponse(rsp *http.Response) (*EditDataTableConfigR
 	return response, nil
 }
 
+// ParseEditDbtWarehousesResponse parses an HTTP response from a EditDbtWarehousesWithResponse call
+func ParseEditDbtWarehousesResponse(rsp *http.Response) (*EditDbtWarehousesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditDbtWarehousesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseEditWorkspaceDefaultAppResponse parses an HTTP response from a EditWorkspaceDefaultAppWithResponse call
 func ParseEditWorkspaceDefaultAppResponse(rsp *http.Response) (*EditWorkspaceDefaultAppResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -129605,22 +130977,6 @@ func ParseEditWorkspaceDefaultAppResponse(rsp *http.Response) (*EditWorkspaceDef
 	}
 
 	response := &EditWorkspaceDefaultAppResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseEditDeployToResponse parses an HTTP response from a EditDeployToWithResponse call
-func ParseEditDeployToResponse(rsp *http.Response) (*EditDeployToResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &EditDeployToResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -130355,13 +131711,15 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			AiConfig *AIConfig `json:"ai_config,omitempty"`
 
 			// AutoInvite Configuration for auto-inviting users to the workspace
-			AutoInvite     *AutoInviteConfig          `json:"auto_invite,omitempty"`
-			Color          *string                    `json:"color,omitempty"`
-			CustomerId     *string                    `json:"customer_id,omitempty"`
-			Datatable      *DataTableSettings         `json:"datatable,omitempty"`
+			AutoInvite *AutoInviteConfig  `json:"auto_invite,omitempty"`
+			Color      *string            `json:"color,omitempty"`
+			CustomerId *string            `json:"customer_id,omitempty"`
+			Datatable  *DataTableSettings `json:"datatable,omitempty"`
+
+			// DbtWarehouses Warehouses a dbt project may run against, by name. `main` is the one a project gets when its descriptor names none. Each entry points at a resource; it never holds credentials.
+			DbtWarehouses  *DbtWarehouses             `json:"dbt_warehouses,omitempty"`
 			DefaultApp     *string                    `json:"default_app,omitempty"`
 			DefaultScripts *WorkspaceDefaultScripts   `json:"default_scripts,omitempty"`
-			DeployTo       *string                    `json:"deploy_to,omitempty"`
 			DeployUi       *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
 			Ducklake       *DucklakeSettings          `json:"ducklake,omitempty"`
 
@@ -131096,6 +132454,36 @@ func ParseRunTeamsMessageTestJobResponse(rsp *http.Response) (*RunTeamsMessageTe
 	response := &RunTeamsMessageTestJobResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSeedFullDiffScanResponse parses an HTTP response from a SeedFullDiffScanWithResponse call
+func ParseSeedFullDiffScanResponse(rsp *http.Response) (*SeedFullDiffScanResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SeedFullDiffScanResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Candidates Number of candidate items the comparison will evaluate
+			Candidates int       `json:"candidates"`
+			ScannedAt  time.Time `json:"scanned_at"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
