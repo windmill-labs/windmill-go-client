@@ -1584,6 +1584,9 @@ type AssetGraph struct {
 		ToAssetPath   string `json:"to_asset_path"`
 	} `json:"dbt_edges,omitempty"`
 
+	// DbtGraphIngestedAt When the dbt half on screen was parsed, for a graph pinned to a job. What the dbt editor labels its provenance with — "parsed from the editor at 14:32" against "as of last deploy" — since the two are drawn identically and the ambiguity would otherwise just move into the editor. Omitted for the unpinned workspace graph, which spans every project and so has no one time.
+	DbtGraphIngestedAt *time.Time `json:"dbt_graph_ingested_at,omitempty"`
+
 	// DbtSnapshotJob The job whose own snapshot the dbt half was resolved from, when one was asked for and found. A run page polls the graph while its job runs, because a dynamic descriptor's snapshot is written mid-run, and this is what tells it to stop. Omitted when the answer came from the version's deployed graph.
 	DbtSnapshotJob *openapi_types.UUID `json:"dbt_snapshot_job,omitempty"`
 	Edges          []struct {
