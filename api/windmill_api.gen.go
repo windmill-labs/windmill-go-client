@@ -8448,6 +8448,29 @@ type CreateAppRawMultipartBody struct {
 	Js  *string `json:"js,omitempty"`
 }
 
+// CreateAppRawSourceJSONBody defines parameters for CreateAppRawSource.
+type CreateAppRawSourceJSONBody struct {
+	CustomPath        *string   `json:"custom_path,omitempty"`
+	DeploymentMessage *string   `json:"deployment_message,omitempty"`
+	Labels            *[]string `json:"labels,omitempty"`
+	Path              string    `json:"path"`
+	Policy            Policy    `json:"policy"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
+	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
+
+	// SkipDraftDeletion When true (set by the CLI / git sync), deploying this app does not delete an existing user draft at the same path.
+	SkipDraftDeletion *bool  `json:"skip_draft_deletion,omitempty"`
+	Summary           string `json:"summary"`
+
+	// Value The raw app's value. `files` maps each source path to its content and must contain an entry point; `runnables` and `data` are carried through unchanged.
+	Value struct {
+		Data      *map[string]interface{} `json:"data,omitempty"`
+		Files     map[string]string       `json:"files"`
+		Runnables *map[string]interface{} `json:"runnables,omitempty"`
+	} `json:"value"`
+}
+
 // GetAppEmbedTokenByPathParams defines parameters for GetAppEmbedTokenByPath.
 type GetAppEmbedTokenByPathParams struct {
 	// SdkConsent Raw apps: the viewer confirmed the frontend-SDK permissions consent banner, so the viewer-scoped SDK token may actually be minted. Without it the response only advertises the declared sdk_scopes.
@@ -8527,6 +8550,8 @@ type SignS3ObjectsJSONBody struct {
 
 // UpdateAppJSONBody defines parameters for UpdateApp.
 type UpdateAppJSONBody struct {
+	// AllowKindChange When true, this deploy may switch the app between low-code and raw. Without it, deploying a value to an app of the other kind is refused so an app is never converted by accident.
+	AllowKindChange   *bool     `json:"allow_kind_change,omitempty"`
 	CustomPath        *string   `json:"custom_path,omitempty"`
 	DeploymentMessage *string   `json:"deployment_message,omitempty"`
 	Labels            *[]string `json:"labels,omitempty"`
@@ -8545,6 +8570,8 @@ type UpdateAppJSONBody struct {
 // UpdateAppRawMultipartBody defines parameters for UpdateAppRaw.
 type UpdateAppRawMultipartBody struct {
 	App *struct {
+		// AllowKindChange When true, this deploy may switch the app between low-code and raw. Without it, deploying a value to an app of the other kind is refused so an app is never converted by accident.
+		AllowKindChange   *bool     `json:"allow_kind_change,omitempty"`
 		CustomPath        *string   `json:"custom_path,omitempty"`
 		DeploymentMessage *string   `json:"deployment_message,omitempty"`
 		Labels            *[]string `json:"labels,omitempty"`
@@ -8561,6 +8588,31 @@ type UpdateAppRawMultipartBody struct {
 	} `json:"app,omitempty"`
 	Css *string `json:"css,omitempty"`
 	Js  *string `json:"js,omitempty"`
+}
+
+// UpdateAppRawSourceJSONBody defines parameters for UpdateAppRawSource.
+type UpdateAppRawSourceJSONBody struct {
+	// AllowKindChange When true, this deploy may switch the app between low-code and raw. Without it, deploying a value to an app of the other kind is refused so an app is never converted by accident.
+	AllowKindChange   *bool     `json:"allow_kind_change,omitempty"`
+	CustomPath        *string   `json:"custom_path,omitempty"`
+	DeploymentMessage *string   `json:"deployment_message,omitempty"`
+	Labels            *[]string `json:"labels,omitempty"`
+	Path              *string   `json:"path,omitempty"`
+	Policy            *Policy   `json:"policy,omitempty"`
+
+	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
+	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
+
+	// SkipDraftDeletion When true (set by the CLI / git sync), deploying this app does not delete an existing user draft at the same path.
+	SkipDraftDeletion *bool   `json:"skip_draft_deletion,omitempty"`
+	Summary           *string `json:"summary,omitempty"`
+
+	// Value The raw app's value. `files` maps each source path (e.g. `/index.tsx`, `/App.tsx`, `/package.json`) to its content and must contain an entry point (`/index.tsx`, `/index.ts` or `/index.js`); `runnables` and `data` are carried through unchanged.
+	Value struct {
+		Data      *map[string]interface{} `json:"data,omitempty"`
+		Files     map[string]string       `json:"files"`
+		Runnables *map[string]interface{} `json:"runnables,omitempty"`
+	} `json:"value"`
 }
 
 // DeleteS3FileFromAppParams defines parameters for DeleteS3FileFromApp.
@@ -12013,6 +12065,15 @@ type ImpersonateServiceAccountJSONBody struct {
 	Username string `json:"username"`
 }
 
+// ListAddableInstanceUsersParams defines parameters for ListAddableInstanceUsers.
+type ListAddableInstanceUsersParams struct {
+	// Search filter users whose email or username contains this string
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// PerPage number of users to return (default 10, max 100)
+	PerPage *int `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
 // CreateVariableParams defines parameters for CreateVariable.
 type CreateVariableParams struct {
 	// AlreadyEncrypted whether the variable is already encrypted (default false)
@@ -12474,6 +12535,9 @@ type UpdateProtectionRuleJSONBody struct {
 	// BypassUsers Users that can bypass this ruleset
 	BypassUsers RuleBypasserUsers `json:"bypass_users"`
 
+	// Name New name for the rule. Omit, or pass the current name, to leave it unchanged. The reserved `dev_workspace_lock` rule cannot be renamed, nor can another rule be renamed onto it.
+	Name *string `json:"name,omitempty"`
+
 	// Rules Configuration of protection restrictions
 	Rules ProtectionRules `json:"rules"`
 }
@@ -12810,6 +12874,9 @@ type CreateAppJSONRequestBody CreateAppJSONBody
 // CreateAppRawMultipartRequestBody defines body for CreateAppRaw for multipart/form-data ContentType.
 type CreateAppRawMultipartRequestBody CreateAppRawMultipartBody
 
+// CreateAppRawSourceJSONRequestBody defines body for CreateAppRawSource for application/json ContentType.
+type CreateAppRawSourceJSONRequestBody CreateAppRawSourceJSONBody
+
 // UpdateAppHistoryJSONRequestBody defines body for UpdateAppHistory for application/json ContentType.
 type UpdateAppHistoryJSONRequestBody UpdateAppHistoryJSONBody
 
@@ -12824,6 +12891,9 @@ type UpdateAppJSONRequestBody UpdateAppJSONBody
 
 // UpdateAppRawMultipartRequestBody defines body for UpdateAppRaw for multipart/form-data ContentType.
 type UpdateAppRawMultipartRequestBody UpdateAppRawMultipartBody
+
+// UpdateAppRawSourceJSONRequestBody defines body for UpdateAppRawSource for application/json ContentType.
+type UpdateAppRawSourceJSONRequestBody UpdateAppRawSourceJSONBody
 
 // ExecuteComponentJSONRequestBody defines body for ExecuteComponent for application/json ContentType.
 type ExecuteComponentJSONRequestBody ExecuteComponentJSONBody
@@ -16199,6 +16269,11 @@ type ClientInterface interface {
 	// CreateAppRawWithBody request with any body
 	CreateAppRawWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateAppRawSourceWithBody request with any body
+	CreateAppRawSourceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateAppRawSource(ctx context.Context, workspace WorkspaceId, body CreateAppRawSourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CustomPathExists request
 	CustomPathExists(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16266,6 +16341,11 @@ type ClientInterface interface {
 
 	// UpdateAppRawWithBody request with any body
 	UpdateAppRawWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateAppRawSourceWithBody request with any body
+	UpdateAppRawSourceWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateAppRawSource(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppRawSourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteS3FileFromApp request
 	DeleteS3FileFromApp(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17954,6 +18034,9 @@ type ClientInterface interface {
 
 	// ListUsers request
 	ListUsers(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAddableInstanceUsers request
+	ListAddableInstanceUsers(ctx context.Context, workspace WorkspaceId, params *ListAddableInstanceUsersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListUsersUsage request
 	ListUsersUsage(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -21562,6 +21645,30 @@ func (c *Client) CreateAppRawWithBody(ctx context.Context, workspace WorkspaceId
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreateAppRawSourceWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateAppRawSourceRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateAppRawSource(ctx context.Context, workspace WorkspaceId, body CreateAppRawSourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateAppRawSourceRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CustomPathExists(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCustomPathExistsRequest(c.Server, workspace, customPath)
 	if err != nil {
@@ -21840,6 +21947,30 @@ func (c *Client) UpdateApp(ctx context.Context, workspace WorkspaceId, path Scri
 
 func (c *Client) UpdateAppRawWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateAppRawRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateAppRawSourceWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateAppRawSourceRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateAppRawSource(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppRawSourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateAppRawSourceRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -29292,6 +29423,18 @@ func (c *Client) IsOwnerOfPath(ctx context.Context, workspace WorkspaceId, path 
 
 func (c *Client) ListUsers(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListUsersRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAddableInstanceUsers(ctx context.Context, workspace WorkspaceId, params *ListAddableInstanceUsersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAddableInstanceUsersRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -39533,6 +39676,53 @@ func NewCreateAppRawRequestWithBody(server string, workspace WorkspaceId, conten
 	return req, nil
 }
 
+// NewCreateAppRawSourceRequest calls the generic CreateAppRawSource builder with application/json body
+func NewCreateAppRawSourceRequest(server string, workspace WorkspaceId, body CreateAppRawSourceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateAppRawSourceRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateAppRawSourceRequestWithBody generates requests for CreateAppRawSource with any type of body
+func NewCreateAppRawSourceRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/create_raw_source", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCustomPathExistsRequest generates requests for CustomPathExists
 func NewCustomPathExistsRequest(server string, workspace WorkspaceId, customPath CustomPath) (*http.Request, error) {
 	var err error
@@ -40616,6 +40806,60 @@ func NewUpdateAppRawRequestWithBody(server string, workspace WorkspaceId, path S
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/apps/update_raw/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateAppRawSourceRequest calls the generic UpdateAppRawSource builder with application/json body
+func NewUpdateAppRawSourceRequest(server string, workspace WorkspaceId, path ScriptPath, body UpdateAppRawSourceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateAppRawSourceRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateAppRawSourceRequestWithBody generates requests for UpdateAppRawSource with any type of body
+func NewUpdateAppRawSourceRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/update_raw_source/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -73827,6 +74071,78 @@ func NewListUsersRequest(server string, workspace WorkspaceId) (*http.Request, e
 	return req, nil
 }
 
+// NewListAddableInstanceUsersRequest generates requests for ListAddableInstanceUsers
+func NewListAddableInstanceUsersRequest(server string, workspace WorkspaceId, params *ListAddableInstanceUsersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/users/list_addable", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Search != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListUsersUsageRequest generates requests for ListUsersUsage
 func NewListUsersUsageRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -82123,6 +82439,11 @@ type ClientWithResponsesInterface interface {
 	// CreateAppRawWithBodyWithResponse request with any body
 	CreateAppRawWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAppRawResponse, error)
 
+	// CreateAppRawSourceWithBodyWithResponse request with any body
+	CreateAppRawSourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAppRawSourceResponse, error)
+
+	CreateAppRawSourceWithResponse(ctx context.Context, workspace WorkspaceId, body CreateAppRawSourceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAppRawSourceResponse, error)
+
 	// CustomPathExistsWithResponse request
 	CustomPathExistsWithResponse(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*CustomPathExistsResponse, error)
 
@@ -82190,6 +82511,11 @@ type ClientWithResponsesInterface interface {
 
 	// UpdateAppRawWithBodyWithResponse request with any body
 	UpdateAppRawWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppRawResponse, error)
+
+	// UpdateAppRawSourceWithBodyWithResponse request with any body
+	UpdateAppRawSourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppRawSourceResponse, error)
+
+	UpdateAppRawSourceWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppRawSourceJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAppRawSourceResponse, error)
 
 	// DeleteS3FileFromAppWithResponse request
 	DeleteS3FileFromAppWithResponse(ctx context.Context, workspace WorkspaceId, params *DeleteS3FileFromAppParams, reqEditors ...RequestEditorFn) (*DeleteS3FileFromAppResponse, error)
@@ -83878,6 +84204,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListUsersWithResponse request
 	ListUsersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListUsersResponse, error)
+
+	// ListAddableInstanceUsersWithResponse request
+	ListAddableInstanceUsersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAddableInstanceUsersParams, reqEditors ...RequestEditorFn) (*ListAddableInstanceUsersResponse, error)
 
 	// ListUsersUsageWithResponse request
 	ListUsersUsageWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListUsersUsageResponse, error)
@@ -88848,6 +89177,27 @@ func (r CreateAppRawResponse) StatusCode() int {
 	return 0
 }
 
+type CreateAppRawSourceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateAppRawSourceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateAppRawSourceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CustomPathExistsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -89314,6 +89664,27 @@ func (r UpdateAppRawResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateAppRawResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateAppRawSourceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateAppRawSourceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateAppRawSourceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -100325,6 +100696,31 @@ func (r ListUsersResponse) StatusCode() int {
 	return 0
 }
 
+type ListAddableInstanceUsersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Email    string  `json:"email"`
+		Username *string `json:"username,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAddableInstanceUsersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAddableInstanceUsersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListUsersUsageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -106354,6 +106750,23 @@ func (c *ClientWithResponses) CreateAppRawWithBodyWithResponse(ctx context.Conte
 	return ParseCreateAppRawResponse(rsp)
 }
 
+// CreateAppRawSourceWithBodyWithResponse request with arbitrary body returning *CreateAppRawSourceResponse
+func (c *ClientWithResponses) CreateAppRawSourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAppRawSourceResponse, error) {
+	rsp, err := c.CreateAppRawSourceWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAppRawSourceResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateAppRawSourceWithResponse(ctx context.Context, workspace WorkspaceId, body CreateAppRawSourceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAppRawSourceResponse, error) {
+	rsp, err := c.CreateAppRawSource(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAppRawSourceResponse(rsp)
+}
+
 // CustomPathExistsWithResponse request returning *CustomPathExistsResponse
 func (c *ClientWithResponses) CustomPathExistsWithResponse(ctx context.Context, workspace WorkspaceId, customPath CustomPath, reqEditors ...RequestEditorFn) (*CustomPathExistsResponse, error) {
 	rsp, err := c.CustomPathExists(ctx, workspace, customPath, reqEditors...)
@@ -106564,6 +106977,23 @@ func (c *ClientWithResponses) UpdateAppRawWithBodyWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseUpdateAppRawResponse(rsp)
+}
+
+// UpdateAppRawSourceWithBodyWithResponse request with arbitrary body returning *UpdateAppRawSourceResponse
+func (c *ClientWithResponses) UpdateAppRawSourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppRawSourceResponse, error) {
+	rsp, err := c.UpdateAppRawSourceWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAppRawSourceResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateAppRawSourceWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateAppRawSourceJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAppRawSourceResponse, error) {
+	rsp, err := c.UpdateAppRawSource(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAppRawSourceResponse(rsp)
 }
 
 // DeleteS3FileFromAppWithResponse request returning *DeleteS3FileFromAppResponse
@@ -111978,6 +112408,15 @@ func (c *ClientWithResponses) ListUsersWithResponse(ctx context.Context, workspa
 		return nil, err
 	}
 	return ParseListUsersResponse(rsp)
+}
+
+// ListAddableInstanceUsersWithResponse request returning *ListAddableInstanceUsersResponse
+func (c *ClientWithResponses) ListAddableInstanceUsersWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAddableInstanceUsersParams, reqEditors ...RequestEditorFn) (*ListAddableInstanceUsersResponse, error) {
+	rsp, err := c.ListAddableInstanceUsers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAddableInstanceUsersResponse(rsp)
 }
 
 // ListUsersUsageWithResponse request returning *ListUsersUsageResponse
@@ -118358,6 +118797,22 @@ func ParseCreateAppRawResponse(rsp *http.Response) (*CreateAppRawResponse, error
 	return response, nil
 }
 
+// ParseCreateAppRawSourceResponse parses an HTTP response from a CreateAppRawSourceWithResponse call
+func ParseCreateAppRawSourceResponse(rsp *http.Response) (*CreateAppRawSourceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateAppRawSourceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCustomPathExistsResponse parses an HTTP response from a CustomPathExistsWithResponse call
 func ParseCustomPathExistsResponse(rsp *http.Response) (*CustomPathExistsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -118830,6 +119285,22 @@ func ParseUpdateAppRawResponse(rsp *http.Response) (*UpdateAppRawResponse, error
 	}
 
 	response := &UpdateAppRawResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateAppRawSourceResponse parses an HTTP response from a UpdateAppRawSourceWithResponse call
+func ParseUpdateAppRawSourceResponse(rsp *http.Response) (*UpdateAppRawSourceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateAppRawSourceResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -129816,6 +130287,35 @@ func ParseListUsersResponse(rsp *http.Response) (*ListUsersResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []User
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAddableInstanceUsersResponse parses an HTTP response from a ListAddableInstanceUsersWithResponse call
+func ParseListAddableInstanceUsersResponse(rsp *http.Response) (*ListAddableInstanceUsersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAddableInstanceUsersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Email    string  `json:"email"`
+			Username *string `json:"username,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
