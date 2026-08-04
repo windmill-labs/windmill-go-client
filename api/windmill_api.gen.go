@@ -2370,7 +2370,9 @@ type DbtAssetProvenanceResourceType string
 
 // DbtWarehouseConnection defines model for DbtWarehouseConnection.
 type DbtWarehouseConnection struct {
-	Target *string `json:"target,omitempty"`
+	// ResourceType decides whether the value is translated into a profiles.yml target or already is one
+	ResourceType *string `json:"resource_type,omitempty"`
+	Target       *string `json:"target,omitempty"`
 
 	// Value the resolved resource, rendered into profiles.yml
 	Value interface{} `json:"value"`
