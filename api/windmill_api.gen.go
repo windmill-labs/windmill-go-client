@@ -353,6 +353,19 @@ const (
 	DependencyDependentImporterKindScript DependencyDependentImporterKind = "script"
 )
 
+// Defines values for DeployEventKind.
+const (
+	DeployEventKindDelete     DeployEventKind = "delete"
+	DeployEventKindRenameFrom DeployEventKind = "rename_from"
+	DeployEventKindWrite      DeployEventKind = "write"
+)
+
+// Defines values for DeployEventOrigin.
+const (
+	DeployEventOriginAuthored DeployEventOrigin = "authored"
+	DeployEventOriginSync     DeployEventOrigin = "sync"
+)
+
 // Defines values for DetailedHealthResponseStatus.
 const (
 	DetailedHealthResponseStatusDegraded  DetailedHealthResponseStatus = "degraded"
@@ -584,9 +597,9 @@ const (
 
 // Defines values for HttpRequestType.
 const (
-	Async   HttpRequestType = "async"
-	Sync    HttpRequestType = "sync"
-	SyncSse HttpRequestType = "sync_sse"
+	HttpRequestTypeAsync   HttpRequestType = "async"
+	HttpRequestTypeSync    HttpRequestType = "sync"
+	HttpRequestTypeSyncSse HttpRequestType = "sync_sse"
 )
 
 // Defines values for HubScriptKind.
@@ -1353,8 +1366,8 @@ const (
 
 // Defines values for MigrateLegacyDraftJSONBodyAction.
 const (
-	AssignToSelf MigrateLegacyDraftJSONBodyAction = "assign_to_self"
-	Delete       MigrateLegacyDraftJSONBodyAction = "delete"
+	MigrateLegacyDraftJSONBodyActionAssignToSelf MigrateLegacyDraftJSONBodyAction = "assign_to_self"
+	MigrateLegacyDraftJSONBodyActionDelete       MigrateLegacyDraftJSONBodyAction = "delete"
 )
 
 // Defines values for StarJSONBodyFavoriteKind.
@@ -2402,6 +2415,18 @@ type DependentsAmount struct {
 	ImportedPath string `json:"imported_path"`
 }
 
+// DeployEventKind What a deploy event did to the path it is recorded against: `write` (the path holds an item
+// after the event), `delete` (it does not), or `rename_from` (the path was vacated by a rename
+// to another path). Create and update are not distinguished. Omitted when no such event has
+// been recorded for that side, which counts as no evidence.
+type DeployEventKind string
+
+// DeployEventOrigin Who caused a deploy event: `authored` (written in that workspace by the requester) or `sync`
+// (applied there by a git-sync pull or a workspace-to-workspace deploy). Only an authored
+// removal is evidence that the workspace dropped the item on purpose. Omitted when no such
+// event has been recorded for that side.
+type DeployEventOrigin string
+
 // DeploymentRequest defines model for DeploymentRequest.
 type DeploymentRequest struct {
 	Assignees         []DeploymentRequestAssignee `json:"assignees"`
@@ -3161,14 +3186,20 @@ type EmbedTokenResponse struct {
 	// Expiration Expiration of the embed token.
 	Expiration *time.Time `json:"expiration"`
 
-	// RawApp Raw apps render single-iframe and skip the opaque-viewer indirection and the embed token entirely.
+	// RawApp Raw apps render single-iframe and skip the opaque-viewer indirection and the embed token entirely. A sandboxed one may still carry a token here: the viewer-scoped frontend SDK token, which is a different credential from the low-code embed token.
 	RawApp bool `json:"raw_app"`
 
 	// Sandbox Publisher opted this app into sandbox isolation. When false the viewer runs the app same-origin with its full session.
 	Sandbox bool `json:"sandbox"`
 
-	// Token Narrowly-scoped embed token for the iframe. Absent for fully anonymous or raw apps, which load without a scoped token.
+	// SdkScopes Sandboxed raw apps: scopes the app policy declares for the frontend SDK token. Null when the app is unsandboxed, however the policy reads. The viewer renders these in the permission prompt; token stays absent until the endpoint is re-called with sdk_consent=true.
+	SdkScopes *[]string `json:"sdk_scopes"`
+
+	// Token Scoped token for the app. For sandboxed low-code apps this is the embed token handed to the opaque iframe. For a raw app it is the viewer-scoped frontend SDK token, returned only when the app is sandboxed, its policy declares frontend_sdk_scopes, and the request carries sdk_consent=true. Absent for anonymous viewers and whenever no token is needed.
 	Token *string `json:"token"`
+
+	// ViewerEmail The caller's own email, returned alongside sdk_scopes so the viewer can key its stored "do not ask again" per person.
+	ViewerEmail *string `json:"viewer_email"`
 
 	// WorkspaceId The resolved workspace; pairs with app_path so apps at the same path in different workspaces don't share a localStorage store.
 	WorkspaceId *string `json:"workspace_id"`
@@ -4578,8 +4609,11 @@ type NativeTriggerWithExternal struct {
 	// Error Error message if the trigger is in an error state
 	Error *string `json:"error"`
 
-	// ExternalData Configuration data from the external service
-	ExternalData map[string]interface{} `json:"external_data"`
+	// ExternalData Configuration data from the external service. Null when the service has no such API, or when it could not be read — see external_error.
+	ExternalData *map[string]interface{} `json:"external_data"`
+
+	// ExternalError Why the external service configuration could not be read. When set, external_data is null and the configuration Windmill stored is returned instead.
+	ExternalError *string `json:"external_error"`
 
 	// ExternalId The unique identifier from the external service
 	ExternalId string `json:"external_id"`
@@ -5450,10 +5484,13 @@ type Policy struct {
 		Resource *string `json:"resource,omitempty"`
 		S3Path   *string `json:"s3_path,omitempty"`
 	} `json:"allowed_s3_keys,omitempty"`
-	ExecutionMode   *PolicyExecutionMode      `json:"execution_mode,omitempty"`
-	OnBehalfOf      *string                   `json:"on_behalf_of,omitempty"`
-	OnBehalfOfEmail *string                   `json:"on_behalf_of_email,omitempty"`
-	S3Inputs        *[]map[string]interface{} `json:"s3_inputs,omitempty"`
+	ExecutionMode *PolicyExecutionMode `json:"execution_mode,omitempty"`
+
+	// FrontendSdkScopes Raw apps: author-declared scopes for the frontend SDK token. Takes effect only when `sandbox` is also true — an unsandboxed bundle runs with the viewer's own session, so no token is advertised or minted for it and this list stays inert. On a sandboxed app a non-empty list lets viewers mint (after consenting) a short-lived token carrying their own identity restricted to these scopes, handed to the app bundle so `windmill-client` calls run as the viewer. Must be a subset of the server's curated allowlist (jobs:run, jobs:read, users:read, resources:read, variables:read).
+	FrontendSdkScopes *[]string                 `json:"frontend_sdk_scopes,omitempty"`
+	OnBehalfOf        *string                   `json:"on_behalf_of,omitempty"`
+	OnBehalfOfEmail   *string                   `json:"on_behalf_of_email,omitempty"`
+	S3Inputs          *[]map[string]interface{} `json:"s3_inputs,omitempty"`
 
 	// Sandbox Publisher opt-in to app sandbox isolation (alpha). When true the app is isolated from each viewer's Windmill session. When false/absent the app runs same-origin with the viewer's full session (the default, pre-isolation behavior).
 	Sandbox        *bool                              `json:"sandbox,omitempty"`
@@ -6345,6 +6382,23 @@ type StaticProviderTransform struct {
 // StaticProviderTransformType defines model for StaticProviderTransform.Type.
 type StaticProviderTransformType string
 
+// StorageFile defines model for StorageFile.
+type StorageFile struct {
+	Key          string  `json:"key"`
+	LastModified *string `json:"last_modified,omitempty"`
+	Name         string  `json:"name"`
+	Size         *int    `json:"size,omitempty"`
+}
+
+// StorageFolder defines model for StorageFolder.
+type StorageFolder struct {
+	// Name Last path segment, without the trailing '/'
+	Name string `json:"name"`
+
+	// Prefix Full key prefix of the folder, ending with '/'
+	Prefix string `json:"prefix"`
+}
+
 // SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
 type SubscriptionMode string
 
@@ -6761,9 +6815,16 @@ type WorkflowTask struct {
 
 // Workspace defines model for Workspace.
 type Workspace struct {
-	Color             *string `json:"color,omitempty"`
+	Color *string `json:"color,omitempty"`
+
+	// Deleted Archived (soft-deleted) workspace
+	Deleted *bool `json:"deleted,omitempty"`
+
+	// DevWorkspaceLabel Cosmetic display label of the dev workspace ('dev' | 'staging'); null defaults to 'dev'
+	DevWorkspaceLabel *string `json:"dev_workspace_label"`
 	Domain            *string `json:"domain,omitempty"`
 	Id                string  `json:"id"`
+	IsDevWorkspace    *bool   `json:"is_dev_workspace,omitempty"`
 	Name              string  `json:"name"`
 	Owner             string  `json:"owner"`
 	ParentWorkspaceId *string `json:"parent_workspace_id"`
@@ -6859,6 +6920,18 @@ type WorkspaceItemDiff struct {
 	// ExistsInSource If the item exists in the source workspace
 	ExistsInSource bool `json:"exists_in_source"`
 
+	// ForkLastEventKind What a deploy event did to the path it is recorded against: `write` (the path holds an item
+	// after the event), `delete` (it does not), or `rename_from` (the path was vacated by a rename
+	// to another path). Create and update are not distinguished. Omitted when no such event has
+	// been recorded for that side, which counts as no evidence.
+	ForkLastEventKind *DeployEventKind `json:"fork_last_event_kind,omitempty"`
+
+	// ForkLastEventOrigin Who caused a deploy event: `authored` (written in that workspace by the requester) or `sync`
+	// (applied there by a git-sync pull or a workspace-to-workspace deploy). Only an authored
+	// removal is evidence that the workspace dropped the item on purpose. Omitted when no such
+	// event has been recorded for that side.
+	ForkLastEventOrigin *DeployEventOrigin `json:"fork_last_event_origin,omitempty"`
+
 	// HasChanges Whether the item has any differences
 	HasChanges bool `json:"has_changes"`
 
@@ -6867,6 +6940,18 @@ type WorkspaceItemDiff struct {
 
 	// Path Path of the item in the workspace
 	Path string `json:"path"`
+
+	// SourceLastEventKind What a deploy event did to the path it is recorded against: `write` (the path holds an item
+	// after the event), `delete` (it does not), or `rename_from` (the path was vacated by a rename
+	// to another path). Create and update are not distinguished. Omitted when no such event has
+	// been recorded for that side, which counts as no evidence.
+	SourceLastEventKind *DeployEventKind `json:"source_last_event_kind,omitempty"`
+
+	// SourceLastEventOrigin Who caused a deploy event: `authored` (written in that workspace by the requester) or `sync`
+	// (applied there by a git-sync pull or a workspace-to-workspace deploy). Only an authored
+	// removal is evidence that the workspace dropped the item on purpose. Omitted when no such
+	// event has been recorded for that side.
+	SourceLastEventOrigin *DeployEventOrigin `json:"source_last_event_origin,omitempty"`
 }
 
 // WorkspaceItemDiffKind Type of the item
@@ -7755,6 +7840,9 @@ type ScriptPath = string
 // ScriptStartPath defines model for ScriptStartPath.
 type ScriptStartPath = string
 
+// SdkConsent defines model for SdkConsent.
+type SdkConsent = bool
+
 // SkipPreprocessor defines model for SkipPreprocessor.
 type SkipPreprocessor = bool
 
@@ -7817,6 +7905,12 @@ type ListBlacklistedAgentTokensParams struct {
 type RemoveBlacklistAgentTokenJSONBody struct {
 	// Token The agent token to remove from blacklist
 	Token string `json:"token"`
+}
+
+// GetAppEmbedTokenByCustomPathParams defines parameters for GetAppEmbedTokenByCustomPath.
+type GetAppEmbedTokenByCustomPathParams struct {
+	// SdkConsent Raw apps: the viewer confirmed the frontend-SDK permissions consent banner, so the viewer-scoped SDK token may actually be minted. Without it the response only advertises the declared sdk_scopes.
+	SdkConsent *SdkConsent `form:"sdk_consent,omitempty" json:"sdk_consent,omitempty"`
 }
 
 // RequestPasswordResetJSONBody defines parameters for RequestPasswordReset.
@@ -8354,6 +8448,12 @@ type CreateAppRawMultipartBody struct {
 	Js  *string `json:"js,omitempty"`
 }
 
+// GetAppEmbedTokenByPathParams defines parameters for GetAppEmbedTokenByPath.
+type GetAppEmbedTokenByPathParams struct {
+	// SdkConsent Raw apps: the viewer confirmed the frontend-SDK permissions consent banner, so the viewer-scoped SDK token may actually be minted. Without it the response only advertises the declared sdk_scopes.
+	SdkConsent *SdkConsent `form:"sdk_consent,omitempty" json:"sdk_consent,omitempty"`
+}
+
 // GetAppByPathParams defines parameters for GetAppByPath.
 type GetAppByPathParams struct {
 	WithStarredInfo *bool `form:"with_starred_info,omitempty" json:"with_starred_info,omitempty"`
@@ -8410,6 +8510,15 @@ type ListAppsParams struct {
 
 // ListAppPathsFromWorkspaceRunnableParamsRunnableKind defines parameters for ListAppPathsFromWorkspaceRunnable.
 type ListAppPathsFromWorkspaceRunnableParamsRunnableKind string
+
+// MintPreviewSdkTokenJSONBody defines parameters for MintPreviewSdkToken.
+type MintPreviewSdkTokenJSONBody struct {
+	// Path App being edited; may not be deployed yet.
+	Path string `json:"path"`
+
+	// Scopes Scopes from the policy being edited. Capped by the curated allowlist and by the caller's own scopes, and minted as the caller, so it grants nothing they could not mint themselves.
+	Scopes []string `json:"scopes"`
+}
 
 // SignS3ObjectsJSONBody defines parameters for SignS3Objects.
 type SignS3ObjectsJSONBody struct {
@@ -8469,6 +8578,12 @@ type AppDownloadS3ParquetFileAsCsvParams struct {
 
 	// Exp Expiry timestamp of a presigned S3 object signature
 	Exp *S3Exp `form:"exp,omitempty" json:"exp,omitempty"`
+}
+
+// GetAppEmbedTokenBySecretParams defines parameters for GetAppEmbedTokenBySecret.
+type GetAppEmbedTokenBySecretParams struct {
+	// SdkConsent Raw apps: the viewer confirmed the frontend-SDK permissions consent banner, so the viewer-scoped SDK token may actually be minted. Without it the response only advertises the declared sdk_scopes.
+	SdkConsent *SdkConsent `form:"sdk_consent,omitempty" json:"sdk_consent,omitempty"`
 }
 
 // ExecuteComponentJSONBody defines parameters for ExecuteComponent.
@@ -9668,7 +9783,26 @@ type ListStoredFilesParams struct {
 	MaxKeys int     `form:"max_keys" json:"max_keys"`
 	Marker  *string `form:"marker,omitempty" json:"marker,omitempty"`
 	Prefix  *string `form:"prefix,omitempty" json:"prefix,omitempty"`
+
+	// Search Match keys by path prefix, case-sensitively, on the raw key rather than per path segment (so "a/file1" matches "a/file1000"). Pushed down to the storage provider as a seek; resume with the returned next_marker.
+	Search  *string `form:"search,omitempty" json:"search,omitempty"`
 	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
+
+	// S3ResourcePath When set, list the files of this object storage resource instead of the workspace storage
+	S3ResourcePath *string `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
+}
+
+// ListStoredFilesPagedParams defines parameters for ListStoredFilesPaged.
+type ListStoredFilesPagedParams struct {
+	// Prefix Folder to list; empty for the bucket root, otherwise must end with '/'
+	Prefix *string `form:"prefix,omitempty" json:"prefix,omitempty"`
+
+	// MaxKeys Maximum number of folders and files combined
+	MaxKeys *int `form:"max_keys,omitempty" json:"max_keys,omitempty"`
+
+	// PageToken Opaque token from a previous response, to continue listing the same folder
+	PageToken *string `form:"page_token,omitempty" json:"page_token,omitempty"`
+	Storage   *string `form:"storage,omitempty" json:"storage,omitempty"`
 
 	// S3ResourcePath When set, list the files of this object storage resource instead of the workspace storage
 	S3ResourcePath *string `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
@@ -12679,6 +12813,9 @@ type CreateAppRawMultipartRequestBody CreateAppRawMultipartBody
 // UpdateAppHistoryJSONRequestBody defines body for UpdateAppHistory for application/json ContentType.
 type UpdateAppHistoryJSONRequestBody UpdateAppHistoryJSONBody
 
+// MintPreviewSdkTokenJSONRequestBody defines body for MintPreviewSdkToken for application/json ContentType.
+type MintPreviewSdkTokenJSONRequestBody MintPreviewSdkTokenJSONBody
+
 // SignS3ObjectsJSONRequestBody defines body for SignS3Objects for application/json ContentType.
 type SignS3ObjectsJSONRequestBody SignS3ObjectsJSONBody
 
@@ -15417,7 +15554,7 @@ type ClientInterface interface {
 	ListHubApps(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAppEmbedTokenByCustomPath request
-	GetAppEmbedTokenByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetAppEmbedTokenByCustomPath(ctx context.Context, customPath CustomPath, params *GetAppEmbedTokenByCustomPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetPublicAppByCustomPath request
 	GetPublicAppByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16069,7 +16206,7 @@ type ClientInterface interface {
 	DeleteApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAppEmbedTokenByPath request
-	GetAppEmbedTokenByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetAppEmbedTokenByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppEmbedTokenByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ExistsApp request
 	ExistsApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16106,6 +16243,11 @@ type ClientInterface interface {
 	// ListSearchApp request
 	ListSearchApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// MintPreviewSdkTokenWithBody request with any body
+	MintPreviewSdkTokenWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MintPreviewSdkToken(ctx context.Context, workspace WorkspaceId, body MintPreviewSdkTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetPublicSecretOfApp request
 	GetPublicSecretOfApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16132,7 +16274,7 @@ type ClientInterface interface {
 	AppDownloadS3ParquetFileAsCsv(ctx context.Context, workspace WorkspaceId, path Path, params *AppDownloadS3ParquetFileAsCsvParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAppEmbedTokenBySecret request
-	GetAppEmbedTokenBySecret(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetAppEmbedTokenBySecret(ctx context.Context, workspace WorkspaceId, secret string, params *GetAppEmbedTokenBySecretParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ExecuteComponentWithBody request with any body
 	ExecuteComponentWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -16759,6 +16901,9 @@ type ClientInterface interface {
 
 	// ListStoredFiles request
 	ListStoredFiles(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListStoredFilesPaged request
+	ListStoredFilesPaged(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesPagedParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// LoadCsvPreview request
 	LoadCsvPreview(ctx context.Context, workspace WorkspaceId, path Path, params *LoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18585,8 +18730,8 @@ func (c *Client) ListHubApps(ctx context.Context, reqEditors ...RequestEditorFn)
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetAppEmbedTokenByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAppEmbedTokenByCustomPathRequest(c.Server, customPath)
+func (c *Client) GetAppEmbedTokenByCustomPath(ctx context.Context, customPath CustomPath, params *GetAppEmbedTokenByCustomPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppEmbedTokenByCustomPathRequest(c.Server, customPath, params)
 	if err != nil {
 		return nil, err
 	}
@@ -21441,8 +21586,8 @@ func (c *Client) DeleteApp(ctx context.Context, workspace WorkspaceId, path Path
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetAppEmbedTokenByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAppEmbedTokenByPathRequest(c.Server, workspace, path)
+func (c *Client) GetAppEmbedTokenByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppEmbedTokenByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppEmbedTokenByPathRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -21597,6 +21742,30 @@ func (c *Client) ListSearchApp(ctx context.Context, workspace WorkspaceId, reqEd
 	return c.Client.Do(req)
 }
 
+func (c *Client) MintPreviewSdkTokenWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMintPreviewSdkTokenRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MintPreviewSdkToken(ctx context.Context, workspace WorkspaceId, body MintPreviewSdkTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMintPreviewSdkTokenRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetPublicSecretOfApp(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPublicSecretOfAppRequest(c.Server, workspace, path)
 	if err != nil {
@@ -21705,8 +21874,8 @@ func (c *Client) AppDownloadS3ParquetFileAsCsv(ctx context.Context, workspace Wo
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetAppEmbedTokenBySecret(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAppEmbedTokenBySecretRequest(c.Server, workspace, secret)
+func (c *Client) GetAppEmbedTokenBySecret(ctx context.Context, workspace WorkspaceId, secret string, params *GetAppEmbedTokenBySecretParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppEmbedTokenBySecretRequest(c.Server, workspace, secret, params)
 	if err != nil {
 		return nil, err
 	}
@@ -24479,6 +24648,18 @@ func (c *Client) ListGitRepoFiles(ctx context.Context, workspace WorkspaceId, pa
 
 func (c *Client) ListStoredFiles(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListStoredFilesRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListStoredFilesPaged(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesPagedParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListStoredFilesPagedRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -32236,7 +32417,7 @@ func NewListHubAppsRequest(server string) (*http.Request, error) {
 }
 
 // NewGetAppEmbedTokenByCustomPathRequest generates requests for GetAppEmbedTokenByCustomPath
-func NewGetAppEmbedTokenByCustomPathRequest(server string, customPath CustomPath) (*http.Request, error) {
+func NewGetAppEmbedTokenByCustomPathRequest(server string, customPath CustomPath, params *GetAppEmbedTokenByCustomPathParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -32259,6 +32440,28 @@ func NewGetAppEmbedTokenByCustomPathRequest(server string, customPath CustomPath
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SdkConsent != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sdk_consent", runtime.ParamLocationQuery, *params.SdkConsent); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -39413,7 +39616,7 @@ func NewDeleteAppRequest(server string, workspace WorkspaceId, path Path) (*http
 }
 
 // NewGetAppEmbedTokenByPathRequest generates requests for GetAppEmbedTokenByPath
-func NewGetAppEmbedTokenByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+func NewGetAppEmbedTokenByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *GetAppEmbedTokenByPathParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -39443,6 +39646,28 @@ func NewGetAppEmbedTokenByPathRequest(server string, workspace WorkspaceId, path
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SdkConsent != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sdk_consent", runtime.ParamLocationQuery, *params.SdkConsent); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -40137,6 +40362,53 @@ func NewListSearchAppRequest(server string, workspace WorkspaceId) (*http.Reques
 	return req, nil
 }
 
+// NewMintPreviewSdkTokenRequest calls the generic MintPreviewSdkToken builder with application/json body
+func NewMintPreviewSdkTokenRequest(server string, workspace WorkspaceId, body MintPreviewSdkTokenJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMintPreviewSdkTokenRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewMintPreviewSdkTokenRequestWithBody generates requests for MintPreviewSdkToken with any type of body
+func NewMintPreviewSdkTokenRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps/preview_sdk_token", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetPublicSecretOfAppRequest generates requests for GetPublicSecretOfApp
 func NewGetPublicSecretOfAppRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
 	var err error
@@ -40523,7 +40795,7 @@ func NewAppDownloadS3ParquetFileAsCsvRequest(server string, workspace WorkspaceI
 }
 
 // NewGetAppEmbedTokenBySecretRequest generates requests for GetAppEmbedTokenBySecret
-func NewGetAppEmbedTokenBySecretRequest(server string, workspace WorkspaceId, secret string) (*http.Request, error) {
+func NewGetAppEmbedTokenBySecretRequest(server string, workspace WorkspaceId, secret string, params *GetAppEmbedTokenBySecretParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -40553,6 +40825,28 @@ func NewGetAppEmbedTokenBySecretRequest(server string, workspace WorkspaceId, se
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SdkConsent != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sdk_consent", runtime.ParamLocationQuery, *params.SdkConsent); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -51806,6 +52100,142 @@ func NewListStoredFilesRequest(server string, workspace WorkspaceId, params *Lis
 		if params.Prefix != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "prefix", runtime.ParamLocationQuery, *params.Prefix); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Search != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.S3ResourcePath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "s3_resource_path", runtime.ParamLocationQuery, *params.S3ResourcePath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListStoredFilesPagedRequest generates requests for ListStoredFilesPaged
+func NewListStoredFilesPagedRequest(server string, workspace WorkspaceId, params *ListStoredFilesPagedParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/list_stored_files_paged", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Prefix != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "prefix", runtime.ParamLocationQuery, *params.Prefix); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MaxKeys != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_keys", runtime.ParamLocationQuery, *params.MaxKeys); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PageToken != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page_token", runtime.ParamLocationQuery, *params.PageToken); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -81048,7 +81478,7 @@ type ClientWithResponsesInterface interface {
 	ListHubAppsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListHubAppsResponse, error)
 
 	// GetAppEmbedTokenByCustomPathWithResponse request
-	GetAppEmbedTokenByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByCustomPathResponse, error)
+	GetAppEmbedTokenByCustomPathWithResponse(ctx context.Context, customPath CustomPath, params *GetAppEmbedTokenByCustomPathParams, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByCustomPathResponse, error)
 
 	// GetPublicAppByCustomPathWithResponse request
 	GetPublicAppByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetPublicAppByCustomPathResponse, error)
@@ -81700,7 +82130,7 @@ type ClientWithResponsesInterface interface {
 	DeleteAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteAppResponse, error)
 
 	// GetAppEmbedTokenByPathWithResponse request
-	GetAppEmbedTokenByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByPathResponse, error)
+	GetAppEmbedTokenByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppEmbedTokenByPathParams, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByPathResponse, error)
 
 	// ExistsAppWithResponse request
 	ExistsAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsAppResponse, error)
@@ -81737,6 +82167,11 @@ type ClientWithResponsesInterface interface {
 	// ListSearchAppWithResponse request
 	ListSearchAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchAppResponse, error)
 
+	// MintPreviewSdkTokenWithBodyWithResponse request with any body
+	MintPreviewSdkTokenWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MintPreviewSdkTokenResponse, error)
+
+	MintPreviewSdkTokenWithResponse(ctx context.Context, workspace WorkspaceId, body MintPreviewSdkTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*MintPreviewSdkTokenResponse, error)
+
 	// GetPublicSecretOfAppWithResponse request
 	GetPublicSecretOfAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicSecretOfAppResponse, error)
 
@@ -81763,7 +82198,7 @@ type ClientWithResponsesInterface interface {
 	AppDownloadS3ParquetFileAsCsvWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppDownloadS3ParquetFileAsCsvParams, reqEditors ...RequestEditorFn) (*AppDownloadS3ParquetFileAsCsvResponse, error)
 
 	// GetAppEmbedTokenBySecretWithResponse request
-	GetAppEmbedTokenBySecretWithResponse(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenBySecretResponse, error)
+	GetAppEmbedTokenBySecretWithResponse(ctx context.Context, workspace WorkspaceId, secret string, params *GetAppEmbedTokenBySecretParams, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenBySecretResponse, error)
 
 	// ExecuteComponentWithBodyWithResponse request with any body
 	ExecuteComponentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error)
@@ -82390,6 +82825,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListStoredFilesWithResponse request
 	ListStoredFilesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesParams, reqEditors ...RequestEditorFn) (*ListStoredFilesResponse, error)
+
+	// ListStoredFilesPagedWithResponse request
+	ListStoredFilesPagedWithResponse(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesPagedParams, reqEditors ...RequestEditorFn) (*ListStoredFilesPagedResponse, error)
 
 	// LoadCsvPreviewWithResponse request
 	LoadCsvPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *LoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*LoadCsvPreviewResponse, error)
@@ -88755,6 +89193,27 @@ func (r ListSearchAppResponse) StatusCode() int {
 	return 0
 }
 
+type MintPreviewSdkTokenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r MintPreviewSdkTokenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MintPreviewSdkTokenResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetPublicSecretOfAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -92956,6 +93415,35 @@ func (r ListStoredFilesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListStoredFilesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListStoredFilesPagedResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Files   []StorageFile   `json:"files"`
+		Folders []StorageFolder `json:"folders"`
+
+		// NextPageToken When set, more entries remain at this level
+		NextPageToken    *string `json:"next_page_token,omitempty"`
+		RestrictedAccess bool    `json:"restricted_access"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListStoredFilesPagedResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListStoredFilesPagedResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -103805,8 +104293,8 @@ func (c *ClientWithResponses) ListHubAppsWithResponse(ctx context.Context, reqEd
 }
 
 // GetAppEmbedTokenByCustomPathWithResponse request returning *GetAppEmbedTokenByCustomPathResponse
-func (c *ClientWithResponses) GetAppEmbedTokenByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByCustomPathResponse, error) {
-	rsp, err := c.GetAppEmbedTokenByCustomPath(ctx, customPath, reqEditors...)
+func (c *ClientWithResponses) GetAppEmbedTokenByCustomPathWithResponse(ctx context.Context, customPath CustomPath, params *GetAppEmbedTokenByCustomPathParams, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByCustomPathResponse, error) {
+	rsp, err := c.GetAppEmbedTokenByCustomPath(ctx, customPath, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -105885,8 +106373,8 @@ func (c *ClientWithResponses) DeleteAppWithResponse(ctx context.Context, workspa
 }
 
 // GetAppEmbedTokenByPathWithResponse request returning *GetAppEmbedTokenByPathResponse
-func (c *ClientWithResponses) GetAppEmbedTokenByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByPathResponse, error) {
-	rsp, err := c.GetAppEmbedTokenByPath(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetAppEmbedTokenByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppEmbedTokenByPathParams, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByPathResponse, error) {
+	rsp, err := c.GetAppEmbedTokenByPath(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -106000,6 +106488,23 @@ func (c *ClientWithResponses) ListSearchAppWithResponse(ctx context.Context, wor
 	return ParseListSearchAppResponse(rsp)
 }
 
+// MintPreviewSdkTokenWithBodyWithResponse request with arbitrary body returning *MintPreviewSdkTokenResponse
+func (c *ClientWithResponses) MintPreviewSdkTokenWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MintPreviewSdkTokenResponse, error) {
+	rsp, err := c.MintPreviewSdkTokenWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMintPreviewSdkTokenResponse(rsp)
+}
+
+func (c *ClientWithResponses) MintPreviewSdkTokenWithResponse(ctx context.Context, workspace WorkspaceId, body MintPreviewSdkTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*MintPreviewSdkTokenResponse, error) {
+	rsp, err := c.MintPreviewSdkToken(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMintPreviewSdkTokenResponse(rsp)
+}
+
 // GetPublicSecretOfAppWithResponse request returning *GetPublicSecretOfAppResponse
 func (c *ClientWithResponses) GetPublicSecretOfAppWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetPublicSecretOfAppResponse, error) {
 	rsp, err := c.GetPublicSecretOfApp(ctx, workspace, path, reqEditors...)
@@ -106080,8 +106585,8 @@ func (c *ClientWithResponses) AppDownloadS3ParquetFileAsCsvWithResponse(ctx cont
 }
 
 // GetAppEmbedTokenBySecretWithResponse request returning *GetAppEmbedTokenBySecretResponse
-func (c *ClientWithResponses) GetAppEmbedTokenBySecretWithResponse(ctx context.Context, workspace WorkspaceId, secret string, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenBySecretResponse, error) {
-	rsp, err := c.GetAppEmbedTokenBySecret(ctx, workspace, secret, reqEditors...)
+func (c *ClientWithResponses) GetAppEmbedTokenBySecretWithResponse(ctx context.Context, workspace WorkspaceId, secret string, params *GetAppEmbedTokenBySecretParams, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenBySecretResponse, error) {
+	rsp, err := c.GetAppEmbedTokenBySecret(ctx, workspace, secret, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -108098,6 +108603,15 @@ func (c *ClientWithResponses) ListStoredFilesWithResponse(ctx context.Context, w
 		return nil, err
 	}
 	return ParseListStoredFilesResponse(rsp)
+}
+
+// ListStoredFilesPagedWithResponse request returning *ListStoredFilesPagedResponse
+func (c *ClientWithResponses) ListStoredFilesPagedWithResponse(ctx context.Context, workspace WorkspaceId, params *ListStoredFilesPagedParams, reqEditors ...RequestEditorFn) (*ListStoredFilesPagedResponse, error) {
+	rsp, err := c.ListStoredFilesPaged(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListStoredFilesPagedResponse(rsp)
 }
 
 // LoadCsvPreviewWithResponse request returning *LoadCsvPreviewResponse
@@ -118217,6 +118731,22 @@ func ParseListSearchAppResponse(rsp *http.Response) (*ListSearchAppResponse, err
 	return response, nil
 }
 
+// ParseMintPreviewSdkTokenResponse parses an HTTP response from a MintPreviewSdkTokenWithResponse call
+func ParseMintPreviewSdkTokenResponse(rsp *http.Response) (*MintPreviewSdkTokenResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MintPreviewSdkTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetPublicSecretOfAppResponse parses an HTTP response from a GetPublicSecretOfAppWithResponse call
 func ParseGetPublicSecretOfAppResponse(rsp *http.Response) (*GetPublicSecretOfAppResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -122344,6 +122874,39 @@ func ParseListStoredFilesResponse(rsp *http.Response) (*ListStoredFilesResponse,
 			NextMarker         *string             `json:"next_marker,omitempty"`
 			RestrictedAccess   *bool               `json:"restricted_access,omitempty"`
 			WindmillLargeFiles []WindmillLargeFile `json:"windmill_large_files"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListStoredFilesPagedResponse parses an HTTP response from a ListStoredFilesPagedWithResponse call
+func ParseListStoredFilesPagedResponse(rsp *http.Response) (*ListStoredFilesPagedResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListStoredFilesPagedResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Files   []StorageFile   `json:"files"`
+			Folders []StorageFolder `json:"folders"`
+
+			// NextPageToken When set, more entries remain at this level
+			NextPageToken    *string `json:"next_page_token,omitempty"`
+			RestrictedAccess bool    `json:"restricted_access"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
