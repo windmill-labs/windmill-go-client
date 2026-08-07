@@ -303,8 +303,14 @@ const (
 
 // Defines values for CreateWorkspaceForkDevWorkspaceLabel.
 const (
+	CreateWorkspaceForkDevWorkspaceLabelDemo    CreateWorkspaceForkDevWorkspaceLabel = "demo"
 	CreateWorkspaceForkDevWorkspaceLabelDev     CreateWorkspaceForkDevWorkspaceLabel = "dev"
+	CreateWorkspaceForkDevWorkspaceLabelPreprod CreateWorkspaceForkDevWorkspaceLabel = "preprod"
+	CreateWorkspaceForkDevWorkspaceLabelQa      CreateWorkspaceForkDevWorkspaceLabel = "qa"
+	CreateWorkspaceForkDevWorkspaceLabelSandbox CreateWorkspaceForkDevWorkspaceLabel = "sandbox"
 	CreateWorkspaceForkDevWorkspaceLabelStaging CreateWorkspaceForkDevWorkspaceLabel = "staging"
+	CreateWorkspaceForkDevWorkspaceLabelTest    CreateWorkspaceForkDevWorkspaceLabel = "test"
+	CreateWorkspaceForkDevWorkspaceLabelUat     CreateWorkspaceForkDevWorkspaceLabel = "uat"
 )
 
 // Defines values for CustomInstanceDbTag.
@@ -882,6 +888,7 @@ const (
 	DisableWorkspaceForking        ProtectionRuleKind = "DisableWorkspaceForking"
 	RestrictAnonymousAppDeployment ProtectionRuleKind = "RestrictAnonymousAppDeployment"
 	RestrictDeployToDeployers      ProtectionRuleKind = "RestrictDeployToDeployers"
+	RestrictPublicRunSharing       ProtectionRuleKind = "RestrictPublicRunSharing"
 )
 
 // Defines values for QueuedJobJobKind.
@@ -1447,8 +1454,14 @@ const (
 
 // Defines values for AttachDevWorkspaceJSONBodyDevWorkspaceLabel.
 const (
+	AttachDevWorkspaceJSONBodyDevWorkspaceLabelDemo    AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "demo"
 	AttachDevWorkspaceJSONBodyDevWorkspaceLabelDev     AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "dev"
+	AttachDevWorkspaceJSONBodyDevWorkspaceLabelPreprod AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "preprod"
+	AttachDevWorkspaceJSONBodyDevWorkspaceLabelQa      AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "qa"
+	AttachDevWorkspaceJSONBodyDevWorkspaceLabelSandbox AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "sandbox"
 	AttachDevWorkspaceJSONBodyDevWorkspaceLabelStaging AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "staging"
+	AttachDevWorkspaceJSONBodyDevWorkspaceLabelTest    AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "test"
+	AttachDevWorkspaceJSONBodyDevWorkspaceLabelUat     AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "uat"
 )
 
 // Defines values for ImportPgDatabaseJSONBodyForkBehavior.
@@ -2146,7 +2159,7 @@ type CreateWorkspaceFork struct {
 	// CopyMembers Copy the parent's members (users + group memberships) into the fork so the team can work in it
 	CopyMembers *bool `json:"copy_members,omitempty"`
 
-	// DevWorkspaceLabel Cosmetic display label for the dev workspace (badge text + wording only); ignored for non-dev forks
+	// DevWorkspaceLabel Environment label for the dev workspace: its badge text and the branch it deploys to. Ignored for non-dev forks. Omitted defaults to 'dev'
 	DevWorkspaceLabel *CreateWorkspaceForkDevWorkspaceLabel `json:"dev_workspace_label,omitempty"`
 	ForkedDatatables  *[]struct {
 		// Name Datatable name
@@ -2171,7 +2184,7 @@ type CreateWorkspaceFork struct {
 	SharedDucklakes *[]string `json:"shared_ducklakes,omitempty"`
 }
 
-// CreateWorkspaceForkDevWorkspaceLabel Cosmetic display label for the dev workspace (badge text + wording only); ignored for non-dev forks
+// CreateWorkspaceForkDevWorkspaceLabel Environment label for the dev workspace: its badge text and the branch it deploys to. Ignored for non-dev forks. Omitted defaults to 'dev'
 type CreateWorkspaceForkDevWorkspaceLabel string
 
 // CriticalAlert defines model for CriticalAlert.
@@ -6629,7 +6642,7 @@ type UserWorkspaceList struct {
 		Color     string  `json:"color"`
 		CreatedBy *string `json:"created_by"`
 
-		// DevWorkspaceLabel Cosmetic display label of the dev workspace ('dev' | 'staging'); null defaults to 'dev'
+		// DevWorkspaceLabel Environment label of the dev workspace, e.g. 'dev' or 'staging'; null defaults to 'dev'
 		DevWorkspaceLabel *string           `json:"dev_workspace_label"`
 		Disabled          bool              `json:"disabled"`
 		Id                string            `json:"id"`
@@ -6822,7 +6835,7 @@ type Workspace struct {
 	// Deleted Archived (soft-deleted) workspace
 	Deleted *bool `json:"deleted,omitempty"`
 
-	// DevWorkspaceLabel Cosmetic display label of the dev workspace ('dev' | 'staging'); null defaults to 'dev'
+	// DevWorkspaceLabel Environment label of the dev workspace, e.g. 'dev' or 'staging'; null defaults to 'dev'
 	DevWorkspaceLabel *string `json:"dev_workspace_label"`
 	Domain            *string `json:"domain,omitempty"`
 	Id                string  `json:"id"`
@@ -12225,7 +12238,9 @@ type AddUserJSONBody struct {
 
 // AttachDevWorkspaceJSONBody defines parameters for AttachDevWorkspace.
 type AttachDevWorkspaceJSONBody struct {
-	DevWorkspaceId    string                                       `json:"dev_workspace_id"`
+	DevWorkspaceId string `json:"dev_workspace_id"`
+
+	// DevWorkspaceLabel Environment label; also names the branch the dev workspace deploys to. Omitted defaults to 'dev'
 	DevWorkspaceLabel *AttachDevWorkspaceJSONBodyDevWorkspaceLabel `json:"dev_workspace_label,omitempty"`
 	LockProdDeploy    *bool                                        `json:"lock_prod_deploy,omitempty"`
 	LockProdForking   *bool                                        `json:"lock_prod_forking,omitempty"`
@@ -17118,6 +17133,9 @@ type ClientInterface interface {
 
 	// GetJobOtelTraces request
 	GetJobOtelTraces(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetJobPublicViewToken request
+	GetJobPublicViewToken(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateJobSignature request
 	CreateJobSignature(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -25369,6 +25387,18 @@ func (c *Client) SetFlowUserState(ctx context.Context, workspace WorkspaceId, id
 
 func (c *Client) GetJobOtelTraces(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetJobOtelTracesRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetJobPublicViewToken(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetJobPublicViewTokenRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -55660,6 +55690,47 @@ func NewGetJobOtelTracesRequest(server string, workspace WorkspaceId, id JobId) 
 	return req, nil
 }
 
+// NewGetJobPublicViewTokenRequest generates requests for GetJobPublicViewToken
+func NewGetJobPublicViewTokenRequest(server string, workspace WorkspaceId, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/job_public_view_token/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateJobSignatureRequest generates requests for CreateJobSignature
 func NewCreateJobSignatureRequest(server string, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams) (*http.Request, error) {
 	var err error
@@ -83289,6 +83360,9 @@ type ClientWithResponsesInterface interface {
 	// GetJobOtelTracesWithResponse request
 	GetJobOtelTracesWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetJobOtelTracesResponse, error)
 
+	// GetJobPublicViewTokenWithResponse request
+	GetJobPublicViewTokenWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetJobPublicViewTokenResponse, error)
+
 	// CreateJobSignatureWithResponse request
 	CreateJobSignatureWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *CreateJobSignatureParams, reqEditors ...RequestEditorFn) (*CreateJobSignatureResponse, error)
 
@@ -94668,6 +94742,27 @@ func (r GetJobOtelTracesResponse) StatusCode() int {
 	return 0
 }
 
+type GetJobPublicViewTokenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetJobPublicViewTokenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetJobPublicViewTokenResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateJobSignatureResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -103016,7 +103111,7 @@ type GetDevWorkspaceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		// DevWorkspaceLabel Cosmetic display label ('dev' | 'staging'); null defaults to 'dev'
+		// DevWorkspaceLabel Environment label, e.g. 'dev' or 'staging'; null defaults to 'dev'
 		DevWorkspaceLabel *string `json:"dev_workspace_label"`
 		Id                string  `json:"id"`
 		Name              string  `json:"name"`
@@ -109464,6 +109559,15 @@ func (c *ClientWithResponses) GetJobOtelTracesWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseGetJobOtelTracesResponse(rsp)
+}
+
+// GetJobPublicViewTokenWithResponse request returning *GetJobPublicViewTokenResponse
+func (c *ClientWithResponses) GetJobPublicViewTokenWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetJobPublicViewTokenResponse, error) {
+	rsp, err := c.GetJobPublicViewToken(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetJobPublicViewTokenResponse(rsp)
 }
 
 // CreateJobSignatureWithResponse request returning *CreateJobSignatureResponse
@@ -124324,6 +124428,22 @@ func ParseGetJobOtelTracesResponse(rsp *http.Response) (*GetJobOtelTracesRespons
 	return response, nil
 }
 
+// ParseGetJobPublicViewTokenResponse parses an HTTP response from a GetJobPublicViewTokenWithResponse call
+func ParseGetJobPublicViewTokenResponse(rsp *http.Response) (*GetJobPublicViewTokenResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetJobPublicViewTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCreateJobSignatureResponse parses an HTTP response from a CreateJobSignatureWithResponse call
 func ParseCreateJobSignatureResponse(rsp *http.Response) (*CreateJobSignatureResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -132656,7 +132776,7 @@ func ParseGetDevWorkspaceResponse(rsp *http.Response) (*GetDevWorkspaceResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			// DevWorkspaceLabel Cosmetic display label ('dev' | 'staging'); null defaults to 'dev'
+			// DevWorkspaceLabel Environment label, e.g. 'dev' or 'staging'; null defaults to 'dev'
 			DevWorkspaceLabel *string `json:"dev_workspace_label"`
 			Id                string  `json:"id"`
 			Name              string  `json:"name"`
