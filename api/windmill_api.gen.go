@@ -1479,9 +1479,10 @@ const (
 
 // Defines values for PruneVersionsJSONBodyResourceType.
 const (
-	Apps    PruneVersionsJSONBodyResourceType = "apps"
-	Flows   PruneVersionsJSONBodyResourceType = "flows"
-	Scripts PruneVersionsJSONBodyResourceType = "scripts"
+	Apps      PruneVersionsJSONBodyResourceType = "apps"
+	Flows     PruneVersionsJSONBodyResourceType = "flows"
+	Resources PruneVersionsJSONBodyResourceType = "resources"
+	Scripts   PruneVersionsJSONBodyResourceType = "scripts"
 )
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
@@ -5867,6 +5868,13 @@ type ResourceType struct {
 	Name            string       `json:"name"`
 	Schema          *interface{} `json:"schema,omitempty"`
 	WorkspaceId     *string      `json:"workspace_id,omitempty"`
+}
+
+// ResourceVersion defines model for ResourceVersion.
+type ResourceVersion struct {
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy *string   `json:"created_by,omitempty"`
+	Id        int64     `json:"id"`
 }
 
 // RestartedFrom defines model for RestartedFrom.
@@ -17786,6 +17794,18 @@ type ClientInterface interface {
 	// GetGitCommitHash request
 	GetGitCommitHash(ctx context.Context, workspace WorkspaceId, path Path, params *GetGitCommitHashParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ClearResourceHistory request
+	ClearResourceHistory(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetResourceHistory request
+	GetResourceHistory(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RestoreResourceVersion request
+	RestoreResourceVersion(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetResourceVersion request
+	GetResourceVersion(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListResource request
 	ListResource(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -28279,6 +28299,54 @@ func (c *Client) GetResourceValueInterpolated(ctx context.Context, workspace Wor
 
 func (c *Client) GetGitCommitHash(ctx context.Context, workspace WorkspaceId, path Path, params *GetGitCommitHashParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetGitCommitHashRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ClearResourceHistory(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewClearResourceHistoryRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetResourceHistory(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetResourceHistoryRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RestoreResourceVersion(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestoreResourceVersionRequest(c.Server, workspace, version)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetResourceVersion(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetResourceVersionRequest(c.Server, workspace, version)
 	if err != nil {
 		return nil, err
 	}
@@ -69775,6 +69843,170 @@ func NewGetGitCommitHashRequest(server string, workspace WorkspaceId, path Path,
 	return req, nil
 }
 
+// NewClearResourceHistoryRequest generates requests for ClearResourceHistory
+func NewClearResourceHistoryRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/history/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetResourceHistoryRequest generates requests for GetResourceHistory
+func NewGetResourceHistoryRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/history/p/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRestoreResourceVersionRequest generates requests for RestoreResourceVersion
+func NewRestoreResourceVersionRequest(server string, workspace WorkspaceId, version int64) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/history/restore/v/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetResourceVersionRequest generates requests for GetResourceVersion
+func NewGetResourceVersionRequest(server string, workspace WorkspaceId, version int64) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/history/v/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListResourceRequest generates requests for ListResource
 func NewListResourceRequest(server string, workspace WorkspaceId, params *ListResourceParams) (*http.Request, error) {
 	var err error
@@ -84011,6 +84243,18 @@ type ClientWithResponsesInterface interface {
 
 	// GetGitCommitHashWithResponse request
 	GetGitCommitHashWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetGitCommitHashParams, reqEditors ...RequestEditorFn) (*GetGitCommitHashResponse, error)
+
+	// ClearResourceHistoryWithResponse request
+	ClearResourceHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ClearResourceHistoryResponse, error)
+
+	// GetResourceHistoryWithResponse request
+	GetResourceHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceHistoryResponse, error)
+
+	// RestoreResourceVersionWithResponse request
+	RestoreResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*RestoreResourceVersionResponse, error)
+
+	// GetResourceVersionWithResponse request
+	GetResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*GetResourceVersionResponse, error)
 
 	// ListResourceWithResponse request
 	ListResourceWithResponse(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*ListResourceResponse, error)
@@ -98836,6 +99080,101 @@ func (r GetGitCommitHashResponse) StatusCode() int {
 	return 0
 }
 
+type ClearResourceHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ClearResourceHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ClearResourceHistoryResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetResourceHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Versioned bool              `json:"versioned"`
+		Versions  []ResourceVersion `json:"versions"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetResourceHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetResourceHistoryResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RestoreResourceVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RestoreResourceVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RestoreResourceVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetResourceVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		CreatedAt         time.Time    `json:"created_at"`
+		CreatedBy         *string      `json:"created_by,omitempty"`
+		Id                int64        `json:"id"`
+		MissingReferences []string     `json:"missing_references"`
+		Value             *interface{} `json:"value,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetResourceVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetResourceVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListResourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -111657,6 +111996,42 @@ func (c *ClientWithResponses) GetGitCommitHashWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseGetGitCommitHashResponse(rsp)
+}
+
+// ClearResourceHistoryWithResponse request returning *ClearResourceHistoryResponse
+func (c *ClientWithResponses) ClearResourceHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ClearResourceHistoryResponse, error) {
+	rsp, err := c.ClearResourceHistory(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseClearResourceHistoryResponse(rsp)
+}
+
+// GetResourceHistoryWithResponse request returning *GetResourceHistoryResponse
+func (c *ClientWithResponses) GetResourceHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceHistoryResponse, error) {
+	rsp, err := c.GetResourceHistory(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetResourceHistoryResponse(rsp)
+}
+
+// RestoreResourceVersionWithResponse request returning *RestoreResourceVersionResponse
+func (c *ClientWithResponses) RestoreResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*RestoreResourceVersionResponse, error) {
+	rsp, err := c.RestoreResourceVersion(ctx, workspace, version, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestoreResourceVersionResponse(rsp)
+}
+
+// GetResourceVersionWithResponse request returning *GetResourceVersionResponse
+func (c *ClientWithResponses) GetResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*GetResourceVersionResponse, error) {
+	rsp, err := c.GetResourceVersion(ctx, workspace, version, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetResourceVersionResponse(rsp)
 }
 
 // ListResourceWithResponse request returning *ListResourceResponse
@@ -128405,6 +128780,99 @@ func ParseGetGitCommitHashResponse(rsp *http.Response) (*GetGitCommitHashRespons
 		var dest struct {
 			// CommitHash Latest commit hash from git ls-remote
 			CommitHash string `json:"commit_hash"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseClearResourceHistoryResponse parses an HTTP response from a ClearResourceHistoryWithResponse call
+func ParseClearResourceHistoryResponse(rsp *http.Response) (*ClearResourceHistoryResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ClearResourceHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetResourceHistoryResponse parses an HTTP response from a GetResourceHistoryWithResponse call
+func ParseGetResourceHistoryResponse(rsp *http.Response) (*GetResourceHistoryResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetResourceHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Versioned bool              `json:"versioned"`
+			Versions  []ResourceVersion `json:"versions"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRestoreResourceVersionResponse parses an HTTP response from a RestoreResourceVersionWithResponse call
+func ParseRestoreResourceVersionResponse(rsp *http.Response) (*RestoreResourceVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RestoreResourceVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetResourceVersionResponse parses an HTTP response from a GetResourceVersionWithResponse call
+func ParseGetResourceVersionResponse(rsp *http.Response) (*GetResourceVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetResourceVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CreatedAt         time.Time    `json:"created_at"`
+			CreatedBy         *string      `json:"created_by,omitempty"`
+			Id                int64        `json:"id"`
+			MissingReferences []string     `json:"missing_references"`
+			Value             *interface{} `json:"value,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
