@@ -2782,12 +2782,11 @@ type EditKafkaTrigger struct {
 	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
-	// FilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+	// FilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
 	FilterLogic *EditKafkaTriggerFilterLogic `json:"filter_logic,omitempty"`
-	Filters     []struct {
-		Key   string      `json:"key"`
-		Value interface{} `json:"value"`
-	} `json:"filters"`
+
+	// Filters Filters to match incoming messages (only matching messages trigger the script). Each entry is either a leaf `{key, value}` (top-level field) or `{path, value}` (dotted path into nested objects), or a group `{any_of: [...]}` / `{all_of: [...]}` / `{none_of: [...]}` nesting more entries. Entries at the top level are combined with `filter_logic`.
+	Filters []TriggerFilter `json:"filters"`
 
 	// GroupId Kafka consumer group ID for this trigger
 	GroupId string `json:"group_id"`
@@ -2821,7 +2820,7 @@ type EditKafkaTrigger struct {
 // EditKafkaTriggerAutoOffsetReset Initial offset behavior when consumer group has no committed offset.
 type EditKafkaTriggerAutoOffsetReset string
 
-// EditKafkaTriggerFilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+// EditKafkaTriggerFilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
 type EditKafkaTriggerFilterLogic string
 
 // EditMqttTrigger defines model for EditMqttTrigger.
@@ -3142,14 +3141,11 @@ type EditWebsocketTrigger struct {
 	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
-	// FilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+	// FilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
 	FilterLogic *EditWebsocketTriggerFilterLogic `json:"filter_logic,omitempty"`
 
-	// Filters Array of key-value filters to match incoming messages (only matching messages trigger the script)
-	Filters []struct {
-		Key   string      `json:"key"`
-		Value interface{} `json:"value"`
-	} `json:"filters"`
+	// Filters Filters to match incoming messages (only matching messages trigger the script). Each entry is either a leaf `{key, value}` (top-level field) or `{path, value}` (dotted path into nested objects), or a group `{any_of: [...]}` / `{all_of: [...]}` / `{none_of: [...]}` nesting more entries. Entries at the top level are combined with `filter_logic`.
+	Filters   []TriggerFilter     `json:"filters"`
 	Heartbeat *WebsocketHeartbeat `json:"heartbeat,omitempty"`
 
 	// InitialMessages Messages to send immediately after connecting (can be raw strings or computed by runnables)
@@ -3181,7 +3177,7 @@ type EditWebsocketTrigger struct {
 	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
 }
 
-// EditWebsocketTriggerFilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+// EditWebsocketTriggerFilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
 type EditWebsocketTriggerFilterLogic string
 
 // EditWorkspaceUser defines model for EditWorkspaceUser.
@@ -4806,12 +4802,11 @@ type NewKafkaTrigger struct {
 	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
-	// FilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+	// FilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
 	FilterLogic *NewKafkaTriggerFilterLogic `json:"filter_logic,omitempty"`
-	Filters     []struct {
-		Key   string      `json:"key"`
-		Value interface{} `json:"value"`
-	} `json:"filters"`
+
+	// Filters Filters to match incoming messages (only matching messages trigger the script). Each entry is either a leaf `{key, value}` (top-level field) or `{path, value}` (dotted path into nested objects), or a group `{any_of: [...]}` / `{all_of: [...]}` / `{none_of: [...]}` nesting more entries. Entries at the top level are combined with `filter_logic`.
+	Filters []TriggerFilter `json:"filters"`
 
 	// GroupId Kafka consumer group ID for this trigger
 	GroupId string `json:"group_id"`
@@ -4848,7 +4843,7 @@ type NewKafkaTrigger struct {
 // NewKafkaTriggerAutoOffsetReset Initial offset behavior when consumer group has no committed offset.
 type NewKafkaTriggerAutoOffsetReset string
 
-// NewKafkaTriggerFilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+// NewKafkaTriggerFilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
 type NewKafkaTriggerFilterLogic string
 
 // NewMqttTrigger defines model for NewMqttTrigger.
@@ -5214,14 +5209,11 @@ type NewWebsocketTrigger struct {
 	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
-	// FilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+	// FilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
 	FilterLogic *NewWebsocketTriggerFilterLogic `json:"filter_logic,omitempty"`
 
-	// Filters Array of key-value filters to match incoming messages (only matching messages trigger the script)
-	Filters []struct {
-		Key   string      `json:"key"`
-		Value interface{} `json:"value"`
-	} `json:"filters"`
+	// Filters Filters to match incoming messages (only matching messages trigger the script). Each entry is either a leaf `{key, value}` (top-level field) or `{path, value}` (dotted path into nested objects), or a group `{any_of: [...]}` / `{all_of: [...]}` / `{none_of: [...]}` nesting more entries. Entries at the top level are combined with `filter_logic`.
+	Filters   []TriggerFilter     `json:"filters"`
 	Heartbeat *WebsocketHeartbeat `json:"heartbeat,omitempty"`
 
 	// InitialMessages Messages to send immediately after connecting (can be raw strings or computed by runnables)
@@ -5256,7 +5248,7 @@ type NewWebsocketTrigger struct {
 	UrlRunnableArgs *ScriptArgs `json:"url_runnable_args,omitempty"`
 }
 
-// NewWebsocketTriggerFilterLogic Logic to apply when evaluating filters. 'and' requires all filters to match, 'or' requires any filter to match.
+// NewWebsocketTriggerFilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
 type NewWebsocketTriggerFilterLogic string
 
 // NewWorkspaceDependencies defines model for NewWorkspaceDependencies.
@@ -6513,6 +6505,39 @@ type TriggerExtraProperty struct {
 
 	// WorkspaceId The workspace this trigger belongs to
 	WorkspaceId string `json:"workspace_id"`
+}
+
+// TriggerFilter Either a leaf filter, matching a field of the message (parsed as JSON) against a value by equality (or superset, when the value is an object or array) — addressed by `key` for a top-level field or `path` for a dotted path into nested objects — or a group nesting sub-filters under a boolean operator (`none_of` matches when none of its sub-filters do).
+type TriggerFilter struct {
+	union json.RawMessage
+}
+
+// TriggerFilter0 defines model for .
+type TriggerFilter0 struct {
+	Key   string      `json:"key"`
+	Value interface{} `json:"value"`
+}
+
+// TriggerFilter1 defines model for .
+type TriggerFilter1 struct {
+	// Path Dotted path into nested objects, e.g. `a.b.c`. Does not traverse arrays.
+	Path  string      `json:"path"`
+	Value interface{} `json:"value"`
+}
+
+// TriggerFilter2 defines model for .
+type TriggerFilter2 struct {
+	AnyOf []TriggerFilter `json:"any_of"`
+}
+
+// TriggerFilter3 defines model for .
+type TriggerFilter3 struct {
+	AllOf []TriggerFilter `json:"all_of"`
+}
+
+// TriggerFilter4 defines model for .
+type TriggerFilter4 struct {
+	NoneOf []TriggerFilter `json:"none_of"`
 }
 
 // TriggerMode job trigger mode
@@ -14829,6 +14854,146 @@ func (t *ToolValue) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsTriggerFilter0 returns the union data inside the TriggerFilter as a TriggerFilter0
+func (t TriggerFilter) AsTriggerFilter0() (TriggerFilter0, error) {
+	var body TriggerFilter0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromTriggerFilter0 overwrites any union data inside the TriggerFilter as the provided TriggerFilter0
+func (t *TriggerFilter) FromTriggerFilter0(v TriggerFilter0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeTriggerFilter0 performs a merge with any union data inside the TriggerFilter, using the provided TriggerFilter0
+func (t *TriggerFilter) MergeTriggerFilter0(v TriggerFilter0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsTriggerFilter1 returns the union data inside the TriggerFilter as a TriggerFilter1
+func (t TriggerFilter) AsTriggerFilter1() (TriggerFilter1, error) {
+	var body TriggerFilter1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromTriggerFilter1 overwrites any union data inside the TriggerFilter as the provided TriggerFilter1
+func (t *TriggerFilter) FromTriggerFilter1(v TriggerFilter1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeTriggerFilter1 performs a merge with any union data inside the TriggerFilter, using the provided TriggerFilter1
+func (t *TriggerFilter) MergeTriggerFilter1(v TriggerFilter1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsTriggerFilter2 returns the union data inside the TriggerFilter as a TriggerFilter2
+func (t TriggerFilter) AsTriggerFilter2() (TriggerFilter2, error) {
+	var body TriggerFilter2
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromTriggerFilter2 overwrites any union data inside the TriggerFilter as the provided TriggerFilter2
+func (t *TriggerFilter) FromTriggerFilter2(v TriggerFilter2) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeTriggerFilter2 performs a merge with any union data inside the TriggerFilter, using the provided TriggerFilter2
+func (t *TriggerFilter) MergeTriggerFilter2(v TriggerFilter2) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsTriggerFilter3 returns the union data inside the TriggerFilter as a TriggerFilter3
+func (t TriggerFilter) AsTriggerFilter3() (TriggerFilter3, error) {
+	var body TriggerFilter3
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromTriggerFilter3 overwrites any union data inside the TriggerFilter as the provided TriggerFilter3
+func (t *TriggerFilter) FromTriggerFilter3(v TriggerFilter3) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeTriggerFilter3 performs a merge with any union data inside the TriggerFilter, using the provided TriggerFilter3
+func (t *TriggerFilter) MergeTriggerFilter3(v TriggerFilter3) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsTriggerFilter4 returns the union data inside the TriggerFilter as a TriggerFilter4
+func (t TriggerFilter) AsTriggerFilter4() (TriggerFilter4, error) {
+	var body TriggerFilter4
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromTriggerFilter4 overwrites any union data inside the TriggerFilter as the provided TriggerFilter4
+func (t *TriggerFilter) FromTriggerFilter4(v TriggerFilter4) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeTriggerFilter4 performs a merge with any union data inside the TriggerFilter, using the provided TriggerFilter4
+func (t *TriggerFilter) MergeTriggerFilter4(v TriggerFilter4) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t TriggerFilter) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *TriggerFilter) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsWebsocketTriggerInitialMessage0 returns the union data inside the WebsocketTriggerInitialMessage as a WebsocketTriggerInitialMessage0
 func (t WebsocketTriggerInitialMessage) AsWebsocketTriggerInitialMessage0() (WebsocketTriggerInitialMessage0, error) {
 	var body WebsocketTriggerInitialMessage0
@@ -17625,6 +17790,9 @@ type ClientInterface interface {
 
 	UpdateNatsTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetNpmProxyConfig request
+	GetNpmProxyConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetNpmPackageFile request
 	GetNpmPackageFile(ctx context.Context, workspace WorkspaceId, pPackage string, version string, filepath string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17636,6 +17804,9 @@ type ClientInterface interface {
 
 	// ResolveNpmPackageVersion request
 	ResolveNpmPackageVersion(ctx context.Context, workspace WorkspaceId, pPackage string, params *ResolveNpmPackageVersionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetNpmPackageTarball request
+	GetNpmPackageTarball(ctx context.Context, workspace WorkspaceId, pPackage string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ConnectClientCredentialsWithBody request with any body
 	ConnectClientCredentialsWithBody(ctx context.Context, workspace WorkspaceId, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -27565,6 +27736,18 @@ func (c *Client) UpdateNatsTrigger(ctx context.Context, workspace WorkspaceId, p
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetNpmProxyConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNpmProxyConfigRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetNpmPackageFile(ctx context.Context, workspace WorkspaceId, pPackage string, version string, filepath string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetNpmPackageFileRequest(c.Server, workspace, pPackage, version, filepath)
 	if err != nil {
@@ -27603,6 +27786,18 @@ func (c *Client) GetNpmPackageMetadata(ctx context.Context, workspace WorkspaceI
 
 func (c *Client) ResolveNpmPackageVersion(ctx context.Context, workspace WorkspaceId, pPackage string, params *ResolveNpmPackageVersionParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResolveNpmPackageVersionRequest(c.Server, workspace, pPackage, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetNpmPackageTarball(ctx context.Context, workspace WorkspaceId, pPackage string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNpmPackageTarballRequest(c.Server, workspace, pPackage, version)
 	if err != nil {
 		return nil, err
 	}
@@ -67373,6 +67568,40 @@ func NewUpdateNatsTriggerRequestWithBody(server string, workspace WorkspaceId, p
 	return req, nil
 }
 
+// NewGetNpmProxyConfigRequest generates requests for GetNpmProxyConfig
+func NewGetNpmProxyConfigRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/npm_proxy/config", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetNpmPackageFileRequest generates requests for GetNpmPackageFile
 func NewGetNpmPackageFileRequest(server string, workspace WorkspaceId, pPackage string, version string, filepath string) (*http.Request, error) {
 	var err error
@@ -67570,6 +67799,54 @@ func NewResolveNpmPackageVersionRequest(server string, workspace WorkspaceId, pP
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetNpmPackageTarballRequest generates requests for GetNpmPackageTarball
+func NewGetNpmPackageTarballRequest(server string, workspace WorkspaceId, pPackage string, version string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "package", runtime.ParamLocationPath, pPackage)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/npm_proxy/tarball/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -84075,6 +84352,9 @@ type ClientWithResponsesInterface interface {
 
 	UpdateNatsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateNatsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateNatsTriggerResponse, error)
 
+	// GetNpmProxyConfigWithResponse request
+	GetNpmProxyConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetNpmProxyConfigResponse, error)
+
 	// GetNpmPackageFileWithResponse request
 	GetNpmPackageFileWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, version string, filepath string, reqEditors ...RequestEditorFn) (*GetNpmPackageFileResponse, error)
 
@@ -84086,6 +84366,9 @@ type ClientWithResponsesInterface interface {
 
 	// ResolveNpmPackageVersionWithResponse request
 	ResolveNpmPackageVersionWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, params *ResolveNpmPackageVersionParams, reqEditors ...RequestEditorFn) (*ResolveNpmPackageVersionResponse, error)
+
+	// GetNpmPackageTarballWithResponse request
+	GetNpmPackageTarballWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, version string, reqEditors ...RequestEditorFn) (*GetNpmPackageTarballResponse, error)
 
 	// ConnectClientCredentialsWithBodyWithResponse request with any body
 	ConnectClientCredentialsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, client string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectClientCredentialsResponse, error)
@@ -97997,6 +98280,30 @@ func (r UpdateNatsTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type GetNpmProxyConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		RegistryConfigured bool `json:"registry_configured"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNpmProxyConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNpmProxyConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetNpmPackageFileResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -98088,6 +98395,27 @@ func (r ResolveNpmPackageVersionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ResolveNpmPackageVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetNpmPackageTarballResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNpmPackageTarballResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNpmPackageTarballResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -111457,6 +111785,15 @@ func (c *ClientWithResponses) UpdateNatsTriggerWithResponse(ctx context.Context,
 	return ParseUpdateNatsTriggerResponse(rsp)
 }
 
+// GetNpmProxyConfigWithResponse request returning *GetNpmProxyConfigResponse
+func (c *ClientWithResponses) GetNpmProxyConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetNpmProxyConfigResponse, error) {
+	rsp, err := c.GetNpmProxyConfig(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNpmProxyConfigResponse(rsp)
+}
+
 // GetNpmPackageFileWithResponse request returning *GetNpmPackageFileResponse
 func (c *ClientWithResponses) GetNpmPackageFileWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, version string, filepath string, reqEditors ...RequestEditorFn) (*GetNpmPackageFileResponse, error) {
 	rsp, err := c.GetNpmPackageFile(ctx, workspace, pPackage, version, filepath, reqEditors...)
@@ -111491,6 +111828,15 @@ func (c *ClientWithResponses) ResolveNpmPackageVersionWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseResolveNpmPackageVersionResponse(rsp)
+}
+
+// GetNpmPackageTarballWithResponse request returning *GetNpmPackageTarballResponse
+func (c *ClientWithResponses) GetNpmPackageTarballWithResponse(ctx context.Context, workspace WorkspaceId, pPackage string, version string, reqEditors ...RequestEditorFn) (*GetNpmPackageTarballResponse, error) {
+	rsp, err := c.GetNpmPackageTarball(ctx, workspace, pPackage, version, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNpmPackageTarballResponse(rsp)
 }
 
 // ConnectClientCredentialsWithBodyWithResponse request with arbitrary body returning *ConnectClientCredentialsResponse
@@ -127744,6 +128090,34 @@ func ParseUpdateNatsTriggerResponse(rsp *http.Response) (*UpdateNatsTriggerRespo
 	return response, nil
 }
 
+// ParseGetNpmProxyConfigResponse parses an HTTP response from a GetNpmProxyConfigWithResponse call
+func ParseGetNpmProxyConfigResponse(rsp *http.Response) (*GetNpmProxyConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNpmProxyConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			RegistryConfigured bool `json:"registry_configured"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetNpmPackageFileResponse parses an HTTP response from a GetNpmPackageFileWithResponse call
 func ParseGetNpmPackageFileResponse(rsp *http.Response) (*GetNpmPackageFileResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -127843,6 +128217,22 @@ func ParseResolveNpmPackageVersionResponse(rsp *http.Response) (*ResolveNpmPacka
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetNpmPackageTarballResponse parses an HTTP response from a GetNpmPackageTarballWithResponse call
+func ParseGetNpmPackageTarballResponse(rsp *http.Response) (*GetNpmPackageTarballResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNpmPackageTarballResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
