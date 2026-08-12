@@ -11786,7 +11786,7 @@ type ListRunnablesParams struct {
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
 	Label     *string `form:"label,omitempty" json:"label,omitempty"`
 
-	// Search case-insensitive substring match on summary or path
+	// Search case-insensitive fuzzy match on "summary (path)": the query is split into terms on runs of anything but ASCII letters, digits and apostrophes, and each of the first 8 must appear whole and in order, with anything in between. Terms past the 8th are ignored, so an over-long query matches more rows rather than fewer. Omitted or empty filters nothing; a query holding no ASCII-alphanumeric character at all (a lone space, "_", or text in a non-Latin script) yields no terms and matches nothing, mirroring the homepage, whose matcher discards those queries too.
 	Search *string `form:"search,omitempty" json:"search,omitempty"`
 
 	// PerPage number of items to return for a given page (default 30, max 100)
@@ -12637,6 +12637,7 @@ type RunTeamsMessageTestJobJSONBody struct {
 
 // SetEnvironmentVariableJSONBody defines parameters for SetEnvironmentVariable.
 type SetEnvironmentVariableJSONBody struct {
+	// Name Environment variable name. New names must be a plain JS identifier (matching ^[A-Za-z_$][A-Za-z0-9_$]*$) since the name is spliced into the NativeTS/Bun worker prologue; otherwise the request is rejected with 400. Existing names can still be updated regardless of shape.
 	Name  string  `json:"name"`
 	Value *string `json:"value,omitempty"`
 }
