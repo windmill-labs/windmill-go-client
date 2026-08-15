@@ -994,6 +994,24 @@ const (
 	Existing     SubscriptionMode = "existing"
 )
 
+// Defines values for TriggerHistoryEntryOperation.
+const (
+	TriggerHistoryEntryOperationCreate  TriggerHistoryEntryOperation = "create"
+	TriggerHistoryEntryOperationDelete  TriggerHistoryEntryOperation = "delete"
+	TriggerHistoryEntryOperationDisable TriggerHistoryEntryOperation = "disable"
+	TriggerHistoryEntryOperationEnable  TriggerHistoryEntryOperation = "enable"
+	TriggerHistoryEntryOperationSuspend TriggerHistoryEntryOperation = "suspend"
+	TriggerHistoryEntryOperationUpdate  TriggerHistoryEntryOperation = "update"
+)
+
+// Defines values for TriggerHistoryEntrySource.
+const (
+	TriggerHistoryEntrySourceApi    TriggerHistoryEntrySource = "api"
+	TriggerHistoryEntrySourceCli    TriggerHistoryEntrySource = "cli"
+	TriggerHistoryEntrySourceUi     TriggerHistoryEntrySource = "ui"
+	TriggerHistoryEntrySourceWorker TriggerHistoryEntrySource = "worker"
+)
+
 // Defines values for TriggerMode.
 const (
 	TriggerModeDisabled  TriggerMode = "disabled"
@@ -1373,8 +1391,8 @@ const (
 
 // Defines values for MigrateLegacyDraftJSONBodyAction.
 const (
-	MigrateLegacyDraftJSONBodyActionAssignToSelf MigrateLegacyDraftJSONBodyAction = "assign_to_self"
-	MigrateLegacyDraftJSONBodyActionDelete       MigrateLegacyDraftJSONBodyAction = "delete"
+	AssignToSelf MigrateLegacyDraftJSONBodyAction = "assign_to_self"
+	Delete       MigrateLegacyDraftJSONBodyAction = "delete"
 )
 
 // Defines values for StarJSONBodyFavoriteKind.
@@ -6540,6 +6558,31 @@ type TriggerFilter4 struct {
 	NoneOf []TriggerFilter `json:"none_of"`
 }
 
+// TriggerHistoryEntry defines model for TriggerHistoryEntry.
+type TriggerHistoryEntry struct {
+	// Changes {field: {old, new}} for the fields that actually changed. Unset for a delete.
+	Changes   *map[string]interface{}      `json:"changes"`
+	CreatedAt time.Time                    `json:"created_at"`
+	Id        int64                        `json:"id"`
+	Operation TriggerHistoryEntryOperation `json:"operation"`
+	Path      string                       `json:"path"`
+
+	// Source The kind of client the change came from. `worker` means the server disabled the trigger on its own after a failure.
+	Source TriggerHistoryEntrySource `json:"source"`
+
+	// TriggerKind 'schedule' or a trigger type (http, kafka, ...)
+	TriggerKind string `json:"trigger_kind"`
+
+	// Username Unset when the server acted on its own.
+	Username *string `json:"username"`
+}
+
+// TriggerHistoryEntryOperation defines model for TriggerHistoryEntry.Operation.
+type TriggerHistoryEntryOperation string
+
+// TriggerHistoryEntrySource The kind of client the change came from. `worker` means the server disabled the trigger on its own after a failure.
+type TriggerHistoryEntrySource string
+
 // TriggerMode job trigger mode
 type TriggerMode string
 
@@ -8911,6 +8954,9 @@ type ListAuditLogsParams struct {
 
 	// ActionKind filter on type of operation
 	ActionKind *ListAuditLogsParamsActionKind `form:"action_kind,omitempty" json:"action_kind,omitempty"`
+
+	// BeforeId only return logs with an id strictly lower than this one. Logs are ordered by descending id, so this is a keyset cursor to stream a page in several batches without paying a growing offset.
+	BeforeId *int64 `form:"before_id,omitempty" json:"before_id,omitempty"`
 
 	// AllWorkspaces get audit logs for all workspaces
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
@@ -11750,6 +11796,17 @@ type ListResourceParams struct {
 	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
+// CallMcpToolJSONBody defines parameters for CallMcpTool.
+type CallMcpToolJSONBody struct {
+	Arguments *map[string]interface{} `json:"arguments,omitempty"`
+
+	// ReadOnly set when the caller ran the tool without asking the user to
+	// confirm it; the call is refused unless the server's live
+	// listing marks the tool read-only
+	ReadOnly *bool  `json:"read_only,omitempty"`
+	Tool     string `json:"tool"`
+}
+
 // UpdateResourceValueJSONBody defines parameters for UpdateResourceValue.
 type UpdateResourceValueJSONBody struct {
 	Value *interface{} `json:"value,omitempty"`
@@ -12101,6 +12158,21 @@ type CancelSuspendedTriggerJobsJSONBody struct {
 type ResumeSuspendedTriggerJobsJSONBody struct {
 	// JobIds Optional list of specific job UUIDs to reassign. If not provided, all suspended jobs for the trigger will be reassigned.
 	JobIds *[]openapi_types.UUID `json:"job_ids,omitempty"`
+}
+
+// ListTriggerHistoryParams defines parameters for ListTriggerHistory.
+type ListTriggerHistoryParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// TriggerKind 'schedule' or a trigger type (http, kafka, ...)
+	TriggerKind *string `form:"trigger_kind,omitempty" json:"trigger_kind,omitempty"`
+
+	// Path only return the history of the trigger at this path
+	Path *string `form:"path,omitempty" json:"path,omitempty"`
 }
 
 // ExitImpersonationJSONBody defines parameters for ExitImpersonation.
@@ -13395,6 +13467,9 @@ type CreateResourceJSONRequestBody = CreateResource
 
 // DeleteResourcesBulkJSONRequestBody defines body for DeleteResourcesBulk for application/json ContentType.
 type DeleteResourcesBulkJSONRequestBody DeleteResourcesBulkJSONBody
+
+// CallMcpToolJSONRequestBody defines body for CallMcpTool for application/json ContentType.
+type CallMcpToolJSONRequestBody CallMcpToolJSONBody
 
 // CreateResourceTypeJSONRequestBody defines body for CreateResourceType for application/json ContentType.
 type CreateResourceTypeJSONRequestBody = ResourceType
@@ -17987,6 +18062,11 @@ type ClientInterface interface {
 	// ListSearchResource request
 	ListSearchResource(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CallMcpToolWithBody request with any body
+	CallMcpToolWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CallMcpTool(ctx context.Context, workspace WorkspaceId, path Path, body CallMcpToolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetMcpTools request
 	GetMcpTools(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -18221,6 +18301,9 @@ type ClientInterface interface {
 	ResumeSuspendedTriggerJobsWithBody(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ResumeSuspendedTriggerJobs(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body ResumeSuspendedTriggerJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListTriggerHistory request
+	ListTriggerHistory(ctx context.Context, workspace WorkspaceId, params *ListTriggerHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ConvertUserToGroup request
 	ConvertUserToGroup(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -28589,6 +28672,30 @@ func (c *Client) ListSearchResource(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
+func (c *Client) CallMcpToolWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCallMcpToolRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CallMcpTool(ctx context.Context, workspace WorkspaceId, path Path, body CallMcpToolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCallMcpToolRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetMcpTools(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetMcpToolsRequest(c.Server, workspace, path)
 	if err != nil {
@@ -29611,6 +29718,18 @@ func (c *Client) ResumeSuspendedTriggerJobsWithBody(ctx context.Context, workspa
 
 func (c *Client) ResumeSuspendedTriggerJobs(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body ResumeSuspendedTriggerJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResumeSuspendedTriggerJobsRequest(c.Server, workspace, triggerKind, triggerPath, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListTriggerHistory(ctx context.Context, workspace WorkspaceId, params *ListTriggerHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListTriggerHistoryRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -43375,6 +43494,22 @@ func NewListAuditLogsRequest(server string, workspace WorkspaceId, params *ListA
 		if params.ActionKind != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "action_kind", runtime.ParamLocationQuery, *params.ActionKind); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.BeforeId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "before_id", runtime.ParamLocationQuery, *params.BeforeId); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -70576,6 +70711,60 @@ func NewListSearchResourceRequest(server string, workspace WorkspaceId) (*http.R
 	return req, nil
 }
 
+// NewCallMcpToolRequest calls the generic CallMcpTool builder with application/json body
+func NewCallMcpToolRequest(server string, workspace WorkspaceId, path Path, body CallMcpToolJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCallMcpToolRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewCallMcpToolRequestWithBody generates requests for CallMcpTool with any type of body
+func NewCallMcpToolRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/mcp_call_tool/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetMcpToolsRequest generates requests for GetMcpTools
 func NewGetMcpToolsRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
 	var err error
@@ -74358,6 +74547,110 @@ func NewResumeSuspendedTriggerJobsRequestWithBody(server string, workspace Works
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListTriggerHistoryRequest generates requests for ListTriggerHistory
+func NewListTriggerHistoryRequest(server string, workspace WorkspaceId, params *ListTriggerHistoryParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/triggers_history/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.TriggerKind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "trigger_kind", runtime.ParamLocationQuery, *params.TriggerKind); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -84549,6 +84842,11 @@ type ClientWithResponsesInterface interface {
 	// ListSearchResourceWithResponse request
 	ListSearchResourceWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchResourceResponse, error)
 
+	// CallMcpToolWithBodyWithResponse request with any body
+	CallMcpToolWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CallMcpToolResponse, error)
+
+	CallMcpToolWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body CallMcpToolJSONRequestBody, reqEditors ...RequestEditorFn) (*CallMcpToolResponse, error)
+
 	// GetMcpToolsWithResponse request
 	GetMcpToolsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetMcpToolsResponse, error)
 
@@ -84783,6 +85081,9 @@ type ClientWithResponsesInterface interface {
 	ResumeSuspendedTriggerJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedTriggerJobsResponse, error)
 
 	ResumeSuspendedTriggerJobsWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body ResumeSuspendedTriggerJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*ResumeSuspendedTriggerJobsResponse, error)
+
+	// ListTriggerHistoryWithResponse request
+	ListTriggerHistoryWithResponse(ctx context.Context, workspace WorkspaceId, params *ListTriggerHistoryParams, reqEditors ...RequestEditorFn) (*ListTriggerHistoryResponse, error)
 
 	// ConvertUserToGroupWithResponse request
 	ConvertUserToGroupWithResponse(ctx context.Context, workspace WorkspaceId, username string, reqEditors ...RequestEditorFn) (*ConvertUserToGroupResponse, error)
@@ -99576,13 +99877,46 @@ func (r ListSearchResourceResponse) StatusCode() int {
 	return 0
 }
 
+type CallMcpToolResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Content           *[]map[string]interface{} `json:"content,omitempty"`
+		IsError           *bool                     `json:"isError,omitempty"`
+		StructuredContent *map[string]interface{}   `json:"structuredContent,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CallMcpToolResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CallMcpToolResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetMcpToolsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]struct {
+		Annotations *struct {
+			DestructiveHint *bool   `json:"destructiveHint,omitempty"`
+			IdempotentHint  *bool   `json:"idempotentHint,omitempty"`
+			OpenWorldHint   *bool   `json:"openWorldHint,omitempty"`
+			ReadOnlyHint    *bool   `json:"readOnlyHint,omitempty"`
+			Title           *string `json:"title,omitempty"`
+		} `json:"annotations,omitempty"`
 		Description *string                `json:"description,omitempty"`
+		InputSchema map[string]interface{} `json:"inputSchema"`
 		Name        string                 `json:"name"`
-		Parameters  map[string]interface{} `json:"parameters"`
 	}
 }
 
@@ -101305,6 +101639,28 @@ func (r ResumeSuspendedTriggerJobsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ResumeSuspendedTriggerJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListTriggerHistoryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]TriggerHistoryEntry
+}
+
+// Status returns HTTPResponse.Status
+func (r ListTriggerHistoryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListTriggerHistoryResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -112408,6 +112764,23 @@ func (c *ClientWithResponses) ListSearchResourceWithResponse(ctx context.Context
 	return ParseListSearchResourceResponse(rsp)
 }
 
+// CallMcpToolWithBodyWithResponse request with arbitrary body returning *CallMcpToolResponse
+func (c *ClientWithResponses) CallMcpToolWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CallMcpToolResponse, error) {
+	rsp, err := c.CallMcpToolWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCallMcpToolResponse(rsp)
+}
+
+func (c *ClientWithResponses) CallMcpToolWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body CallMcpToolJSONRequestBody, reqEditors ...RequestEditorFn) (*CallMcpToolResponse, error) {
+	rsp, err := c.CallMcpTool(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCallMcpToolResponse(rsp)
+}
+
 // GetMcpToolsWithResponse request returning *GetMcpToolsResponse
 func (c *ClientWithResponses) GetMcpToolsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetMcpToolsResponse, error) {
 	rsp, err := c.GetMcpTools(ctx, workspace, path, reqEditors...)
@@ -113157,6 +113530,15 @@ func (c *ClientWithResponses) ResumeSuspendedTriggerJobsWithResponse(ctx context
 		return nil, err
 	}
 	return ParseResumeSuspendedTriggerJobsResponse(rsp)
+}
+
+// ListTriggerHistoryWithResponse request returning *ListTriggerHistoryResponse
+func (c *ClientWithResponses) ListTriggerHistoryWithResponse(ctx context.Context, workspace WorkspaceId, params *ListTriggerHistoryParams, reqEditors ...RequestEditorFn) (*ListTriggerHistoryResponse, error) {
+	rsp, err := c.ListTriggerHistory(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListTriggerHistoryResponse(rsp)
 }
 
 // ConvertUserToGroupWithResponse request returning *ConvertUserToGroupResponse
@@ -129359,6 +129741,36 @@ func ParseListSearchResourceResponse(rsp *http.Response) (*ListSearchResourceRes
 	return response, nil
 }
 
+// ParseCallMcpToolResponse parses an HTTP response from a CallMcpToolWithResponse call
+func ParseCallMcpToolResponse(rsp *http.Response) (*CallMcpToolResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CallMcpToolResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Content           *[]map[string]interface{} `json:"content,omitempty"`
+			IsError           *bool                     `json:"isError,omitempty"`
+			StructuredContent *map[string]interface{}   `json:"structuredContent,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetMcpToolsResponse parses an HTTP response from a GetMcpToolsWithResponse call
 func ParseGetMcpToolsResponse(rsp *http.Response) (*GetMcpToolsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -129375,9 +129787,16 @@ func ParseGetMcpToolsResponse(rsp *http.Response) (*GetMcpToolsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
+			Annotations *struct {
+				DestructiveHint *bool   `json:"destructiveHint,omitempty"`
+				IdempotentHint  *bool   `json:"idempotentHint,omitempty"`
+				OpenWorldHint   *bool   `json:"openWorldHint,omitempty"`
+				ReadOnlyHint    *bool   `json:"readOnlyHint,omitempty"`
+				Title           *string `json:"title,omitempty"`
+			} `json:"annotations,omitempty"`
 			Description *string                `json:"description,omitempty"`
+			InputSchema map[string]interface{} `json:"inputSchema"`
 			Name        string                 `json:"name"`
-			Parameters  map[string]interface{} `json:"parameters"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -131126,6 +131545,32 @@ func ParseResumeSuspendedTriggerJobsResponse(rsp *http.Response) (*ResumeSuspend
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListTriggerHistoryResponse parses an HTTP response from a ListTriggerHistoryWithResponse call
+func ParseListTriggerHistoryResponse(rsp *http.Response) (*ListTriggerHistoryResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListTriggerHistoryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []TriggerHistoryEntry
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
