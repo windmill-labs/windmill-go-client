@@ -99856,8 +99856,13 @@ type ListSearchResourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]struct {
-		Path  string      `json:"path"`
-		Value interface{} `json:"value"`
+		Path string `json:"path"`
+
+		// Truncated whether value was cut short by that cap
+		Truncated bool `json:"truncated"`
+
+		// Value pretty-printed JSON rendering of the resource value, capped at 4000 characters — a search preview, not the value itself (use get_value for that)
+		Value string `json:"value"`
 	}
 }
 
@@ -129728,8 +129733,13 @@ func ParseListSearchResourceResponse(rsp *http.Response) (*ListSearchResourceRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
-			Path  string      `json:"path"`
-			Value interface{} `json:"value"`
+			Path string `json:"path"`
+
+			// Truncated whether value was cut short by that cap
+			Truncated bool `json:"truncated"`
+
+			// Value pretty-printed JSON rendering of the resource value, capped at 4000 characters — a search preview, not the value itself (use get_value for that)
+			Value string `json:"value"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
