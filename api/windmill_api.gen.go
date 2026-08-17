@@ -5510,6 +5510,8 @@ type Policy struct {
 		Resource *string `json:"resource,omitempty"`
 		S3Path   *string `json:"s3_path,omitempty"`
 	} `json:"allowed_s3_keys,omitempty"`
+
+	// ExecutionMode Who the app's runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Either way `anonymous`, which makes the app publicly executable, is never assumed
 	ExecutionMode *PolicyExecutionMode `json:"execution_mode,omitempty"`
 
 	// FrontendSdkScopes Raw apps: author-declared scopes for the frontend SDK token. Takes effect only when `sandbox` is also true — an unsandboxed bundle runs with the viewer's own session, so no token is advertised or minted for it and this list stays inert. On a sandboxed app a non-empty list lets viewers mint (after consenting) a short-lived token carrying their own identity restricted to these scopes, handed to the app bundle so `windmill-client` calls run as the viewer. Must be a subset of the server's curated allowlist (jobs:run, jobs:read, users:read, resources:read, variables:read).
@@ -5524,7 +5526,7 @@ type Policy struct {
 	TriggerablesV2 *map[string]map[string]interface{} `json:"triggerables_v2,omitempty"`
 }
 
-// PolicyExecutionMode defines model for Policy.ExecutionMode.
+// PolicyExecutionMode Who the app's runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Either way `anonymous`, which makes the app publicly executable, is never assumed
 type PolicyExecutionMode string
 
 // PoolStats Database connection pool statistics
