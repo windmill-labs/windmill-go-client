@@ -6267,6 +6267,7 @@ type ScopeDomain struct {
 type Script struct {
 	Archived                 bool      `json:"archived"`
 	AutoKind                 *string   `json:"auto_kind,omitempty"`
+	CacheIgnoreS3Path        *bool     `json:"cache_ignore_s3_path,omitempty"`
 	CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
 	Codebase                 *string   `json:"codebase,omitempty"`
 	ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
@@ -17531,6 +17532,9 @@ type ClientInterface interface {
 
 	RunAndStreamScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListRunAssets request
+	ListRunAssets(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RunScriptByHashInlineWithBody request with any body
 	RunScriptByHashInlineWithBody(ctx context.Context, workspace WorkspaceId, hash ScriptHash, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -26324,6 +26328,18 @@ func (c *Client) RunAndStreamScriptByPathWithBody(ctx context.Context, workspace
 
 func (c *Client) RunAndStreamScriptByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunAndStreamScriptByPathRequest(c.Server, workspace, path, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListRunAssets(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListRunAssetsRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -61627,6 +61643,47 @@ func NewRunAndStreamScriptByPathRequestWithBody(server string, workspace Workspa
 	return req, nil
 }
 
+// NewListRunAssetsRequest generates requests for ListRunAssets
+func NewListRunAssetsRequest(server string, workspace WorkspaceId, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run_assets/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewRunScriptByHashInlineRequest calls the generic RunScriptByHashInline builder with application/json body
 func NewRunScriptByHashInlineRequest(server string, workspace WorkspaceId, hash ScriptHash, body RunScriptByHashInlineJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -84311,6 +84368,9 @@ type ClientWithResponsesInterface interface {
 
 	RunAndStreamScriptByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunAndStreamScriptByPathParams, body RunAndStreamScriptByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAndStreamScriptByPathResponse, error)
 
+	// ListRunAssetsWithResponse request
+	ListRunAssetsWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*ListRunAssetsResponse, error)
+
 	// RunScriptByHashInlineWithBodyWithResponse request with any body
 	RunScriptByHashInlineWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunScriptByHashInlineResponse, error)
 
@@ -96353,6 +96413,37 @@ func (r RunAndStreamScriptByPathResponse) StatusCode() int {
 	return 0
 }
 
+type ListRunAssetsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Assets []struct {
+			AccessType *AssetUsageAccessType `json:"access_type"`
+			Kind       AssetKind             `json:"kind"`
+			Path       string                `json:"path"`
+		} `json:"assets"`
+
+		// Truncated whether the run touched more assets than are listed
+		Truncated bool `json:"truncated"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListRunAssetsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListRunAssetsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RunScriptByHashInlineResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -100774,6 +100865,7 @@ type GetScriptByPathResponse struct {
 	JSON200      *struct {
 		Archived                 bool      `json:"archived"`
 		AutoKind                 *string   `json:"auto_kind,omitempty"`
+		CacheIgnoreS3Path        *bool     `json:"cache_ignore_s3_path,omitempty"`
 		CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
 		Codebase                 *string   `json:"codebase,omitempty"`
 		ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
@@ -100961,6 +101053,7 @@ type ListScriptsResponse struct {
 	JSON200      *[]struct {
 		Archived                 bool      `json:"archived"`
 		AutoKind                 *string   `json:"auto_kind,omitempty"`
+		CacheIgnoreS3Path        *bool     `json:"cache_ignore_s3_path,omitempty"`
 		CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
 		Codebase                 *string   `json:"codebase,omitempty"`
 		ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
@@ -111066,6 +111159,15 @@ func (c *ClientWithResponses) RunAndStreamScriptByPathWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseRunAndStreamScriptByPathResponse(rsp)
+}
+
+// ListRunAssetsWithResponse request returning *ListRunAssetsResponse
+func (c *ClientWithResponses) ListRunAssetsWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*ListRunAssetsResponse, error) {
+	rsp, err := c.ListRunAssets(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListRunAssetsResponse(rsp)
 }
 
 // RunScriptByHashInlineWithBodyWithResponse request with arbitrary body returning *RunScriptByHashInlineResponse
@@ -126247,6 +126349,41 @@ func ParseRunAndStreamScriptByPathResponse(rsp *http.Response) (*RunAndStreamScr
 	return response, nil
 }
 
+// ParseListRunAssetsResponse parses an HTTP response from a ListRunAssetsWithResponse call
+func ParseListRunAssetsResponse(rsp *http.Response) (*ListRunAssetsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListRunAssetsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Assets []struct {
+				AccessType *AssetUsageAccessType `json:"access_type"`
+				Kind       AssetKind             `json:"kind"`
+				Path       string                `json:"path"`
+			} `json:"assets"`
+
+			// Truncated whether the run touched more assets than are listed
+			Truncated bool `json:"truncated"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseRunScriptByHashInlineResponse parses an HTTP response from a RunScriptByHashInlineWithResponse call
 func ParseRunScriptByHashInlineResponse(rsp *http.Response) (*RunScriptByHashInlineResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -130683,6 +130820,7 @@ func ParseGetScriptByPathResponse(rsp *http.Response) (*GetScriptByPathResponse,
 		var dest struct {
 			Archived                 bool      `json:"archived"`
 			AutoKind                 *string   `json:"auto_kind,omitempty"`
+			CacheIgnoreS3Path        *bool     `json:"cache_ignore_s3_path,omitempty"`
 			CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
 			Codebase                 *string   `json:"codebase,omitempty"`
 			ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
@@ -130880,6 +131018,7 @@ func ParseListScriptsResponse(rsp *http.Response) (*ListScriptsResponse, error) 
 		var dest []struct {
 			Archived                 bool      `json:"archived"`
 			AutoKind                 *string   `json:"auto_kind,omitempty"`
+			CacheIgnoreS3Path        *bool     `json:"cache_ignore_s3_path,omitempty"`
 			CacheTtl                 *float32  `json:"cache_ttl,omitempty"`
 			Codebase                 *string   `json:"codebase,omitempty"`
 			ConcurrencyKey           *string   `json:"concurrency_key,omitempty"`
