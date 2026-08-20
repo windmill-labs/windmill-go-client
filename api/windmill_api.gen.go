@@ -1546,7 +1546,7 @@ type AgentTool struct {
 	// Id Unique identifier for this tool. Cannot contain spaces - use underscores instead (e.g., 'get_user_data' not 'get user data')
 	Id string `json:"id"`
 
-	// Summary Short description of what this tool does (shown to the AI)
+	// Summary The name the AI agent calls this tool by, not a human label. On a flowmodule tool it must match ^[a-zA-Z0-9_]+$ - letters, numbers and underscores only (e.g. 'search_documentation', not 'Search documentation') - and always be set; on an mcp or websearch tool it is a plain label. Put the human-readable explanation in 'description'.
 	Summary *string `json:"summary,omitempty"`
 
 	// Value The implementation of a tool. Can be a flow module (script/flow) or an MCP tool reference
@@ -9605,6 +9605,12 @@ type InstallFromWorkspaceJSONBody struct {
 	SourceWorkspaceId string `json:"source_workspace_id"`
 }
 
+// GetGithubAppRepoArchiveParams defines parameters for GetGithubAppRepoArchive.
+type GetGithubAppRepoArchiveParams struct {
+	// Ref branch, tag or commit sha; defaults to the resource's branch
+	Ref *string `form:"ref,omitempty" json:"ref,omitempty"`
+}
+
 // GetGithubAppTokenJSONBody defines parameters for GetGithubAppToken.
 type GetGithubAppTokenJSONBody struct {
 	JobToken string `json:"job_token"`
@@ -17050,6 +17056,9 @@ type ClientInterface interface {
 	// DeleteFromWorkspace request
 	DeleteFromWorkspace(ctx context.Context, workspace WorkspaceId, installationId int64, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetGithubAppRepoArchive request
+	GetGithubAppRepoArchive(ctx context.Context, workspace WorkspaceId, path Path, params *GetGithubAppRepoArchiveParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetGithubAppTokenWithBody request with any body
 	GetGithubAppTokenWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -24168,6 +24177,18 @@ func (c *Client) InstallFromWorkspace(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) DeleteFromWorkspace(ctx context.Context, workspace WorkspaceId, installationId int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteFromWorkspaceRequest(c.Server, workspace, installationId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGithubAppRepoArchive(ctx context.Context, workspace WorkspaceId, path Path, params *GetGithubAppRepoArchiveParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGithubAppRepoArchiveRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -49541,6 +49562,69 @@ func NewDeleteFromWorkspaceRequest(server string, workspace WorkspaceId, install
 	}
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetGithubAppRepoArchiveRequest generates requests for GetGithubAppRepoArchive
+func NewGetGithubAppRepoArchiveRequest(server string, workspace WorkspaceId, path Path, params *GetGithubAppRepoArchiveParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/github_app/repo_archive/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Ref != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "ref", runtime.ParamLocationQuery, *params.Ref); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -83886,6 +83970,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteFromWorkspaceWithResponse request
 	DeleteFromWorkspaceWithResponse(ctx context.Context, workspace WorkspaceId, installationId int64, reqEditors ...RequestEditorFn) (*DeleteFromWorkspaceResponse, error)
 
+	// GetGithubAppRepoArchiveWithResponse request
+	GetGithubAppRepoArchiveWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetGithubAppRepoArchiveParams, reqEditors ...RequestEditorFn) (*GetGithubAppRepoArchiveResponse, error)
+
 	// GetGithubAppTokenWithBodyWithResponse request with any body
 	GetGithubAppTokenWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetGithubAppTokenResponse, error)
 
@@ -93628,6 +93715,27 @@ func (r DeleteFromWorkspaceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteFromWorkspaceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGithubAppRepoArchiveResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGithubAppRepoArchiveResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGithubAppRepoArchiveResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -109599,6 +109707,15 @@ func (c *ClientWithResponses) DeleteFromWorkspaceWithResponse(ctx context.Contex
 	return ParseDeleteFromWorkspaceResponse(rsp)
 }
 
+// GetGithubAppRepoArchiveWithResponse request returning *GetGithubAppRepoArchiveResponse
+func (c *ClientWithResponses) GetGithubAppRepoArchiveWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetGithubAppRepoArchiveParams, reqEditors ...RequestEditorFn) (*GetGithubAppRepoArchiveResponse, error) {
+	rsp, err := c.GetGithubAppRepoArchive(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGithubAppRepoArchiveResponse(rsp)
+}
+
 // GetGithubAppTokenWithBodyWithResponse request with arbitrary body returning *GetGithubAppTokenResponse
 func (c *ClientWithResponses) GetGithubAppTokenWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetGithubAppTokenResponse, error) {
 	rsp, err := c.GetGithubAppTokenWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -123635,6 +123752,22 @@ func ParseDeleteFromWorkspaceResponse(rsp *http.Response) (*DeleteFromWorkspaceR
 	}
 
 	response := &DeleteFromWorkspaceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetGithubAppRepoArchiveResponse parses an HTTP response from a GetGithubAppRepoArchiveWithResponse call
+func ParseGetGithubAppRepoArchiveResponse(rsp *http.Response) (*GetGithubAppRepoArchiveResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGithubAppRepoArchiveResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
