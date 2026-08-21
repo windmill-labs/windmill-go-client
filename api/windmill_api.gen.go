@@ -2418,7 +2418,8 @@ type DbtWarehouses map[string]struct {
 
 // DeleteGcpSubscription defines model for DeleteGcpSubscription.
 type DeleteGcpSubscription struct {
-	SubscriptionId string `json:"subscription_id"`
+	ProjectId      *string `json:"project_id,omitempty"`
+	SubscriptionId string  `json:"subscription_id"`
 }
 
 // DeliveryType Delivery mode for messages. 'push' for HTTP push delivery where messages are sent to a webhook endpoint, 'pull' for polling where the trigger actively fetches messages.
@@ -3846,8 +3847,8 @@ type GcpTriggerData struct {
 	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
-	// GcpResourcePath Path to the GCP resource containing service account credentials for authentication.
-	GcpResourcePath string `json:"gcp_resource_path"`
+	// GcpResourcePath Path to the GCP resource containing service account credentials for authentication. Omit to authenticate with the instance's application default credentials, which only workspace admins may select.
+	GcpResourcePath *string `json:"gcp_resource_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script.
 	IsFlow bool      `json:"is_flow"`
@@ -3865,19 +3866,22 @@ type GcpTriggerData struct {
 	// PreservePermissionedAs When true and the caller is a member of the 'wm_deployers' group, preserves the original permissioned_as value instead of overwriting it.
 	PreservePermissionedAs *bool `json:"preserve_permissioned_as,omitempty"`
 
+	// ProjectId GCP project the client operates in. Defaults to the project of the credentials. Topics and subscriptions given as fully qualified names are reached whatever it is.
+	ProjectId *string `json:"project_id,omitempty"`
+
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
 	// ScriptPath Path to the script or flow to execute when a message is received.
 	ScriptPath string `json:"script_path"`
 
-	// SubscriptionId Google Cloud Pub/Sub subscription ID.
+	// SubscriptionId Google Cloud Pub/Sub subscription ID. Accepts a bare ID or a fully qualified name (projects/<project>/subscriptions/<id>).
 	SubscriptionId *string `json:"subscription_id,omitempty"`
 
 	// SubscriptionMode The mode of subscription. 'existing' means using an existing GCP subscription, while 'create_update' involves creating or updating a new subscription.
 	SubscriptionMode SubscriptionMode `json:"subscription_mode"`
 
-	// TopicId Google Cloud Pub/Sub topic ID to subscribe to.
+	// TopicId Google Cloud Pub/Sub topic ID to subscribe to. Accepts a bare ID or a fully qualified name (projects/<project>/topics/<id>).
 	TopicId string `json:"topic_id"`
 }
 
@@ -3892,7 +3896,8 @@ type GenerateOpenapiSpec struct {
 
 // GetAllTopicSubscription defines model for GetAllTopicSubscription.
 type GetAllTopicSubscription struct {
-	TopicId string `json:"topic_id"`
+	ProjectId *string `json:"project_id,omitempty"`
+	TopicId   string  `json:"topic_id"`
 }
 
 // GitRepositorySettings defines model for GitRepositorySettings.
@@ -5123,8 +5128,10 @@ type NewScript struct {
 	// OnBehalfOf Authorization identity to run as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. Supply this or on_behalf_of_email; when only the address is given it is resolved to the account it names, and an address naming nobody is rejected. A pair that disagrees is rejected.
 	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
 	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
-	ParentHash      *string `json:"parent_hash,omitempty"`
-	Path            string  `json:"path"`
+
+	// ParentHash The hash of the version this one supersedes: deploying with it archives that version and chains the new one onto its history, and a `path` differing from the superseded version's moves the script there.
+	ParentHash *string `json:"parent_hash,omitempty"`
+	Path       string  `json:"path"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email / on_behalf_of pair instead of overwriting it with the caller's own identity.
 	PreserveOnBehalfOf     *bool                   `json:"preserve_on_behalf_of,omitempty"`
@@ -7817,6 +7824,9 @@ type CreatedBy = string
 // CustomPath defines model for CustomPath.
 type CustomPath = string
 
+// GcpProjectId defines model for GcpProjectId.
+type GcpProjectId = string
+
 // GetDraft defines model for GetDraft.
 type GetDraft = bool
 
@@ -9583,6 +9593,18 @@ type SetGcpTriggerModeJSONBody struct {
 // TestGcpConnectionJSONBody defines parameters for TestGcpConnection.
 type TestGcpConnectionJSONBody struct {
 	Connection map[string]interface{} `json:"connection"`
+}
+
+// ListGoogleTopicsWithDefaultCredentialsParams defines parameters for ListGoogleTopicsWithDefaultCredentials.
+type ListGoogleTopicsWithDefaultCredentialsParams struct {
+	// ProjectId GCP project to list resources from, when it is not the project of the credentials
+	ProjectId *GcpProjectId `form:"project_id,omitempty" json:"project_id,omitempty"`
+}
+
+// ListGoogleTopicsParams defines parameters for ListGoogleTopics.
+type ListGoogleTopicsParams struct {
+	// ProjectId GCP project to list resources from, when it is not the project of the credentials
+	ProjectId *GcpProjectId `form:"project_id,omitempty" json:"project_id,omitempty"`
 }
 
 // GhesInstallationCallbackJSONBody defines parameters for GhesInstallationCallback.
@@ -13126,8 +13148,14 @@ type CreateGcpTriggerJSONRequestBody = GcpTriggerData
 // SetGcpTriggerModeJSONRequestBody defines body for SetGcpTriggerMode for application/json ContentType.
 type SetGcpTriggerModeJSONRequestBody SetGcpTriggerModeJSONBody
 
+// DeleteGcpSubscriptionWithDefaultCredentialsJSONRequestBody defines body for DeleteGcpSubscriptionWithDefaultCredentials for application/json ContentType.
+type DeleteGcpSubscriptionWithDefaultCredentialsJSONRequestBody = DeleteGcpSubscription
+
 // DeleteGcpSubscriptionJSONRequestBody defines body for DeleteGcpSubscription for application/json ContentType.
 type DeleteGcpSubscriptionJSONRequestBody = DeleteGcpSubscription
+
+// ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsJSONRequestBody defines body for ListAllTGoogleTopicSubscriptionsWithDefaultCredentials for application/json ContentType.
+type ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsJSONRequestBody = GetAllTopicSubscription
 
 // ListAllTGoogleTopicSubscriptionsJSONRequestBody defines body for ListAllTGoogleTopicSubscriptions for application/json ContentType.
 type ListAllTGoogleTopicSubscriptionsJSONRequestBody = GetAllTopicSubscription
@@ -13527,6 +13555,9 @@ type StoreRawScriptTempJSONRequestBody = StoreRawScriptTempJSONBody
 
 // ToggleWorkspaceErrorHandlerForScriptJSONRequestBody defines body for ToggleWorkspaceErrorHandlerForScript for application/json ContentType.
 type ToggleWorkspaceErrorHandlerForScriptJSONRequestBody ToggleWorkspaceErrorHandlerForScriptJSONBody
+
+// UpdateScriptJSONRequestBody defines body for UpdateScript for application/json ContentType.
+type UpdateScriptJSONRequestBody = NewScript
 
 // UpdateSharedUiJSONRequestBody defines body for UpdateSharedUi for application/json ContentType.
 type UpdateSharedUiJSONRequestBody UpdateSharedUiJSONBody
@@ -17012,10 +17043,20 @@ type ClientInterface interface {
 
 	SetGcpTriggerMode(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteGcpSubscriptionWithDefaultCredentialsWithBody request with any body
+	DeleteGcpSubscriptionWithDefaultCredentialsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DeleteGcpSubscriptionWithDefaultCredentials(ctx context.Context, workspace WorkspaceId, body DeleteGcpSubscriptionWithDefaultCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteGcpSubscriptionWithBody request with any body
 	DeleteGcpSubscriptionWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	DeleteGcpSubscription(ctx context.Context, workspace WorkspaceId, path Path, body DeleteGcpSubscriptionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsWithBody request with any body
+	ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ListAllTGoogleTopicSubscriptionsWithDefaultCredentials(ctx context.Context, workspace WorkspaceId, body ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAllTGoogleTopicSubscriptionsWithBody request with any body
 	ListAllTGoogleTopicSubscriptionsWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17027,8 +17068,11 @@ type ClientInterface interface {
 
 	TestGcpConnection(ctx context.Context, workspace WorkspaceId, body TestGcpConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListGoogleTopicsWithDefaultCredentials request
+	ListGoogleTopicsWithDefaultCredentials(ctx context.Context, workspace WorkspaceId, params *ListGoogleTopicsWithDefaultCredentialsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListGoogleTopics request
-	ListGoogleTopics(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListGoogleTopics(ctx context.Context, workspace WorkspaceId, path Path, params *ListGoogleTopicsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateGcpTriggerWithBody request with any body
 	UpdateGcpTriggerWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18260,6 +18304,11 @@ type ClientInterface interface {
 	ToggleWorkspaceErrorHandlerForScriptWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ToggleWorkspaceErrorHandlerForScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateScriptWithBody request with any body
+	UpdateScriptWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateSharedUiWithBody request with any body
 	UpdateSharedUiWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -23983,6 +24032,30 @@ func (c *Client) SetGcpTriggerMode(ctx context.Context, workspace WorkspaceId, p
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeleteGcpSubscriptionWithDefaultCredentialsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteGcpSubscriptionWithDefaultCredentialsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteGcpSubscriptionWithDefaultCredentials(ctx context.Context, workspace WorkspaceId, body DeleteGcpSubscriptionWithDefaultCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteGcpSubscriptionWithDefaultCredentialsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) DeleteGcpSubscriptionWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteGcpSubscriptionRequestWithBody(c.Server, workspace, path, contentType, body)
 	if err != nil {
@@ -23997,6 +24070,30 @@ func (c *Client) DeleteGcpSubscriptionWithBody(ctx context.Context, workspace Wo
 
 func (c *Client) DeleteGcpSubscription(ctx context.Context, workspace WorkspaceId, path Path, body DeleteGcpSubscriptionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteGcpSubscriptionRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAllTGoogleTopicSubscriptionsWithDefaultCredentialsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAllTGoogleTopicSubscriptionsWithDefaultCredentials(ctx context.Context, workspace WorkspaceId, body ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAllTGoogleTopicSubscriptionsWithDefaultCredentialsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -24055,8 +24152,20 @@ func (c *Client) TestGcpConnection(ctx context.Context, workspace WorkspaceId, b
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListGoogleTopics(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListGoogleTopicsRequest(c.Server, workspace, path)
+func (c *Client) ListGoogleTopicsWithDefaultCredentials(ctx context.Context, workspace WorkspaceId, params *ListGoogleTopicsWithDefaultCredentialsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGoogleTopicsWithDefaultCredentialsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListGoogleTopics(ctx context.Context, workspace WorkspaceId, path Path, params *ListGoogleTopicsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGoogleTopicsRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -29505,6 +29614,30 @@ func (c *Client) ToggleWorkspaceErrorHandlerForScriptWithBody(ctx context.Contex
 
 func (c *Client) ToggleWorkspaceErrorHandlerForScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewToggleWorkspaceErrorHandlerForScriptRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateScriptWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateScriptRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateScriptRequest(c.Server, workspace, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -49096,6 +49229,53 @@ func NewSetGcpTriggerModeRequestWithBody(server string, workspace WorkspaceId, p
 	return req, nil
 }
 
+// NewDeleteGcpSubscriptionWithDefaultCredentialsRequest calls the generic DeleteGcpSubscriptionWithDefaultCredentials builder with application/json body
+func NewDeleteGcpSubscriptionWithDefaultCredentialsRequest(server string, workspace WorkspaceId, body DeleteGcpSubscriptionWithDefaultCredentialsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDeleteGcpSubscriptionWithDefaultCredentialsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewDeleteGcpSubscriptionWithDefaultCredentialsRequestWithBody generates requests for DeleteGcpSubscriptionWithDefaultCredentials with any type of body
+func NewDeleteGcpSubscriptionWithDefaultCredentialsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/subscriptions/delete", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewDeleteGcpSubscriptionRequest calls the generic DeleteGcpSubscription builder with application/json body
 func NewDeleteGcpSubscriptionRequest(server string, workspace WorkspaceId, path Path, body DeleteGcpSubscriptionJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -49141,6 +49321,53 @@ func NewDeleteGcpSubscriptionRequestWithBody(server string, workspace WorkspaceI
 	}
 
 	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListAllTGoogleTopicSubscriptionsWithDefaultCredentialsRequest calls the generic ListAllTGoogleTopicSubscriptionsWithDefaultCredentials builder with application/json body
+func NewListAllTGoogleTopicSubscriptionsWithDefaultCredentialsRequest(server string, workspace WorkspaceId, body ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewListAllTGoogleTopicSubscriptionsWithDefaultCredentialsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewListAllTGoogleTopicSubscriptionsWithDefaultCredentialsRequestWithBody generates requests for ListAllTGoogleTopicSubscriptionsWithDefaultCredentials with any type of body
+func NewListAllTGoogleTopicSubscriptionsWithDefaultCredentialsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/subscriptions/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -49251,8 +49478,64 @@ func NewTestGcpConnectionRequestWithBody(server string, workspace WorkspaceId, c
 	return req, nil
 }
 
+// NewListGoogleTopicsWithDefaultCredentialsRequest generates requests for ListGoogleTopicsWithDefaultCredentials
+func NewListGoogleTopicsWithDefaultCredentialsRequest(server string, workspace WorkspaceId, params *ListGoogleTopicsWithDefaultCredentialsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/gcp_triggers/topics/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ProjectId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "project_id", runtime.ParamLocationQuery, *params.ProjectId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListGoogleTopicsRequest generates requests for ListGoogleTopics
-func NewListGoogleTopicsRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+func NewListGoogleTopicsRequest(server string, workspace WorkspaceId, path Path, params *ListGoogleTopicsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -49282,6 +49565,28 @@ func NewListGoogleTopicsRequest(server string, workspace WorkspaceId, path Path)
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ProjectId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "project_id", runtime.ParamLocationQuery, *params.ProjectId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -73924,6 +74229,60 @@ func NewToggleWorkspaceErrorHandlerForScriptRequestWithBody(server string, works
 	return req, nil
 }
 
+// NewUpdateScriptRequest calls the generic UpdateScript builder with application/json body
+func NewUpdateScriptRequest(server string, workspace WorkspaceId, path ScriptPath, body UpdateScriptJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateScriptRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateScriptRequestWithBody generates requests for UpdateScript with any type of body
+func NewUpdateScriptRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUpdateSharedUiRequest calls the generic UpdateSharedUi builder with application/json body
 func NewUpdateSharedUiRequest(server string, workspace WorkspaceId, body UpdateSharedUiJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -83926,10 +84285,20 @@ type ClientWithResponsesInterface interface {
 
 	SetGcpTriggerModeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body SetGcpTriggerModeJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGcpTriggerModeResponse, error)
 
+	// DeleteGcpSubscriptionWithDefaultCredentialsWithBodyWithResponse request with any body
+	DeleteGcpSubscriptionWithDefaultCredentialsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionWithDefaultCredentialsResponse, error)
+
+	DeleteGcpSubscriptionWithDefaultCredentialsWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteGcpSubscriptionWithDefaultCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionWithDefaultCredentialsResponse, error)
+
 	// DeleteGcpSubscriptionWithBodyWithResponse request with any body
 	DeleteGcpSubscriptionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionResponse, error)
 
 	DeleteGcpSubscriptionWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body DeleteGcpSubscriptionJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionResponse, error)
+
+	// ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsWithBodyWithResponse request with any body
+	ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse, error)
+
+	ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsWithResponse(ctx context.Context, workspace WorkspaceId, body ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse, error)
 
 	// ListAllTGoogleTopicSubscriptionsWithBodyWithResponse request with any body
 	ListAllTGoogleTopicSubscriptionsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAllTGoogleTopicSubscriptionsResponse, error)
@@ -83941,8 +84310,11 @@ type ClientWithResponsesInterface interface {
 
 	TestGcpConnectionWithResponse(ctx context.Context, workspace WorkspaceId, body TestGcpConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*TestGcpConnectionResponse, error)
 
+	// ListGoogleTopicsWithDefaultCredentialsWithResponse request
+	ListGoogleTopicsWithDefaultCredentialsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListGoogleTopicsWithDefaultCredentialsParams, reqEditors ...RequestEditorFn) (*ListGoogleTopicsWithDefaultCredentialsResponse, error)
+
 	// ListGoogleTopicsWithResponse request
-	ListGoogleTopicsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListGoogleTopicsResponse, error)
+	ListGoogleTopicsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *ListGoogleTopicsParams, reqEditors ...RequestEditorFn) (*ListGoogleTopicsResponse, error)
 
 	// UpdateGcpTriggerWithBodyWithResponse request with any body
 	UpdateGcpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateGcpTriggerResponse, error)
@@ -85174,6 +85546,11 @@ type ClientWithResponsesInterface interface {
 	ToggleWorkspaceErrorHandlerForScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForScriptResponse, error)
 
 	ToggleWorkspaceErrorHandlerForScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForScriptResponse, error)
+
+	// UpdateScriptWithBodyWithResponse request with any body
+	UpdateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error)
+
+	UpdateScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error)
 
 	// UpdateSharedUiWithBodyWithResponse request with any body
 	UpdateSharedUiWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateSharedUiResponse, error)
@@ -93506,6 +93883,27 @@ func (r SetGcpTriggerModeResponse) StatusCode() int {
 	return 0
 }
 
+type DeleteGcpSubscriptionWithDefaultCredentialsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteGcpSubscriptionWithDefaultCredentialsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteGcpSubscriptionWithDefaultCredentialsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DeleteGcpSubscriptionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -93521,6 +93919,28 @@ func (r DeleteGcpSubscriptionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteGcpSubscriptionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -93564,6 +93984,28 @@ func (r TestGcpConnectionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r TestGcpConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListGoogleTopicsWithDefaultCredentialsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGoogleTopicsWithDefaultCredentialsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGoogleTopicsWithDefaultCredentialsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -101477,6 +101919,27 @@ func (r ToggleWorkspaceErrorHandlerForScriptResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ToggleWorkspaceErrorHandlerForScriptResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateScriptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateScriptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateScriptResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -109561,6 +110024,23 @@ func (c *ClientWithResponses) SetGcpTriggerModeWithResponse(ctx context.Context,
 	return ParseSetGcpTriggerModeResponse(rsp)
 }
 
+// DeleteGcpSubscriptionWithDefaultCredentialsWithBodyWithResponse request with arbitrary body returning *DeleteGcpSubscriptionWithDefaultCredentialsResponse
+func (c *ClientWithResponses) DeleteGcpSubscriptionWithDefaultCredentialsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionWithDefaultCredentialsResponse, error) {
+	rsp, err := c.DeleteGcpSubscriptionWithDefaultCredentialsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteGcpSubscriptionWithDefaultCredentialsResponse(rsp)
+}
+
+func (c *ClientWithResponses) DeleteGcpSubscriptionWithDefaultCredentialsWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteGcpSubscriptionWithDefaultCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionWithDefaultCredentialsResponse, error) {
+	rsp, err := c.DeleteGcpSubscriptionWithDefaultCredentials(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteGcpSubscriptionWithDefaultCredentialsResponse(rsp)
+}
+
 // DeleteGcpSubscriptionWithBodyWithResponse request with arbitrary body returning *DeleteGcpSubscriptionResponse
 func (c *ClientWithResponses) DeleteGcpSubscriptionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteGcpSubscriptionResponse, error) {
 	rsp, err := c.DeleteGcpSubscriptionWithBody(ctx, workspace, path, contentType, body, reqEditors...)
@@ -109576,6 +110056,23 @@ func (c *ClientWithResponses) DeleteGcpSubscriptionWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseDeleteGcpSubscriptionResponse(rsp)
+}
+
+// ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsWithBodyWithResponse request with arbitrary body returning *ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse
+func (c *ClientWithResponses) ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse, error) {
+	rsp, err := c.ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsWithResponse(ctx context.Context, workspace WorkspaceId, body ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse, error) {
+	rsp, err := c.ListAllTGoogleTopicSubscriptionsWithDefaultCredentials(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse(rsp)
 }
 
 // ListAllTGoogleTopicSubscriptionsWithBodyWithResponse request with arbitrary body returning *ListAllTGoogleTopicSubscriptionsResponse
@@ -109612,9 +110109,18 @@ func (c *ClientWithResponses) TestGcpConnectionWithResponse(ctx context.Context,
 	return ParseTestGcpConnectionResponse(rsp)
 }
 
+// ListGoogleTopicsWithDefaultCredentialsWithResponse request returning *ListGoogleTopicsWithDefaultCredentialsResponse
+func (c *ClientWithResponses) ListGoogleTopicsWithDefaultCredentialsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListGoogleTopicsWithDefaultCredentialsParams, reqEditors ...RequestEditorFn) (*ListGoogleTopicsWithDefaultCredentialsResponse, error) {
+	rsp, err := c.ListGoogleTopicsWithDefaultCredentials(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGoogleTopicsWithDefaultCredentialsResponse(rsp)
+}
+
 // ListGoogleTopicsWithResponse request returning *ListGoogleTopicsResponse
-func (c *ClientWithResponses) ListGoogleTopicsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListGoogleTopicsResponse, error) {
-	rsp, err := c.ListGoogleTopics(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) ListGoogleTopicsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *ListGoogleTopicsParams, reqEditors ...RequestEditorFn) (*ListGoogleTopicsResponse, error) {
+	rsp, err := c.ListGoogleTopics(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -113574,6 +114080,23 @@ func (c *ClientWithResponses) ToggleWorkspaceErrorHandlerForScriptWithResponse(c
 		return nil, err
 	}
 	return ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp)
+}
+
+// UpdateScriptWithBodyWithResponse request with arbitrary body returning *UpdateScriptResponse
+func (c *ClientWithResponses) UpdateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error) {
+	rsp, err := c.UpdateScriptWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateScriptResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error) {
+	rsp, err := c.UpdateScript(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateScriptResponse(rsp)
 }
 
 // UpdateSharedUiWithBodyWithResponse request with arbitrary body returning *UpdateSharedUiResponse
@@ -123567,6 +124090,22 @@ func ParseSetGcpTriggerModeResponse(rsp *http.Response) (*SetGcpTriggerModeRespo
 	return response, nil
 }
 
+// ParseDeleteGcpSubscriptionWithDefaultCredentialsResponse parses an HTTP response from a DeleteGcpSubscriptionWithDefaultCredentialsWithResponse call
+func ParseDeleteGcpSubscriptionWithDefaultCredentialsResponse(rsp *http.Response) (*DeleteGcpSubscriptionWithDefaultCredentialsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteGcpSubscriptionWithDefaultCredentialsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseDeleteGcpSubscriptionResponse parses an HTTP response from a DeleteGcpSubscriptionWithResponse call
 func ParseDeleteGcpSubscriptionResponse(rsp *http.Response) (*DeleteGcpSubscriptionResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -123578,6 +124117,32 @@ func ParseDeleteGcpSubscriptionResponse(rsp *http.Response) (*DeleteGcpSubscript
 	response := &DeleteGcpSubscriptionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse parses an HTTP response from a ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsWithResponse call
+func ParseListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse(rsp *http.Response) (*ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAllTGoogleTopicSubscriptionsWithDefaultCredentialsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -123620,6 +124185,32 @@ func ParseTestGcpConnectionResponse(rsp *http.Response) (*TestGcpConnectionRespo
 	response := &TestGcpConnectionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListGoogleTopicsWithDefaultCredentialsResponse parses an HTTP response from a ListGoogleTopicsWithDefaultCredentialsWithResponse call
+func ParseListGoogleTopicsWithDefaultCredentialsResponse(rsp *http.Response) (*ListGoogleTopicsWithDefaultCredentialsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGoogleTopicsWithDefaultCredentialsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -131460,6 +132051,22 @@ func ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp *http.Response) (*Tog
 	}
 
 	response := &ToggleWorkspaceErrorHandlerForScriptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateScriptResponse parses an HTTP response from a UpdateScriptWithResponse call
+func ParseUpdateScriptResponse(rsp *http.Response) (*UpdateScriptResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateScriptResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
