@@ -210,6 +210,7 @@ const (
 	WorkspacesEditDeployTo         AuditLogOperation = "workspaces.edit_deploy_to"
 	WorkspacesEditErrorHandler     AuditLogOperation = "workspaces.edit_error_handler"
 	WorkspacesEditWebhook          AuditLogOperation = "workspaces.edit_webhook"
+	WorkspacesReadEncryptionKey    AuditLogOperation = "workspaces.read_encryption_key"
 	WorkspacesUnarchive            AuditLogOperation = "workspaces.unarchive"
 	WorkspacesUpdate               AuditLogOperation = "workspaces.update"
 )
