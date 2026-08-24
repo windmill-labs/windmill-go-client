@@ -341,10 +341,10 @@ const (
 
 // Defines values for DbtAssetProvenanceResourceType.
 const (
-	Model    DbtAssetProvenanceResourceType = "model"
-	Seed     DbtAssetProvenanceResourceType = "seed"
-	Snapshot DbtAssetProvenanceResourceType = "snapshot"
-	Source   DbtAssetProvenanceResourceType = "source"
+	DbtAssetProvenanceResourceTypeModel    DbtAssetProvenanceResourceType = "model"
+	DbtAssetProvenanceResourceTypeSeed     DbtAssetProvenanceResourceType = "seed"
+	DbtAssetProvenanceResourceTypeSnapshot DbtAssetProvenanceResourceType = "snapshot"
+	DbtAssetProvenanceResourceTypeSource   DbtAssetProvenanceResourceType = "source"
 )
 
 // Defines values for DeliveryType.
@@ -419,6 +419,29 @@ const (
 const (
 	EditWebsocketTriggerFilterLogicAnd EditWebsocketTriggerFilterLogic = "and"
 	EditWebsocketTriggerFilterLogicOr  EditWebsocketTriggerFilterLogic = "or"
+)
+
+// Defines values for EvalSubjectKind.
+const (
+	EvalSubjectKindAgent        EvalSubjectKind = "agent"
+	EvalSubjectKindAgentDraft   EvalSubjectKind = "agent_draft"
+	EvalSubjectKindAgentVersion EvalSubjectKind = "agent_version"
+)
+
+// Defines values for ExperimentRowStatus.
+const (
+	ExperimentRowStatusCanceled    ExperimentRowStatus = "canceled"
+	ExperimentRowStatusFailure     ExperimentRowStatus = "failure"
+	ExperimentRowStatusRunning     ExperimentRowStatus = "running"
+	ExperimentRowStatusSkipped     ExperimentRowStatus = "skipped"
+	ExperimentRowStatusSuccess     ExperimentRowStatus = "success"
+	ExperimentRowStatusUnavailable ExperimentRowStatus = "unavailable"
+)
+
+// Defines values for ExperimentScoreKind.
+const (
+	ExperimentScoreKindAgent  ExperimentScoreKind = "agent"
+	ExperimentScoreKindScript ExperimentScoreKind = "script"
 )
 
 // Defines values for ExportableCompletedJobJobKind.
@@ -940,6 +963,12 @@ const (
 	RunnableTypeScriptPath RunnableType = "ScriptPath"
 )
 
+// Defines values for ScorerKind.
+const (
+	ScorerKindAgent  ScorerKind = "agent"
+	ScorerKindScript ScorerKind = "script"
+)
+
 // Defines values for ScriptKind.
 const (
 	ScriptKindApproval     ScriptKind = "approval"
@@ -1170,7 +1199,7 @@ const (
 
 // Defines values for SchemasIdentityType.
 const (
-	Identity SchemasIdentityType = "identity"
+	SchemasIdentityTypeIdentity SchemasIdentityType = "identity"
 )
 
 // Defines values for SchemasJavascriptTransformType.
@@ -1344,6 +1373,25 @@ const (
 	RemoveGranularAclsParamsKindWebsocketTrigger RemoveGranularAclsParamsKind = "websocket_trigger"
 )
 
+// Defines values for ListAiUsageParamsGroupBy.
+const (
+	ListAiUsageParamsGroupByDay   ListAiUsageParamsGroupBy = "day"
+	ListAiUsageParamsGroupByModel ListAiUsageParamsGroupBy = "model"
+	ListAiUsageParamsGroupByUser  ListAiUsageParamsGroupBy = "user"
+)
+
+// Defines values for ListAiUsageParamsScope.
+const (
+	ListAiUsageParamsScopeSelf      ListAiUsageParamsScope = "self"
+	ListAiUsageParamsScopeWorkspace ListAiUsageParamsScope = "workspace"
+)
+
+// Defines values for RecentScorersParamsKind.
+const (
+	RecentScorersParamsKindAgent  RecentScorersParamsKind = "agent"
+	RecentScorersParamsKindScript RecentScorersParamsKind = "script"
+)
+
 // Defines values for ListAppPathsFromWorkspaceRunnableParamsRunnableKind.
 const (
 	ListAppPathsFromWorkspaceRunnableParamsRunnableKindFlow   ListAppPathsFromWorkspaceRunnableParamsRunnableKind = "flow"
@@ -1506,18 +1554,19 @@ const (
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
 const (
-	Resource SetWsSpecificJSONBodyItemKind = "resource"
-	Variable SetWsSpecificJSONBodyItemKind = "variable"
+	SetWsSpecificJSONBodyItemKindResource SetWsSpecificJSONBodyItemKind = "resource"
+	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
 )
 
 // AIConfig defines model for AIConfig.
 type AIConfig struct {
-	CodeCompletionModel *AIProviderModel             `json:"code_completion_model,omitempty"`
-	CustomPrompts       *map[string]string           `json:"custom_prompts,omitempty"`
-	DefaultModel        *AIProviderModel             `json:"default_model,omitempty"`
-	MaxTokensPerModel   *map[string]int              `json:"max_tokens_per_model,omitempty"`
-	MetadataModel       *AIProviderModel             `json:"metadata_model,omitempty"`
-	Providers           *map[string]AIProviderConfig `json:"providers,omitempty"`
+	CodeCompletionModel *AIProviderModel               `json:"code_completion_model,omitempty"`
+	CustomPrompts       *map[string]string             `json:"custom_prompts,omitempty"`
+	DefaultModel        *AIProviderModel               `json:"default_model,omitempty"`
+	MaxTokensPerModel   *map[string]int                `json:"max_tokens_per_model,omitempty"`
+	MetadataModel       *AIProviderModel               `json:"metadata_model,omitempty"`
+	ModelPricing        *map[string]ModelPriceOverride `json:"model_pricing,omitempty"`
+	Providers           *map[string]AIProviderConfig   `json:"providers,omitempty"`
 }
 
 // AIProvider defines model for AIProvider.
@@ -1537,6 +1586,43 @@ type AIProviderKind string
 type AIProviderModel struct {
 	Model    string     `json:"model"`
 	Provider AIProvider `json:"provider"`
+}
+
+// AITokenUsageBucket defines model for AITokenUsageBucket.
+type AITokenUsageBucket struct {
+	CacheReadTokens  int `json:"cache_read_tokens"`
+	CacheWriteTokens int `json:"cache_write_tokens"`
+	InputTokens      int `json:"input_tokens"`
+
+	// Key the grouped dimension's value; empty when grouping by model
+	Key                 string `json:"key"`
+	Model               string `json:"model"`
+	OutputTokens        int    `json:"output_tokens"`
+	Provider            string `json:"provider"`
+	ReportedCostNanoUsd *int   `json:"reported_cost_nano_usd,omitempty"`
+	Requests            int    `json:"requests"`
+}
+
+// AITokenUsageEvent defines model for AITokenUsageEvent.
+type AITokenUsageEvent struct {
+	CacheReadTokens  *int       `json:"cache_read_tokens,omitempty"`
+	CacheWriteTokens *int       `json:"cache_write_tokens,omitempty"`
+	InputTokens      *int       `json:"input_tokens,omitempty"`
+	Model            string     `json:"model"`
+	OutputTokens     *int       `json:"output_tokens,omitempty"`
+	Provider         AIProvider `json:"provider"`
+
+	// ReportedCostNanoUsd only set by providers that bill back an exact figure
+	ReportedCostNanoUsd *int    `json:"reported_cost_nano_usd,omitempty"`
+	Requests            *int    `json:"requests,omitempty"`
+	SessionId           *string `json:"session_id,omitempty"`
+}
+
+// AgentDraft The brain and tools of an agent, as the flow editor holds them. Carried by the request and present exactly when the subject kind is `agent_draft` — the edits exist only in the editor — where it is the whole definition of what ran: the run goes through the same unlinked branch of the agent executor the editor's own test uses.
+type AgentDraft struct {
+	// InputTransforms The agent's input transforms: provider, system prompt, output type and the rest. The message and attachments come from the case and override anything named here.
+	InputTransforms *map[string]interface{}   `json:"input_transforms,omitempty"`
+	Tools           *[]map[string]interface{} `json:"tools,omitempty"`
 }
 
 // AgentTool A tool available to an AI agent. Can be a flow module or an external MCP (Model Context Protocol) tool
@@ -1944,6 +2030,29 @@ type CaptureConfig struct {
 
 // CaptureTriggerKind defines model for CaptureTriggerKind.
 type CaptureTriggerKind string
+
+// CellScore One scorer's verdict on one run, and how it compares with the baseline.
+type CellScore struct {
+	// Baseline The same scorer's number on the baseline experiment.
+	Baseline *float32     `json:"baseline,omitempty"`
+	Checks   *interface{} `json:"checks,omitempty"`
+
+	// DefinitionChanged The baseline's score came from a different definition of this scorer, so the delta is a change of scorer as much as a change of agent.
+	DefinitionChanged bool    `json:"definition_changed"`
+	Error             *string `json:"error,omitempty"`
+
+	// NotApplicable The scorer read this case and had nothing to measure on it. Left out of the column's mean and pass rate rather than counted as a zero.
+	NotApplicable *bool `json:"not_applicable,omitempty"`
+
+	// Passed Which side of the scorer's `pass_if` threshold the score fell on. Absent when the column has no threshold, or has no score yet.
+	Passed *bool `json:"passed,omitempty"`
+
+	// Pending A scoring job is still running for this cell.
+	Pending  bool     `json:"pending"`
+	Reason   *string  `json:"reason,omitempty"`
+	Score    *float32 `json:"score,omitempty"`
+	ScorerId string   `json:"scorer_id"`
+}
 
 // CiTestResult defines model for CiTestResult.
 type CiTestResult struct {
@@ -3275,6 +3384,132 @@ type ErrorHandlerConfig struct {
 	Path *string `json:"path,omitempty"`
 }
 
+// EvalCase defines model for EvalCase.
+type EvalCase struct {
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by"`
+
+	// Expected Reference output a scorer compares a rerun against.
+	Expected *interface{}       `json:"expected,omitempty"`
+	Id       openapi_types.UUID `json:"id"`
+
+	// Input The inputs a standalone run feeds the agent.
+	Input *EvalCaseInput `json:"input,omitempty"`
+}
+
+// EvalCaseInput The inputs a standalone run feeds the agent.
+type EvalCaseInput struct {
+	UserAttachments *[]map[string]interface{} `json:"user_attachments,omitempty"`
+	UserMessage     *string                   `json:"user_message,omitempty"`
+}
+
+// EvalDataset defines model for EvalDataset.
+type EvalDataset struct {
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by"`
+	EditedAt  time.Time `json:"edited_at"`
+	EditedBy  string    `json:"edited_by"`
+	Path      string    `json:"path"`
+
+	// Scorers The columns of the results table, in display order.
+	Scorers *[]Scorer `json:"scorers,omitempty"`
+	Summary *string   `json:"summary,omitempty"`
+}
+
+// EvalExperiment One run of a dataset: written once when the dataset is run, and only ever read afterwards. The case set it executed is returned by the results endpoint, not here: a listing would otherwise send the whole dataset back once per experiment.
+type EvalExperiment struct {
+	CaseCount int                `json:"case_count"`
+	CreatedAt time.Time          `json:"created_at"`
+	CreatedBy string             `json:"created_by"`
+	Dataset   string             `json:"dataset"`
+	Id        openapi_types.UUID `json:"id"`
+
+	// RunJobId The flow executing the run: one job holding every case and its scores.
+	RunJobId openapi_types.UUID `json:"run_job_id"`
+
+	// RunNumber This agent's nth run of this dataset, allocated once and never reused. What a run is called. Numbered per agent rather than per subject kind: runs of what is deployed and runs of its draft are the same agent's history.
+	RunNumber int `json:"run_number"`
+
+	// Running Whether the flow executing this run is still going. What makes a list of runs worth watching rather than worth reloading.
+	Running *bool `json:"running,omitempty"`
+
+	// Scores What the run scored, one entry per scorer that produced a number. Carried on the run itself so a list of runs can say what each one scored without reading every cell of every one of them. Empty on a run whose scores have not been read yet.
+	Scores *[]ExperimentScore `json:"scores,omitempty"`
+
+	// Subject What an eval run is executed against.
+	Subject EvalSubject `json:"subject"`
+}
+
+// EvalSubject What an eval run is executed against.
+type EvalSubject struct {
+	// Draft The brain and tools of an agent, as the flow editor holds them. Carried by the request and present exactly when the subject kind is `agent_draft` — the edits exist only in the editor — where it is the whole definition of what ran: the run goes through the same unlinked branch of the agent executor the editor's own test uses.
+	Draft *AgentDraft `json:"draft,omitempty"`
+
+	// DraftHash Hash of the configuration a draft run executed, stamped server-side. A draft moves without the version moving, so this is what dates a run of one. It is also what recognises a draft run whose configuration was later deployed: when it matches the agent as deployed, the run's kind and version are rewritten to that version, once, and the hash is kept as what the resolution rests on.
+	DraftHash *string `json:"draft_hash,omitempty"`
+
+	// Kind `agent` runs the ai_agent resource as it is deployed when the run opens, `agent_draft` the caller's unsaved edits of it as the editor holds them (carried in `draft`), and `agent_version` one past version named by `version`. The first and last are read server-side; all three are inlined into the run, so every case of a run executes one configuration: a deploy part-way through changes what the next run measures, never this one.
+	Kind EvalSubjectKind `json:"kind"`
+
+	// Path Path of the ai_agent resource.
+	Path string `json:"path"`
+
+	// Version The agent's per-path version number when the run opened: how many times the resource had been saved, not a resource_version row id. For `agent` and `agent_draft` it names the configuration the run read and every case executed. For `agent_version` it is the request's own, says which version to inline, and is required.
+	Version *int64 `json:"version"`
+}
+
+// EvalSubjectKind `agent` runs the ai_agent resource as it is deployed when the run opens, `agent_draft` the caller's unsaved edits of it as the editor holds them (carried in `draft`), and `agent_version` one past version named by `version`. The first and last are read server-side; all three are inlined into the run, so every case of a run executes one configuration: a deploy part-way through changes what the next run measures, never this one.
+type EvalSubjectKind string
+
+// ExperimentRow defines model for ExperimentRow.
+type ExperimentRow struct {
+	CaseId   openapi_types.UUID `json:"case_id"`
+	Expected *interface{}       `json:"expected,omitempty"`
+
+	// Input The inputs a standalone run feeds the agent.
+	Input EvalCaseInput `json:"input"`
+
+	// JobId The iteration that ran this case. Absent between a run being recorded and its flow reaching this case, which reads as a case still to run.
+	JobId *openapi_types.UUID `json:"job_id,omitempty"`
+
+	// Output The agent's answer. The full trajectory stays reachable through job_id.
+	Output *string `json:"output,omitempty"`
+
+	// Scores One entry per scorer of the dataset, in column order.
+	Scores []CellScore `json:"scores"`
+
+	// Status The case's status; `running` until its iteration completes, and `unavailable` for a case whose job was retained away before anything read what it produced.
+	Status ExperimentRowStatus `json:"status"`
+
+	// SubjectDraftHash For a run of unsaved edits, the hash of the configuration this cell ran. Edits move without a version changing, so this is what identifies what ran, and what recognises a run whose edits were later saved as a run of that version.
+	SubjectDraftHash *string `json:"subject_draft_hash,omitempty"`
+
+	// SubjectVersion The agent version this cell ran against. Cells of one experiment can differ, which the table says rather than averaging two versions silently.
+	SubjectVersion *int64 `json:"subject_version,omitempty"`
+}
+
+// ExperimentRowStatus The case's status; `running` until its iteration completes, and `unavailable` for a case whose job was retained away before anything read what it produced.
+type ExperimentRowStatus string
+
+// ExperimentScore One scorer's headline for one run: the two numbers a column reports, over that run's cells.
+type ExperimentScore struct {
+	// Failed How many of the run's cells the column failed on. A column that failed on all of them has no number to report and is still one of the columns that ran.
+	Failed int                 `json:"failed"`
+	Kind   ExperimentScoreKind `json:"kind"`
+	Mean   *float32            `json:"mean,omitempty"`
+
+	// Name What the column is called in the dataset that ran it, resolved server-side because a list of runs spanning datasets cannot hold every dataset's scorers to look it up.
+	Name string `json:"name"`
+
+	// PassRate The share of scored cells at or above the column's threshold, for a column that has one. Absent where the column has no threshold and the mean is the whole headline.
+	PassRate *float32 `json:"pass_rate,omitempty"`
+	Scored   int      `json:"scored"`
+	ScorerId string   `json:"scorer_id"`
+}
+
+// ExperimentScoreKind defines model for ExperimentScore.Kind.
+type ExperimentScoreKind string
+
 // ExportableCompletedJob Completed job with full data for export/import operations
 type ExportableCompletedJob struct {
 	AggregateWaitTimeMs *int `json:"aggregate_wait_time_ms,omitempty"`
@@ -4570,6 +4805,14 @@ type MetricMetadata struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// ModelPriceOverride negotiated rates in USD per million tokens, keyed `provider:model`
+type ModelPriceOverride struct {
+	CacheRead  *float32 `json:"cache_read,omitempty"`
+	CacheWrite *float32 `json:"cache_write,omitempty"`
+	Input      float32  `json:"input"`
+	Output     float32  `json:"output"`
+}
+
 // MqttClientVersion defines model for MqttClientVersion.
 type MqttClientVersion string
 
@@ -4736,6 +4979,15 @@ type NewEmailTrigger struct {
 	Retry               *Retry `json:"retry,omitempty"`
 	ScriptPath          string `json:"script_path"`
 	WorkspacedLocalPart *bool  `json:"workspaced_local_part,omitempty"`
+}
+
+// NewEvalCase defines model for NewEvalCase.
+type NewEvalCase struct {
+	// Expected Reference output a scorer compares a rerun against.
+	Expected *interface{} `json:"expected,omitempty"`
+
+	// Input The inputs a standalone run feeds the agent.
+	Input *EvalCaseInput `json:"input,omitempty"`
 }
 
 // NewHttpTrigger defines model for NewHttpTrigger.
@@ -5894,7 +6146,12 @@ type ResourceType struct {
 type ResourceVersion struct {
 	CreatedAt time.Time `json:"created_at"`
 	CreatedBy *string   `json:"created_by,omitempty"`
-	Id        int64     `json:"id"`
+
+	// Id How this version is addressed. Unique across every resource, so it says nothing about how many times this one has been saved.
+	Id int64 `json:"id"`
+
+	// Version Which version of this resource it is, counted from its first. What a version is called.
+	Version int64 `json:"version"`
 }
 
 // RestartedFrom defines model for RestartedFrom.
@@ -6025,6 +6282,18 @@ type S3Resource struct {
 	Region    string  `json:"region"`
 	SecretKey *string `json:"secretKey,omitempty"`
 	UseSSL    bool    `json:"useSSL"`
+}
+
+// SaveEvalCase defines model for SaveEvalCase.
+type SaveEvalCase struct {
+	// Expected Reference output a scorer compares a rerun against.
+	Expected *interface{} `json:"expected,omitempty"`
+
+	// Id Absent for a case the dataset does not hold yet.
+	Id *openapi_types.UUID `json:"id,omitempty"`
+
+	// Input The inputs a standalone run feeds the agent.
+	Input *EvalCaseInput `json:"input,omitempty"`
 }
 
 // ScalarMetric defines model for ScalarMetric.
@@ -6269,6 +6538,40 @@ type ScopeDomain struct {
 	Description *string           `json:"description"`
 	Name        string            `json:"name"`
 	Scopes      []ScopeDefinition `json:"scopes"`
+}
+
+// Scorer A scorer is a column of the results table, and it is always a runnable: an ai_agent resource sent the run to grade, or a script handed the run as an argument. `id` is assigned when the scorer is added to a dataset and never reused: it is what makes a column the same column across experiments when the scorer is renamed, and a delta is only ever computed between two scores carrying the same id. A scorer sent without an id is given one.
+type Scorer struct {
+	Id   *string    `json:"id,omitempty"`
+	Kind ScorerKind `json:"kind"`
+
+	// Name Column header. Defaults to the last segment of the path.
+	Name *string `json:"name,omitempty"`
+
+	// PassIf A score at or above this counts as a pass, and the column reports a pass rate beside its mean. Applied when results are read rather than when they are produced, so moving the line re-reads every score already recorded instead of invalidating them.
+	PassIf *float32 `json:"pass_if,omitempty"`
+
+	// Path The script, or the ai_agent resource used as a judge.
+	Path string `json:"path"`
+}
+
+// ScorerKind defines model for Scorer.Kind.
+type ScorerKind string
+
+// ScorerMean A column's summary. There is no single number for a dataset: averaging a judge with an exact match would invent one.
+type ScorerMean struct {
+	BaselineMean      *float32 `json:"baseline_mean,omitempty"`
+	BaselinePassRate  *float32 `json:"baseline_pass_rate,omitempty"`
+	DefinitionChanged bool     `json:"definition_changed"`
+	Mean              *float32 `json:"mean,omitempty"`
+
+	// MissingInBaseline Cells the baseline has no score for, so a column the baseline never ran shows as unscored rather than as a spurious difference.
+	MissingInBaseline int `json:"missing_in_baseline"`
+
+	// PassRate The share of scored cells that passed, for a column with a threshold. Reported beside the mean rather than instead of it: a pass rate says how many cases are good enough, a mean says by how much, and neither answers the other's question.
+	PassRate *float32 `json:"pass_rate,omitempty"`
+	Scored   int      `json:"scored"`
+	ScorerId string   `json:"scorer_id"`
 }
 
 // Script defines model for Script.
@@ -8460,6 +8763,107 @@ type RemoveGranularAclsJSONBody struct {
 
 // RemoveGranularAclsParamsKind defines parameters for RemoveGranularAcls.
 type RemoveGranularAclsParamsKind string
+
+// ListAiUsageParams defines parameters for ListAiUsage.
+type ListAiUsageParams struct {
+	Days    *int                      `form:"days,omitempty" json:"days,omitempty"`
+	GroupBy *ListAiUsageParamsGroupBy `form:"group_by,omitempty" json:"group_by,omitempty"`
+
+	// Scope workspace-wide usage (admin only) or the calling user's own
+	Scope *ListAiUsageParamsScope `form:"scope,omitempty" json:"scope,omitempty"`
+}
+
+// ListAiUsageParamsGroupBy defines parameters for ListAiUsage.
+type ListAiUsageParamsGroupBy string
+
+// ListAiUsageParamsScope defines parameters for ListAiUsage.
+type ListAiUsageParamsScope string
+
+// RecordAiUsageJSONBody defines parameters for RecordAiUsage.
+type RecordAiUsageJSONBody struct {
+	Events []AITokenUsageEvent `json:"events"`
+}
+
+// ListEvalCasesParams defines parameters for ListEvalCases.
+type ListEvalCasesParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// CreateEvalDatasetJSONBody defines parameters for CreateEvalDataset.
+type CreateEvalDatasetJSONBody struct {
+	// Cases The cases to create the dataset holding, so one can be assembled in a single act rather than created empty and filled in afterwards.
+	Cases   *[]NewEvalCase `json:"cases,omitempty"`
+	Path    string         `json:"path"`
+	Scorers *[]Scorer      `json:"scorers,omitempty"`
+	Summary *string        `json:"summary,omitempty"`
+}
+
+// UpdateEvalDatasetJSONBody defines parameters for UpdateEvalDataset.
+type UpdateEvalDatasetJSONBody struct {
+	// Cases The cases as they should stand afterwards: all of them, each carrying its id if the dataset already has it. Sent with the rest of an edit so that a rename the dataset refuses refuses the case edits with it.
+	Cases *[]SaveEvalCase `json:"cases,omitempty"`
+
+	// Path Renames the dataset. Its cases and experiments follow through the foreign keys, so a rename keeps the history it already has.
+	Path *string `json:"path,omitempty"`
+
+	// Scorers Left out to keep the dataset's columns as they are; sent to replace them wholesale.
+	Scorers *[]Scorer `json:"scorers,omitempty"`
+
+	// Summary Left out to keep the stored summary; sent as "" to clear it.
+	Summary *string `json:"summary,omitempty"`
+}
+
+// CollectExperimentParams defines parameters for CollectExperiment.
+type CollectExperimentParams struct {
+	Id openapi_types.UUID `form:"id" json:"id"`
+}
+
+// ListAllExperimentsParams defines parameters for ListAllExperiments.
+type ListAllExperimentsParams struct {
+	// SubjectPath Restrict to one agent's runs, which is what makes the list a history rather than a log. Runs of what is deployed, of a past version, and of the edits waiting on top are all that agent's, so this does not discriminate by kind.
+	SubjectPath *string `form:"subject_path,omitempty" json:"subject_path,omitempty"`
+}
+
+// ExperimentResultsParams defines parameters for ExperimentResults.
+type ExperimentResultsParams struct {
+	// Id the experiment to read
+	Id openapi_types.UUID `form:"id" json:"id"`
+
+	// Baseline The experiment every column is compared against. A delta is only computed between two scores of the same scorer id, and a column the baseline was never scored with reports it rather than showing a difference.
+	Baseline *openapi_types.UUID `form:"baseline,omitempty" json:"baseline,omitempty"`
+}
+
+// RunExperimentJSONBody defines parameters for RunExperiment.
+type RunExperimentJSONBody struct {
+	Dataset string `json:"dataset"`
+
+	// Subject What an eval run is executed against.
+	Subject EvalSubject `json:"subject"`
+}
+
+// EvalRunPayloadParams defines parameters for EvalRunPayload.
+type EvalRunPayloadParams struct {
+	// JobId The flow job that answered the case.
+	JobId openapi_types.UUID `form:"job_id" json:"job_id"`
+}
+
+// RecentScorersParams defines parameters for RecentScorers.
+type RecentScorersParams struct {
+	// Kind only scorers of this kind
+	Kind *RecentScorersParamsKind `form:"kind,omitempty" json:"kind,omitempty"`
+}
+
+// RecentScorersParamsKind defines parameters for RecentScorers.
+type RecentScorersParamsKind string
+
+// EvalSubjectStateParams defines parameters for EvalSubjectState.
+type EvalSubjectStateParams struct {
+	Path string `form:"path" json:"path"`
+}
 
 // UploadAiSkillsJSONBody defines parameters for UploadAiSkills.
 type UploadAiSkillsJSONBody struct {
@@ -13008,6 +13412,18 @@ type AddGranularAclsJSONRequestBody AddGranularAclsJSONBody
 // RemoveGranularAclsJSONRequestBody defines body for RemoveGranularAcls for application/json ContentType.
 type RemoveGranularAclsJSONRequestBody RemoveGranularAclsJSONBody
 
+// RecordAiUsageJSONRequestBody defines body for RecordAiUsage for application/json ContentType.
+type RecordAiUsageJSONRequestBody RecordAiUsageJSONBody
+
+// CreateEvalDatasetJSONRequestBody defines body for CreateEvalDataset for application/json ContentType.
+type CreateEvalDatasetJSONRequestBody CreateEvalDatasetJSONBody
+
+// UpdateEvalDatasetJSONRequestBody defines body for UpdateEvalDataset for application/json ContentType.
+type UpdateEvalDatasetJSONRequestBody UpdateEvalDatasetJSONBody
+
+// RunExperimentJSONRequestBody defines body for RunExperiment for application/json ContentType.
+type RunExperimentJSONRequestBody RunExperimentJSONBody
+
 // UploadAiSkillsJSONRequestBody defines body for UploadAiSkills for application/json ContentType.
 type UploadAiSkillsJSONRequestBody UploadAiSkillsJSONBody
 
@@ -16522,6 +16938,62 @@ type ClientInterface interface {
 
 	RemoveGranularAcls(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAiUsage request
+	ListAiUsage(ctx context.Context, workspace WorkspaceId, params *ListAiUsageParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RecordAiUsageWithBody request with any body
+	RecordAiUsageWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RecordAiUsage(ctx context.Context, workspace WorkspaceId, body RecordAiUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListEvalCases request
+	ListEvalCases(ctx context.Context, workspace WorkspaceId, path Path, params *ListEvalCasesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateEvalDatasetWithBody request with any body
+	CreateEvalDatasetWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateEvalDataset(ctx context.Context, workspace WorkspaceId, body CreateEvalDatasetJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteEvalDataset request
+	DeleteEvalDataset(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetEvalDataset request
+	GetEvalDataset(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListEvalDatasets request
+	ListEvalDatasets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateEvalDatasetWithBody request with any body
+	UpdateEvalDatasetWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateEvalDataset(ctx context.Context, workspace WorkspaceId, path Path, body UpdateEvalDatasetJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CollectExperiment request
+	CollectExperiment(ctx context.Context, workspace WorkspaceId, params *CollectExperimentParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAllExperiments request
+	ListAllExperiments(ctx context.Context, workspace WorkspaceId, params *ListAllExperimentsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ExperimentResults request
+	ExperimentResults(ctx context.Context, workspace WorkspaceId, path Path, params *ExperimentResultsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunExperimentWithBody request with any body
+	RunExperimentWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunExperiment(ctx context.Context, workspace WorkspaceId, body RunExperimentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EvalRunPayload request
+	EvalRunPayload(ctx context.Context, workspace WorkspaceId, params *EvalRunPayloadParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ScorerDefaults request
+	ScorerDefaults(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RecentScorers request
+	RecentScorers(ctx context.Context, workspace WorkspaceId, params *RecentScorersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EvalSubjectState request
+	EvalSubjectState(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteAiSkill request
 	DeleteAiSkill(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -18108,10 +18580,10 @@ type ClientInterface interface {
 	GetResourceHistory(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RestoreResourceVersion request
-	RestoreResourceVersion(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*http.Response, error)
+	RestoreResourceVersion(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetResourceVersion request
-	GetResourceVersion(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetResourceVersion(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListResource request
 	ListResource(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -21755,6 +22227,246 @@ func (c *Client) RemoveGranularAclsWithBody(ctx context.Context, workspace Works
 
 func (c *Client) RemoveGranularAcls(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRemoveGranularAclsRequest(c.Server, workspace, kind, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAiUsage(ctx context.Context, workspace WorkspaceId, params *ListAiUsageParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAiUsageRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RecordAiUsageWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRecordAiUsageRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RecordAiUsage(ctx context.Context, workspace WorkspaceId, body RecordAiUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRecordAiUsageRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListEvalCases(ctx context.Context, workspace WorkspaceId, path Path, params *ListEvalCasesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListEvalCasesRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateEvalDatasetWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateEvalDatasetRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateEvalDataset(ctx context.Context, workspace WorkspaceId, body CreateEvalDatasetJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateEvalDatasetRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteEvalDataset(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteEvalDatasetRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetEvalDataset(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetEvalDatasetRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListEvalDatasets(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListEvalDatasetsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateEvalDatasetWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateEvalDatasetRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateEvalDataset(ctx context.Context, workspace WorkspaceId, path Path, body UpdateEvalDatasetJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateEvalDatasetRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CollectExperiment(ctx context.Context, workspace WorkspaceId, params *CollectExperimentParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCollectExperimentRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAllExperiments(ctx context.Context, workspace WorkspaceId, params *ListAllExperimentsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAllExperimentsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ExperimentResults(ctx context.Context, workspace WorkspaceId, path Path, params *ExperimentResultsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewExperimentResultsRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunExperimentWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunExperimentRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunExperiment(ctx context.Context, workspace WorkspaceId, body RunExperimentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunExperimentRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EvalRunPayload(ctx context.Context, workspace WorkspaceId, params *EvalRunPayloadParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEvalRunPayloadRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ScorerDefaults(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewScorerDefaultsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RecentScorers(ctx context.Context, workspace WorkspaceId, params *RecentScorersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRecentScorersRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EvalSubjectState(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEvalSubjectStateRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -28761,8 +29473,8 @@ func (c *Client) GetResourceHistory(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) RestoreResourceVersion(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRestoreResourceVersionRequest(c.Server, workspace, version)
+func (c *Client) RestoreResourceVersion(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestoreResourceVersionRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -28773,8 +29485,8 @@ func (c *Client) RestoreResourceVersion(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetResourceVersion(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetResourceVersionRequest(c.Server, workspace, version)
+func (c *Client) GetResourceVersion(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetResourceVersionRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -39515,6 +40227,861 @@ func NewRemoveGranularAclsRequestWithBody(server string, workspace WorkspaceId, 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListAiUsageRequest generates requests for ListAiUsage
+func NewListAiUsageRequest(server string, workspace WorkspaceId, params *ListAiUsageParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/usage", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Days != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "days", runtime.ParamLocationQuery, *params.Days); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.GroupBy != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "group_by", runtime.ParamLocationQuery, *params.GroupBy); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Scope != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scope", runtime.ParamLocationQuery, *params.Scope); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRecordAiUsageRequest calls the generic RecordAiUsage builder with application/json body
+func NewRecordAiUsageRequest(server string, workspace WorkspaceId, body RecordAiUsageJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRecordAiUsageRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRecordAiUsageRequestWithBody generates requests for RecordAiUsage with any type of body
+func NewRecordAiUsageRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/usage", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListEvalCasesRequest generates requests for ListEvalCases
+func NewListEvalCasesRequest(server string, workspace WorkspaceId, path Path, params *ListEvalCasesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/cases/list/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateEvalDatasetRequest calls the generic CreateEvalDataset builder with application/json body
+func NewCreateEvalDatasetRequest(server string, workspace WorkspaceId, body CreateEvalDatasetJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateEvalDatasetRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCreateEvalDatasetRequestWithBody generates requests for CreateEvalDataset with any type of body
+func NewCreateEvalDatasetRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/datasets/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteEvalDatasetRequest generates requests for DeleteEvalDataset
+func NewDeleteEvalDatasetRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/datasets/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetEvalDatasetRequest generates requests for GetEvalDataset
+func NewGetEvalDatasetRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/datasets/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListEvalDatasetsRequest generates requests for ListEvalDatasets
+func NewListEvalDatasetsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/datasets/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateEvalDatasetRequest calls the generic UpdateEvalDataset builder with application/json body
+func NewUpdateEvalDatasetRequest(server string, workspace WorkspaceId, path Path, body UpdateEvalDatasetJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateEvalDatasetRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewUpdateEvalDatasetRequestWithBody generates requests for UpdateEvalDataset with any type of body
+func NewUpdateEvalDatasetRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/datasets/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCollectExperimentRequest generates requests for CollectExperiment
+func NewCollectExperimentRequest(server string, workspace WorkspaceId, params *CollectExperimentParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/experiments/collect", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "id", runtime.ParamLocationQuery, params.Id); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAllExperimentsRequest generates requests for ListAllExperiments
+func NewListAllExperimentsRequest(server string, workspace WorkspaceId, params *ListAllExperimentsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/experiments/list_all", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SubjectPath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "subject_path", runtime.ParamLocationQuery, *params.SubjectPath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewExperimentResultsRequest generates requests for ExperimentResults
+func NewExperimentResultsRequest(server string, workspace WorkspaceId, path Path, params *ExperimentResultsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/experiments/results/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "id", runtime.ParamLocationQuery, params.Id); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Baseline != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "baseline", runtime.ParamLocationQuery, *params.Baseline); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRunExperimentRequest calls the generic RunExperiment builder with application/json body
+func NewRunExperimentRequest(server string, workspace WorkspaceId, body RunExperimentJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunExperimentRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewRunExperimentRequestWithBody generates requests for RunExperiment with any type of body
+func NewRunExperimentRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/experiments/run", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewEvalRunPayloadRequest generates requests for EvalRunPayload
+func NewEvalRunPayloadRequest(server string, workspace WorkspaceId, params *EvalRunPayloadParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/run_payload", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, params.JobId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewScorerDefaultsRequest generates requests for ScorerDefaults
+func NewScorerDefaultsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/scorer_defaults", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRecentScorersRequest generates requests for RecentScorers
+func NewRecentScorersRequest(server string, workspace WorkspaceId, params *RecentScorersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/scorers/recent", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Kind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewEvalSubjectStateRequest generates requests for EvalSubjectState
+func NewEvalSubjectStateRequest(server string, workspace WorkspaceId, params *EvalSubjectStateParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_evals/subject_state", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, params.Path); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -70788,7 +72355,7 @@ func NewGetResourceHistoryRequest(server string, workspace WorkspaceId, path Pat
 }
 
 // NewRestoreResourceVersionRequest generates requests for RestoreResourceVersion
-func NewRestoreResourceVersionRequest(server string, workspace WorkspaceId, version int64) (*http.Request, error) {
+func NewRestoreResourceVersionRequest(server string, workspace WorkspaceId, id int64) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -70800,7 +72367,7 @@ func NewRestoreResourceVersionRequest(server string, workspace WorkspaceId, vers
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
 	if err != nil {
 		return nil, err
 	}
@@ -70829,7 +72396,7 @@ func NewRestoreResourceVersionRequest(server string, workspace WorkspaceId, vers
 }
 
 // NewGetResourceVersionRequest generates requests for GetResourceVersion
-func NewGetResourceVersionRequest(server string, workspace WorkspaceId, version int64) (*http.Request, error) {
+func NewGetResourceVersionRequest(server string, workspace WorkspaceId, id int64) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -70841,7 +72408,7 @@ func NewGetResourceVersionRequest(server string, workspace WorkspaceId, version 
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
 	if err != nil {
 		return nil, err
 	}
@@ -83764,6 +85331,62 @@ type ClientWithResponsesInterface interface {
 
 	RemoveGranularAclsWithResponse(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveGranularAclsResponse, error)
 
+	// ListAiUsageWithResponse request
+	ListAiUsageWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAiUsageParams, reqEditors ...RequestEditorFn) (*ListAiUsageResponse, error)
+
+	// RecordAiUsageWithBodyWithResponse request with any body
+	RecordAiUsageWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RecordAiUsageResponse, error)
+
+	RecordAiUsageWithResponse(ctx context.Context, workspace WorkspaceId, body RecordAiUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*RecordAiUsageResponse, error)
+
+	// ListEvalCasesWithResponse request
+	ListEvalCasesWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *ListEvalCasesParams, reqEditors ...RequestEditorFn) (*ListEvalCasesResponse, error)
+
+	// CreateEvalDatasetWithBodyWithResponse request with any body
+	CreateEvalDatasetWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateEvalDatasetResponse, error)
+
+	CreateEvalDatasetWithResponse(ctx context.Context, workspace WorkspaceId, body CreateEvalDatasetJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateEvalDatasetResponse, error)
+
+	// DeleteEvalDatasetWithResponse request
+	DeleteEvalDatasetWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteEvalDatasetResponse, error)
+
+	// GetEvalDatasetWithResponse request
+	GetEvalDatasetWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetEvalDatasetResponse, error)
+
+	// ListEvalDatasetsWithResponse request
+	ListEvalDatasetsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListEvalDatasetsResponse, error)
+
+	// UpdateEvalDatasetWithBodyWithResponse request with any body
+	UpdateEvalDatasetWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateEvalDatasetResponse, error)
+
+	UpdateEvalDatasetWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateEvalDatasetJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateEvalDatasetResponse, error)
+
+	// CollectExperimentWithResponse request
+	CollectExperimentWithResponse(ctx context.Context, workspace WorkspaceId, params *CollectExperimentParams, reqEditors ...RequestEditorFn) (*CollectExperimentResponse, error)
+
+	// ListAllExperimentsWithResponse request
+	ListAllExperimentsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAllExperimentsParams, reqEditors ...RequestEditorFn) (*ListAllExperimentsResponse, error)
+
+	// ExperimentResultsWithResponse request
+	ExperimentResultsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *ExperimentResultsParams, reqEditors ...RequestEditorFn) (*ExperimentResultsResponse, error)
+
+	// RunExperimentWithBodyWithResponse request with any body
+	RunExperimentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunExperimentResponse, error)
+
+	RunExperimentWithResponse(ctx context.Context, workspace WorkspaceId, body RunExperimentJSONRequestBody, reqEditors ...RequestEditorFn) (*RunExperimentResponse, error)
+
+	// EvalRunPayloadWithResponse request
+	EvalRunPayloadWithResponse(ctx context.Context, workspace WorkspaceId, params *EvalRunPayloadParams, reqEditors ...RequestEditorFn) (*EvalRunPayloadResponse, error)
+
+	// ScorerDefaultsWithResponse request
+	ScorerDefaultsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ScorerDefaultsResponse, error)
+
+	// RecentScorersWithResponse request
+	RecentScorersWithResponse(ctx context.Context, workspace WorkspaceId, params *RecentScorersParams, reqEditors ...RequestEditorFn) (*RecentScorersResponse, error)
+
+	// EvalSubjectStateWithResponse request
+	EvalSubjectStateWithResponse(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*EvalSubjectStateResponse, error)
+
 	// DeleteAiSkillWithResponse request
 	DeleteAiSkillWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*DeleteAiSkillResponse, error)
 
@@ -85350,10 +86973,10 @@ type ClientWithResponsesInterface interface {
 	GetResourceHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceHistoryResponse, error)
 
 	// RestoreResourceVersionWithResponse request
-	RestoreResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*RestoreResourceVersionResponse, error)
+	RestoreResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*RestoreResourceVersionResponse, error)
 
 	// GetResourceVersionWithResponse request
-	GetResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*GetResourceVersionResponse, error)
+	GetResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*GetResourceVersionResponse, error)
 
 	// ListResourceWithResponse request
 	ListResourceWithResponse(ctx context.Context, workspace WorkspaceId, params *ListResourceParams, reqEditors ...RequestEditorFn) (*ListResourceResponse, error)
@@ -90242,6 +91865,407 @@ func (r RemoveGranularAclsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RemoveGranularAclsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAiUsageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Buckets []AITokenUsageBucket `json:"buckets"`
+
+		// Truncated more buckets matched than were returned, so summing them under-reports
+		Truncated bool `json:"truncated"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAiUsageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAiUsageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RecordAiUsageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RecordAiUsageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RecordAiUsageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListEvalCasesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Cases []EvalCase `json:"cases"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListEvalCasesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListEvalCasesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateEvalDatasetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateEvalDatasetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateEvalDatasetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteEvalDatasetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteEvalDatasetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteEvalDatasetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetEvalDatasetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *EvalDataset
+}
+
+// Status returns HTTPResponse.Status
+func (r GetEvalDatasetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetEvalDatasetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListEvalDatasetsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]EvalDataset
+}
+
+// Status returns HTTPResponse.Status
+func (r ListEvalDatasetsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListEvalDatasetsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateEvalDatasetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateEvalDatasetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateEvalDatasetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CollectExperimentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *int
+}
+
+// Status returns HTTPResponse.Status
+func (r CollectExperimentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CollectExperimentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAllExperimentsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]EvalExperiment
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAllExperimentsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAllExperimentsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ExperimentResultsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Baseline One run of a dataset: written once when the dataset is run, and only ever read afterwards. The case set it executed is returned by the results endpoint, not here: a listing would otherwise send the whole dataset back once per experiment.
+		Baseline *EvalExperiment `json:"baseline,omitempty"`
+
+		// Experiment One run of a dataset: written once when the dataset is run, and only ever read afterwards. The case set it executed is returned by the results endpoint, not here: a listing would otherwise send the whole dataset back once per experiment.
+		Experiment EvalExperiment `json:"experiment"`
+		Means      []ScorerMean   `json:"means"`
+
+		// Regressed Cells scoring lower than the baseline, across every column.
+		Regressed int             `json:"regressed"`
+		Rows      []ExperimentRow `json:"rows"`
+
+		// Scorers The columns, which belong to the dataset rather than the experiment.
+		Scorers []Scorer `json:"scorers"`
+
+		// SubjectCurrentVersion The version the subject is on now. A row that ran against an earlier one describes an agent that no longer exists.
+		SubjectCurrentVersion *int64 `json:"subject_current_version,omitempty"`
+
+		// SubjectDeployedHash What the agent hashes to as deployed. A run of unsaved edits carrying this hash ran exactly what is deployed now — the edits were saved — so it is a run of that version rather than of edits.
+		SubjectDeployedHash *string `json:"subject_deployed_hash,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ExperimentResultsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ExperimentResultsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunExperimentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunExperimentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunExperimentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type EvalRunPayloadResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Rendered The same run as a judge agent is shown it.
+		Rendered string `json:"rendered"`
+
+		// Run The case, the answer, and every tool call the agent made.
+		Run map[string]interface{} `json:"run"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r EvalRunPayloadResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EvalRunPayloadResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ScorerDefaultsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// JudgePrompt The system prompt a judge agent is created with.
+		JudgePrompt    string `json:"judge_prompt"`
+		ScriptTemplate string `json:"script_template"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ScorerDefaultsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ScorerDefaultsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RecentScorersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		// Dataset The dataset it is a column of.
+		Dataset string               `json:"dataset"`
+		Id      *string              `json:"id,omitempty"`
+		Kind    RecentScorers200Kind `json:"kind"`
+
+		// Name Column header. Defaults to the last segment of the path.
+		Name *string `json:"name,omitempty"`
+
+		// PassIf A score at or above this counts as a pass, and the column reports a pass rate beside its mean. Applied when results are read rather than when they are produced, so moving the line re-reads every score already recorded instead of invalidating them.
+		PassIf *float32 `json:"pass_if,omitempty"`
+
+		// Path The script, or the ai_agent resource used as a judge.
+		Path string `json:"path"`
+	}
+}
+type RecentScorers200Kind string
+
+// Status returns HTTPResponse.Status
+func (r RecentScorersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RecentScorersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type EvalSubjectStateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Version *int64 `json:"version,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r EvalSubjectStateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EvalSubjectStateResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -100425,11 +102449,16 @@ type GetResourceVersionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		CreatedAt         time.Time    `json:"created_at"`
-		CreatedBy         *string      `json:"created_by,omitempty"`
+		CreatedAt time.Time `json:"created_at"`
+		CreatedBy *string   `json:"created_by,omitempty"`
+
+		// Id How this version is addressed. Unique across every resource, so it says nothing about how many times this one has been saved.
 		Id                int64        `json:"id"`
 		MissingReferences []string     `json:"missing_references"`
 		Value             *interface{} `json:"value,omitempty"`
+
+		// Version Which version of this resource it is, counted from its first. What a version is called.
+		Version int64 `json:"version"`
 	}
 }
 
@@ -108369,6 +110398,182 @@ func (c *ClientWithResponses) RemoveGranularAclsWithResponse(ctx context.Context
 	return ParseRemoveGranularAclsResponse(rsp)
 }
 
+// ListAiUsageWithResponse request returning *ListAiUsageResponse
+func (c *ClientWithResponses) ListAiUsageWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAiUsageParams, reqEditors ...RequestEditorFn) (*ListAiUsageResponse, error) {
+	rsp, err := c.ListAiUsage(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAiUsageResponse(rsp)
+}
+
+// RecordAiUsageWithBodyWithResponse request with arbitrary body returning *RecordAiUsageResponse
+func (c *ClientWithResponses) RecordAiUsageWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RecordAiUsageResponse, error) {
+	rsp, err := c.RecordAiUsageWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRecordAiUsageResponse(rsp)
+}
+
+func (c *ClientWithResponses) RecordAiUsageWithResponse(ctx context.Context, workspace WorkspaceId, body RecordAiUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*RecordAiUsageResponse, error) {
+	rsp, err := c.RecordAiUsage(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRecordAiUsageResponse(rsp)
+}
+
+// ListEvalCasesWithResponse request returning *ListEvalCasesResponse
+func (c *ClientWithResponses) ListEvalCasesWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *ListEvalCasesParams, reqEditors ...RequestEditorFn) (*ListEvalCasesResponse, error) {
+	rsp, err := c.ListEvalCases(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListEvalCasesResponse(rsp)
+}
+
+// CreateEvalDatasetWithBodyWithResponse request with arbitrary body returning *CreateEvalDatasetResponse
+func (c *ClientWithResponses) CreateEvalDatasetWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateEvalDatasetResponse, error) {
+	rsp, err := c.CreateEvalDatasetWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateEvalDatasetResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateEvalDatasetWithResponse(ctx context.Context, workspace WorkspaceId, body CreateEvalDatasetJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateEvalDatasetResponse, error) {
+	rsp, err := c.CreateEvalDataset(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateEvalDatasetResponse(rsp)
+}
+
+// DeleteEvalDatasetWithResponse request returning *DeleteEvalDatasetResponse
+func (c *ClientWithResponses) DeleteEvalDatasetWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*DeleteEvalDatasetResponse, error) {
+	rsp, err := c.DeleteEvalDataset(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteEvalDatasetResponse(rsp)
+}
+
+// GetEvalDatasetWithResponse request returning *GetEvalDatasetResponse
+func (c *ClientWithResponses) GetEvalDatasetWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetEvalDatasetResponse, error) {
+	rsp, err := c.GetEvalDataset(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetEvalDatasetResponse(rsp)
+}
+
+// ListEvalDatasetsWithResponse request returning *ListEvalDatasetsResponse
+func (c *ClientWithResponses) ListEvalDatasetsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListEvalDatasetsResponse, error) {
+	rsp, err := c.ListEvalDatasets(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListEvalDatasetsResponse(rsp)
+}
+
+// UpdateEvalDatasetWithBodyWithResponse request with arbitrary body returning *UpdateEvalDatasetResponse
+func (c *ClientWithResponses) UpdateEvalDatasetWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateEvalDatasetResponse, error) {
+	rsp, err := c.UpdateEvalDatasetWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateEvalDatasetResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateEvalDatasetWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateEvalDatasetJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateEvalDatasetResponse, error) {
+	rsp, err := c.UpdateEvalDataset(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateEvalDatasetResponse(rsp)
+}
+
+// CollectExperimentWithResponse request returning *CollectExperimentResponse
+func (c *ClientWithResponses) CollectExperimentWithResponse(ctx context.Context, workspace WorkspaceId, params *CollectExperimentParams, reqEditors ...RequestEditorFn) (*CollectExperimentResponse, error) {
+	rsp, err := c.CollectExperiment(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCollectExperimentResponse(rsp)
+}
+
+// ListAllExperimentsWithResponse request returning *ListAllExperimentsResponse
+func (c *ClientWithResponses) ListAllExperimentsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAllExperimentsParams, reqEditors ...RequestEditorFn) (*ListAllExperimentsResponse, error) {
+	rsp, err := c.ListAllExperiments(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAllExperimentsResponse(rsp)
+}
+
+// ExperimentResultsWithResponse request returning *ExperimentResultsResponse
+func (c *ClientWithResponses) ExperimentResultsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *ExperimentResultsParams, reqEditors ...RequestEditorFn) (*ExperimentResultsResponse, error) {
+	rsp, err := c.ExperimentResults(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseExperimentResultsResponse(rsp)
+}
+
+// RunExperimentWithBodyWithResponse request with arbitrary body returning *RunExperimentResponse
+func (c *ClientWithResponses) RunExperimentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunExperimentResponse, error) {
+	rsp, err := c.RunExperimentWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunExperimentResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunExperimentWithResponse(ctx context.Context, workspace WorkspaceId, body RunExperimentJSONRequestBody, reqEditors ...RequestEditorFn) (*RunExperimentResponse, error) {
+	rsp, err := c.RunExperiment(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunExperimentResponse(rsp)
+}
+
+// EvalRunPayloadWithResponse request returning *EvalRunPayloadResponse
+func (c *ClientWithResponses) EvalRunPayloadWithResponse(ctx context.Context, workspace WorkspaceId, params *EvalRunPayloadParams, reqEditors ...RequestEditorFn) (*EvalRunPayloadResponse, error) {
+	rsp, err := c.EvalRunPayload(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEvalRunPayloadResponse(rsp)
+}
+
+// ScorerDefaultsWithResponse request returning *ScorerDefaultsResponse
+func (c *ClientWithResponses) ScorerDefaultsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ScorerDefaultsResponse, error) {
+	rsp, err := c.ScorerDefaults(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseScorerDefaultsResponse(rsp)
+}
+
+// RecentScorersWithResponse request returning *RecentScorersResponse
+func (c *ClientWithResponses) RecentScorersWithResponse(ctx context.Context, workspace WorkspaceId, params *RecentScorersParams, reqEditors ...RequestEditorFn) (*RecentScorersResponse, error) {
+	rsp, err := c.RecentScorers(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRecentScorersResponse(rsp)
+}
+
+// EvalSubjectStateWithResponse request returning *EvalSubjectStateResponse
+func (c *ClientWithResponses) EvalSubjectStateWithResponse(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*EvalSubjectStateResponse, error) {
+	rsp, err := c.EvalSubjectState(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEvalSubjectStateResponse(rsp)
+}
+
 // DeleteAiSkillWithResponse request returning *DeleteAiSkillResponse
 func (c *ClientWithResponses) DeleteAiSkillWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*DeleteAiSkillResponse, error) {
 	rsp, err := c.DeleteAiSkill(ctx, workspace, name, reqEditors...)
@@ -113453,8 +115658,8 @@ func (c *ClientWithResponses) GetResourceHistoryWithResponse(ctx context.Context
 }
 
 // RestoreResourceVersionWithResponse request returning *RestoreResourceVersionResponse
-func (c *ClientWithResponses) RestoreResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*RestoreResourceVersionResponse, error) {
-	rsp, err := c.RestoreResourceVersion(ctx, workspace, version, reqEditors...)
+func (c *ClientWithResponses) RestoreResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*RestoreResourceVersionResponse, error) {
+	rsp, err := c.RestoreResourceVersion(ctx, workspace, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -113462,8 +115667,8 @@ func (c *ClientWithResponses) RestoreResourceVersionWithResponse(ctx context.Con
 }
 
 // GetResourceVersionWithResponse request returning *GetResourceVersionResponse
-func (c *ClientWithResponses) GetResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, version int64, reqEditors ...RequestEditorFn) (*GetResourceVersionResponse, error) {
-	rsp, err := c.GetResourceVersion(ctx, workspace, version, reqEditors...)
+func (c *ClientWithResponses) GetResourceVersionWithResponse(ctx context.Context, workspace WorkspaceId, id int64, reqEditors ...RequestEditorFn) (*GetResourceVersionResponse, error) {
+	rsp, err := c.GetResourceVersion(ctx, workspace, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -120416,6 +122621,425 @@ func ParseRemoveGranularAclsResponse(rsp *http.Response) (*RemoveGranularAclsRes
 	response := &RemoveGranularAclsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListAiUsageResponse parses an HTTP response from a ListAiUsageWithResponse call
+func ParseListAiUsageResponse(rsp *http.Response) (*ListAiUsageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAiUsageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Buckets []AITokenUsageBucket `json:"buckets"`
+
+			// Truncated more buckets matched than were returned, so summing them under-reports
+			Truncated bool `json:"truncated"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRecordAiUsageResponse parses an HTTP response from a RecordAiUsageWithResponse call
+func ParseRecordAiUsageResponse(rsp *http.Response) (*RecordAiUsageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RecordAiUsageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListEvalCasesResponse parses an HTTP response from a ListEvalCasesWithResponse call
+func ParseListEvalCasesResponse(rsp *http.Response) (*ListEvalCasesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListEvalCasesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Cases []EvalCase `json:"cases"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateEvalDatasetResponse parses an HTTP response from a CreateEvalDatasetWithResponse call
+func ParseCreateEvalDatasetResponse(rsp *http.Response) (*CreateEvalDatasetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateEvalDatasetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDeleteEvalDatasetResponse parses an HTTP response from a DeleteEvalDatasetWithResponse call
+func ParseDeleteEvalDatasetResponse(rsp *http.Response) (*DeleteEvalDatasetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteEvalDatasetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetEvalDatasetResponse parses an HTTP response from a GetEvalDatasetWithResponse call
+func ParseGetEvalDatasetResponse(rsp *http.Response) (*GetEvalDatasetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetEvalDatasetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest EvalDataset
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListEvalDatasetsResponse parses an HTTP response from a ListEvalDatasetsWithResponse call
+func ParseListEvalDatasetsResponse(rsp *http.Response) (*ListEvalDatasetsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListEvalDatasetsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []EvalDataset
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateEvalDatasetResponse parses an HTTP response from a UpdateEvalDatasetWithResponse call
+func ParseUpdateEvalDatasetResponse(rsp *http.Response) (*UpdateEvalDatasetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateEvalDatasetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCollectExperimentResponse parses an HTTP response from a CollectExperimentWithResponse call
+func ParseCollectExperimentResponse(rsp *http.Response) (*CollectExperimentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CollectExperimentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest int
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAllExperimentsResponse parses an HTTP response from a ListAllExperimentsWithResponse call
+func ParseListAllExperimentsResponse(rsp *http.Response) (*ListAllExperimentsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAllExperimentsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []EvalExperiment
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseExperimentResultsResponse parses an HTTP response from a ExperimentResultsWithResponse call
+func ParseExperimentResultsResponse(rsp *http.Response) (*ExperimentResultsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ExperimentResultsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Baseline One run of a dataset: written once when the dataset is run, and only ever read afterwards. The case set it executed is returned by the results endpoint, not here: a listing would otherwise send the whole dataset back once per experiment.
+			Baseline *EvalExperiment `json:"baseline,omitempty"`
+
+			// Experiment One run of a dataset: written once when the dataset is run, and only ever read afterwards. The case set it executed is returned by the results endpoint, not here: a listing would otherwise send the whole dataset back once per experiment.
+			Experiment EvalExperiment `json:"experiment"`
+			Means      []ScorerMean   `json:"means"`
+
+			// Regressed Cells scoring lower than the baseline, across every column.
+			Regressed int             `json:"regressed"`
+			Rows      []ExperimentRow `json:"rows"`
+
+			// Scorers The columns, which belong to the dataset rather than the experiment.
+			Scorers []Scorer `json:"scorers"`
+
+			// SubjectCurrentVersion The version the subject is on now. A row that ran against an earlier one describes an agent that no longer exists.
+			SubjectCurrentVersion *int64 `json:"subject_current_version,omitempty"`
+
+			// SubjectDeployedHash What the agent hashes to as deployed. A run of unsaved edits carrying this hash ran exactly what is deployed now — the edits were saved — so it is a run of that version rather than of edits.
+			SubjectDeployedHash *string `json:"subject_deployed_hash,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRunExperimentResponse parses an HTTP response from a RunExperimentWithResponse call
+func ParseRunExperimentResponse(rsp *http.Response) (*RunExperimentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunExperimentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseEvalRunPayloadResponse parses an HTTP response from a EvalRunPayloadWithResponse call
+func ParseEvalRunPayloadResponse(rsp *http.Response) (*EvalRunPayloadResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EvalRunPayloadResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Rendered The same run as a judge agent is shown it.
+			Rendered string `json:"rendered"`
+
+			// Run The case, the answer, and every tool call the agent made.
+			Run map[string]interface{} `json:"run"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseScorerDefaultsResponse parses an HTTP response from a ScorerDefaultsWithResponse call
+func ParseScorerDefaultsResponse(rsp *http.Response) (*ScorerDefaultsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ScorerDefaultsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// JudgePrompt The system prompt a judge agent is created with.
+			JudgePrompt    string `json:"judge_prompt"`
+			ScriptTemplate string `json:"script_template"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRecentScorersResponse parses an HTTP response from a RecentScorersWithResponse call
+func ParseRecentScorersResponse(rsp *http.Response) (*RecentScorersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RecentScorersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			// Dataset The dataset it is a column of.
+			Dataset string               `json:"dataset"`
+			Id      *string              `json:"id,omitempty"`
+			Kind    RecentScorers200Kind `json:"kind"`
+
+			// Name Column header. Defaults to the last segment of the path.
+			Name *string `json:"name,omitempty"`
+
+			// PassIf A score at or above this counts as a pass, and the column reports a pass rate beside its mean. Applied when results are read rather than when they are produced, so moving the line re-reads every score already recorded instead of invalidating them.
+			PassIf *float32 `json:"pass_if,omitempty"`
+
+			// Path The script, or the ai_agent resource used as a judge.
+			Path string `json:"path"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseEvalSubjectStateResponse parses an HTTP response from a EvalSubjectStateWithResponse call
+func ParseEvalSubjectStateResponse(rsp *http.Response) (*EvalSubjectStateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EvalSubjectStateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Version *int64 `json:"version,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -130510,11 +133134,16 @@ func ParseGetResourceVersionResponse(rsp *http.Response) (*GetResourceVersionRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			CreatedAt         time.Time    `json:"created_at"`
-			CreatedBy         *string      `json:"created_by,omitempty"`
+			CreatedAt time.Time `json:"created_at"`
+			CreatedBy *string   `json:"created_by,omitempty"`
+
+			// Id How this version is addressed. Unique across every resource, so it says nothing about how many times this one has been saved.
 			Id                int64        `json:"id"`
 			MissingReferences []string     `json:"missing_references"`
 			Value             *interface{} `json:"value,omitempty"`
+
+			// Version Which version of this resource it is, counted from its first. What a version is called.
+			Version int64 `json:"version"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
