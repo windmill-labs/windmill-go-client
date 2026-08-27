@@ -9054,7 +9054,9 @@ type MintPreviewSdkTokenJSONBody struct {
 
 // SignS3ObjectsJSONBody defines parameters for SignS3Objects.
 type SignS3ObjectsJSONBody struct {
-	S3Objects []S3Object `json:"s3_objects"`
+	// ExpirySecs how long the signature stays valid, in seconds. Defaults to 43200 (12h) and is clamped server-side to [60, 604800] (1 minute to 7 days).
+	ExpirySecs *int64     `json:"expiry_secs,omitempty"`
+	S3Objects  []S3Object `json:"s3_objects"`
 }
 
 // UpdateAppJSONBody defines parameters for UpdateApp.
@@ -10178,6 +10180,14 @@ type GetHubProjectBySourceParams struct {
 	Folder HubPublishFolder `form:"folder" json:"folder"`
 }
 
+// DiscardHubProjectUpdateParams defines parameters for DiscardHubProjectUpdate.
+type DiscardHubProjectUpdateParams struct {
+	// Folder workspace folder scoping the Hub publication: a workspace can publish
+	// one Hub project per folder and the Hub-side source key is
+	// `{workspace}:{folder}`
+	Folder HubPublishFolder `form:"folder" json:"folder"`
+}
+
 // GetHubProjectExportParams defines parameters for GetHubProjectExport.
 type GetHubProjectExportParams struct {
 	// Folder folder scoping the Hub project source (`{workspace}:{folder}`)
@@ -10202,6 +10212,14 @@ type PublishHubPipelineRecordingParams struct {
 
 // SubmitHubProjectParams defines parameters for SubmitHubProject.
 type SubmitHubProjectParams struct {
+	// Folder workspace folder scoping the Hub publication: a workspace can publish
+	// one Hub project per folder and the Hub-side source key is
+	// `{workspace}:{folder}`
+	Folder HubPublishFolder `form:"folder" json:"folder"`
+}
+
+// WithdrawHubProjectParams defines parameters for WithdrawHubProject.
+type WithdrawHubProjectParams struct {
 	// Folder workspace folder scoping the Hub publication: a workspace can publish
 	// one Hub project per folder and the Hub-side source key is
 	// `{workspace}:{folder}`
@@ -17676,6 +17694,9 @@ type ClientInterface interface {
 	// GetHubProjectBySource request
 	GetHubProjectBySource(ctx context.Context, workspace WorkspaceId, params *GetHubProjectBySourceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DiscardHubProjectUpdate request
+	DiscardHubProjectUpdate(ctx context.Context, workspace WorkspaceId, slug string, params *DiscardHubProjectUpdateParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetHubProjectExport request
 	GetHubProjectExport(ctx context.Context, workspace WorkspaceId, slug string, params *GetHubProjectExportParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17691,6 +17712,9 @@ type ClientInterface interface {
 
 	// SubmitHubProject request
 	SubmitHubProject(ctx context.Context, workspace WorkspaceId, slug string, params *SubmitHubProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// WithdrawHubProject request
+	WithdrawHubProject(ctx context.Context, workspace WorkspaceId, slug string, params *WithdrawHubProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PublishHubDraftWithBody request with any body
 	PublishHubDraftWithBody(ctx context.Context, workspace WorkspaceId, params *PublishHubDraftParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -25477,6 +25501,18 @@ func (c *Client) GetHubProjectBySource(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
+func (c *Client) DiscardHubProjectUpdate(ctx context.Context, workspace WorkspaceId, slug string, params *DiscardHubProjectUpdateParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDiscardHubProjectUpdateRequest(c.Server, workspace, slug, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetHubProjectExport(ctx context.Context, workspace WorkspaceId, slug string, params *GetHubProjectExportParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetHubProjectExportRequest(c.Server, workspace, slug, params)
 	if err != nil {
@@ -25539,6 +25575,18 @@ func (c *Client) PublishHubPipelineRecording(ctx context.Context, workspace Work
 
 func (c *Client) SubmitHubProject(ctx context.Context, workspace WorkspaceId, slug string, params *SubmitHubProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSubmitHubProjectRequest(c.Server, workspace, slug, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) WithdrawHubProject(ctx context.Context, workspace WorkspaceId, slug string, params *WithdrawHubProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewWithdrawHubProjectRequest(c.Server, workspace, slug, params)
 	if err != nil {
 		return nil, err
 	}
@@ -52915,6 +52963,65 @@ func NewGetHubProjectBySourceRequest(server string, workspace WorkspaceId, param
 	return req, nil
 }
 
+// NewDiscardHubProjectUpdateRequest generates requests for DiscardHubProjectUpdate
+func NewDiscardHubProjectUpdateRequest(server string, workspace WorkspaceId, slug string, params *DiscardHubProjectUpdateParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "slug", runtime.ParamLocationPath, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/hub/projects/%s/discard_update", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "folder", runtime.ParamLocationQuery, params.Folder); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetHubProjectExportRequest generates requests for GetHubProjectExport
 func NewGetHubProjectExportRequest(server string, workspace WorkspaceId, slug string, params *GetHubProjectExportParams) (*http.Request, error) {
 	var err error
@@ -53146,6 +53253,65 @@ func NewSubmitHubProjectRequest(server string, workspace WorkspaceId, slug strin
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/hub/projects/%s/submit", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "folder", runtime.ParamLocationQuery, params.Folder); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewWithdrawHubProjectRequest generates requests for WithdrawHubProject
+func NewWithdrawHubProjectRequest(server string, workspace WorkspaceId, slug string, params *WithdrawHubProjectParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "slug", runtime.ParamLocationPath, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/hub/projects/%s/withdraw", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -86069,6 +86235,9 @@ type ClientWithResponsesInterface interface {
 	// GetHubProjectBySourceWithResponse request
 	GetHubProjectBySourceWithResponse(ctx context.Context, workspace WorkspaceId, params *GetHubProjectBySourceParams, reqEditors ...RequestEditorFn) (*GetHubProjectBySourceResponse, error)
 
+	// DiscardHubProjectUpdateWithResponse request
+	DiscardHubProjectUpdateWithResponse(ctx context.Context, workspace WorkspaceId, slug string, params *DiscardHubProjectUpdateParams, reqEditors ...RequestEditorFn) (*DiscardHubProjectUpdateResponse, error)
+
 	// GetHubProjectExportWithResponse request
 	GetHubProjectExportWithResponse(ctx context.Context, workspace WorkspaceId, slug string, params *GetHubProjectExportParams, reqEditors ...RequestEditorFn) (*GetHubProjectExportResponse, error)
 
@@ -86084,6 +86253,9 @@ type ClientWithResponsesInterface interface {
 
 	// SubmitHubProjectWithResponse request
 	SubmitHubProjectWithResponse(ctx context.Context, workspace WorkspaceId, slug string, params *SubmitHubProjectParams, reqEditors ...RequestEditorFn) (*SubmitHubProjectResponse, error)
+
+	// WithdrawHubProjectWithResponse request
+	WithdrawHubProjectWithResponse(ctx context.Context, workspace WorkspaceId, slug string, params *WithdrawHubProjectParams, reqEditors ...RequestEditorFn) (*WithdrawHubProjectResponse, error)
 
 	// PublishHubDraftWithBodyWithResponse request with any body
 	PublishHubDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *PublishHubDraftParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PublishHubDraftResponse, error)
@@ -96785,6 +96957,27 @@ func (r GetHubProjectBySourceResponse) StatusCode() int {
 	return 0
 }
 
+type DiscardHubProjectUpdateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DiscardHubProjectUpdateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DiscardHubProjectUpdateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetHubProjectExportResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -96863,6 +97056,27 @@ func (r SubmitHubProjectResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SubmitHubProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type WithdrawHubProjectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r WithdrawHubProjectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r WithdrawHubProjectResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -112756,6 +112970,15 @@ func (c *ClientWithResponses) GetHubProjectBySourceWithResponse(ctx context.Cont
 	return ParseGetHubProjectBySourceResponse(rsp)
 }
 
+// DiscardHubProjectUpdateWithResponse request returning *DiscardHubProjectUpdateResponse
+func (c *ClientWithResponses) DiscardHubProjectUpdateWithResponse(ctx context.Context, workspace WorkspaceId, slug string, params *DiscardHubProjectUpdateParams, reqEditors ...RequestEditorFn) (*DiscardHubProjectUpdateResponse, error) {
+	rsp, err := c.DiscardHubProjectUpdate(ctx, workspace, slug, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDiscardHubProjectUpdateResponse(rsp)
+}
+
 // GetHubProjectExportWithResponse request returning *GetHubProjectExportResponse
 func (c *ClientWithResponses) GetHubProjectExportWithResponse(ctx context.Context, workspace WorkspaceId, slug string, params *GetHubProjectExportParams, reqEditors ...RequestEditorFn) (*GetHubProjectExportResponse, error) {
 	rsp, err := c.GetHubProjectExport(ctx, workspace, slug, params, reqEditors...)
@@ -112806,6 +113029,15 @@ func (c *ClientWithResponses) SubmitHubProjectWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseSubmitHubProjectResponse(rsp)
+}
+
+// WithdrawHubProjectWithResponse request returning *WithdrawHubProjectResponse
+func (c *ClientWithResponses) WithdrawHubProjectWithResponse(ctx context.Context, workspace WorkspaceId, slug string, params *WithdrawHubProjectParams, reqEditors ...RequestEditorFn) (*WithdrawHubProjectResponse, error) {
+	rsp, err := c.WithdrawHubProject(ctx, workspace, slug, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseWithdrawHubProjectResponse(rsp)
 }
 
 // PublishHubDraftWithBodyWithResponse request with arbitrary body returning *PublishHubDraftResponse
@@ -127528,6 +127760,22 @@ func ParseGetHubProjectBySourceResponse(rsp *http.Response) (*GetHubProjectBySou
 	return response, nil
 }
 
+// ParseDiscardHubProjectUpdateResponse parses an HTTP response from a DiscardHubProjectUpdateWithResponse call
+func ParseDiscardHubProjectUpdateResponse(rsp *http.Response) (*DiscardHubProjectUpdateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DiscardHubProjectUpdateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetHubProjectExportResponse parses an HTTP response from a GetHubProjectExportWithResponse call
 func ParseGetHubProjectExportResponse(rsp *http.Response) (*GetHubProjectExportResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -127585,6 +127833,22 @@ func ParseSubmitHubProjectResponse(rsp *http.Response) (*SubmitHubProjectRespons
 	}
 
 	response := &SubmitHubProjectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseWithdrawHubProjectResponse parses an HTTP response from a WithdrawHubProjectWithResponse call
+func ParseWithdrawHubProjectResponse(rsp *http.Response) (*WithdrawHubProjectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &WithdrawHubProjectResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
