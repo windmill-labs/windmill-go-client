@@ -2153,7 +2153,10 @@ type CompletedJob struct {
 	ResolvedAutomatically *bool `json:"resolved_automatically,omitempty"`
 
 	// ResolvedBy who resolved the failure. Enterprise-only, so also absent for a manual resolution outside enterprise; use resolved_automatically to tell the two apart
-	ResolvedBy     *string      `json:"resolved_by,omitempty"`
+	ResolvedBy *string `json:"resolved_by,omitempty"`
+
+	// Result For large results, this may be the placeholder string 'WINDMILL_TOO_BIG'.
+	// Use the completed job result endpoint to retrieve the full result.
 	Result         *interface{} `json:"result,omitempty"`
 	SchedulePath   *string      `json:"schedule_path,omitempty"`
 	ScriptHash     *string      `json:"script_hash,omitempty"`
@@ -2713,7 +2716,7 @@ type EditAmqpTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string       `json:"error_handler_path,omitempty"`
 	Exchange         *AmqpExchange `json:"exchange,omitempty"`
 
@@ -2839,7 +2842,7 @@ type EditHttpTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string    `json:"error_handler_path,omitempty"`
 	HttpMethod       HttpMethod `json:"http_method"`
 
@@ -2908,7 +2911,7 @@ type EditKafkaTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// FilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
@@ -2961,7 +2964,7 @@ type EditMqttTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
@@ -3003,7 +3006,7 @@ type EditNatsTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
@@ -3043,7 +3046,7 @@ type EditPostgresTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
@@ -3184,7 +3187,7 @@ type EditSqsTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
@@ -3267,7 +3270,7 @@ type EditWebsocketTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// FilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
@@ -4457,7 +4460,10 @@ type Job0 struct {
 	ResolvedAutomatically *bool `json:"resolved_automatically,omitempty"`
 
 	// ResolvedBy who resolved the failure. Enterprise-only, so also absent for a manual resolution outside enterprise; use resolved_automatically to tell the two apart
-	ResolvedBy     *string      `json:"resolved_by,omitempty"`
+	ResolvedBy *string `json:"resolved_by,omitempty"`
+
+	// Result For large results, this may be the placeholder string 'WINDMILL_TOO_BIG'.
+	// Use the completed job result endpoint to retrieve the full result.
 	Result         *interface{} `json:"result,omitempty"`
 	SchedulePath   *string      `json:"schedule_path,omitempty"`
 	ScriptHash     *string      `json:"script_hash,omitempty"`
@@ -4925,7 +4931,7 @@ type NewAmqpTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string       `json:"error_handler_path,omitempty"`
 	Exchange         *AmqpExchange `json:"exchange,omitempty"`
 
@@ -5003,7 +5009,7 @@ type NewHttpTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string    `json:"error_handler_path,omitempty"`
 	HttpMethod       HttpMethod `json:"http_method"`
 
@@ -5075,7 +5081,7 @@ type NewKafkaTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// FilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
@@ -5131,7 +5137,7 @@ type NewMqttTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
@@ -5173,7 +5179,7 @@ type NewNatsTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
@@ -5216,7 +5222,7 @@ type NewPostgresTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
@@ -5420,7 +5426,7 @@ type NewSqsTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// IsFlow True if script_path points to a flow, false if it points to a script
@@ -5484,7 +5490,7 @@ type NewWebsocketTrigger struct {
 	// ErrorHandlerArgs The arguments to pass to the script or flow
 	ErrorHandlerArgs *ScriptArgs `json:"error_handler_args,omitempty"`
 
-	// ErrorHandlerPath Path to a script or flow to run when the triggered job fails
+	// ErrorHandlerPath Path to a script to run when the triggered job fails. A bare path, without the script/ or flow/ prefix a schedule error handler takes; it cannot be a flow.
 	ErrorHandlerPath *string `json:"error_handler_path,omitempty"`
 
 	// FilterLogic Logic to apply when evaluating the top-level filters. 'and' requires all of them to match, 'or' requires any of them to match. Nested `any_of`/`all_of`/`none_of` groups carry their own logic.
@@ -19045,6 +19051,9 @@ type ClientInterface interface {
 	// ListAvailableTeamsIds request
 	ListAvailableTeamsIds(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsIdsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetBillableSeats request
+	GetBillableSeats(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ChangeWorkspaceColorWithBody request with any body
 	ChangeWorkspaceColorWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -31443,6 +31452,18 @@ func (c *Client) ListAvailableTeamsChannels(ctx context.Context, workspace Works
 
 func (c *Client) ListAvailableTeamsIds(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsIdsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAvailableTeamsIdsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetBillableSeats(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetBillableSeatsRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -79496,6 +79517,40 @@ func NewListAvailableTeamsIdsRequest(server string, workspace WorkspaceId, param
 	return req, nil
 }
 
+// NewGetBillableSeatsRequest generates requests for GetBillableSeats
+func NewGetBillableSeatsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/billable_seats", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewChangeWorkspaceColorRequest calls the generic ChangeWorkspaceColor builder with application/json body
 func NewChangeWorkspaceColorRequest(server string, workspace WorkspaceId, body ChangeWorkspaceColorJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -87585,6 +87640,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListAvailableTeamsIdsWithResponse request
 	ListAvailableTeamsIdsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAvailableTeamsIdsParams, reqEditors ...RequestEditorFn) (*ListAvailableTeamsIdsResponse, error)
+
+	// GetBillableSeatsWithResponse request
+	GetBillableSeatsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetBillableSeatsResponse, error)
 
 	// ChangeWorkspaceColorWithBodyWithResponse request with any body
 	ChangeWorkspaceColorWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeWorkspaceColorResponse, error)
@@ -105761,6 +105819,35 @@ func (r ListAvailableTeamsIdsResponse) StatusCode() int {
 	return 0
 }
 
+type GetBillableSeatsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Developers Omitted when the seats counted are another workspace's, as they are for a fork resolving to its billing root.
+		Developers *int `json:"developers,omitempty"`
+
+		// Operators Omitted when the seats counted are another workspace's, as they are for a fork resolving to its billing root.
+		Operators *int `json:"operators,omitempty"`
+		Seats     int  `json:"seats"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetBillableSeatsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetBillableSeatsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ChangeWorkspaceColorResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -117295,6 +117382,15 @@ func (c *ClientWithResponses) ListAvailableTeamsIdsWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseListAvailableTeamsIdsResponse(rsp)
+}
+
+// GetBillableSeatsWithResponse request returning *GetBillableSeatsResponse
+func (c *ClientWithResponses) GetBillableSeatsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetBillableSeatsResponse, error) {
+	rsp, err := c.GetBillableSeats(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetBillableSeatsResponse(rsp)
 }
 
 // ChangeWorkspaceColorWithBodyWithResponse request with arbitrary body returning *ChangeWorkspaceColorResponse
@@ -136541,6 +136637,39 @@ func ParseListAvailableTeamsIdsResponse(rsp *http.Response) (*ListAvailableTeams
 
 			// TotalCount Total number of teams across all pages
 			TotalCount *int `json:"total_count,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetBillableSeatsResponse parses an HTTP response from a GetBillableSeatsWithResponse call
+func ParseGetBillableSeatsResponse(rsp *http.Response) (*GetBillableSeatsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetBillableSeatsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Developers Omitted when the seats counted are another workspace's, as they are for a fork resolving to its billing root.
+			Developers *int `json:"developers,omitempty"`
+
+			// Operators Omitted when the seats counted are another workspace's, as they are for a fork resolving to its billing root.
+			Operators *int `json:"operators,omitempty"`
+			Seats     int  `json:"seats"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
