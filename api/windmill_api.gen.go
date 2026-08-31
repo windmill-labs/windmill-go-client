@@ -760,6 +760,15 @@ const (
 	ListableAppExecutionModeViewer    ListableAppExecutionMode = "viewer"
 )
 
+// Defines values for LogSearchHitLevel.
+const (
+	DEBUG LogSearchHitLevel = "DEBUG"
+	ERROR LogSearchHitLevel = "ERROR"
+	INFO  LogSearchHitLevel = "INFO"
+	TRACE LogSearchHitLevel = "TRACE"
+	WARN  LogSearchHitLevel = "WARN"
+)
+
 // Defines values for LoggedWizardStatus.
 const (
 	FAIL LoggedWizardStatus = "FAIL"
@@ -1560,13 +1569,16 @@ const (
 
 // AIConfig defines model for AIConfig.
 type AIConfig struct {
-	CodeCompletionModel *AIProviderModel               `json:"code_completion_model,omitempty"`
-	CustomPrompts       *map[string]string             `json:"custom_prompts,omitempty"`
-	DefaultModel        *AIProviderModel               `json:"default_model,omitempty"`
-	MaxTokensPerModel   *map[string]int                `json:"max_tokens_per_model,omitempty"`
-	MetadataModel       *AIProviderModel               `json:"metadata_model,omitempty"`
-	ModelPricing        *map[string]ModelPriceOverride `json:"model_pricing,omitempty"`
-	Providers           *map[string]AIProviderConfig   `json:"providers,omitempty"`
+	CodeCompletionModel *AIProviderModel   `json:"code_completion_model,omitempty"`
+	CustomPrompts       *map[string]string `json:"custom_prompts,omitempty"`
+	DefaultModel        *AIProviderModel   `json:"default_model,omitempty"`
+
+	// FreeTier Read-only. Present when the workspace has no AI provider of its own and is running on Windmill's free tier. Ignored on write.
+	FreeTier          *FreeTierInfo                  `json:"free_tier,omitempty"`
+	MaxTokensPerModel *map[string]int                `json:"max_tokens_per_model,omitempty"`
+	MetadataModel     *AIProviderModel               `json:"metadata_model,omitempty"`
+	ModelPricing      *map[string]ModelPriceOverride `json:"model_pricing,omitempty"`
+	Providers         *map[string]AIProviderConfig   `json:"providers,omitempty"`
 }
 
 // AIProvider defines model for AIProvider.
@@ -4060,6 +4072,15 @@ type FolderDefaultPermissionedAs = []struct {
 	PermissionedAs string `json:"permissioned_as"`
 }
 
+// FreeTierInfo Read-only. Present when the workspace has no AI provider of its own and is running on Windmill's free tier. Ignored on write.
+type FreeTierInfo struct {
+	// Exhausted The one-time grant is spent; no provider is served and the user must add their own API key.
+	Exhausted bool `json:"exhausted"`
+
+	// UsedRatio Fraction of the grant consumed, 0 to 1.
+	UsedRatio float32 `json:"used_ratio"`
+}
+
 // GcpTrigger defines model for GcpTrigger.
 type GcpTrigger = TriggerExtraProperty
 
@@ -4711,8 +4732,24 @@ type ListableVariable struct {
 
 // LogSearchHit defines model for LogSearchHit.
 type LogSearchHit struct {
-	Dancer *string `json:"dancer,omitempty"`
+	// FilePath the log file the line came from
+	FilePath string            `json:"file_path"`
+	Host     string            `json:"host"`
+	Level    LogSearchHitLevel `json:"level"`
+
+	// LineNo offset of the line within its file
+	LineNo  int    `json:"line_no"`
+	Message string `json:"message"`
+
+	// Target the tracing target that emitted the line
+	Target *string `json:"target"`
+
+	// Ts timestamp of the log line itself, not of the file containing it
+	Ts time.Time `json:"ts"`
 }
+
+// LogSearchHitLevel defines model for LogSearchHit.Level.
+type LogSearchHitLevel string
 
 // LoggedWizardStatus defines model for LoggedWizardStatus.
 type LoggedWizardStatus string
@@ -91117,7 +91154,7 @@ type SearchLogsIndexResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		// Hits log files that matched the query
+		// Hits the log lines that matched the query, newest first
 		Hits *[]LogSearchHit `json:"hits,omitempty"`
 
 		// QueryParseErrors a list of the terms that couldn't be parsed (and thus ignored)
@@ -122040,7 +122077,7 @@ func ParseSearchLogsIndexResponse(rsp *http.Response) (*SearchLogsIndexResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			// Hits log files that matched the query
+			// Hits the log lines that matched the query, newest first
 			Hits *[]LogSearchHit `json:"hits,omitempty"`
 
 			// QueryParseErrors a list of the terms that couldn't be parsed (and thus ignored)
