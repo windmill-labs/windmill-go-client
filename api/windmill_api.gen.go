@@ -3111,9 +3111,12 @@ type EditResource struct {
 
 // EditResourceType defines model for EditResourceType.
 type EditResourceType struct {
-	Description *string      `json:"description,omitempty"`
-	IsFileset   *bool        `json:"is_fileset,omitempty"`
-	Schema      *interface{} `json:"schema,omitempty"`
+	Description *string `json:"description,omitempty"`
+
+	// FormatExtension File extension for a type whose value is one file rather than a set of fields. Omit to leave it unchanged; send null to clear it.
+	FormatExtension *string      `json:"format_extension"`
+	IsFileset       *bool        `json:"is_fileset,omitempty"`
+	Schema          *interface{} `json:"schema,omitempty"`
 }
 
 // EditSchedule defines model for EditSchedule.
@@ -8908,15 +8911,6 @@ type EvalSubjectStateParams struct {
 	Path string `form:"path" json:"path"`
 }
 
-// UploadAiSkillsJSONBody defines parameters for UploadAiSkills.
-type UploadAiSkillsJSONBody struct {
-	Skills []struct {
-		Description  string `json:"description"`
-		Instructions string `json:"instructions"`
-		Name         string `json:"name"`
-	} `json:"skills"`
-}
-
 // GetAmqpTriggerParams defines parameters for GetAmqpTrigger.
 type GetAmqpTriggerParams struct {
 	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
@@ -13485,9 +13479,6 @@ type UpdateEvalDatasetJSONRequestBody UpdateEvalDatasetJSONBody
 // RunExperimentJSONRequestBody defines body for RunExperiment for application/json ContentType.
 type RunExperimentJSONRequestBody RunExperimentJSONBody
 
-// UploadAiSkillsJSONRequestBody defines body for UploadAiSkills for application/json ContentType.
-type UploadAiSkillsJSONRequestBody UploadAiSkillsJSONBody
-
 // CreateAmqpTriggerJSONRequestBody defines body for CreateAmqpTrigger for application/json ContentType.
 type CreateAmqpTriggerJSONRequestBody = NewAmqpTrigger
 
@@ -17054,20 +17045,6 @@ type ClientInterface interface {
 
 	// EvalSubjectState request
 	EvalSubjectState(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DeleteAiSkill request
-	DeleteAiSkill(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetAiSkill request
-	GetAiSkill(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// ListAiSkills request
-	ListAiSkills(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UploadAiSkillsWithBody request with any body
-	UploadAiSkillsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UploadAiSkills(ctx context.Context, workspace WorkspaceId, body UploadAiSkillsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateAmqpTriggerWithBody request with any body
 	CreateAmqpTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -22537,66 +22514,6 @@ func (c *Client) RecentScorers(ctx context.Context, workspace WorkspaceId, param
 
 func (c *Client) EvalSubjectState(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEvalSubjectStateRequest(c.Server, workspace, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DeleteAiSkill(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteAiSkillRequest(c.Server, workspace, name)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetAiSkill(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAiSkillRequest(c.Server, workspace, name)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ListAiSkills(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListAiSkillsRequest(c.Server, workspace)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UploadAiSkillsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUploadAiSkillsRequestWithBody(c.Server, workspace, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UploadAiSkills(ctx context.Context, workspace WorkspaceId, body UploadAiSkillsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUploadAiSkillsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -41188,169 +41105,6 @@ func NewEvalSubjectStateRequest(server string, workspace WorkspaceId, params *Ev
 	if err != nil {
 		return nil, err
 	}
-
-	return req, nil
-}
-
-// NewDeleteAiSkillRequest generates requests for DeleteAiSkill
-func NewDeleteAiSkillRequest(server string, workspace WorkspaceId, name string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/ai_skills/delete/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetAiSkillRequest generates requests for GetAiSkill
-func NewGetAiSkillRequest(server string, workspace WorkspaceId, name string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/ai_skills/get/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewListAiSkillsRequest generates requests for ListAiSkills
-func NewListAiSkillsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/ai_skills/list", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUploadAiSkillsRequest calls the generic UploadAiSkills builder with application/json body
-func NewUploadAiSkillsRequest(server string, workspace WorkspaceId, body UploadAiSkillsJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUploadAiSkillsRequestWithBody(server, workspace, "application/json", bodyReader)
-}
-
-// NewUploadAiSkillsRequestWithBody generates requests for UploadAiSkills with any type of body
-func NewUploadAiSkillsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/ai_skills/upload", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -85645,20 +85399,6 @@ type ClientWithResponsesInterface interface {
 	// EvalSubjectStateWithResponse request
 	EvalSubjectStateWithResponse(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*EvalSubjectStateResponse, error)
 
-	// DeleteAiSkillWithResponse request
-	DeleteAiSkillWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*DeleteAiSkillResponse, error)
-
-	// GetAiSkillWithResponse request
-	GetAiSkillWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*GetAiSkillResponse, error)
-
-	// ListAiSkillsWithResponse request
-	ListAiSkillsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAiSkillsResponse, error)
-
-	// UploadAiSkillsWithBodyWithResponse request with any body
-	UploadAiSkillsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadAiSkillsResponse, error)
-
-	UploadAiSkillsWithResponse(ctx context.Context, workspace WorkspaceId, body UploadAiSkillsJSONRequestBody, reqEditors ...RequestEditorFn) (*UploadAiSkillsResponse, error)
-
 	// CreateAmqpTriggerWithBodyWithResponse request with any body
 	CreateAmqpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAmqpTriggerResponse, error)
 
@@ -92533,99 +92273,6 @@ func (r EvalSubjectStateResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r EvalSubjectStateResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DeleteAiSkillResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r DeleteAiSkillResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DeleteAiSkillResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetAiSkillResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Description  string `json:"description"`
-		Instructions string `json:"instructions"`
-		Name         string `json:"name"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r GetAiSkillResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetAiSkillResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type ListAiSkillsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *[]struct {
-		Description string `json:"description"`
-		Name        string `json:"name"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r ListAiSkillsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ListAiSkillsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UploadAiSkillsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r UploadAiSkillsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UploadAiSkillsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -110912,50 +110559,6 @@ func (c *ClientWithResponses) EvalSubjectStateWithResponse(ctx context.Context, 
 	return ParseEvalSubjectStateResponse(rsp)
 }
 
-// DeleteAiSkillWithResponse request returning *DeleteAiSkillResponse
-func (c *ClientWithResponses) DeleteAiSkillWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*DeleteAiSkillResponse, error) {
-	rsp, err := c.DeleteAiSkill(ctx, workspace, name, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteAiSkillResponse(rsp)
-}
-
-// GetAiSkillWithResponse request returning *GetAiSkillResponse
-func (c *ClientWithResponses) GetAiSkillWithResponse(ctx context.Context, workspace WorkspaceId, name string, reqEditors ...RequestEditorFn) (*GetAiSkillResponse, error) {
-	rsp, err := c.GetAiSkill(ctx, workspace, name, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetAiSkillResponse(rsp)
-}
-
-// ListAiSkillsWithResponse request returning *ListAiSkillsResponse
-func (c *ClientWithResponses) ListAiSkillsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAiSkillsResponse, error) {
-	rsp, err := c.ListAiSkills(ctx, workspace, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseListAiSkillsResponse(rsp)
-}
-
-// UploadAiSkillsWithBodyWithResponse request with arbitrary body returning *UploadAiSkillsResponse
-func (c *ClientWithResponses) UploadAiSkillsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadAiSkillsResponse, error) {
-	rsp, err := c.UploadAiSkillsWithBody(ctx, workspace, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUploadAiSkillsResponse(rsp)
-}
-
-func (c *ClientWithResponses) UploadAiSkillsWithResponse(ctx context.Context, workspace WorkspaceId, body UploadAiSkillsJSONRequestBody, reqEditors ...RequestEditorFn) (*UploadAiSkillsResponse, error) {
-	rsp, err := c.UploadAiSkills(ctx, workspace, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUploadAiSkillsResponse(rsp)
-}
-
 // CreateAmqpTriggerWithBodyWithResponse request with arbitrary body returning *CreateAmqpTriggerResponse
 func (c *ClientWithResponses) CreateAmqpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAmqpTriggerResponse, error) {
 	rsp, err := c.CreateAmqpTriggerWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -123405,97 +123008,6 @@ func ParseEvalSubjectStateResponse(rsp *http.Response) (*EvalSubjectStateRespons
 		}
 		response.JSON200 = &dest
 
-	}
-
-	return response, nil
-}
-
-// ParseDeleteAiSkillResponse parses an HTTP response from a DeleteAiSkillWithResponse call
-func ParseDeleteAiSkillResponse(rsp *http.Response) (*DeleteAiSkillResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeleteAiSkillResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseGetAiSkillResponse parses an HTTP response from a GetAiSkillWithResponse call
-func ParseGetAiSkillResponse(rsp *http.Response) (*GetAiSkillResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetAiSkillResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Description  string `json:"description"`
-			Instructions string `json:"instructions"`
-			Name         string `json:"name"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseListAiSkillsResponse parses an HTTP response from a ListAiSkillsWithResponse call
-func ParseListAiSkillsResponse(rsp *http.Response) (*ListAiSkillsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ListAiSkillsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []struct {
-			Description string `json:"description"`
-			Name        string `json:"name"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUploadAiSkillsResponse parses an HTTP response from a UploadAiSkillsWithResponse call
-func ParseUploadAiSkillsResponse(rsp *http.Response) (*UploadAiSkillsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UploadAiSkillsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
 	}
 
 	return response, nil
