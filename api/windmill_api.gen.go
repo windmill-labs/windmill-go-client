@@ -1569,9 +1569,12 @@ const (
 
 // AIConfig defines model for AIConfig.
 type AIConfig struct {
-	CodeCompletionModel *AIProviderModel   `json:"code_completion_model,omitempty"`
-	CustomPrompts       *map[string]string `json:"custom_prompts,omitempty"`
-	DefaultModel        *AIProviderModel   `json:"default_model,omitempty"`
+	CodeCompletionModel *AIProviderModel `json:"code_completion_model,omitempty"`
+
+	// CopilotDisabled Hides the Windmill AI assistant (chat, sessions, code generation, completion, fixes) from the workspace UI. Read from the workspace's own settings even when the providers served fall back to the instance config. AI agent steps and the AI sandbox in flows are unaffected.
+	CopilotDisabled *bool              `json:"copilot_disabled,omitempty"`
+	CustomPrompts   *map[string]string `json:"custom_prompts,omitempty"`
+	DefaultModel    *AIProviderModel   `json:"default_model,omitempty"`
 
 	// FreeTier Read-only. Present when the workspace has no AI provider of its own and is running on Windmill's free tier. Ignored on write.
 	FreeTier          *FreeTierInfo                  `json:"free_tier,omitempty"`
