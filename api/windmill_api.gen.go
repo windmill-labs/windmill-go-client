@@ -150,6 +150,8 @@ const (
 	IgroupCreate                   AuditLogOperation = "igroup.create"
 	IgroupDelete                   AuditLogOperation = "igroup.delete"
 	IgroupRemoveuser               AuditLogOperation = "igroup.removeuser"
+	InstanceGroupsJitAdduser       AuditLogOperation = "instance_groups.jit_adduser"
+	InstanceGroupsJitRemoveuser    AuditLogOperation = "instance_groups.jit_removeuser"
 	Jobs                           AuditLogOperation = "jobs"
 	JobsCancel                     AuditLogOperation = "jobs.cancel"
 	JobsDelete                     AuditLogOperation = "jobs.delete"
@@ -756,6 +758,7 @@ const (
 // Defines values for ListableAppExecutionMode.
 const (
 	ListableAppExecutionModeAnonymous ListableAppExecutionMode = "anonymous"
+	ListableAppExecutionModeGuest     ListableAppExecutionMode = "guest"
 	ListableAppExecutionModePublisher ListableAppExecutionMode = "publisher"
 	ListableAppExecutionModeViewer    ListableAppExecutionMode = "viewer"
 )
@@ -898,6 +901,7 @@ const (
 // Defines values for PolicyExecutionMode.
 const (
 	Anonymous PolicyExecutionMode = "anonymous"
+	Guest     PolicyExecutionMode = "guest"
 	Publisher PolicyExecutionMode = "publisher"
 	Viewer    PolicyExecutionMode = "viewer"
 )
@@ -921,6 +925,7 @@ const (
 	DisableWorkspaceForking        ProtectionRuleKind = "DisableWorkspaceForking"
 	RestrictAnonymousAppDeployment ProtectionRuleKind = "RestrictAnonymousAppDeployment"
 	RestrictDeployToDeployers      ProtectionRuleKind = "RestrictDeployToDeployers"
+	RestrictGuestAppDeployment     ProtectionRuleKind = "RestrictGuestAppDeployment"
 	RestrictPublicRunSharing       ProtectionRuleKind = "RestrictPublicRunSharing"
 )
 
@@ -4300,6 +4305,39 @@ type Group struct {
 	Summary    *string          `json:"summary,omitempty"`
 }
 
+// GuestActivity defines model for GuestActivity.
+type GuestActivity struct {
+	Email      string             `json:"email"`
+	FirstSeen  openapi_types.Date `json:"first_seen"`
+	LastSeen   openapi_types.Date `json:"last_seen"`
+	Workspaces []string           `json:"workspaces"`
+}
+
+// GuestEntry What a signed-out visitor needs to start a guest sign-in.
+type GuestEntry struct {
+	AppPath     string `json:"app_path"`
+	WorkspaceId string `json:"workspace_id"`
+}
+
+// GuestList defines model for GuestList.
+type GuestList struct {
+	Guests []GuestActivity `json:"guests"`
+
+	// Usage Guests are free up to `free_allowance` distinct emails over the trailing `window_days`. Past that an Enterprise plan meters them (`metered`, four guests to one seat: `billable_guests`, `guest_seats`); every other plan and build admits no new email until the count drops. `instance_enabled` is the superadmin switch (`guest_access_disabled` global setting) every workspace switch sits under.
+	Usage GuestUsage `json:"usage"`
+}
+
+// GuestUsage Guests are free up to `free_allowance` distinct emails over the trailing `window_days`. Past that an Enterprise plan meters them (`metered`, four guests to one seat: `billable_guests`, `guest_seats`); every other plan and build admits no new email until the count drops. `instance_enabled` is the superadmin switch (`guest_access_disabled` global setting) every workspace switch sits under.
+type GuestUsage struct {
+	BillableGuests  int64 `json:"billable_guests"`
+	FreeAllowance   int64 `json:"free_allowance"`
+	GuestCount      int64 `json:"guest_count"`
+	GuestSeats      int64 `json:"guest_seats"`
+	InstanceEnabled bool  `json:"instance_enabled"`
+	Metered         bool  `json:"metered"`
+	WindowDays      int   `json:"window_days"`
+}
+
 // HealthChecks Detailed health checks
 type HealthChecks struct {
 	// Database Database health status
@@ -5820,7 +5858,7 @@ type Policy struct {
 		S3Path   *string `json:"s3_path,omitempty"`
 	} `json:"allowed_s3_keys,omitempty"`
 
-	// ExecutionMode Who the app's runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Either way `anonymous`, which makes the app publicly executable, is never assumed
+	// ExecutionMode Who may open the app, and who its runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Neither `anonymous`, which makes the app publicly executable, nor `guest`, which opens it to anyone the identity provider authenticates, is ever assumed. A guest is only admitted where the workspace also has `guest_access_enabled`, which is checked when the session is minted and again on every guest request
 	ExecutionMode *PolicyExecutionMode `json:"execution_mode,omitempty"`
 
 	// FrontendSdkScopes Raw apps: author-declared scopes for the frontend SDK token. Takes effect only when `sandbox` is also true — an unsandboxed bundle runs with the viewer's own session, so no token is advertised or minted for it and this list stays inert. On a sandboxed app a non-empty list lets viewers mint (after consenting) a short-lived token carrying their own identity restricted to these scopes, handed to the app bundle so `windmill-client` calls run as the viewer. Must be a subset of the server's curated allowlist (jobs:run, jobs:read, users:read, resources:read, variables:read).
@@ -5835,7 +5873,7 @@ type Policy struct {
 	TriggerablesV2 *map[string]map[string]interface{} `json:"triggerables_v2,omitempty"`
 }
 
-// PolicyExecutionMode Who the app's runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Either way `anonymous`, which makes the app publicly executable, is never assumed
+// PolicyExecutionMode Who may open the app, and who its runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Neither `anonymous`, which makes the app publicly executable, nor `guest`, which opens it to anyone the identity provider authenticates, is ever assumed. A guest is only admitted where the workspace also has `guest_access_enabled`, which is checked when the session is minted and again on every guest request
 type PolicyExecutionMode string
 
 // PoolStats Database connection pool statistics
@@ -8710,6 +8748,12 @@ type ListExtJwtTokensParams struct {
 
 	// ActiveOnly only tokens used in the last 30 days
 	ActiveOnly *bool `form:"active_only,omitempty" json:"active_only,omitempty"`
+}
+
+// ListGuestsParams defines parameters for ListGuests.
+type ListGuestsParams struct {
+	Page    *int `form:"page,omitempty" json:"page,omitempty"`
+	PerPage *int `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
 // ListUsersAsSuperAdminParams defines parameters for ListUsersAsSuperAdmin.
@@ -13011,6 +13055,20 @@ type EditGitSyncRepositoryJSONBody struct {
 	Repository          GitRepositorySettings `json:"repository"`
 }
 
+// EditGuestAccessJSONBody defines parameters for EditGuestAccess.
+type EditGuestAccessJSONBody struct {
+	GuestAccessEnabled bool `json:"guest_access_enabled"`
+}
+
+// EditGuestJwtKeyJSONBody defines parameters for EditGuestJwtKey.
+type EditGuestJwtKeyJSONBody struct {
+	// JwksUrl A JWKS URL whose keys are fetched and refreshed.
+	JwksUrl *string `json:"jwks_url,omitempty"`
+
+	// PublicKey A PEM public key (RS or ES family).
+	PublicKey *string `json:"public_key,omitempty"`
+}
+
 // EditInstanceGroupsJSONBody defines parameters for EditInstanceGroups.
 type EditInstanceGroupsJSONBody struct {
 	Groups *[]string          `json:"groups,omitempty"`
@@ -14177,6 +14235,12 @@ type EditWorkspaceGitSyncConfigJSONRequestBody EditWorkspaceGitSyncConfigJSONBod
 
 // EditGitSyncRepositoryJSONRequestBody defines body for EditGitSyncRepository for application/json ContentType.
 type EditGitSyncRepositoryJSONRequestBody EditGitSyncRepositoryJSONBody
+
+// EditGuestAccessJSONRequestBody defines body for EditGuestAccess for application/json ContentType.
+type EditGuestAccessJSONRequestBody EditGuestAccessJSONBody
+
+// EditGuestJwtKeyJSONRequestBody defines body for EditGuestJwtKey for application/json ContentType.
+type EditGuestJwtKeyJSONRequestBody EditGuestJwtKeyJSONBody
 
 // EditInstanceGroupsJSONRequestBody defines body for EditInstanceGroups for application/json ContentType.
 type EditInstanceGroupsJSONRequestBody EditInstanceGroupsJSONBody
@@ -16404,6 +16468,9 @@ type ClientInterface interface {
 	// GetAppEmbedTokenByCustomPath request
 	GetAppEmbedTokenByCustomPath(ctx context.Context, customPath CustomPath, params *GetAppEmbedTokenByCustomPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetGuestEntryByCustomPath request
+	GetGuestEntryByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetPublicAppByCustomPath request
 	GetPublicAppByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -16879,6 +16946,9 @@ type ClientInterface interface {
 	// ListExtJwtTokens request
 	ListExtJwtTokens(ctx context.Context, params *ListExtJwtTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListGuests request
+	ListGuests(ctx context.Context, params *ListGuestsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// LeaveInstance request
 	LeaveInstance(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17180,6 +17250,9 @@ type ClientInterface interface {
 	ExecuteComponentWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ExecuteComponent(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetGuestEntry request
+	GetGuestEntry(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AppLoadCsvPreview request
 	AppLoadCsvPreview(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19234,6 +19307,16 @@ type ClientInterface interface {
 
 	EditGitSyncRepository(ctx context.Context, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditGuestAccessWithBody request with any body
+	EditGuestAccessWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditGuestAccess(ctx context.Context, workspace WorkspaceId, body EditGuestAccessJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EditGuestJwtKeyWithBody request with any body
+	EditGuestJwtKeyWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditGuestJwtKey(ctx context.Context, workspace WorkspaceId, body EditGuestJwtKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditInstanceGroupsWithBody request with any body
 	EditInstanceGroupsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -19337,6 +19420,9 @@ type ClientInterface interface {
 
 	// GetGitSyncEnabled request
 	GetGitSyncEnabled(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetGuestUsage request
+	GetGuestUsage(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ImportPgDatabaseWithBody request with any body
 	ImportPgDatabaseWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19697,6 +19783,18 @@ func (c *Client) ListHubApps(ctx context.Context, reqEditors ...RequestEditorFn)
 
 func (c *Client) GetAppEmbedTokenByCustomPath(ctx context.Context, customPath CustomPath, params *GetAppEmbedTokenByCustomPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAppEmbedTokenByCustomPathRequest(c.Server, customPath, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGuestEntryByCustomPath(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGuestEntryByCustomPathRequest(c.Server, customPath)
 	if err != nil {
 		return nil, err
 	}
@@ -21771,6 +21869,18 @@ func (c *Client) ListExtJwtTokens(ctx context.Context, params *ListExtJwtTokensP
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListGuests(ctx context.Context, params *ListGuestsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGuestsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) LeaveInstance(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLeaveInstanceRequest(c.Server)
 	if err != nil {
@@ -23093,6 +23203,18 @@ func (c *Client) ExecuteComponentWithBody(ctx context.Context, workspace Workspa
 
 func (c *Client) ExecuteComponent(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExecuteComponentRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGuestEntry(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGuestEntryRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -32187,6 +32309,54 @@ func (c *Client) EditGitSyncRepository(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditGuestAccessWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditGuestAccessRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditGuestAccess(ctx context.Context, workspace WorkspaceId, body EditGuestAccessJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditGuestAccessRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditGuestJwtKeyWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditGuestJwtKeyRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditGuestJwtKey(ctx context.Context, workspace WorkspaceId, body EditGuestJwtKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditGuestJwtKeyRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditInstanceGroupsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditInstanceGroupsRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -32633,6 +32803,18 @@ func (c *Client) GetGitSyncDeployMode(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) GetGitSyncEnabled(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetGitSyncEnabledRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGuestUsage(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGuestUsageRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -33931,6 +34113,40 @@ func NewGetAppEmbedTokenByCustomPathRequest(server string, customPath CustomPath
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetGuestEntryByCustomPathRequest generates requests for GetGuestEntryByCustomPath
+func NewGetGuestEntryByCustomPathRequest(server string, customPath CustomPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "custom_path", runtime.ParamLocationPath, customPath)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/apps_u/guest_entry_by_custom_path/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -39043,6 +39259,71 @@ func NewListExtJwtTokensRequest(server string, params *ListExtJwtTokensParams) (
 	return req, nil
 }
 
+// NewListGuestsRequest generates requests for ListGuests
+func NewListGuestsRequest(server string, params *ListGuestsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/guests")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewLeaveInstanceRequest generates requests for LeaveInstance
 func NewLeaveInstanceRequest(server string) (*http.Request, error) {
 	var err error
@@ -43169,6 +43450,47 @@ func NewExecuteComponentRequestWithBody(server string, workspace WorkspaceId, pa
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetGuestEntryRequest generates requests for GetGuestEntry
+func NewGetGuestEntryRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/apps_u/guest_entry/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -81044,6 +81366,100 @@ func NewEditGitSyncRepositoryRequestWithBody(server string, workspace WorkspaceI
 	return req, nil
 }
 
+// NewEditGuestAccessRequest calls the generic EditGuestAccess builder with application/json body
+func NewEditGuestAccessRequest(server string, workspace WorkspaceId, body EditGuestAccessJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditGuestAccessRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditGuestAccessRequestWithBody generates requests for EditGuestAccess with any type of body
+func NewEditGuestAccessRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_guest_access", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewEditGuestJwtKeyRequest calls the generic EditGuestJwtKey builder with application/json body
+func NewEditGuestJwtKeyRequest(server string, workspace WorkspaceId, body EditGuestJwtKeyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditGuestJwtKeyRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditGuestJwtKeyRequestWithBody generates requests for EditGuestJwtKey with any type of body
+func NewEditGuestJwtKeyRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_guest_jwt_key", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditInstanceGroupsRequest calls the generic EditInstanceGroups builder with application/json body
 func NewEditInstanceGroupsRequest(server string, workspace WorkspaceId, body EditInstanceGroupsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -82223,6 +82639,40 @@ func NewGetGitSyncEnabledRequest(server string, workspace WorkspaceId) (*http.Re
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/git_sync_enabled", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetGuestUsageRequest generates requests for GetGuestUsage
+func NewGetGuestUsageRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/guest_usage", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -84757,6 +85207,9 @@ type ClientWithResponsesInterface interface {
 	// GetAppEmbedTokenByCustomPathWithResponse request
 	GetAppEmbedTokenByCustomPathWithResponse(ctx context.Context, customPath CustomPath, params *GetAppEmbedTokenByCustomPathParams, reqEditors ...RequestEditorFn) (*GetAppEmbedTokenByCustomPathResponse, error)
 
+	// GetGuestEntryByCustomPathWithResponse request
+	GetGuestEntryByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetGuestEntryByCustomPathResponse, error)
+
 	// GetPublicAppByCustomPathWithResponse request
 	GetPublicAppByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetPublicAppByCustomPathResponse, error)
 
@@ -85232,6 +85685,9 @@ type ClientWithResponsesInterface interface {
 	// ListExtJwtTokensWithResponse request
 	ListExtJwtTokensWithResponse(ctx context.Context, params *ListExtJwtTokensParams, reqEditors ...RequestEditorFn) (*ListExtJwtTokensResponse, error)
 
+	// ListGuestsWithResponse request
+	ListGuestsWithResponse(ctx context.Context, params *ListGuestsParams, reqEditors ...RequestEditorFn) (*ListGuestsResponse, error)
+
 	// LeaveInstanceWithResponse request
 	LeaveInstanceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LeaveInstanceResponse, error)
 
@@ -85533,6 +85989,9 @@ type ClientWithResponsesInterface interface {
 	ExecuteComponentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error)
 
 	ExecuteComponentWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ExecuteComponentJSONRequestBody, reqEditors ...RequestEditorFn) (*ExecuteComponentResponse, error)
+
+	// GetGuestEntryWithResponse request
+	GetGuestEntryWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetGuestEntryResponse, error)
 
 	// AppLoadCsvPreviewWithResponse request
 	AppLoadCsvPreviewWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *AppLoadCsvPreviewParams, reqEditors ...RequestEditorFn) (*AppLoadCsvPreviewResponse, error)
@@ -87587,6 +88046,16 @@ type ClientWithResponsesInterface interface {
 
 	EditGitSyncRepositoryWithResponse(ctx context.Context, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*EditGitSyncRepositoryResponse, error)
 
+	// EditGuestAccessWithBodyWithResponse request with any body
+	EditGuestAccessWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditGuestAccessResponse, error)
+
+	EditGuestAccessWithResponse(ctx context.Context, workspace WorkspaceId, body EditGuestAccessJSONRequestBody, reqEditors ...RequestEditorFn) (*EditGuestAccessResponse, error)
+
+	// EditGuestJwtKeyWithBodyWithResponse request with any body
+	EditGuestJwtKeyWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditGuestJwtKeyResponse, error)
+
+	EditGuestJwtKeyWithResponse(ctx context.Context, workspace WorkspaceId, body EditGuestJwtKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*EditGuestJwtKeyResponse, error)
+
 	// EditInstanceGroupsWithBodyWithResponse request with any body
 	EditInstanceGroupsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditInstanceGroupsResponse, error)
 
@@ -87690,6 +88159,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetGitSyncEnabledWithResponse request
 	GetGitSyncEnabledWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetGitSyncEnabledResponse, error)
+
+	// GetGuestUsageWithResponse request
+	GetGuestUsageWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetGuestUsageResponse, error)
 
 	// ImportPgDatabaseWithBodyWithResponse request with any body
 	ImportPgDatabaseWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ImportPgDatabaseResponse, error)
@@ -88147,6 +88619,28 @@ func (r GetAppEmbedTokenByCustomPathResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetAppEmbedTokenByCustomPathResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGuestEntryByCustomPathResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GuestEntry
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGuestEntryByCustomPathResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGuestEntryByCustomPathResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -91274,6 +91768,28 @@ func (r ListExtJwtTokensResponse) StatusCode() int {
 	return 0
 }
 
+type ListGuestsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GuestList
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGuestsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGuestsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type LeaveInstanceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -93143,6 +93659,28 @@ func (r ExecuteComponentResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ExecuteComponentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGuestEntryResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GuestEntry
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGuestEntryResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGuestEntryResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -106360,6 +106898,48 @@ func (r EditGitSyncRepositoryResponse) StatusCode() int {
 	return 0
 }
 
+type EditGuestAccessResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditGuestAccessResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditGuestAccessResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type EditGuestJwtKeyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditGuestJwtKeyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditGuestJwtKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditInstanceGroupsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -106873,16 +107453,19 @@ type GetPublicSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Datatable          *DataTableSettings         `json:"datatable,omitempty"`
-		DeployUi           *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
-		LargeFileStorage   *LargeFileStorage          `json:"large_file_storage,omitempty"`
-		MuteCriticalAlerts *bool                      `json:"mute_critical_alerts,omitempty"`
-		SlackName          *string                    `json:"slack_name,omitempty"`
-		SlackTeamId        *string                    `json:"slack_team_id,omitempty"`
-		TeamsTeamGuid      *string                    `json:"teams_team_guid,omitempty"`
-		TeamsTeamId        *string                    `json:"teams_team_id,omitempty"`
-		TeamsTeamName      *string                    `json:"teams_team_name,omitempty"`
-		WorkspaceId        string                     `json:"workspace_id"`
+		Datatable *DataTableSettings         `json:"datatable,omitempty"`
+		DeployUi  *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+
+		// GuestAccessEnabled Whether this workspace admits guest sessions. An app's own `guest` execution mode is inert while this is false.
+		GuestAccessEnabled bool              `json:"guest_access_enabled"`
+		LargeFileStorage   *LargeFileStorage `json:"large_file_storage,omitempty"`
+		MuteCriticalAlerts *bool             `json:"mute_critical_alerts,omitempty"`
+		SlackName          *string           `json:"slack_name,omitempty"`
+		SlackTeamId        *string           `json:"slack_team_id,omitempty"`
+		TeamsTeamGuid      *string           `json:"teams_team_guid,omitempty"`
+		TeamsTeamId        *string           `json:"teams_team_id,omitempty"`
+		TeamsTeamName      *string           `json:"teams_team_name,omitempty"`
+		WorkspaceId        string            `json:"workspace_id"`
 	}
 }
 
@@ -106949,10 +107532,19 @@ type GetSettingsResponse struct {
 		// ErrorHandlerFallbackToInstanceAlerts Report failed jobs to the instance critical alert channels when no workspace error handler is set.
 		ErrorHandlerFallbackToInstanceAlerts *bool                     `json:"error_handler_fallback_to_instance_alerts,omitempty"`
 		GitSync                              *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
-		LargeFileStorage                     *LargeFileStorage         `json:"large_file_storage,omitempty"`
-		MuteCriticalAlerts                   *bool                     `json:"mute_critical_alerts,omitempty"`
-		OperatorSettings                     *OperatorSettings         `json:"operator_settings"`
-		Plan                                 *string                   `json:"plan,omitempty"`
+
+		// GuestAccessEnabled Whether this workspace admits guest sessions. An app's own `guest` execution mode is inert while this is false.
+		GuestAccessEnabled *bool `json:"guest_access_enabled,omitempty"`
+
+		// GuestJwtJwksUrl JWKS URL a guest JWT (`jwt_guest_`) is verified against for this workspace. Mutually exclusive with `guest_jwt_public_key`.
+		GuestJwtJwksUrl *string `json:"guest_jwt_jwks_url,omitempty"`
+
+		// GuestJwtPublicKey PEM public key a guest JWT (`jwt_guest_`) is verified against for this workspace. Mutually exclusive with `guest_jwt_jwks_url`.
+		GuestJwtPublicKey  *string           `json:"guest_jwt_public_key,omitempty"`
+		LargeFileStorage   *LargeFileStorage `json:"large_file_storage,omitempty"`
+		MuteCriticalAlerts *bool             `json:"mute_critical_alerts,omitempty"`
+		OperatorSettings   *OperatorSettings `json:"operator_settings"`
+		Plan               *string           `json:"plan,omitempty"`
 
 		// PublicAppExecutionLimitPerMinute Rate limit for public app executions per minute per server. NULL or 0 means disabled.
 		PublicAppExecutionLimitPerMinute *int    `json:"public_app_execution_limit_per_minute,omitempty"`
@@ -107060,6 +107652,28 @@ func (r GetGitSyncEnabledResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetGitSyncEnabledResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGuestUsageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GuestUsage
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGuestUsageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGuestUsageResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -108505,6 +109119,15 @@ func (c *ClientWithResponses) GetAppEmbedTokenByCustomPathWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseGetAppEmbedTokenByCustomPathResponse(rsp)
+}
+
+// GetGuestEntryByCustomPathWithResponse request returning *GetGuestEntryByCustomPathResponse
+func (c *ClientWithResponses) GetGuestEntryByCustomPathWithResponse(ctx context.Context, customPath CustomPath, reqEditors ...RequestEditorFn) (*GetGuestEntryByCustomPathResponse, error) {
+	rsp, err := c.GetGuestEntryByCustomPath(ctx, customPath, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGuestEntryByCustomPathResponse(rsp)
 }
 
 // GetPublicAppByCustomPathWithResponse request returning *GetPublicAppByCustomPathResponse
@@ -110014,6 +110637,15 @@ func (c *ClientWithResponses) ListExtJwtTokensWithResponse(ctx context.Context, 
 	return ParseListExtJwtTokensResponse(rsp)
 }
 
+// ListGuestsWithResponse request returning *ListGuestsResponse
+func (c *ClientWithResponses) ListGuestsWithResponse(ctx context.Context, params *ListGuestsParams, reqEditors ...RequestEditorFn) (*ListGuestsResponse, error) {
+	rsp, err := c.ListGuests(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGuestsResponse(rsp)
+}
+
 // LeaveInstanceWithResponse request returning *LeaveInstanceResponse
 func (c *ClientWithResponses) LeaveInstanceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LeaveInstanceResponse, error) {
 	rsp, err := c.LeaveInstance(ctx, reqEditors...)
@@ -110980,6 +111612,15 @@ func (c *ClientWithResponses) ExecuteComponentWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseExecuteComponentResponse(rsp)
+}
+
+// GetGuestEntryWithResponse request returning *GetGuestEntryResponse
+func (c *ClientWithResponses) GetGuestEntryWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetGuestEntryResponse, error) {
+	rsp, err := c.GetGuestEntry(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGuestEntryResponse(rsp)
 }
 
 // AppLoadCsvPreviewWithResponse request returning *AppLoadCsvPreviewResponse
@@ -117577,6 +118218,40 @@ func (c *ClientWithResponses) EditGitSyncRepositoryWithResponse(ctx context.Cont
 	return ParseEditGitSyncRepositoryResponse(rsp)
 }
 
+// EditGuestAccessWithBodyWithResponse request with arbitrary body returning *EditGuestAccessResponse
+func (c *ClientWithResponses) EditGuestAccessWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditGuestAccessResponse, error) {
+	rsp, err := c.EditGuestAccessWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditGuestAccessResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditGuestAccessWithResponse(ctx context.Context, workspace WorkspaceId, body EditGuestAccessJSONRequestBody, reqEditors ...RequestEditorFn) (*EditGuestAccessResponse, error) {
+	rsp, err := c.EditGuestAccess(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditGuestAccessResponse(rsp)
+}
+
+// EditGuestJwtKeyWithBodyWithResponse request with arbitrary body returning *EditGuestJwtKeyResponse
+func (c *ClientWithResponses) EditGuestJwtKeyWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditGuestJwtKeyResponse, error) {
+	rsp, err := c.EditGuestJwtKeyWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditGuestJwtKeyResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditGuestJwtKeyWithResponse(ctx context.Context, workspace WorkspaceId, body EditGuestJwtKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*EditGuestJwtKeyResponse, error) {
+	rsp, err := c.EditGuestJwtKey(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditGuestJwtKeyResponse(rsp)
+}
+
 // EditInstanceGroupsWithBodyWithResponse request with arbitrary body returning *EditInstanceGroupsResponse
 func (c *ClientWithResponses) EditInstanceGroupsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditInstanceGroupsResponse, error) {
 	rsp, err := c.EditInstanceGroupsWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -117907,6 +118582,15 @@ func (c *ClientWithResponses) GetGitSyncEnabledWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseGetGitSyncEnabledResponse(rsp)
+}
+
+// GetGuestUsageWithResponse request returning *GetGuestUsageResponse
+func (c *ClientWithResponses) GetGuestUsageWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetGuestUsageResponse, error) {
+	rsp, err := c.GetGuestUsage(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGuestUsageResponse(rsp)
 }
 
 // ImportPgDatabaseWithBodyWithResponse request with arbitrary body returning *ImportPgDatabaseResponse
@@ -118844,6 +119528,32 @@ func ParseGetAppEmbedTokenByCustomPathResponse(rsp *http.Response) (*GetAppEmbed
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest EmbedTokenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetGuestEntryByCustomPathResponse parses an HTTP response from a GetGuestEntryByCustomPathWithResponse call
+func ParseGetGuestEntryByCustomPathResponse(rsp *http.Response) (*GetGuestEntryByCustomPathResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGuestEntryByCustomPathResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GuestEntry
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -122040,6 +122750,32 @@ func ParseListExtJwtTokensResponse(rsp *http.Response) (*ListExtJwtTokensRespons
 	return response, nil
 }
 
+// ParseListGuestsResponse parses an HTTP response from a ListGuestsWithResponse call
+func ParseListGuestsResponse(rsp *http.Response) (*ListGuestsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGuestsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GuestList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseLeaveInstanceResponse parses an HTTP response from a LeaveInstanceWithResponse call
 func ParseLeaveInstanceResponse(rsp *http.Response) (*LeaveInstanceResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -123841,6 +124577,32 @@ func ParseExecuteComponentResponse(rsp *http.Response) (*ExecuteComponentRespons
 	response := &ExecuteComponentResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetGuestEntryResponse parses an HTTP response from a GetGuestEntryWithResponse call
+func ParseGetGuestEntryResponse(rsp *http.Response) (*GetGuestEntryResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGuestEntryResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GuestEntry
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -137062,6 +137824,38 @@ func ParseEditGitSyncRepositoryResponse(rsp *http.Response) (*EditGitSyncReposit
 	return response, nil
 }
 
+// ParseEditGuestAccessResponse parses an HTTP response from a EditGuestAccessWithResponse call
+func ParseEditGuestAccessResponse(rsp *http.Response) (*EditGuestAccessResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditGuestAccessResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseEditGuestJwtKeyResponse parses an HTTP response from a EditGuestJwtKeyWithResponse call
+func ParseEditGuestJwtKeyResponse(rsp *http.Response) (*EditGuestJwtKeyResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditGuestJwtKeyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseEditInstanceGroupsResponse parses an HTTP response from a EditInstanceGroupsWithResponse call
 func ParseEditInstanceGroupsResponse(rsp *http.Response) (*EditInstanceGroupsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -137603,16 +138397,19 @@ func ParseGetPublicSettingsResponse(rsp *http.Response) (*GetPublicSettingsRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Datatable          *DataTableSettings         `json:"datatable,omitempty"`
-			DeployUi           *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
-			LargeFileStorage   *LargeFileStorage          `json:"large_file_storage,omitempty"`
-			MuteCriticalAlerts *bool                      `json:"mute_critical_alerts,omitempty"`
-			SlackName          *string                    `json:"slack_name,omitempty"`
-			SlackTeamId        *string                    `json:"slack_team_id,omitempty"`
-			TeamsTeamGuid      *string                    `json:"teams_team_guid,omitempty"`
-			TeamsTeamId        *string                    `json:"teams_team_id,omitempty"`
-			TeamsTeamName      *string                    `json:"teams_team_name,omitempty"`
-			WorkspaceId        string                     `json:"workspace_id"`
+			Datatable *DataTableSettings         `json:"datatable,omitempty"`
+			DeployUi  *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+
+			// GuestAccessEnabled Whether this workspace admits guest sessions. An app's own `guest` execution mode is inert while this is false.
+			GuestAccessEnabled bool              `json:"guest_access_enabled"`
+			LargeFileStorage   *LargeFileStorage `json:"large_file_storage,omitempty"`
+			MuteCriticalAlerts *bool             `json:"mute_critical_alerts,omitempty"`
+			SlackName          *string           `json:"slack_name,omitempty"`
+			SlackTeamId        *string           `json:"slack_team_id,omitempty"`
+			TeamsTeamGuid      *string           `json:"teams_team_guid,omitempty"`
+			TeamsTeamId        *string           `json:"teams_team_id,omitempty"`
+			TeamsTeamName      *string           `json:"teams_team_name,omitempty"`
+			WorkspaceId        string            `json:"workspace_id"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -137687,10 +138484,19 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			// ErrorHandlerFallbackToInstanceAlerts Report failed jobs to the instance critical alert channels when no workspace error handler is set.
 			ErrorHandlerFallbackToInstanceAlerts *bool                     `json:"error_handler_fallback_to_instance_alerts,omitempty"`
 			GitSync                              *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
-			LargeFileStorage                     *LargeFileStorage         `json:"large_file_storage,omitempty"`
-			MuteCriticalAlerts                   *bool                     `json:"mute_critical_alerts,omitempty"`
-			OperatorSettings                     *OperatorSettings         `json:"operator_settings"`
-			Plan                                 *string                   `json:"plan,omitempty"`
+
+			// GuestAccessEnabled Whether this workspace admits guest sessions. An app's own `guest` execution mode is inert while this is false.
+			GuestAccessEnabled *bool `json:"guest_access_enabled,omitempty"`
+
+			// GuestJwtJwksUrl JWKS URL a guest JWT (`jwt_guest_`) is verified against for this workspace. Mutually exclusive with `guest_jwt_public_key`.
+			GuestJwtJwksUrl *string `json:"guest_jwt_jwks_url,omitempty"`
+
+			// GuestJwtPublicKey PEM public key a guest JWT (`jwt_guest_`) is verified against for this workspace. Mutually exclusive with `guest_jwt_jwks_url`.
+			GuestJwtPublicKey  *string           `json:"guest_jwt_public_key,omitempty"`
+			LargeFileStorage   *LargeFileStorage `json:"large_file_storage,omitempty"`
+			MuteCriticalAlerts *bool             `json:"mute_critical_alerts,omitempty"`
+			OperatorSettings   *OperatorSettings `json:"operator_settings"`
+			Plan               *string           `json:"plan,omitempty"`
 
 			// PublicAppExecutionLimitPerMinute Rate limit for public app executions per minute per server. NULL or 0 means disabled.
 			PublicAppExecutionLimitPerMinute *int    `json:"public_app_execution_limit_per_minute,omitempty"`
@@ -137789,6 +138595,32 @@ func ParseGetGitSyncEnabledResponse(rsp *http.Response) (*GetGitSyncEnabledRespo
 			Reason    *string `json:"reason"`
 			UserCount *int    `json:"user_count"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetGuestUsageResponse parses an HTTP response from a GetGuestUsageWithResponse call
+func ParseGetGuestUsageResponse(rsp *http.Response) (*GetGuestUsageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGuestUsageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GuestUsage
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
