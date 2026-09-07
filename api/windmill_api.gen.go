@@ -18736,11 +18736,20 @@ type ClientInterface interface {
 	// GetResourceType request
 	GetResourceType(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListHubResourceTypeInfo request
+	ListHubResourceTypeInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PickHubResourceType request
+	PickHubResourceType(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListResourceType request
 	ListResourceType(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListResourceTypeNames request
 	ListResourceTypeNames(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListResourceCountsByType request
+	ListResourceCountsByType(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateResourceTypeWithBody request with any body
 	UpdateResourceTypeWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -29765,6 +29774,30 @@ func (c *Client) GetResourceType(ctx context.Context, workspace WorkspaceId, pat
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListHubResourceTypeInfo(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListHubResourceTypeInfoRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PickHubResourceType(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPickHubResourceTypeRequest(c.Server, workspace, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListResourceType(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListResourceTypeRequest(c.Server, workspace)
 	if err != nil {
@@ -29779,6 +29812,18 @@ func (c *Client) ListResourceType(ctx context.Context, workspace WorkspaceId, re
 
 func (c *Client) ListResourceTypeNames(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListResourceTypeNamesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListResourceCountsByType(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListResourceCountsByTypeRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -73295,6 +73340,81 @@ func NewGetResourceTypeRequest(server string, workspace WorkspaceId, path Path) 
 	return req, nil
 }
 
+// NewListHubResourceTypeInfoRequest generates requests for ListHubResourceTypeInfo
+func NewListHubResourceTypeInfoRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/type/hub/info", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPickHubResourceTypeRequest generates requests for PickHubResourceType
+func NewPickHubResourceTypeRequest(server string, workspace WorkspaceId, name Name) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/type/hub/pick/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListResourceTypeRequest generates requests for ListResourceType
 func NewListResourceTypeRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -73346,6 +73466,40 @@ func NewListResourceTypeNamesRequest(server string, workspace WorkspaceId) (*htt
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/resources/type/listnames", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListResourceCountsByTypeRequest generates requests for ListResourceCountsByType
+func NewListResourceCountsByTypeRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/resources/type/resource_counts", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -87475,11 +87629,20 @@ type ClientWithResponsesInterface interface {
 	// GetResourceTypeWithResponse request
 	GetResourceTypeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetResourceTypeResponse, error)
 
+	// ListHubResourceTypeInfoWithResponse request
+	ListHubResourceTypeInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListHubResourceTypeInfoResponse, error)
+
+	// PickHubResourceTypeWithResponse request
+	PickHubResourceTypeWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*PickHubResourceTypeResponse, error)
+
 	// ListResourceTypeWithResponse request
 	ListResourceTypeWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListResourceTypeResponse, error)
 
 	// ListResourceTypeNamesWithResponse request
 	ListResourceTypeNamesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListResourceTypeNamesResponse, error)
+
+	// ListResourceCountsByTypeWithResponse request
+	ListResourceCountsByTypeWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListResourceCountsByTypeResponse, error)
 
 	// UpdateResourceTypeWithBodyWithResponse request with any body
 	UpdateResourceTypeWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResourceTypeResponse, error)
@@ -89758,6 +89921,9 @@ type ListHubIntegrationsResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *[]struct {
 		Name string `json:"name"`
+
+		// Picks how often the integration has been picked, absent on a hub that does not count picks
+		Picks *int `json:"picks,omitempty"`
 	}
 }
 
@@ -103197,6 +103363,57 @@ func (r GetResourceTypeResponse) StatusCode() int {
 	return 0
 }
 
+type ListHubResourceTypeInfoResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		// App the integration the resource type belongs to, which is not always its own name
+		App   string `json:"app"`
+		Name  string `json:"name"`
+		Picks int    `json:"picks"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListHubResourceTypeInfoResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListHubResourceTypeInfoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PickHubResourceTypeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Success bool `json:"success"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r PickHubResourceTypeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PickHubResourceTypeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListResourceTypeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -103235,6 +103452,31 @@ func (r ListResourceTypeNamesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListResourceTypeNamesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListResourceCountsByTypeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Count        int    `json:"count"`
+		ResourceType string `json:"resource_type"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListResourceCountsByTypeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListResourceCountsByTypeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -116375,6 +116617,24 @@ func (c *ClientWithResponses) GetResourceTypeWithResponse(ctx context.Context, w
 	return ParseGetResourceTypeResponse(rsp)
 }
 
+// ListHubResourceTypeInfoWithResponse request returning *ListHubResourceTypeInfoResponse
+func (c *ClientWithResponses) ListHubResourceTypeInfoWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListHubResourceTypeInfoResponse, error) {
+	rsp, err := c.ListHubResourceTypeInfo(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListHubResourceTypeInfoResponse(rsp)
+}
+
+// PickHubResourceTypeWithResponse request returning *PickHubResourceTypeResponse
+func (c *ClientWithResponses) PickHubResourceTypeWithResponse(ctx context.Context, workspace WorkspaceId, name Name, reqEditors ...RequestEditorFn) (*PickHubResourceTypeResponse, error) {
+	rsp, err := c.PickHubResourceType(ctx, workspace, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePickHubResourceTypeResponse(rsp)
+}
+
 // ListResourceTypeWithResponse request returning *ListResourceTypeResponse
 func (c *ClientWithResponses) ListResourceTypeWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListResourceTypeResponse, error) {
 	rsp, err := c.ListResourceType(ctx, workspace, reqEditors...)
@@ -116391,6 +116651,15 @@ func (c *ClientWithResponses) ListResourceTypeNamesWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseListResourceTypeNamesResponse(rsp)
+}
+
+// ListResourceCountsByTypeWithResponse request returning *ListResourceCountsByTypeResponse
+func (c *ClientWithResponses) ListResourceCountsByTypeWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListResourceCountsByTypeResponse, error) {
+	rsp, err := c.ListResourceCountsByType(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListResourceCountsByTypeResponse(rsp)
 }
 
 // UpdateResourceTypeWithBodyWithResponse request with arbitrary body returning *UpdateResourceTypeResponse
@@ -120745,6 +121014,9 @@ func ParseListHubIntegrationsResponse(rsp *http.Response) (*ListHubIntegrationsR
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
 			Name string `json:"name"`
+
+			// Picks how often the integration has been picked, absent on a hub that does not count picks
+			Picks *int `json:"picks,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -134069,6 +134341,65 @@ func ParseGetResourceTypeResponse(rsp *http.Response) (*GetResourceTypeResponse,
 	return response, nil
 }
 
+// ParseListHubResourceTypeInfoResponse parses an HTTP response from a ListHubResourceTypeInfoWithResponse call
+func ParseListHubResourceTypeInfoResponse(rsp *http.Response) (*ListHubResourceTypeInfoResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListHubResourceTypeInfoResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			// App the integration the resource type belongs to, which is not always its own name
+			App   string `json:"app"`
+			Name  string `json:"name"`
+			Picks int    `json:"picks"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePickHubResourceTypeResponse parses an HTTP response from a PickHubResourceTypeWithResponse call
+func ParsePickHubResourceTypeResponse(rsp *http.Response) (*PickHubResourceTypeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PickHubResourceTypeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Success bool `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListResourceTypeResponse parses an HTTP response from a ListResourceTypeWithResponse call
 func ParseListResourceTypeResponse(rsp *http.Response) (*ListResourceTypeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -134111,6 +134442,35 @@ func ParseListResourceTypeNamesResponse(rsp *http.Response) (*ListResourceTypeNa
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListResourceCountsByTypeResponse parses an HTTP response from a ListResourceCountsByTypeWithResponse call
+func ParseListResourceCountsByTypeResponse(rsp *http.Response) (*ListResourceCountsByTypeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListResourceCountsByTypeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Count        int    `json:"count"`
+			ResourceType string `json:"resource_type"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
