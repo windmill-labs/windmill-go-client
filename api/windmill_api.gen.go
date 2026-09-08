@@ -577,6 +577,11 @@ const (
 	FlowStatusFailureModuleTypeWaitingForPriorSteps FlowStatusFailureModuleType = "WaitingForPriorSteps"
 )
 
+// Defines values for GitCredentialStatusProvider.
+const (
+	Gitlab GitCredentialStatusProvider = "gitlab"
+)
+
 // Defines values for GitSyncObjectType.
 const (
 	GitSyncObjectTypeApp                   GitSyncObjectType = "app"
@@ -2495,7 +2500,15 @@ type DatatableMigrationWithStatusStatus string
 
 // DbtAssetProvenance What dbt says about the model, snapshot, seed or source that produces (or, for a source, is read at) this relation. A dbt project is one runnable node with many model assets, so per-model metadata belongs here rather than on the script.
 type DbtAssetProvenance struct {
-	// Columns Declared column metadata (name -> description). NOT column lineage — `manifest.json` carries none.
+	// ColumnSchema Every column of the relation, typed and in the order the model produces them, from the engine's static analysis. Present only for a project that opted into it, and gated like `columns` and the model's SQL: a full column list is the shape of what the author wrote.
+	ColumnSchema *[]struct {
+		Name string `json:"name"`
+
+		// Type The declared type where `schema.yml` gives one, else the inferred one. Omitted when neither is known.
+		Type *string `json:"type,omitempty"`
+	} `json:"column_schema,omitempty"`
+
+	// Columns Declared column metadata (name -> description) — what `manifest.json` carries, which is only the columns an author wrote down. Omitted when the caller cannot read the script.
 	Columns   *map[string]interface{} `json:"columns,omitempty"`
 	DataTests *[]struct {
 		Args   *map[string]interface{} `json:"args,omitempty"`
@@ -2532,6 +2545,22 @@ type DbtAssetProvenance struct {
 
 // DbtAssetProvenanceResourceType defines model for DbtAssetProvenance.ResourceType.
 type DbtAssetProvenanceResourceType string
+
+// DbtColumnLineage The direct column-to-column lineage the asked-for relations' columns sit in — the connected component around them — in the terms the canvas draws: relations and columns, never dbt's node ids.
+type DbtColumnLineage struct {
+	Edges []struct {
+		FromAssetPath string `json:"from_asset_path"`
+		FromColumn    string `json:"from_column"`
+
+		// Kind dbt's own word for how the value travelled — `copy` (passthrough) or `mod` (transformed). Not an enum: the engine treats the set as open.
+		Kind        string `json:"kind"`
+		ToAssetPath string `json:"to_asset_path"`
+		ToColumn    string `json:"to_column"`
+	} `json:"edges"`
+
+	// Truncated The component reaches further than `edges`, which holds the part nearest the asked-for relations. A trace that stops short is otherwise indistinguishable from one that ends.
+	Truncated bool `json:"truncated"`
+}
 
 // DbtWarehouseConnection defines model for DbtWarehouseConnection.
 type DbtWarehouseConnection struct {
@@ -4171,10 +4200,31 @@ type GetAllTopicSubscription struct {
 	TopicId   string  `json:"topic_id"`
 }
 
+// GitCredentialStatus server-owned, what the repo's own credential reports about itself
+type GitCredentialStatus struct {
+	CheckedAt int64   `json:"checked_at"`
+	Error     *string `json:"error,omitempty"`
+
+	// ExpiresAt absent for a non-expiring token
+	ExpiresAt *openapi_types.Date         `json:"expires_at,omitempty"`
+	Provider  GitCredentialStatusProvider `json:"provider"`
+
+	// Rotatable whether this workspace renews the credential itself
+	Rotatable bool      `json:"rotatable"`
+	Scopes    *[]string `json:"scopes,omitempty"`
+	TokenId   *int64    `json:"token_id,omitempty"`
+}
+
+// GitCredentialStatusProvider defines model for GitCredentialStatus.Provider.
+type GitCredentialStatusProvider string
+
 // GitRepositorySettings defines model for GitRepositorySettings.
 type GitRepositorySettings struct {
-	AutoPull             *AutoPullSettings    `json:"auto_pull,omitempty"`
-	Collapsed            *bool                `json:"collapsed,omitempty"`
+	AutoPull  *AutoPullSettings `json:"auto_pull,omitempty"`
+	Collapsed *bool             `json:"collapsed,omitempty"`
+
+	// Credential server-owned, what the repo's own credential reports about itself
+	Credential           *GitCredentialStatus `json:"credential,omitempty"`
 	ExcludeTypesOverride *[]GitSyncObjectType `json:"exclude_types_override,omitempty"`
 	ForkOpenPrs          *bool                `json:"fork_open_prs,omitempty"`
 	GitRepoResourcePath  string               `json:"git_repo_resource_path"`
@@ -4228,6 +4278,15 @@ type GithubRepoEntry struct {
 	Name     string `json:"name"`
 	Owner    string `json:"owner"`
 	Private  bool   `json:"private"`
+}
+
+// GitlabProject a GitLab project a token can sync, as the resource form needs it
+type GitlabProject struct {
+	DefaultBranch *string `json:"default_branch,omitempty"`
+	HttpUrlToRepo string  `json:"http_url_to_repo"`
+
+	// PathWithNamespace nested group path plus project name, which is also GitLab's project id
+	PathWithNamespace string `json:"path_with_namespace"`
 }
 
 // GlobalOffboardPreview defines model for GlobalOffboardPreview.
@@ -4932,6 +4991,9 @@ type NativeServiceName string
 
 // NativeTrigger A native trigger stored in Windmill
 type NativeTrigger struct {
+	// Enabled Whether the trigger starts a job when it fires
+	Enabled bool `json:"enabled"`
+
 	// Error Error message if the trigger is in an error state
 	Error *string `json:"error"`
 
@@ -4957,6 +5019,9 @@ type NativeTrigger struct {
 
 // NativeTriggerData Data for creating or updating a native trigger
 type NativeTriggerData struct {
+	// Enabled Whether the trigger starts a job when it fires. Honoured on create only, so a trigger can be registered already paused; an update ignores it and setenabled is the only way to change an existing trigger's state. Defaults to true.
+	Enabled *bool `json:"enabled,omitempty"`
+
 	// IsFlow Whether the trigger targets a flow (true) or a script (false)
 	IsFlow bool `json:"is_flow"`
 
@@ -4972,6 +5037,9 @@ type NativeTriggerData struct {
 
 // NativeTriggerWithExternal Full trigger response containing both Windmill data and external service data
 type NativeTriggerWithExternal struct {
+	// Enabled Whether the trigger starts a job when it fires
+	Enabled bool `json:"enabled"`
+
 	// Error Error message if the trigger is in an error state
 	Error *string `json:"error"`
 
@@ -9359,6 +9427,16 @@ type ListAssetSchemasParams struct {
 	Path string `form:"path" json:"path"`
 }
 
+// GetDbtColumnLineageParams defines parameters for GetDbtColumnLineage.
+type GetDbtColumnLineageParams struct {
+	// AssetPath The `dbt://` relations whose lineage to return. Repeated, once per relation, and answered as one union. At least one, and at most 1000 — a request naming none, or more than that, is refused rather than answered with an empty component.
+	AssetPath []string `form:"asset_path" json:"asset_path"`
+
+	// DbtScriptHash The deployed version a view is drawing, when it is drawing one — the dbt editor, which shows a single project as of a single deploy. A version-pinned answer is that version's project alone, the same as a job-pinned one, and only the unpinned answer crosses projects: a pin says which stored graph is on screen, and another project's live graph is not part of it.
+	// A run's or an editor buffer's own graph is not reachable here: that pins to a job, and costs the job-read gate — see `jobs/dbt_column_lineage/{id}`.
+	DbtScriptHash *string `form:"dbt_script_hash,omitempty" json:"dbt_script_hash,omitempty"`
+}
+
 // GetAssetsGraphParams defines parameters for GetAssetsGraph.
 type GetAssetsGraphParams struct {
 	// AssetKinds Filter by asset kinds (comma-separated list)
@@ -10098,6 +10176,33 @@ type ListGoogleTopicsParams struct {
 	ProjectId *GcpProjectId `form:"project_id,omitempty" json:"project_id,omitempty"`
 }
 
+// SetGitCredentialJSONBody defines parameters for SetGitCredential.
+type SetGitCredentialJSONBody struct {
+	// RepoUrl The repository the credential is for, and the key it is stored under. It is served for this repository and no other, so repointing a resource elsewhere cannot carry the token along.
+	RepoUrl string `json:"repo_url"`
+
+	// Token The access token, as pasted
+	Token string `json:"token"`
+}
+
+// GetCredentialOriginParams defines parameters for GetCredentialOrigin.
+type GetCredentialOriginParams struct {
+	// Path Path of the git repository resource, with or without the `$res:` prefix. A path rather than a URL, because a resource URL may carry a token and a URL in a query string lands in logs.
+	Path string `form:"path" json:"path"`
+}
+
+// ListGitlabProjectsJSONBody defines parameters for ListGitlabProjects.
+type ListGitlabProjectsJSONBody struct {
+	// BaseUrl The GitLab instance, e.g. https://gitlab.com
+	BaseUrl string `json:"base_url"`
+
+	// Search Narrow the list to projects matching this text
+	Search *string `json:"search,omitempty"`
+
+	// Token A project access token with the api scope, or a group token that reaches the project
+	Token string `json:"token"`
+}
+
 // GhesInstallationCallbackJSONBody defines parameters for GhesInstallationCallback.
 type GhesInstallationCallbackJSONBody struct {
 	// InstallationId The GitHub App installation ID from GHES
@@ -10767,6 +10872,12 @@ type ResolveCompletedJobsJSONBody struct {
 // UnresolveCompletedJobsJSONBody defines parameters for UnresolveCompletedJobs.
 type UnresolveCompletedJobsJSONBody struct {
 	JobIds []openapi_types.UUID `json:"job_ids"`
+}
+
+// GetDbtRunColumnLineageParams defines parameters for GetDbtRunColumnLineage.
+type GetDbtRunColumnLineageParams struct {
+	// AssetPath The `dbt://` relations whose lineage to return. Repeated, once per relation, and answered as one union. At least one, and at most 1000 — a request naming none, or more than that, is refused rather than answered with an empty component.
+	AssetPath []string `form:"asset_path" json:"asset_path"`
 }
 
 // GetDbtRunGraphParams defines parameters for GetDbtRunGraph.
@@ -12068,6 +12179,11 @@ type ListNativeTriggersParams struct {
 	// non-operators + page 0 + no narrowing filters on the backend so
 	// picker callers stay deployed-only and pagination stays clean.
 	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
+}
+
+// SetNativeTriggerEnabledJSONBody defines parameters for SetNativeTriggerEnabled.
+type SetNativeTriggerEnabledJSONBody struct {
+	Enabled bool `json:"enabled"`
 }
 
 // GetNatsTriggerParams defines parameters for GetNatsTrigger.
@@ -13696,6 +13812,12 @@ type TestGcpConnectionJSONRequestBody TestGcpConnectionJSONBody
 // UpdateGcpTriggerJSONRequestBody defines body for UpdateGcpTrigger for application/json ContentType.
 type UpdateGcpTriggerJSONRequestBody = GcpTriggerData
 
+// SetGitCredentialJSONRequestBody defines body for SetGitCredential for application/json ContentType.
+type SetGitCredentialJSONRequestBody SetGitCredentialJSONBody
+
+// ListGitlabProjectsJSONRequestBody defines body for ListGitlabProjects for application/json ContentType.
+type ListGitlabProjectsJSONRequestBody ListGitlabProjectsJSONBody
+
 // GhesInstallationCallbackJSONRequestBody defines body for GhesInstallationCallback for application/json ContentType.
 type GhesInstallationCallbackJSONRequestBody GhesInstallationCallbackJSONBody
 
@@ -13968,6 +14090,9 @@ type GenerateInstanceConnectUrlJSONRequestBody = RedirectUri
 
 // CreateNativeTriggerJSONRequestBody defines body for CreateNativeTrigger for application/json ContentType.
 type CreateNativeTriggerJSONRequestBody = NativeTriggerData
+
+// SetNativeTriggerEnabledJSONRequestBody defines body for SetNativeTriggerEnabled for application/json ContentType.
+type SetNativeTriggerEnabledJSONRequestBody SetNativeTriggerEnabledJSONBody
 
 // UpdateNativeTriggerJSONRequestBody defines body for UpdateNativeTrigger for application/json ContentType.
 type UpdateNativeTriggerJSONRequestBody = NativeTriggerData
@@ -17281,6 +17406,9 @@ type ClientInterface interface {
 	// ListAssetSchemas request
 	ListAssetSchemas(ctx context.Context, workspace WorkspaceId, params *ListAssetSchemasParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetDbtColumnLineage request
+	GetDbtColumnLineage(ctx context.Context, workspace WorkspaceId, params *GetDbtColumnLineageParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAssetsGraph request
 	GetAssetsGraph(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17666,6 +17794,19 @@ type ClientInterface interface {
 
 	UpdateGcpTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateGcpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SetGitCredentialWithBody request with any body
+	SetGitCredentialWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetGitCredential(ctx context.Context, workspace WorkspaceId, body SetGitCredentialJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCredentialOrigin request
+	GetCredentialOrigin(ctx context.Context, workspace WorkspaceId, params *GetCredentialOriginParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListGitlabProjectsWithBody request with any body
+	ListGitlabProjectsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ListGitlabProjects(ctx context.Context, workspace WorkspaceId, body ListGitlabProjectsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ExportInstallation request
 	ExportInstallation(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -18001,6 +18142,9 @@ type ClientInterface interface {
 	UnresolveCompletedJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UnresolveCompletedJobs(ctx context.Context, workspace WorkspaceId, body UnresolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDbtRunColumnLineage request
+	GetDbtRunColumnLineage(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunColumnLineageParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetDbtRunGraph request
 	GetDbtRunGraph(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunGraphParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18477,6 +18621,11 @@ type ClientInterface interface {
 
 	// ListNativeTriggers request
 	ListNativeTriggers(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, params *ListNativeTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetNativeTriggerEnabledWithBody request with any body
+	SetNativeTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetNativeTriggerEnabled(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, body SetNativeTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SyncNativeTriggers request
 	SyncNativeTriggers(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -23342,6 +23491,18 @@ func (c *Client) ListAssetSchemas(ctx context.Context, workspace WorkspaceId, pa
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetDbtColumnLineage(ctx context.Context, workspace WorkspaceId, params *GetDbtColumnLineageParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDbtColumnLineageRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetAssetsGraph(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetAssetsGraphRequest(c.Server, workspace, params)
 	if err != nil {
@@ -25034,6 +25195,66 @@ func (c *Client) UpdateGcpTrigger(ctx context.Context, workspace WorkspaceId, pa
 	return c.Client.Do(req)
 }
 
+func (c *Client) SetGitCredentialWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetGitCredentialRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetGitCredential(ctx context.Context, workspace WorkspaceId, body SetGitCredentialJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetGitCredentialRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCredentialOrigin(ctx context.Context, workspace WorkspaceId, params *GetCredentialOriginParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCredentialOriginRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListGitlabProjectsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGitlabProjectsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListGitlabProjects(ctx context.Context, workspace WorkspaceId, body ListGitlabProjectsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGitlabProjectsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ExportInstallation(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExportInstallationRequest(c.Server, workspace, installationId)
 	if err != nil {
@@ -26524,6 +26745,18 @@ func (c *Client) UnresolveCompletedJobsWithBody(ctx context.Context, workspace W
 
 func (c *Client) UnresolveCompletedJobs(ctx context.Context, workspace WorkspaceId, body UnresolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUnresolveCompletedJobsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDbtRunColumnLineage(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunColumnLineageParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDbtRunColumnLineageRequest(c.Server, workspace, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -28636,6 +28869,30 @@ func (c *Client) GetNativeTrigger(ctx context.Context, workspace WorkspaceId, se
 
 func (c *Client) ListNativeTriggers(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, params *ListNativeTriggersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListNativeTriggersRequest(c.Server, workspace, serviceName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetNativeTriggerEnabledWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetNativeTriggerEnabledRequestWithBody(c.Server, workspace, serviceName, externalId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetNativeTriggerEnabled(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, body SetNativeTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetNativeTriggerEnabledRequest(c.Server, workspace, serviceName, externalId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -44698,6 +44955,74 @@ func NewListAssetSchemasRequest(server string, workspace WorkspaceId, params *Li
 	return req, nil
 }
 
+// NewGetDbtColumnLineageRequest generates requests for GetDbtColumnLineage
+func NewGetDbtColumnLineageRequest(server string, workspace WorkspaceId, params *GetDbtColumnLineageParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/assets/column_lineage", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "asset_path", runtime.ParamLocationQuery, params.AssetPath); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.DbtScriptHash != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dbt_script_hash", runtime.ParamLocationQuery, *params.DbtScriptHash); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetAssetsGraphRequest generates requests for GetAssetsGraph
 func NewGetAssetsGraphRequest(server string, workspace WorkspaceId, params *GetAssetsGraphParams) (*http.Request, error) {
 	var err error
@@ -51449,6 +51774,152 @@ func NewUpdateGcpTriggerRequestWithBody(server string, workspace WorkspaceId, pa
 	return req, nil
 }
 
+// NewSetGitCredentialRequest calls the generic SetGitCredential builder with application/json body
+func NewSetGitCredentialRequest(server string, workspace WorkspaceId, body SetGitCredentialJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetGitCredentialRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetGitCredentialRequestWithBody generates requests for SetGitCredential with any type of body
+func NewSetGitCredentialRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/git_sync/credential", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetCredentialOriginRequest generates requests for GetCredentialOrigin
+func NewGetCredentialOriginRequest(server string, workspace WorkspaceId, params *GetCredentialOriginParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/git_sync/credential/origin", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, params.Path); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListGitlabProjectsRequest calls the generic ListGitlabProjects builder with application/json body
+func NewListGitlabProjectsRequest(server string, workspace WorkspaceId, body ListGitlabProjectsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewListGitlabProjectsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewListGitlabProjectsRequestWithBody generates requests for ListGitlabProjects with any type of body
+func NewListGitlabProjectsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/git_sync/gitlab/projects", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewExportInstallationRequest generates requests for ExportInstallation
 func NewExportInstallationRequest(server string, workspace string, installationId int) (*http.Request, error) {
 	var err error
@@ -57980,6 +58451,65 @@ func NewUnresolveCompletedJobsRequestWithBody(server string, workspace Workspace
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetDbtRunColumnLineageRequest generates requests for GetDbtRunColumnLineage
+func NewGetDbtRunColumnLineageRequest(server string, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunColumnLineageParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/dbt_column_lineage/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "asset_path", runtime.ParamLocationQuery, params.AssetPath); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -69463,6 +69993,67 @@ func NewListNativeTriggersRequest(server string, workspace WorkspaceId, serviceN
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewSetNativeTriggerEnabledRequest calls the generic SetNativeTriggerEnabled builder with application/json body
+func NewSetNativeTriggerEnabledRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, externalId string, body SetNativeTriggerEnabledJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetNativeTriggerEnabledRequestWithBody(server, workspace, serviceName, externalId, "application/json", bodyReader)
+}
+
+// NewSetNativeTriggerEnabledRequestWithBody generates requests for SetNativeTriggerEnabled with any type of body
+func NewSetNativeTriggerEnabledRequestWithBody(server string, workspace WorkspaceId, serviceName NativeServiceName, externalId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "external_id", runtime.ParamLocationPath, externalId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/%s/setenabled/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -86174,6 +86765,9 @@ type ClientWithResponsesInterface interface {
 	// ListAssetSchemasWithResponse request
 	ListAssetSchemasWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetSchemasParams, reqEditors ...RequestEditorFn) (*ListAssetSchemasResponse, error)
 
+	// GetDbtColumnLineageWithResponse request
+	GetDbtColumnLineageWithResponse(ctx context.Context, workspace WorkspaceId, params *GetDbtColumnLineageParams, reqEditors ...RequestEditorFn) (*GetDbtColumnLineageResponse, error)
+
 	// GetAssetsGraphWithResponse request
 	GetAssetsGraphWithResponse(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*GetAssetsGraphResponse, error)
 
@@ -86559,6 +87153,19 @@ type ClientWithResponsesInterface interface {
 
 	UpdateGcpTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateGcpTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateGcpTriggerResponse, error)
 
+	// SetGitCredentialWithBodyWithResponse request with any body
+	SetGitCredentialWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetGitCredentialResponse, error)
+
+	SetGitCredentialWithResponse(ctx context.Context, workspace WorkspaceId, body SetGitCredentialJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGitCredentialResponse, error)
+
+	// GetCredentialOriginWithResponse request
+	GetCredentialOriginWithResponse(ctx context.Context, workspace WorkspaceId, params *GetCredentialOriginParams, reqEditors ...RequestEditorFn) (*GetCredentialOriginResponse, error)
+
+	// ListGitlabProjectsWithBodyWithResponse request with any body
+	ListGitlabProjectsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListGitlabProjectsResponse, error)
+
+	ListGitlabProjectsWithResponse(ctx context.Context, workspace WorkspaceId, body ListGitlabProjectsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListGitlabProjectsResponse, error)
+
 	// ExportInstallationWithResponse request
 	ExportInstallationWithResponse(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*ExportInstallationResponse, error)
 
@@ -86894,6 +87501,9 @@ type ClientWithResponsesInterface interface {
 	UnresolveCompletedJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UnresolveCompletedJobsResponse, error)
 
 	UnresolveCompletedJobsWithResponse(ctx context.Context, workspace WorkspaceId, body UnresolveCompletedJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*UnresolveCompletedJobsResponse, error)
+
+	// GetDbtRunColumnLineageWithResponse request
+	GetDbtRunColumnLineageWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunColumnLineageParams, reqEditors ...RequestEditorFn) (*GetDbtRunColumnLineageResponse, error)
 
 	// GetDbtRunGraphWithResponse request
 	GetDbtRunGraphWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunGraphParams, reqEditors ...RequestEditorFn) (*GetDbtRunGraphResponse, error)
@@ -87370,6 +87980,11 @@ type ClientWithResponsesInterface interface {
 
 	// ListNativeTriggersWithResponse request
 	ListNativeTriggersWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, params *ListNativeTriggersParams, reqEditors ...RequestEditorFn) (*ListNativeTriggersResponse, error)
+
+	// SetNativeTriggerEnabledWithBodyWithResponse request with any body
+	SetNativeTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNativeTriggerEnabledResponse, error)
+
+	SetNativeTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, body SetNativeTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetNativeTriggerEnabledResponse, error)
 
 	// SyncNativeTriggersWithResponse request
 	SyncNativeTriggersWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*SyncNativeTriggersResponse, error)
@@ -94054,6 +94669,28 @@ func (r ListAssetSchemasResponse) StatusCode() int {
 	return 0
 }
 
+type GetDbtColumnLineageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DbtColumnLineage
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDbtColumnLineageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDbtColumnLineageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetAssetsGraphResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -96701,6 +97338,76 @@ func (r UpdateGcpTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type SetGitCredentialResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetGitCredentialResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetGitCredentialResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCredentialOriginResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Origin   *GetCredentialOrigin200Origin   `json:"origin,omitempty"`
+		Provider *GetCredentialOrigin200Provider `json:"provider,omitempty"`
+	}
+}
+type GetCredentialOrigin200Origin string
+type GetCredentialOrigin200Provider string
+
+// Status returns HTTPResponse.Status
+func (r GetCredentialOriginResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCredentialOriginResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListGitlabProjectsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]GitlabProject
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGitlabProjectsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGitlabProjectsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ExportInstallationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -98692,6 +99399,28 @@ func (r UnresolveCompletedJobsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UnresolveCompletedJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDbtRunColumnLineageResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DbtColumnLineage
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDbtRunColumnLineageResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDbtRunColumnLineageResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -101639,6 +102368,27 @@ func (r ListNativeTriggersResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListNativeTriggersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetNativeTriggerEnabledResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetNativeTriggerEnabledResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetNativeTriggerEnabledResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -111946,6 +112696,15 @@ func (c *ClientWithResponses) ListAssetSchemasWithResponse(ctx context.Context, 
 	return ParseListAssetSchemasResponse(rsp)
 }
 
+// GetDbtColumnLineageWithResponse request returning *GetDbtColumnLineageResponse
+func (c *ClientWithResponses) GetDbtColumnLineageWithResponse(ctx context.Context, workspace WorkspaceId, params *GetDbtColumnLineageParams, reqEditors ...RequestEditorFn) (*GetDbtColumnLineageResponse, error) {
+	rsp, err := c.GetDbtColumnLineage(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDbtColumnLineageResponse(rsp)
+}
+
 // GetAssetsGraphWithResponse request returning *GetAssetsGraphResponse
 func (c *ClientWithResponses) GetAssetsGraphWithResponse(ctx context.Context, workspace WorkspaceId, params *GetAssetsGraphParams, reqEditors ...RequestEditorFn) (*GetAssetsGraphResponse, error) {
 	rsp, err := c.GetAssetsGraph(ctx, workspace, params, reqEditors...)
@@ -113177,6 +113936,49 @@ func (c *ClientWithResponses) UpdateGcpTriggerWithResponse(ctx context.Context, 
 	return ParseUpdateGcpTriggerResponse(rsp)
 }
 
+// SetGitCredentialWithBodyWithResponse request with arbitrary body returning *SetGitCredentialResponse
+func (c *ClientWithResponses) SetGitCredentialWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetGitCredentialResponse, error) {
+	rsp, err := c.SetGitCredentialWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetGitCredentialResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetGitCredentialWithResponse(ctx context.Context, workspace WorkspaceId, body SetGitCredentialJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGitCredentialResponse, error) {
+	rsp, err := c.SetGitCredential(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetGitCredentialResponse(rsp)
+}
+
+// GetCredentialOriginWithResponse request returning *GetCredentialOriginResponse
+func (c *ClientWithResponses) GetCredentialOriginWithResponse(ctx context.Context, workspace WorkspaceId, params *GetCredentialOriginParams, reqEditors ...RequestEditorFn) (*GetCredentialOriginResponse, error) {
+	rsp, err := c.GetCredentialOrigin(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCredentialOriginResponse(rsp)
+}
+
+// ListGitlabProjectsWithBodyWithResponse request with arbitrary body returning *ListGitlabProjectsResponse
+func (c *ClientWithResponses) ListGitlabProjectsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ListGitlabProjectsResponse, error) {
+	rsp, err := c.ListGitlabProjectsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGitlabProjectsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ListGitlabProjectsWithResponse(ctx context.Context, workspace WorkspaceId, body ListGitlabProjectsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListGitlabProjectsResponse, error) {
+	rsp, err := c.ListGitlabProjects(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGitlabProjectsResponse(rsp)
+}
+
 // ExportInstallationWithResponse request returning *ExportInstallationResponse
 func (c *ClientWithResponses) ExportInstallationWithResponse(ctx context.Context, workspace string, installationId int, reqEditors ...RequestEditorFn) (*ExportInstallationResponse, error) {
 	rsp, err := c.ExportInstallation(ctx, workspace, installationId, reqEditors...)
@@ -114261,6 +115063,15 @@ func (c *ClientWithResponses) UnresolveCompletedJobsWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseUnresolveCompletedJobsResponse(rsp)
+}
+
+// GetDbtRunColumnLineageWithResponse request returning *GetDbtRunColumnLineageResponse
+func (c *ClientWithResponses) GetDbtRunColumnLineageWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, params *GetDbtRunColumnLineageParams, reqEditors ...RequestEditorFn) (*GetDbtRunColumnLineageResponse, error) {
+	rsp, err := c.GetDbtRunColumnLineage(ctx, workspace, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDbtRunColumnLineageResponse(rsp)
 }
 
 // GetDbtRunGraphWithResponse request returning *GetDbtRunGraphResponse
@@ -115793,6 +116604,23 @@ func (c *ClientWithResponses) ListNativeTriggersWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListNativeTriggersResponse(rsp)
+}
+
+// SetNativeTriggerEnabledWithBodyWithResponse request with arbitrary body returning *SetNativeTriggerEnabledResponse
+func (c *ClientWithResponses) SetNativeTriggerEnabledWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNativeTriggerEnabledResponse, error) {
+	rsp, err := c.SetNativeTriggerEnabledWithBody(ctx, workspace, serviceName, externalId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetNativeTriggerEnabledResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetNativeTriggerEnabledWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, externalId string, body SetNativeTriggerEnabledJSONRequestBody, reqEditors ...RequestEditorFn) (*SetNativeTriggerEnabledResponse, error) {
+	rsp, err := c.SetNativeTriggerEnabled(ctx, workspace, serviceName, externalId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetNativeTriggerEnabledResponse(rsp)
 }
 
 // SyncNativeTriggersWithResponse request returning *SyncNativeTriggersResponse
@@ -125099,6 +125927,32 @@ func ParseListAssetSchemasResponse(rsp *http.Response) (*ListAssetSchemasRespons
 	return response, nil
 }
 
+// ParseGetDbtColumnLineageResponse parses an HTTP response from a GetDbtColumnLineageWithResponse call
+func ParseGetDbtColumnLineageResponse(rsp *http.Response) (*GetDbtColumnLineageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDbtColumnLineageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DbtColumnLineage
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetAssetsGraphResponse parses an HTTP response from a GetAssetsGraphWithResponse call
 func ParseGetAssetsGraphResponse(rsp *http.Response) (*GetAssetsGraphResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -127797,6 +128651,77 @@ func ParseUpdateGcpTriggerResponse(rsp *http.Response) (*UpdateGcpTriggerRespons
 	return response, nil
 }
 
+// ParseSetGitCredentialResponse parses an HTTP response from a SetGitCredentialWithResponse call
+func ParseSetGitCredentialResponse(rsp *http.Response) (*SetGitCredentialResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetGitCredentialResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetCredentialOriginResponse parses an HTTP response from a GetCredentialOriginWithResponse call
+func ParseGetCredentialOriginResponse(rsp *http.Response) (*GetCredentialOriginResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCredentialOriginResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Origin   *GetCredentialOrigin200Origin   `json:"origin,omitempty"`
+			Provider *GetCredentialOrigin200Provider `json:"provider,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListGitlabProjectsResponse parses an HTTP response from a ListGitlabProjectsWithResponse call
+func ParseListGitlabProjectsResponse(rsp *http.Response) (*ListGitlabProjectsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGitlabProjectsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []GitlabProject
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseExportInstallationResponse parses an HTTP response from a ExportInstallationWithResponse call
 func ParseExportInstallationResponse(rsp *http.Response) (*ExportInstallationResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -129748,6 +130673,32 @@ func ParseUnresolveCompletedJobsResponse(rsp *http.Response) (*UnresolveComplete
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []openapi_types.UUID
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDbtRunColumnLineageResponse parses an HTTP response from a GetDbtRunColumnLineageWithResponse call
+func ParseGetDbtRunColumnLineageResponse(rsp *http.Response) (*GetDbtRunColumnLineageResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDbtRunColumnLineageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DbtColumnLineage
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -132662,6 +133613,22 @@ func ParseListNativeTriggersResponse(rsp *http.Response) (*ListNativeTriggersRes
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseSetNativeTriggerEnabledResponse parses an HTTP response from a SetNativeTriggerEnabledWithResponse call
+func ParseSetNativeTriggerEnabledResponse(rsp *http.Response) (*SetNativeTriggerEnabledResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetNativeTriggerEnabledResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
