@@ -4382,12 +4382,13 @@ type GuestEntry struct {
 type GuestList struct {
 	Guests []GuestActivity `json:"guests"`
 
-	// Usage Guests are free up to `free_allowance` distinct emails over the trailing `window_days`. Past that an Enterprise plan meters them (`metered`, four guests to one seat: `billable_guests`, `guest_seats`); every other plan and build admits no new email until the count drops. `instance_enabled` is the superadmin switch (`guest_access_disabled` global setting) every workspace switch sits under.
+	// Usage Guests are free up to `free_allowance` distinct emails over the trailing `window_days`. Past that an Enterprise plan meters them (`metered`, four guests to one seat: `billable_guests`, `guest_seats`); every other plan and build admits no new email until the count drops. `instance_enabled` is the superadmin switch (`guest_access_disabled` global setting) every workspace switch sits under. `available` is whether this deployment can have guests at all: false on the shared cloud, where guest access requires a self-hosted or dedicated deployment, and every other field and switch is then moot.
 	Usage GuestUsage `json:"usage"`
 }
 
-// GuestUsage Guests are free up to `free_allowance` distinct emails over the trailing `window_days`. Past that an Enterprise plan meters them (`metered`, four guests to one seat: `billable_guests`, `guest_seats`); every other plan and build admits no new email until the count drops. `instance_enabled` is the superadmin switch (`guest_access_disabled` global setting) every workspace switch sits under.
+// GuestUsage Guests are free up to `free_allowance` distinct emails over the trailing `window_days`. Past that an Enterprise plan meters them (`metered`, four guests to one seat: `billable_guests`, `guest_seats`); every other plan and build admits no new email until the count drops. `instance_enabled` is the superadmin switch (`guest_access_disabled` global setting) every workspace switch sits under. `available` is whether this deployment can have guests at all: false on the shared cloud, where guest access requires a self-hosted or dedicated deployment, and every other field and switch is then moot.
 type GuestUsage struct {
+	Available       bool  `json:"available"`
 	BillableGuests  int64 `json:"billable_guests"`
 	FreeAllowance   int64 `json:"free_allowance"`
 	GuestCount      int64 `json:"guest_count"`
@@ -17931,6 +17932,9 @@ type ClientInterface interface {
 	// GetHubProjectBySource request
 	GetHubProjectBySource(ctx context.Context, workspace WorkspaceId, params *GetHubProjectBySourceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListHubProjects request
+	ListHubProjects(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DiscardHubProjectUpdate request
 	DiscardHubProjectUpdate(ctx context.Context, workspace WorkspaceId, slug string, params *DiscardHubProjectUpdateParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -25809,6 +25813,18 @@ func (c *Client) PublishHubMigrations(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) GetHubProjectBySource(ctx context.Context, workspace WorkspaceId, params *GetHubProjectBySourceParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetHubProjectBySourceRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListHubProjects(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListHubProjectsRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -53606,6 +53622,40 @@ func NewGetHubProjectBySourceRequest(server string, workspace WorkspaceId, param
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListHubProjectsRequest generates requests for ListHubProjects
+func NewListHubProjectsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/hub/projects", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -87290,6 +87340,9 @@ type ClientWithResponsesInterface interface {
 	// GetHubProjectBySourceWithResponse request
 	GetHubProjectBySourceWithResponse(ctx context.Context, workspace WorkspaceId, params *GetHubProjectBySourceParams, reqEditors ...RequestEditorFn) (*GetHubProjectBySourceResponse, error)
 
+	// ListHubProjectsWithResponse request
+	ListHubProjectsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListHubProjectsResponse, error)
+
 	// DiscardHubProjectUpdateWithResponse request
 	DiscardHubProjectUpdateWithResponse(ctx context.Context, workspace WorkspaceId, slug string, params *DiscardHubProjectUpdateParams, reqEditors ...RequestEditorFn) (*DiscardHubProjectUpdateResponse, error)
 
@@ -98107,6 +98160,27 @@ func (r GetHubProjectBySourceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetHubProjectBySourceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListHubProjectsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ListHubProjectsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListHubProjectsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -114385,6 +114459,15 @@ func (c *ClientWithResponses) GetHubProjectBySourceWithResponse(ctx context.Cont
 	return ParseGetHubProjectBySourceResponse(rsp)
 }
 
+// ListHubProjectsWithResponse request returning *ListHubProjectsResponse
+func (c *ClientWithResponses) ListHubProjectsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListHubProjectsResponse, error) {
+	rsp, err := c.ListHubProjects(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListHubProjectsResponse(rsp)
+}
+
 // DiscardHubProjectUpdateWithResponse request returning *DiscardHubProjectUpdateResponse
 func (c *ClientWithResponses) DiscardHubProjectUpdateWithResponse(ctx context.Context, workspace WorkspaceId, slug string, params *DiscardHubProjectUpdateParams, reqEditors ...RequestEditorFn) (*DiscardHubProjectUpdateResponse, error) {
 	rsp, err := c.DiscardHubProjectUpdate(ctx, workspace, slug, params, reqEditors...)
@@ -129360,6 +129443,22 @@ func ParseGetHubProjectBySourceResponse(rsp *http.Response) (*GetHubProjectBySou
 	}
 
 	response := &GetHubProjectBySourceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListHubProjectsResponse parses an HTTP response from a ListHubProjectsWithResponse call
+func ParseListHubProjectsResponse(rsp *http.Response) (*ListHubProjectsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListHubProjectsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
