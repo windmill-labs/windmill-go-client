@@ -1169,6 +1169,12 @@ const (
 	Branchone SchemasBranchOneType = "branchone"
 )
 
+// Defines values for SchemasFlowModuleSuspendSkin.
+const (
+	Detailed SchemasFlowModuleSuspendSkin = "detailed"
+	Minimal  SchemasFlowModuleSuspendSkin = "minimal"
+)
+
 // Defines values for SchemasFlowNoteType.
 const (
 	SchemasFlowNoteTypeFree  SchemasFlowNoteType = "free"
@@ -7768,6 +7774,9 @@ type SchemasFlowModule struct {
 		// SelfApprovalDisabled If true, the user who started the flow cannot approve
 		SelfApprovalDisabled *bool `json:"self_approval_disabled,omitempty"`
 
+		// Skin How the approval request is presented, on the approval page and in Slack/Teams approval messages. 'detailed' (used when unset) shows the flow details (arguments, graph, approvers); 'minimal' shows only the request: the step description, form and approve/reject actions
+		Skin *SchemasFlowModuleSuspendSkin `json:"skin,omitempty"`
+
 		// Timeout Timeout in seconds before auto-continuing or canceling
 		Timeout *int `json:"timeout,omitempty"`
 
@@ -7784,6 +7793,9 @@ type SchemasFlowModule struct {
 	// Value The actual implementation of a flow step. Can be a script (inline or referenced), subflow, loop, branch, or special module type
 	Value SchemasFlowModuleValue `json:"value"`
 }
+
+// SchemasFlowModuleSuspendSkin How the approval request is presented, on the approval page and in Slack/Teams approval messages. 'detailed' (used when unset) shows the flow details (arguments, graph, approvers); 'minimal' shows only the request: the step description, form and approve/reject actions
+type SchemasFlowModuleSuspendSkin string
 
 // SchemasFlowModuleValue The actual implementation of a flow step. Can be a script (inline or referenced), subflow, loop, branch, or special module type
 type SchemasFlowModuleValue struct {
@@ -13436,6 +13448,12 @@ type ListWorkersParams struct {
 
 	// PingSince number of seconds the worker must have had a last ping more recent of (default to 300)
 	PingSince *int `form:"ping_since,omitempty" json:"ping_since,omitempty"`
+}
+
+// GetQueueMetricsSeriesParams defines parameters for GetQueueMetricsSeries.
+type GetQueueMetricsSeriesParams struct {
+	// WindowSecs how far back to read, in seconds (defaults to one day, capped at the 14-day retention)
+	WindowSecs *int `form:"window_secs,omitempty" json:"window_secs,omitempty"`
 }
 
 // DeleteWorkspaceParams defines parameters for DeleteWorkspace.
@@ -19754,8 +19772,14 @@ type ClientInterface interface {
 	// GetQueueMetrics request
 	GetQueueMetrics(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetQueueMetricsSeries request
+	GetQueueMetricsSeries(ctx context.Context, params *GetQueueMetricsSeriesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetCountsOfRunningJobsPerTag request
 	GetCountsOfRunningJobsPerTag(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetQueueStatus request
+	GetQueueStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetWorkspaceFairnessEvents request
 	GetWorkspaceFairnessEvents(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -33875,8 +33899,32 @@ func (c *Client) GetQueueMetrics(ctx context.Context, reqEditors ...RequestEdito
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetQueueMetricsSeries(ctx context.Context, params *GetQueueMetricsSeriesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetQueueMetricsSeriesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetCountsOfRunningJobsPerTag(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCountsOfRunningJobsPerTagRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetQueueStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetQueueStatusRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -85473,6 +85521,55 @@ func NewGetQueueMetricsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGetQueueMetricsSeriesRequest generates requests for GetQueueMetricsSeries
+func NewGetQueueMetricsSeriesRequest(server string, params *GetQueueMetricsSeriesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workers/queue_metrics_series")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.WindowSecs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "window_secs", runtime.ParamLocationQuery, *params.WindowSecs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetCountsOfRunningJobsPerTagRequest generates requests for GetCountsOfRunningJobsPerTag
 func NewGetCountsOfRunningJobsPerTagRequest(server string) (*http.Request, error) {
 	var err error
@@ -85483,6 +85580,33 @@ func NewGetCountsOfRunningJobsPerTagRequest(server string) (*http.Request, error
 	}
 
 	operationPath := fmt.Sprintf("/workers/queue_running_counts")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetQueueStatusRequest generates requests for GetQueueStatus
+func NewGetQueueStatusRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workers/queue_status")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -89162,8 +89286,14 @@ type ClientWithResponsesInterface interface {
 	// GetQueueMetricsWithResponse request
 	GetQueueMetricsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueMetricsResponse, error)
 
+	// GetQueueMetricsSeriesWithResponse request
+	GetQueueMetricsSeriesWithResponse(ctx context.Context, params *GetQueueMetricsSeriesParams, reqEditors ...RequestEditorFn) (*GetQueueMetricsSeriesResponse, error)
+
 	// GetCountsOfRunningJobsPerTagWithResponse request
 	GetCountsOfRunningJobsPerTagWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCountsOfRunningJobsPerTagResponse, error)
+
+	// GetQueueStatusWithResponse request
+	GetQueueStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueStatusResponse, error)
 
 	// GetWorkspaceFairnessEventsWithResponse request
 	GetWorkspaceFairnessEventsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWorkspaceFairnessEventsResponse, error)
@@ -101012,11 +101142,20 @@ type GetApprovalInfoResponse struct {
 		Description *interface{}       `json:"description,omitempty"`
 		FlowId      openapi_types.UUID `json:"flow_id"`
 
+		// FlowSummary summary of the flow or workflow the approval belongs to
+		FlowSummary *string `json:"flow_summary,omitempty"`
+
 		// FormSchema form schema for the approval step
 		FormSchema *interface{} `json:"form_schema,omitempty"`
 
 		// HideCancel whether to hide the cancel button in the UI
 		HideCancel *bool `json:"hide_cancel,omitempty"`
+
+		// Skin how the approval page presents the request
+		Skin GetApprovalInfo200Skin `json:"skin"`
+
+		// StepSummary summary of the approval step, for the page title
+		StepSummary *string `json:"step_summary,omitempty"`
 
 		// UserAuthRequired whether user authentication is required to approve
 		UserAuthRequired bool `json:"user_auth_required"`
@@ -101025,6 +101164,7 @@ type GetApprovalInfoResponse struct {
 		ViewToken *string `json:"view_token,omitempty"`
 	}
 }
+type GetApprovalInfo200Skin string
 
 // Status returns HTTPResponse.Status
 func (r GetApprovalInfoResponse) Status() string {
@@ -109808,6 +109948,42 @@ func (r GetQueueMetricsResponse) StatusCode() int {
 	return 0
 }
 
+type GetQueueMetricsSeriesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// From start of the window, in epoch milliseconds
+		From int `json:"from"`
+		Tags []struct {
+			// Count [epoch ms, jobs waiting more than 3 seconds] vertices
+			Count [][]float32 `json:"count"`
+
+			// Delay [epoch ms, seconds the next job has waited] vertices
+			Delay [][]float32 `json:"delay"`
+			Tag   string      `json:"tag"`
+		} `json:"tags"`
+
+		// To end of the window, in epoch milliseconds
+		To int `json:"to"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetQueueMetricsSeriesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetQueueMetricsSeriesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetCountsOfRunningJobsPerTagResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -109824,6 +110000,39 @@ func (r GetCountsOfRunningJobsPerTagResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetCountsOfRunningJobsPerTagResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetQueueStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		// Delay seconds the job the next pull would take has been waiting, absent when none is
+		Delay   *float32 `json:"delay,omitempty"`
+		Running int      `json:"running"`
+		Tag     string   `json:"tag"`
+
+		// Waiting jobs due for more than 3 seconds that no worker has picked up
+		Waiting int `json:"waiting"`
+
+		// Workers workers that pinged in the last minute and pull this tag
+		Workers int `json:"workers"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetQueueStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetQueueStatusResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -120307,6 +120516,15 @@ func (c *ClientWithResponses) GetQueueMetricsWithResponse(ctx context.Context, r
 	return ParseGetQueueMetricsResponse(rsp)
 }
 
+// GetQueueMetricsSeriesWithResponse request returning *GetQueueMetricsSeriesResponse
+func (c *ClientWithResponses) GetQueueMetricsSeriesWithResponse(ctx context.Context, params *GetQueueMetricsSeriesParams, reqEditors ...RequestEditorFn) (*GetQueueMetricsSeriesResponse, error) {
+	rsp, err := c.GetQueueMetricsSeries(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetQueueMetricsSeriesResponse(rsp)
+}
+
 // GetCountsOfRunningJobsPerTagWithResponse request returning *GetCountsOfRunningJobsPerTagResponse
 func (c *ClientWithResponses) GetCountsOfRunningJobsPerTagWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCountsOfRunningJobsPerTagResponse, error) {
 	rsp, err := c.GetCountsOfRunningJobsPerTag(ctx, reqEditors...)
@@ -120314,6 +120532,15 @@ func (c *ClientWithResponses) GetCountsOfRunningJobsPerTagWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseGetCountsOfRunningJobsPerTagResponse(rsp)
+}
+
+// GetQueueStatusWithResponse request returning *GetQueueStatusResponse
+func (c *ClientWithResponses) GetQueueStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueStatusResponse, error) {
+	rsp, err := c.GetQueueStatus(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetQueueStatusResponse(rsp)
 }
 
 // GetWorkspaceFairnessEventsWithResponse request returning *GetWorkspaceFairnessEventsResponse
@@ -132309,11 +132536,20 @@ func ParseGetApprovalInfoResponse(rsp *http.Response) (*GetApprovalInfoResponse,
 			Description *interface{}       `json:"description,omitempty"`
 			FlowId      openapi_types.UUID `json:"flow_id"`
 
+			// FlowSummary summary of the flow or workflow the approval belongs to
+			FlowSummary *string `json:"flow_summary,omitempty"`
+
 			// FormSchema form schema for the approval step
 			FormSchema *interface{} `json:"form_schema,omitempty"`
 
 			// HideCancel whether to hide the cancel button in the UI
 			HideCancel *bool `json:"hide_cancel,omitempty"`
+
+			// Skin how the approval page presents the request
+			Skin GetApprovalInfo200Skin `json:"skin"`
+
+			// StepSummary summary of the approval step, for the page title
+			StepSummary *string `json:"step_summary,omitempty"`
 
 			// UserAuthRequired whether user authentication is required to approve
 			UserAuthRequired bool `json:"user_auth_required"`
@@ -141140,6 +141376,46 @@ func ParseGetQueueMetricsResponse(rsp *http.Response) (*GetQueueMetricsResponse,
 	return response, nil
 }
 
+// ParseGetQueueMetricsSeriesResponse parses an HTTP response from a GetQueueMetricsSeriesWithResponse call
+func ParseGetQueueMetricsSeriesResponse(rsp *http.Response) (*GetQueueMetricsSeriesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetQueueMetricsSeriesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// From start of the window, in epoch milliseconds
+			From int `json:"from"`
+			Tags []struct {
+				// Count [epoch ms, jobs waiting more than 3 seconds] vertices
+				Count [][]float32 `json:"count"`
+
+				// Delay [epoch ms, seconds the next job has waited] vertices
+				Delay [][]float32 `json:"delay"`
+				Tag   string      `json:"tag"`
+			} `json:"tags"`
+
+			// To end of the window, in epoch milliseconds
+			To int `json:"to"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetCountsOfRunningJobsPerTagResponse parses an HTTP response from a GetCountsOfRunningJobsPerTagWithResponse call
 func ParseGetCountsOfRunningJobsPerTagResponse(rsp *http.Response) (*GetCountsOfRunningJobsPerTagResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -141156,6 +141432,43 @@ func ParseGetCountsOfRunningJobsPerTagResponse(rsp *http.Response) (*GetCountsOf
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest map[string]int
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetQueueStatusResponse parses an HTTP response from a GetQueueStatusWithResponse call
+func ParseGetQueueStatusResponse(rsp *http.Response) (*GetQueueStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetQueueStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			// Delay seconds the job the next pull would take has been waiting, absent when none is
+			Delay   *float32 `json:"delay,omitempty"`
+			Running int      `json:"running"`
+			Tag     string   `json:"tag"`
+
+			// Waiting jobs due for more than 3 seconds that no worker has picked up
+			Waiting int `json:"waiting"`
+
+			// Workers workers that pinged in the last minute and pull this tag
+			Workers int `json:"workers"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
