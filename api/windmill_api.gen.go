@@ -5937,10 +5937,14 @@ type Policy struct {
 	ExecutionMode *PolicyExecutionMode `json:"execution_mode,omitempty"`
 
 	// FrontendSdkScopes Raw apps: author-declared scopes for the frontend SDK token. Takes effect only when `sandbox` is also true — an unsandboxed bundle runs with the viewer's own session, so no token is advertised or minted for it and this list stays inert. On a sandboxed app a non-empty list lets viewers mint (after consenting) a short-lived token carrying their own identity restricted to these scopes, handed to the app bundle so `windmill-client` calls run as the viewer. Must be a subset of the server's curated allowlist (jobs:run, jobs:read, users:read, resources:read, variables:read).
-	FrontendSdkScopes *[]string                 `json:"frontend_sdk_scopes,omitempty"`
-	OnBehalfOf        *string                   `json:"on_behalf_of,omitempty"`
-	OnBehalfOfEmail   *string                   `json:"on_behalf_of_email,omitempty"`
-	S3Inputs          *[]map[string]interface{} `json:"s3_inputs,omitempty"`
+	FrontendSdkScopes *[]string `json:"frontend_sdk_scopes,omitempty"`
+
+	// OnBehalfOf The user or group the app runs as in anonymous or publisher mode (e.g. 'u/admin' or 'g/mygroup'). The authority for the app's identity.
+	OnBehalfOf *string `json:"on_behalf_of,omitempty"`
+
+	// OnBehalfOfEmail Address of `on_behalf_of`, written through from it on every save and returned as stored. Optional; when absent it is derived from `on_behalf_of`. Sending it is optional too; it must name the same account as `on_behalf_of`, and a pair that disagrees is rejected.
+	OnBehalfOfEmail *string                   `json:"on_behalf_of_email,omitempty"`
+	S3Inputs        *[]map[string]interface{} `json:"s3_inputs,omitempty"`
 
 	// Sandbox Publisher opt-in to app sandbox isolation (alpha). When true the app is isolated from each viewer's Windmill session. When false/absent the app runs same-origin with the viewer's full session (the default, pre-isolation behavior).
 	Sandbox        *bool                              `json:"sandbox,omitempty"`
