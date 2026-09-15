@@ -606,6 +606,7 @@ const (
 const (
 	GlobalUserInfoLoginTypeGithub         GlobalUserInfoLoginType = "github"
 	GlobalUserInfoLoginTypePassword       GlobalUserInfoLoginType = "password"
+	GlobalUserInfoLoginTypePendingOauth   GlobalUserInfoLoginType = "pending_oauth"
 	GlobalUserInfoLoginTypeServiceAccount GlobalUserInfoLoginType = "service_account"
 )
 
@@ -1027,6 +1028,12 @@ const (
 	ScriptLangSnowflake  ScriptLang = "snowflake"
 )
 
+// Defines values for SharedAiArtifactInfoKind.
+const (
+	SharedAiArtifactInfoKindHtml SharedAiArtifactInfoKind = "html"
+	SharedAiArtifactInfoKindMd   SharedAiArtifactInfoKind = "md"
+)
+
 // Defines values for StaticMemoryTransformType.
 const (
 	StaticMemoryTransformTypeStatic StaticMemoryTransformType = "static"
@@ -1396,6 +1403,12 @@ const (
 	RemoveGranularAclsParamsKindVariable         RemoveGranularAclsParamsKind = "variable"
 	RemoveGranularAclsParamsKindVolume           RemoveGranularAclsParamsKind = "volume"
 	RemoveGranularAclsParamsKindWebsocketTrigger RemoveGranularAclsParamsKind = "websocket_trigger"
+)
+
+// Defines values for ShareAiArtifactJSONBodyKind.
+const (
+	ShareAiArtifactJSONBodyKindHtml ShareAiArtifactJSONBodyKind = "html"
+	ShareAiArtifactJSONBodyKindMd   ShareAiArtifactJSONBodyKind = "md"
 )
 
 // Defines values for ListAiUsageParamsGroupBy.
@@ -1906,7 +1919,10 @@ type AutoPullMode string
 
 // AutoPullSettings defines model for AutoPullSettings.
 type AutoPullSettings struct {
-	Enabled        bool               `json:"enabled"`
+	Enabled bool `json:"enabled"`
+
+	// EnabledBy Email of the admin automatic pulls apply changes as. Set by the server when the settings are saved.
+	EnabledBy      *string            `json:"enabled_by,omitempty"`
 	LastPullStatus *AutoPullStatus    `json:"last_pull_status,omitempty"`
 	LastSyncedSha  *map[string]string `json:"last_synced_sha,omitempty"`
 	Mode           *AutoPullMode      `json:"mode,omitempty"`
@@ -2886,6 +2902,8 @@ type EditFlow struct {
 
 // EditHttpTrigger defines model for EditHttpTrigger.
 type EditHttpTrigger struct {
+	// AllowedOrigins Origins allowed to call this route cross-origin, matched against the request's Origin header (ignoring case) and echoed back on a match. When set, the list governs both the preflight and the response, overriding any Access-Control-Allow-Origin the runnable returns via wm_headers. Use ['*'] to opt out of any restriction, including the http_route_default_allowed_origins instance setting. An empty list is not a configuration and resolves exactly as null does. When null, the instance setting applies, or Access-Control-Allow-Origin: * if it is unset. Ignored on a static website, which has no authentication of its own and so hands out public files: restricting which browsers may read them protects nothing while breaking cross-origin webfonts and fetches. A single-file static asset is not exempt, since it can carry an authentication_method.
+	AllowedOrigins       *[]string            `json:"allowed_origins"`
 	AuthenticationMethod AuthenticationMethod `json:"authentication_method"`
 
 	// AuthenticationResourcePath Path to the resource containing authentication configuration (for api_key, basic_http, custom_script, signature methods)
@@ -3155,6 +3173,9 @@ type EditResource struct {
 // EditResourceType defines model for EditResourceType.
 type EditResourceType struct {
 	Description *string `json:"description,omitempty"`
+
+	// DisplayName The name the product goes by. Omit to leave it unchanged; send null to clear it.
+	DisplayName *string `json:"display_name"`
 
 	// FormatExtension File extension for a type whose value is one file rather than a set of fields. Omit to leave it unchanged; send null to clear it.
 	FormatExtension *string      `json:"format_extension"`
@@ -5154,6 +5175,8 @@ type NewEvalCase struct {
 
 // NewHttpTrigger defines model for NewHttpTrigger.
 type NewHttpTrigger struct {
+	// AllowedOrigins Origins allowed to call this route cross-origin, matched against the request's Origin header (ignoring case) and echoed back on a match. When set, the list governs both the preflight and the response, overriding any Access-Control-Allow-Origin the runnable returns via wm_headers. Use ['*'] to opt out of any restriction, including the http_route_default_allowed_origins instance setting. An empty list is not a configuration and resolves exactly as null does. When null, the instance setting applies, or Access-Control-Allow-Origin: * if it is unset. Ignored on a static website, which has no authentication of its own and so hands out public files: restricting which browsers may read them protects nothing while breaking cross-origin webfonts and fetches. A single-file static asset is not exempt, since it can carry an authentication_method.
+	AllowedOrigins       *[]string            `json:"allowed_origins"`
 	AuthenticationMethod AuthenticationMethod `json:"authentication_method"`
 
 	// AuthenticationResourcePath Path to the resource containing authentication configuration (for api_key, basic_http, custom_script, signature methods)
@@ -5936,7 +5959,7 @@ type Policy struct {
 	// ExecutionMode Who may open the app, and who its runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Neither `anonymous`, which makes the app publicly executable, nor `guest`, which opens it to anyone the identity provider authenticates, is ever assumed. A guest is only admitted where the workspace also has `guest_access_enabled`, which is checked when the session is minted and again on every guest request
 	ExecutionMode *PolicyExecutionMode `json:"execution_mode,omitempty"`
 
-	// FrontendSdkScopes Raw apps: author-declared scopes for the frontend SDK token. Takes effect only when `sandbox` is also true — an unsandboxed bundle runs with the viewer's own session, so no token is advertised or minted for it and this list stays inert. On a sandboxed app a non-empty list lets viewers mint (after consenting) a short-lived token carrying their own identity restricted to these scopes, handed to the app bundle so `windmill-client` calls run as the viewer. Must be a subset of the server's curated allowlist (jobs:run, jobs:read, users:read, resources:read, variables:read).
+	// FrontendSdkScopes Raw apps: author-declared scopes for the frontend SDK token. Takes effect only when `sandbox` is also true — an unsandboxed bundle runs with the viewer's own session, so no token is advertised or minted for it and this list stays inert. On a sandboxed app a non-empty list lets viewers mint (after consenting) a short-lived token carrying their own identity restricted to these scopes, handed to the app bundle so `windmill-client` calls run as the viewer. Must be a subset of the server's curated allowlist (jobs:run, jobs:read, users:read, resources:read, variables:read, flow_conversations:read, flow_conversations:write).
 	FrontendSdkScopes *[]string `json:"frontend_sdk_scopes,omitempty"`
 
 	// OnBehalfOf The user or group the app runs as in anonymous or publisher mode (e.g. 'u/admin' or 'g/mygroup'). The authority for the app's identity.
@@ -6298,8 +6321,11 @@ type Relations struct {
 
 // ResourceType defines model for ResourceType.
 type ResourceType struct {
-	CreatedBy       *string      `json:"created_by,omitempty"`
-	Description     *string      `json:"description,omitempty"`
+	CreatedBy   *string `json:"created_by,omitempty"`
+	Description *string `json:"description,omitempty"`
+
+	// DisplayName The name the product goes by, e.g. "Google Sheets" for gsheets. Absent where nobody named the type.
+	DisplayName     *string      `json:"display_name,omitempty"`
 	EditedAt        *time.Time   `json:"edited_at,omitempty"`
 	FormatExtension *string      `json:"format_extension,omitempty"`
 	IsFileset       *bool        `json:"is_fileset,omitempty"`
@@ -6853,6 +6879,20 @@ type SecretMigrationReport struct {
 	TotalSecrets int64 `json:"total_secrets"`
 }
 
+// SharedAiArtifactInfo defines model for SharedAiArtifactInfo.
+type SharedAiArtifactInfo struct {
+	CreatedBy string                   `json:"created_by"`
+	ExpiresAt time.Time                `json:"expires_at"`
+	Id        openapi_types.UUID       `json:"id"`
+	Kind      SharedAiArtifactInfoKind `json:"kind"`
+	Name      string                   `json:"name"`
+	SharedAt  time.Time                `json:"shared_at"`
+	Version   int                      `json:"version"`
+}
+
+// SharedAiArtifactInfoKind defines model for SharedAiArtifactInfo.Kind.
+type SharedAiArtifactInfoKind string
+
 // SharedDriveEntry defines model for SharedDriveEntry.
 type SharedDriveEntry struct {
 	Id   string `json:"id"`
@@ -6961,6 +7001,39 @@ type TokenResponse struct {
 // ToolValue The implementation of a tool. Can be a flow module (script/flow) or an MCP tool reference
 type ToolValue struct {
 	union json.RawMessage
+}
+
+// TrashItem defines model for TrashItem.
+type TrashItem struct {
+	DeletedAt time.Time `json:"deleted_at"`
+	DeletedBy string    `json:"deleted_by"`
+
+	// ExpiresAt when the item is permanently deleted unless restored first
+	ExpiresAt time.Time `json:"expires_at"`
+	Id        int64     `json:"id"`
+
+	// ItemKind script, flow, app, schedule, variable, resource, or a trigger kind such as http_trigger
+	ItemKind    string `json:"item_kind"`
+	ItemPath    string `json:"item_path"`
+	WorkspaceId string `json:"workspace_id"`
+}
+
+// TrashItemWithData defines model for TrashItemWithData.
+type TrashItemWithData struct {
+	DeletedAt time.Time `json:"deleted_at"`
+	DeletedBy string    `json:"deleted_by"`
+
+	// ExpiresAt when the item is permanently deleted unless restored first
+	ExpiresAt time.Time `json:"expires_at"`
+	Id        int64     `json:"id"`
+
+	// ItemData the deleted rows as they were stored; the shape depends on the kind, and a secret variable's value stays encrypted
+	ItemData map[string]interface{} `json:"item_data"`
+
+	// ItemKind script, flow, app, schedule, variable, resource, or a trigger kind such as http_trigger
+	ItemKind    string `json:"item_kind"`
+	ItemPath    string `json:"item_path"`
+	WorkspaceId string `json:"workspace_id"`
 }
 
 // TriggerExtraProperty defines model for TriggerExtraProperty.
@@ -7564,11 +7637,21 @@ type SchemasAiAgent struct {
 	// Agent Path of a reusable `ai_agent` resource (hybrid linking). When set, the agent brain
 	// config (provider/model/system prompt/etc.) and tool set are resolved at runtime from
 	// that resource; the module's input_transforms then only carry the flow-local inputs
-	// (user_message/user_attachments).
+	// (user_message/user_attachments/enabled_tools).
 	Agent *string `json:"agent,omitempty"`
 
 	// InputTransforms Input parameters for the AI agent mapped to their values
 	InputTransforms struct {
+		// EnabledTools Array of strings naming which of the tools configured in `tools` the agent may call
+		// this run. Leaving it unset carries every one of them; an empty array carries none.
+		// A tool is named as the model is shown it. An entry the model is shown nothing of is
+		// named by what identifies it instead: an MCP server by its resource path, carrying
+		// every tool it exposes (which of them stays that entry's include_tools/exclude_tools),
+		// and a websearch entry by the reserved name '__wm_web_search', whatever summary it carries
+		// (no tool may take that name).
+		// Example: ['get_user', 'u/admin/github_mcp', '__wm_web_search']
+		EnabledTools *SchemasInputTransform `json:"enabled_tools,omitempty"`
+
 		// MaxCompletionTokens Integer. Maximum number of tokens the AI will generate in its response.
 		// Range: 1 to 4,294,967,295. Typical values: 256-4096 for most use cases.
 		MaxCompletionTokens *SchemasInputTransform `json:"max_completion_tokens,omitempty"`
@@ -8493,6 +8576,11 @@ type GetAppEmbedTokenByCustomPathParams struct {
 	SdkConsent *SdkConsent `form:"sdk_consent,omitempty" json:"sdk_consent,omitempty"`
 }
 
+// ConsumeLoginLinkParams defines parameters for ConsumeLoginLink.
+type ConsumeLoginLinkParams struct {
+	Rd *string `form:"rd,omitempty" json:"rd,omitempty"`
+}
+
 // RequestPasswordResetJSONBody defines parameters for RequestPasswordReset.
 type RequestPasswordResetJSONBody struct {
 	Email openapi_types.Email `json:"email"`
@@ -8809,12 +8897,22 @@ type GlobalUserChangeEmailJSONBody struct {
 	NewEmail string `json:"new_email"`
 }
 
+// SetCloudTrialOfferJSONBody defines parameters for SetCloudTrialOffer.
+type SetCloudTrialOfferJSONBody struct {
+	// Consumed mark the offer used (a trial or subscription now exists) instead of recording it
+	Consumed *bool  `json:"consumed,omitempty"`
+	Email    string `json:"email"`
+}
+
 // CreateUserGloballyJSONBody defines parameters for CreateUserGlobally.
 type CreateUserGloballyJSONBody struct {
-	Company  *string `json:"company,omitempty"`
-	Email    string  `json:"email"`
-	Name     *string `json:"name,omitempty"`
-	Password string  `json:"password"`
+	Company *string `json:"company,omitempty"`
+	Email   string  `json:"email"`
+
+	// LoginType password (default, requires `password`), pending_oauth (no credential until the first OAuth login proving the address adopts the account), or a configured OAuth login client key
+	LoginType *string `json:"login_type,omitempty"`
+	Name      *string `json:"name,omitempty"`
+	Password  *string `json:"password,omitempty"`
 
 	// SkipEmail Skip sending email notifications to the user
 	SkipEmail  *bool `json:"skip_email,omitempty"`
@@ -8853,10 +8951,32 @@ type ListUsersAsSuperAdminParams struct {
 	ActiveOnly *bool `form:"active_only,omitempty" json:"active_only,omitempty"`
 }
 
+// CreateLoginLinkJSONBody defines parameters for CreateLoginLink.
+type CreateLoginLinkJSONBody struct {
+	Email string `json:"email"`
+
+	// ExpiresInS link lifetime in seconds, at most 900 (default 600)
+	ExpiresInS *int `json:"expires_in_s,omitempty"`
+
+	// Rd same-origin path the browser lands on after login (default /user/workspaces)
+	Rd *string `json:"rd,omitempty"`
+
+	// RequireLoginType mint only while the account still has this login type (for example pending_oauth), so a link stops working once the owner has set a password or signed in with a provider
+	RequireLoginType *string `json:"require_login_type,omitempty"`
+}
+
 // SubmitOnboardingDataJSONBody defines parameters for SubmitOnboardingData.
 type SubmitOnboardingDataJSONBody struct {
 	TouchPoint *string `json:"touch_point,omitempty"`
 	UseCase    *string `json:"use_case,omitempty"`
+}
+
+// SetOnboardingProfileJSONBody defines parameters for SetOnboardingProfile.
+type SetOnboardingProfileJSONBody struct {
+	Email string `json:"email"`
+
+	// Profile free-form context from the invite, every key optional. The frontend reads `touch_point` (answers onboarding's source question), `company` and `workspace_name` (prefill the first workspace's name), `hub_projects` (slugs surfaced first on an empty workspace), `tools` (integrations, used to pick hub projects when none are named) and `starter_prompts` (`[{label, prompt}]`, replacing the home page's example prompts); unknown keys are kept and ignored
+	Profile map[string]interface{} `json:"profile"`
 }
 
 // GlobalUsersOverwriteJSONBody defines parameters for GlobalUsersOverwrite.
@@ -8941,6 +9061,24 @@ type RemoveGranularAclsJSONBody struct {
 
 // RemoveGranularAclsParamsKind defines parameters for RemoveGranularAcls.
 type RemoveGranularAclsParamsKind string
+
+// ShareAiArtifactJSONBody defines parameters for ShareAiArtifact.
+type ShareAiArtifactJSONBody struct {
+	// ArtifactId the artifact's id in the author's session
+	ArtifactId string                      `json:"artifact_id"`
+	Content    string                      `json:"content"`
+	Kind       ShareAiArtifactJSONBodyKind `json:"kind"`
+	Name       string                      `json:"name"`
+	Version    int                         `json:"version"`
+}
+
+// ShareAiArtifactJSONBodyKind defines parameters for ShareAiArtifact.
+type ShareAiArtifactJSONBodyKind string
+
+// GetAiArtifactShareStatusParams defines parameters for GetAiArtifactShareStatus.
+type GetAiArtifactShareStatusParams struct {
+	ArtifactId string `form:"artifact_id" json:"artifact_id"`
+}
 
 // ListAiUsageParams defines parameters for ListAiUsage.
 type ListAiUsageParams struct {
@@ -12819,6 +12957,18 @@ type TestSqsConnectionJSONBody struct {
 	Connection map[string]interface{} `json:"connection"`
 }
 
+// ListTrashParams defines parameters for ListTrash.
+type ListTrashParams struct {
+	// ItemKind only return items of this kind: script, flow, app, schedule, variable, resource, or a trigger kind such as http_trigger
+	ItemKind *string `form:"item_kind,omitempty" json:"item_kind,omitempty"`
+
+	// Page which page to return (starts at 0, default 0)
+	Page *int `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 100, max 1000)
+	PerPage *int `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
 // CancelSuspendedTriggerJobsJSONBody defines parameters for CancelSuspendedTriggerJobs.
 type CancelSuspendedTriggerJobsJSONBody struct {
 	// JobIds Optional list of specific job UUIDs to cancel. If not provided, all suspended jobs for the trigger will be canceled.
@@ -13616,17 +13766,26 @@ type AcceptInviteJSONRequestBody AcceptInviteJSONBody
 // GlobalUserChangeEmailJSONRequestBody defines body for GlobalUserChangeEmail for application/json ContentType.
 type GlobalUserChangeEmailJSONRequestBody GlobalUserChangeEmailJSONBody
 
+// SetCloudTrialOfferJSONRequestBody defines body for SetCloudTrialOffer for application/json ContentType.
+type SetCloudTrialOfferJSONRequestBody SetCloudTrialOfferJSONBody
+
 // CreateUserGloballyJSONRequestBody defines body for CreateUserGlobally for application/json ContentType.
 type CreateUserGloballyJSONRequestBody CreateUserGloballyJSONBody
 
 // DeclineInviteJSONRequestBody defines body for DeclineInvite for application/json ContentType.
 type DeclineInviteJSONRequestBody DeclineInviteJSONBody
 
+// CreateLoginLinkJSONRequestBody defines body for CreateLoginLink for application/json ContentType.
+type CreateLoginLinkJSONRequestBody CreateLoginLinkJSONBody
+
 // OffboardGlobalUserJSONRequestBody defines body for OffboardGlobalUser for application/json ContentType.
 type OffboardGlobalUserJSONRequestBody = GlobalOffboardRequest
 
 // SubmitOnboardingDataJSONRequestBody defines body for SubmitOnboardingData for application/json ContentType.
 type SubmitOnboardingDataJSONRequestBody SubmitOnboardingDataJSONBody
+
+// SetOnboardingProfileJSONRequestBody defines body for SetOnboardingProfile for application/json ContentType.
+type SetOnboardingProfileJSONRequestBody SetOnboardingProfileJSONBody
 
 // GlobalUsersOverwriteJSONRequestBody defines body for GlobalUsersOverwrite for application/json ContentType.
 type GlobalUsersOverwriteJSONRequestBody = GlobalUsersOverwriteJSONBody
@@ -13666,6 +13825,9 @@ type AddGranularAclsJSONRequestBody AddGranularAclsJSONBody
 
 // RemoveGranularAclsJSONRequestBody defines body for RemoveGranularAcls for application/json ContentType.
 type RemoveGranularAclsJSONRequestBody RemoveGranularAclsJSONBody
+
+// ShareAiArtifactJSONRequestBody defines body for ShareAiArtifact for application/json ContentType.
+type ShareAiArtifactJSONRequestBody ShareAiArtifactJSONBody
 
 // RecordAiUsageJSONRequestBody defines body for RecordAiUsage for application/json ContentType.
 type RecordAiUsageJSONRequestBody RecordAiUsageJSONBody
@@ -16633,6 +16795,9 @@ type ClientInterface interface {
 
 	Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ConsumeLoginLink request
+	ConsumeLoginLink(ctx context.Context, token string, params *ConsumeLoginLinkParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// Logout request
 	Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17069,6 +17234,17 @@ type ClientInterface interface {
 
 	GlobalUserChangeEmail(ctx context.Context, email string, body GlobalUserChangeEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetCloudTrialOffer request
+	GetCloudTrialOffer(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetCloudTrialOfferWithBody request with any body
+	SetCloudTrialOfferWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetCloudTrialOffer(ctx context.Context, body SetCloudTrialOfferJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GoCloudTrialOffer request
+	GoCloudTrialOffer(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateUserGloballyWithBody request with any body
 	CreateUserGloballyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17106,6 +17282,11 @@ type ClientInterface interface {
 	// ListWorkspaceInvites request
 	ListWorkspaceInvites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateLoginLinkWithBody request with any body
+	CreateLoginLinkWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateLoginLink(ctx context.Context, body CreateLoginLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// OffboardGlobalUserWithBody request with any body
 	OffboardGlobalUserWithBody(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17118,6 +17299,14 @@ type ClientInterface interface {
 	SubmitOnboardingDataWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SubmitOnboardingData(ctx context.Context, body SubmitOnboardingDataJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetOnboardingProfile request
+	GetOnboardingProfile(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetOnboardingProfileWithBody request with any body
+	SetOnboardingProfileWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetOnboardingProfile(ctx context.Context, body SetOnboardingProfileJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GlobalUsersOverwriteWithBody request with any body
 	GlobalUsersOverwriteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -17210,6 +17399,20 @@ type ClientInterface interface {
 	RemoveGranularAclsWithBody(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RemoveGranularAcls(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UnshareAiArtifact request
+	UnshareAiArtifact(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSharedAiArtifact request
+	GetSharedAiArtifact(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ShareAiArtifactWithBody request with any body
+	ShareAiArtifactWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ShareAiArtifact(ctx context.Context, workspace WorkspaceId, body ShareAiArtifactJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAiArtifactShareStatus request
+	GetAiArtifactShareStatus(ctx context.Context, workspace WorkspaceId, params *GetAiArtifactShareStatusParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAiUsage request
 	ListAiUsage(ctx context.Context, workspace WorkspaceId, params *ListAiUsageParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19133,6 +19336,21 @@ type ClientInterface interface {
 
 	UpdateSqsTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// PermanentlyDeleteTrashItem request
+	PermanentlyDeleteTrashItem(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EmptyTrash request
+	EmptyTrash(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTrashItem request
+	GetTrashItem(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListTrash request
+	ListTrash(ctx context.Context, workspace WorkspaceId, params *ListTrashParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RestoreTrashItem request
+	RestoreTrashItem(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CancelSuspendedTriggerJobsWithBody request with any body
 	CancelSuspendedTriggerJobsWithBody(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -20045,6 +20263,18 @@ func (c *Client) LoginWithBody(ctx context.Context, contentType string, body io.
 
 func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLoginRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConsumeLoginLink(ctx context.Context, token string, params *ConsumeLoginLinkParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConsumeLoginLinkRequest(c.Server, token, params)
 	if err != nil {
 		return nil, err
 	}
@@ -21951,6 +22181,54 @@ func (c *Client) GlobalUserChangeEmail(ctx context.Context, email string, body G
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetCloudTrialOffer(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCloudTrialOfferRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetCloudTrialOfferWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetCloudTrialOfferRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetCloudTrialOffer(ctx context.Context, body SetCloudTrialOfferJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetCloudTrialOfferRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GoCloudTrialOffer(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGoCloudTrialOfferRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateUserGloballyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateUserGloballyRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -22107,6 +22385,30 @@ func (c *Client) ListWorkspaceInvites(ctx context.Context, reqEditors ...Request
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreateLoginLinkWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateLoginLinkRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateLoginLink(ctx context.Context, body CreateLoginLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateLoginLinkRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) OffboardGlobalUserWithBody(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewOffboardGlobalUserRequestWithBody(c.Server, email, contentType, body)
 	if err != nil {
@@ -22157,6 +22459,42 @@ func (c *Client) SubmitOnboardingDataWithBody(ctx context.Context, contentType s
 
 func (c *Client) SubmitOnboardingData(ctx context.Context, body SubmitOnboardingDataJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSubmitOnboardingDataRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetOnboardingProfile(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOnboardingProfileRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetOnboardingProfileWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetOnboardingProfileRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetOnboardingProfile(ctx context.Context, body SetOnboardingProfileJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetOnboardingProfileRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -22577,6 +22915,66 @@ func (c *Client) RemoveGranularAclsWithBody(ctx context.Context, workspace Works
 
 func (c *Client) RemoveGranularAcls(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRemoveGranularAclsRequest(c.Server, workspace, kind, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UnshareAiArtifact(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnshareAiArtifactRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSharedAiArtifact(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSharedAiArtifactRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ShareAiArtifactWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewShareAiArtifactRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ShareAiArtifact(ctx context.Context, workspace WorkspaceId, body ShareAiArtifactJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewShareAiArtifactRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAiArtifactShareStatus(ctx context.Context, workspace WorkspaceId, params *GetAiArtifactShareStatusParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAiArtifactShareStatusRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -31047,6 +31445,66 @@ func (c *Client) UpdateSqsTrigger(ctx context.Context, workspace WorkspaceId, pa
 	return c.Client.Do(req)
 }
 
+func (c *Client) PermanentlyDeleteTrashItem(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPermanentlyDeleteTrashItemRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EmptyTrash(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEmptyTrashRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTrashItem(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTrashItemRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListTrash(ctx context.Context, workspace WorkspaceId, params *ListTrashParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListTrashRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RestoreTrashItem(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestoreTrashItemRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CancelSuspendedTriggerJobsWithBody(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCancelSuspendedTriggerJobsRequestWithBody(c.Server, workspace, triggerKind, triggerPath, contentType, body)
 	if err != nil {
@@ -34651,6 +35109,62 @@ func NewLoginRequestWithBody(server string, contentType string, body io.Reader) 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewConsumeLoginLinkRequest generates requests for ConsumeLoginLink
+func NewConsumeLoginLinkRequest(server string, token string, params *ConsumeLoginLinkParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "token", runtime.ParamLocationPath, token)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/auth/login_link/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Rd != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "rd", runtime.ParamLocationQuery, *params.Rd); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -39346,6 +39860,100 @@ func NewGlobalUserChangeEmailRequestWithBody(server string, email string, conten
 	return req, nil
 }
 
+// NewGetCloudTrialOfferRequest generates requests for GetCloudTrialOffer
+func NewGetCloudTrialOfferRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/cloud_trial_offer")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetCloudTrialOfferRequest calls the generic SetCloudTrialOffer builder with application/json body
+func NewSetCloudTrialOfferRequest(server string, body SetCloudTrialOfferJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetCloudTrialOfferRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSetCloudTrialOfferRequestWithBody generates requests for SetCloudTrialOffer with any type of body
+func NewSetCloudTrialOfferRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/cloud_trial_offer")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGoCloudTrialOfferRequest generates requests for GoCloudTrialOffer
+func NewGoCloudTrialOfferRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/cloud_trial_offer/go")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateUserGloballyRequest calls the generic CreateUserGlobally builder with application/json body
 func NewCreateUserGloballyRequest(server string, body CreateUserGloballyJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -39829,6 +40437,46 @@ func NewListWorkspaceInvitesRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewCreateLoginLinkRequest calls the generic CreateLoginLink builder with application/json body
+func NewCreateLoginLinkRequest(server string, body CreateLoginLinkJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateLoginLinkRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateLoginLinkRequestWithBody generates requests for CreateLoginLink with any type of body
+func NewCreateLoginLinkRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/login_links")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewOffboardGlobalUserRequest calls the generic OffboardGlobalUser builder with application/json body
 func NewOffboardGlobalUserRequest(server string, email string, body OffboardGlobalUserJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -39931,6 +40579,73 @@ func NewSubmitOnboardingDataRequestWithBody(server string, contentType string, b
 	}
 
 	operationPath := fmt.Sprintf("/users/onboarding")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetOnboardingProfileRequest generates requests for GetOnboardingProfile
+func NewGetOnboardingProfileRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/onboarding_profile")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetOnboardingProfileRequest calls the generic SetOnboardingProfile builder with application/json body
+func NewSetOnboardingProfileRequest(server string, body SetOnboardingProfileJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetOnboardingProfileRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSetOnboardingProfileRequestWithBody generates requests for SetOnboardingProfile with any type of body
+func NewSetOnboardingProfileRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/onboarding_profile")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -40904,6 +41619,187 @@ func NewRemoveGranularAclsRequestWithBody(server string, workspace WorkspaceId, 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUnshareAiArtifactRequest generates requests for UnshareAiArtifact
+func NewUnshareAiArtifactRequest(server string, workspace WorkspaceId, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/shared_artifacts/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetSharedAiArtifactRequest generates requests for GetSharedAiArtifact
+func NewGetSharedAiArtifactRequest(server string, workspace WorkspaceId, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/shared_artifacts/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewShareAiArtifactRequest calls the generic ShareAiArtifact builder with application/json body
+func NewShareAiArtifactRequest(server string, workspace WorkspaceId, body ShareAiArtifactJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewShareAiArtifactRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewShareAiArtifactRequestWithBody generates requests for ShareAiArtifact with any type of body
+func NewShareAiArtifactRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/shared_artifacts/share", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetAiArtifactShareStatusRequest generates requests for GetAiArtifactShareStatus
+func NewGetAiArtifactShareStatusRequest(server string, workspace WorkspaceId, params *GetAiArtifactShareStatusParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/shared_artifacts/status", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "artifact_id", runtime.ParamLocationQuery, params.ArtifactId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -77649,6 +78545,251 @@ func NewUpdateSqsTriggerRequestWithBody(server string, workspace WorkspaceId, pa
 	return req, nil
 }
 
+// NewPermanentlyDeleteTrashItemRequest generates requests for PermanentlyDeleteTrashItem
+func NewPermanentlyDeleteTrashItemRequest(server string, workspace WorkspaceId, id PathId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/trash/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewEmptyTrashRequest generates requests for EmptyTrash
+func NewEmptyTrashRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/trash/empty", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetTrashItemRequest generates requests for GetTrashItem
+func NewGetTrashItemRequest(server string, workspace WorkspaceId, id PathId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/trash/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListTrashRequest generates requests for ListTrash
+func NewListTrashRequest(server string, workspace WorkspaceId, params *ListTrashParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/trash/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ItemKind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "item_kind", runtime.ParamLocationQuery, *params.ItemKind); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRestoreTrashItemRequest generates requests for RestoreTrashItem
+func NewRestoreTrashItemRequest(server string, workspace WorkspaceId, id PathId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/trash/restore/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCancelSuspendedTriggerJobsRequest calls the generic CancelSuspendedTriggerJobs builder with application/json body
 func NewCancelSuspendedTriggerJobsRequest(server string, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, body CancelSuspendedTriggerJobsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -86147,6 +87288,9 @@ type ClientWithResponsesInterface interface {
 
 	LoginWithResponse(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*LoginResponse, error)
 
+	// ConsumeLoginLinkWithResponse request
+	ConsumeLoginLinkWithResponse(ctx context.Context, token string, params *ConsumeLoginLinkParams, reqEditors ...RequestEditorFn) (*ConsumeLoginLinkResponse, error)
+
 	// LogoutWithResponse request
 	LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error)
 
@@ -86583,6 +87727,17 @@ type ClientWithResponsesInterface interface {
 
 	GlobalUserChangeEmailWithResponse(ctx context.Context, email string, body GlobalUserChangeEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*GlobalUserChangeEmailResponse, error)
 
+	// GetCloudTrialOfferWithResponse request
+	GetCloudTrialOfferWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCloudTrialOfferResponse, error)
+
+	// SetCloudTrialOfferWithBodyWithResponse request with any body
+	SetCloudTrialOfferWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetCloudTrialOfferResponse, error)
+
+	SetCloudTrialOfferWithResponse(ctx context.Context, body SetCloudTrialOfferJSONRequestBody, reqEditors ...RequestEditorFn) (*SetCloudTrialOfferResponse, error)
+
+	// GoCloudTrialOfferWithResponse request
+	GoCloudTrialOfferWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GoCloudTrialOfferResponse, error)
+
 	// CreateUserGloballyWithBodyWithResponse request with any body
 	CreateUserGloballyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateUserGloballyResponse, error)
 
@@ -86620,6 +87775,11 @@ type ClientWithResponsesInterface interface {
 	// ListWorkspaceInvitesWithResponse request
 	ListWorkspaceInvitesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListWorkspaceInvitesResponse, error)
 
+	// CreateLoginLinkWithBodyWithResponse request with any body
+	CreateLoginLinkWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateLoginLinkResponse, error)
+
+	CreateLoginLinkWithResponse(ctx context.Context, body CreateLoginLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateLoginLinkResponse, error)
+
 	// OffboardGlobalUserWithBodyWithResponse request with any body
 	OffboardGlobalUserWithBodyWithResponse(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OffboardGlobalUserResponse, error)
 
@@ -86632,6 +87792,14 @@ type ClientWithResponsesInterface interface {
 	SubmitOnboardingDataWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubmitOnboardingDataResponse, error)
 
 	SubmitOnboardingDataWithResponse(ctx context.Context, body SubmitOnboardingDataJSONRequestBody, reqEditors ...RequestEditorFn) (*SubmitOnboardingDataResponse, error)
+
+	// GetOnboardingProfileWithResponse request
+	GetOnboardingProfileWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOnboardingProfileResponse, error)
+
+	// SetOnboardingProfileWithBodyWithResponse request with any body
+	SetOnboardingProfileWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetOnboardingProfileResponse, error)
+
+	SetOnboardingProfileWithResponse(ctx context.Context, body SetOnboardingProfileJSONRequestBody, reqEditors ...RequestEditorFn) (*SetOnboardingProfileResponse, error)
 
 	// GlobalUsersOverwriteWithBodyWithResponse request with any body
 	GlobalUsersOverwriteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GlobalUsersOverwriteResponse, error)
@@ -86724,6 +87892,20 @@ type ClientWithResponsesInterface interface {
 	RemoveGranularAclsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RemoveGranularAclsResponse, error)
 
 	RemoveGranularAclsWithResponse(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveGranularAclsResponse, error)
+
+	// UnshareAiArtifactWithResponse request
+	UnshareAiArtifactWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*UnshareAiArtifactResponse, error)
+
+	// GetSharedAiArtifactWithResponse request
+	GetSharedAiArtifactWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetSharedAiArtifactResponse, error)
+
+	// ShareAiArtifactWithBodyWithResponse request with any body
+	ShareAiArtifactWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ShareAiArtifactResponse, error)
+
+	ShareAiArtifactWithResponse(ctx context.Context, workspace WorkspaceId, body ShareAiArtifactJSONRequestBody, reqEditors ...RequestEditorFn) (*ShareAiArtifactResponse, error)
+
+	// GetAiArtifactShareStatusWithResponse request
+	GetAiArtifactShareStatusWithResponse(ctx context.Context, workspace WorkspaceId, params *GetAiArtifactShareStatusParams, reqEditors ...RequestEditorFn) (*GetAiArtifactShareStatusResponse, error)
 
 	// ListAiUsageWithResponse request
 	ListAiUsageWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAiUsageParams, reqEditors ...RequestEditorFn) (*ListAiUsageResponse, error)
@@ -88647,6 +89829,21 @@ type ClientWithResponsesInterface interface {
 
 	UpdateSqsTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateSqsTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateSqsTriggerResponse, error)
 
+	// PermanentlyDeleteTrashItemWithResponse request
+	PermanentlyDeleteTrashItemWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*PermanentlyDeleteTrashItemResponse, error)
+
+	// EmptyTrashWithResponse request
+	EmptyTrashWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*EmptyTrashResponse, error)
+
+	// GetTrashItemWithResponse request
+	GetTrashItemWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetTrashItemResponse, error)
+
+	// ListTrashWithResponse request
+	ListTrashWithResponse(ctx context.Context, workspace WorkspaceId, params *ListTrashParams, reqEditors ...RequestEditorFn) (*ListTrashResponse, error)
+
+	// RestoreTrashItemWithResponse request
+	RestoreTrashItemWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*RestoreTrashItemResponse, error)
+
 	// CancelSuspendedTriggerJobsWithBodyWithResponse request with any body
 	CancelSuspendedTriggerJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSuspendedTriggerJobsResponse, error)
 
@@ -89716,6 +90913,27 @@ func (r LoginResponse) StatusCode() int {
 	return 0
 }
 
+type ConsumeLoginLinkResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ConsumeLoginLinkResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ConsumeLoginLinkResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type LogoutResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -90722,7 +91940,9 @@ type ListHubIntegrationsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]struct {
-		Name string `json:"name"`
+		// DisplayName the label the hub curates for the integration, null or absent where it names none
+		DisplayName *string `json:"display_name"`
+		Name        string  `json:"name"`
 
 		// Picks how often the integration has been picked, absent on a hub that does not count picks
 		Picks *int `json:"picks,omitempty"`
@@ -92586,6 +93806,78 @@ func (r GlobalUserChangeEmailResponse) StatusCode() int {
 	return 0
 }
 
+type GetCloudTrialOfferResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Offered bool `json:"offered"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCloudTrialOfferResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCloudTrialOfferResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetCloudTrialOfferResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetCloudTrialOfferResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetCloudTrialOfferResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GoCloudTrialOfferResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Location string `json:"location"`
+
+		// Reason present when the portal refused (e.g. the account already has a subscription); the offer is then spent
+		Reason *string `json:"reason,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GoCloudTrialOfferResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GoCloudTrialOfferResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateUserGloballyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -92823,6 +94115,31 @@ func (r ListWorkspaceInvitesResponse) StatusCode() int {
 	return 0
 }
 
+type CreateLoginLinkResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		ExpiresAt time.Time `json:"expires_at"`
+		Url       string    `json:"url"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateLoginLinkResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateLoginLinkResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type OffboardGlobalUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -92883,6 +94200,51 @@ func (r SubmitOnboardingDataResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SubmitOnboardingDataResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetOnboardingProfileResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Profile *map[string]interface{} `json:"profile"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetOnboardingProfileResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOnboardingProfileResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetOnboardingProfileResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetOnboardingProfileResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetOnboardingProfileResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -93359,6 +94721,108 @@ func (r RemoveGranularAclsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RemoveGranularAclsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UnshareAiArtifactResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UnshareAiArtifactResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UnshareAiArtifactResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetSharedAiArtifactResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// CanUnshare whether the caller authored the share or is a workspace admin
+		CanUnshare bool                       `json:"can_unshare"`
+		Content    string                     `json:"content"`
+		CreatedBy  string                     `json:"created_by"`
+		ExpiresAt  time.Time                  `json:"expires_at"`
+		Id         openapi_types.UUID         `json:"id"`
+		Kind       GetSharedAiArtifact200Kind `json:"kind"`
+		Name       string                     `json:"name"`
+		SharedAt   time.Time                  `json:"shared_at"`
+		Version    int                        `json:"version"`
+	}
+}
+type GetSharedAiArtifact200Kind string
+
+// Status returns HTTPResponse.Status
+func (r GetSharedAiArtifactResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSharedAiArtifactResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ShareAiArtifactResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SharedAiArtifactInfo
+}
+
+// Status returns HTTPResponse.Status
+func (r ShareAiArtifactResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ShareAiArtifactResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAiArtifactShareStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		RetentionSecs int                   `json:"retention_secs"`
+		Share         *SharedAiArtifactInfo `json:"share,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAiArtifactShareStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAiArtifactShareStatusResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -106009,6 +107473,113 @@ func (r UpdateSqsTriggerResponse) StatusCode() int {
 	return 0
 }
 
+type PermanentlyDeleteTrashItemResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r PermanentlyDeleteTrashItemResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PermanentlyDeleteTrashItemResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type EmptyTrashResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EmptyTrashResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EmptyTrashResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTrashItemResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TrashItemWithData
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTrashItemResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTrashItemResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListTrashResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]TrashItem
+}
+
+// Status returns HTTPResponse.Status
+func (r ListTrashResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListTrashResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RestoreTrashItemResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RestoreTrashItemResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RestoreTrashItemResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CancelSuspendedTriggerJobsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -110453,6 +112024,15 @@ func (c *ClientWithResponses) LoginWithResponse(ctx context.Context, body LoginJ
 	return ParseLoginResponse(rsp)
 }
 
+// ConsumeLoginLinkWithResponse request returning *ConsumeLoginLinkResponse
+func (c *ClientWithResponses) ConsumeLoginLinkWithResponse(ctx context.Context, token string, params *ConsumeLoginLinkParams, reqEditors ...RequestEditorFn) (*ConsumeLoginLinkResponse, error) {
+	rsp, err := c.ConsumeLoginLink(ctx, token, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConsumeLoginLinkResponse(rsp)
+}
+
 // LogoutWithResponse request returning *LogoutResponse
 func (c *ClientWithResponses) LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error) {
 	rsp, err := c.Logout(ctx, reqEditors...)
@@ -111837,6 +113417,41 @@ func (c *ClientWithResponses) GlobalUserChangeEmailWithResponse(ctx context.Cont
 	return ParseGlobalUserChangeEmailResponse(rsp)
 }
 
+// GetCloudTrialOfferWithResponse request returning *GetCloudTrialOfferResponse
+func (c *ClientWithResponses) GetCloudTrialOfferWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCloudTrialOfferResponse, error) {
+	rsp, err := c.GetCloudTrialOffer(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCloudTrialOfferResponse(rsp)
+}
+
+// SetCloudTrialOfferWithBodyWithResponse request with arbitrary body returning *SetCloudTrialOfferResponse
+func (c *ClientWithResponses) SetCloudTrialOfferWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetCloudTrialOfferResponse, error) {
+	rsp, err := c.SetCloudTrialOfferWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetCloudTrialOfferResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetCloudTrialOfferWithResponse(ctx context.Context, body SetCloudTrialOfferJSONRequestBody, reqEditors ...RequestEditorFn) (*SetCloudTrialOfferResponse, error) {
+	rsp, err := c.SetCloudTrialOffer(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetCloudTrialOfferResponse(rsp)
+}
+
+// GoCloudTrialOfferWithResponse request returning *GoCloudTrialOfferResponse
+func (c *ClientWithResponses) GoCloudTrialOfferWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GoCloudTrialOfferResponse, error) {
+	rsp, err := c.GoCloudTrialOffer(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGoCloudTrialOfferResponse(rsp)
+}
+
 // CreateUserGloballyWithBodyWithResponse request with arbitrary body returning *CreateUserGloballyResponse
 func (c *ClientWithResponses) CreateUserGloballyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateUserGloballyResponse, error) {
 	rsp, err := c.CreateUserGloballyWithBody(ctx, contentType, body, reqEditors...)
@@ -111952,6 +113567,23 @@ func (c *ClientWithResponses) ListWorkspaceInvitesWithResponse(ctx context.Conte
 	return ParseListWorkspaceInvitesResponse(rsp)
 }
 
+// CreateLoginLinkWithBodyWithResponse request with arbitrary body returning *CreateLoginLinkResponse
+func (c *ClientWithResponses) CreateLoginLinkWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateLoginLinkResponse, error) {
+	rsp, err := c.CreateLoginLinkWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateLoginLinkResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateLoginLinkWithResponse(ctx context.Context, body CreateLoginLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateLoginLinkResponse, error) {
+	rsp, err := c.CreateLoginLink(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateLoginLinkResponse(rsp)
+}
+
 // OffboardGlobalUserWithBodyWithResponse request with arbitrary body returning *OffboardGlobalUserResponse
 func (c *ClientWithResponses) OffboardGlobalUserWithBodyWithResponse(ctx context.Context, email string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OffboardGlobalUserResponse, error) {
 	rsp, err := c.OffboardGlobalUserWithBody(ctx, email, contentType, body, reqEditors...)
@@ -111993,6 +113625,32 @@ func (c *ClientWithResponses) SubmitOnboardingDataWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseSubmitOnboardingDataResponse(rsp)
+}
+
+// GetOnboardingProfileWithResponse request returning *GetOnboardingProfileResponse
+func (c *ClientWithResponses) GetOnboardingProfileWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOnboardingProfileResponse, error) {
+	rsp, err := c.GetOnboardingProfile(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOnboardingProfileResponse(rsp)
+}
+
+// SetOnboardingProfileWithBodyWithResponse request with arbitrary body returning *SetOnboardingProfileResponse
+func (c *ClientWithResponses) SetOnboardingProfileWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetOnboardingProfileResponse, error) {
+	rsp, err := c.SetOnboardingProfileWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetOnboardingProfileResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetOnboardingProfileWithResponse(ctx context.Context, body SetOnboardingProfileJSONRequestBody, reqEditors ...RequestEditorFn) (*SetOnboardingProfileResponse, error) {
+	rsp, err := c.SetOnboardingProfile(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetOnboardingProfileResponse(rsp)
 }
 
 // GlobalUsersOverwriteWithBodyWithResponse request with arbitrary body returning *GlobalUsersOverwriteResponse
@@ -112295,6 +113953,50 @@ func (c *ClientWithResponses) RemoveGranularAclsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseRemoveGranularAclsResponse(rsp)
+}
+
+// UnshareAiArtifactWithResponse request returning *UnshareAiArtifactResponse
+func (c *ClientWithResponses) UnshareAiArtifactWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*UnshareAiArtifactResponse, error) {
+	rsp, err := c.UnshareAiArtifact(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnshareAiArtifactResponse(rsp)
+}
+
+// GetSharedAiArtifactWithResponse request returning *GetSharedAiArtifactResponse
+func (c *ClientWithResponses) GetSharedAiArtifactWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetSharedAiArtifactResponse, error) {
+	rsp, err := c.GetSharedAiArtifact(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSharedAiArtifactResponse(rsp)
+}
+
+// ShareAiArtifactWithBodyWithResponse request with arbitrary body returning *ShareAiArtifactResponse
+func (c *ClientWithResponses) ShareAiArtifactWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ShareAiArtifactResponse, error) {
+	rsp, err := c.ShareAiArtifactWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseShareAiArtifactResponse(rsp)
+}
+
+func (c *ClientWithResponses) ShareAiArtifactWithResponse(ctx context.Context, workspace WorkspaceId, body ShareAiArtifactJSONRequestBody, reqEditors ...RequestEditorFn) (*ShareAiArtifactResponse, error) {
+	rsp, err := c.ShareAiArtifact(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseShareAiArtifactResponse(rsp)
+}
+
+// GetAiArtifactShareStatusWithResponse request returning *GetAiArtifactShareStatusResponse
+func (c *ClientWithResponses) GetAiArtifactShareStatusWithResponse(ctx context.Context, workspace WorkspaceId, params *GetAiArtifactShareStatusParams, reqEditors ...RequestEditorFn) (*GetAiArtifactShareStatusResponse, error) {
+	rsp, err := c.GetAiArtifactShareStatus(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAiArtifactShareStatusResponse(rsp)
 }
 
 // ListAiUsageWithResponse request returning *ListAiUsageResponse
@@ -118449,6 +120151,51 @@ func (c *ClientWithResponses) UpdateSqsTriggerWithResponse(ctx context.Context, 
 	return ParseUpdateSqsTriggerResponse(rsp)
 }
 
+// PermanentlyDeleteTrashItemWithResponse request returning *PermanentlyDeleteTrashItemResponse
+func (c *ClientWithResponses) PermanentlyDeleteTrashItemWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*PermanentlyDeleteTrashItemResponse, error) {
+	rsp, err := c.PermanentlyDeleteTrashItem(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePermanentlyDeleteTrashItemResponse(rsp)
+}
+
+// EmptyTrashWithResponse request returning *EmptyTrashResponse
+func (c *ClientWithResponses) EmptyTrashWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*EmptyTrashResponse, error) {
+	rsp, err := c.EmptyTrash(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEmptyTrashResponse(rsp)
+}
+
+// GetTrashItemWithResponse request returning *GetTrashItemResponse
+func (c *ClientWithResponses) GetTrashItemWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*GetTrashItemResponse, error) {
+	rsp, err := c.GetTrashItem(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTrashItemResponse(rsp)
+}
+
+// ListTrashWithResponse request returning *ListTrashResponse
+func (c *ClientWithResponses) ListTrashWithResponse(ctx context.Context, workspace WorkspaceId, params *ListTrashParams, reqEditors ...RequestEditorFn) (*ListTrashResponse, error) {
+	rsp, err := c.ListTrash(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListTrashResponse(rsp)
+}
+
+// RestoreTrashItemWithResponse request returning *RestoreTrashItemResponse
+func (c *ClientWithResponses) RestoreTrashItemWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, reqEditors ...RequestEditorFn) (*RestoreTrashItemResponse, error) {
+	rsp, err := c.RestoreTrashItem(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestoreTrashItemResponse(rsp)
+}
+
 // CancelSuspendedTriggerJobsWithBodyWithResponse request with arbitrary body returning *CancelSuspendedTriggerJobsResponse
 func (c *ClientWithResponses) CancelSuspendedTriggerJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, triggerKind JobTriggerKind, triggerPath string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSuspendedTriggerJobsResponse, error) {
 	rsp, err := c.CancelSuspendedTriggerJobsWithBody(ctx, workspace, triggerKind, triggerPath, contentType, body, reqEditors...)
@@ -121085,6 +122832,22 @@ func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
 	return response, nil
 }
 
+// ParseConsumeLoginLinkResponse parses an HTTP response from a ConsumeLoginLinkWithResponse call
+func ParseConsumeLoginLinkResponse(rsp *http.Response) (*ConsumeLoginLinkResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ConsumeLoginLinkResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseLogoutResponse parses an HTTP response from a LogoutWithResponse call
 func ParseLogoutResponse(rsp *http.Response) (*LogoutResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -122155,7 +123918,9 @@ func ParseListHubIntegrationsResponse(rsp *http.Response) (*ListHubIntegrationsR
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
-			Name string `json:"name"`
+			// DisplayName the label the hub curates for the integration, null or absent where it names none
+			DisplayName *string `json:"display_name"`
+			Name        string  `json:"name"`
 
 			// Picks how often the integration has been picked, absent on a hub that does not count picks
 			Picks *int `json:"picks,omitempty"`
@@ -124022,6 +125787,81 @@ func ParseGlobalUserChangeEmailResponse(rsp *http.Response) (*GlobalUserChangeEm
 	return response, nil
 }
 
+// ParseGetCloudTrialOfferResponse parses an HTTP response from a GetCloudTrialOfferWithResponse call
+func ParseGetCloudTrialOfferResponse(rsp *http.Response) (*GetCloudTrialOfferResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCloudTrialOfferResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Offered bool `json:"offered"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetCloudTrialOfferResponse parses an HTTP response from a SetCloudTrialOfferWithResponse call
+func ParseSetCloudTrialOfferResponse(rsp *http.Response) (*SetCloudTrialOfferResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetCloudTrialOfferResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGoCloudTrialOfferResponse parses an HTTP response from a GoCloudTrialOfferWithResponse call
+func ParseGoCloudTrialOfferResponse(rsp *http.Response) (*GoCloudTrialOfferResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GoCloudTrialOfferResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Location string `json:"location"`
+
+			// Reason present when the portal refused (e.g. the account already has a subscription); the offer is then spent
+			Reason *string `json:"reason,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateUserGloballyResponse parses an HTTP response from a CreateUserGloballyWithResponse call
 func ParseCreateUserGloballyResponse(rsp *http.Response) (*CreateUserGloballyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -124258,6 +126098,35 @@ func ParseListWorkspaceInvitesResponse(rsp *http.Response) (*ListWorkspaceInvite
 	return response, nil
 }
 
+// ParseCreateLoginLinkResponse parses an HTTP response from a CreateLoginLinkWithResponse call
+func ParseCreateLoginLinkResponse(rsp *http.Response) (*CreateLoginLinkResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateLoginLinkResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			ExpiresAt time.Time `json:"expires_at"`
+			Url       string    `json:"url"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseOffboardGlobalUserResponse parses an HTTP response from a OffboardGlobalUserWithResponse call
 func ParseOffboardGlobalUserResponse(rsp *http.Response) (*OffboardGlobalUserResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -124331,6 +126200,50 @@ func ParseSubmitOnboardingDataResponse(rsp *http.Response) (*SubmitOnboardingDat
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetOnboardingProfileResponse parses an HTTP response from a GetOnboardingProfileWithResponse call
+func ParseGetOnboardingProfileResponse(rsp *http.Response) (*GetOnboardingProfileResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetOnboardingProfileResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Profile *map[string]interface{} `json:"profile"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetOnboardingProfileResponse parses an HTTP response from a SetOnboardingProfileWithResponse call
+func ParseSetOnboardingProfileResponse(rsp *http.Response) (*SetOnboardingProfileResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetOnboardingProfileResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -124742,6 +126655,114 @@ func ParseRemoveGranularAclsResponse(rsp *http.Response) (*RemoveGranularAclsRes
 	response := &RemoveGranularAclsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUnshareAiArtifactResponse parses an HTTP response from a UnshareAiArtifactWithResponse call
+func ParseUnshareAiArtifactResponse(rsp *http.Response) (*UnshareAiArtifactResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UnshareAiArtifactResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetSharedAiArtifactResponse parses an HTTP response from a GetSharedAiArtifactWithResponse call
+func ParseGetSharedAiArtifactResponse(rsp *http.Response) (*GetSharedAiArtifactResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSharedAiArtifactResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// CanUnshare whether the caller authored the share or is a workspace admin
+			CanUnshare bool                       `json:"can_unshare"`
+			Content    string                     `json:"content"`
+			CreatedBy  string                     `json:"created_by"`
+			ExpiresAt  time.Time                  `json:"expires_at"`
+			Id         openapi_types.UUID         `json:"id"`
+			Kind       GetSharedAiArtifact200Kind `json:"kind"`
+			Name       string                     `json:"name"`
+			SharedAt   time.Time                  `json:"shared_at"`
+			Version    int                        `json:"version"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseShareAiArtifactResponse parses an HTTP response from a ShareAiArtifactWithResponse call
+func ParseShareAiArtifactResponse(rsp *http.Response) (*ShareAiArtifactResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ShareAiArtifactResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SharedAiArtifactInfo
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetAiArtifactShareStatusResponse parses an HTTP response from a GetAiArtifactShareStatusWithResponse call
+func ParseGetAiArtifactShareStatusResponse(rsp *http.Response) (*GetAiArtifactShareStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAiArtifactShareStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			RetentionSecs int                   `json:"retention_secs"`
+			Share         *SharedAiArtifactInfo `json:"share,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -137357,6 +139378,106 @@ func ParseUpdateSqsTriggerResponse(rsp *http.Response) (*UpdateSqsTriggerRespons
 	}
 
 	response := &UpdateSqsTriggerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParsePermanentlyDeleteTrashItemResponse parses an HTTP response from a PermanentlyDeleteTrashItemWithResponse call
+func ParsePermanentlyDeleteTrashItemResponse(rsp *http.Response) (*PermanentlyDeleteTrashItemResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PermanentlyDeleteTrashItemResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseEmptyTrashResponse parses an HTTP response from a EmptyTrashWithResponse call
+func ParseEmptyTrashResponse(rsp *http.Response) (*EmptyTrashResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EmptyTrashResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetTrashItemResponse parses an HTTP response from a GetTrashItemWithResponse call
+func ParseGetTrashItemResponse(rsp *http.Response) (*GetTrashItemResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTrashItemResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TrashItemWithData
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListTrashResponse parses an HTTP response from a ListTrashWithResponse call
+func ParseListTrashResponse(rsp *http.Response) (*ListTrashResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListTrashResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []TrashItem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRestoreTrashItemResponse parses an HTTP response from a RestoreTrashItemWithResponse call
+func ParseRestoreTrashItemResponse(rsp *http.Response) (*RestoreTrashItemResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RestoreTrashItemResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
