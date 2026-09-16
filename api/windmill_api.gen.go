@@ -1611,6 +1611,12 @@ type AIConfig struct {
 	MetadataModel     *AIProviderModel               `json:"metadata_model,omitempty"`
 	ModelPricing      *map[string]ModelPriceOverride `json:"model_pricing,omitempty"`
 	Providers         *map[string]AIProviderConfig   `json:"providers,omitempty"`
+
+	// SessionsRetentionDays The server deletes the backup of a session no push has reached for this many days. Unset keeps backups until the user deletes the session. Read from the workspace's own settings like `copilot_disabled`.
+	SessionsRetentionDays *int `json:"sessions_retention_days,omitempty"`
+
+	// SessionsStorageDisabled Stops browsers from backing their AI sessions up to the workspace's object storage. Read from the workspace's own settings like `copilot_disabled`.
+	SessionsStorageDisabled *bool `json:"sessions_storage_disabled,omitempty"`
 }
 
 // AIProvider defines model for AIProvider.
@@ -1630,6 +1636,81 @@ type AIProviderKind string
 type AIProviderModel struct {
 	Model    string     `json:"model"`
 	Provider AIProvider `json:"provider"`
+}
+
+// AISessionBackup defines model for AISessionBackup.
+type AISessionBackup struct {
+	Artifacts *map[string]interface{} `json:"artifacts,omitempty"`
+	Chats     []AISessionBackupChat   `json:"chats"`
+	Head      map[string]interface{}  `json:"head"`
+	Id        string                  `json:"id"`
+	Images    []AISessionBackupImage  `json:"images"`
+
+	// Listing a fingerprint of the session's listing; pages of one session whose fingerprints differ do not belong together
+	Listing string `json:"listing"`
+
+	// Moved the backup kept changing while this page was read, so it may mix two versions; the browser starts the session over
+	Moved *bool `json:"moved,omitempty"`
+
+	// Next where a pull of a session that did not fit one answer whole picks up; the rest of the session follows a pull naming that session alone with this as `resume`
+	Next *AISessionBackupCursor `json:"next,omitempty"`
+}
+
+// AISessionBackupChat defines model for AISessionBackupChat.
+type AISessionBackupChat struct {
+	Id     string                 `json:"id"`
+	Record map[string]interface{} `json:"record"`
+}
+
+// AISessionBackupCursor where a pull of a session that did not fit one answer whole picks up; the rest of the session follows a pull naming that session alone with this as `resume`
+type AISessionBackupCursor struct {
+	After  string `json:"after"`
+	Id     string `json:"id"`
+	Images bool   `json:"images"`
+}
+
+// AISessionBackupImage defines model for AISessionBackupImage.
+type AISessionBackupImage struct {
+	ChatId  string `json:"chat_id"`
+	DataUrl string `json:"data_url"`
+	Id      string `json:"id"`
+}
+
+// AISessionBackupListing defines model for AISessionBackupListing.
+type AISessionBackupListing struct {
+	// Epoch the session's move count when this copy was pushed; of a session two workspaces list, the copy with the higher one is the later
+	Epoch     int       `json:"epoch"`
+	Id        string    `json:"id"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// AISessionBackupPush defines model for AISessionBackupPush.
+type AISessionBackupPush struct {
+	Artifacts    *map[string]interface{} `json:"artifacts,omitempty"`
+	Chats        *[]AISessionBackupChat  `json:"chats,omitempty"`
+	DeleteChats  *[]string               `json:"delete_chats,omitempty"`
+	DeleteImages *[]struct {
+		ChatId string `json:"chat_id"`
+		Id     string `json:"id"`
+	} `json:"delete_images,omitempty"`
+
+	// Epoch the session's move count (its record's `moves`), kept with the marker that lists the session; an incremental part rides on the marker of the same count
+	Epoch  *int                    `json:"epoch,omitempty"`
+	Head   *map[string]interface{} `json:"head,omitempty"`
+	Id     string                  `json:"id"`
+	Images *[]AISessionBackupImage `json:"images,omitempty"`
+
+	// Opens this part opens the push named by `push`
+	Opens *bool `json:"opens,omitempty"`
+
+	// Partial more parts of this session follow, in this push or a later one; the session is not listed on this one. Such a part names its push (`push`), or it is refused
+	Partial *bool `json:"partial,omitempty"`
+
+	// Push a push split over several parts names itself on each with a token the browser draws; the part that opens it unlists the session and the last part lists it again, and a later part is written only while that token is the one there (refused with needs_whole otherwise)
+	Push *string `json:"push,omitempty"`
+
+	// Whole a part of a push of the session whole; the head is on the part that opens it, which replaces whatever the storage holds of the session, and every piece the browser has is on one of them. An incremental part instead rides on a session the storage lists and is refused with needs_whole when it lists none
+	Whole *bool `json:"whole,omitempty"`
 }
 
 // AITokenUsageBucket defines model for AITokenUsageBucket.
@@ -9062,6 +9143,22 @@ type RemoveGranularAclsJSONBody struct {
 // RemoveGranularAclsParamsKind defines parameters for RemoveGranularAcls.
 type RemoveGranularAclsParamsKind string
 
+// PullAiSessionBackupsJSONBody defines parameters for PullAiSessionBackups.
+type PullAiSessionBackupsJSONBody struct {
+	Ids []string `json:"ids"`
+
+	// Resume where a pull of a session that did not fit one answer whole picks up; the rest of the session follows a pull naming that session alone with this as `resume`
+	Resume *AISessionBackupCursor `json:"resume,omitempty"`
+}
+
+// PushAiSessionBackupsJSONBody defines parameters for PushAiSessionBackups.
+type PushAiSessionBackupsJSONBody struct {
+	// Owner the email the push was prepared for; refused with a 409 when it is not the caller's
+	Owner    string                 `json:"owner"`
+	Removed  *[]string              `json:"removed,omitempty"`
+	Sessions *[]AISessionBackupPush `json:"sessions,omitempty"`
+}
+
 // ShareAiArtifactJSONBody defines parameters for ShareAiArtifact.
 type ShareAiArtifactJSONBody struct {
 	// ArtifactId the artifact's id in the author's session
@@ -13635,6 +13732,11 @@ type ListWorkspacesAsSuperAdminParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
+// GetSessionWorkspaceRetentionJSONBody defines parameters for GetSessionWorkspaceRetention.
+type GetSessionWorkspaceRetentionJSONBody struct {
+	WorkspaceIds []string `json:"workspace_ids"`
+}
+
 // GetSessionWorkspaceStatusJSONBody defines parameters for GetSessionWorkspaceStatus.
 type GetSessionWorkspaceStatusJSONBody struct {
 	WorkspaceIds []string `json:"workspace_ids"`
@@ -13825,6 +13927,12 @@ type AddGranularAclsJSONRequestBody AddGranularAclsJSONBody
 
 // RemoveGranularAclsJSONRequestBody defines body for RemoveGranularAcls for application/json ContentType.
 type RemoveGranularAclsJSONRequestBody RemoveGranularAclsJSONBody
+
+// PullAiSessionBackupsJSONRequestBody defines body for PullAiSessionBackups for application/json ContentType.
+type PullAiSessionBackupsJSONRequestBody PullAiSessionBackupsJSONBody
+
+// PushAiSessionBackupsJSONRequestBody defines body for PushAiSessionBackups for application/json ContentType.
+type PushAiSessionBackupsJSONRequestBody PushAiSessionBackupsJSONBody
 
 // ShareAiArtifactJSONRequestBody defines body for ShareAiArtifact for application/json ContentType.
 type ShareAiArtifactJSONRequestBody ShareAiArtifactJSONBody
@@ -14635,6 +14743,9 @@ type ExistsWorkspaceJSONRequestBody ExistsWorkspaceJSONBody
 
 // ExistsUsernameJSONRequestBody defines body for ExistsUsername for application/json ContentType.
 type ExistsUsernameJSONRequestBody ExistsUsernameJSONBody
+
+// GetSessionWorkspaceRetentionJSONRequestBody defines body for GetSessionWorkspaceRetention for application/json ContentType.
+type GetSessionWorkspaceRetentionJSONRequestBody GetSessionWorkspaceRetentionJSONBody
 
 // GetSessionWorkspaceStatusJSONRequestBody defines body for GetSessionWorkspaceStatus for application/json ContentType.
 type GetSessionWorkspaceStatusJSONRequestBody GetSessionWorkspaceStatusJSONBody
@@ -17400,6 +17511,19 @@ type ClientInterface interface {
 
 	RemoveGranularAcls(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAiSessionBackups request
+	ListAiSessionBackups(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PullAiSessionBackupsWithBody request with any body
+	PullAiSessionBackupsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PullAiSessionBackups(ctx context.Context, workspace WorkspaceId, body PullAiSessionBackupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PushAiSessionBackupsWithBody request with any body
+	PushAiSessionBackupsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PushAiSessionBackups(ctx context.Context, workspace WorkspaceId, body PushAiSessionBackupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UnshareAiArtifact request
 	UnshareAiArtifact(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17904,6 +18028,9 @@ type ClientInterface interface {
 
 	// ListFlowPathsFromWorkspaceRunnable request
 	ListFlowPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, params *ListFlowPathsFromWorkspaceRunnableParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListFlowPathsLinkingAgent request
+	ListFlowPathsLinkingAgent(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListSearchFlow request
 	ListSearchFlow(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20032,6 +20159,11 @@ type ClientInterface interface {
 
 	// ListWorkspacesAsSuperAdmin request
 	ListWorkspacesAsSuperAdmin(ctx context.Context, params *ListWorkspacesAsSuperAdminParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSessionWorkspaceRetentionWithBody request with any body
+	GetSessionWorkspaceRetentionWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GetSessionWorkspaceRetention(ctx context.Context, body GetSessionWorkspaceRetentionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSessionWorkspaceStatusWithBody request with any body
 	GetSessionWorkspaceStatusWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -22925,6 +23057,66 @@ func (c *Client) RemoveGranularAcls(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListAiSessionBackups(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAiSessionBackupsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PullAiSessionBackupsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPullAiSessionBackupsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PullAiSessionBackups(ctx context.Context, workspace WorkspaceId, body PullAiSessionBackupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPullAiSessionBackupsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PushAiSessionBackupsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPushAiSessionBackupsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PushAiSessionBackups(ctx context.Context, workspace WorkspaceId, body PushAiSessionBackupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPushAiSessionBackupsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) UnshareAiArtifact(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUnshareAiArtifactRequest(c.Server, workspace, id)
 	if err != nil {
@@ -25099,6 +25291,18 @@ func (c *Client) ListFlowPaths(ctx context.Context, workspace WorkspaceId, reqEd
 
 func (c *Client) ListFlowPathsFromWorkspaceRunnable(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, params *ListFlowPathsFromWorkspaceRunnableParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListFlowPathsFromWorkspaceRunnableRequest(c.Server, workspace, runnableKind, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListFlowPathsLinkingAgent(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListFlowPathsLinkingAgentRequest(c.Server, workspace, path)
 	if err != nil {
 		return nil, err
 	}
@@ -34529,6 +34733,30 @@ func (c *Client) ListWorkspacesAsSuperAdmin(ctx context.Context, params *ListWor
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetSessionWorkspaceRetentionWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSessionWorkspaceRetentionRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSessionWorkspaceRetention(ctx context.Context, body GetSessionWorkspaceRetentionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSessionWorkspaceRetentionRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetSessionWorkspaceStatusWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetSessionWorkspaceStatusRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -41604,6 +41832,134 @@ func NewRemoveGranularAclsRequestWithBody(server string, workspace WorkspaceId, 
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/acls/remove/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListAiSessionBackupsRequest generates requests for ListAiSessionBackups
+func NewListAiSessionBackupsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/sessions/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPullAiSessionBackupsRequest calls the generic PullAiSessionBackups builder with application/json body
+func NewPullAiSessionBackupsRequest(server string, workspace WorkspaceId, body PullAiSessionBackupsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPullAiSessionBackupsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewPullAiSessionBackupsRequestWithBody generates requests for PullAiSessionBackups with any type of body
+func NewPullAiSessionBackupsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/sessions/pull", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPushAiSessionBackupsRequest calls the generic PushAiSessionBackups builder with application/json body
+func NewPushAiSessionBackupsRequest(server string, workspace WorkspaceId, body PushAiSessionBackupsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPushAiSessionBackupsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewPushAiSessionBackupsRequestWithBody generates requests for PushAiSessionBackups with any type of body
+func NewPushAiSessionBackupsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/sessions/push", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -51113,6 +51469,47 @@ func NewListFlowPathsFromWorkspaceRunnableRequest(server string, workspace Works
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListFlowPathsLinkingAgentRequest generates requests for ListFlowPathsLinkingAgent
+func NewListFlowPathsLinkingAgentRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flows/list_paths_linking_agent/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -87091,6 +87488,46 @@ func NewListWorkspacesAsSuperAdminRequest(server string, params *ListWorkspacesA
 	return req, nil
 }
 
+// NewGetSessionWorkspaceRetentionRequest calls the generic GetSessionWorkspaceRetention builder with application/json body
+func NewGetSessionWorkspaceRetentionRequest(server string, body GetSessionWorkspaceRetentionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewGetSessionWorkspaceRetentionRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewGetSessionWorkspaceRetentionRequestWithBody generates requests for GetSessionWorkspaceRetention with any type of body
+func NewGetSessionWorkspaceRetentionRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workspaces/session_workspace_retention")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetSessionWorkspaceStatusRequest calls the generic GetSessionWorkspaceStatus builder with application/json body
 func NewGetSessionWorkspaceStatusRequest(server string, body GetSessionWorkspaceStatusJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -87893,6 +88330,19 @@ type ClientWithResponsesInterface interface {
 
 	RemoveGranularAclsWithResponse(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveGranularAclsResponse, error)
 
+	// ListAiSessionBackupsWithResponse request
+	ListAiSessionBackupsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAiSessionBackupsResponse, error)
+
+	// PullAiSessionBackupsWithBodyWithResponse request with any body
+	PullAiSessionBackupsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PullAiSessionBackupsResponse, error)
+
+	PullAiSessionBackupsWithResponse(ctx context.Context, workspace WorkspaceId, body PullAiSessionBackupsJSONRequestBody, reqEditors ...RequestEditorFn) (*PullAiSessionBackupsResponse, error)
+
+	// PushAiSessionBackupsWithBodyWithResponse request with any body
+	PushAiSessionBackupsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PushAiSessionBackupsResponse, error)
+
+	PushAiSessionBackupsWithResponse(ctx context.Context, workspace WorkspaceId, body PushAiSessionBackupsJSONRequestBody, reqEditors ...RequestEditorFn) (*PushAiSessionBackupsResponse, error)
+
 	// UnshareAiArtifactWithResponse request
 	UnshareAiArtifactWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*UnshareAiArtifactResponse, error)
 
@@ -88397,6 +88847,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListFlowPathsFromWorkspaceRunnableWithResponse request
 	ListFlowPathsFromWorkspaceRunnableWithResponse(ctx context.Context, workspace WorkspaceId, runnableKind ListFlowPathsFromWorkspaceRunnableParamsRunnableKind, path ScriptPath, params *ListFlowPathsFromWorkspaceRunnableParams, reqEditors ...RequestEditorFn) (*ListFlowPathsFromWorkspaceRunnableResponse, error)
+
+	// ListFlowPathsLinkingAgentWithResponse request
+	ListFlowPathsLinkingAgentWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListFlowPathsLinkingAgentResponse, error)
 
 	// ListSearchFlowWithResponse request
 	ListSearchFlowWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSearchFlowResponse, error)
@@ -90525,6 +90978,11 @@ type ClientWithResponsesInterface interface {
 
 	// ListWorkspacesAsSuperAdminWithResponse request
 	ListWorkspacesAsSuperAdminWithResponse(ctx context.Context, params *ListWorkspacesAsSuperAdminParams, reqEditors ...RequestEditorFn) (*ListWorkspacesAsSuperAdminResponse, error)
+
+	// GetSessionWorkspaceRetentionWithBodyWithResponse request with any body
+	GetSessionWorkspaceRetentionWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetSessionWorkspaceRetentionResponse, error)
+
+	GetSessionWorkspaceRetentionWithResponse(ctx context.Context, body GetSessionWorkspaceRetentionJSONRequestBody, reqEditors ...RequestEditorFn) (*GetSessionWorkspaceRetentionResponse, error)
 
 	// GetSessionWorkspaceStatusWithBodyWithResponse request with any body
 	GetSessionWorkspaceStatusWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetSessionWorkspaceStatusResponse, error)
@@ -94727,6 +95185,107 @@ func (r RemoveGranularAclsResponse) StatusCode() int {
 	return 0
 }
 
+type ListAiSessionBackupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// BackupGeneration bumped by every workspace key rotation; sync state recorded under another one is void
+		BackupGeneration *int `json:"backup_generation,omitempty"`
+		Enabled          bool `json:"enabled"`
+
+		// Fallback the storage answered from is the instance object store, standing in for a workspace without storage of its own; a removal owed to it is retired by any answer from the workspace's own storage
+		Fallback *bool `json:"fallback,omitempty"`
+
+		// Sessions the newest 500 at most
+		Sessions []AISessionBackupListing `json:"sessions"`
+
+		// StorageId names the storage answered from; sync state recorded against another one is void
+		StorageId *string `json:"storage_id,omitempty"`
+
+		// Truncated the user has more sessions than the answer names
+		Truncated *bool `json:"truncated,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAiSessionBackupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAiSessionBackupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PullAiSessionBackupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		BackupGeneration *int              `json:"backup_generation,omitempty"`
+		Deferred         []string          `json:"deferred"`
+		Enabled          bool              `json:"enabled"`
+		Fallback         *bool             `json:"fallback,omitempty"`
+		Sessions         []AISessionBackup `json:"sessions"`
+		StorageId        *string           `json:"storage_id,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r PullAiSessionBackupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PullAiSessionBackupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PushAiSessionBackupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		BackupGeneration *int  `json:"backup_generation,omitempty"`
+		Enabled          bool  `json:"enabled"`
+		Fallback         *bool `json:"fallback,omitempty"`
+		Results          []struct {
+			Error *string `json:"error,omitempty"`
+			Id    string  `json:"id"`
+
+			// NeedsWhole nothing was written and the session must be pushed whole again; an incremental part found no listed session to ride on (the backup was removed, or a push split over parts is in progress or was abandoned), or a later part of a push split over parts found another push had superseded it
+			NeedsWhole *bool `json:"needs_whole,omitempty"`
+		} `json:"results"`
+		StorageId *string `json:"storage_id,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r PushAiSessionBackupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PushAiSessionBackupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UnshareAiArtifactResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -98288,6 +98847,28 @@ func (r ListFlowPathsFromWorkspaceRunnableResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListFlowPathsFromWorkspaceRunnableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListFlowPathsLinkingAgentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListFlowPathsLinkingAgentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListFlowPathsLinkingAgentResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -111791,6 +112372,28 @@ func (r ListWorkspacesAsSuperAdminResponse) StatusCode() int {
 	return 0
 }
 
+type GetSessionWorkspaceRetentionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]int
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSessionWorkspaceRetentionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSessionWorkspaceRetentionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSessionWorkspaceStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -113955,6 +114558,49 @@ func (c *ClientWithResponses) RemoveGranularAclsWithResponse(ctx context.Context
 	return ParseRemoveGranularAclsResponse(rsp)
 }
 
+// ListAiSessionBackupsWithResponse request returning *ListAiSessionBackupsResponse
+func (c *ClientWithResponses) ListAiSessionBackupsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAiSessionBackupsResponse, error) {
+	rsp, err := c.ListAiSessionBackups(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAiSessionBackupsResponse(rsp)
+}
+
+// PullAiSessionBackupsWithBodyWithResponse request with arbitrary body returning *PullAiSessionBackupsResponse
+func (c *ClientWithResponses) PullAiSessionBackupsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PullAiSessionBackupsResponse, error) {
+	rsp, err := c.PullAiSessionBackupsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePullAiSessionBackupsResponse(rsp)
+}
+
+func (c *ClientWithResponses) PullAiSessionBackupsWithResponse(ctx context.Context, workspace WorkspaceId, body PullAiSessionBackupsJSONRequestBody, reqEditors ...RequestEditorFn) (*PullAiSessionBackupsResponse, error) {
+	rsp, err := c.PullAiSessionBackups(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePullAiSessionBackupsResponse(rsp)
+}
+
+// PushAiSessionBackupsWithBodyWithResponse request with arbitrary body returning *PushAiSessionBackupsResponse
+func (c *ClientWithResponses) PushAiSessionBackupsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PushAiSessionBackupsResponse, error) {
+	rsp, err := c.PushAiSessionBackupsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePushAiSessionBackupsResponse(rsp)
+}
+
+func (c *ClientWithResponses) PushAiSessionBackupsWithResponse(ctx context.Context, workspace WorkspaceId, body PushAiSessionBackupsJSONRequestBody, reqEditors ...RequestEditorFn) (*PushAiSessionBackupsResponse, error) {
+	rsp, err := c.PushAiSessionBackups(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePushAiSessionBackupsResponse(rsp)
+}
+
 // UnshareAiArtifactWithResponse request returning *UnshareAiArtifactResponse
 func (c *ClientWithResponses) UnshareAiArtifactWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*UnshareAiArtifactResponse, error) {
 	rsp, err := c.UnshareAiArtifact(ctx, workspace, id, reqEditors...)
@@ -115550,6 +116196,15 @@ func (c *ClientWithResponses) ListFlowPathsFromWorkspaceRunnableWithResponse(ctx
 		return nil, err
 	}
 	return ParseListFlowPathsFromWorkspaceRunnableResponse(rsp)
+}
+
+// ListFlowPathsLinkingAgentWithResponse request returning *ListFlowPathsLinkingAgentResponse
+func (c *ClientWithResponses) ListFlowPathsLinkingAgentWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ListFlowPathsLinkingAgentResponse, error) {
+	rsp, err := c.ListFlowPathsLinkingAgent(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListFlowPathsLinkingAgentResponse(rsp)
 }
 
 // ListSearchFlowWithResponse request returning *ListSearchFlowResponse
@@ -122390,6 +123045,23 @@ func (c *ClientWithResponses) ListWorkspacesAsSuperAdminWithResponse(ctx context
 	return ParseListWorkspacesAsSuperAdminResponse(rsp)
 }
 
+// GetSessionWorkspaceRetentionWithBodyWithResponse request with arbitrary body returning *GetSessionWorkspaceRetentionResponse
+func (c *ClientWithResponses) GetSessionWorkspaceRetentionWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetSessionWorkspaceRetentionResponse, error) {
+	rsp, err := c.GetSessionWorkspaceRetentionWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSessionWorkspaceRetentionResponse(rsp)
+}
+
+func (c *ClientWithResponses) GetSessionWorkspaceRetentionWithResponse(ctx context.Context, body GetSessionWorkspaceRetentionJSONRequestBody, reqEditors ...RequestEditorFn) (*GetSessionWorkspaceRetentionResponse, error) {
+	rsp, err := c.GetSessionWorkspaceRetention(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSessionWorkspaceRetentionResponse(rsp)
+}
+
 // GetSessionWorkspaceStatusWithBodyWithResponse request with arbitrary body returning *GetSessionWorkspaceStatusResponse
 func (c *ClientWithResponses) GetSessionWorkspaceStatusWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetSessionWorkspaceStatusResponse, error) {
 	rsp, err := c.GetSessionWorkspaceStatusWithBody(ctx, contentType, body, reqEditors...)
@@ -126660,6 +127332,119 @@ func ParseRemoveGranularAclsResponse(rsp *http.Response) (*RemoveGranularAclsRes
 	return response, nil
 }
 
+// ParseListAiSessionBackupsResponse parses an HTTP response from a ListAiSessionBackupsWithResponse call
+func ParseListAiSessionBackupsResponse(rsp *http.Response) (*ListAiSessionBackupsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAiSessionBackupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// BackupGeneration bumped by every workspace key rotation; sync state recorded under another one is void
+			BackupGeneration *int `json:"backup_generation,omitempty"`
+			Enabled          bool `json:"enabled"`
+
+			// Fallback the storage answered from is the instance object store, standing in for a workspace without storage of its own; a removal owed to it is retired by any answer from the workspace's own storage
+			Fallback *bool `json:"fallback,omitempty"`
+
+			// Sessions the newest 500 at most
+			Sessions []AISessionBackupListing `json:"sessions"`
+
+			// StorageId names the storage answered from; sync state recorded against another one is void
+			StorageId *string `json:"storage_id,omitempty"`
+
+			// Truncated the user has more sessions than the answer names
+			Truncated *bool `json:"truncated,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePullAiSessionBackupsResponse parses an HTTP response from a PullAiSessionBackupsWithResponse call
+func ParsePullAiSessionBackupsResponse(rsp *http.Response) (*PullAiSessionBackupsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PullAiSessionBackupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			BackupGeneration *int              `json:"backup_generation,omitempty"`
+			Deferred         []string          `json:"deferred"`
+			Enabled          bool              `json:"enabled"`
+			Fallback         *bool             `json:"fallback,omitempty"`
+			Sessions         []AISessionBackup `json:"sessions"`
+			StorageId        *string           `json:"storage_id,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePushAiSessionBackupsResponse parses an HTTP response from a PushAiSessionBackupsWithResponse call
+func ParsePushAiSessionBackupsResponse(rsp *http.Response) (*PushAiSessionBackupsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PushAiSessionBackupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			BackupGeneration *int  `json:"backup_generation,omitempty"`
+			Enabled          bool  `json:"enabled"`
+			Fallback         *bool `json:"fallback,omitempty"`
+			Results          []struct {
+				Error *string `json:"error,omitempty"`
+				Id    string  `json:"id"`
+
+				// NeedsWhole nothing was written and the session must be pushed whole again; an incremental part found no listed session to ride on (the backup was removed, or a push split over parts is in progress or was abandoned), or a later part of a push split over parts found another push had superseded it
+				NeedsWhole *bool `json:"needs_whole,omitempty"`
+			} `json:"results"`
+			StorageId *string `json:"storage_id,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseUnshareAiArtifactResponse parses an HTTP response from a UnshareAiArtifactWithResponse call
 func ParseUnshareAiArtifactResponse(rsp *http.Response) (*UnshareAiArtifactResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -130284,6 +131069,32 @@ func ParseListFlowPathsFromWorkspaceRunnableResponse(rsp *http.Response) (*ListF
 	}
 
 	response := &ListFlowPathsFromWorkspaceRunnableResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListFlowPathsLinkingAgentResponse parses an HTTP response from a ListFlowPathsLinkingAgentWithResponse call
+func ParseListFlowPathsLinkingAgentResponse(rsp *http.Response) (*ListFlowPathsLinkingAgentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListFlowPathsLinkingAgentResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -143767,6 +144578,32 @@ func ParseListWorkspacesAsSuperAdminResponse(rsp *http.Response) (*ListWorkspace
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []Workspace
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSessionWorkspaceRetentionResponse parses an HTTP response from a GetSessionWorkspaceRetentionWithResponse call
+func ParseGetSessionWorkspaceRetentionResponse(rsp *http.Response) (*GetSessionWorkspaceRetentionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSessionWorkspaceRetentionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]int
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
