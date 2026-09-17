@@ -819,6 +819,11 @@ const (
 	Off MemoryOffKind = "off"
 )
 
+// Defines values for MemoryWindowKind.
+const (
+	Window MemoryWindowKind = "window"
+)
+
 // Defines values for MqttClientVersion.
 const (
 	V3 MqttClientVersion = "v3"
@@ -1500,6 +1505,13 @@ const (
 	UnstarJSONBodyFavoriteKindScript UnstarJSONBodyFavoriteKind = "script"
 )
 
+// Defines values for ListFlowConversationsParamsKind.
+const (
+	ListFlowConversationsParamsKindAll      ListFlowConversationsParamsKind = "all"
+	ListFlowConversationsParamsKindDeployed ListFlowConversationsParamsKind = "deployed"
+	ListFlowConversationsParamsKindTest     ListFlowConversationsParamsKind = "test"
+)
+
 // Defines values for ListFlowPathsFromWorkspaceRunnableParamsRunnableKind.
 const (
 	ListFlowPathsFromWorkspaceRunnableParamsRunnableKindFlow   ListFlowPathsFromWorkspaceRunnableParamsRunnableKind = "flow"
@@ -1559,14 +1571,14 @@ const (
 
 // Defines values for AttachDevWorkspaceJSONBodyDevWorkspaceLabel.
 const (
-	AttachDevWorkspaceJSONBodyDevWorkspaceLabelDemo    AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "demo"
-	AttachDevWorkspaceJSONBodyDevWorkspaceLabelDev     AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "dev"
-	AttachDevWorkspaceJSONBodyDevWorkspaceLabelPreprod AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "preprod"
-	AttachDevWorkspaceJSONBodyDevWorkspaceLabelQa      AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "qa"
-	AttachDevWorkspaceJSONBodyDevWorkspaceLabelSandbox AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "sandbox"
-	AttachDevWorkspaceJSONBodyDevWorkspaceLabelStaging AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "staging"
-	AttachDevWorkspaceJSONBodyDevWorkspaceLabelTest    AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "test"
-	AttachDevWorkspaceJSONBodyDevWorkspaceLabelUat     AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "uat"
+	Demo    AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "demo"
+	Dev     AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "dev"
+	Preprod AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "preprod"
+	Qa      AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "qa"
+	Sandbox AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "sandbox"
+	Staging AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "staging"
+	Test    AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "test"
+	Uat     AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "uat"
 )
 
 // Defines values for ImportPgDatabaseJSONBodyForkBehavior.
@@ -3905,6 +3917,9 @@ type FlowConversation struct {
 	// Id Unique identifier for the conversation
 	Id openapi_types.UUID `json:"id"`
 
+	// IsTest Started from the flow editor's test panel rather than a deployed run
+	IsTest bool `json:"is_test"`
+
 	// Title Optional title for the conversation
 	Title *string `json:"title"`
 
@@ -3917,6 +3932,20 @@ type FlowConversation struct {
 
 // FlowConversationMessage defines model for FlowConversationMessage.
 type FlowConversationMessage struct {
+	// Attachments The files a user message carried, as object-storage references: every flow input other than user_message that held one or a list of them, at most 20. Never file bytes or a presigned URL.
+	Attachments *[]struct {
+		Filename *string `json:"filename,omitempty"`
+
+		// Input The flow input that held the file
+		Input string `json:"input"`
+
+		// S3 The file's key in object storage
+		S3 string `json:"s3"`
+
+		// Storage The secondary storage holding the file, absent for the primary one
+		Storage *string `json:"storage,omitempty"`
+	} `json:"attachments"`
+
 	// Content The message content
 	Content string `json:"content"`
 
@@ -3938,11 +3967,20 @@ type FlowConversationMessage struct {
 	// MessageType Type of the message
 	MessageType FlowConversationMessageMessageType `json:"message_type"`
 
+	// Reasoning On an answer, the thinking that produced it; on a tool row, the thinking that led to the call. Each round's thinking is on one row. The agent job's result keeps the turn's thinking as a single string.
+	Reasoning *string `json:"reasoning"`
+
 	// StepName The step name that produced that message
 	StepName *string `json:"step_name,omitempty"`
 
 	// Success Whether the message is a success
 	Success *bool `json:"success,omitempty"`
+
+	// ToolArguments On a tool row, the arguments the model wrote for the call. For a script, flow or AI agent tool these exclude the inputs its step wires in, which only the tool's job holds. Null for a provider-native web search, whose query the provider does not return.
+	ToolArguments *string `json:"tool_arguments"`
+
+	// ToolResult On a tool row, the text the model got back from the call, or what the call failed with — the row's own text names the tool rather than the reason. For a provider-native web search, its citations.
+	ToolResult *string `json:"tool_result"`
 }
 
 // FlowConversationMessageMessageType Type of the message
@@ -5004,7 +5042,9 @@ type McpToolValue struct {
 // McpToolValueToolType defines model for McpToolValue.ToolType.
 type McpToolValueToolType string
 
-// MemoryAuto Automatic context management
+// MemoryAuto Deprecated, still read as it was written: the run's memory id, else the `memory_id` here.
+// The step's own `memory_id` is not read while this kind is set; switch the kind to `window`
+// to use it. Without a `context_length`, or with 0, it is `off` and reads `previous_messages`.
 type MemoryAuto struct {
 	// ContextLength Maximum number of messages to retain in context
 	ContextLength *int           `json:"context_length,omitempty"`
@@ -5017,7 +5057,7 @@ type MemoryAuto struct {
 // MemoryAutoKind defines model for MemoryAuto.Kind.
 type MemoryAutoKind string
 
-// MemoryManual Explicit message history
+// MemoryManual Deprecated, still read as it was written. Move the step to `off` with `previous_messages` instead.
 type MemoryManual struct {
 	Kind     MemoryManualKind `json:"kind"`
 	Messages []MemoryMessage  `json:"messages"`
@@ -5047,6 +5087,17 @@ type MemoryOffKind string
 type MemoryTransform struct {
 	union json.RawMessage
 }
+
+// MemoryWindow Keeps the most recent messages of the memory named by the run's memory id (or the step's
+// `memory_id`). Without a memory id the agent runs without memory.
+type MemoryWindow struct {
+	// ContextLength Number of most recent messages to load and store. 0 turns memory off.
+	ContextLength int              `json:"context_length"`
+	Kind          MemoryWindowKind `json:"kind"`
+}
+
+// MemoryWindowKind defines model for MemoryWindow.Kind.
+type MemoryWindowKind string
 
 // MetricDataPoint defines model for MetricDataPoint.
 type MetricDataPoint struct {
@@ -6494,15 +6545,18 @@ type RuleBypasserUsers = []string
 // unified last-updated time (a script's created_at, a flow/app's edit
 // time).
 type RunnableItem struct {
-	Archived        *bool                     `json:"archived,omitempty"`
-	AutoKind        *string                   `json:"auto_kind,omitempty"`
-	DraftOnly       *bool                     `json:"draft_only"`
-	DraftPath       *string                   `json:"draft_path,omitempty"`
-	DraftUsers      *[]map[string]interface{} `json:"draft_users,omitempty"`
-	EditedAt        *time.Time                `json:"edited_at,omitempty"`
-	ExecutionMode   *string                   `json:"execution_mode,omitempty"`
-	ExtraPerms      *map[string]bool          `json:"extra_perms,omitempty"`
-	HasDeployErrors *bool                     `json:"has_deploy_errors,omitempty"`
+	Archived *bool   `json:"archived,omitempty"`
+	AutoKind *string `json:"auto_kind,omitempty"`
+
+	// ChatInputEnabled flow-only. `chat_input_enabled` of the flow's value, projected so the list can mark flows that open as a chat. Omitted when the value has no such field.
+	ChatInputEnabled *bool                     `json:"chat_input_enabled,omitempty"`
+	DraftOnly        *bool                     `json:"draft_only"`
+	DraftPath        *string                   `json:"draft_path,omitempty"`
+	DraftUsers       *[]map[string]interface{} `json:"draft_users,omitempty"`
+	EditedAt         *time.Time                `json:"edited_at,omitempty"`
+	ExecutionMode    *string                   `json:"execution_mode,omitempty"`
+	ExtraPerms       *map[string]bool          `json:"extra_perms,omitempty"`
+	HasDeployErrors  *bool                     `json:"has_deploy_errors,omitempty"`
 
 	// Hash script version hash as a 16-char hex string
 	Hash                *string          `json:"hash,omitempty"`
@@ -6998,7 +7052,7 @@ type SqsTrigger = TriggerExtraProperty
 type StaticMemoryTransform struct {
 	Type StaticMemoryTransformType `json:"type"`
 
-	// Value Conversation memory configuration
+	// Value Managed memory, stored by Windmill and replayed with each request. The memory is named by a memory id, see `memory_id`. While it is off, a step can supply its history in `previous_messages`.
 	Value SchemasMemoryConfig `json:"value"`
 }
 
@@ -7718,7 +7772,7 @@ type SchemasAiAgent struct {
 	// Agent Path of a reusable `ai_agent` resource (hybrid linking). When set, the agent brain
 	// config (provider/model/system prompt/etc.) and tool set are resolved at runtime from
 	// that resource; the module's input_transforms then only carry the flow-local inputs
-	// (user_message/user_attachments/enabled_tools).
+	// (user_message, user_attachments, enabled_tools and the history inputs memory_id and previous_messages).
 	Agent *string `json:"agent,omitempty"`
 
 	// InputTransforms Input parameters for the AI agent mapped to their values
@@ -7744,6 +7798,15 @@ type SchemasAiAgent struct {
 		// Memory Memory configuration - can be static (MemoryConfig), JavaScript expression, or AI-determined
 		Memory *MemoryTransform `json:"memory,omitempty"`
 
+		// MemoryId String. Names the memory this step reads and writes, overriding the memory id the run
+		// was started with (the chat conversation, an app chat session or the `memory_id` run
+		// parameter). Leave unset to use the run's memory id. A fixed value shares one memory
+		// across every run; an expression such as `flow_input.customer_id` keeps one memory per
+		// key. When it evaluates to an empty value the agent runs without memory. Read only
+		// while `memory` is `window`: it is ignored when memory is off, and an older `auto` or
+		// `manual` memory reads neither history input.
+		MemoryId *SchemasInputTransform `json:"memory_id,omitempty"`
+
 		// OutputSchema JSON Schema object defining structured output format. Used when you need the AI to return data in a specific shape.
 		// Supports standard JSON Schema properties: type, properties, required, items, enum, pattern, minLength, maxLength, minimum, maximum, etc.
 		// Example: { type: 'object', properties: { name: { type: 'string' }, age: { type: 'integer' } }, required: ['name'] }
@@ -7752,6 +7815,11 @@ type SchemasAiAgent struct {
 		// OutputType Output format type.
 		// Valid values: 'text' (default) - plain text response, 'image' - image generation
 		OutputType *SchemasInputTransform `json:"output_type,omitempty"`
+
+		// PreviousMessages Array of MemoryMessage. History supplied by the flow, sent between the system prompt
+		// and the user message. Read only while `memory` is off or absent: managed memory
+		// ignores it, and an older `auto` or `manual` memory reads neither history input.
+		PreviousMessages *SchemasInputTransform `json:"previous_messages,omitempty"`
 
 		// Provider Provider configuration - can be static (ProviderConfig), JavaScript expression, or AI-determined
 		Provider *ProviderTransform `json:"provider,omitempty"`
@@ -7775,8 +7843,10 @@ type SchemasAiAgent struct {
 		// Example: [{ bucket: 'my-bucket', key: 'documents/report.pdf' }]
 		UserAttachments *SchemasInputTransform `json:"user_attachments,omitempty"`
 
-		// UserMessage The user's prompt/message to the AI agent. Supports variable interpolation with flow.input syntax.
-		UserMessage SchemasInputTransform `json:"user_message"`
+		// UserMessage The user's prompt/message to the AI agent. Supports variable interpolation with
+		// flow.input syntax. Required unless memory is off and `previous_messages` supplies
+		// the prompt; image output always needs it.
+		UserMessage *SchemasInputTransform `json:"user_message,omitempty"`
 	} `json:"input_transforms"`
 
 	// OmitOutputFromConversation If true, this AI agent step does not persist its assistant or tool messages to the flow conversation when chat mode is enabled.
@@ -8218,7 +8288,7 @@ type SchemasJavascriptTransform struct {
 // SchemasJavascriptTransformType defines model for SchemasJavascriptTransform.Type.
 type SchemasJavascriptTransformType string
 
-// SchemasMemoryConfig Conversation memory configuration
+// SchemasMemoryConfig Managed memory, stored by Windmill and replayed with each request. The memory is named by a memory id, see `memory_id`. While it is off, a step can supply its history in `previous_messages`.
 type SchemasMemoryConfig struct {
 	union json.RawMessage
 }
@@ -10138,6 +10208,18 @@ type ListFlowConversationsParams struct {
 
 	// FlowPath filter conversations by flow path
 	FlowPath *string `form:"flow_path,omitempty" json:"flow_path,omitempty"`
+
+	// Kind which conversations to list - the flow editor's test chats, the deployed flow's own (the default), or both
+	Kind *ListFlowConversationsParamsKind `form:"kind,omitempty" json:"kind,omitempty"`
+}
+
+// ListFlowConversationsParamsKind defines parameters for ListFlowConversations.
+type ListFlowConversationsParamsKind string
+
+// UpdateFlowConversationJSONBody defines parameters for UpdateFlowConversation.
+type UpdateFlowConversationJSONBody struct {
+	// Title the chat's name
+	Title string `json:"title"`
 }
 
 // ListConversationMessagesParams defines parameters for ListConversationMessages.
@@ -11661,8 +11743,8 @@ type RunFlowByPathParams struct {
 	// InvisibleToOwner make the run invisible to the the flow owner (default false)
 	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
 
-	// MemoryId memory ID for chat-enabled flows
-	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
 // RunFlowDependenciesAsyncJSONBody defines parameters for RunFlowDependenciesAsync.
@@ -11699,8 +11781,8 @@ type RunFlowByVersionParams struct {
 	// InvisibleToOwner make the run invisible to the the flow owner (default false)
 	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
 
-	// MemoryId memory ID for chat-enabled flows
-	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
 // RunScriptByHashJSONBody defines parameters for RunScriptByHash.
@@ -11792,8 +11874,8 @@ type RunFlowPreviewParams struct {
 	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 
-	// MemoryId memory ID for chat-enabled flows
-	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
 // RunAndStreamFlowByPathGetParams defines parameters for RunAndStreamFlowByPathGet.
@@ -11815,8 +11897,8 @@ type RunAndStreamFlowByPathGetParams struct {
 	// SkipPreprocessor skip the preprocessor
 	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 
-	// MemoryId memory ID for chat-enabled flows
-	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 
 	// PollDelayMs delay between polling for job updates in milliseconds
 	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
@@ -11837,8 +11919,8 @@ type RunAndStreamFlowByPathParams struct {
 	// SkipPreprocessor skip the preprocessor
 	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 
-	// MemoryId memory ID for chat-enabled flows
-	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 
 	// PollDelayMs delay between polling for job updates in milliseconds
 	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
@@ -11863,8 +11945,8 @@ type RunAndStreamFlowByVersionGetParams struct {
 	// SkipPreprocessor skip the preprocessor
 	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 
-	// MemoryId memory ID for chat-enabled flows
-	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 
 	// PollDelayMs delay between polling for job updates in milliseconds
 	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
@@ -11885,8 +11967,8 @@ type RunAndStreamFlowByVersionParams struct {
 	// SkipPreprocessor skip the preprocessor
 	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 
-	// MemoryId memory ID for chat-enabled flows
-	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 
 	// PollDelayMs delay between polling for job updates in milliseconds
 	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
@@ -12027,8 +12109,8 @@ type RunWaitResultFlowByPathParams struct {
 	// SkipPreprocessor skip the preprocessor
 	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 
-	// MemoryId memory ID for chat-enabled flows
-	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
 // RunWaitResultFlowByVersionGetParams defines parameters for RunWaitResultFlowByVersionGet.
@@ -12050,8 +12132,8 @@ type RunWaitResultFlowByVersionGetParams struct {
 	// SkipPreprocessor skip the preprocessor
 	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 
-	// MemoryId memory ID for chat-enabled flows
-	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
 // RunWaitResultFlowByVersionParams defines parameters for RunWaitResultFlowByVersion.
@@ -12069,8 +12151,8 @@ type RunWaitResultFlowByVersionParams struct {
 	// SkipPreprocessor skip the preprocessor
 	SkipPreprocessor *SkipPreprocessor `form:"skip_preprocessor,omitempty" json:"skip_preprocessor,omitempty"`
 
-	// MemoryId memory ID for chat-enabled flows
-	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
 // RunWaitResultScriptByPathGetParams defines parameters for RunWaitResultScriptByPathGet.
@@ -12129,8 +12211,8 @@ type RunWaitResultScriptByPathParams struct {
 
 // RunFlowPreviewAndWaitResultParams defines parameters for RunFlowPreviewAndWaitResult.
 type RunFlowPreviewAndWaitResultParams struct {
-	// MemoryId memory ID for chat-enabled flows
-	MemoryId *openapi_types.UUID `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 }
 
 // GetSlackApprovalPayloadParams defines parameters for GetSlackApprovalPayload.
@@ -14053,6 +14135,9 @@ type StarJSONRequestBody StarJSONBody
 
 // UnstarJSONRequestBody defines body for Unstar for application/json ContentType.
 type UnstarJSONRequestBody UnstarJSONBody
+
+// UpdateFlowConversationJSONRequestBody defines body for UpdateFlowConversation for application/json ContentType.
+type UpdateFlowConversationJSONRequestBody UpdateFlowConversationJSONBody
 
 // ArchiveFlowByPathJSONRequestBody defines body for ArchiveFlowByPath for application/json ContentType.
 type ArchiveFlowByPathJSONRequestBody ArchiveFlowByPathJSONBody
@@ -16689,6 +16774,34 @@ func (t *SchemasMemoryConfig) MergeMemoryOff(v MemoryOff) error {
 	return err
 }
 
+// AsMemoryWindow returns the union data inside the SchemasMemoryConfig as a MemoryWindow
+func (t SchemasMemoryConfig) AsMemoryWindow() (MemoryWindow, error) {
+	var body MemoryWindow
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromMemoryWindow overwrites any union data inside the SchemasMemoryConfig as the provided MemoryWindow
+func (t *SchemasMemoryConfig) FromMemoryWindow(v MemoryWindow) error {
+	v.Kind = "window"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeMemoryWindow performs a merge with any union data inside the SchemasMemoryConfig, using the provided MemoryWindow
+func (t *SchemasMemoryConfig) MergeMemoryWindow(v MemoryWindow) error {
+	v.Kind = "window"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 // AsMemoryAuto returns the union data inside the SchemasMemoryConfig as a MemoryAuto
 func (t SchemasMemoryConfig) AsMemoryAuto() (MemoryAuto, error) {
 	var body MemoryAuto
@@ -16765,6 +16878,8 @@ func (t SchemasMemoryConfig) ValueByDiscriminator() (interface{}, error) {
 		return t.AsMemoryManual()
 	case "off":
 		return t.AsMemoryOff()
+	case "window":
+		return t.AsMemoryWindow()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -17977,6 +18092,11 @@ type ClientInterface interface {
 
 	// ListFlowConversations request
 	ListFlowConversations(ctx context.Context, workspace WorkspaceId, params *ListFlowConversationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateFlowConversationWithBody request with any body
+	UpdateFlowConversationWithBody(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateFlowConversation(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, body UpdateFlowConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListConversationMessages request
 	ListConversationMessages(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, params *ListConversationMessagesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -25075,6 +25195,30 @@ func (c *Client) DeleteFlowConversation(ctx context.Context, workspace Workspace
 
 func (c *Client) ListFlowConversations(ctx context.Context, workspace WorkspaceId, params *ListFlowConversationsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListFlowConversationsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateFlowConversationWithBody(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateFlowConversationRequestWithBody(c.Server, workspace, conversationId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateFlowConversation(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, body UpdateFlowConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateFlowConversationRequest(c.Server, workspace, conversationId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -50478,6 +50622,22 @@ func NewListFlowConversationsRequest(server string, workspace WorkspaceId, param
 
 		}
 
+		if params.Kind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -50485,6 +50645,60 @@ func NewListFlowConversationsRequest(server string, workspace WorkspaceId, param
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewUpdateFlowConversationRequest calls the generic UpdateFlowConversation builder with application/json body
+func NewUpdateFlowConversationRequest(server string, workspace WorkspaceId, conversationId openapi_types.UUID, body UpdateFlowConversationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateFlowConversationRequestWithBody(server, workspace, conversationId, "application/json", bodyReader)
+}
+
+// NewUpdateFlowConversationRequestWithBody generates requests for UpdateFlowConversation with any type of body
+func NewUpdateFlowConversationRequestWithBody(server string, workspace WorkspaceId, conversationId openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "conversation_id", runtime.ParamLocationPath, conversationId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/flow_conversations/update/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -88797,6 +89011,11 @@ type ClientWithResponsesInterface interface {
 	// ListFlowConversationsWithResponse request
 	ListFlowConversationsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListFlowConversationsParams, reqEditors ...RequestEditorFn) (*ListFlowConversationsResponse, error)
 
+	// UpdateFlowConversationWithBodyWithResponse request with any body
+	UpdateFlowConversationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowConversationResponse, error)
+
+	UpdateFlowConversationWithResponse(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, body UpdateFlowConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowConversationResponse, error)
+
 	// ListConversationMessagesWithResponse request
 	ListConversationMessagesWithResponse(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, params *ListConversationMessagesParams, reqEditors ...RequestEditorFn) (*ListConversationMessagesResponse, error)
 
@@ -98406,6 +98625,27 @@ func (r ListFlowConversationsResponse) StatusCode() int {
 	return 0
 }
 
+type UpdateFlowConversationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateFlowConversationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateFlowConversationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListConversationMessagesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -98730,8 +98970,14 @@ type ListFlowsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]struct {
-		Archived        bool  `json:"archived"`
-		DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
+		Archived bool `json:"archived"`
+
+		// ChatInputEnabled `chat_input_enabled` of the flow's value,
+		// projected so the list can mark flows that open
+		// as a chat. Omitted when the value has no such
+		// field.
+		ChatInputEnabled *bool `json:"chat_input_enabled,omitempty"`
+		DedicatedWorker  *bool `json:"dedicated_worker,omitempty"`
 
 		// Description Detailed documentation for this flow
 		Description *string `json:"description,omitempty"`
@@ -116039,6 +116285,23 @@ func (c *ClientWithResponses) ListFlowConversationsWithResponse(ctx context.Cont
 	return ParseListFlowConversationsResponse(rsp)
 }
 
+// UpdateFlowConversationWithBodyWithResponse request with arbitrary body returning *UpdateFlowConversationResponse
+func (c *ClientWithResponses) UpdateFlowConversationWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowConversationResponse, error) {
+	rsp, err := c.UpdateFlowConversationWithBody(ctx, workspace, conversationId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateFlowConversationResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateFlowConversationWithResponse(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, body UpdateFlowConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowConversationResponse, error) {
+	rsp, err := c.UpdateFlowConversation(ctx, workspace, conversationId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateFlowConversationResponse(rsp)
+}
+
 // ListConversationMessagesWithResponse request returning *ListConversationMessagesResponse
 func (c *ClientWithResponses) ListConversationMessagesWithResponse(ctx context.Context, workspace WorkspaceId, conversationId openapi_types.UUID, params *ListConversationMessagesParams, reqEditors ...RequestEditorFn) (*ListConversationMessagesResponse, error) {
 	rsp, err := c.ListConversationMessages(ctx, workspace, conversationId, params, reqEditors...)
@@ -130624,6 +130887,22 @@ func ParseListFlowConversationsResponse(rsp *http.Response) (*ListFlowConversati
 	return response, nil
 }
 
+// ParseUpdateFlowConversationResponse parses an HTTP response from a UpdateFlowConversationWithResponse call
+func ParseUpdateFlowConversationResponse(rsp *http.Response) (*UpdateFlowConversationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateFlowConversationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseListConversationMessagesResponse parses an HTTP response from a ListConversationMessagesWithResponse call
 func ParseListConversationMessagesResponse(rsp *http.Response) (*ListConversationMessagesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -130972,8 +131251,14 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
-			Archived        bool  `json:"archived"`
-			DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
+			Archived bool `json:"archived"`
+
+			// ChatInputEnabled `chat_input_enabled` of the flow's value,
+			// projected so the list can mark flows that open
+			// as a chat. Omitted when the value has no such
+			// field.
+			ChatInputEnabled *bool `json:"chat_input_enabled,omitempty"`
+			DedicatedWorker  *bool `json:"dedicated_worker,omitempty"`
 
 			// Description Detailed documentation for this flow
 			Description *string `json:"description,omitempty"`
