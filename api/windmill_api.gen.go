@@ -2543,10 +2543,11 @@ type DataTableSchema struct {
 // DataTableSettings defines model for DataTableSettings.
 type DataTableSettings struct {
 	Datatables map[string]struct {
-		Database struct {
+		// Database Set on an entry that owns its database. Absent on a fork's entry, which points at another workspace's data table instead.
+		Database *struct {
 			ResourcePath *string                                         `json:"resource_path,omitempty"`
 			ResourceType DataTableSettingsDatatablesDatabaseResourceType `json:"resource_type"`
-		} `json:"database"`
+		} `json:"database,omitempty"`
 
 		// ForkedFrom Fork origin info with schema snapshot
 		ForkedFrom *struct {
@@ -2556,6 +2557,12 @@ type DataTableSettings struct {
 
 		// MigrationsEnabled Whether the SQL migrations feature is opted in for this data table
 		MigrationsEnabled *bool `json:"migrations_enabled,omitempty"`
+
+		// Reference The workspace and data table that govern this one. Server-owned: written by fork creation, and carried across a settings save whatever the request says.
+		Reference *struct {
+			Datatable   string `json:"datatable"`
+			WorkspaceId string `json:"workspace_id"`
+		} `json:"reference,omitempty"`
 	} `json:"datatables"`
 }
 
@@ -2612,6 +2619,30 @@ type DatatableMigrationWithStatus struct {
 
 // DatatableMigrationWithStatusStatus defines model for DatatableMigrationWithStatus.Status.
 type DatatableMigrationWithStatusStatus string
+
+// DatatablePermissions defines model for DatatablePermissions.
+type DatatablePermissions struct {
+	AvailableRoles       []InstanceDatatableRole `json:"available_roles"`
+	DefaultRole          string                  `json:"default_role"`
+	Editable             bool                    `json:"editable"`
+	GoverningWorkspaceId *string                 `json:"governing_workspace_id,omitempty"`
+	Permissioned         bool                    `json:"permissioned"`
+	Roles                []DatatableRoleTenants  `json:"roles"`
+
+	// Supported Whether this data table can be put under roles at all. Only one backed by the instance database can: a role is a login on that cluster.
+	Supported          bool `json:"supported"`
+	UngovernedReachers *[]struct {
+		Datatable   string `json:"datatable"`
+		WorkspaceId string `json:"workspace_id"`
+	} `json:"ungoverned_reachers,omitempty"`
+}
+
+// DatatableRoleTenants defines model for DatatableRoleTenants.
+type DatatableRoleTenants struct {
+	Id      string   `json:"id"`
+	Name    *string  `json:"name,omitempty"`
+	Tenants []string `json:"tenants"`
+}
 
 // DbtAssetProvenance What dbt says about the model, snapshot, seed or source that produces (or, for a source, is read at) this relation. A dbt project is one runnable node with many model assets, so per-model metadata belongs here rather than on the script.
 type DbtAssetProvenance struct {
@@ -4655,6 +4686,13 @@ type InstanceConfig struct {
 
 	// WorkerConfigs Worker group configurations keyed by group name (e.g. "default", "gpu"). Each value contains worker_tags, init_bash, autoscaling, etc.
 	WorkerConfigs *map[string]map[string]interface{} `json:"worker_configs,omitempty"`
+}
+
+// InstanceDatatableRole defines model for InstanceDatatableRole.
+type InstanceDatatableRole struct {
+	Enabled bool   `json:"enabled"`
+	Id      string `json:"id"`
+	Name    string `json:"name"`
 }
 
 // InstanceGroup defines model for InstanceGroup.
@@ -7407,10 +7445,13 @@ type UserWorkspaceList struct {
 		CreatedBy *string `json:"created_by"`
 
 		// DevWorkspaceLabel Environment label of the dev workspace, e.g. 'dev' or 'staging'; null defaults to 'dev'
-		DevWorkspaceLabel *string           `json:"dev_workspace_label"`
-		Disabled          bool              `json:"disabled"`
-		Id                string            `json:"id"`
-		IsDevWorkspace    bool              `json:"is_dev_workspace"`
+		DevWorkspaceLabel *string `json:"dev_workspace_label"`
+		Disabled          bool    `json:"disabled"`
+		Id                string  `json:"id"`
+		IsDevWorkspace    bool    `json:"is_dev_workspace"`
+
+		// IsServiceAccount Whether this membership is a service account.
+		IsServiceAccount  *bool             `json:"is_service_account,omitempty"`
 		Name              string            `json:"name"`
 		OperatorSettings  *OperatorSettings `json:"operator_settings"`
 		ParentWorkspaceId *string           `json:"parent_workspace_id"`
@@ -8956,6 +8997,17 @@ type CreateCustomerPortalSessionParams struct {
 	LicenseKey *string `form:"license_key,omitempty" json:"license_key,omitempty"`
 }
 
+// CreateInstanceDatatableRoleJSONBody defines parameters for CreateInstanceDatatableRole.
+type CreateInstanceDatatableRoleJSONBody struct {
+	Name string `json:"name"`
+}
+
+// UpdateInstanceDatatableRoleJSONBody defines parameters for UpdateInstanceDatatableRole.
+type UpdateInstanceDatatableRoleJSONBody struct {
+	Enabled *bool   `json:"enabled,omitempty"`
+	Name    *string `json:"name,omitempty"`
+}
+
 // SetGlobalJSONBody defines parameters for SetGlobal.
 type SetGlobalJSONBody struct {
 	Value *interface{} `json:"value,omitempty"`
@@ -9104,9 +9156,11 @@ type ListUsersAsSuperAdminParams struct {
 
 // CreateLoginLinkJSONBody defines parameters for CreateLoginLink.
 type CreateLoginLinkJSONBody struct {
-	Email string `json:"email"`
+	// Confirm return a /user/login_link page that signs in only when its button is clicked, instead of a link spent by opening it; set it for links sent by email, which mail scanners open on delivery (default false)
+	Confirm *bool  `json:"confirm,omitempty"`
+	Email   string `json:"email"`
 
-	// ExpiresInS link lifetime in seconds, at most 900 (default 600)
+	// ExpiresInS link lifetime in seconds, at most 7200 (default 600)
 	ExpiresInS *int `json:"expires_in_s,omitempty"`
 
 	// Rd same-origin path the browser lands on after login (default /user/workspaces)
@@ -13441,6 +13495,13 @@ type WorkspaceMuteCriticalAlertsUIJSONBody struct {
 	MuteCriticalAlerts *bool `json:"mute_critical_alerts,omitempty"`
 }
 
+// SetDatatablePermissionsJSONBody defines parameters for SetDatatablePermissions.
+type SetDatatablePermissionsJSONBody struct {
+	DefaultRole  *string                 `json:"default_role,omitempty"`
+	Permissioned bool                    `json:"permissioned"`
+	Roles        *[]DatatableRoleTenants `json:"roles,omitempty"`
+}
+
 // DeleteGitSyncRepositoryJSONBody defines parameters for DeleteGitSyncRepository.
 type DeleteGitSyncRepositoryJSONBody struct {
 	// GitRepoResourcePath The resource path of the git repository to delete
@@ -13462,6 +13523,11 @@ type DetachDevWorkspaceJSONBody struct {
 // DropForkedDatatableDatabasesJSONBody defines parameters for DropForkedDatatableDatabases.
 type DropForkedDatatableDatabasesJSONBody struct {
 	DatatableNames []string `json:"datatable_names"`
+}
+
+// EditAddAdminsAndDevelopersToForksJSONBody defines parameters for EditAddAdminsAndDevelopersToForks.
+type EditAddAdminsAndDevelopersToForksJSONBody struct {
+	AddAdminsAndDevelopersToForks bool `json:"add_admins_and_developers_to_forks"`
 }
 
 // EditAutoInviteJSONBody defines parameters for EditAutoInvite.
@@ -13892,6 +13958,12 @@ type PreviewScheduleJSONRequestBody PreviewScheduleJSONBody
 
 // RunAuditLogsS3BackfillJSONRequestBody defines body for RunAuditLogsS3Backfill for application/json ContentType.
 type RunAuditLogsS3BackfillJSONRequestBody RunAuditLogsS3BackfillJSONBody
+
+// CreateInstanceDatatableRoleJSONRequestBody defines body for CreateInstanceDatatableRole for application/json ContentType.
+type CreateInstanceDatatableRoleJSONRequestBody CreateInstanceDatatableRoleJSONBody
+
+// UpdateInstanceDatatableRoleJSONRequestBody defines body for UpdateInstanceDatatableRole for application/json ContentType.
+type UpdateInstanceDatatableRoleJSONRequestBody UpdateInstanceDatatableRoleJSONBody
 
 // SetGlobalJSONRequestBody defines body for SetGlobal for application/json ContentType.
 type SetGlobalJSONRequestBody SetGlobalJSONBody
@@ -14694,6 +14766,9 @@ type CreateWorkspaceForkGitBranchJSONRequestBody = CreateWorkspaceFork
 // WorkspaceMuteCriticalAlertsUIJSONRequestBody defines body for WorkspaceMuteCriticalAlertsUI for application/json ContentType.
 type WorkspaceMuteCriticalAlertsUIJSONRequestBody WorkspaceMuteCriticalAlertsUIJSONBody
 
+// SetDatatablePermissionsJSONRequestBody defines body for SetDatatablePermissions for application/json ContentType.
+type SetDatatablePermissionsJSONRequestBody SetDatatablePermissionsJSONBody
+
 // EditDefaultScriptsJSONRequestBody defines body for EditDefaultScripts for application/json ContentType.
 type EditDefaultScriptsJSONRequestBody = WorkspaceDefaultScripts
 
@@ -14708,6 +14783,9 @@ type DetachDevWorkspaceJSONRequestBody DetachDevWorkspaceJSONBody
 
 // DropForkedDatatableDatabasesJSONRequestBody defines body for DropForkedDatatableDatabases for application/json ContentType.
 type DropForkedDatatableDatabasesJSONRequestBody DropForkedDatatableDatabasesJSONBody
+
+// EditAddAdminsAndDevelopersToForksJSONRequestBody defines body for EditAddAdminsAndDevelopersToForks for application/json ContentType.
+type EditAddAdminsAndDevelopersToForksJSONRequestBody EditAddAdminsAndDevelopersToForksJSONBody
 
 // EditAutoInviteJSONRequestBody defines body for EditAutoInvite for application/json ContentType.
 type EditAutoInviteJSONRequestBody EditAutoInviteJSONBody
@@ -17024,6 +17102,9 @@ type ClientInterface interface {
 	// ConsumeLoginLink request
 	ConsumeLoginLink(ctx context.Context, token string, params *ConsumeLoginLinkParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ConfirmLoginLink request
+	ConfirmLoginLink(ctx context.Context, token string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// Logout request
 	Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17283,6 +17364,22 @@ type ClientInterface interface {
 
 	// CreateCustomerPortalSession request
 	CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListInstanceDatatableRoles request
+	ListInstanceDatatableRoles(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateInstanceDatatableRoleWithBody request with any body
+	CreateInstanceDatatableRoleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateInstanceDatatableRole(ctx context.Context, body CreateInstanceDatatableRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteInstanceDatatableRole request
+	DeleteInstanceDatatableRole(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateInstanceDatatableRoleWithBody request with any body
+	UpdateInstanceDatatableRoleWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateInstanceDatatableRole(ctx context.Context, id string, body UpdateInstanceDatatableRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DropCustomInstanceDb request
 	DropCustomInstanceDb(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19866,6 +19963,17 @@ type ClientInterface interface {
 	// GetDatatableMigrationsStatus request
 	GetDatatableMigrationsStatus(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetDatatablePermissions request
+	GetDatatablePermissions(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetDatatablePermissionsWithBody request with any body
+	SetDatatablePermissionsWithBody(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetDatatablePermissions(ctx context.Context, workspace WorkspaceId, datatableName string, body SetDatatablePermissionsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListUsableDatatableRoles request
+	ListUsableDatatableRoles(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetWorkspaceDefaultApp request
 	GetWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -19905,6 +20013,11 @@ type ClientInterface interface {
 
 	// DropForkedDucklakeNamespaces request
 	DropForkedDucklakeNamespaces(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EditAddAdminsAndDevelopersToForksWithBody request with any body
+	EditAddAdminsAndDevelopersToForksWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditAddAdminsAndDevelopersToForks(ctx context.Context, workspace WorkspaceId, body EditAddAdminsAndDevelopersToForksJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditAutoInviteWithBody request with any body
 	EditAutoInviteWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20527,6 +20640,18 @@ func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditor
 
 func (c *Client) ConsumeLoginLink(ctx context.Context, token string, params *ConsumeLoginLinkParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConsumeLoginLinkRequest(c.Server, token, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConfirmLoginLink(ctx context.Context, token string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConfirmLoginLinkRequest(c.Server, token)
 	if err != nil {
 		return nil, err
 	}
@@ -21643,6 +21768,78 @@ func (c *Client) AcknowledgeCriticalAlert(ctx context.Context, id int, reqEditor
 
 func (c *Client) CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateCustomerPortalSessionRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListInstanceDatatableRoles(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListInstanceDatatableRolesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateInstanceDatatableRoleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateInstanceDatatableRoleRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateInstanceDatatableRole(ctx context.Context, body CreateInstanceDatatableRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateInstanceDatatableRoleRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteInstanceDatatableRole(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteInstanceDatatableRoleRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateInstanceDatatableRoleWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateInstanceDatatableRoleRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateInstanceDatatableRole(ctx context.Context, id string, body UpdateInstanceDatatableRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateInstanceDatatableRoleRequest(c.Server, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -33041,6 +33238,54 @@ func (c *Client) GetDatatableMigrationsStatus(ctx context.Context, workspace Wor
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetDatatablePermissions(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDatatablePermissionsRequest(c.Server, workspace, datatableName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetDatatablePermissionsWithBody(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetDatatablePermissionsRequestWithBody(c.Server, workspace, datatableName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetDatatablePermissions(ctx context.Context, workspace WorkspaceId, datatableName string, body SetDatatablePermissionsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetDatatablePermissionsRequest(c.Server, workspace, datatableName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListUsableDatatableRoles(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListUsableDatatableRolesRequest(c.Server, workspace, datatableName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetWorkspaceDefaultApp(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetWorkspaceDefaultAppRequest(c.Server, workspace)
 	if err != nil {
@@ -33211,6 +33456,30 @@ func (c *Client) DropForkedDatatableDatabases(ctx context.Context, workspace Wor
 
 func (c *Client) DropForkedDucklakeNamespaces(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDropForkedDucklakeNamespacesRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditAddAdminsAndDevelopersToForksWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditAddAdminsAndDevelopersToForksRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditAddAdminsAndDevelopersToForks(ctx context.Context, workspace WorkspaceId, body EditAddAdminsAndDevelopersToForksJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditAddAdminsAndDevelopersToForksRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -35534,6 +35803,40 @@ func NewConsumeLoginLinkRequest(server string, token string, params *ConsumeLogi
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewConfirmLoginLinkRequest generates requests for ConfirmLoginLink
+func NewConfirmLoginLinkRequest(server string, token string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "token", runtime.ParamLocationPath, token)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/auth/login_link/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -38494,6 +38797,154 @@ func NewCreateCustomerPortalSessionRequest(server string, params *CreateCustomer
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewListInstanceDatatableRolesRequest generates requests for ListInstanceDatatableRoles
+func NewListInstanceDatatableRolesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/datatable_roles")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateInstanceDatatableRoleRequest calls the generic CreateInstanceDatatableRole builder with application/json body
+func NewCreateInstanceDatatableRoleRequest(server string, body CreateInstanceDatatableRoleJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateInstanceDatatableRoleRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateInstanceDatatableRoleRequestWithBody generates requests for CreateInstanceDatatableRole with any type of body
+func NewCreateInstanceDatatableRoleRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/datatable_roles")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteInstanceDatatableRoleRequest generates requests for DeleteInstanceDatatableRole
+func NewDeleteInstanceDatatableRoleRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/datatable_roles/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateInstanceDatatableRoleRequest calls the generic UpdateInstanceDatatableRole builder with application/json body
+func NewUpdateInstanceDatatableRoleRequest(server string, id string, body UpdateInstanceDatatableRoleJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateInstanceDatatableRoleRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewUpdateInstanceDatatableRoleRequestWithBody generates requests for UpdateInstanceDatatableRole with any type of body
+func NewUpdateInstanceDatatableRoleRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/datatable_roles/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -83069,6 +83520,142 @@ func NewGetDatatableMigrationsStatusRequest(server string, workspace WorkspaceId
 	return req, nil
 }
 
+// NewGetDatatablePermissionsRequest generates requests for GetDatatablePermissions
+func NewGetDatatablePermissionsRequest(server string, workspace WorkspaceId, datatableName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/datatable_permissions/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetDatatablePermissionsRequest calls the generic SetDatatablePermissions builder with application/json body
+func NewSetDatatablePermissionsRequest(server string, workspace WorkspaceId, datatableName string, body SetDatatablePermissionsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetDatatablePermissionsRequestWithBody(server, workspace, datatableName, "application/json", bodyReader)
+}
+
+// NewSetDatatablePermissionsRequestWithBody generates requests for SetDatatablePermissions with any type of body
+func NewSetDatatablePermissionsRequestWithBody(server string, workspace WorkspaceId, datatableName string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/datatable_permissions/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListUsableDatatableRolesRequest generates requests for ListUsableDatatableRoles
+func NewListUsableDatatableRolesRequest(server string, workspace WorkspaceId, datatableName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/datatable_usable_roles/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetWorkspaceDefaultAppRequest generates requests for GetWorkspaceDefaultApp
 func NewGetWorkspaceDefaultAppRequest(server string, workspace WorkspaceId) (*http.Request, error) {
 	var err error
@@ -83491,6 +84078,53 @@ func NewDropForkedDucklakeNamespacesRequest(server string, workspace WorkspaceId
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewEditAddAdminsAndDevelopersToForksRequest calls the generic EditAddAdminsAndDevelopersToForks builder with application/json body
+func NewEditAddAdminsAndDevelopersToForksRequest(server string, workspace WorkspaceId, body EditAddAdminsAndDevelopersToForksJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditAddAdminsAndDevelopersToForksRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditAddAdminsAndDevelopersToForksRequestWithBody generates requests for EditAddAdminsAndDevelopersToForks with any type of body
+func NewEditAddAdminsAndDevelopersToForksRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_add_admins_and_developers_to_forks", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -87942,6 +88576,9 @@ type ClientWithResponsesInterface interface {
 	// ConsumeLoginLinkWithResponse request
 	ConsumeLoginLinkWithResponse(ctx context.Context, token string, params *ConsumeLoginLinkParams, reqEditors ...RequestEditorFn) (*ConsumeLoginLinkResponse, error)
 
+	// ConfirmLoginLinkWithResponse request
+	ConfirmLoginLinkWithResponse(ctx context.Context, token string, reqEditors ...RequestEditorFn) (*ConfirmLoginLinkResponse, error)
+
 	// LogoutWithResponse request
 	LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error)
 
@@ -88201,6 +88838,22 @@ type ClientWithResponsesInterface interface {
 
 	// CreateCustomerPortalSessionWithResponse request
 	CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
+
+	// ListInstanceDatatableRolesWithResponse request
+	ListInstanceDatatableRolesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceDatatableRolesResponse, error)
+
+	// CreateInstanceDatatableRoleWithBodyWithResponse request with any body
+	CreateInstanceDatatableRoleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateInstanceDatatableRoleResponse, error)
+
+	CreateInstanceDatatableRoleWithResponse(ctx context.Context, body CreateInstanceDatatableRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateInstanceDatatableRoleResponse, error)
+
+	// DeleteInstanceDatatableRoleWithResponse request
+	DeleteInstanceDatatableRoleWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteInstanceDatatableRoleResponse, error)
+
+	// UpdateInstanceDatatableRoleWithBodyWithResponse request with any body
+	UpdateInstanceDatatableRoleWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateInstanceDatatableRoleResponse, error)
+
+	UpdateInstanceDatatableRoleWithResponse(ctx context.Context, id string, body UpdateInstanceDatatableRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInstanceDatatableRoleResponse, error)
 
 	// DropCustomInstanceDbWithResponse request
 	DropCustomInstanceDbWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DropCustomInstanceDbResponse, error)
@@ -90784,6 +91437,17 @@ type ClientWithResponsesInterface interface {
 	// GetDatatableMigrationsStatusWithResponse request
 	GetDatatableMigrationsStatusWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*GetDatatableMigrationsStatusResponse, error)
 
+	// GetDatatablePermissionsWithResponse request
+	GetDatatablePermissionsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*GetDatatablePermissionsResponse, error)
+
+	// SetDatatablePermissionsWithBodyWithResponse request with any body
+	SetDatatablePermissionsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetDatatablePermissionsResponse, error)
+
+	SetDatatablePermissionsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, body SetDatatablePermissionsJSONRequestBody, reqEditors ...RequestEditorFn) (*SetDatatablePermissionsResponse, error)
+
+	// ListUsableDatatableRolesWithResponse request
+	ListUsableDatatableRolesWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*ListUsableDatatableRolesResponse, error)
+
 	// GetWorkspaceDefaultAppWithResponse request
 	GetWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceDefaultAppResponse, error)
 
@@ -90823,6 +91487,11 @@ type ClientWithResponsesInterface interface {
 
 	// DropForkedDucklakeNamespacesWithResponse request
 	DropForkedDucklakeNamespacesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DropForkedDucklakeNamespacesResponse, error)
+
+	// EditAddAdminsAndDevelopersToForksWithBodyWithResponse request with any body
+	EditAddAdminsAndDevelopersToForksWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditAddAdminsAndDevelopersToForksResponse, error)
+
+	EditAddAdminsAndDevelopersToForksWithResponse(ctx context.Context, workspace WorkspaceId, body EditAddAdminsAndDevelopersToForksJSONRequestBody, reqEditors ...RequestEditorFn) (*EditAddAdminsAndDevelopersToForksResponse, error)
 
 	// EditAutoInviteWithBodyWithResponse request with any body
 	EditAutoInviteWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditAutoInviteResponse, error)
@@ -91605,6 +92274,30 @@ func (r ConsumeLoginLinkResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ConsumeLoginLinkResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ConfirmLoginLinkResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Location string `json:"location"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ConfirmLoginLinkResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ConfirmLoginLinkResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -93391,6 +94084,93 @@ func (r CreateCustomerPortalSessionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateCustomerPortalSessionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListInstanceDatatableRolesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]InstanceDatatableRole
+}
+
+// Status returns HTTPResponse.Status
+func (r ListInstanceDatatableRolesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListInstanceDatatableRolesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateInstanceDatatableRoleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *InstanceDatatableRole
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateInstanceDatatableRoleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateInstanceDatatableRoleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteInstanceDatatableRoleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteInstanceDatatableRoleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteInstanceDatatableRoleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateInstanceDatatableRoleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *InstanceDatatableRole
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateInstanceDatatableRoleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateInstanceDatatableRoleResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -110066,6 +110846,75 @@ func (r GetDatatableMigrationsStatusResponse) StatusCode() int {
 	return 0
 }
 
+type GetDatatablePermissionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DatatablePermissions
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDatatablePermissionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDatatablePermissionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetDatatablePermissionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetDatatablePermissionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetDatatablePermissionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListUsableDatatableRolesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		DefaultRole  string   `json:"default_role"`
+		Permissioned bool     `json:"permissioned"`
+		Roles        []string `json:"roles"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListUsableDatatableRolesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListUsableDatatableRolesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetWorkspaceDefaultAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -110284,6 +111133,27 @@ func (r DropForkedDucklakeNamespacesResponse) StatusCode() int {
 	return 0
 }
 
+type EditAddAdminsAndDevelopersToForksResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditAddAdminsAndDevelopersToForksResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditAddAdminsAndDevelopersToForksResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditAutoInviteResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -110335,7 +111205,13 @@ func (r EditCopilotConfigResponse) StatusCode() int {
 type EditDataTableConfigResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *interface{}
+	JSON200      *struct {
+		// StrandedReferences Data tables in other workspaces that were governed by one this save deleted and no longer resolve.
+		StrandedReferences *[]struct {
+			Datatable   string `json:"datatable"`
+			WorkspaceId string `json:"workspace_id"`
+		} `json:"stranded_references,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -111061,8 +111937,10 @@ type GetPublicSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Datatable *DataTableSettings         `json:"datatable,omitempty"`
-		DeployUi  *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+		// AddAdminsAndDevelopersToForks Whether every new fork of this workspace starts with its admins and developers as members, keeping their role.
+		AddAdminsAndDevelopersToForks bool                       `json:"add_admins_and_developers_to_forks"`
+		Datatable                     *DataTableSettings         `json:"datatable,omitempty"`
+		DeployUi                      *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
 
 		// GuestAccessEnabled Whether this workspace admits guest sessions. An app's own `guest` execution mode is inert while this is false.
 		GuestAccessEnabled bool              `json:"guest_access_enabled"`
@@ -111119,7 +111997,9 @@ type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AiConfig *AIConfig `json:"ai_config,omitempty"`
+		// AddAdminsAndDevelopersToForks Whether every new fork of this workspace starts with its admins and developers as members, keeping their role.
+		AddAdminsAndDevelopersToForks *bool     `json:"add_admins_and_developers_to_forks,omitempty"`
+		AiConfig                      *AIConfig `json:"ai_config,omitempty"`
 
 		// AutoInvite Configuration for auto-inviting users to the workspace
 		AutoInvite *AutoInviteConfig  `json:"auto_invite,omitempty"`
@@ -111443,9 +112323,11 @@ type ListDataTablesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]struct {
-		Name         string                        `json:"name"`
-		ResourcePath string                        `json:"resource_path"`
-		ResourceType ListDataTables200ResourceType `json:"resource_type"`
+		GoverningWorkspaceId *string                       `json:"governing_workspace_id,omitempty"`
+		Name                 string                        `json:"name"`
+		Permissioned         bool                          `json:"permissioned"`
+		ResourcePath         string                        `json:"resource_path"`
+		ResourceType         ListDataTables200ResourceType `json:"resource_type"`
 	}
 }
 type ListDataTables200ResourceType string
@@ -112882,6 +113764,15 @@ func (c *ClientWithResponses) ConsumeLoginLinkWithResponse(ctx context.Context, 
 	return ParseConsumeLoginLinkResponse(rsp)
 }
 
+// ConfirmLoginLinkWithResponse request returning *ConfirmLoginLinkResponse
+func (c *ClientWithResponses) ConfirmLoginLinkWithResponse(ctx context.Context, token string, reqEditors ...RequestEditorFn) (*ConfirmLoginLinkResponse, error) {
+	rsp, err := c.ConfirmLoginLink(ctx, token, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConfirmLoginLinkResponse(rsp)
+}
+
 // LogoutWithResponse request returning *LogoutResponse
 func (c *ClientWithResponses) LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error) {
 	rsp, err := c.Logout(ctx, reqEditors...)
@@ -113698,6 +114589,58 @@ func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx contex
 		return nil, err
 	}
 	return ParseCreateCustomerPortalSessionResponse(rsp)
+}
+
+// ListInstanceDatatableRolesWithResponse request returning *ListInstanceDatatableRolesResponse
+func (c *ClientWithResponses) ListInstanceDatatableRolesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceDatatableRolesResponse, error) {
+	rsp, err := c.ListInstanceDatatableRoles(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListInstanceDatatableRolesResponse(rsp)
+}
+
+// CreateInstanceDatatableRoleWithBodyWithResponse request with arbitrary body returning *CreateInstanceDatatableRoleResponse
+func (c *ClientWithResponses) CreateInstanceDatatableRoleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateInstanceDatatableRoleResponse, error) {
+	rsp, err := c.CreateInstanceDatatableRoleWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateInstanceDatatableRoleResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateInstanceDatatableRoleWithResponse(ctx context.Context, body CreateInstanceDatatableRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateInstanceDatatableRoleResponse, error) {
+	rsp, err := c.CreateInstanceDatatableRole(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateInstanceDatatableRoleResponse(rsp)
+}
+
+// DeleteInstanceDatatableRoleWithResponse request returning *DeleteInstanceDatatableRoleResponse
+func (c *ClientWithResponses) DeleteInstanceDatatableRoleWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteInstanceDatatableRoleResponse, error) {
+	rsp, err := c.DeleteInstanceDatatableRole(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteInstanceDatatableRoleResponse(rsp)
+}
+
+// UpdateInstanceDatatableRoleWithBodyWithResponse request with arbitrary body returning *UpdateInstanceDatatableRoleResponse
+func (c *ClientWithResponses) UpdateInstanceDatatableRoleWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateInstanceDatatableRoleResponse, error) {
+	rsp, err := c.UpdateInstanceDatatableRoleWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateInstanceDatatableRoleResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateInstanceDatatableRoleWithResponse(ctx context.Context, id string, body UpdateInstanceDatatableRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateInstanceDatatableRoleResponse, error) {
+	rsp, err := c.UpdateInstanceDatatableRole(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateInstanceDatatableRoleResponse(rsp)
 }
 
 // DropCustomInstanceDbWithResponse request returning *DropCustomInstanceDbResponse
@@ -121976,6 +122919,41 @@ func (c *ClientWithResponses) GetDatatableMigrationsStatusWithResponse(ctx conte
 	return ParseGetDatatableMigrationsStatusResponse(rsp)
 }
 
+// GetDatatablePermissionsWithResponse request returning *GetDatatablePermissionsResponse
+func (c *ClientWithResponses) GetDatatablePermissionsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*GetDatatablePermissionsResponse, error) {
+	rsp, err := c.GetDatatablePermissions(ctx, workspace, datatableName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDatatablePermissionsResponse(rsp)
+}
+
+// SetDatatablePermissionsWithBodyWithResponse request with arbitrary body returning *SetDatatablePermissionsResponse
+func (c *ClientWithResponses) SetDatatablePermissionsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetDatatablePermissionsResponse, error) {
+	rsp, err := c.SetDatatablePermissionsWithBody(ctx, workspace, datatableName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetDatatablePermissionsResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetDatatablePermissionsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, body SetDatatablePermissionsJSONRequestBody, reqEditors ...RequestEditorFn) (*SetDatatablePermissionsResponse, error) {
+	rsp, err := c.SetDatatablePermissions(ctx, workspace, datatableName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetDatatablePermissionsResponse(rsp)
+}
+
+// ListUsableDatatableRolesWithResponse request returning *ListUsableDatatableRolesResponse
+func (c *ClientWithResponses) ListUsableDatatableRolesWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*ListUsableDatatableRolesResponse, error) {
+	rsp, err := c.ListUsableDatatableRoles(ctx, workspace, datatableName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListUsableDatatableRolesResponse(rsp)
+}
+
 // GetWorkspaceDefaultAppWithResponse request returning *GetWorkspaceDefaultAppResponse
 func (c *ClientWithResponses) GetWorkspaceDefaultAppWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetWorkspaceDefaultAppResponse, error) {
 	rsp, err := c.GetWorkspaceDefaultApp(ctx, workspace, reqEditors...)
@@ -122104,6 +123082,23 @@ func (c *ClientWithResponses) DropForkedDucklakeNamespacesWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseDropForkedDucklakeNamespacesResponse(rsp)
+}
+
+// EditAddAdminsAndDevelopersToForksWithBodyWithResponse request with arbitrary body returning *EditAddAdminsAndDevelopersToForksResponse
+func (c *ClientWithResponses) EditAddAdminsAndDevelopersToForksWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditAddAdminsAndDevelopersToForksResponse, error) {
+	rsp, err := c.EditAddAdminsAndDevelopersToForksWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditAddAdminsAndDevelopersToForksResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditAddAdminsAndDevelopersToForksWithResponse(ctx context.Context, workspace WorkspaceId, body EditAddAdminsAndDevelopersToForksJSONRequestBody, reqEditors ...RequestEditorFn) (*EditAddAdminsAndDevelopersToForksResponse, error) {
+	rsp, err := c.EditAddAdminsAndDevelopersToForks(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditAddAdminsAndDevelopersToForksResponse(rsp)
 }
 
 // EditAutoInviteWithBodyWithResponse request with arbitrary body returning *EditAutoInviteResponse
@@ -123778,6 +124773,34 @@ func ParseConsumeLoginLinkResponse(rsp *http.Response) (*ConsumeLoginLinkRespons
 	response := &ConsumeLoginLinkResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseConfirmLoginLinkResponse parses an HTTP response from a ConfirmLoginLinkWithResponse call
+func ParseConfirmLoginLinkResponse(rsp *http.Response) (*ConfirmLoginLinkResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ConfirmLoginLinkResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Location string `json:"location"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -125627,6 +126650,100 @@ func ParseCreateCustomerPortalSessionResponse(rsp *http.Response) (*CreateCustom
 	response := &CreateCustomerPortalSessionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListInstanceDatatableRolesResponse parses an HTTP response from a ListInstanceDatatableRolesWithResponse call
+func ParseListInstanceDatatableRolesResponse(rsp *http.Response) (*ListInstanceDatatableRolesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListInstanceDatatableRolesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []InstanceDatatableRole
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateInstanceDatatableRoleResponse parses an HTTP response from a CreateInstanceDatatableRoleWithResponse call
+func ParseCreateInstanceDatatableRoleResponse(rsp *http.Response) (*CreateInstanceDatatableRoleResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateInstanceDatatableRoleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest InstanceDatatableRole
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteInstanceDatatableRoleResponse parses an HTTP response from a DeleteInstanceDatatableRoleWithResponse call
+func ParseDeleteInstanceDatatableRoleResponse(rsp *http.Response) (*DeleteInstanceDatatableRoleResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteInstanceDatatableRoleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateInstanceDatatableRoleResponse parses an HTTP response from a UpdateInstanceDatatableRoleWithResponse call
+func ParseUpdateInstanceDatatableRoleResponse(rsp *http.Response) (*UpdateInstanceDatatableRoleResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateInstanceDatatableRoleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest InstanceDatatableRole
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -142259,6 +143376,78 @@ func ParseGetDatatableMigrationsStatusResponse(rsp *http.Response) (*GetDatatabl
 	return response, nil
 }
 
+// ParseGetDatatablePermissionsResponse parses an HTTP response from a GetDatatablePermissionsWithResponse call
+func ParseGetDatatablePermissionsResponse(rsp *http.Response) (*GetDatatablePermissionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDatatablePermissionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DatatablePermissions
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetDatatablePermissionsResponse parses an HTTP response from a SetDatatablePermissionsWithResponse call
+func ParseSetDatatablePermissionsResponse(rsp *http.Response) (*SetDatatablePermissionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetDatatablePermissionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListUsableDatatableRolesResponse parses an HTTP response from a ListUsableDatatableRolesWithResponse call
+func ParseListUsableDatatableRolesResponse(rsp *http.Response) (*ListUsableDatatableRolesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListUsableDatatableRolesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			DefaultRole  string   `json:"default_role"`
+			Permissioned bool     `json:"permissioned"`
+			Roles        []string `json:"roles"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetWorkspaceDefaultAppResponse parses an HTTP response from a GetWorkspaceDefaultAppWithResponse call
 func ParseGetWorkspaceDefaultAppResponse(rsp *http.Response) (*GetWorkspaceDefaultAppResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -142472,6 +143661,22 @@ func ParseDropForkedDucklakeNamespacesResponse(rsp *http.Response) (*DropForkedD
 	return response, nil
 }
 
+// ParseEditAddAdminsAndDevelopersToForksResponse parses an HTTP response from a EditAddAdminsAndDevelopersToForksWithResponse call
+func ParseEditAddAdminsAndDevelopersToForksResponse(rsp *http.Response) (*EditAddAdminsAndDevelopersToForksResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditAddAdminsAndDevelopersToForksResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseEditAutoInviteResponse parses an HTTP response from a EditAutoInviteWithResponse call
 func ParseEditAutoInviteResponse(rsp *http.Response) (*EditAutoInviteResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -142534,7 +143739,13 @@ func ParseEditDataTableConfigResponse(rsp *http.Response) (*EditDataTableConfigR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest interface{}
+		var dest struct {
+			// StrandedReferences Data tables in other workspaces that were governed by one this save deleted and no longer resolve.
+			StrandedReferences *[]struct {
+				Datatable   string `json:"datatable"`
+				WorkspaceId string `json:"workspace_id"`
+			} `json:"stranded_references,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -143280,8 +144491,10 @@ func ParseGetPublicSettingsResponse(rsp *http.Response) (*GetPublicSettingsRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Datatable *DataTableSettings         `json:"datatable,omitempty"`
-			DeployUi  *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
+			// AddAdminsAndDevelopersToForks Whether every new fork of this workspace starts with its admins and developers as members, keeping their role.
+			AddAdminsAndDevelopersToForks bool                       `json:"add_admins_and_developers_to_forks"`
+			Datatable                     *DataTableSettings         `json:"datatable,omitempty"`
+			DeployUi                      *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
 
 			// GuestAccessEnabled Whether this workspace admits guest sessions. An app's own `guest` execution mode is inert while this is false.
 			GuestAccessEnabled bool              `json:"guest_access_enabled"`
@@ -143346,7 +144559,9 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AiConfig *AIConfig `json:"ai_config,omitempty"`
+			// AddAdminsAndDevelopersToForks Whether every new fork of this workspace starts with its admins and developers as members, keeping their role.
+			AddAdminsAndDevelopersToForks *bool     `json:"add_admins_and_developers_to_forks,omitempty"`
+			AiConfig                      *AIConfig `json:"ai_config,omitempty"`
 
 			// AutoInvite Configuration for auto-inviting users to the workspace
 			AutoInvite *AutoInviteConfig  `json:"auto_invite,omitempty"`
@@ -143682,9 +144897,11 @@ func ParseListDataTablesResponse(rsp *http.Response) (*ListDataTablesResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
-			Name         string                        `json:"name"`
-			ResourcePath string                        `json:"resource_path"`
-			ResourceType ListDataTables200ResourceType `json:"resource_type"`
+			GoverningWorkspaceId *string                       `json:"governing_workspace_id,omitempty"`
+			Name                 string                        `json:"name"`
+			Permissioned         bool                          `json:"permissioned"`
+			ResourcePath         string                        `json:"resource_path"`
+			ResourceType         ListDataTables200ResourceType `json:"resource_type"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
