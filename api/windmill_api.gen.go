@@ -56,6 +56,47 @@ const (
 	AIProviderKindTogetherai   AIProviderKind = "togetherai"
 )
 
+// Defines values for AclChangeGrantType.
+const (
+	Grant AclChangeGrantType = "grant"
+)
+
+// Defines values for AclChangeRevokeType.
+const (
+	Revoke AclChangeRevokeType = "revoke"
+)
+
+// Defines values for AclChangeSetOwnerType.
+const (
+	SetOwner AclChangeSetOwnerType = "set_owner"
+)
+
+// Defines values for AclGrantScope.
+const (
+	AllFunctions    AclGrantScope = "all_functions"
+	AllSequences    AclGrantScope = "all_sequences"
+	AllTables       AclGrantScope = "all_tables"
+	FutureFunctions AclGrantScope = "future_functions"
+	FutureSequences AclGrantScope = "future_sequences"
+	FutureTables    AclGrantScope = "future_tables"
+	Target          AclGrantScope = "target"
+)
+
+// Defines values for AclTargetDatabaseKind.
+const (
+	AclTargetDatabaseKindDatabase AclTargetDatabaseKind = "database"
+)
+
+// Defines values for AclTargetSchemaKind.
+const (
+	Schema AclTargetSchemaKind = "schema"
+)
+
+// Defines values for AclTargetTableKind.
+const (
+	Table AclTargetTableKind = "table"
+)
+
 // Defines values for AppWithLastVersionExecutionMode.
 const (
 	AppWithLastVersionExecutionModeAnonymous AppWithLastVersionExecutionMode = "anonymous"
@@ -314,6 +355,12 @@ const (
 	CreateWorkspaceForkDevWorkspaceLabelStaging CreateWorkspaceForkDevWorkspaceLabel = "staging"
 	CreateWorkspaceForkDevWorkspaceLabelTest    CreateWorkspaceForkDevWorkspaceLabel = "test"
 	CreateWorkspaceForkDevWorkspaceLabelUat     CreateWorkspaceForkDevWorkspaceLabel = "uat"
+)
+
+// Defines values for CreateWorkspaceForkForkedDatatablesForkBehavior.
+const (
+	CreateWorkspaceForkForkedDatatablesForkBehaviorSchemaAndData CreateWorkspaceForkForkedDatatablesForkBehavior = "schema_and_data"
+	CreateWorkspaceForkForkedDatatablesForkBehaviorSchemaOnly    CreateWorkspaceForkForkedDatatablesForkBehavior = "schema_only"
 )
 
 // Defines values for CustomInstanceDbTag.
@@ -1487,6 +1534,14 @@ const (
 	Delete       MigrateLegacyDraftJSONBodyAction = "delete"
 )
 
+// Defines values for MoveDraftParamsKind.
+const (
+	MoveDraftParamsKindApp    MoveDraftParamsKind = "app"
+	MoveDraftParamsKindFlow   MoveDraftParamsKind = "flow"
+	MoveDraftParamsKindRawApp MoveDraftParamsKind = "raw_app"
+	MoveDraftParamsKindScript MoveDraftParamsKind = "script"
+)
+
 // Defines values for StarJSONBodyFavoriteKind.
 const (
 	StarJSONBodyFavoriteKindApp    StarJSONBodyFavoriteKind = "app"
@@ -1581,11 +1636,18 @@ const (
 	Uat     AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "uat"
 )
 
+// Defines values for GetDatatableAclParamsKind.
+const (
+	GetDatatableAclParamsKindDatabase GetDatatableAclParamsKind = "database"
+	GetDatatableAclParamsKindSchema   GetDatatableAclParamsKind = "schema"
+	GetDatatableAclParamsKindTable    GetDatatableAclParamsKind = "table"
+)
+
 // Defines values for ImportPgDatabaseJSONBodyForkBehavior.
 const (
-	KeepOriginal  ImportPgDatabaseJSONBodyForkBehavior = "keep_original"
-	SchemaAndData ImportPgDatabaseJSONBodyForkBehavior = "schema_and_data"
-	SchemaOnly    ImportPgDatabaseJSONBodyForkBehavior = "schema_only"
+	ImportPgDatabaseJSONBodyForkBehaviorKeepOriginal  ImportPgDatabaseJSONBodyForkBehavior = "keep_original"
+	ImportPgDatabaseJSONBodyForkBehaviorSchemaAndData ImportPgDatabaseJSONBodyForkBehavior = "schema_and_data"
+	ImportPgDatabaseJSONBodyForkBehaviorSchemaOnly    ImportPgDatabaseJSONBodyForkBehavior = "schema_only"
 )
 
 // Defines values for ListWsSpecificVersionsParamsKind.
@@ -1604,13 +1666,16 @@ const (
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
 const (
-	SetWsSpecificJSONBodyItemKindResource SetWsSpecificJSONBodyItemKind = "resource"
-	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
+	Resource SetWsSpecificJSONBodyItemKind = "resource"
+	Variable SetWsSpecificJSONBodyItemKind = "variable"
 )
 
 // AIConfig defines model for AIConfig.
 type AIConfig struct {
 	CodeCompletionModel *AIProviderModel `json:"code_completion_model,omitempty"`
+
+	// ContextWindowPerModel Context window in tokens per `provider:model`, overriding the built-in table the AI chat uses to decide when to compact its history.
+	ContextWindowPerModel *map[string]int `json:"context_window_per_model,omitempty"`
 
 	// CopilotDisabled Hides the Windmill AI assistant (chat, sessions, code generation, completion, fixes) from the workspace UI. Read from the workspace's own settings even when the providers served fall back to the instance config. AI agent steps and the AI sandbox in flows are unaffected.
 	CopilotDisabled *bool              `json:"copilot_disabled,omitempty"`
@@ -1755,6 +1820,134 @@ type AITokenUsageEvent struct {
 	SessionId           *string `json:"session_id,omitempty"`
 }
 
+// AclChange one change to plan or apply
+type AclChange struct {
+	union json.RawMessage
+}
+
+// AclChangeGrant defines model for AclChangeGrant.
+type AclChangeGrant struct {
+	Privileges []string `json:"privileges"`
+
+	// Role a data table role of the instance, or admin
+	Role  string             `json:"role"`
+	Scope AclGrantScope      `json:"scope"`
+	Type  AclChangeGrantType `json:"type"`
+}
+
+// AclChangeGrantType defines model for AclChangeGrant.Type.
+type AclChangeGrantType string
+
+// AclChangeRequest defines model for AclChangeRequest.
+type AclChangeRequest struct {
+	// Change one change to plan or apply
+	Change AclChange `json:"change"`
+
+	// Statements The statements the plan showed. Required to apply, which plans again and refuses if the result differs.
+	Statements *[]string `json:"statements,omitempty"`
+
+	// Target what access is read or changed on
+	Target AclTarget `json:"target"`
+}
+
+// AclChangeRevoke defines model for AclChangeRevoke.
+type AclChangeRevoke struct {
+	// Objects objects inside the target the revoke covers, empty for the target itself. Only with the target scope; a revoke on all objects of a kind is refused, since it cannot say which grants it takes back.
+	Objects    *[]AclObject `json:"objects,omitempty"`
+	Privileges []string     `json:"privileges"`
+
+	// Role a data table role of the instance, other than admin
+	Role  string              `json:"role"`
+	Scope AclGrantScope       `json:"scope"`
+	Type  AclChangeRevokeType `json:"type"`
+}
+
+// AclChangeRevokeType defines model for AclChangeRevoke.Type.
+type AclChangeRevokeType string
+
+// AclChangeSetOwner hands the target to role — for a schema, with everything already in it but an extension's members, which stay with the extension
+type AclChangeSetOwner struct {
+	// Role a data table role of the instance, or admin
+	Role string                `json:"role"`
+	Type AclChangeSetOwnerType `json:"type"`
+}
+
+// AclChangeSetOwnerType defines model for AclChangeSetOwner.Type.
+type AclChangeSetOwnerType string
+
+// AclGrant defines model for AclGrant.
+type AclGrant struct {
+	// Future set for a default privilege, naming the kind of object it covers (TABLES, SEQUENCES, FUNCTIONS, TYPES, or SCHEMAS). On a schema, the defaults set in that schema; on the database, the ones set database-wide, which apply in every schema and which no schema's own defaults take back.
+	Future     *string    `json:"future,omitempty"`
+	Grantee    string     `json:"grantee"`
+	Object     *AclObject `json:"object,omitempty"`
+	Privileges []string   `json:"privileges"`
+
+	// Sources the roles the grant comes from, each once — who granted it, or for a default privilege the role whose future objects it covers. A revoke of some of the grant's privileges takes them back from every source that gave them.
+	Sources []AclSource `json:"sources"`
+}
+
+// AclGrantScope defines model for AclGrantScope.
+type AclGrantScope string
+
+// AclObject defines model for AclObject.
+type AclObject struct {
+	// Args identity arguments of a routine, which is what tells two of the same name apart
+	Args *string `json:"args,omitempty"`
+
+	// Kind TABLE, SEQUENCE, FUNCTION, PROCEDURE or TYPE — what the object is. A revoke turns it into the keyword it takes, ROUTINE for both routine kinds; a type's grants are read only.
+	Kind string `json:"kind"`
+	Name string `json:"name"`
+}
+
+// AclPlan defines model for AclPlan.
+type AclPlan struct {
+	Statements []string `json:"statements"`
+	Warnings   []string `json:"warnings"`
+}
+
+// AclSource defines model for AclSource.
+type AclSource struct {
+	// Privileges what role gave of the grant's privileges. A revoke is held back only by a source out of reach that gave some of what it takes back.
+	Privileges []string `json:"privileges"`
+
+	// Reachable whether the data table's connection can take back what role gave. On an object that is the owner, when the connection acts for the owner, and otherwise the connection itself; for a default privilege, a creating role the connection acts for. What a source out of reach gave is not revocable from here; privileges only other sources gave still are.
+	Reachable bool   `json:"reachable"`
+	Role      string `json:"role"`
+}
+
+// AclTarget what access is read or changed on
+type AclTarget struct {
+	union json.RawMessage
+}
+
+// AclTargetDatabase defines model for AclTargetDatabase.
+type AclTargetDatabase struct {
+	Kind AclTargetDatabaseKind `json:"kind"`
+}
+
+// AclTargetDatabaseKind defines model for AclTargetDatabase.Kind.
+type AclTargetDatabaseKind string
+
+// AclTargetSchema defines model for AclTargetSchema.
+type AclTargetSchema struct {
+	Kind   AclTargetSchemaKind `json:"kind"`
+	Schema string              `json:"schema"`
+}
+
+// AclTargetSchemaKind defines model for AclTargetSchema.Kind.
+type AclTargetSchemaKind string
+
+// AclTargetTable defines model for AclTargetTable.
+type AclTargetTable struct {
+	Kind   AclTargetTableKind `json:"kind"`
+	Schema string             `json:"schema"`
+	Table  string             `json:"table"`
+}
+
+// AclTargetTableKind defines model for AclTargetTable.Kind.
+type AclTargetTableKind string
+
 // AgentDraft The brain and tools of an agent, as the flow editor holds them. Carried by the request and present exactly when the subject kind is `agent_draft` — the edits exist only in the editor — where it is the whole definition of what ran: the run goes through the same unlinked branch of the agent executor the editor's own test uses.
 type AgentDraft struct {
 	// InputTransforms The agent's input transforms: provider, system prompt, output type and the rest. The message and attachments come from the case and override anything named here.
@@ -1807,10 +2000,19 @@ type AmqpOptions struct {
 // AmqpTrigger defines model for AmqpTrigger.
 type AmqpTrigger = TriggerExtraProperty
 
+// AppDeployed What a deploy of an existing app answers with. `version` is the one this call wrote, which is what an editor pins as the fork base of the draft it starts next: reading the head back afterwards cannot tell it from a deploy that landed beside it. A metadata-only update writes none and reports the head it kept.
+type AppDeployed struct {
+	// Path Where the app now lives, which differs from the request path on a rename.
+	Path    string `json:"path"`
+	Version int64  `json:"version"`
+}
+
 // AppHistory defines model for AppHistory.
 type AppHistory struct {
-	DeploymentMsg *string `json:"deployment_msg,omitempty"`
-	Version       int     `json:"version"`
+	CreatedAt     *time.Time `json:"created_at,omitempty"`
+	CreatedBy     *string    `json:"created_by,omitempty"`
+	DeploymentMsg *string    `json:"deployment_msg,omitempty"`
+	Version       int        `json:"version"`
 }
 
 // AppWithLastVersion defines model for AppWithLastVersion.
@@ -2434,6 +2636,9 @@ type CreateWorkspaceFork struct {
 	// DevWorkspaceLabel Environment label for the dev workspace: its badge text and the branch it deploys to. Ignored for non-dev forks. Omitted defaults to 'dev'
 	DevWorkspaceLabel *CreateWorkspaceForkDevWorkspaceLabel `json:"dev_workspace_label,omitempty"`
 	ForkedDatatables  *[]struct {
+		// ForkBehavior What the fork request copies into `new_dbname`, which it creates — with the owners and grants of a data table under roles. This server refuses an entry without it; servers predating it expect `new_dbname` created and filled beforehand.
+		ForkBehavior *CreateWorkspaceForkForkedDatatablesForkBehavior `json:"fork_behavior,omitempty"`
+
 		// Name Datatable name
 		Name string `json:"name"`
 
@@ -2458,6 +2663,9 @@ type CreateWorkspaceFork struct {
 
 // CreateWorkspaceForkDevWorkspaceLabel Environment label for the dev workspace: its badge text and the branch it deploys to. Ignored for non-dev forks. Omitted defaults to 'dev'
 type CreateWorkspaceForkDevWorkspaceLabel string
+
+// CreateWorkspaceForkForkedDatatablesForkBehavior What the fork request copies into `new_dbname`, which it creates — with the owners and grants of a data table under roles. This server refuses an entry without it; servers predating it expect `new_dbname` created and filled beforehand.
+type CreateWorkspaceForkForkedDatatablesForkBehavior string
 
 // CriticalAlert defines model for CriticalAlert.
 type CriticalAlert struct {
@@ -2503,6 +2711,7 @@ type CustomInstanceDbLogs struct {
 	ReplicationUser      *LoggedWizardStatus `json:"replication_user,omitempty"`
 	ReplicationUserError *string             `json:"replication_user_error,omitempty"`
 	SuperAdmin           *LoggedWizardStatus `json:"super_admin,omitempty"`
+	UserConnect          *LoggedWizardStatus `json:"user_connect,omitempty"`
 	ValidDbname          *LoggedWizardStatus `json:"valid_dbname,omitempty"`
 }
 
@@ -2555,6 +2764,12 @@ type DataTableSettings struct {
 			Schema *map[string]interface{} `json:"schema,omitempty"`
 		} `json:"forked_from,omitempty"`
 
+		// GovernedBy On a clone, the data table it was copied from, whose roles it takes. Server-owned like `reference`.
+		GovernedBy *struct {
+			Datatable   string `json:"datatable"`
+			WorkspaceId string `json:"workspace_id"`
+		} `json:"governed_by,omitempty"`
+
 		// MigrationsEnabled Whether the SQL migrations feature is opted in for this data table
 		MigrationsEnabled *bool `json:"migrations_enabled,omitempty"`
 
@@ -2580,11 +2795,24 @@ type DataTableTableSchema struct {
 
 // DataTableTables defines model for DataTableTables.
 type DataTableTables struct {
-	DatatableName string  `json:"datatable_name"`
-	Error         *string `json:"error,omitempty"`
+	// CanCreateSchema whether the role the listing connected as may create schemas
+	CanCreateSchema bool `json:"can_create_schema"`
+
+	// CreatableSchemas the schemas the role the listing connected as may create in
+	CreatableSchemas []string `json:"creatable_schemas"`
+	DatatableName    string   `json:"datatable_name"`
+	DefaultRole      string   `json:"default_role"`
+	Error            *string  `json:"error,omitempty"`
+
+	// Instance on the instance database, the only kind that can be under roles or have its access edited
+	Instance     bool `json:"instance"`
+	Permissioned bool `json:"permissioned"`
 
 	// Schemas Hierarchical metadata: schema_name -> table_names
 	Schemas map[string][]string `json:"schemas"`
+
+	// UsableRoles the roles the caller may connect as, by name; empty when not under roles
+	UsableRoles []string `json:"usable_roles"`
 }
 
 // DatabaseHealth Database health status
@@ -2597,6 +2825,29 @@ type DatabaseHealth struct {
 
 	// Pool Database connection pool statistics
 	Pool PoolStats `json:"pool"`
+}
+
+// DatatableAclInfo defines model for DatatableAclInfo.
+type DatatableAclInfo struct {
+	// Children a database's schemas, or a schema's tables
+	Children []string `json:"children"`
+
+	// Clone whether this is a clone, whose grants stay as they were copied
+	Clone bool `json:"clone"`
+
+	// Dbname the database the target lives in
+	Dbname string `json:"dbname"`
+
+	// Editable whether the caller may plan and apply changes
+	Editable bool       `json:"editable"`
+	Grants   []AclGrant `json:"grants"`
+	Owner    string     `json:"owner"`
+
+	// Roles the roles a change may name; empty unless the caller may change anything
+	Roles []string `json:"roles"`
+
+	// SupportsMaintain whether the server is Postgres 17+, which added the MAINTAIN table privilege
+	SupportsMaintain bool `json:"supports_maintain"`
 }
 
 // DatatableMigration defines model for DatatableMigration.
@@ -2622,12 +2873,18 @@ type DatatableMigrationWithStatusStatus string
 
 // DatatablePermissions defines model for DatatablePermissions.
 type DatatablePermissions struct {
-	AvailableRoles       []InstanceDatatableRole `json:"available_roles"`
-	DefaultRole          string                  `json:"default_role"`
-	Editable             bool                    `json:"editable"`
-	GoverningWorkspaceId *string                 `json:"governing_workspace_id,omitempty"`
-	Permissioned         bool                    `json:"permissioned"`
-	Roles                []DatatableRoleTenants  `json:"roles"`
+	AvailableRoles []InstanceDatatableRole `json:"available_roles"`
+
+	// CloneOf for a clone, the data table whose roles it takes
+	CloneOf *struct {
+		Datatable   string `json:"datatable"`
+		WorkspaceId string `json:"workspace_id"`
+	} `json:"clone_of,omitempty"`
+	DefaultRole          string                 `json:"default_role"`
+	Editable             bool                   `json:"editable"`
+	GoverningWorkspaceId *string                `json:"governing_workspace_id,omitempty"`
+	Permissioned         bool                   `json:"permissioned"`
+	Roles                []DatatableRoleTenants `json:"roles"`
 
 	// Supported Whether this data table can be put under roles at all. Only one backed by the instance database can: a role is a login on that cluster.
 	Supported          bool `json:"supported"`
@@ -4260,6 +4517,7 @@ type FlowValue struct {
 // FlowVersion defines model for FlowVersion.
 type FlowVersion struct {
 	CreatedAt     time.Time `json:"created_at"`
+	CreatedBy     *string   `json:"created_by,omitempty"`
 	DeploymentMsg *string   `json:"deployment_msg,omitempty"`
 	Id            int       `json:"id"`
 }
@@ -7008,8 +7266,10 @@ type ScriptArgs map[string]interface{}
 
 // ScriptHistory defines model for ScriptHistory.
 type ScriptHistory struct {
-	DeploymentMsg *string `json:"deployment_msg,omitempty"`
-	ScriptHash    string  `json:"script_hash"`
+	CreatedAt     *time.Time `json:"created_at,omitempty"`
+	CreatedBy     *string    `json:"created_by,omitempty"`
+	DeploymentMsg *string    `json:"deployment_msg,omitempty"`
+	ScriptHash    string     `json:"script_hash"`
 }
 
 // ScriptLang defines model for ScriptLang.
@@ -7394,10 +7654,16 @@ type UserDraftItemKind string
 // the draft, and only `draft` is canonical. Callers should disable
 // "diff vs deployed" UI in that case.
 type UserDraftOverlay struct {
-	Draft        *map[string]interface{} `json:"draft,omitempty"`
-	DraftSavedAt *time.Time              `json:"draft_saved_at,omitempty"`
-	IsDraft      bool                    `json:"is_draft"`
-	NoDeployed   *bool                   `json:"no_deployed,omitempty"`
+	Draft *map[string]interface{} `json:"draft,omitempty"`
+
+	// DraftBase The deployed version the draft forked from, as text whatever the
+	// kind (script hash, flow version id, app version id). Compare to the
+	// deployed head to tell a draft that is behind. Absent when there is
+	// no draft or it was never forked from a deploy.
+	DraftBase    *string    `json:"draft_base,omitempty"`
+	DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+	IsDraft      bool       `json:"is_draft"`
+	NoDeployed   *bool      `json:"no_deployed,omitempty"`
 
 	// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
 	// with a saved draft at the same path. Populated only on the
@@ -9156,11 +9422,9 @@ type ListUsersAsSuperAdminParams struct {
 
 // CreateLoginLinkJSONBody defines parameters for CreateLoginLink.
 type CreateLoginLinkJSONBody struct {
-	// Confirm return a /user/login_link page that signs in only when its button is clicked, instead of a link spent by opening it; set it for links sent by email, which mail scanners open on delivery (default false)
-	Confirm *bool  `json:"confirm,omitempty"`
-	Email   string `json:"email"`
+	Email string `json:"email"`
 
-	// ExpiresInS link lifetime in seconds, at most 7200 (default 600)
+	// ExpiresInS link lifetime in seconds, at most 900 (default 600)
 	ExpiresInS *int `json:"expires_in_s,omitempty"`
 
 	// Rd same-origin path the browser lands on after login (default /user/workspaces)
@@ -9525,6 +9789,15 @@ type GetAppByPathParams struct {
 	// disambiguates which draft kind (`raw_app` or `app`) to look up.
 	// Ignored when a deployed row exists.
 	RawApp *bool `form:"raw_app,omitempty" json:"raw_app,omitempty"`
+}
+
+// GetAppHistoryByPathParams defines parameters for GetAppHistoryByPath.
+type GetAppHistoryByPathParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
 // UpdateAppHistoryJSONBody defines parameters for UpdateAppHistory.
@@ -10161,6 +10434,17 @@ type MigrateLegacyDraftJSONBody struct {
 // MigrateLegacyDraftJSONBodyAction defines parameters for MigrateLegacyDraft.
 type MigrateLegacyDraftJSONBodyAction string
 
+// MoveDraftJSONBody defines parameters for MoveDraft.
+type MoveDraftJSONBody struct {
+	NewPath string `json:"new_path"`
+
+	// Summary Also restate the draft's summary.
+	Summary *string `json:"summary,omitempty"`
+}
+
+// MoveDraftParamsKind defines parameters for MoveDraft.
+type MoveDraftParamsKind string
+
 // UpdateDraftJSONBody defines parameters for UpdateDraft.
 type UpdateDraftJSONBody struct {
 	// CreatedAt Upsert-only override for the stored creation timestamp. Normal saves omit it (stamped server-side); the localStorage→DB migration passes the draft's original write time so migrated drafts keep their age.
@@ -10340,6 +10624,15 @@ type GetFlowByPathParams struct {
 
 	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
 	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
+}
+
+// GetFlowHistoryParams defines parameters for GetFlowHistory.
+type GetFlowHistoryParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
 // UpdateFlowHistoryJSONBody defines parameters for UpdateFlowHistory.
@@ -13024,6 +13317,15 @@ type GetScriptByPathParams struct {
 	GetDraft *GetDraft `form:"get_draft,omitempty" json:"get_draft,omitempty"`
 }
 
+// GetScriptHistoryByPathParams defines parameters for GetScriptHistoryByPath.
+type GetScriptHistoryByPathParams struct {
+	// Page which page to return (start at 1, default 1)
+	Page *Page `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage number of items to return for a given page (default 30, max 100)
+	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
 // UpdateScriptHistoryJSONBody defines parameters for UpdateScriptHistory.
 type UpdateScriptHistoryJSONBody struct {
 	DeploymentMsg *string `json:"deployment_msg,omitempty"`
@@ -13495,6 +13797,16 @@ type WorkspaceMuteCriticalAlertsUIJSONBody struct {
 	MuteCriticalAlerts *bool `json:"mute_critical_alerts,omitempty"`
 }
 
+// GetDatatableAclParams defines parameters for GetDatatableAcl.
+type GetDatatableAclParams struct {
+	Kind   GetDatatableAclParamsKind `form:"kind" json:"kind"`
+	Schema *string                   `form:"schema,omitempty" json:"schema,omitempty"`
+	Table  *string                   `form:"table,omitempty" json:"table,omitempty"`
+}
+
+// GetDatatableAclParamsKind defines parameters for GetDatatableAcl.
+type GetDatatableAclParamsKind string
+
 // SetDatatablePermissionsJSONBody defines parameters for SetDatatablePermissions.
 type SetDatatablePermissionsJSONBody struct {
 	DefaultRole  *string                 `json:"default_role,omitempty"`
@@ -13646,6 +13958,9 @@ type GetDataTableTableSchemaParams struct {
 	DatatableName string `form:"datatable_name" json:"datatable_name"`
 	SchemaName    string `form:"schema_name" json:"schema_name"`
 	TableName     string `form:"table_name" json:"table_name"`
+
+	// Role the data table role to read the table as; defaults to the data table's default role
+	Role *string `form:"role,omitempty" json:"role,omitempty"`
 }
 
 // GetDependentsAmountsJSONBody defines parameters for GetDependentsAmounts.
@@ -13686,6 +14001,18 @@ type InviteUserJSONBody struct {
 	IsAdmin           bool    `json:"is_admin"`
 	Operator          bool    `json:"operator"`
 	ParentWorkspaceId *string `json:"parent_workspace_id"`
+}
+
+// ListDataTableTablesParams defines parameters for ListDataTableTables.
+type ListDataTableTablesParams struct {
+	// DatatableName list only this data table; each listed data table opens a connection to its database
+	DatatableName *string `form:"datatable_name,omitempty" json:"datatable_name,omitempty"`
+
+	// RoleFor the data table `role` applies to; every other one is listed as its default role
+	RoleFor *string `form:"role_for,omitempty" json:"role_for,omitempty"`
+
+	// Role the role to list `role_for` as; refused, in that entry's `error`, if the caller may not use it
+	Role *string `form:"role,omitempty" json:"role,omitempty"`
 }
 
 // ListWsSpecificVersionsParams defines parameters for ListWsSpecificVersions.
@@ -14186,6 +14513,9 @@ type CreateDeploymentRequestCommentJSONRequestBody CreateDeploymentRequestCommen
 
 // MigrateLegacyDraftJSONRequestBody defines body for MigrateLegacyDraft for application/json ContentType.
 type MigrateLegacyDraftJSONRequestBody MigrateLegacyDraftJSONBody
+
+// MoveDraftJSONRequestBody defines body for MoveDraft for application/json ContentType.
+type MoveDraftJSONRequestBody MoveDraftJSONBody
 
 // UpdateDraftJSONRequestBody defines body for UpdateDraft for application/json ContentType.
 type UpdateDraftJSONRequestBody UpdateDraftJSONBody
@@ -14766,6 +15096,12 @@ type CreateWorkspaceForkGitBranchJSONRequestBody = CreateWorkspaceFork
 // WorkspaceMuteCriticalAlertsUIJSONRequestBody defines body for WorkspaceMuteCriticalAlertsUI for application/json ContentType.
 type WorkspaceMuteCriticalAlertsUIJSONRequestBody WorkspaceMuteCriticalAlertsUIJSONBody
 
+// ApplyDatatableAclJSONRequestBody defines body for ApplyDatatableAcl for application/json ContentType.
+type ApplyDatatableAclJSONRequestBody = AclChangeRequest
+
+// PlanDatatableAclJSONRequestBody defines body for PlanDatatableAcl for application/json ContentType.
+type PlanDatatableAclJSONRequestBody = AclChangeRequest
+
 // SetDatatablePermissionsJSONRequestBody defines body for SetDatatablePermissions for application/json ContentType.
 type SetDatatablePermissionsJSONRequestBody SetDatatablePermissionsJSONBody
 
@@ -14912,6 +15248,244 @@ type GetSessionWorkspaceRetentionJSONRequestBody GetSessionWorkspaceRetentionJSO
 
 // GetSessionWorkspaceStatusJSONRequestBody defines body for GetSessionWorkspaceStatus for application/json ContentType.
 type GetSessionWorkspaceStatusJSONRequestBody GetSessionWorkspaceStatusJSONBody
+
+// AsAclChangeSetOwner returns the union data inside the AclChange as a AclChangeSetOwner
+func (t AclChange) AsAclChangeSetOwner() (AclChangeSetOwner, error) {
+	var body AclChangeSetOwner
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAclChangeSetOwner overwrites any union data inside the AclChange as the provided AclChangeSetOwner
+func (t *AclChange) FromAclChangeSetOwner(v AclChangeSetOwner) error {
+	v.Type = "set_owner"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAclChangeSetOwner performs a merge with any union data inside the AclChange, using the provided AclChangeSetOwner
+func (t *AclChange) MergeAclChangeSetOwner(v AclChangeSetOwner) error {
+	v.Type = "set_owner"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAclChangeGrant returns the union data inside the AclChange as a AclChangeGrant
+func (t AclChange) AsAclChangeGrant() (AclChangeGrant, error) {
+	var body AclChangeGrant
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAclChangeGrant overwrites any union data inside the AclChange as the provided AclChangeGrant
+func (t *AclChange) FromAclChangeGrant(v AclChangeGrant) error {
+	v.Type = "grant"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAclChangeGrant performs a merge with any union data inside the AclChange, using the provided AclChangeGrant
+func (t *AclChange) MergeAclChangeGrant(v AclChangeGrant) error {
+	v.Type = "grant"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAclChangeRevoke returns the union data inside the AclChange as a AclChangeRevoke
+func (t AclChange) AsAclChangeRevoke() (AclChangeRevoke, error) {
+	var body AclChangeRevoke
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAclChangeRevoke overwrites any union data inside the AclChange as the provided AclChangeRevoke
+func (t *AclChange) FromAclChangeRevoke(v AclChangeRevoke) error {
+	v.Type = "revoke"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAclChangeRevoke performs a merge with any union data inside the AclChange, using the provided AclChangeRevoke
+func (t *AclChange) MergeAclChangeRevoke(v AclChangeRevoke) error {
+	v.Type = "revoke"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t AclChange) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t AclChange) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "grant":
+		return t.AsAclChangeGrant()
+	case "revoke":
+		return t.AsAclChangeRevoke()
+	case "set_owner":
+		return t.AsAclChangeSetOwner()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t AclChange) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *AclChange) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsAclTargetDatabase returns the union data inside the AclTarget as a AclTargetDatabase
+func (t AclTarget) AsAclTargetDatabase() (AclTargetDatabase, error) {
+	var body AclTargetDatabase
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAclTargetDatabase overwrites any union data inside the AclTarget as the provided AclTargetDatabase
+func (t *AclTarget) FromAclTargetDatabase(v AclTargetDatabase) error {
+	v.Kind = "database"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAclTargetDatabase performs a merge with any union data inside the AclTarget, using the provided AclTargetDatabase
+func (t *AclTarget) MergeAclTargetDatabase(v AclTargetDatabase) error {
+	v.Kind = "database"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAclTargetSchema returns the union data inside the AclTarget as a AclTargetSchema
+func (t AclTarget) AsAclTargetSchema() (AclTargetSchema, error) {
+	var body AclTargetSchema
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAclTargetSchema overwrites any union data inside the AclTarget as the provided AclTargetSchema
+func (t *AclTarget) FromAclTargetSchema(v AclTargetSchema) error {
+	v.Kind = "schema"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAclTargetSchema performs a merge with any union data inside the AclTarget, using the provided AclTargetSchema
+func (t *AclTarget) MergeAclTargetSchema(v AclTargetSchema) error {
+	v.Kind = "schema"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAclTargetTable returns the union data inside the AclTarget as a AclTargetTable
+func (t AclTarget) AsAclTargetTable() (AclTargetTable, error) {
+	var body AclTargetTable
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAclTargetTable overwrites any union data inside the AclTarget as the provided AclTargetTable
+func (t *AclTarget) FromAclTargetTable(v AclTargetTable) error {
+	v.Kind = "table"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAclTargetTable performs a merge with any union data inside the AclTarget, using the provided AclTargetTable
+func (t *AclTarget) MergeAclTargetTable(v AclTargetTable) error {
+	v.Kind = "table"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t AclTarget) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"kind"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t AclTarget) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "database":
+		return t.AsAclTargetDatabase()
+	case "schema":
+		return t.AsAclTargetSchema()
+	case "table":
+		return t.AsAclTargetTable()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t AclTarget) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *AclTarget) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // AsAssetGraphTriggers0 returns the union data inside the AssetGraph_Triggers_Item as a AssetGraphTriggers0
 func (t AssetGraph_Triggers_Item) AsAssetGraphTriggers0() (AssetGraphTriggers0, error) {
@@ -17102,9 +17676,6 @@ type ClientInterface interface {
 	// ConsumeLoginLink request
 	ConsumeLoginLink(ctx context.Context, token string, params *ConsumeLoginLinkParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ConfirmLoginLink request
-	ConfirmLoginLink(ctx context.Context, token string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// Logout request
 	Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -17879,7 +18450,7 @@ type ClientInterface interface {
 	GetAppLatestVersion(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAppHistoryByPath request
-	GetAppHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetAppHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppHistoryByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateAppHistoryWithBody request with any body
 	UpdateAppHistoryWithBody(ctx context.Context, workspace WorkspaceId, id PathId, version PathVersion, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18134,6 +18705,11 @@ type ClientInterface interface {
 
 	MigrateLegacyDraft(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body MigrateLegacyDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// MoveDraftWithBody request with any body
+	MoveDraftWithBody(ctx context.Context, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MoveDraft(ctx context.Context, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, body MoveDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UpdateDraftWithBody request with any body
 	UpdateDraftWithBody(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -18230,7 +18806,7 @@ type ClientInterface interface {
 	GetTriggersCountOfFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFlowHistory request
-	GetFlowHistory(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetFlowHistory(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateFlowHistoryWithBody request with any body
 	UpdateFlowHistoryWithBody(ctx context.Context, workspace WorkspaceId, version float32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19583,7 +20159,7 @@ type ClientInterface interface {
 	GetTriggersCountOfScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetScriptHistoryByPath request
-	GetScriptHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetScriptHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptHistoryByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateScriptHistoryWithBody request with any body
 	UpdateScriptHistoryWithBody(ctx context.Context, workspace WorkspaceId, hash ScriptHash, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19960,6 +20536,19 @@ type ClientInterface interface {
 	// WorkspaceAcknowledgeCriticalAlert request
 	WorkspaceAcknowledgeCriticalAlert(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetDatatableAcl request
+	GetDatatableAcl(ctx context.Context, workspace WorkspaceId, datatableName string, params *GetDatatableAclParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ApplyDatatableAclWithBody request with any body
+	ApplyDatatableAclWithBody(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ApplyDatatableAcl(ctx context.Context, workspace WorkspaceId, datatableName string, body ApplyDatatableAclJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PlanDatatableAclWithBody request with any body
+	PlanDatatableAclWithBody(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PlanDatatableAcl(ctx context.Context, workspace WorkspaceId, datatableName string, body PlanDatatableAclJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetDatatableMigrationsStatus request
 	GetDatatableMigrationsStatus(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -20209,7 +20798,7 @@ type ClientInterface interface {
 	ListDataTableSchemas(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListDataTableTables request
-	ListDataTableTables(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListDataTableTables(ctx context.Context, workspace WorkspaceId, params *ListDataTableTablesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListDataTables request
 	ListDataTables(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20640,18 +21229,6 @@ func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditor
 
 func (c *Client) ConsumeLoginLink(ctx context.Context, token string, params *ConsumeLoginLinkParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConsumeLoginLinkRequest(c.Server, token, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ConfirmLoginLink(ctx context.Context, token string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewConfirmLoginLinkRequest(c.Server, token)
 	if err != nil {
 		return nil, err
 	}
@@ -24046,8 +24623,8 @@ func (c *Client) GetAppLatestVersion(ctx context.Context, workspace WorkspaceId,
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetAppHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetAppHistoryByPathRequest(c.Server, workspace, path)
+func (c *Client) GetAppHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppHistoryByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAppHistoryByPathRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -25150,6 +25727,30 @@ func (c *Client) MigrateLegacyDraft(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
+func (c *Client) MoveDraftWithBody(ctx context.Context, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMoveDraftRequestWithBody(c.Server, workspace, kind, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MoveDraft(ctx context.Context, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, body MoveDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMoveDraftRequest(c.Server, workspace, kind, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) UpdateDraftWithBody(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateDraftRequestWithBody(c.Server, workspace, kind, path, contentType, body)
 	if err != nil {
@@ -25570,8 +26171,8 @@ func (c *Client) GetTriggersCountOfFlow(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetFlowHistory(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetFlowHistoryRequest(c.Server, workspace, path)
+func (c *Client) GetFlowHistory(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFlowHistoryRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -31558,8 +32159,8 @@ func (c *Client) GetTriggersCountOfScript(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetScriptHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetScriptHistoryByPathRequest(c.Server, workspace, path)
+func (c *Client) GetScriptHistoryByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptHistoryByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetScriptHistoryByPathRequest(c.Server, workspace, path, params)
 	if err != nil {
 		return nil, err
 	}
@@ -33226,6 +33827,66 @@ func (c *Client) WorkspaceAcknowledgeCriticalAlert(ctx context.Context, workspac
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetDatatableAcl(ctx context.Context, workspace WorkspaceId, datatableName string, params *GetDatatableAclParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDatatableAclRequest(c.Server, workspace, datatableName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ApplyDatatableAclWithBody(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewApplyDatatableAclRequestWithBody(c.Server, workspace, datatableName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ApplyDatatableAcl(ctx context.Context, workspace WorkspaceId, datatableName string, body ApplyDatatableAclJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewApplyDatatableAclRequest(c.Server, workspace, datatableName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PlanDatatableAclWithBody(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPlanDatatableAclRequestWithBody(c.Server, workspace, datatableName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PlanDatatableAcl(ctx context.Context, workspace WorkspaceId, datatableName string, body PlanDatatableAclJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPlanDatatableAclRequest(c.Server, workspace, datatableName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetDatatableMigrationsStatus(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetDatatableMigrationsStatusRequest(c.Server, workspace, datatableName)
 	if err != nil {
@@ -34342,8 +35003,8 @@ func (c *Client) ListDataTableSchemas(ctx context.Context, workspace WorkspaceId
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListDataTableTables(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListDataTableTablesRequest(c.Server, workspace)
+func (c *Client) ListDataTableTables(ctx context.Context, workspace WorkspaceId, params *ListDataTableTablesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDataTableTablesRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -35803,40 +36464,6 @@ func NewConsumeLoginLinkRequest(server string, token string, params *ConsumeLogi
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewConfirmLoginLinkRequest generates requests for ConfirmLoginLink
-func NewConfirmLoginLinkRequest(server string, token string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "token", runtime.ParamLocationPath, token)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/auth/login_link/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -44685,7 +45312,7 @@ func NewGetAppLatestVersionRequest(server string, workspace WorkspaceId, path Sc
 }
 
 // NewGetAppHistoryByPathRequest generates requests for GetAppHistoryByPath
-func NewGetAppHistoryByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+func NewGetAppHistoryByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *GetAppHistoryByPathParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -44715,6 +45342,44 @@ func NewGetAppHistoryByPathRequest(server string, workspace WorkspaceId, path Sc
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -50233,6 +50898,67 @@ func NewMigrateLegacyDraftRequestWithBody(server string, workspace WorkspaceId, 
 	return req, nil
 }
 
+// NewMoveDraftRequest calls the generic MoveDraft builder with application/json body
+func NewMoveDraftRequest(server string, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, body MoveDraftJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMoveDraftRequestWithBody(server, workspace, kind, path, "application/json", bodyReader)
+}
+
+// NewMoveDraftRequestWithBody generates requests for MoveDraft with any type of body
+func NewMoveDraftRequestWithBody(server string, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "kind", runtime.ParamLocationPath, kind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/drafts/move/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUpdateDraftRequest calls the generic UpdateDraft builder with application/json body
 func NewUpdateDraftRequest(server string, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body UpdateDraftJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -51698,7 +52424,7 @@ func NewGetTriggersCountOfFlowRequest(server string, workspace WorkspaceId, path
 }
 
 // NewGetFlowHistoryRequest generates requests for GetFlowHistory
-func NewGetFlowHistoryRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+func NewGetFlowHistoryRequest(server string, workspace WorkspaceId, path ScriptPath, params *GetFlowHistoryParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -51728,6 +52454,44 @@ func NewGetFlowHistoryRequest(server string, workspace WorkspaceId, path ScriptP
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -78030,7 +78794,7 @@ func NewGetTriggersCountOfScriptRequest(server string, workspace WorkspaceId, pa
 }
 
 // NewGetScriptHistoryByPathRequest generates requests for GetScriptHistoryByPath
-func NewGetScriptHistoryByPathRequest(server string, workspace WorkspaceId, path ScriptPath) (*http.Request, error) {
+func NewGetScriptHistoryByPathRequest(server string, workspace WorkspaceId, path ScriptPath, params *GetScriptHistoryByPathParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -78060,6 +78824,44 @@ func NewGetScriptHistoryByPathRequest(server string, workspace WorkspaceId, path
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -83479,6 +84281,205 @@ func NewWorkspaceAcknowledgeCriticalAlertRequest(server string, workspace Worksp
 	return req, nil
 }
 
+// NewGetDatatableAclRequest generates requests for GetDatatableAcl
+func NewGetDatatableAclRequest(server string, workspace WorkspaceId, datatableName string, params *GetDatatableAclParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/datatable_acl/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, params.Kind); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Schema != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "schema", runtime.ParamLocationQuery, *params.Schema); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Table != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "table", runtime.ParamLocationQuery, *params.Table); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewApplyDatatableAclRequest calls the generic ApplyDatatableAcl builder with application/json body
+func NewApplyDatatableAclRequest(server string, workspace WorkspaceId, datatableName string, body ApplyDatatableAclJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewApplyDatatableAclRequestWithBody(server, workspace, datatableName, "application/json", bodyReader)
+}
+
+// NewApplyDatatableAclRequestWithBody generates requests for ApplyDatatableAcl with any type of body
+func NewApplyDatatableAclRequestWithBody(server string, workspace WorkspaceId, datatableName string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/datatable_acl/%s/apply", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPlanDatatableAclRequest calls the generic PlanDatatableAcl builder with application/json body
+func NewPlanDatatableAclRequest(server string, workspace WorkspaceId, datatableName string, body PlanDatatableAclJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPlanDatatableAclRequestWithBody(server, workspace, datatableName, "application/json", bodyReader)
+}
+
+// NewPlanDatatableAclRequestWithBody generates requests for PlanDatatableAcl with any type of body
+func NewPlanDatatableAclRequestWithBody(server string, workspace WorkspaceId, datatableName string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "datatable_name", runtime.ParamLocationPath, datatableName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/datatable_acl/%s/plan", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetDatatableMigrationsStatusRequest generates requests for GetDatatableMigrationsStatus
 func NewGetDatatableMigrationsStatusRequest(server string, workspace WorkspaceId, datatableName string) (*http.Request, error) {
 	var err error
@@ -85399,6 +86400,22 @@ func NewGetDataTableTableSchemaRequest(server string, workspace WorkspaceId, par
 			}
 		}
 
+		if params.Role != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "role", runtime.ParamLocationQuery, *params.Role); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -86154,7 +87171,7 @@ func NewListDataTableSchemasRequest(server string, workspace WorkspaceId) (*http
 }
 
 // NewListDataTableTablesRequest generates requests for ListDataTableTables
-func NewListDataTableTablesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+func NewListDataTableTablesRequest(server string, workspace WorkspaceId, params *ListDataTableTablesParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -86177,6 +87194,60 @@ func NewListDataTableTablesRequest(server string, workspace WorkspaceId) (*http.
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.DatatableName != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "datatable_name", runtime.ParamLocationQuery, *params.DatatableName); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.RoleFor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "role_for", runtime.ParamLocationQuery, *params.RoleFor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Role != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "role", runtime.ParamLocationQuery, *params.Role); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -88576,9 +89647,6 @@ type ClientWithResponsesInterface interface {
 	// ConsumeLoginLinkWithResponse request
 	ConsumeLoginLinkWithResponse(ctx context.Context, token string, params *ConsumeLoginLinkParams, reqEditors ...RequestEditorFn) (*ConsumeLoginLinkResponse, error)
 
-	// ConfirmLoginLinkWithResponse request
-	ConfirmLoginLinkWithResponse(ctx context.Context, token string, reqEditors ...RequestEditorFn) (*ConfirmLoginLinkResponse, error)
-
 	// LogoutWithResponse request
 	LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error)
 
@@ -89353,7 +90421,7 @@ type ClientWithResponsesInterface interface {
 	GetAppLatestVersionWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppLatestVersionResponse, error)
 
 	// GetAppHistoryByPathWithResponse request
-	GetAppHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppHistoryByPathResponse, error)
+	GetAppHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppHistoryByPathParams, reqEditors ...RequestEditorFn) (*GetAppHistoryByPathResponse, error)
 
 	// UpdateAppHistoryWithBodyWithResponse request with any body
 	UpdateAppHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id PathId, version PathVersion, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAppHistoryResponse, error)
@@ -89608,6 +90676,11 @@ type ClientWithResponsesInterface interface {
 
 	MigrateLegacyDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body MigrateLegacyDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateLegacyDraftResponse, error)
 
+	// MoveDraftWithBodyWithResponse request with any body
+	MoveDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MoveDraftResponse, error)
+
+	MoveDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, body MoveDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*MoveDraftResponse, error)
+
 	// UpdateDraftWithBodyWithResponse request with any body
 	UpdateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDraftResponse, error)
 
@@ -89704,7 +90777,7 @@ type ClientWithResponsesInterface interface {
 	GetTriggersCountOfFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetTriggersCountOfFlowResponse, error)
 
 	// GetFlowHistoryWithResponse request
-	GetFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowHistoryResponse, error)
+	GetFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowHistoryParams, reqEditors ...RequestEditorFn) (*GetFlowHistoryResponse, error)
 
 	// UpdateFlowHistoryWithBodyWithResponse request with any body
 	UpdateFlowHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version float32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowHistoryResponse, error)
@@ -91057,7 +92130,7 @@ type ClientWithResponsesInterface interface {
 	GetTriggersCountOfScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetTriggersCountOfScriptResponse, error)
 
 	// GetScriptHistoryByPathWithResponse request
-	GetScriptHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptHistoryByPathResponse, error)
+	GetScriptHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptHistoryByPathParams, reqEditors ...RequestEditorFn) (*GetScriptHistoryByPathResponse, error)
 
 	// UpdateScriptHistoryWithBodyWithResponse request with any body
 	UpdateScriptHistoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateScriptHistoryResponse, error)
@@ -91434,6 +92507,19 @@ type ClientWithResponsesInterface interface {
 	// WorkspaceAcknowledgeCriticalAlertWithResponse request
 	WorkspaceAcknowledgeCriticalAlertWithResponse(ctx context.Context, workspace WorkspaceId, id int, reqEditors ...RequestEditorFn) (*WorkspaceAcknowledgeCriticalAlertResponse, error)
 
+	// GetDatatableAclWithResponse request
+	GetDatatableAclWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, params *GetDatatableAclParams, reqEditors ...RequestEditorFn) (*GetDatatableAclResponse, error)
+
+	// ApplyDatatableAclWithBodyWithResponse request with any body
+	ApplyDatatableAclWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ApplyDatatableAclResponse, error)
+
+	ApplyDatatableAclWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, body ApplyDatatableAclJSONRequestBody, reqEditors ...RequestEditorFn) (*ApplyDatatableAclResponse, error)
+
+	// PlanDatatableAclWithBodyWithResponse request with any body
+	PlanDatatableAclWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PlanDatatableAclResponse, error)
+
+	PlanDatatableAclWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, body PlanDatatableAclJSONRequestBody, reqEditors ...RequestEditorFn) (*PlanDatatableAclResponse, error)
+
 	// GetDatatableMigrationsStatusWithResponse request
 	GetDatatableMigrationsStatusWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*GetDatatableMigrationsStatusResponse, error)
 
@@ -91683,7 +92769,7 @@ type ClientWithResponsesInterface interface {
 	ListDataTableSchemasWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTableSchemasResponse, error)
 
 	// ListDataTableTablesWithResponse request
-	ListDataTableTablesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTableTablesResponse, error)
+	ListDataTableTablesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListDataTableTablesParams, reqEditors ...RequestEditorFn) (*ListDataTableTablesResponse, error)
 
 	// ListDataTablesWithResponse request
 	ListDataTablesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTablesResponse, error)
@@ -92274,30 +93360,6 @@ func (r ConsumeLoginLinkResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ConsumeLoginLinkResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type ConfirmLoginLinkResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Location string `json:"location"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r ConfirmLoginLinkResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ConfirmLoginLinkResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -96858,6 +97920,12 @@ type GetAmqpTriggerResponse struct {
 	JSON200      *struct {
 		Draft *map[string]interface{} `json:"draft,omitempty"`
 
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
+
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// trigger at the same path. Set by list endpoints when
 		// `include_draft_only=true` synthesizes the row from the
@@ -97190,11 +98258,17 @@ type GetAppByPathResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		BundleSecret  *string                      `json:"bundle_secret,omitempty"`
-		CreatedAt     time.Time                    `json:"created_at"`
-		CreatedBy     string                       `json:"created_by"`
-		CustomPath    *string                      `json:"custom_path,omitempty"`
-		Draft         *map[string]interface{}      `json:"draft,omitempty"`
+		BundleSecret *string                 `json:"bundle_secret,omitempty"`
+		CreatedAt    time.Time               `json:"created_at"`
+		CreatedBy    string                  `json:"created_by"`
+		CustomPath   *string                 `json:"custom_path,omitempty"`
+		Draft        *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase     *string                      `json:"draft_base,omitempty"`
 		DraftSavedAt  *time.Time                   `json:"draft_saved_at,omitempty"`
 		ExecutionMode GetAppByPath200ExecutionMode `json:"execution_mode"`
 		ExtraPerms    map[string]bool              `json:"extra_perms"`
@@ -97510,6 +98584,7 @@ func (r SignS3ObjectsResponse) StatusCode() int {
 type UpdateAppResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *AppDeployed
 }
 
 // Status returns HTTPResponse.Status
@@ -97531,6 +98606,7 @@ func (r UpdateAppResponse) StatusCode() int {
 type UpdateAppRawResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *AppDeployed
 }
 
 // Status returns HTTPResponse.Status
@@ -97552,6 +98628,7 @@ func (r UpdateAppRawResponse) StatusCode() int {
 type UpdateAppRawSourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *AppDeployed
 }
 
 // Status returns HTTPResponse.Status
@@ -98271,6 +99348,12 @@ type GetAzureTriggerResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
 
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// trigger at the same path. Set by list endpoints when
@@ -99041,12 +100124,36 @@ func (r MigrateLegacyDraftResponse) StatusCode() int {
 	return 0
 }
 
+type MoveDraftResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r MoveDraftResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MoveDraftResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UpdateDraftResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		CurrentTimestamp time.Time            `json:"current_timestamp"`
-		Status           UpdateDraft200Status `json:"status"`
+		CurrentTimestamp time.Time `json:"current_timestamp"`
+
+		// Path `saved` only, upsert or delete: where the write landed. Differs from the URL path when the item had moved away from it; the editor follows it there. Absent when a delete found nothing to remove and the caller cannot read the path it moved to.
+		Path   *string              `json:"path,omitempty"`
+		Status UpdateDraft200Status `json:"status"`
 	}
 }
 type UpdateDraft200Status string
@@ -99136,6 +100243,12 @@ type GetEmailTriggerResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
 
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// trigger at the same path. Set by list endpoints when
@@ -99588,13 +100701,19 @@ type GetFlowByPathResponse struct {
 		DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 		// Description Detailed documentation for this flow
-		Description  *string                 `json:"description,omitempty"`
-		Draft        *map[string]interface{} `json:"draft,omitempty"`
-		DraftOnly    *bool                   `json:"draft_only,omitempty"`
-		DraftSavedAt *time.Time              `json:"draft_saved_at,omitempty"`
-		EditedAt     time.Time               `json:"edited_at"`
-		EditedBy     string                  `json:"edited_by"`
-		ExtraPerms   ExtraPerms              `json:"extra_perms"`
+		Description *string                 `json:"description,omitempty"`
+		Draft       *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase    *string    `json:"draft_base,omitempty"`
+		DraftOnly    *bool      `json:"draft_only,omitempty"`
+		DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+		EditedAt     time.Time  `json:"edited_at"`
+		EditedBy     string     `json:"edited_by"`
+		ExtraPerms   ExtraPerms `json:"extra_perms"`
 
 		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
@@ -100309,6 +101428,12 @@ type GetGcpTriggerResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
 
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// trigger at the same path. Set by list endpoints when
@@ -101108,6 +102233,12 @@ type GetHttpTriggerResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
 
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// trigger at the same path. Set by list endpoints when
@@ -104868,6 +105999,12 @@ type GetKafkaTriggerResponse struct {
 	JSON200      *struct {
 		Draft *map[string]interface{} `json:"draft,omitempty"`
 
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
+
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// trigger at the same path. Set by list endpoints when
 		// `include_draft_only=true` synthesizes the row from the
@@ -105114,6 +106251,12 @@ type GetMqttTriggerResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
 
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// trigger at the same path. Set by list endpoints when
@@ -105796,6 +106939,12 @@ type GetNatsTriggerResponse struct {
 	JSON200      *struct {
 		Draft *map[string]interface{} `json:"draft,omitempty"`
 
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
+
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// trigger at the same path. Set by list endpoints when
 		// `include_draft_only=true` synthesizes the row from the
@@ -106420,6 +107569,12 @@ type GetPostgresTriggerResponse struct {
 	JSON200      *struct {
 		Draft *map[string]interface{} `json:"draft,omitempty"`
 
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
+
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// trigger at the same path. Set by list endpoints when
 		// `include_draft_only=true` synthesizes the row from the
@@ -106953,6 +108108,12 @@ type GetResourceResponse struct {
 		CreatedBy   *string                 `json:"created_by,omitempty"`
 		Description *string                 `json:"description,omitempty"`
 		Draft       *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
 
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// resource at the same path. Frontend renders a "Draft" badge.
@@ -107713,6 +108874,12 @@ type GetScheduleResponse struct {
 		Description *string                 `json:"description"`
 		Draft       *map[string]interface{} `json:"draft,omitempty"`
 
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
+
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// schedule at the same path. Frontend renders a "Draft" badge.
 		DraftOnly    *bool      `json:"draft_only,omitempty"`
@@ -108242,12 +109409,18 @@ type GetScriptByPathResponse struct {
 		Deleted         bool                    `json:"deleted"`
 		Description     string                  `json:"description"`
 		Draft           *map[string]interface{} `json:"draft,omitempty"`
-		DraftOnly       *bool                   `json:"draft_only,omitempty"`
-		DraftSavedAt    *time.Time              `json:"draft_saved_at,omitempty"`
-		Envs            *[]string               `json:"envs,omitempty"`
-		ExtraPerms      map[string]bool         `json:"extra_perms"`
-		HasPreprocessor bool                    `json:"has_preprocessor"`
-		Hash            string                  `json:"hash"`
+
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase       *string         `json:"draft_base,omitempty"`
+		DraftOnly       *bool           `json:"draft_only,omitempty"`
+		DraftSavedAt    *time.Time      `json:"draft_saved_at,omitempty"`
+		Envs            *[]string       `json:"envs,omitempty"`
+		ExtraPerms      map[string]bool `json:"extra_perms"`
+		HasPreprocessor bool            `json:"has_preprocessor"`
+		Hash            string          `json:"hash"`
 
 		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 		InheritedLabels         *[]string              `json:"inherited_labels,omitempty"`
@@ -108923,6 +110096,12 @@ type GetSqsTriggerResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
 
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// trigger at the same path. Set by list endpoints when
@@ -109717,6 +110896,12 @@ type GetVariableResponse struct {
 		Description *string                 `json:"description,omitempty"`
 		Draft       *map[string]interface{} `json:"draft,omitempty"`
 
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
+
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// variable at the same path. Frontend renders a "Draft" badge.
 		DraftOnly    *bool           `json:"draft_only,omitempty"`
@@ -110018,6 +111203,12 @@ type GetWebsocketTriggerResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Draft *map[string]interface{} `json:"draft,omitempty"`
+
+		// DraftBase The deployed version the draft forked from, as text whatever the
+		// kind (script hash, flow version id, app version id). Compare to the
+		// deployed head to tell a draft that is behind. Absent when there is
+		// no draft or it was never forked from a deploy.
+		DraftBase *string `json:"draft_base,omitempty"`
 
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// trigger at the same path. Set by list endpoints when
@@ -110814,6 +112005,71 @@ func (r WorkspaceAcknowledgeCriticalAlertResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r WorkspaceAcknowledgeCriticalAlertResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDatatableAclResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DatatableAclInfo
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDatatableAclResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDatatableAclResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ApplyDatatableAclResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ApplyDatatableAclResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ApplyDatatableAclResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PlanDatatableAclResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AclPlan
+}
+
+// Status returns HTTPResponse.Status
+func (r PlanDatatableAclResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PlanDatatableAclResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -113764,15 +115020,6 @@ func (c *ClientWithResponses) ConsumeLoginLinkWithResponse(ctx context.Context, 
 	return ParseConsumeLoginLinkResponse(rsp)
 }
 
-// ConfirmLoginLinkWithResponse request returning *ConfirmLoginLinkResponse
-func (c *ClientWithResponses) ConfirmLoginLinkWithResponse(ctx context.Context, token string, reqEditors ...RequestEditorFn) (*ConfirmLoginLinkResponse, error) {
-	rsp, err := c.ConfirmLoginLink(ctx, token, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseConfirmLoginLinkResponse(rsp)
-}
-
 // LogoutWithResponse request returning *LogoutResponse
 func (c *ClientWithResponses) LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error) {
 	rsp, err := c.Logout(ctx, reqEditors...)
@@ -116239,8 +117486,8 @@ func (c *ClientWithResponses) GetAppLatestVersionWithResponse(ctx context.Contex
 }
 
 // GetAppHistoryByPathWithResponse request returning *GetAppHistoryByPathResponse
-func (c *ClientWithResponses) GetAppHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetAppHistoryByPathResponse, error) {
-	rsp, err := c.GetAppHistoryByPath(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetAppHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetAppHistoryByPathParams, reqEditors ...RequestEditorFn) (*GetAppHistoryByPathResponse, error) {
+	rsp, err := c.GetAppHistoryByPath(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -117046,6 +118293,23 @@ func (c *ClientWithResponses) MigrateLegacyDraftWithResponse(ctx context.Context
 	return ParseMigrateLegacyDraftResponse(rsp)
 }
 
+// MoveDraftWithBodyWithResponse request with arbitrary body returning *MoveDraftResponse
+func (c *ClientWithResponses) MoveDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MoveDraftResponse, error) {
+	rsp, err := c.MoveDraftWithBody(ctx, workspace, kind, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMoveDraftResponse(rsp)
+}
+
+func (c *ClientWithResponses) MoveDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, body MoveDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*MoveDraftResponse, error) {
+	rsp, err := c.MoveDraft(ctx, workspace, kind, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMoveDraftResponse(rsp)
+}
+
 // UpdateDraftWithBodyWithResponse request with arbitrary body returning *UpdateDraftResponse
 func (c *ClientWithResponses) UpdateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDraftResponse, error) {
 	rsp, err := c.UpdateDraftWithBody(ctx, workspace, kind, path, contentType, body, reqEditors...)
@@ -117352,8 +118616,8 @@ func (c *ClientWithResponses) GetTriggersCountOfFlowWithResponse(ctx context.Con
 }
 
 // GetFlowHistoryWithResponse request returning *GetFlowHistoryResponse
-func (c *ClientWithResponses) GetFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetFlowHistoryResponse, error) {
-	rsp, err := c.GetFlowHistory(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetFlowHistoryWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetFlowHistoryParams, reqEditors ...RequestEditorFn) (*GetFlowHistoryResponse, error) {
+	rsp, err := c.GetFlowHistory(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -121699,8 +122963,8 @@ func (c *ClientWithResponses) GetTriggersCountOfScriptWithResponse(ctx context.C
 }
 
 // GetScriptHistoryByPathWithResponse request returning *GetScriptHistoryByPathResponse
-func (c *ClientWithResponses) GetScriptHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, reqEditors ...RequestEditorFn) (*GetScriptHistoryByPathResponse, error) {
-	rsp, err := c.GetScriptHistoryByPath(ctx, workspace, path, reqEditors...)
+func (c *ClientWithResponses) GetScriptHistoryByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *GetScriptHistoryByPathParams, reqEditors ...RequestEditorFn) (*GetScriptHistoryByPathResponse, error) {
+	rsp, err := c.GetScriptHistoryByPath(ctx, workspace, path, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -122910,6 +124174,49 @@ func (c *ClientWithResponses) WorkspaceAcknowledgeCriticalAlertWithResponse(ctx 
 	return ParseWorkspaceAcknowledgeCriticalAlertResponse(rsp)
 }
 
+// GetDatatableAclWithResponse request returning *GetDatatableAclResponse
+func (c *ClientWithResponses) GetDatatableAclWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, params *GetDatatableAclParams, reqEditors ...RequestEditorFn) (*GetDatatableAclResponse, error) {
+	rsp, err := c.GetDatatableAcl(ctx, workspace, datatableName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDatatableAclResponse(rsp)
+}
+
+// ApplyDatatableAclWithBodyWithResponse request with arbitrary body returning *ApplyDatatableAclResponse
+func (c *ClientWithResponses) ApplyDatatableAclWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ApplyDatatableAclResponse, error) {
+	rsp, err := c.ApplyDatatableAclWithBody(ctx, workspace, datatableName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseApplyDatatableAclResponse(rsp)
+}
+
+func (c *ClientWithResponses) ApplyDatatableAclWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, body ApplyDatatableAclJSONRequestBody, reqEditors ...RequestEditorFn) (*ApplyDatatableAclResponse, error) {
+	rsp, err := c.ApplyDatatableAcl(ctx, workspace, datatableName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseApplyDatatableAclResponse(rsp)
+}
+
+// PlanDatatableAclWithBodyWithResponse request with arbitrary body returning *PlanDatatableAclResponse
+func (c *ClientWithResponses) PlanDatatableAclWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PlanDatatableAclResponse, error) {
+	rsp, err := c.PlanDatatableAclWithBody(ctx, workspace, datatableName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePlanDatatableAclResponse(rsp)
+}
+
+func (c *ClientWithResponses) PlanDatatableAclWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, body PlanDatatableAclJSONRequestBody, reqEditors ...RequestEditorFn) (*PlanDatatableAclResponse, error) {
+	rsp, err := c.PlanDatatableAcl(ctx, workspace, datatableName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePlanDatatableAclResponse(rsp)
+}
+
 // GetDatatableMigrationsStatusWithResponse request returning *GetDatatableMigrationsStatusResponse
 func (c *ClientWithResponses) GetDatatableMigrationsStatusWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*GetDatatableMigrationsStatusResponse, error) {
 	rsp, err := c.GetDatatableMigrationsStatus(ctx, workspace, datatableName, reqEditors...)
@@ -123717,8 +125024,8 @@ func (c *ClientWithResponses) ListDataTableSchemasWithResponse(ctx context.Conte
 }
 
 // ListDataTableTablesWithResponse request returning *ListDataTableTablesResponse
-func (c *ClientWithResponses) ListDataTableTablesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListDataTableTablesResponse, error) {
-	rsp, err := c.ListDataTableTables(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListDataTableTablesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListDataTableTablesParams, reqEditors ...RequestEditorFn) (*ListDataTableTablesResponse, error) {
+	rsp, err := c.ListDataTableTables(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -124773,34 +126080,6 @@ func ParseConsumeLoginLinkResponse(rsp *http.Response) (*ConsumeLoginLinkRespons
 	response := &ConsumeLoginLinkResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseConfirmLoginLinkResponse parses an HTTP response from a ConfirmLoginLinkWithResponse call
-func ParseConfirmLoginLinkResponse(rsp *http.Response) (*ConfirmLoginLinkResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ConfirmLoginLinkResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Location string `json:"location"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
 	}
 
 	return response, nil
@@ -129428,6 +130707,12 @@ func ParseGetAmqpTriggerResponse(rsp *http.Response) (*GetAmqpTriggerResponse, e
 		var dest struct {
 			Draft *map[string]interface{} `json:"draft,omitempty"`
 
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
+
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// trigger at the same path. Set by list endpoints when
 			// `include_draft_only=true` synthesizes the row from the
@@ -129749,11 +131034,17 @@ func ParseGetAppByPathResponse(rsp *http.Response) (*GetAppByPathResponse, error
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			BundleSecret  *string                      `json:"bundle_secret,omitempty"`
-			CreatedAt     time.Time                    `json:"created_at"`
-			CreatedBy     string                       `json:"created_by"`
-			CustomPath    *string                      `json:"custom_path,omitempty"`
-			Draft         *map[string]interface{}      `json:"draft,omitempty"`
+			BundleSecret *string                 `json:"bundle_secret,omitempty"`
+			CreatedAt    time.Time               `json:"created_at"`
+			CreatedBy    string                  `json:"created_by"`
+			CustomPath   *string                 `json:"custom_path,omitempty"`
+			Draft        *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase     *string                      `json:"draft_base,omitempty"`
 			DraftSavedAt  *time.Time                   `json:"draft_saved_at,omitempty"`
 			ExecutionMode GetAppByPath200ExecutionMode `json:"execution_mode"`
 			ExtraPerms    map[string]bool              `json:"extra_perms"`
@@ -130073,6 +131364,16 @@ func ParseUpdateAppResponse(rsp *http.Response) (*UpdateAppResponse, error) {
 		HTTPResponse: rsp,
 	}
 
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AppDeployed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
 	return response, nil
 }
 
@@ -130089,6 +131390,16 @@ func ParseUpdateAppRawResponse(rsp *http.Response) (*UpdateAppRawResponse, error
 		HTTPResponse: rsp,
 	}
 
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AppDeployed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
 	return response, nil
 }
 
@@ -130103,6 +131414,16 @@ func ParseUpdateAppRawSourceResponse(rsp *http.Response) (*UpdateAppRawSourceRes
 	response := &UpdateAppRawSourceResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AppDeployed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -130874,6 +132195,12 @@ func ParseGetAzureTriggerResponse(rsp *http.Response) (*GetAzureTriggerResponse,
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
 
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// trigger at the same path. Set by list endpoints when
@@ -131648,6 +132975,22 @@ func ParseMigrateLegacyDraftResponse(rsp *http.Response) (*MigrateLegacyDraftRes
 	return response, nil
 }
 
+// ParseMoveDraftResponse parses an HTTP response from a MoveDraftWithResponse call
+func ParseMoveDraftResponse(rsp *http.Response) (*MoveDraftResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MoveDraftResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseUpdateDraftResponse parses an HTTP response from a UpdateDraftWithResponse call
 func ParseUpdateDraftResponse(rsp *http.Response) (*UpdateDraftResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -131664,8 +133007,11 @@ func ParseUpdateDraftResponse(rsp *http.Response) (*UpdateDraftResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			CurrentTimestamp time.Time            `json:"current_timestamp"`
-			Status           UpdateDraft200Status `json:"status"`
+			CurrentTimestamp time.Time `json:"current_timestamp"`
+
+			// Path `saved` only, upsert or delete: where the write landed. Differs from the URL path when the item had moved away from it; the editor follows it there. Absent when a delete found nothing to remove and the caller cannot read the path it moved to.
+			Path   *string              `json:"path,omitempty"`
+			Status UpdateDraft200Status `json:"status"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -131752,6 +133098,12 @@ func ParseGetEmailTriggerResponse(rsp *http.Response) (*GetEmailTriggerResponse,
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
 
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// trigger at the same path. Set by list endpoints when
@@ -132195,13 +133547,19 @@ func ParseGetFlowByPathResponse(rsp *http.Response) (*GetFlowByPathResponse, err
 			DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 			// Description Detailed documentation for this flow
-			Description  *string                 `json:"description,omitempty"`
-			Draft        *map[string]interface{} `json:"draft,omitempty"`
-			DraftOnly    *bool                   `json:"draft_only,omitempty"`
-			DraftSavedAt *time.Time              `json:"draft_saved_at,omitempty"`
-			EditedAt     time.Time               `json:"edited_at"`
-			EditedBy     string                  `json:"edited_by"`
-			ExtraPerms   ExtraPerms              `json:"extra_perms"`
+			Description *string                 `json:"description,omitempty"`
+			Draft       *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase    *string    `json:"draft_base,omitempty"`
+			DraftOnly    *bool      `json:"draft_only,omitempty"`
+			DraftSavedAt *time.Time `json:"draft_saved_at,omitempty"`
+			EditedAt     time.Time  `json:"edited_at"`
+			EditedBy     string     `json:"edited_by"`
+			ExtraPerms   ExtraPerms `json:"extra_perms"`
 
 			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
@@ -132925,6 +134283,12 @@ func ParseGetGcpTriggerResponse(rsp *http.Response) (*GetGcpTriggerResponse, err
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
 
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// trigger at the same path. Set by list endpoints when
@@ -133687,6 +135051,12 @@ func ParseGetHttpTriggerResponse(rsp *http.Response) (*GetHttpTriggerResponse, e
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
 
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// trigger at the same path. Set by list endpoints when
@@ -137397,6 +138767,12 @@ func ParseGetKafkaTriggerResponse(rsp *http.Response) (*GetKafkaTriggerResponse,
 		var dest struct {
 			Draft *map[string]interface{} `json:"draft,omitempty"`
 
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
+
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// trigger at the same path. Set by list endpoints when
 			// `include_draft_only=true` synthesizes the row from the
@@ -137625,6 +139001,12 @@ func ParseGetMqttTriggerResponse(rsp *http.Response) (*GetMqttTriggerResponse, e
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
 
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// trigger at the same path. Set by list endpoints when
@@ -138315,6 +139697,12 @@ func ParseGetNatsTriggerResponse(rsp *http.Response) (*GetNatsTriggerResponse, e
 		var dest struct {
 			Draft *map[string]interface{} `json:"draft,omitempty"`
 
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
+
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// trigger at the same path. Set by list endpoints when
 			// `include_draft_only=true` synthesizes the row from the
@@ -138890,6 +140278,12 @@ func ParseGetPostgresTriggerResponse(rsp *http.Response) (*GetPostgresTriggerRes
 		var dest struct {
 			Draft *map[string]interface{} `json:"draft,omitempty"`
 
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
+
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// trigger at the same path. Set by list endpoints when
 			// `include_draft_only=true` synthesizes the row from the
@@ -139412,6 +140806,12 @@ func ParseGetResourceResponse(rsp *http.Response) (*GetResourceResponse, error) 
 			CreatedBy   *string                 `json:"created_by,omitempty"`
 			Description *string                 `json:"description,omitempty"`
 			Draft       *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
 
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// resource at the same path. Frontend renders a "Draft" badge.
@@ -140211,6 +141611,12 @@ func ParseGetScheduleResponse(rsp *http.Response) (*GetScheduleResponse, error) 
 			Description *string                 `json:"description"`
 			Draft       *map[string]interface{} `json:"draft,omitempty"`
 
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
+
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// schedule at the same path. Frontend renders a "Draft" badge.
 			DraftOnly    *bool      `json:"draft_only,omitempty"`
@@ -140767,12 +142173,18 @@ func ParseGetScriptByPathResponse(rsp *http.Response) (*GetScriptByPathResponse,
 			Deleted         bool                    `json:"deleted"`
 			Description     string                  `json:"description"`
 			Draft           *map[string]interface{} `json:"draft,omitempty"`
-			DraftOnly       *bool                   `json:"draft_only,omitempty"`
-			DraftSavedAt    *time.Time              `json:"draft_saved_at,omitempty"`
-			Envs            *[]string               `json:"envs,omitempty"`
-			ExtraPerms      map[string]bool         `json:"extra_perms"`
-			HasPreprocessor bool                    `json:"has_preprocessor"`
-			Hash            string                  `json:"hash"`
+
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase       *string         `json:"draft_base,omitempty"`
+			DraftOnly       *bool           `json:"draft_only,omitempty"`
+			DraftSavedAt    *time.Time      `json:"draft_saved_at,omitempty"`
+			Envs            *[]string       `json:"envs,omitempty"`
+			ExtraPerms      map[string]bool `json:"extra_perms"`
+			HasPreprocessor bool            `json:"has_preprocessor"`
+			Hash            string          `json:"hash"`
 
 			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 			InheritedLabels         *[]string              `json:"inherited_labels,omitempty"`
@@ -141460,6 +142872,12 @@ func ParseGetSqsTriggerResponse(rsp *http.Response) (*GetSqsTriggerResponse, err
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
 
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// trigger at the same path. Set by list endpoints when
@@ -142255,6 +143673,12 @@ func ParseGetVariableResponse(rsp *http.Response) (*GetVariableResponse, error) 
 			Description *string                 `json:"description,omitempty"`
 			Draft       *map[string]interface{} `json:"draft,omitempty"`
 
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
+
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// variable at the same path. Frontend renders a "Draft" badge.
 			DraftOnly    *bool           `json:"draft_only,omitempty"`
@@ -142559,6 +143983,12 @@ func ParseGetWebsocketTriggerResponse(rsp *http.Response) (*GetWebsocketTriggerR
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Draft *map[string]interface{} `json:"draft,omitempty"`
+
+			// DraftBase The deployed version the draft forked from, as text whatever the
+			// kind (script hash, flow version id, app version id). Compare to the
+			// deployed head to tell a draft that is behind. Absent when there is
+			// no draft or it was never forked from a deploy.
+			DraftBase *string `json:"draft_base,omitempty"`
 
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// trigger at the same path. Set by list endpoints when
@@ -143336,6 +144766,74 @@ func ParseWorkspaceAcknowledgeCriticalAlertResponse(rsp *http.Response) (*Worksp
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDatatableAclResponse parses an HTTP response from a GetDatatableAclWithResponse call
+func ParseGetDatatableAclResponse(rsp *http.Response) (*GetDatatableAclResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDatatableAclResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DatatableAclInfo
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseApplyDatatableAclResponse parses an HTTP response from a ApplyDatatableAclWithResponse call
+func ParseApplyDatatableAclResponse(rsp *http.Response) (*ApplyDatatableAclResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ApplyDatatableAclResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParsePlanDatatableAclResponse parses an HTTP response from a PlanDatatableAclWithResponse call
+func ParsePlanDatatableAclResponse(rsp *http.Response) (*PlanDatatableAclResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PlanDatatableAclResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AclPlan
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
