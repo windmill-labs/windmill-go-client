@@ -6747,6 +6747,32 @@ type Relations struct {
 	TableToTrack TableToTrack `json:"table_to_track"`
 }
 
+// RemoteDeployConnection defines model for RemoteDeployConnection.
+type RemoteDeployConnection struct {
+	ConnectedAt time.Time `json:"connected_at"`
+
+	// ProxyKey goes in every proxy URL, `/w/{workspace}/remote_deploy/proxy/{proxy_key}/{route}`
+	ProxyKey string `json:"proxy_key"`
+
+	// RemoteEmail identity the stored token has on the remote instance
+	RemoteEmail string `json:"remote_email"`
+}
+
+// RemoteDeployStatus defines model for RemoteDeployStatus.
+type RemoteDeployStatus struct {
+	Connection *RemoteDeployConnection `json:"connection,omitempty"`
+	Target     *RemoteDeployTarget     `json:"target,omitempty"`
+}
+
+// RemoteDeployTarget defines model for RemoteDeployTarget.
+type RemoteDeployTarget struct {
+	// BaseUrl root URL of the remote Windmill instance, without /api
+	BaseUrl string `json:"base_url"`
+
+	// WorkspaceId workspace on the remote instance that deploys land in
+	WorkspaceId string `json:"workspace_id"`
+}
+
 // ResourceType defines model for ResourceType.
 type ResourceType struct {
 	CreatedBy   *string `json:"created_by,omitempty"`
@@ -13062,6 +13088,17 @@ type ListRawAppsParams struct {
 	IncludeDraftOnly *IncludeDraftOnly `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
 }
 
+// ConnectRemoteDeployJSONBody defines parameters for ConnectRemoteDeploy.
+type ConnectRemoteDeployJSONBody struct {
+	Target RemoteDeployTarget `json:"target"`
+	Token  string             `json:"token"`
+}
+
+// SetRemoteDeployTargetJSONBody defines parameters for SetRemoteDeployTarget.
+type SetRemoteDeployTargetJSONBody struct {
+	Target *RemoteDeployTarget `json:"target,omitempty"`
+}
+
 // CreateResourceParams defines parameters for CreateResource.
 type CreateResourceParams struct {
 	// UpdateIfExists update the resource if it already exists (default false)
@@ -14933,6 +14970,12 @@ type TestPostgresConnectionJSONRequestBody TestPostgresConnectionJSONBody
 
 // UpdatePostgresTriggerJSONRequestBody defines body for UpdatePostgresTrigger for application/json ContentType.
 type UpdatePostgresTriggerJSONRequestBody = EditPostgresTrigger
+
+// ConnectRemoteDeployJSONRequestBody defines body for ConnectRemoteDeploy for application/json ContentType.
+type ConnectRemoteDeployJSONRequestBody ConnectRemoteDeployJSONBody
+
+// SetRemoteDeployTargetJSONRequestBody defines body for SetRemoteDeployTarget for application/json ContentType.
+type SetRemoteDeployTargetJSONRequestBody SetRemoteDeployTargetJSONBody
 
 // CreateResourceJSONRequestBody defines body for CreateResource for application/json ContentType.
 type CreateResourceJSONRequestBody = CreateResource
@@ -19959,6 +20002,22 @@ type ClientInterface interface {
 
 	// ListRawApps request
 	ListRawApps(ctx context.Context, workspace WorkspaceId, params *ListRawAppsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ConnectRemoteDeployWithBody request with any body
+	ConnectRemoteDeployWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ConnectRemoteDeploy(ctx context.Context, workspace WorkspaceId, body ConnectRemoteDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DisconnectRemoteDeploy request
+	DisconnectRemoteDeploy(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetRemoteDeployTarget request
+	GetRemoteDeployTarget(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetRemoteDeployTargetWithBody request with any body
+	SetRemoteDeployTargetWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetRemoteDeployTarget(ctx context.Context, workspace WorkspaceId, body SetRemoteDeployTargetJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateResourceWithBody request with any body
 	CreateResourceWithBody(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -31297,6 +31356,78 @@ func (c *Client) UpdatePostgresTrigger(ctx context.Context, workspace WorkspaceI
 
 func (c *Client) ListRawApps(ctx context.Context, workspace WorkspaceId, params *ListRawAppsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListRawAppsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectRemoteDeployWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectRemoteDeployRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ConnectRemoteDeploy(ctx context.Context, workspace WorkspaceId, body ConnectRemoteDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewConnectRemoteDeployRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DisconnectRemoteDeploy(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDisconnectRemoteDeployRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetRemoteDeployTarget(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRemoteDeployTargetRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetRemoteDeployTargetWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetRemoteDeployTargetRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetRemoteDeployTarget(ctx context.Context, workspace WorkspaceId, body SetRemoteDeployTargetJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetRemoteDeployTargetRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -75557,6 +75688,168 @@ func NewListRawAppsRequest(server string, workspace WorkspaceId, params *ListRaw
 	return req, nil
 }
 
+// NewConnectRemoteDeployRequest calls the generic ConnectRemoteDeploy builder with application/json body
+func NewConnectRemoteDeployRequest(server string, workspace WorkspaceId, body ConnectRemoteDeployJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewConnectRemoteDeployRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewConnectRemoteDeployRequestWithBody generates requests for ConnectRemoteDeploy with any type of body
+func NewConnectRemoteDeployRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/remote_deploy/connect", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDisconnectRemoteDeployRequest generates requests for DisconnectRemoteDeploy
+func NewDisconnectRemoteDeployRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/remote_deploy/disconnect", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetRemoteDeployTargetRequest generates requests for GetRemoteDeployTarget
+func NewGetRemoteDeployTargetRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/remote_deploy/target", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetRemoteDeployTargetRequest calls the generic SetRemoteDeployTarget builder with application/json body
+func NewSetRemoteDeployTargetRequest(server string, workspace WorkspaceId, body SetRemoteDeployTargetJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetRemoteDeployTargetRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetRemoteDeployTargetRequestWithBody generates requests for SetRemoteDeployTarget with any type of body
+func NewSetRemoteDeployTargetRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/remote_deploy/target", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewCreateResourceRequest calls the generic CreateResource builder with application/json body
 func NewCreateResourceRequest(server string, workspace WorkspaceId, params *CreateResourceParams, body CreateResourceJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -91931,6 +92224,22 @@ type ClientWithResponsesInterface interface {
 	// ListRawAppsWithResponse request
 	ListRawAppsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListRawAppsParams, reqEditors ...RequestEditorFn) (*ListRawAppsResponse, error)
 
+	// ConnectRemoteDeployWithBodyWithResponse request with any body
+	ConnectRemoteDeployWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectRemoteDeployResponse, error)
+
+	ConnectRemoteDeployWithResponse(ctx context.Context, workspace WorkspaceId, body ConnectRemoteDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectRemoteDeployResponse, error)
+
+	// DisconnectRemoteDeployWithResponse request
+	DisconnectRemoteDeployWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DisconnectRemoteDeployResponse, error)
+
+	// GetRemoteDeployTargetWithResponse request
+	GetRemoteDeployTargetWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetRemoteDeployTargetResponse, error)
+
+	// SetRemoteDeployTargetWithBodyWithResponse request with any body
+	SetRemoteDeployTargetWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetRemoteDeployTargetResponse, error)
+
+	SetRemoteDeployTargetWithResponse(ctx context.Context, workspace WorkspaceId, body SetRemoteDeployTargetJSONRequestBody, reqEditors ...RequestEditorFn) (*SetRemoteDeployTargetResponse, error)
+
 	// CreateResourceWithBodyWithResponse request with any body
 	CreateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResourceResponse, error)
 
@@ -107989,6 +108298,92 @@ func (r ListRawAppsResponse) StatusCode() int {
 	return 0
 }
 
+type ConnectRemoteDeployResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *RemoteDeployConnection
+}
+
+// Status returns HTTPResponse.Status
+func (r ConnectRemoteDeployResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ConnectRemoteDeployResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DisconnectRemoteDeployResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DisconnectRemoteDeployResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DisconnectRemoteDeployResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetRemoteDeployTargetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *RemoteDeployStatus
+}
+
+// Status returns HTTPResponse.Status
+func (r GetRemoteDeployTargetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetRemoteDeployTargetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetRemoteDeployTargetResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetRemoteDeployTargetResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetRemoteDeployTargetResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateResourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -122336,6 +122731,58 @@ func (c *ClientWithResponses) ListRawAppsWithResponse(ctx context.Context, works
 		return nil, err
 	}
 	return ParseListRawAppsResponse(rsp)
+}
+
+// ConnectRemoteDeployWithBodyWithResponse request with arbitrary body returning *ConnectRemoteDeployResponse
+func (c *ClientWithResponses) ConnectRemoteDeployWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ConnectRemoteDeployResponse, error) {
+	rsp, err := c.ConnectRemoteDeployWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectRemoteDeployResponse(rsp)
+}
+
+func (c *ClientWithResponses) ConnectRemoteDeployWithResponse(ctx context.Context, workspace WorkspaceId, body ConnectRemoteDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*ConnectRemoteDeployResponse, error) {
+	rsp, err := c.ConnectRemoteDeploy(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseConnectRemoteDeployResponse(rsp)
+}
+
+// DisconnectRemoteDeployWithResponse request returning *DisconnectRemoteDeployResponse
+func (c *ClientWithResponses) DisconnectRemoteDeployWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DisconnectRemoteDeployResponse, error) {
+	rsp, err := c.DisconnectRemoteDeploy(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDisconnectRemoteDeployResponse(rsp)
+}
+
+// GetRemoteDeployTargetWithResponse request returning *GetRemoteDeployTargetResponse
+func (c *ClientWithResponses) GetRemoteDeployTargetWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetRemoteDeployTargetResponse, error) {
+	rsp, err := c.GetRemoteDeployTarget(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetRemoteDeployTargetResponse(rsp)
+}
+
+// SetRemoteDeployTargetWithBodyWithResponse request with arbitrary body returning *SetRemoteDeployTargetResponse
+func (c *ClientWithResponses) SetRemoteDeployTargetWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetRemoteDeployTargetResponse, error) {
+	rsp, err := c.SetRemoteDeployTargetWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetRemoteDeployTargetResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetRemoteDeployTargetWithResponse(ctx context.Context, workspace WorkspaceId, body SetRemoteDeployTargetJSONRequestBody, reqEditors ...RequestEditorFn) (*SetRemoteDeployTargetResponse, error) {
+	rsp, err := c.SetRemoteDeployTarget(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetRemoteDeployTargetResponse(rsp)
 }
 
 // CreateResourceWithBodyWithResponse request with arbitrary body returning *CreateResourceResponse
@@ -140668,6 +141115,90 @@ func ParseListRawAppsResponse(rsp *http.Response) (*ListRawAppsResponse, error) 
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseConnectRemoteDeployResponse parses an HTTP response from a ConnectRemoteDeployWithResponse call
+func ParseConnectRemoteDeployResponse(rsp *http.Response) (*ConnectRemoteDeployResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ConnectRemoteDeployResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest RemoteDeployConnection
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDisconnectRemoteDeployResponse parses an HTTP response from a DisconnectRemoteDeployWithResponse call
+func ParseDisconnectRemoteDeployResponse(rsp *http.Response) (*DisconnectRemoteDeployResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DisconnectRemoteDeployResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetRemoteDeployTargetResponse parses an HTTP response from a GetRemoteDeployTargetWithResponse call
+func ParseGetRemoteDeployTargetResponse(rsp *http.Response) (*GetRemoteDeployTargetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetRemoteDeployTargetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest RemoteDeployStatus
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetRemoteDeployTargetResponse parses an HTTP response from a SetRemoteDeployTargetWithResponse call
+func ParseSetRemoteDeployTargetResponse(rsp *http.Response) (*SetRemoteDeployTargetResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetRemoteDeployTargetResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
