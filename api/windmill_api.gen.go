@@ -205,6 +205,7 @@ const (
 	JobsRunFlowPreview             AuditLogOperation = "jobs.run.flow_preview"
 	JobsRunIdentity                AuditLogOperation = "jobs.run.identity"
 	JobsRunNoop                    AuditLogOperation = "jobs.run.noop"
+	JobsRunNow                     AuditLogOperation = "jobs.run_now"
 	JobsRunPreview                 AuditLogOperation = "jobs.run.preview"
 	JobsRunScript                  AuditLogOperation = "jobs.run.script"
 	JobsRunScriptHub               AuditLogOperation = "jobs.run.script_hub"
@@ -6000,10 +6001,12 @@ type NewScript struct {
 	Path       string  `json:"path"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of_email / on_behalf_of pair instead of overwriting it with the caller's own identity.
-	PreserveOnBehalfOf     *bool                   `json:"preserve_on_behalf_of,omitempty"`
-	Priority               *int                    `json:"priority,omitempty"`
-	RestartUnlessCancelled *bool                   `json:"restart_unless_cancelled,omitempty"`
-	Schema                 *map[string]interface{} `json:"schema,omitempty"`
+	PreserveOnBehalfOf     *bool `json:"preserve_on_behalf_of,omitempty"`
+	Priority               *int  `json:"priority,omitempty"`
+	RestartUnlessCancelled *bool `json:"restart_unless_cancelled,omitempty"`
+
+	// Schema JSON Schema of the arguments of `main`, which is what a run form and an MCP tool offer. Omitted (or `{}`), it is inferred from `content` for TypeScript, Python, Go, Bash, PowerShell, SQL, GraphQL and Ansible scripts. For other languages, or code that does not parse, a new script gets none. A new version of an existing script also keeps what the previous version's schema says about each argument, or that whole schema when nothing can be inferred. A dbt script always takes its schema from its descriptor, whatever is sent.
+	Schema *map[string]interface{} `json:"schema,omitempty"`
 
 	// SkipDraftDeletion When true (set by the CLI / git sync), deploying this script does not delete an existing user draft at the same path.
 	SkipDraftDeletion   *bool   `json:"skip_draft_deletion,omitempty"`
@@ -6324,6 +6327,12 @@ type OperatorSettings struct {
 
 	// Groups Whether operators can view groups page
 	Groups bool `json:"groups"`
+
+	// ManageSchedules Whether operators can create, edit and delete schedules. Granted unless withdrawn; omitting the field leaves the stored value unchanged.
+	ManageSchedules *bool `json:"manage_schedules,omitempty"`
+
+	// ManageTriggers Whether operators can create, edit and delete triggers. Granted unless withdrawn; omitting the field leaves the stored value unchanged.
+	ManageTriggers *bool `json:"manage_triggers,omitempty"`
 
 	// Resources Whether operators can view resources
 	Resources bool `json:"resources"`
@@ -18023,6 +18032,9 @@ type ClientInterface interface {
 	// GetInstanceHash request
 	GetInstanceHash(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetInstanceUi request
+	GetInstanceUi(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetLatestKeyRenewalAttempt request
 	GetLatestKeyRenewalAttempt(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -19412,6 +19424,9 @@ type ClientInterface interface {
 
 	// GetQueuePosition request
 	GetQueuePosition(ctx context.Context, workspace WorkspaceId, scheduledFor int, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunQueuedJobNow request
+	RunQueuedJobNow(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetScheduledFor request
 	GetScheduledFor(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -22596,6 +22611,18 @@ func (c *Client) SetInstanceConfig(ctx context.Context, body SetInstanceConfigJS
 
 func (c *Client) GetInstanceHash(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetInstanceHashRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetInstanceUi(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetInstanceUiRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -28728,6 +28755,18 @@ func (c *Client) ListFilteredQueueUuids(ctx context.Context, workspace Workspace
 
 func (c *Client) GetQueuePosition(ctx context.Context, workspace WorkspaceId, scheduledFor int, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetQueuePositionRequest(c.Server, workspace, scheduledFor)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunQueuedJobNow(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunQueuedJobNowRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -39953,6 +39992,33 @@ func NewGetInstanceHashRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/settings/instance_hash")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetInstanceUiRequest generates requests for GetInstanceUi
+func NewGetInstanceUiRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/instance_ui")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -64422,6 +64488,47 @@ func NewGetQueuePositionRequest(server string, workspace WorkspaceId, scheduledF
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRunQueuedJobNowRequest generates requests for RunQueuedJobNow
+func NewRunQueuedJobNowRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/queue/run_now/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -90244,6 +90351,9 @@ type ClientWithResponsesInterface interface {
 	// GetInstanceHashWithResponse request
 	GetInstanceHashWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetInstanceHashResponse, error)
 
+	// GetInstanceUiWithResponse request
+	GetInstanceUiWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetInstanceUiResponse, error)
+
 	// GetLatestKeyRenewalAttemptWithResponse request
 	GetLatestKeyRenewalAttemptWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLatestKeyRenewalAttemptResponse, error)
 
@@ -91633,6 +91743,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetQueuePositionWithResponse request
 	GetQueuePositionWithResponse(ctx context.Context, workspace WorkspaceId, scheduledFor int, reqEditors ...RequestEditorFn) (*GetQueuePositionResponse, error)
+
+	// RunQueuedJobNowWithResponse request
+	RunQueuedJobNowWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*RunQueuedJobNowResponse, error)
 
 	// GetScheduledForWithResponse request
 	GetScheduledForWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetScheduledForResponse, error)
@@ -95724,6 +95837,31 @@ func (r GetInstanceHashResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetInstanceHashResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetInstanceUiResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		AccentColor    *interface{} `json:"accent_color,omitempty"`
+		InstanceBanner *interface{} `json:"instance_banner,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetInstanceUiResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetInstanceUiResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -104600,6 +104738,27 @@ func (r GetQueuePositionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetQueuePositionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunQueuedJobNowResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunQueuedJobNowResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunQueuedJobNowResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -116373,6 +116532,15 @@ func (c *ClientWithResponses) GetInstanceHashWithResponse(ctx context.Context, r
 	return ParseGetInstanceHashResponse(rsp)
 }
 
+// GetInstanceUiWithResponse request returning *GetInstanceUiResponse
+func (c *ClientWithResponses) GetInstanceUiWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetInstanceUiResponse, error) {
+	rsp, err := c.GetInstanceUi(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetInstanceUiResponse(rsp)
+}
+
 // GetLatestKeyRenewalAttemptWithResponse request returning *GetLatestKeyRenewalAttemptResponse
 func (c *ClientWithResponses) GetLatestKeyRenewalAttemptWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLatestKeyRenewalAttemptResponse, error) {
 	rsp, err := c.GetLatestKeyRenewalAttempt(ctx, reqEditors...)
@@ -120827,6 +120995,15 @@ func (c *ClientWithResponses) GetQueuePositionWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseGetQueuePositionResponse(rsp)
+}
+
+// RunQueuedJobNowWithResponse request returning *RunQueuedJobNowResponse
+func (c *ClientWithResponses) RunQueuedJobNowWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*RunQueuedJobNowResponse, error) {
+	rsp, err := c.RunQueuedJobNow(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunQueuedJobNowResponse(rsp)
 }
 
 // GetScheduledForWithResponse request returning *GetScheduledForResponse
@@ -128651,6 +128828,35 @@ func ParseGetInstanceHashResponse(rsp *http.Response) (*GetInstanceHashResponse,
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			InstanceHash *string `json:"instance_hash"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetInstanceUiResponse parses an HTTP response from a GetInstanceUiWithResponse call
+func ParseGetInstanceUiResponse(rsp *http.Response) (*GetInstanceUiResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetInstanceUiResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			AccentColor    *interface{} `json:"accent_color,omitempty"`
+			InstanceBanner *interface{} `json:"instance_banner,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -137557,6 +137763,22 @@ func ParseGetQueuePositionResponse(rsp *http.Response) (*GetQueuePositionRespons
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseRunQueuedJobNowResponse parses an HTTP response from a RunQueuedJobNowWithResponse call
+func ParseRunQueuedJobNowResponse(rsp *http.Response) (*RunQueuedJobNowResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunQueuedJobNowResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
