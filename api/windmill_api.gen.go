@@ -6151,7 +6151,9 @@ type NewWorkspaceDependencies struct {
 	Description *string    `json:"description,omitempty"`
 	Language    ScriptLang `json:"language"`
 	Name        *string    `json:"name,omitempty"`
-	WorkspaceId string     `json:"workspace_id"`
+
+	// WorkspaceId must equal the workspace in the request path
+	WorkspaceId string `json:"workspace_id"`
 }
 
 // NextCloudEventType defines model for NextCloudEventType.
