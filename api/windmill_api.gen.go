@@ -378,8 +378,9 @@ const (
 
 // Defines values for DataTableSettingsDatatablesDatabaseResourceType.
 const (
-	DataTableSettingsDatatablesDatabaseResourceTypeInstance   DataTableSettingsDatatablesDatabaseResourceType = "instance"
-	DataTableSettingsDatatablesDatabaseResourceTypePostgresql DataTableSettingsDatatablesDatabaseResourceType = "postgresql"
+	DataTableSettingsDatatablesDatabaseResourceTypeExternalInstance DataTableSettingsDatatablesDatabaseResourceType = "external_instance"
+	DataTableSettingsDatatablesDatabaseResourceTypeInstance         DataTableSettingsDatatablesDatabaseResourceType = "instance"
+	DataTableSettingsDatatablesDatabaseResourceTypePostgresql       DataTableSettingsDatatablesDatabaseResourceType = "postgresql"
 )
 
 // Defines values for DatatableMigrationWithStatusStatus.
@@ -387,6 +388,12 @@ const (
 	DatatableMigrationWithStatusStatusNotRun  DatatableMigrationWithStatusStatus = "not_run"
 	DatatableMigrationWithStatusStatusRan     DatatableMigrationWithStatusStatus = "ran"
 	DatatableMigrationWithStatusStatusUnknown DatatableMigrationWithStatusStatus = "unknown"
+)
+
+// Defines values for DatatableRoleCluster.
+const (
+	DatatableRoleClusterExternalInstance DatatableRoleCluster = "external_instance"
+	DatatableRoleClusterInstance         DatatableRoleCluster = "instance"
 )
 
 // Defines values for DbtAssetProvenanceResourceType.
@@ -432,9 +439,10 @@ const (
 
 // Defines values for DucklakeSettingsDucklakesCatalogResourceType.
 const (
-	DucklakeSettingsDucklakesCatalogResourceTypeInstance   DucklakeSettingsDucklakesCatalogResourceType = "instance"
-	DucklakeSettingsDucklakesCatalogResourceTypeMysql      DucklakeSettingsDucklakesCatalogResourceType = "mysql"
-	DucklakeSettingsDucklakesCatalogResourceTypePostgresql DucklakeSettingsDucklakesCatalogResourceType = "postgresql"
+	DucklakeSettingsDucklakesCatalogResourceTypeExternalInstance DucklakeSettingsDucklakesCatalogResourceType = "external_instance"
+	DucklakeSettingsDucklakesCatalogResourceTypeInstance         DucklakeSettingsDucklakesCatalogResourceType = "instance"
+	DucklakeSettingsDucklakesCatalogResourceTypeMysql            DucklakeSettingsDucklakesCatalogResourceType = "mysql"
+	DucklakeSettingsDucklakesCatalogResourceTypePostgresql       DucklakeSettingsDucklakesCatalogResourceType = "postgresql"
 )
 
 // Defines values for DucklakeSettingsDucklakesForkBehavior.
@@ -574,6 +582,13 @@ const (
 const (
 	ExportedInstanceGroupInstanceRoleDevops     ExportedInstanceGroupInstanceRole = "devops"
 	ExportedInstanceGroupInstanceRoleSuperadmin ExportedInstanceGroupInstanceRole = "superadmin"
+)
+
+// Defines values for ExternalInstancePgSetupStepStatus.
+const (
+	ExternalInstancePgSetupStepStatusError   ExternalInstancePgSetupStepStatus = "error"
+	ExternalInstancePgSetupStepStatusOk      ExternalInstancePgSetupStepStatus = "ok"
+	ExternalInstancePgSetupStepStatusWarning ExternalInstancePgSetupStepStatus = "warning"
 )
 
 // Defines values for FlowConversationMessageMessageType.
@@ -848,6 +863,11 @@ const (
 // Defines values for MemoryAutoKind.
 const (
 	Auto MemoryAutoKind = "auto"
+)
+
+// Defines values for MemoryCompactionKind.
+const (
+	Compaction MemoryCompactionKind = "compaction"
 )
 
 // Defines values for MemoryManualKind.
@@ -1667,8 +1687,8 @@ const (
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
 const (
-	Resource SetWsSpecificJSONBodyItemKind = "resource"
-	Variable SetWsSpecificJSONBodyItemKind = "variable"
+	SetWsSpecificJSONBodyItemKindResource SetWsSpecificJSONBodyItemKind = "resource"
+	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
 )
 
 // AIConfig defines model for AIConfig.
@@ -2699,8 +2719,11 @@ type CustomInstanceDb struct {
 	Success bool                 `json:"success"`
 	Tag     *CustomInstanceDbTag `json:"tag,omitempty"`
 
-	// UsedByWorkspaces Workspaces that reference this database via a ducklake catalog or datatable database with resource_type 'instance'. Computed at request time, not persisted.
+	// UsedByWorkspaces Workspaces that reference this database through a ducklake catalog or a datatable database of the kind being listed — 'instance' for the instance databases endpoint, 'external_instance' for the external cluster one. Computed at request time, not persisted, and only returned to superadmins.
 	UsedByWorkspaces *[]string `json:"used_by_workspaces,omitempty"`
+
+	// WorkspaceId The workspace a member created this database for as a fork copy. Only that workspace can import into it or point a fork at it.
+	WorkspaceId *string `json:"workspace_id,omitempty"`
 }
 
 // CustomInstanceDbLogs defines model for CustomInstanceDbLogs.
@@ -2881,19 +2904,25 @@ type DatatablePermissions struct {
 		Datatable   string `json:"datatable"`
 		WorkspaceId string `json:"workspace_id"`
 	} `json:"clone_of,omitempty"`
+
+	// Cluster The Windmill-managed Postgres cluster a data table role is a login on: Windmill's own (behind `instance` data tables) or the external instance cluster (behind `external_instance` ones). Defaults to `instance`.
+	Cluster              *DatatableRoleCluster  `json:"cluster,omitempty"`
 	DefaultRole          string                 `json:"default_role"`
 	Editable             bool                   `json:"editable"`
 	GoverningWorkspaceId *string                `json:"governing_workspace_id,omitempty"`
 	Permissioned         bool                   `json:"permissioned"`
 	Roles                []DatatableRoleTenants `json:"roles"`
 
-	// Supported Whether this data table can be put under roles at all. Only one backed by the instance database can: a role is a login on that cluster.
+	// Supported Whether this data table can be put under roles at all. Only one on a database Windmill manages can: a role is a login on that database's cluster.
 	Supported          bool `json:"supported"`
 	UngovernedReachers *[]struct {
 		Datatable   string `json:"datatable"`
 		WorkspaceId string `json:"workspace_id"`
 	} `json:"ungoverned_reachers,omitempty"`
 }
+
+// DatatableRoleCluster The Windmill-managed Postgres cluster a data table role is a login on: Windmill's own (behind `instance` data tables) or the external instance cluster (behind `external_instance` ones). Defaults to `instance`.
+type DatatableRoleCluster string
 
 // DatatableRoleTenants defines model for DatatableRoleTenants.
 type DatatableRoleTenants struct {
@@ -4136,6 +4165,32 @@ type ExtendedJobs struct {
 	OmittedObscuredJobs *bool `json:"omitted_obscured_jobs,omitempty"`
 }
 
+// ExternalInstancePgSetupReport defines model for ExternalInstancePgSetupReport.
+type ExternalInstancePgSetupReport struct {
+	FinishedAt time.Time                     `json:"finished_at"`
+	Steps      []ExternalInstancePgSetupStep `json:"steps"`
+
+	// Success no step failed; warnings leave it true
+	Success bool `json:"success"`
+}
+
+// ExternalInstancePgSetupStep defines model for ExternalInstancePgSetupStep.
+type ExternalInstancePgSetupStep struct {
+	Message string                            `json:"message"`
+	Name    string                            `json:"name"`
+	Status  ExternalInstancePgSetupStepStatus `json:"status"`
+}
+
+// ExternalInstancePgSetupStepStatus defines model for ExternalInstancePgSetupStep.Status.
+type ExternalInstancePgSetupStepStatus string
+
+// ExternalInstancePgStatus defines model for ExternalInstancePgStatus.
+type ExternalInstancePgStatus struct {
+	Configured    bool                           `json:"configured"`
+	DatabaseCount int                            `json:"database_count"`
+	LastSetup     *ExternalInstancePgSetupReport `json:"last_setup,omitempty"`
+}
+
 // ExternalJwtToken defines model for ExternalJwtToken.
 type ExternalJwtToken struct {
 	Email       string    `json:"email"`
@@ -4209,6 +4264,15 @@ type FlowConversation struct {
 	// IsTest Started from the flow editor's test panel rather than a deployed run
 	IsTest bool `json:"is_test"`
 
+	// RunningTurn The turn the conversation is still answering, set by the list endpoint: its newest user message, while the flow run it started is queued or running. A run into this conversation is refused with 409 until the turn ends.
+	RunningTurn *struct {
+		// JobId The flow run of the turn
+		JobId openapi_types.UUID `json:"job_id"`
+
+		// UserSeq created_seq of the user message that started the turn
+		UserSeq int64 `json:"user_seq"`
+	} `json:"running_turn"`
+
 	// Title Optional title for the conversation
 	Title *string `json:"title"`
 
@@ -4280,7 +4344,7 @@ type FlowGroup struct {
 	// Autocollapse If true, this group is collapsed by default in the flow editor. UI hint only.
 	Autocollapse *bool `json:"autocollapse,omitempty"`
 
-	// Color Color for the group in the flow editor
+	// Color Color for the group in the flow editor, one of: yellow, blue, green, purple, pink, orange, red, cyan, lime, gray. Omit it to let the editor pick one.
 	Color *string `json:"color,omitempty"`
 
 	// EndId ID of the last flow module in this group (topological exit point)
@@ -4949,9 +5013,11 @@ type InstanceConfig struct {
 
 // InstanceDatatableRole defines model for InstanceDatatableRole.
 type InstanceDatatableRole struct {
-	Enabled bool   `json:"enabled"`
-	Id      string `json:"id"`
-	Name    string `json:"name"`
+	// Cluster The Windmill-managed Postgres cluster a data table role is a login on: Windmill's own (behind `instance` data tables) or the external instance cluster (behind `external_instance` ones). Defaults to `instance`.
+	Cluster DatatableRoleCluster `json:"cluster"`
+	Enabled bool                 `json:"enabled"`
+	Id      string               `json:"id"`
+	Name    string               `json:"name"`
 }
 
 // InstanceGroup defines model for InstanceGroup.
@@ -5353,6 +5419,19 @@ type MemoryAuto struct {
 
 // MemoryAutoKind defines model for MemoryAuto.Kind.
 type MemoryAutoKind string
+
+// MemoryCompaction Keeps the whole memory named by the run's memory id (or the step's `memory_id`), replacing
+// its older part with a summary as the conversation approaches the model's context window.
+// Without a memory id the agent runs without memory, and compaction bounds the run's own loop.
+type MemoryCompaction struct {
+	// ContextWindow Overrides the context window looked up from the model, in tokens. Only a model
+	// Windmill does not know needs one; those fall back to 128000.
+	ContextWindow *int                 `json:"context_window,omitempty"`
+	Kind          MemoryCompactionKind `json:"kind"`
+}
+
+// MemoryCompactionKind defines model for MemoryCompaction.Kind.
+type MemoryCompactionKind string
 
 // MemoryManual Deprecated, still read as it was written. Move the step to `off` with `previous_messages` instead.
 type MemoryManual struct {
@@ -7124,6 +7203,15 @@ type ScheduleWJobs struct {
 	} `json:"jobs,omitempty"`
 	Labels *[]string `json:"labels,omitempty"`
 
+	// LastMissedAt latest missed occurrence, kept after the schedule runs on time again; past 1000 misses in one late run, when the miss was detected, at most one period later
+	LastMissedAt *time.Time `json:"last_missed_at,omitempty"`
+
+	// LateRunStreak runs in a row, up to the latest, that started or finished after the next occurrence was due, so that occurrence was missed
+	LateRunStreak *int `json:"late_run_streak,omitempty"`
+
+	// MissedOccurrences occurrences missed by the latest streak of late runs, kept after it ends; a lower bound once a single late run misses 1000
+	MissedOccurrences *int `json:"missed_occurrences,omitempty"`
+
 	// NoFlowOverlap If true, skip this schedule's execution if the previous run is still in progress (prevents concurrent runs)
 	NoFlowOverlap *bool `json:"no_flow_overlap,omitempty"`
 
@@ -8147,8 +8235,8 @@ type SchemasAiAgent struct {
 		// parameter). Leave unset to use the run's memory id. A fixed value shares one memory
 		// across every run; an expression such as `flow_input.customer_id` keeps one memory per
 		// key. When it evaluates to an empty value the agent runs without memory. Read only
-		// while `memory` is `window`: it is ignored when memory is off, and an older `auto` or
-		// `manual` memory reads neither history input.
+		// while `memory` is `window` or `compaction`: it is ignored when memory is off, and an
+		// older `auto` or `manual` memory reads neither history input.
 		MemoryId *SchemasInputTransform `json:"memory_id,omitempty"`
 
 		// OutputSchema JSON Schema object defining structured output format. Used when you need the AI to return data in a specific shape.
@@ -8386,7 +8474,7 @@ type SchemasFlowModuleValue struct {
 
 // SchemasFlowNote A sticky note attached to a flow for documentation and annotation
 type SchemasFlowNote struct {
-	// Color Color of the note (e.g., "yellow", "#ffff00")
+	// Color Color of the note, one of: yellow, blue, green, purple, pink, orange, red, cyan, lime, gray. Any other value renders unstyled.
 	Color string `json:"color"`
 
 	// ContainedNodeIds For group notes, the IDs of nodes contained within this group
@@ -8419,11 +8507,11 @@ type SchemasFlowNote struct {
 	// Text Content of the note
 	Text string `json:"text"`
 
-	// Type Type of note - 'free' for standalone notes, 'group' for notes that group other nodes
+	// Type Type of note - 'free' for standalone notes. 'group' notes are deprecated; segment a flow with FlowValue.groups instead.
 	Type SchemasFlowNoteType `json:"type"`
 }
 
-// SchemasFlowNoteType Type of note - 'free' for standalone notes, 'group' for notes that group other nodes
+// SchemasFlowNoteType Type of note - 'free' for standalone notes. 'group' notes are deprecated; segment a flow with FlowValue.groups instead.
 type SchemasFlowNoteType string
 
 // SchemasFlowStatusModule defines model for schemas-FlowStatusModule.
@@ -9300,15 +9388,32 @@ type CreateCustomerPortalSessionParams struct {
 	LicenseKey *string `form:"license_key,omitempty" json:"license_key,omitempty"`
 }
 
+// ListInstanceDatatableRolesParams defines parameters for ListInstanceDatatableRoles.
+type ListInstanceDatatableRolesParams struct {
+	Cluster *DatatableRoleCluster `form:"cluster,omitempty" json:"cluster,omitempty"`
+}
+
 // CreateInstanceDatatableRoleJSONBody defines parameters for CreateInstanceDatatableRole.
 type CreateInstanceDatatableRoleJSONBody struct {
-	Name string `json:"name"`
+	// Cluster The Windmill-managed Postgres cluster a data table role is a login on: Windmill's own (behind `instance` data tables) or the external instance cluster (behind `external_instance` ones). Defaults to `instance`.
+	Cluster *DatatableRoleCluster `json:"cluster,omitempty"`
+	Name    string                `json:"name"`
 }
 
 // UpdateInstanceDatatableRoleJSONBody defines parameters for UpdateInstanceDatatableRole.
 type UpdateInstanceDatatableRoleJSONBody struct {
 	Enabled *bool   `json:"enabled,omitempty"`
 	Name    *string `json:"name,omitempty"`
+}
+
+// CreateExternalInstancePgDatabaseJSONBody defines parameters for CreateExternalInstancePgDatabase.
+type CreateExternalInstancePgDatabaseJSONBody struct {
+	Tag *CustomInstanceDbTag `json:"tag,omitempty"`
+}
+
+// SetupExternalInstancePgJSONBody defines parameters for SetupExternalInstancePg.
+type SetupExternalInstancePgJSONBody struct {
+	RotatePasswords *bool `json:"rotate_passwords,omitempty"`
 }
 
 // SetGlobalJSONBody defines parameters for SetGlobal.
@@ -13810,6 +13915,13 @@ type CreateDatatableMigrationJSONBody struct {
 	Name     string  `json:"name"`
 }
 
+// CreateWorkspaceForkParams defines parameters for CreateWorkspaceFork.
+type CreateWorkspaceForkParams struct {
+	// Background return once the request is validated and create the fork in the background, answering
+	// with the creation id getForkCreationStatus reads
+	Background *bool `form:"background,omitempty" json:"background,omitempty"`
+}
+
 // CreatePgDatabaseJSONBody defines parameters for CreatePgDatabase.
 type CreatePgDatabaseJSONBody struct {
 	// Source Datatable source to determine connection info: 'datatable://name' or '$res:path'
@@ -14339,6 +14451,12 @@ type CreateInstanceDatatableRoleJSONRequestBody CreateInstanceDatatableRoleJSONB
 
 // UpdateInstanceDatatableRoleJSONRequestBody defines body for UpdateInstanceDatatableRole for application/json ContentType.
 type UpdateInstanceDatatableRoleJSONRequestBody UpdateInstanceDatatableRoleJSONBody
+
+// CreateExternalInstancePgDatabaseJSONRequestBody defines body for CreateExternalInstancePgDatabase for application/json ContentType.
+type CreateExternalInstancePgDatabaseJSONRequestBody CreateExternalInstancePgDatabaseJSONBody
+
+// SetupExternalInstancePgJSONRequestBody defines body for SetupExternalInstancePg for application/json ContentType.
+type SetupExternalInstancePgJSONRequestBody SetupExternalInstancePgJSONBody
 
 // SetGlobalJSONRequestBody defines body for SetGlobal for application/json ContentType.
 type SetGlobalJSONRequestBody SetGlobalJSONBody
@@ -17508,6 +17626,34 @@ func (t *SchemasMemoryConfig) MergeMemoryWindow(v MemoryWindow) error {
 	return err
 }
 
+// AsMemoryCompaction returns the union data inside the SchemasMemoryConfig as a MemoryCompaction
+func (t SchemasMemoryConfig) AsMemoryCompaction() (MemoryCompaction, error) {
+	var body MemoryCompaction
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromMemoryCompaction overwrites any union data inside the SchemasMemoryConfig as the provided MemoryCompaction
+func (t *SchemasMemoryConfig) FromMemoryCompaction(v MemoryCompaction) error {
+	v.Kind = "compaction"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeMemoryCompaction performs a merge with any union data inside the SchemasMemoryConfig, using the provided MemoryCompaction
+func (t *SchemasMemoryConfig) MergeMemoryCompaction(v MemoryCompaction) error {
+	v.Kind = "compaction"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 // AsMemoryAuto returns the union data inside the SchemasMemoryConfig as a MemoryAuto
 func (t SchemasMemoryConfig) AsMemoryAuto() (MemoryAuto, error) {
 	var body MemoryAuto
@@ -17580,6 +17726,8 @@ func (t SchemasMemoryConfig) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "auto":
 		return t.AsMemoryAuto()
+	case "compaction":
+		return t.AsMemoryCompaction()
 	case "manual":
 		return t.AsMemoryManual()
 	case "off":
@@ -17991,7 +18139,7 @@ type ClientInterface interface {
 	CreateCustomerPortalSession(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListInstanceDatatableRoles request
-	ListInstanceDatatableRoles(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListInstanceDatatableRoles(ctx context.Context, params *ListInstanceDatatableRolesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateInstanceDatatableRoleWithBody request with any body
 	CreateInstanceDatatableRoleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -18008,6 +18156,25 @@ type ClientInterface interface {
 
 	// DropCustomInstanceDb request
 	DropCustomInstanceDb(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListExternalInstancePgDatabases request
+	ListExternalInstancePgDatabases(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DropExternalInstancePgDatabase request
+	DropExternalInstancePgDatabase(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateExternalInstancePgDatabaseWithBody request with any body
+	CreateExternalInstancePgDatabaseWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateExternalInstancePgDatabase(ctx context.Context, name string, body CreateExternalInstancePgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetupExternalInstancePgWithBody request with any body
+	SetupExternalInstancePgWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetupExternalInstancePg(ctx context.Context, body SetupExternalInstancePgJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetExternalInstancePgStatus request
+	GetExternalInstancePgStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetStats request
 	GetStats(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20579,9 +20746,9 @@ type ClientInterface interface {
 	CreateDatatableMigration(ctx context.Context, workspace WorkspaceId, datatableName string, body CreateDatatableMigrationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateWorkspaceForkWithBody request with any body
-	CreateWorkspaceForkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateWorkspaceForkWithBody(ctx context.Context, workspace WorkspaceId, params *CreateWorkspaceForkParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId, params *CreateWorkspaceForkParams, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreatePgDatabaseWithBody request with any body
 	CreatePgDatabaseWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20789,6 +20956,9 @@ type ClientInterface interface {
 	ExportPgSchemaWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ExportPgSchema(ctx context.Context, workspace WorkspaceId, body ExportPgSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetForkCreationStatus request
+	GetForkCreationStatus(ctx context.Context, workspace WorkspaceId, creationId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GenerateInitialDatatableMigration request
 	GenerateInitialDatatableMigration(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -22431,8 +22601,8 @@ func (c *Client) CreateCustomerPortalSession(ctx context.Context, params *Create
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListInstanceDatatableRoles(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListInstanceDatatableRolesRequest(c.Server)
+func (c *Client) ListInstanceDatatableRoles(ctx context.Context, params *ListInstanceDatatableRolesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListInstanceDatatableRolesRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -22505,6 +22675,90 @@ func (c *Client) UpdateInstanceDatatableRole(ctx context.Context, id string, bod
 
 func (c *Client) DropCustomInstanceDb(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDropCustomInstanceDbRequest(c.Server, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListExternalInstancePgDatabases(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListExternalInstancePgDatabasesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DropExternalInstancePgDatabase(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDropExternalInstancePgDatabaseRequest(c.Server, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateExternalInstancePgDatabaseWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateExternalInstancePgDatabaseRequestWithBody(c.Server, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateExternalInstancePgDatabase(ctx context.Context, name string, body CreateExternalInstancePgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateExternalInstancePgDatabaseRequest(c.Server, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetupExternalInstancePgWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetupExternalInstancePgRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetupExternalInstancePg(ctx context.Context, body SetupExternalInstancePgJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetupExternalInstancePgRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetExternalInstancePgStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetExternalInstancePgStatusRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -33843,8 +34097,8 @@ func (c *Client) CreateDatatableMigration(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateWorkspaceForkWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateWorkspaceForkRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) CreateWorkspaceForkWithBody(ctx context.Context, workspace WorkspaceId, params *CreateWorkspaceForkParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateWorkspaceForkRequestWithBody(c.Server, workspace, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -33855,8 +34109,8 @@ func (c *Client) CreateWorkspaceForkWithBody(ctx context.Context, workspace Work
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateWorkspaceForkRequest(c.Server, workspace, body)
+func (c *Client) CreateWorkspaceFork(ctx context.Context, workspace WorkspaceId, params *CreateWorkspaceForkParams, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateWorkspaceForkRequest(c.Server, workspace, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -34817,6 +35071,18 @@ func (c *Client) ExportPgSchemaWithBody(ctx context.Context, workspace Workspace
 
 func (c *Client) ExportPgSchema(ctx context.Context, workspace WorkspaceId, body ExportPgSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExportPgSchemaRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetForkCreationStatus(ctx context.Context, workspace WorkspaceId, creationId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetForkCreationStatusRequest(c.Server, workspace, creationId)
 	if err != nil {
 		return nil, err
 	}
@@ -39601,7 +39867,7 @@ func NewCreateCustomerPortalSessionRequest(server string, params *CreateCustomer
 }
 
 // NewListInstanceDatatableRolesRequest generates requests for ListInstanceDatatableRoles
-func NewListInstanceDatatableRolesRequest(server string) (*http.Request, error) {
+func NewListInstanceDatatableRolesRequest(server string, params *ListInstanceDatatableRolesParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -39617,6 +39883,28 @@ func NewListInstanceDatatableRolesRequest(server string) (*http.Request, error) 
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Cluster != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cluster", runtime.ParamLocationQuery, *params.Cluster); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -39775,6 +40063,181 @@ func NewDropCustomInstanceDbRequest(server string, name string) (*http.Request, 
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListExternalInstancePgDatabasesRequest generates requests for ListExternalInstancePgDatabases
+func NewListExternalInstancePgDatabasesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/external_instance_pg/databases")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDropExternalInstancePgDatabaseRequest generates requests for DropExternalInstancePgDatabase
+func NewDropExternalInstancePgDatabaseRequest(server string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/external_instance_pg/databases/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateExternalInstancePgDatabaseRequest calls the generic CreateExternalInstancePgDatabase builder with application/json body
+func NewCreateExternalInstancePgDatabaseRequest(server string, name string, body CreateExternalInstancePgDatabaseJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateExternalInstancePgDatabaseRequestWithBody(server, name, "application/json", bodyReader)
+}
+
+// NewCreateExternalInstancePgDatabaseRequestWithBody generates requests for CreateExternalInstancePgDatabase with any type of body
+func NewCreateExternalInstancePgDatabaseRequestWithBody(server string, name string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/external_instance_pg/databases/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSetupExternalInstancePgRequest calls the generic SetupExternalInstancePg builder with application/json body
+func NewSetupExternalInstancePgRequest(server string, body SetupExternalInstancePgJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetupExternalInstancePgRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSetupExternalInstancePgRequestWithBody generates requests for SetupExternalInstancePg with any type of body
+func NewSetupExternalInstancePgRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/external_instance_pg/setup")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetExternalInstancePgStatusRequest generates requests for GetExternalInstancePgStatus
+func NewGetExternalInstancePgStatusRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/external_instance_pg/status")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -84286,18 +84749,18 @@ func NewCreateDatatableMigrationRequestWithBody(server string, workspace Workspa
 }
 
 // NewCreateWorkspaceForkRequest calls the generic CreateWorkspaceFork builder with application/json body
-func NewCreateWorkspaceForkRequest(server string, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody) (*http.Request, error) {
+func NewCreateWorkspaceForkRequest(server string, workspace WorkspaceId, params *CreateWorkspaceForkParams, body CreateWorkspaceForkJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewCreateWorkspaceForkRequestWithBody(server, workspace, "application/json", bodyReader)
+	return NewCreateWorkspaceForkRequestWithBody(server, workspace, params, "application/json", bodyReader)
 }
 
 // NewCreateWorkspaceForkRequestWithBody generates requests for CreateWorkspaceFork with any type of body
-func NewCreateWorkspaceForkRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+func NewCreateWorkspaceForkRequestWithBody(server string, workspace WorkspaceId, params *CreateWorkspaceForkParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -84320,6 +84783,28 @@ func NewCreateWorkspaceForkRequestWithBody(server string, workspace WorkspaceId,
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Background != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "background", runtime.ParamLocationQuery, *params.Background); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -86543,6 +87028,47 @@ func NewExportPgSchemaRequestWithBody(server string, workspace WorkspaceId, cont
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetForkCreationStatusRequest generates requests for GetForkCreationStatus
+func NewGetForkCreationStatusRequest(server string, workspace WorkspaceId, creationId openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "creation_id", runtime.ParamLocationPath, creationId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/fork_creation_status/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -90310,7 +90836,7 @@ type ClientWithResponsesInterface interface {
 	CreateCustomerPortalSessionWithResponse(ctx context.Context, params *CreateCustomerPortalSessionParams, reqEditors ...RequestEditorFn) (*CreateCustomerPortalSessionResponse, error)
 
 	// ListInstanceDatatableRolesWithResponse request
-	ListInstanceDatatableRolesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceDatatableRolesResponse, error)
+	ListInstanceDatatableRolesWithResponse(ctx context.Context, params *ListInstanceDatatableRolesParams, reqEditors ...RequestEditorFn) (*ListInstanceDatatableRolesResponse, error)
 
 	// CreateInstanceDatatableRoleWithBodyWithResponse request with any body
 	CreateInstanceDatatableRoleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateInstanceDatatableRoleResponse, error)
@@ -90327,6 +90853,25 @@ type ClientWithResponsesInterface interface {
 
 	// DropCustomInstanceDbWithResponse request
 	DropCustomInstanceDbWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DropCustomInstanceDbResponse, error)
+
+	// ListExternalInstancePgDatabasesWithResponse request
+	ListExternalInstancePgDatabasesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListExternalInstancePgDatabasesResponse, error)
+
+	// DropExternalInstancePgDatabaseWithResponse request
+	DropExternalInstancePgDatabaseWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DropExternalInstancePgDatabaseResponse, error)
+
+	// CreateExternalInstancePgDatabaseWithBodyWithResponse request with any body
+	CreateExternalInstancePgDatabaseWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateExternalInstancePgDatabaseResponse, error)
+
+	CreateExternalInstancePgDatabaseWithResponse(ctx context.Context, name string, body CreateExternalInstancePgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateExternalInstancePgDatabaseResponse, error)
+
+	// SetupExternalInstancePgWithBodyWithResponse request with any body
+	SetupExternalInstancePgWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetupExternalInstancePgResponse, error)
+
+	SetupExternalInstancePgWithResponse(ctx context.Context, body SetupExternalInstancePgJSONRequestBody, reqEditors ...RequestEditorFn) (*SetupExternalInstancePgResponse, error)
+
+	// GetExternalInstancePgStatusWithResponse request
+	GetExternalInstancePgStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetExternalInstancePgStatusResponse, error)
 
 	// GetStatsWithResponse request
 	GetStatsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetStatsResponse, error)
@@ -92898,9 +93443,9 @@ type ClientWithResponsesInterface interface {
 	CreateDatatableMigrationWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, body CreateDatatableMigrationJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDatatableMigrationResponse, error)
 
 	// CreateWorkspaceForkWithBodyWithResponse request with any body
-	CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
+	CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateWorkspaceForkParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
 
-	CreateWorkspaceForkWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
+	CreateWorkspaceForkWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateWorkspaceForkParams, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error)
 
 	// CreatePgDatabaseWithBodyWithResponse request with any body
 	CreatePgDatabaseWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePgDatabaseResponse, error)
@@ -93108,6 +93653,9 @@ type ClientWithResponsesInterface interface {
 	ExportPgSchemaWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ExportPgSchemaResponse, error)
 
 	ExportPgSchemaWithResponse(ctx context.Context, workspace WorkspaceId, body ExportPgSchemaJSONRequestBody, reqEditors ...RequestEditorFn) (*ExportPgSchemaResponse, error)
+
+	// GetForkCreationStatusWithResponse request
+	GetForkCreationStatusWithResponse(ctx context.Context, workspace WorkspaceId, creationId openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetForkCreationStatusResponse, error)
 
 	// GenerateInitialDatatableMigrationWithResponse request
 	GenerateInitialDatatableMigrationWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*GenerateInitialDatatableMigrationResponse, error)
@@ -95678,6 +96226,116 @@ func (r DropCustomInstanceDbResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DropCustomInstanceDbResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListExternalInstancePgDatabasesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]CustomInstanceDb
+}
+
+// Status returns HTTPResponse.Status
+func (r ListExternalInstancePgDatabasesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListExternalInstancePgDatabasesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DropExternalInstancePgDatabaseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r DropExternalInstancePgDatabaseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DropExternalInstancePgDatabaseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateExternalInstancePgDatabaseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateExternalInstancePgDatabaseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateExternalInstancePgDatabaseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetupExternalInstancePgResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ExternalInstancePgSetupReport
+}
+
+// Status returns HTTPResponse.Status
+func (r SetupExternalInstancePgResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetupExternalInstancePgResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetExternalInstancePgStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ExternalInstancePgStatus
+}
+
+// Status returns HTTPResponse.Status
+func (r GetExternalInstancePgStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetExternalInstancePgStatusResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -113450,6 +114108,35 @@ func (r ExportPgSchemaResponse) StatusCode() int {
 	return 0
 }
 
+type GetForkCreationStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Error  *string                        `json:"error,omitempty"`
+		Status GetForkCreationStatus200Status `json:"status"`
+
+		// Step the part of the copy a running fork is in
+		Step *string `json:"step,omitempty"`
+	}
+}
+type GetForkCreationStatus200Status string
+
+// Status returns HTTPResponse.Status
+func (r GetForkCreationStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetForkCreationStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GenerateInitialDatatableMigrationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -116395,8 +117082,8 @@ func (c *ClientWithResponses) CreateCustomerPortalSessionWithResponse(ctx contex
 }
 
 // ListInstanceDatatableRolesWithResponse request returning *ListInstanceDatatableRolesResponse
-func (c *ClientWithResponses) ListInstanceDatatableRolesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListInstanceDatatableRolesResponse, error) {
-	rsp, err := c.ListInstanceDatatableRoles(ctx, reqEditors...)
+func (c *ClientWithResponses) ListInstanceDatatableRolesWithResponse(ctx context.Context, params *ListInstanceDatatableRolesParams, reqEditors ...RequestEditorFn) (*ListInstanceDatatableRolesResponse, error) {
+	rsp, err := c.ListInstanceDatatableRoles(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -116453,6 +117140,67 @@ func (c *ClientWithResponses) DropCustomInstanceDbWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseDropCustomInstanceDbResponse(rsp)
+}
+
+// ListExternalInstancePgDatabasesWithResponse request returning *ListExternalInstancePgDatabasesResponse
+func (c *ClientWithResponses) ListExternalInstancePgDatabasesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListExternalInstancePgDatabasesResponse, error) {
+	rsp, err := c.ListExternalInstancePgDatabases(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListExternalInstancePgDatabasesResponse(rsp)
+}
+
+// DropExternalInstancePgDatabaseWithResponse request returning *DropExternalInstancePgDatabaseResponse
+func (c *ClientWithResponses) DropExternalInstancePgDatabaseWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DropExternalInstancePgDatabaseResponse, error) {
+	rsp, err := c.DropExternalInstancePgDatabase(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDropExternalInstancePgDatabaseResponse(rsp)
+}
+
+// CreateExternalInstancePgDatabaseWithBodyWithResponse request with arbitrary body returning *CreateExternalInstancePgDatabaseResponse
+func (c *ClientWithResponses) CreateExternalInstancePgDatabaseWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateExternalInstancePgDatabaseResponse, error) {
+	rsp, err := c.CreateExternalInstancePgDatabaseWithBody(ctx, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateExternalInstancePgDatabaseResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateExternalInstancePgDatabaseWithResponse(ctx context.Context, name string, body CreateExternalInstancePgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateExternalInstancePgDatabaseResponse, error) {
+	rsp, err := c.CreateExternalInstancePgDatabase(ctx, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateExternalInstancePgDatabaseResponse(rsp)
+}
+
+// SetupExternalInstancePgWithBodyWithResponse request with arbitrary body returning *SetupExternalInstancePgResponse
+func (c *ClientWithResponses) SetupExternalInstancePgWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetupExternalInstancePgResponse, error) {
+	rsp, err := c.SetupExternalInstancePgWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetupExternalInstancePgResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetupExternalInstancePgWithResponse(ctx context.Context, body SetupExternalInstancePgJSONRequestBody, reqEditors ...RequestEditorFn) (*SetupExternalInstancePgResponse, error) {
+	rsp, err := c.SetupExternalInstancePg(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetupExternalInstancePgResponse(rsp)
+}
+
+// GetExternalInstancePgStatusWithResponse request returning *GetExternalInstancePgStatusResponse
+func (c *ClientWithResponses) GetExternalInstancePgStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetExternalInstancePgStatusResponse, error) {
+	rsp, err := c.GetExternalInstancePgStatus(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetExternalInstancePgStatusResponse(rsp)
 }
 
 // GetStatsWithResponse request returning *GetStatsResponse
@@ -124689,16 +125437,16 @@ func (c *ClientWithResponses) CreateDatatableMigrationWithResponse(ctx context.C
 }
 
 // CreateWorkspaceForkWithBodyWithResponse request with arbitrary body returning *CreateWorkspaceForkResponse
-func (c *ClientWithResponses) CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error) {
-	rsp, err := c.CreateWorkspaceForkWithBody(ctx, workspace, contentType, body, reqEditors...)
+func (c *ClientWithResponses) CreateWorkspaceForkWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateWorkspaceForkParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error) {
+	rsp, err := c.CreateWorkspaceForkWithBody(ctx, workspace, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseCreateWorkspaceForkResponse(rsp)
 }
 
-func (c *ClientWithResponses) CreateWorkspaceForkWithResponse(ctx context.Context, workspace WorkspaceId, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error) {
-	rsp, err := c.CreateWorkspaceFork(ctx, workspace, body, reqEditors...)
+func (c *ClientWithResponses) CreateWorkspaceForkWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateWorkspaceForkParams, body CreateWorkspaceForkJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWorkspaceForkResponse, error) {
+	rsp, err := c.CreateWorkspaceFork(ctx, workspace, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -125390,6 +126138,15 @@ func (c *ClientWithResponses) ExportPgSchemaWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseExportPgSchemaResponse(rsp)
+}
+
+// GetForkCreationStatusWithResponse request returning *GetForkCreationStatusResponse
+func (c *ClientWithResponses) GetForkCreationStatusWithResponse(ctx context.Context, workspace WorkspaceId, creationId openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetForkCreationStatusResponse, error) {
+	rsp, err := c.GetForkCreationStatus(ctx, workspace, creationId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetForkCreationStatusResponse(rsp)
 }
 
 // GenerateInitialDatatableMigrationWithResponse request returning *GenerateInitialDatatableMigrationResponse
@@ -128665,6 +129422,136 @@ func ParseDropCustomInstanceDbResponse(rsp *http.Response) (*DropCustomInstanceD
 	response := &DropCustomInstanceDbResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListExternalInstancePgDatabasesResponse parses an HTTP response from a ListExternalInstancePgDatabasesWithResponse call
+func ParseListExternalInstancePgDatabasesResponse(rsp *http.Response) (*ListExternalInstancePgDatabasesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListExternalInstancePgDatabasesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]CustomInstanceDb
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDropExternalInstancePgDatabaseResponse parses an HTTP response from a DropExternalInstancePgDatabaseWithResponse call
+func ParseDropExternalInstancePgDatabaseResponse(rsp *http.Response) (*DropExternalInstancePgDatabaseResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DropExternalInstancePgDatabaseResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateExternalInstancePgDatabaseResponse parses an HTTP response from a CreateExternalInstancePgDatabaseWithResponse call
+func ParseCreateExternalInstancePgDatabaseResponse(rsp *http.Response) (*CreateExternalInstancePgDatabaseResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateExternalInstancePgDatabaseResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetupExternalInstancePgResponse parses an HTTP response from a SetupExternalInstancePgWithResponse call
+func ParseSetupExternalInstancePgResponse(rsp *http.Response) (*SetupExternalInstancePgResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetupExternalInstancePgResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ExternalInstancePgSetupReport
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetExternalInstancePgStatusResponse parses an HTTP response from a GetExternalInstancePgStatusWithResponse call
+func ParseGetExternalInstancePgStatusResponse(rsp *http.Response) (*GetExternalInstancePgStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetExternalInstancePgStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ExternalInstancePgStatus
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -146380,6 +147267,38 @@ func ParseExportPgSchemaResponse(rsp *http.Response) (*ExportPgSchemaResponse, e
 	response := &ExportPgSchemaResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetForkCreationStatusResponse parses an HTTP response from a GetForkCreationStatusWithResponse call
+func ParseGetForkCreationStatusResponse(rsp *http.Response) (*GetForkCreationStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetForkCreationStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Error  *string                        `json:"error,omitempty"`
+			Status GetForkCreationStatus200Status `json:"status"`
+
+			// Step the part of the copy a running fork is in
+			Step *string `json:"step,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
