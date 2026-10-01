@@ -5224,6 +5224,9 @@ type LargeFileStorageType string
 
 // ListableApp defines model for ListableApp.
 type ListableApp struct {
+	// DraftOnly No deployed counterpart exists at this path — the draft is the whole item.
+	DraftOnly *bool `json:"draft_only,omitempty"`
+
 	// DraftPath User-typed path the editor has staged but not yet deployed.
 	// Sourced from the draft JSON's `draft_path` field (the editor
 	// only writes it when the typed path differs from the deployed
@@ -5280,13 +5283,23 @@ type ListableRawApp struct {
 
 // ListableResource defines model for ListableResource.
 type ListableResource struct {
-	Account     *float32 `json:"account,omitempty"`
-	CreatedBy   *string  `json:"created_by,omitempty"`
-	Description *string  `json:"description,omitempty"`
+	Account *float32 `json:"account,omitempty"`
+
+	// AgentMemory For an `ai_agent` resource only, its `memory` setting: the one part
+	// of the value a listing returns, since it decides whether the agent
+	// keeps a conversation.
+	AgentMemory *interface{} `json:"agent_memory,omitempty"`
+	CreatedBy   *string      `json:"created_by,omitempty"`
+	Description *string      `json:"description,omitempty"`
 
 	// DraftOnly True when this row is a per-user draft with no deployed
 	// resource at the same path. Frontend renders a "Draft" badge.
-	DraftOnly  *bool            `json:"draft_only,omitempty"`
+	DraftOnly *bool `json:"draft_only,omitempty"`
+
+	// DraftPath On a draft-only row, the path its editor has staged when it
+	// differs from the storage path (e.g. a never-deployed item parked at
+	// `u/{user}/draft_{uuid}`).
+	DraftPath  *string          `json:"draft_path,omitempty"`
 	EditedAt   *time.Time       `json:"edited_at,omitempty"`
 	ExtraPerms *map[string]bool `json:"extra_perms,omitempty"`
 
@@ -6402,6 +6415,9 @@ type OperatorSettings struct {
 
 	// AuditLogs Whether operators can view audit logs
 	AuditLogs bool `json:"audit_logs"`
+
+	// BuilderFlows Whether operators can compose flows out of existing runnables (consumes a full seat). Omitting the field leaves the stored value unchanged.
+	BuilderFlows *bool `json:"builder_flows,omitempty"`
 
 	// Folders Whether operators can view folders page
 	Folders bool `json:"folders"`
@@ -12180,6 +12196,18 @@ type GetResumeUrlsParams struct {
 	FlowLevel *bool `form:"flow_level,omitempty" json:"flow_level,omitempty"`
 }
 
+// RunAgentJSONBody defines parameters for RunAgent.
+type RunAgentJSONBody struct {
+	UserAttachments *[]interface{} `json:"user_attachments,omitempty"`
+	UserMessage     *string        `json:"user_message,omitempty"`
+}
+
+// RunAgentParams defines parameters for RunAgent.
+type RunAgentParams struct {
+	// MemoryId The conversation this turn belongs to. A uuid is used as is; any other string is hashed within the workspace and agent.
+	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+}
+
 // BatchReRunJobsJSONBody defines parameters for BatchReRunJobs.
 type BatchReRunJobsJSONBody struct {
 	FlowOptionsByPath map[string]struct {
@@ -14901,6 +14929,9 @@ type ImportQueuedJobsJSONRequestBody = ImportQueuedJobsJSONBody
 
 // RestartFlowAtStepJSONRequestBody defines body for RestartFlowAtStep for application/json ContentType.
 type RestartFlowAtStepJSONRequestBody RestartFlowAtStepJSONBody
+
+// RunAgentJSONRequestBody defines body for RunAgent for application/json ContentType.
+type RunAgentJSONRequestBody RunAgentJSONBody
 
 // BatchReRunJobsJSONRequestBody defines body for BatchReRunJobs for application/json ContentType.
 type BatchReRunJobsJSONRequestBody BatchReRunJobsJSONBody
@@ -18025,6 +18056,9 @@ type ClientInterface interface {
 	// ListHubIntegrations request
 	ListHubIntegrations(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetHubIntegrationMeta request
+	GetHubIntegrationMeta(ctx context.Context, app string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CountJobsByTag request
 	CountJobsByTag(ctx context.Context, params *CountJobsByTagParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -19610,6 +19644,11 @@ type ClientInterface interface {
 
 	// GetResumeUrls request
 	GetResumeUrls(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunAgentWithBody request with any body
+	RunAgentWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *RunAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunAgent(ctx context.Context, workspace WorkspaceId, path Path, params *RunAgentParams, body RunAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// BatchReRunJobsWithBody request with any body
 	BatchReRunJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -22099,6 +22138,18 @@ func (c *Client) GetIndexStorageSizes(ctx context.Context, reqEditors ...Request
 
 func (c *Client) ListHubIntegrations(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListHubIntegrationsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetHubIntegrationMeta(ctx context.Context, app string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetHubIntegrationMetaRequest(c.Server, app)
 	if err != nil {
 		return nil, err
 	}
@@ -29083,6 +29134,30 @@ func (c *Client) ResultById(ctx context.Context, workspace WorkspaceId, flowJobI
 
 func (c *Client) GetResumeUrls(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetResumeUrlsRequest(c.Server, workspace, id, resumeId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAgentWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *RunAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAgentRequestWithBody(c.Server, workspace, path, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunAgent(ctx context.Context, workspace WorkspaceId, path Path, params *RunAgentParams, body RunAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunAgentRequest(c.Server, workspace, path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -38504,6 +38579,40 @@ func NewListHubIntegrationsRequest(server string, params *ListHubIntegrationsPar
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetHubIntegrationMetaRequest generates requests for GetHubIntegrationMeta
+func NewGetHubIntegrationMetaRequest(server string, app string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "app", runtime.ParamLocationPath, app)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/integrations/hub/%s/meta", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -65348,6 +65457,82 @@ func NewGetResumeUrlsRequest(server string, workspace WorkspaceId, id JobId, res
 	return req, nil
 }
 
+// NewRunAgentRequest calls the generic RunAgent builder with application/json body
+func NewRunAgentRequest(server string, workspace WorkspaceId, path Path, params *RunAgentParams, body RunAgentJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunAgentRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
+}
+
+// NewRunAgentRequestWithBody generates requests for RunAgent with any type of body
+func NewRunAgentRequestWithBody(server string, workspace WorkspaceId, path Path, params *RunAgentParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run/agent/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.MemoryId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewBatchReRunJobsRequest calls the generic BatchReRunJobs builder with application/json body
 func NewBatchReRunJobsRequest(server string, workspace WorkspaceId, body BatchReRunJobsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -90722,6 +90907,9 @@ type ClientWithResponsesInterface interface {
 	// ListHubIntegrationsWithResponse request
 	ListHubIntegrationsWithResponse(ctx context.Context, params *ListHubIntegrationsParams, reqEditors ...RequestEditorFn) (*ListHubIntegrationsResponse, error)
 
+	// GetHubIntegrationMetaWithResponse request
+	GetHubIntegrationMetaWithResponse(ctx context.Context, app string, reqEditors ...RequestEditorFn) (*GetHubIntegrationMetaResponse, error)
+
 	// CountJobsByTagWithResponse request
 	CountJobsByTagWithResponse(ctx context.Context, params *CountJobsByTagParams, reqEditors ...RequestEditorFn) (*CountJobsByTagResponse, error)
 
@@ -92307,6 +92495,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetResumeUrlsWithResponse request
 	GetResumeUrlsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, resumeId int, params *GetResumeUrlsParams, reqEditors ...RequestEditorFn) (*GetResumeUrlsResponse, error)
+
+	// RunAgentWithBodyWithResponse request with any body
+	RunAgentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *RunAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAgentResponse, error)
+
+	RunAgentWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *RunAgentParams, body RunAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAgentResponse, error)
 
 	// BatchReRunJobsWithBodyWithResponse request with any body
 	BatchReRunJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BatchReRunJobsResponse, error)
@@ -94780,13 +94973,14 @@ type QueryHubScriptsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]struct {
-		App       string        `json:"app"`
-		AskId     float32       `json:"ask_id"`
-		Id        float32       `json:"id"`
-		Kind      HubScriptKind `json:"kind"`
-		Score     float32       `json:"score"`
-		Summary   string        `json:"summary"`
-		VersionId float32       `json:"version_id"`
+		App         string        `json:"app"`
+		AskId       float32       `json:"ask_id"`
+		Description *string       `json:"description,omitempty"`
+		Id          float32       `json:"id"`
+		Kind        HubScriptKind `json:"kind"`
+		Score       float32       `json:"score"`
+		Summary     string        `json:"summary"`
+		VersionId   float32       `json:"version_id"`
 	}
 }
 
@@ -95346,7 +95540,10 @@ type ListHubIntegrationsResponse struct {
 	JSON200      *[]struct {
 		// DisplayName the label the hub curates for the integration, null or absent where it names none
 		DisplayName *string `json:"display_name"`
-		Name        string  `json:"name"`
+
+		// Documented whether the integration carries provider knowledge checked against the live API, on top of the resource type and example scripts /integrations/hub/{app}/meta returns for any integration. Absent on a hub predating the flag.
+		Documented *bool  `json:"documented,omitempty"`
+		Name       string `json:"name"`
 
 		// Picks how often the integration has been picked, absent on a hub that does not count picks
 		Picks *int `json:"picks,omitempty"`
@@ -95363,6 +95560,78 @@ func (r ListHubIntegrationsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListHubIntegrationsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetHubIntegrationMetaResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		App string `json:"app"`
+
+		// Curated whether the script set was pruned to idiomatic actions rather than generated one per endpoint; null when nobody has assessed it, which is distinct from a stated false
+		Curated *bool `json:"curated"`
+
+		// Derived facts computed from the integration's shipped scripts
+		Derived *struct {
+			ApiHosts []struct {
+				Count float32 `json:"count"`
+				Host  string  `json:"host"`
+			} `json:"api_hosts"`
+			Languages    map[string]float32 `json:"languages"`
+			ScriptCounts struct {
+				ByKind map[string]float32 `json:"by_kind"`
+				Total  float32            `json:"total"`
+			} `json:"script_counts"`
+			Style      GetHubIntegrationMeta200DerivedStyle `json:"style"`
+			TopScripts []struct {
+				AskId       *float32 `json:"ask_id,omitempty"`
+				Description *string  `json:"description"`
+				Kind        string   `json:"kind"`
+				Language    *string  `json:"language"`
+				Path        string   `json:"path"`
+				Summary     string   `json:"summary"`
+				VersionId   *float32 `json:"version_id,omitempty"`
+				Views       *float32 `json:"views,omitempty"`
+				Votes       *float32 `json:"votes,omitempty"`
+			} `json:"top_scripts"`
+		} `json:"derived,omitempty"`
+		Description *string `json:"description"`
+		DisplayName string  `json:"display_name"`
+		DocsUrl     *string `json:"docs_url"`
+
+		// Meta the integration's authored meta.json verbatim; the content repo owns its schema, so it is passed through unvalidated
+		Meta          *map[string]interface{} `json:"meta"`
+		MetaUpdatedAt *string                 `json:"meta_updated_at"`
+
+		// MetadataSource whether the provider knowledge was authored (curated) or inferred from the shipped scripts (derived)
+		MetadataSource *GetHubIntegrationMeta200MetadataSource `json:"metadata_source,omitempty"`
+		ResourceTypes  *[]struct {
+			Description *string  `json:"description"`
+			Id          *float32 `json:"id,omitempty"`
+			Name        string   `json:"name"`
+
+			// Schema the resource type's JSON schema; the hub stores it as text and returns it as a JSON string, so a client must be ready for either that or an object
+			Schema interface{} `json:"schema"`
+		} `json:"resource_types,omitempty"`
+	}
+}
+type GetHubIntegrationMeta200DerivedStyle string
+type GetHubIntegrationMeta200MetadataSource string
+
+// Status returns HTTPResponse.Status
+func (r GetHubIntegrationMetaResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetHubIntegrationMetaResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -95842,14 +96111,15 @@ type GetTopHubScriptsResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Asks *[]struct {
-			App       string        `json:"app"`
-			AskId     float32       `json:"ask_id"`
-			Id        float32       `json:"id"`
-			Kind      HubScriptKind `json:"kind"`
-			Summary   string        `json:"summary"`
-			VersionId float32       `json:"version_id"`
-			Views     float32       `json:"views"`
-			Votes     float32       `json:"votes"`
+			App         string        `json:"app"`
+			AskId       float32       `json:"ask_id"`
+			Description *string       `json:"description"`
+			Id          float32       `json:"id"`
+			Kind        HubScriptKind `json:"kind"`
+			Summary     string        `json:"summary"`
+			VersionId   float32       `json:"version_id"`
+			Views       float32       `json:"views"`
+			Votes       float32       `json:"votes"`
 		} `json:"asks,omitempty"`
 	}
 }
@@ -105516,6 +105786,27 @@ func (r GetResumeUrlsResponse) StatusCode() int {
 	return 0
 }
 
+type RunAgentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunAgentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunAgentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type BatchReRunJobsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -109318,7 +109609,12 @@ type GetResourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Account     *float32                `json:"account,omitempty"`
+		Account *float32 `json:"account,omitempty"`
+
+		// AgentMemory For an `ai_agent` resource only, its `memory` setting: the one part
+		// of the value a listing returns, since it decides whether the agent
+		// keeps a conversation.
+		AgentMemory *interface{}            `json:"agent_memory,omitempty"`
 		CreatedBy   *string                 `json:"created_by,omitempty"`
 		Description *string                 `json:"description,omitempty"`
 		Draft       *map[string]interface{} `json:"draft,omitempty"`
@@ -109331,7 +109627,12 @@ type GetResourceResponse struct {
 
 		// DraftOnly True when this row is a per-user draft with no deployed
 		// resource at the same path. Frontend renders a "Draft" badge.
-		DraftOnly    *bool            `json:"draft_only,omitempty"`
+		DraftOnly *bool `json:"draft_only,omitempty"`
+
+		// DraftPath On a draft-only row, the path its editor has staged when it
+		// differs from the storage path (e.g. a never-deployed item parked at
+		// `u/{user}/draft_{uuid}`).
+		DraftPath    *string          `json:"draft_path,omitempty"`
 		DraftSavedAt *time.Time       `json:"draft_saved_at,omitempty"`
 		EditedAt     *time.Time       `json:"edited_at,omitempty"`
 		ExtraPerms   *map[string]bool `json:"extra_perms,omitempty"`
@@ -116722,6 +117023,15 @@ func (c *ClientWithResponses) ListHubIntegrationsWithResponse(ctx context.Contex
 	return ParseListHubIntegrationsResponse(rsp)
 }
 
+// GetHubIntegrationMetaWithResponse request returning *GetHubIntegrationMetaResponse
+func (c *ClientWithResponses) GetHubIntegrationMetaWithResponse(ctx context.Context, app string, reqEditors ...RequestEditorFn) (*GetHubIntegrationMetaResponse, error) {
+	rsp, err := c.GetHubIntegrationMeta(ctx, app, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetHubIntegrationMetaResponse(rsp)
+}
+
 // CountJobsByTagWithResponse request returning *CountJobsByTagResponse
 func (c *ClientWithResponses) CountJobsByTagWithResponse(ctx context.Context, params *CountJobsByTagParams, reqEditors ...RequestEditorFn) (*CountJobsByTagResponse, error) {
 	rsp, err := c.CountJobsByTag(ctx, params, reqEditors...)
@@ -121798,6 +122108,23 @@ func (c *ClientWithResponses) GetResumeUrlsWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseGetResumeUrlsResponse(rsp)
+}
+
+// RunAgentWithBodyWithResponse request with arbitrary body returning *RunAgentResponse
+func (c *ClientWithResponses) RunAgentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *RunAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunAgentResponse, error) {
+	rsp, err := c.RunAgentWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAgentResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunAgentWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *RunAgentParams, body RunAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*RunAgentResponse, error) {
+	rsp, err := c.RunAgent(ctx, workspace, path, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunAgentResponse(rsp)
 }
 
 // BatchReRunJobsWithBodyWithResponse request with arbitrary body returning *BatchReRunJobsResponse
@@ -127953,13 +128280,14 @@ func ParseQueryHubScriptsResponse(rsp *http.Response) (*QueryHubScriptsResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
-			App       string        `json:"app"`
-			AskId     float32       `json:"ask_id"`
-			Id        float32       `json:"id"`
-			Kind      HubScriptKind `json:"kind"`
-			Score     float32       `json:"score"`
-			Summary   string        `json:"summary"`
-			VersionId float32       `json:"version_id"`
+			App         string        `json:"app"`
+			AskId       float32       `json:"ask_id"`
+			Description *string       `json:"description,omitempty"`
+			Id          float32       `json:"id"`
+			Kind        HubScriptKind `json:"kind"`
+			Score       float32       `json:"score"`
+			Summary     string        `json:"summary"`
+			VersionId   float32       `json:"version_id"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -128540,10 +128868,87 @@ func ParseListHubIntegrationsResponse(rsp *http.Response) (*ListHubIntegrationsR
 		var dest []struct {
 			// DisplayName the label the hub curates for the integration, null or absent where it names none
 			DisplayName *string `json:"display_name"`
-			Name        string  `json:"name"`
+
+			// Documented whether the integration carries provider knowledge checked against the live API, on top of the resource type and example scripts /integrations/hub/{app}/meta returns for any integration. Absent on a hub predating the flag.
+			Documented *bool  `json:"documented,omitempty"`
+			Name       string `json:"name"`
 
 			// Picks how often the integration has been picked, absent on a hub that does not count picks
 			Picks *int `json:"picks,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetHubIntegrationMetaResponse parses an HTTP response from a GetHubIntegrationMetaWithResponse call
+func ParseGetHubIntegrationMetaResponse(rsp *http.Response) (*GetHubIntegrationMetaResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetHubIntegrationMetaResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			App string `json:"app"`
+
+			// Curated whether the script set was pruned to idiomatic actions rather than generated one per endpoint; null when nobody has assessed it, which is distinct from a stated false
+			Curated *bool `json:"curated"`
+
+			// Derived facts computed from the integration's shipped scripts
+			Derived *struct {
+				ApiHosts []struct {
+					Count float32 `json:"count"`
+					Host  string  `json:"host"`
+				} `json:"api_hosts"`
+				Languages    map[string]float32 `json:"languages"`
+				ScriptCounts struct {
+					ByKind map[string]float32 `json:"by_kind"`
+					Total  float32            `json:"total"`
+				} `json:"script_counts"`
+				Style      GetHubIntegrationMeta200DerivedStyle `json:"style"`
+				TopScripts []struct {
+					AskId       *float32 `json:"ask_id,omitempty"`
+					Description *string  `json:"description"`
+					Kind        string   `json:"kind"`
+					Language    *string  `json:"language"`
+					Path        string   `json:"path"`
+					Summary     string   `json:"summary"`
+					VersionId   *float32 `json:"version_id,omitempty"`
+					Views       *float32 `json:"views,omitempty"`
+					Votes       *float32 `json:"votes,omitempty"`
+				} `json:"top_scripts"`
+			} `json:"derived,omitempty"`
+			Description *string `json:"description"`
+			DisplayName string  `json:"display_name"`
+			DocsUrl     *string `json:"docs_url"`
+
+			// Meta the integration's authored meta.json verbatim; the content repo owns its schema, so it is passed through unvalidated
+			Meta          *map[string]interface{} `json:"meta"`
+			MetaUpdatedAt *string                 `json:"meta_updated_at"`
+
+			// MetadataSource whether the provider knowledge was authored (curated) or inferred from the shipped scripts (derived)
+			MetadataSource *GetHubIntegrationMeta200MetadataSource `json:"metadata_source,omitempty"`
+			ResourceTypes  *[]struct {
+				Description *string  `json:"description"`
+				Id          *float32 `json:"id,omitempty"`
+				Name        string   `json:"name"`
+
+				// Schema the resource type's JSON schema; the hub stores it as text and returns it as a JSON string, so a client must be ready for either that or an object
+				Schema interface{} `json:"schema"`
+			} `json:"resource_types,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -129039,14 +129444,15 @@ func ParseGetTopHubScriptsResponse(rsp *http.Response) (*GetTopHubScriptsRespons
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Asks *[]struct {
-				App       string        `json:"app"`
-				AskId     float32       `json:"ask_id"`
-				Id        float32       `json:"id"`
-				Kind      HubScriptKind `json:"kind"`
-				Summary   string        `json:"summary"`
-				VersionId float32       `json:"version_id"`
-				Views     float32       `json:"views"`
-				Votes     float32       `json:"votes"`
+				App         string        `json:"app"`
+				AskId       float32       `json:"ask_id"`
+				Description *string       `json:"description"`
+				Id          float32       `json:"id"`
+				Kind        HubScriptKind `json:"kind"`
+				Summary     string        `json:"summary"`
+				VersionId   float32       `json:"version_id"`
+				Views       float32       `json:"views"`
+				Votes       float32       `json:"votes"`
 			} `json:"asks,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -138771,6 +139177,22 @@ func ParseGetResumeUrlsResponse(rsp *http.Response) (*GetResumeUrlsResponse, err
 	return response, nil
 }
 
+// ParseRunAgentResponse parses an HTTP response from a RunAgentWithResponse call
+func ParseRunAgentResponse(rsp *http.Response) (*RunAgentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunAgentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseBatchReRunJobsResponse parses an HTTP response from a BatchReRunJobsWithResponse call
 func ParseBatchReRunJobsResponse(rsp *http.Response) (*BatchReRunJobsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -142444,7 +142866,12 @@ func ParseGetResourceResponse(rsp *http.Response) (*GetResourceResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Account     *float32                `json:"account,omitempty"`
+			Account *float32 `json:"account,omitempty"`
+
+			// AgentMemory For an `ai_agent` resource only, its `memory` setting: the one part
+			// of the value a listing returns, since it decides whether the agent
+			// keeps a conversation.
+			AgentMemory *interface{}            `json:"agent_memory,omitempty"`
 			CreatedBy   *string                 `json:"created_by,omitempty"`
 			Description *string                 `json:"description,omitempty"`
 			Draft       *map[string]interface{} `json:"draft,omitempty"`
@@ -142457,7 +142884,12 @@ func ParseGetResourceResponse(rsp *http.Response) (*GetResourceResponse, error) 
 
 			// DraftOnly True when this row is a per-user draft with no deployed
 			// resource at the same path. Frontend renders a "Draft" badge.
-			DraftOnly    *bool            `json:"draft_only,omitempty"`
+			DraftOnly *bool `json:"draft_only,omitempty"`
+
+			// DraftPath On a draft-only row, the path its editor has staged when it
+			// differs from the storage path (e.g. a never-deployed item parked at
+			// `u/{user}/draft_{uuid}`).
+			DraftPath    *string          `json:"draft_path,omitempty"`
 			DraftSavedAt *time.Time       `json:"draft_saved_at,omitempty"`
 			EditedAt     *time.Time       `json:"edited_at,omitempty"`
 			ExtraPerms   *map[string]bool `json:"extra_perms,omitempty"`
