@@ -1984,6 +1984,9 @@ type AgentTool struct {
 	// Id Unique identifier for this tool. Cannot contain spaces - use underscores instead (e.g., 'get_user_data' not 'get user data')
 	Id string `json:"id"`
 
+	// JobTokenScopes Scopes the token of this tool's jobs is restricted to, on top of the agent step's own restriction: a tool can only narrow it.
+	JobTokenScopes *[]string `json:"job_token_scopes"`
+
 	// Summary The name the AI agent calls this tool by, not a human label. On a flowmodule tool it must match ^[a-zA-Z0-9_]+$ - letters, numbers and underscores only (e.g. 'search_documentation', not 'Search documentation') - and always be set; on an mcp or websearch tool it is a plain label. Put the human-readable explanation in 'description'.
 	Summary *string `json:"summary,omitempty"`
 
@@ -3285,8 +3288,11 @@ type EditFlow struct {
 	DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description *string   `json:"description,omitempty"`
-	Labels      *[]string `json:"labels,omitempty"`
+	Description *string `json:"description,omitempty"`
+
+	// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job. Omitting the field keeps the deployed value; null clears it.
+	JobTokenScopes *[]string `json:"job_token_scopes"`
+	Labels         *[]string `json:"labels,omitempty"`
 
 	// OnBehalfOf Authorization identity to run as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. Supply this or on_behalf_of_email; when only the address is given it is resolved to the account it names, and an address naming nobody is rejected. A pair that disagrees is rejected.
 	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
@@ -4221,8 +4227,11 @@ type Flow struct {
 
 	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
-	Labels          *[]string `json:"labels,omitempty"`
-	LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
+
+	// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job.
+	JobTokenScopes *[]string `json:"job_token_scopes"`
+	Labels         *[]string `json:"labels,omitempty"`
+	LockErrorLogs  *string   `json:"lock_error_logs,omitempty"`
 
 	// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
 	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
@@ -4371,7 +4380,10 @@ type FlowMetadata struct {
 
 	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
-	Labels          *[]string `json:"labels,omitempty"`
+
+	// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job.
+	JobTokenScopes *[]string `json:"job_token_scopes"`
+	Labels         *[]string `json:"labels,omitempty"`
 
 	// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
 	OnBehalfOf          *string  `json:"on_behalf_of,omitempty"`
@@ -6068,12 +6080,15 @@ type NewScript struct {
 	DedicatedWorker          *bool     `json:"dedicated_worker,omitempty"`
 
 	// DeleteAfterSecs If set, delete the job's args, result and logs after this many seconds following job completion
-	DeleteAfterSecs         *int           `json:"delete_after_secs,omitempty"`
-	DeploymentMessage       *string        `json:"deployment_message,omitempty"`
-	Description             *string        `json:"description,omitempty"`
-	Envs                    *[]string      `json:"envs,omitempty"`
-	HasPreprocessor         *bool          `json:"has_preprocessor,omitempty"`
-	IsTemplate              *bool          `json:"is_template,omitempty"`
+	DeleteAfterSecs   *int      `json:"delete_after_secs,omitempty"`
+	DeploymentMessage *string   `json:"deployment_message,omitempty"`
+	Description       *string   `json:"description,omitempty"`
+	Envs              *[]string `json:"envs,omitempty"`
+	HasPreprocessor   *bool     `json:"has_preprocessor,omitempty"`
+	IsTemplate        *bool     `json:"is_template,omitempty"`
+
+	// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job. Omitting the field keeps the deployed value; null clears it.
+	JobTokenScopes          *[]string      `json:"job_token_scopes"`
 	Kind                    *NewScriptKind `json:"kind,omitempty"`
 	Labels                  *[]string      `json:"labels,omitempty"`
 	Language                ScriptLang     `json:"language"`
@@ -6354,8 +6369,11 @@ type OpenFlowWPath struct {
 	DedicatedWorker *bool `json:"dedicated_worker,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description *string   `json:"description,omitempty"`
-	Labels      *[]string `json:"labels,omitempty"`
+	Description *string `json:"description,omitempty"`
+
+	// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job. Omitting the field keeps the deployed value; null clears it.
+	JobTokenScopes *[]string `json:"job_token_scopes"`
+	Labels         *[]string `json:"labels,omitempty"`
 
 	// OnBehalfOf Authorization identity to run as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. Supply this or on_behalf_of_email; when only the address is given it is resolved to the account it names, and an address naming nobody is rejected. A pair that disagrees is rejected.
 	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
@@ -7367,8 +7385,11 @@ type Script struct {
 	Hash            string          `json:"hash"`
 
 	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
-	InheritedLabels         *[]string  `json:"inherited_labels,omitempty"`
-	IsTemplate              bool       `json:"is_template"`
+	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+	IsTemplate      bool      `json:"is_template"`
+
+	// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job.
+	JobTokenScopes          *[]string  `json:"job_token_scopes"`
 	Kind                    ScriptKind `json:"kind"`
 	Labels                  *[]string  `json:"labels,omitempty"`
 	Language                ScriptLang `json:"language"`
@@ -8406,6 +8427,9 @@ type SchemasFlowModule struct {
 
 	// Id Unique identifier for this step. Used to reference results via 'results.step_id'. Must be a valid identifier (alphanumeric, underscore, hyphen)
 	Id string `json:"id"`
+
+	// JobTokenScopes Scopes the token of this step's jobs is restricted to (domain:action[:resource], e.g. oidc:write), on top of the flow's own restriction: a step can only narrow it. Applies to everything the step runs (loop and branch bodies, AI agent tools).
+	JobTokenScopes *[]string `json:"job_token_scopes"`
 
 	// Mock Mock configuration for testing without executing the actual step
 	Mock *struct {
@@ -10741,8 +10765,11 @@ type CreateFlowJSONBody struct {
 	DeploymentMessage *string `json:"deployment_message,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description *string   `json:"description,omitempty"`
-	Labels      *[]string `json:"labels,omitempty"`
+	Description *string `json:"description,omitempty"`
+
+	// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job. Omitting the field keeps the deployed value; null clears it.
+	JobTokenScopes *[]string `json:"job_token_scopes"`
+	Labels         *[]string `json:"labels,omitempty"`
 
 	// OnBehalfOf Authorization identity to run as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. Supply this or on_behalf_of_email; when only the address is given it is resolved to the account it names, and an address naming nobody is rejected. A pair that disagrees is rejected.
 	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
@@ -10868,8 +10895,11 @@ type UpdateFlowJSONBody struct {
 	DeploymentMessage *string `json:"deployment_message,omitempty"`
 
 	// Description Detailed documentation for this flow
-	Description *string   `json:"description,omitempty"`
-	Labels      *[]string `json:"labels,omitempty"`
+	Description *string `json:"description,omitempty"`
+
+	// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job. Omitting the field keeps the deployed value; null clears it.
+	JobTokenScopes *[]string `json:"job_token_scopes"`
+	Labels         *[]string `json:"labels,omitempty"`
 
 	// OnBehalfOf Authorization identity to run as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. Supply this or on_behalf_of_email; when only the address is given it is resolved to the account it names, and an address naming nobody is rejected. A pair that disagrees is rejected.
 	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
@@ -102095,9 +102125,12 @@ type GetFlowByPathResponse struct {
 		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
 		IsDraft         bool      `json:"is_draft"`
-		Labels          *[]string `json:"labels,omitempty"`
-		LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
-		NoDeployed      *bool     `json:"no_deployed,omitempty"`
+
+		// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job.
+		JobTokenScopes *[]string `json:"job_token_scopes"`
+		Labels         *[]string `json:"labels,omitempty"`
+		LockErrorLogs  *string   `json:"lock_error_logs,omitempty"`
+		NoDeployed     *bool     `json:"no_deployed,omitempty"`
 
 		// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
 		OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
@@ -102288,9 +102321,12 @@ type ListFlowsResponse struct {
 		// flow — either no deployed row exists at this
 		// path (draft-only) or the user saved a per-user
 		// draft on top of the deployed row.
-		IsDraft       *bool     `json:"is_draft,omitempty"`
-		Labels        *[]string `json:"labels,omitempty"`
-		LockErrorLogs *string   `json:"lock_error_logs,omitempty"`
+		IsDraft *bool `json:"is_draft,omitempty"`
+
+		// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job.
+		JobTokenScopes *[]string `json:"job_token_scopes"`
+		Labels         *[]string `json:"labels,omitempty"`
+		LockErrorLogs  *string   `json:"lock_error_logs,omitempty"`
 
 		// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
 		OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
@@ -110938,9 +110974,12 @@ type GetScriptByPathResponse struct {
 		Hash            string          `json:"hash"`
 
 		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
-		InheritedLabels         *[]string              `json:"inherited_labels,omitempty"`
-		IsDraft                 bool                   `json:"is_draft"`
-		IsTemplate              bool                   `json:"is_template"`
+		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+		IsDraft         bool      `json:"is_draft"`
+		IsTemplate      bool      `json:"is_template"`
+
+		// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job.
+		JobTokenScopes          *[]string              `json:"job_token_scopes"`
 		Kind                    GetScriptByPath200Kind `json:"kind"`
 		Labels                  *[]string              `json:"labels,omitempty"`
 		Language                ScriptLang             `json:"language"`
@@ -111147,8 +111186,11 @@ type ListScriptsResponse struct {
 		// script — either no deployed row exists at this
 		// path (draft-only) or the user saved a per-user
 		// draft on top of the deployed row.
-		IsDraft                 *bool              `json:"is_draft,omitempty"`
-		IsTemplate              bool               `json:"is_template"`
+		IsDraft    *bool `json:"is_draft,omitempty"`
+		IsTemplate bool  `json:"is_template"`
+
+		// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job.
+		JobTokenScopes          *[]string          `json:"job_token_scopes"`
 		Kind                    ListScripts200Kind `json:"kind"`
 		Labels                  *[]string          `json:"labels,omitempty"`
 		Language                ScriptLang         `json:"language"`
@@ -135512,9 +135554,12 @@ func ParseGetFlowByPathResponse(rsp *http.Response) (*GetFlowByPathResponse, err
 			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
 			IsDraft         bool      `json:"is_draft"`
-			Labels          *[]string `json:"labels,omitempty"`
-			LockErrorLogs   *string   `json:"lock_error_logs,omitempty"`
-			NoDeployed      *bool     `json:"no_deployed,omitempty"`
+
+			// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job.
+			JobTokenScopes *[]string `json:"job_token_scopes"`
+			Labels         *[]string `json:"labels,omitempty"`
+			LockErrorLogs  *string   `json:"lock_error_logs,omitempty"`
+			NoDeployed     *bool     `json:"no_deployed,omitempty"`
 
 			// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
 			OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
@@ -135716,9 +135761,12 @@ func ParseListFlowsResponse(rsp *http.Response) (*ListFlowsResponse, error) {
 			// flow — either no deployed row exists at this
 			// path (draft-only) or the user saved a per-user
 			// draft on top of the deployed row.
-			IsDraft       *bool     `json:"is_draft,omitempty"`
-			Labels        *[]string `json:"labels,omitempty"`
-			LockErrorLogs *string   `json:"lock_error_logs,omitempty"`
+			IsDraft *bool `json:"is_draft,omitempty"`
+
+			// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job.
+			JobTokenScopes *[]string `json:"job_token_scopes"`
+			Labels         *[]string `json:"labels,omitempty"`
+			LockErrorLogs  *string   `json:"lock_error_logs,omitempty"`
 
 			// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
 			OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
@@ -144261,9 +144309,12 @@ func ParseGetScriptByPathResponse(rsp *http.Response) (*GetScriptByPathResponse,
 			Hash            string          `json:"hash"`
 
 			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
-			InheritedLabels         *[]string              `json:"inherited_labels,omitempty"`
-			IsDraft                 bool                   `json:"is_draft"`
-			IsTemplate              bool                   `json:"is_template"`
+			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
+			IsDraft         bool      `json:"is_draft"`
+			IsTemplate      bool      `json:"is_template"`
+
+			// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job.
+			JobTokenScopes          *[]string              `json:"job_token_scopes"`
 			Kind                    GetScriptByPath200Kind `json:"kind"`
 			Labels                  *[]string              `json:"labels,omitempty"`
 			Language                ScriptLang             `json:"language"`
@@ -144480,8 +144531,11 @@ func ParseListScriptsResponse(rsp *http.Response) (*ListScriptsResponse, error) 
 			// script — either no deployed row exists at this
 			// path (draft-only) or the user saved a per-user
 			// draft on top of the deployed row.
-			IsDraft                 *bool              `json:"is_draft,omitempty"`
-			IsTemplate              bool               `json:"is_template"`
+			IsDraft    *bool `json:"is_draft,omitempty"`
+			IsTemplate bool  `json:"is_template"`
+
+			// JobTokenScopes Scopes the token of every job of this runnable is restricted to (domain:action[:resource], e.g. oidc:write). Jobs it starts, flow steps and AI agent tools inherit the restriction. Unset, the job token carries the full permissions of the identity the job runs as; an empty list leaves it no API access beyond its own job.
+			JobTokenScopes          *[]string          `json:"job_token_scopes"`
 			Kind                    ListScripts200Kind `json:"kind"`
 			Labels                  *[]string          `json:"labels,omitempty"`
 			Language                ScriptLang         `json:"language"`
