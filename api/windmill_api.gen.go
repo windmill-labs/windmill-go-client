@@ -30,6 +30,7 @@ const (
 	AIProviderAwsBedrock   AIProvider = "aws_bedrock"
 	AIProviderAzureFoundry AIProvider = "azure_foundry"
 	AIProviderAzureOpenai  AIProvider = "azure_openai"
+	AIProviderCloudflare   AIProvider = "cloudflare"
 	AIProviderCustomai     AIProvider = "customai"
 	AIProviderDeepseek     AIProvider = "deepseek"
 	AIProviderGoogleai     AIProvider = "googleai"
@@ -38,6 +39,7 @@ const (
 	AIProviderOpenai       AIProvider = "openai"
 	AIProviderOpenrouter   AIProvider = "openrouter"
 	AIProviderTogetherai   AIProvider = "togetherai"
+	AIProviderTypesafe     AIProvider = "typesafe"
 )
 
 // Defines values for AIProviderKind.
@@ -46,6 +48,7 @@ const (
 	AIProviderKindAwsBedrock   AIProviderKind = "aws_bedrock"
 	AIProviderKindAzureFoundry AIProviderKind = "azure_foundry"
 	AIProviderKindAzureOpenai  AIProviderKind = "azure_openai"
+	AIProviderKindCloudflare   AIProviderKind = "cloudflare"
 	AIProviderKindCustomai     AIProviderKind = "customai"
 	AIProviderKindDeepseek     AIProviderKind = "deepseek"
 	AIProviderKindGoogleai     AIProviderKind = "googleai"
@@ -54,6 +57,7 @@ const (
 	AIProviderKindOpenai       AIProviderKind = "openai"
 	AIProviderKindOpenrouter   AIProviderKind = "openrouter"
 	AIProviderKindTogetherai   AIProviderKind = "togetherai"
+	AIProviderKindTypesafe     AIProviderKind = "typesafe"
 )
 
 // Defines values for AclChangeGrantType.
@@ -1232,6 +1236,11 @@ const (
 // Defines values for SchemasAiAgentType.
 const (
 	Aiagent SchemasAiAgentType = "aiagent"
+)
+
+// Defines values for SchemasAiDecisionType.
+const (
+	Aidecision SchemasAiDecisionType = "aidecision"
 )
 
 // Defines values for SchemasAiTransformType.
@@ -6620,11 +6629,6 @@ type ProtectionRuleset struct {
 	WorkspaceId *string         `json:"workspace_id,omitempty"`
 }
 
-// ProviderTransform Provider configuration - can be static (ProviderConfig), JavaScript expression, or AI-determined
-type ProviderTransform struct {
-	union json.RawMessage
-}
-
 // PublicationData defines model for PublicationData.
 type PublicationData struct {
 	TableToTrack       *[]Relations `json:"table_to_track,omitempty"`
@@ -8291,7 +8295,7 @@ type SchemasAiAgent struct {
 		PreviousMessages *SchemasInputTransform `json:"previous_messages,omitempty"`
 
 		// Provider Provider configuration - can be static (ProviderConfig), JavaScript expression, or AI-determined
-		Provider *ProviderTransform `json:"provider,omitempty"`
+		Provider *SchemasProviderTransform `json:"provider,omitempty"`
 
 		// Streaming Boolean. If true, stream the AI response incrementally.
 		// Streaming events include: token_delta, reasoning_token_delta, tool_call, tool_call_arguments, tool_execution, tool_result
@@ -8341,6 +8345,46 @@ type SchemasAiAgent struct {
 
 // SchemasAiAgentType defines model for SchemasAiAgent.Type.
 type SchemasAiAgentType string
+
+// SchemasAiDecision AI decision step: one call to a decision model (TypeSafe's Jev, or Cloudflare's
+// Jev-compatible Clef) that answers typed questions about a state with calibrated
+// probabilities, instead of generating text.
+// Prefer it over an AI agent to classify, route, score or check something: it is fast,
+// cheap and its answers are structured. Its result is { output: { <question name>: answer },
+// model, usage }, so a later step reads e.g. results.<id>.output.intent.choice. To route on
+// the answers, follow it with a branchone whose branch exprs read
+// results.<id>.output.<question>.choice. Usable as an AI agent tool, where the calling agent
+// supplies the state.
+type SchemasAiDecision struct {
+	// InputTransforms Input parameters for the decision mapped to their values
+	InputTransforms struct {
+		// Provider Provider configuration - can be static (ProviderConfig), JavaScript expression, or AI-determined
+		Provider SchemasProviderTransform `json:"provider"`
+
+		// Questions Object mapping each question name to { type, instructions, criteria }, where type is:
+		// - 'choice': criteria maps each option to its description (up to 255); the answer
+		//   has choice, probabilities and confidence
+		// - 'score': criteria is an ordered array of 2 to 10 level descriptions; the answer
+		//   has score, legend, probabilities and confidence
+		// - 'noul': yes/no, criteria optionally { true, false } descriptions; the answer has
+		//   noul, the probability of yes (0 to 1)
+		// Example: { intent: { type: 'choice', instructions: 'What does the customer want?',
+		// criteria: { refund: 'Money back', bug: 'Something is broken' } } }
+		Questions SchemasInputTransform `json:"questions"`
+
+		// State What the questions are asked about: a string, an object or an array of strings.
+		// An object with descriptive keys holding only what the questions need works best.
+		// Example: { message: flow_input.message, plan: results.a.plan }
+		State SchemasInputTransform `json:"state"`
+	} `json:"input_transforms"`
+
+	// Tag Worker group tag for execution routing. If not set, the step runs on the flow's tag (default `flow`)
+	Tag  *string               `json:"tag,omitempty"`
+	Type SchemasAiDecisionType `json:"type"`
+}
+
+// SchemasAiDecisionType defines model for SchemasAiDecision.Type.
+type SchemasAiDecisionType string
 
 // SchemasAiTransform Value resolved by the AI runtime for this input. The AI engine decides how to satisfy the parameter.
 type SchemasAiTransform struct {
@@ -8813,6 +8857,11 @@ type SchemasProviderConfig struct {
 
 	// Resource Resource reference in format '$res:{resource_path}' pointing to provider credentials
 	Resource string `json:"resource"`
+}
+
+// SchemasProviderTransform Provider configuration - can be static (ProviderConfig), JavaScript expression, or AI-determined
+type SchemasProviderTransform struct {
+	union json.RawMessage
 }
 
 // SchemasRawScript Inline script with code defined directly in the flow. Use 'bun' as default language if unspecified. The script receives arguments from input_transforms
@@ -16202,6 +16251,32 @@ func (t *FlowModuleTool) MergeSchemasAiAgent(v SchemasAiAgent) error {
 	return err
 }
 
+// AsSchemasAiDecision returns the union data inside the FlowModuleTool as a SchemasAiDecision
+func (t FlowModuleTool) AsSchemasAiDecision() (SchemasAiDecision, error) {
+	var body SchemasAiDecision
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasAiDecision overwrites any union data inside the FlowModuleTool as the provided SchemasAiDecision
+func (t *FlowModuleTool) FromSchemasAiDecision(v SchemasAiDecision) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasAiDecision performs a merge with any union data inside the FlowModuleTool, using the provided SchemasAiDecision
+func (t *FlowModuleTool) MergeSchemasAiDecision(v SchemasAiDecision) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t FlowModuleTool) MarshalJSON() ([]byte, error) {
 	b, err := t.union.MarshalJSON()
 	if err != nil {
@@ -16655,125 +16730,6 @@ func (t MemoryTransform) MarshalJSON() ([]byte, error) {
 }
 
 func (t *MemoryTransform) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsStaticProviderTransform returns the union data inside the ProviderTransform as a StaticProviderTransform
-func (t ProviderTransform) AsStaticProviderTransform() (StaticProviderTransform, error) {
-	var body StaticProviderTransform
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromStaticProviderTransform overwrites any union data inside the ProviderTransform as the provided StaticProviderTransform
-func (t *ProviderTransform) FromStaticProviderTransform(v StaticProviderTransform) error {
-	v.Type = "static"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeStaticProviderTransform performs a merge with any union data inside the ProviderTransform, using the provided StaticProviderTransform
-func (t *ProviderTransform) MergeStaticProviderTransform(v StaticProviderTransform) error {
-	v.Type = "static"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsSchemasJavascriptTransform returns the union data inside the ProviderTransform as a SchemasJavascriptTransform
-func (t ProviderTransform) AsSchemasJavascriptTransform() (SchemasJavascriptTransform, error) {
-	var body SchemasJavascriptTransform
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromSchemasJavascriptTransform overwrites any union data inside the ProviderTransform as the provided SchemasJavascriptTransform
-func (t *ProviderTransform) FromSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
-	v.Type = "javascript"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeSchemasJavascriptTransform performs a merge with any union data inside the ProviderTransform, using the provided SchemasJavascriptTransform
-func (t *ProviderTransform) MergeSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
-	v.Type = "javascript"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsSchemasAiTransform returns the union data inside the ProviderTransform as a SchemasAiTransform
-func (t ProviderTransform) AsSchemasAiTransform() (SchemasAiTransform, error) {
-	var body SchemasAiTransform
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromSchemasAiTransform overwrites any union data inside the ProviderTransform as the provided SchemasAiTransform
-func (t *ProviderTransform) FromSchemasAiTransform(v SchemasAiTransform) error {
-	v.Type = "ai"
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeSchemasAiTransform performs a merge with any union data inside the ProviderTransform, using the provided SchemasAiTransform
-func (t *ProviderTransform) MergeSchemasAiTransform(v SchemasAiTransform) error {
-	v.Type = "ai"
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t ProviderTransform) Discriminator() (string, error) {
-	var discriminator struct {
-		Discriminator string `json:"type"`
-	}
-	err := json.Unmarshal(t.union, &discriminator)
-	return discriminator.Discriminator, err
-}
-
-func (t ProviderTransform) ValueByDiscriminator() (interface{}, error) {
-	discriminator, err := t.Discriminator()
-	if err != nil {
-		return nil, err
-	}
-	switch discriminator {
-	case "ai":
-		return t.AsSchemasAiTransform()
-	case "javascript":
-		return t.AsSchemasJavascriptTransform()
-	case "static":
-		return t.AsStaticProviderTransform()
-	default:
-		return nil, errors.New("unknown discriminator value: " + discriminator)
-	}
-}
-
-func (t ProviderTransform) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *ProviderTransform) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -17351,6 +17307,34 @@ func (t *SchemasFlowModuleValue) MergeSchemasAiAgent(v SchemasAiAgent) error {
 	return err
 }
 
+// AsSchemasAiDecision returns the union data inside the SchemasFlowModuleValue as a SchemasAiDecision
+func (t SchemasFlowModuleValue) AsSchemasAiDecision() (SchemasAiDecision, error) {
+	var body SchemasAiDecision
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasAiDecision overwrites any union data inside the SchemasFlowModuleValue as the provided SchemasAiDecision
+func (t *SchemasFlowModuleValue) FromSchemasAiDecision(v SchemasAiDecision) error {
+	v.Type = "aidecision"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasAiDecision performs a merge with any union data inside the SchemasFlowModuleValue, using the provided SchemasAiDecision
+func (t *SchemasFlowModuleValue) MergeSchemasAiDecision(v SchemasAiDecision) error {
+	v.Type = "aidecision"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t SchemasFlowModuleValue) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -17367,6 +17351,8 @@ func (t SchemasFlowModuleValue) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "aiagent":
 		return t.AsSchemasAiAgent()
+	case "aidecision":
+		return t.AsSchemasAiDecision()
 	case "branchall":
 		return t.AsSchemasBranchAll()
 	case "branchone":
@@ -17806,6 +17792,125 @@ func (t SchemasMemoryConfig) MarshalJSON() ([]byte, error) {
 }
 
 func (t *SchemasMemoryConfig) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsStaticProviderTransform returns the union data inside the SchemasProviderTransform as a StaticProviderTransform
+func (t SchemasProviderTransform) AsStaticProviderTransform() (StaticProviderTransform, error) {
+	var body StaticProviderTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromStaticProviderTransform overwrites any union data inside the SchemasProviderTransform as the provided StaticProviderTransform
+func (t *SchemasProviderTransform) FromStaticProviderTransform(v StaticProviderTransform) error {
+	v.Type = "static"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeStaticProviderTransform performs a merge with any union data inside the SchemasProviderTransform, using the provided StaticProviderTransform
+func (t *SchemasProviderTransform) MergeStaticProviderTransform(v StaticProviderTransform) error {
+	v.Type = "static"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasJavascriptTransform returns the union data inside the SchemasProviderTransform as a SchemasJavascriptTransform
+func (t SchemasProviderTransform) AsSchemasJavascriptTransform() (SchemasJavascriptTransform, error) {
+	var body SchemasJavascriptTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasJavascriptTransform overwrites any union data inside the SchemasProviderTransform as the provided SchemasJavascriptTransform
+func (t *SchemasProviderTransform) FromSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
+	v.Type = "javascript"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasJavascriptTransform performs a merge with any union data inside the SchemasProviderTransform, using the provided SchemasJavascriptTransform
+func (t *SchemasProviderTransform) MergeSchemasJavascriptTransform(v SchemasJavascriptTransform) error {
+	v.Type = "javascript"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasAiTransform returns the union data inside the SchemasProviderTransform as a SchemasAiTransform
+func (t SchemasProviderTransform) AsSchemasAiTransform() (SchemasAiTransform, error) {
+	var body SchemasAiTransform
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasAiTransform overwrites any union data inside the SchemasProviderTransform as the provided SchemasAiTransform
+func (t *SchemasProviderTransform) FromSchemasAiTransform(v SchemasAiTransform) error {
+	v.Type = "ai"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasAiTransform performs a merge with any union data inside the SchemasProviderTransform, using the provided SchemasAiTransform
+func (t *SchemasProviderTransform) MergeSchemasAiTransform(v SchemasAiTransform) error {
+	v.Type = "ai"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t SchemasProviderTransform) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t SchemasProviderTransform) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "ai":
+		return t.AsSchemasAiTransform()
+	case "javascript":
+		return t.AsSchemasJavascriptTransform()
+	case "static":
+		return t.AsStaticProviderTransform()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t SchemasProviderTransform) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *SchemasProviderTransform) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -113190,6 +113295,9 @@ type GetBillableSeatsResponse struct {
 		// Operators Omitted when the seats counted are another workspace's, as they are for a fork resolving to its billing root.
 		Operators *int `json:"operators,omitempty"`
 		Seats     int  `json:"seats"`
+
+		// ServiceAccounts Enabled service accounts, half a seat each like operators. Omitted when the seats counted are another workspace's, as they are for a fork resolving to its billing root.
+		ServiceAccounts *int `json:"service_accounts,omitempty"`
 	}
 }
 
@@ -146542,6 +146650,9 @@ func ParseGetBillableSeatsResponse(rsp *http.Response) (*GetBillableSeatsRespons
 			// Operators Omitted when the seats counted are another workspace's, as they are for a fork resolving to its billing root.
 			Operators *int `json:"operators,omitempty"`
 			Seats     int  `json:"seats"`
+
+			// ServiceAccounts Enabled service accounts, half a seat each like operators. Omitted when the seats counted are another workspace's, as they are for a fork resolving to its billing root.
+			ServiceAccounts *int `json:"service_accounts,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
