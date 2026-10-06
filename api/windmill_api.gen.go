@@ -12046,6 +12046,12 @@ type ListFilteredJobsUuidsParamsStatus string
 // ListSelectedJobGroupsJSONBody defines parameters for ListSelectedJobGroups.
 type ListSelectedJobGroupsJSONBody = []openapi_types.UUID
 
+// GetOldestJobParams defines parameters for GetOldestJob.
+type GetOldestJobParams struct {
+	// AllWorkspaces consider jobs from all workspaces (only valid if request come from the `admins` workspace)
+	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
+}
+
 // CancelSelectionJSONBody defines parameters for CancelSelection.
 type CancelSelectionJSONBody = []string
 
@@ -19737,6 +19743,9 @@ type ClientInterface interface {
 	ListSelectedJobGroupsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ListSelectedJobGroups(ctx context.Context, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetOldestJob request
+	GetOldestJob(ctx context.Context, workspace WorkspaceId, params *GetOldestJobParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CancelSelectionWithBody request with any body
 	CancelSelectionWithBody(ctx context.Context, workspace WorkspaceId, params *CancelSelectionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -29089,6 +29098,18 @@ func (c *Client) ListSelectedJobGroupsWithBody(ctx context.Context, workspace Wo
 
 func (c *Client) ListSelectedJobGroups(ctx context.Context, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListSelectedJobGroupsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetOldestJob(ctx context.Context, workspace WorkspaceId, params *GetOldestJobParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOldestJobRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -64055,6 +64076,62 @@ func NewListSelectedJobGroupsRequestWithBody(server string, workspace WorkspaceI
 	return req, nil
 }
 
+// NewGetOldestJobRequest generates requests for GetOldestJob
+func NewGetOldestJobRequest(server string, workspace WorkspaceId, params *GetOldestJobParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/oldest", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.AllWorkspaces != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCancelSelectionRequest calls the generic CancelSelection builder with application/json body
 func NewCancelSelectionRequest(server string, workspace WorkspaceId, params *CancelSelectionParams, body CancelSelectionJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -92589,6 +92666,9 @@ type ClientWithResponsesInterface interface {
 
 	ListSelectedJobGroupsWithResponse(ctx context.Context, workspace WorkspaceId, body ListSelectedJobGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*ListSelectedJobGroupsResponse, error)
 
+	// GetOldestJobWithResponse request
+	GetOldestJobWithResponse(ctx context.Context, workspace WorkspaceId, params *GetOldestJobParams, reqEditors ...RequestEditorFn) (*GetOldestJobResponse, error)
+
 	// CancelSelectionWithBodyWithResponse request with any body
 	CancelSelectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CancelSelectionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CancelSelectionResponse, error)
 
@@ -105656,6 +105736,30 @@ func (r ListSelectedJobGroupsResponse) StatusCode() int {
 	return 0
 }
 
+type GetOldestJobResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		CreatedAt *time.Time `json:"created_at,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetOldestJobResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOldestJobResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CancelSelectionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -115435,6 +115539,8 @@ type GetPremiumInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
+		// IsCanceled the team plan was canceled this month; it stays premium until the month ends, capped at max_tolerated_executions
+		IsCanceled             *bool    `json:"is_canceled,omitempty"`
 		IsPastDue              bool     `json:"is_past_due"`
 		MaxToleratedExecutions *float32 `json:"max_tolerated_executions,omitempty"`
 		Owner                  string   `json:"owner"`
@@ -122126,6 +122232,15 @@ func (c *ClientWithResponses) ListSelectedJobGroupsWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseListSelectedJobGroupsResponse(rsp)
+}
+
+// GetOldestJobWithResponse request returning *GetOldestJobResponse
+func (c *ClientWithResponses) GetOldestJobWithResponse(ctx context.Context, workspace WorkspaceId, params *GetOldestJobParams, reqEditors ...RequestEditorFn) (*GetOldestJobResponse, error) {
+	rsp, err := c.GetOldestJob(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOldestJobResponse(rsp)
 }
 
 // CancelSelectionWithBodyWithResponse request with arbitrary body returning *CancelSelectionResponse
@@ -139041,6 +139156,34 @@ func ParseListSelectedJobGroupsResponse(rsp *http.Response) (*ListSelectedJobGro
 	return response, nil
 }
 
+// ParseGetOldestJobResponse parses an HTTP response from a GetOldestJobWithResponse call
+func ParseGetOldestJobResponse(rsp *http.Response) (*GetOldestJobResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetOldestJobResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CreatedAt *time.Time `json:"created_at,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCancelSelectionResponse parses an HTTP response from a CancelSelectionWithResponse call
 func ParseCancelSelectionResponse(rsp *http.Response) (*CancelSelectionResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -148837,6 +148980,8 @@ func ParseGetPremiumInfoResponse(rsp *http.Response) (*GetPremiumInfoResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
+			// IsCanceled the team plan was canceled this month; it stays premium until the month ends, capped at max_tolerated_executions
+			IsCanceled             *bool    `json:"is_canceled,omitempty"`
 			IsPastDue              bool     `json:"is_past_due"`
 			MaxToleratedExecutions *float32 `json:"max_tolerated_executions,omitempty"`
 			Owner                  string   `json:"owner"`
