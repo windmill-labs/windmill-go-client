@@ -8346,9 +8346,9 @@ type SchemasAiAgent struct {
 // SchemasAiAgentType defines model for SchemasAiAgent.Type.
 type SchemasAiAgentType string
 
-// SchemasAiDecision AI decision step: one call to a decision model (TypeSafe's Jev, or Cloudflare's
-// Jev-compatible Clef) that answers typed questions about a state with calibrated
-// probabilities, instead of generating text.
+// SchemasAiDecision AI decision step: one call to a decision model (TypeSafe's Jev, Cloudflare's
+// Jev-compatible Clef, or OpenAI's Decisions API) that answers typed questions about a
+// state with calibrated probabilities, instead of generating text.
 // Prefer it over an AI agent to classify, route, score or check something: it is fast,
 // cheap and its answers are structured. Its result is { output: { <question name>: answer },
 // model, usage }, so a later step reads e.g. results.<id>.output.intent.choice. To route on
