@@ -5038,7 +5038,10 @@ type InstanceDatatableRole struct {
 	Cluster DatatableRoleCluster `json:"cluster"`
 	Enabled bool                 `json:"enabled"`
 	Id      string               `json:"id"`
-	Name    string               `json:"name"`
+
+	// InUse Whether any data table, in any workspace, lets someone connect as this role. Only set in a data table's available_roles.
+	InUse *bool  `json:"in_use,omitempty"`
+	Name  string `json:"name"`
 }
 
 // InstanceGroup defines model for InstanceGroup.
@@ -6958,7 +6961,7 @@ type Retry struct {
 		Seconds *int `json:"seconds,omitempty"`
 	} `json:"constant,omitempty"`
 
-	// Exponential Retry with exponential backoff (delay doubles each time)
+	// Exponential Retry with exponential backoff: the n-th retry waits multiplier × seconds^n
 	Exponential *struct {
 		// Attempts Number of retry attempts
 		Attempts *int `json:"attempts,omitempty"`
@@ -6969,7 +6972,7 @@ type Retry struct {
 		// RandomFactor Random jitter percentage (0-100) to avoid thundering herd
 		RandomFactor *int `json:"random_factor,omitempty"`
 
-		// Seconds Initial delay in seconds
+		// Seconds Base of the exponential (seconds); the n-th retry waits multiplier × seconds^n, where n counts constant retries too
 		Seconds *int `json:"seconds,omitempty"`
 	} `json:"exponential,omitempty"`
 
@@ -8939,7 +8942,7 @@ type SchemasRetry struct {
 		Seconds *int `json:"seconds,omitempty"`
 	} `json:"constant,omitempty"`
 
-	// Exponential Retry with exponential backoff (delay doubles each time)
+	// Exponential Retry with exponential backoff: the n-th retry waits multiplier × seconds^n
 	Exponential *struct {
 		// Attempts Number of retry attempts
 		Attempts *int `json:"attempts,omitempty"`
@@ -8950,7 +8953,7 @@ type SchemasRetry struct {
 		// RandomFactor Random jitter percentage (0-100) to avoid thundering herd
 		RandomFactor *int `json:"random_factor,omitempty"`
 
-		// Seconds Initial delay in seconds
+		// Seconds Base of the exponential (seconds); the n-th retry waits multiplier × seconds^n, where n counts constant retries too
 		Seconds *int `json:"seconds,omitempty"`
 	} `json:"exponential,omitempty"`
 
@@ -9138,6 +9141,9 @@ type ResourceName = string
 
 // ResultFilter defines model for ResultFilter.
 type ResultFilter = string
+
+// RunRetry defines model for RunRetry.
+type RunRetry = string
 
 // RunnableId defines model for RunnableId.
 type RunnableId = string
@@ -9487,6 +9493,9 @@ type CreateInstanceDatatableRoleJSONBody struct {
 	// Cluster The Windmill-managed Postgres cluster a data table role is a login on: Windmill's own (behind `instance` data tables) or the external instance cluster (behind `external_instance` ones). Defaults to `instance`.
 	Cluster *DatatableRoleCluster `json:"cluster,omitempty"`
 	Name    string                `json:"name"`
+
+	// TakeOver manage a Postgres role of that name that already exists on the cluster, replacing its password, instead of refusing it. A role with cluster-wide attributes or memberships is refused either way
+	TakeOver *bool `json:"take_over,omitempty"`
 }
 
 // UpdateInstanceDatatableRoleJSONBody defines parameters for UpdateInstanceDatatableRole.
@@ -12413,6 +12422,9 @@ type RunScriptByHashParams struct {
 	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
 
+	// Retry JSON-encoded retry policy (same shape as a schedule's retry) re-running the job when it fails. The returned id is the first attempt's; each retry is a job of its own, recorded as a child of the first attempt. Not supported for hub scripts, with invisible_to_owner, or for a script whose preprocessor would run.
+	Retry *RunRetry `form:"retry,omitempty" json:"retry,omitempty"`
+
 	// IncludeHeader List of headers's keys (separated with ',') whove value are added to the args
 	// Header's key lowercased and '-'' replaced to '_' such that 'Content-Type' becomes the 'content_type' arg key
 	IncludeHeader *IncludeHeader `form:"include_header,omitempty" json:"include_header,omitempty"`
@@ -12443,6 +12455,9 @@ type RunScriptByPathParams struct {
 
 	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
 	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+
+	// Retry JSON-encoded retry policy (same shape as a schedule's retry) re-running the job when it fails. The returned id is the first attempt's; each retry is a job of its own, recorded as a child of the first attempt. Not supported for hub scripts, with invisible_to_owner, or for a script whose preprocessor would run.
+	Retry *RunRetry `form:"retry,omitempty" json:"retry,omitempty"`
 
 	// InvisibleToOwner make the run invisible to the the script owner (default false)
 	InvisibleToOwner *bool `form:"invisible_to_owner,omitempty" json:"invisible_to_owner,omitempty"`
@@ -66547,6 +66562,22 @@ func NewRunScriptByHashRequestWithBody(server string, workspace WorkspaceId, has
 
 		}
 
+		if params.Retry != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "retry", runtime.ParamLocationQuery, *params.Retry); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.IncludeHeader != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_header", runtime.ParamLocationQuery, *params.IncludeHeader); err != nil {
@@ -66738,6 +66769,22 @@ func NewRunScriptByPathRequestWithBody(server string, workspace WorkspaceId, pat
 		if params.JobId != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Retry != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "retry", runtime.ParamLocationQuery, *params.Retry); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
