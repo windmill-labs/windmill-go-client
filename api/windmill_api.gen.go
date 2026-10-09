@@ -218,6 +218,7 @@ const (
 	OauthSignup                    AuditLogOperation = "oauth.signup"
 	ResourceTypesCreate            AuditLogOperation = "resource_types.create"
 	ResourceTypesDelete            AuditLogOperation = "resource_types.delete"
+	ResourceTypesSync              AuditLogOperation = "resource_types.sync"
 	ResourceTypesUpdate            AuditLogOperation = "resource_types.update"
 	ResourcesCreate                AuditLogOperation = "resources.create"
 	ResourcesDelete                AuditLogOperation = "resources.delete"
@@ -6452,6 +6453,9 @@ type OperatorSettings struct {
 
 	// AuditLogs Whether operators can view audit logs
 	AuditLogs bool `json:"audit_logs"`
+
+	// BuilderApps Whether operators can compose full-code apps out of existing runnables (consumes a full seat). Omitting the field leaves the stored value unchanged.
+	BuilderApps *bool `json:"builder_apps,omitempty"`
 
 	// BuilderFlows Whether operators can compose flows out of existing runnables (consumes a full seat). Omitting the field leaves the stored value unchanged.
 	BuilderFlows *bool `json:"builder_flows,omitempty"`
