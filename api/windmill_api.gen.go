@@ -1700,6 +1700,13 @@ const (
 	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
 )
 
+// Defines values for GetRunnableStatsParamsOrderBy.
+const (
+	Cpu           GetRunnableStatsParamsOrderBy = "cpu"
+	MaxMemory     GetRunnableStatsParamsOrderBy = "max_memory"
+	TotalDuration GetRunnableStatsParamsOrderBy = "total_duration"
+)
+
 // AIConfig defines model for AIConfig.
 type AIConfig struct {
 	CodeCompletionModel *AIProviderModel `json:"code_completion_model,omitempty"`
@@ -7036,6 +7043,27 @@ type RunnableItemType string
 // RunnableKind defines model for RunnableKind.
 type RunnableKind string
 
+// RunnableStats Resource usage of the jobs of one runnable on one worker group. Memory and CPU are only known for jobs run as a subprocess; memory is the peak of the job's main process.
+type RunnableStats struct {
+	JobCount int `json:"job_count"`
+
+	// MaxMemoryPeak highest peak memory of a job, in kB
+	MaxMemoryPeak int `json:"max_memory_peak"`
+
+	// MemorySampleCount number of jobs that have a peak memory reading
+	MemorySampleCount int `json:"memory_sample_count"`
+
+	// RunnablePath path of the script or flow step; `<adhoc>` gathers previews and other runs without a stable path
+	RunnablePath string `json:"runnable_path"`
+
+	// SumMemoryPeak sum of the peak memory of the jobs that have one, in kB
+	SumMemoryPeak   int    `json:"sum_memory_peak"`
+	TotalCpuMs      int    `json:"total_cpu_ms"`
+	TotalDurationMs int    `json:"total_duration_ms"`
+	WorkerGroup     string `json:"worker_group"`
+	WorkspaceId     string `json:"workspace_id"`
+}
+
 // RunnableType defines model for RunnableType.
 type RunnableType string
 
@@ -8013,7 +8041,10 @@ type WindmillLargeFile struct {
 
 // WorkerPing defines model for WorkerPing.
 type WorkerPing struct {
-	CustomTags         *[]string `json:"custom_tags,omitempty"`
+	CustomTags *[]string `json:"custom_tags,omitempty"`
+
+	// Draining the worker received its shutdown signal and exits once its current job is done
+	Draining           *bool     `json:"draining,omitempty"`
 	Ip                 string    `json:"ip"`
 	JobIsolation       *string   `json:"job_isolation,omitempty"`
 	JobsExecuted       int       `json:"jobs_executed"`
@@ -10648,6 +10679,12 @@ type CreateDeploymentRequestCommentJSONBody struct {
 	AnchorPath *string `json:"anchor_path"`
 	Body       string  `json:"body"`
 	ParentId   *int64  `json:"parent_id"`
+}
+
+// DeleteDraftForUserParams defines parameters for DeleteDraftForUser.
+type DeleteDraftForUserParams struct {
+	// Username Workspace username of the draft owner. Omit to delete every user's draft at the path.
+	Username *string `form:"username,omitempty" json:"username,omitempty"`
 }
 
 // GetDraftForUserParams defines parameters for GetDraftForUser.
@@ -14469,6 +14506,27 @@ type GetQueueMetricsSeriesParams struct {
 	// WindowSecs how far back to read, in seconds (defaults to one day, capped at the 14-day retention)
 	WindowSecs *int `form:"window_secs,omitempty" json:"window_secs,omitempty"`
 }
+
+// GetRunnableStatsParams defines parameters for GetRunnableStats.
+type GetRunnableStatsParams struct {
+	// WindowSecs how far back to read, in seconds (defaults to one day, capped at the 30-day retention)
+	WindowSecs *int `form:"window_secs,omitempty" json:"window_secs,omitempty"`
+
+	// WorkerGroup only the jobs run by this worker group
+	WorkerGroup *string `form:"worker_group,omitempty" json:"worker_group,omitempty"`
+
+	// Workspace only the jobs of this workspace
+	Workspace *string `form:"workspace,omitempty" json:"workspace,omitempty"`
+
+	// OrderBy what the rows are ranked by, descending (default: total_duration)
+	OrderBy *GetRunnableStatsParamsOrderBy `form:"order_by,omitempty" json:"order_by,omitempty"`
+
+	// Limit number of rows to return (default 100, at most 1000)
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// GetRunnableStatsParamsOrderBy defines parameters for GetRunnableStats.
+type GetRunnableStatsParamsOrderBy string
 
 // DeleteWorkspaceParams defines parameters for DeleteWorkspace.
 type DeleteWorkspaceParams struct {
@@ -19105,6 +19163,9 @@ type ClientInterface interface {
 
 	CreateDeploymentRequestComment(ctx context.Context, workspace WorkspaceId, id int64, body CreateDeploymentRequestCommentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteDraftForUser request
+	DeleteDraftForUser(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *DeleteDraftForUserParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetDraftForUser request
 	GetDraftForUser(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -19956,6 +20017,9 @@ type ClientInterface interface {
 
 	// GetWacApprovalUrls request
 	GetWacApprovalUrls(ctx context.Context, workspace WorkspaceId, id JobId, stepKey string, params *GetWacApprovalUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// WorkerIsDraining request
+	WorkerIsDraining(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunCodeWorkflowTaskWithBody request with any body
 	RunCodeWorkflowTaskWithBody(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -21395,6 +21459,9 @@ type ClientInterface interface {
 
 	// GetQueueStatus request
 	GetQueueStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetRunnableStats request
+	GetRunnableStats(ctx context.Context, params *GetRunnableStatsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetWorkspaceFairnessEvents request
 	GetWorkspaceFairnessEvents(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -26219,6 +26286,18 @@ func (c *Client) CreateDeploymentRequestComment(ctx context.Context, workspace W
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeleteDraftForUser(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *DeleteDraftForUserParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteDraftForUserRequest(c.Server, workspace, kind, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetDraftForUser(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetDraftForUserRequest(c.Server, workspace, kind, path, params)
 	if err != nil {
@@ -30013,6 +30092,18 @@ func (c *Client) GetTeamsApprovalPayload(ctx context.Context, workspace Workspac
 
 func (c *Client) GetWacApprovalUrls(ctx context.Context, workspace WorkspaceId, id JobId, stepKey string, params *GetWacApprovalUrlsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetWacApprovalUrlsRequest(c.Server, workspace, id, stepKey, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) WorkerIsDraining(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewWorkerIsDrainingRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -36349,6 +36440,18 @@ func (c *Client) GetCountsOfRunningJobsPerTag(ctx context.Context, reqEditors ..
 
 func (c *Client) GetQueueStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetQueueStatusRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetRunnableStats(ctx context.Context, params *GetRunnableStatsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRunnableStatsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -51585,6 +51688,76 @@ func NewCreateDeploymentRequestCommentRequestWithBody(server string, workspace W
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteDraftForUserRequest generates requests for DeleteDraftForUser
+func NewDeleteDraftForUserRequest(server string, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *DeleteDraftForUserParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "kind", runtime.ParamLocationPath, kind)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/drafts/delete_for_user/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Username != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "username", runtime.ParamLocationQuery, *params.Username); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -69990,6 +70163,47 @@ func NewGetWacApprovalUrlsRequest(server string, workspace WorkspaceId, id JobId
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewWorkerIsDrainingRequest generates requests for WorkerIsDraining
+func NewWorkerIsDrainingRequest(server string, workspace WorkspaceId, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/worker_is_draining/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -90457,6 +90671,119 @@ func NewGetQueueStatusRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGetRunnableStatsRequest generates requests for GetRunnableStats
+func NewGetRunnableStatsRequest(server string, params *GetRunnableStatsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workers/runnable_stats")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.WindowSecs != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "window_secs", runtime.ParamLocationQuery, *params.WindowSecs); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.WorkerGroup != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "worker_group", runtime.ParamLocationQuery, *params.WorkerGroup); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Workspace != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "workspace", runtime.ParamLocationQuery, *params.Workspace); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.OrderBy != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order_by", runtime.ParamLocationQuery, *params.OrderBy); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetWorkspaceFairnessEventsRequest generates requests for GetWorkspaceFairnessEvents
 func NewGetWorkspaceFairnessEventsRequest(server string) (*http.Request, error) {
 	var err error
@@ -92059,6 +92386,9 @@ type ClientWithResponsesInterface interface {
 
 	CreateDeploymentRequestCommentWithResponse(ctx context.Context, workspace WorkspaceId, id int64, body CreateDeploymentRequestCommentJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDeploymentRequestCommentResponse, error)
 
+	// DeleteDraftForUserWithResponse request
+	DeleteDraftForUserWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *DeleteDraftForUserParams, reqEditors ...RequestEditorFn) (*DeleteDraftForUserResponse, error)
+
 	// GetDraftForUserWithResponse request
 	GetDraftForUserWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*GetDraftForUserResponse, error)
 
@@ -92910,6 +93240,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetWacApprovalUrlsWithResponse request
 	GetWacApprovalUrlsWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, stepKey string, params *GetWacApprovalUrlsParams, reqEditors ...RequestEditorFn) (*GetWacApprovalUrlsResponse, error)
+
+	// WorkerIsDrainingWithResponse request
+	WorkerIsDrainingWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*WorkerIsDrainingResponse, error)
 
 	// RunCodeWorkflowTaskWithBodyWithResponse request with any body
 	RunCodeWorkflowTaskWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, jobId string, entrypoint string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunCodeWorkflowTaskResponse, error)
@@ -94349,6 +94682,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetQueueStatusWithResponse request
 	GetQueueStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueStatusResponse, error)
+
+	// GetRunnableStatsWithResponse request
+	GetRunnableStatsWithResponse(ctx context.Context, params *GetRunnableStatsParams, reqEditors ...RequestEditorFn) (*GetRunnableStatsResponse, error)
 
 	// GetWorkspaceFairnessEventsWithResponse request
 	GetWorkspaceFairnessEventsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWorkspaceFairnessEventsResponse, error)
@@ -97040,6 +97376,7 @@ type GetInstanceUiResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		AccentColor    *interface{} `json:"accent_color,omitempty"`
+		ApiBaseUrl     *interface{} `json:"api_base_url,omitempty"`
 		InstanceBanner *interface{} `json:"instance_banner,omitempty"`
 	}
 }
@@ -101630,6 +101967,27 @@ func (r CreateDeploymentRequestCommentResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateDeploymentRequestCommentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteDraftForUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteDraftForUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteDraftForUserResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -106836,6 +107194,28 @@ func (r GetWacApprovalUrlsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetWacApprovalUrlsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type WorkerIsDrainingResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r WorkerIsDrainingResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r WorkerIsDrainingResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -116426,6 +116806,28 @@ func (r GetQueueStatusResponse) StatusCode() int {
 	return 0
 }
 
+type GetRunnableStatsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]RunnableStats
+}
+
+// Status returns HTTPResponse.Status
+func (r GetRunnableStatsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetRunnableStatsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetWorkspaceFairnessEventsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -120175,6 +120577,15 @@ func (c *ClientWithResponses) CreateDeploymentRequestCommentWithResponse(ctx con
 	return ParseCreateDeploymentRequestCommentResponse(rsp)
 }
 
+// DeleteDraftForUserWithResponse request returning *DeleteDraftForUserResponse
+func (c *ClientWithResponses) DeleteDraftForUserWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *DeleteDraftForUserParams, reqEditors ...RequestEditorFn) (*DeleteDraftForUserResponse, error) {
+	rsp, err := c.DeleteDraftForUser(ctx, workspace, kind, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteDraftForUserResponse(rsp)
+}
+
 // GetDraftForUserWithResponse request returning *GetDraftForUserResponse
 func (c *ClientWithResponses) GetDraftForUserWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, params *GetDraftForUserParams, reqEditors ...RequestEditorFn) (*GetDraftForUserResponse, error) {
 	rsp, err := c.GetDraftForUser(ctx, workspace, kind, path, params, reqEditors...)
@@ -122927,6 +123338,15 @@ func (c *ClientWithResponses) GetWacApprovalUrlsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseGetWacApprovalUrlsResponse(rsp)
+}
+
+// WorkerIsDrainingWithResponse request returning *WorkerIsDrainingResponse
+func (c *ClientWithResponses) WorkerIsDrainingWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*WorkerIsDrainingResponse, error) {
+	rsp, err := c.WorkerIsDraining(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseWorkerIsDrainingResponse(rsp)
 }
 
 // RunCodeWorkflowTaskWithBodyWithResponse request with arbitrary body returning *RunCodeWorkflowTaskResponse
@@ -127536,6 +127956,15 @@ func (c *ClientWithResponses) GetQueueStatusWithResponse(ctx context.Context, re
 	return ParseGetQueueStatusResponse(rsp)
 }
 
+// GetRunnableStatsWithResponse request returning *GetRunnableStatsResponse
+func (c *ClientWithResponses) GetRunnableStatsWithResponse(ctx context.Context, params *GetRunnableStatsParams, reqEditors ...RequestEditorFn) (*GetRunnableStatsResponse, error) {
+	rsp, err := c.GetRunnableStats(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetRunnableStatsResponse(rsp)
+}
+
 // GetWorkspaceFairnessEventsWithResponse request returning *GetWorkspaceFairnessEventsResponse
 func (c *ClientWithResponses) GetWorkspaceFairnessEventsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWorkspaceFairnessEventsResponse, error) {
 	rsp, err := c.GetWorkspaceFairnessEvents(ctx, reqEditors...)
@@ -130463,6 +130892,7 @@ func ParseGetInstanceUiResponse(rsp *http.Response) (*GetInstanceUiResponse, err
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			AccentColor    *interface{} `json:"accent_color,omitempty"`
+			ApiBaseUrl     *interface{} `json:"api_base_url,omitempty"`
 			InstanceBanner *interface{} `json:"instance_banner,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -135096,6 +135526,22 @@ func ParseCreateDeploymentRequestCommentResponse(rsp *http.Response) (*CreateDep
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseDeleteDraftForUserResponse parses an HTTP response from a DeleteDraftForUserWithResponse call
+func ParseDeleteDraftForUserResponse(rsp *http.Response) (*DeleteDraftForUserResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteDraftForUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -140228,6 +140674,32 @@ func ParseGetWacApprovalUrlsResponse(rsp *http.Response) (*GetWacApprovalUrlsRes
 			Cancel       string `json:"cancel"`
 			Resume       string `json:"resume"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseWorkerIsDrainingResponse parses an HTTP response from a WorkerIsDrainingWithResponse call
+func ParseWorkerIsDrainingResponse(rsp *http.Response) (*WorkerIsDrainingResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &WorkerIsDrainingResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -149868,6 +150340,32 @@ func ParseGetQueueStatusResponse(rsp *http.Response) (*GetQueueStatusResponse, e
 			// Workers workers that pinged in the last minute and pull this tag
 			Workers int `json:"workers"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetRunnableStatsResponse parses an HTTP response from a GetRunnableStatsWithResponse call
+func ParseGetRunnableStatsResponse(rsp *http.Response) (*GetRunnableStatsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetRunnableStatsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []RunnableStats
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
