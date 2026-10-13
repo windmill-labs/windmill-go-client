@@ -2849,8 +2849,11 @@ type DataTableTables struct {
 	Error            *string  `json:"error,omitempty"`
 
 	// Instance on the instance database, the only kind that can be under roles or have its access edited
-	Instance     bool `json:"instance"`
-	Permissioned bool `json:"permissioned"`
+	Instance bool `json:"instance"`
+
+	// MigrationsEnabled whether its schema is kept as versioned migrations, which a change made with plain SQL would bypass
+	MigrationsEnabled bool `json:"migrations_enabled"`
+	Permissioned      bool `json:"permissioned"`
 
 	// Schemas Hierarchical metadata: schema_name -> table_names
 	Schemas map[string][]string `json:"schemas"`
@@ -2926,7 +2929,9 @@ type DatatablePermissions struct {
 	} `json:"clone_of,omitempty"`
 
 	// Cluster The Windmill-managed Postgres cluster a data table role is a login on: Windmill's own (behind `instance` data tables) or the external instance cluster (behind `external_instance` ones). Defaults to `instance`.
-	Cluster              *DatatableRoleCluster  `json:"cluster,omitempty"`
+	Cluster *DatatableRoleCluster `json:"cluster,omitempty"`
+
+	// DefaultRole A role id, `admin`, or `$none` when the data table has no default role.
 	DefaultRole          string                 `json:"default_role"`
 	Editable             bool                   `json:"editable"`
 	GoverningWorkspaceId *string                `json:"governing_workspace_id,omitempty"`
@@ -9234,6 +9239,15 @@ type Success = bool
 // Suspended defines model for Suspended.
 type Suspended = bool
 
+// TablePreviewCsvHasHeader defines model for TablePreviewCsvHasHeader.
+type TablePreviewCsvHasHeader = bool
+
+// TablePreviewFilters defines model for TablePreviewFilters.
+type TablePreviewFilters = string
+
+// TablePreviewS3ResourcePath defines model for TablePreviewS3ResourcePath.
+type TablePreviewS3ResourcePath = string
+
 // Tag defines model for Tag.
 type Tag = string
 
@@ -11567,14 +11581,23 @@ type ListStoredFilesPagedParams struct {
 
 // LoadCsvPreviewParams defines parameters for LoadCsvPreview.
 type LoadCsvPreviewParams struct {
-	Offset       *float32 `form:"offset,omitempty" json:"offset,omitempty"`
-	Limit        *float32 `form:"limit,omitempty" json:"limit,omitempty"`
-	SortCol      *string  `form:"sort_col,omitempty" json:"sort_col,omitempty"`
-	SortDesc     *bool    `form:"sort_desc,omitempty" json:"sort_desc,omitempty"`
-	SearchCol    *string  `form:"search_col,omitempty" json:"search_col,omitempty"`
-	SearchTerm   *string  `form:"search_term,omitempty" json:"search_term,omitempty"`
-	Storage      *string  `form:"storage,omitempty" json:"storage,omitempty"`
-	CsvSeparator *string  `form:"csv_separator,omitempty" json:"csv_separator,omitempty"`
+	Offset     *float32 `form:"offset,omitempty" json:"offset,omitempty"`
+	Limit      *float32 `form:"limit,omitempty" json:"limit,omitempty"`
+	SortCol    *string  `form:"sort_col,omitempty" json:"sort_col,omitempty"`
+	SortDesc   *bool    `form:"sort_desc,omitempty" json:"sort_desc,omitempty"`
+	SearchCol  *string  `form:"search_col,omitempty" json:"search_col,omitempty"`
+	SearchTerm *string  `form:"search_term,omitempty" json:"search_term,omitempty"`
+	Storage    *string  `form:"storage,omitempty" json:"storage,omitempty"`
+
+	// S3ResourcePath Read the file from this object storage resource instead of the workspace storage.
+	S3ResourcePath *TablePreviewS3ResourcePath `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
+	CsvSeparator   *string                     `form:"csv_separator,omitempty" json:"csv_separator,omitempty"`
+
+	// CsvHasHeader Whether the first CSV line names the columns. Defaults to true.
+	CsvHasHeader *TablePreviewCsvHasHeader `form:"csv_has_header,omitempty" json:"csv_has_header,omitempty"`
+
+	// Filters JSON object, column name to filter. A number column takes an optional comparison operator and a number (`>=10`), a boolean column a boolean, and any other column a case-insensitive substring, or `=value` for an exact match. A `search_term` without a `search_col` matches any column, case-insensitively.
+	Filters *TablePreviewFilters `form:"filters,omitempty" json:"filters,omitempty"`
 }
 
 // LoadFileMetadataParams defines parameters for LoadFileMetadata.
@@ -11628,6 +11651,12 @@ type LoadParquetPreviewParams struct {
 	SearchCol  *string  `form:"search_col,omitempty" json:"search_col,omitempty"`
 	SearchTerm *string  `form:"search_term,omitempty" json:"search_term,omitempty"`
 	Storage    *string  `form:"storage,omitempty" json:"storage,omitempty"`
+
+	// S3ResourcePath Read the file from this object storage resource instead of the workspace storage.
+	S3ResourcePath *TablePreviewS3ResourcePath `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
+
+	// Filters JSON object, column name to filter. A number column takes an optional comparison operator and a number (`>=10`), a boolean column a boolean, and any other column a case-insensitive substring, or `=value` for an exact match. A `search_term` without a `search_col` matches any column, case-insensitively.
+	Filters *TablePreviewFilters `form:"filters,omitempty" json:"filters,omitempty"`
 }
 
 // LoadTableRowCountParams defines parameters for LoadTableRowCount.
@@ -11635,6 +11664,16 @@ type LoadTableRowCountParams struct {
 	SearchCol  *string `form:"search_col,omitempty" json:"search_col,omitempty"`
 	SearchTerm *string `form:"search_term,omitempty" json:"search_term,omitempty"`
 	Storage    *string `form:"storage,omitempty" json:"storage,omitempty"`
+
+	// S3ResourcePath Read the file from this object storage resource instead of the workspace storage.
+	S3ResourcePath *TablePreviewS3ResourcePath `form:"s3_resource_path,omitempty" json:"s3_resource_path,omitempty"`
+	CsvSeparator   *string                     `form:"csv_separator,omitempty" json:"csv_separator,omitempty"`
+
+	// CsvHasHeader Whether the first CSV line names the columns. Defaults to true.
+	CsvHasHeader *TablePreviewCsvHasHeader `form:"csv_has_header,omitempty" json:"csv_has_header,omitempty"`
+
+	// Filters JSON object, column name to filter. A number column takes an optional comparison operator and a number (`>=10`), a boolean column a boolean, and any other column a case-insensitive substring, or `=value` for an exact match. A `search_term` without a `search_col` matches any column, case-insensitively.
+	Filters *TablePreviewFilters `form:"filters,omitempty" json:"filters,omitempty"`
 }
 
 // MoveS3FileParams defines parameters for MoveS3File.
@@ -14138,6 +14177,7 @@ type GetDatatableAclParamsKind string
 
 // SetDatatablePermissionsJSONBody defines parameters for SetDatatablePermissions.
 type SetDatatablePermissionsJSONBody struct {
+	// DefaultRole The id of one of `roles`, `admin` (the default), or `$none` for no default role: a connection that names no role then holds its viewer's roles only.
 	DefaultRole  *string                 `json:"default_role,omitempty"`
 	Permissioned bool                    `json:"permissioned"`
 	Roles        *[]DatatableRoleTenants `json:"roles,omitempty"`
@@ -18332,6 +18372,9 @@ type ClientInterface interface {
 	LoginWithOauthWithBody(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	LoginWithOauth(ctx context.Context, clientName ClientName, body LoginWithOauthJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetOidcSigningStatus request
+	GetOidcSigningStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetOpenApiYaml request
 	GetOpenApiYaml(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -22632,6 +22675,18 @@ func (c *Client) LoginWithOauthWithBody(ctx context.Context, clientName ClientNa
 
 func (c *Client) LoginWithOauth(ctx context.Context, clientName ClientName, body LoginWithOauthJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLoginWithOauthRequest(c.Server, clientName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetOidcSigningStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOidcSigningStatusRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -39511,6 +39566,33 @@ func NewLoginWithOauthRequestWithBody(server string, clientName ClientName, cont
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetOidcSigningStatusRequest generates requests for GetOidcSigningStatus
+func NewGetOidcSigningStatusRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oidc/signing_status")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -59852,9 +59934,57 @@ func NewLoadCsvPreviewRequest(server string, workspace WorkspaceId, path Path, p
 
 		}
 
+		if params.S3ResourcePath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "s3_resource_path", runtime.ParamLocationQuery, *params.S3ResourcePath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.CsvSeparator != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_separator", runtime.ParamLocationQuery, *params.CsvSeparator); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CsvHasHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_has_header", runtime.ParamLocationQuery, *params.CsvHasHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Filters != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "filters", runtime.ParamLocationQuery, *params.Filters); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -60523,6 +60653,38 @@ func NewLoadParquetPreviewRequest(server string, workspace WorkspaceId, path Pat
 
 		}
 
+		if params.S3ResourcePath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "s3_resource_path", runtime.ParamLocationQuery, *params.S3ResourcePath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Filters != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "filters", runtime.ParamLocationQuery, *params.Filters); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -60605,6 +60767,70 @@ func NewLoadTableRowCountRequest(server string, workspace WorkspaceId, path Path
 		if params.Storage != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.S3ResourcePath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "s3_resource_path", runtime.ParamLocationQuery, *params.S3ResourcePath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CsvSeparator != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_separator", runtime.ParamLocationQuery, *params.CsvSeparator); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CsvHasHeader != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "csv_has_header", runtime.ParamLocationQuery, *params.CsvHasHeader); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Filters != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "filters", runtime.ParamLocationQuery, *params.Filters); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -91556,6 +91782,9 @@ type ClientWithResponsesInterface interface {
 
 	LoginWithOauthWithResponse(ctx context.Context, clientName ClientName, body LoginWithOauthJSONRequestBody, reqEditors ...RequestEditorFn) (*LoginWithOauthResponse, error)
 
+	// GetOidcSigningStatusWithResponse request
+	GetOidcSigningStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOidcSigningStatusResponse, error)
+
 	// GetOpenApiYamlWithResponse request
 	GetOpenApiYamlWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOpenApiYamlResponse, error)
 
@@ -96565,6 +96794,55 @@ func (r LoginWithOauthResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LoginWithOauthResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetOidcSigningStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Keys []struct {
+			Alg    string                            `json:"alg"`
+			Kid    *string                           `json:"kid,omitempty"`
+			Source GetOidcSigningStatus200KeysSource `json:"source"`
+			State  GetOidcSigningStatus200KeysState  `json:"state"`
+		} `json:"keys"`
+		Mode GetOidcSigningStatus200Mode `json:"mode"`
+
+		// Signer set when an external signer is configured
+		Signer *struct {
+			Breaker    GetOidcSigningStatus200SignerBreaker `json:"breaker"`
+			CurrentRps float32                              `json:"current_rps"`
+
+			// KeysFromStore the keys served are those stored by the last accepted listing, the signer has not answered this server yet
+			KeysFromStore      *bool      `json:"keys_from_store,omitempty"`
+			LastRefreshError   *string    `json:"last_refresh_error,omitempty"`
+			LastRefreshSuccess *time.Time `json:"last_refresh_success,omitempty"`
+			MaxRps             float32    `json:"max_rps"`
+
+			// TlsFilesError why the mTLS files on disk are not the ones in use
+			TlsFilesError *string `json:"tls_files_error,omitempty"`
+		} `json:"signer,omitempty"`
+	}
+}
+type GetOidcSigningStatus200KeysSource string
+type GetOidcSigningStatus200KeysState string
+type GetOidcSigningStatus200Mode string
+type GetOidcSigningStatus200SignerBreaker string
+
+// Status returns HTTPResponse.Status
+func (r GetOidcSigningStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOidcSigningStatusResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -117923,6 +118201,15 @@ func (c *ClientWithResponses) LoginWithOauthWithResponse(ctx context.Context, cl
 	return ParseLoginWithOauthResponse(rsp)
 }
 
+// GetOidcSigningStatusWithResponse request returning *GetOidcSigningStatusResponse
+func (c *ClientWithResponses) GetOidcSigningStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOidcSigningStatusResponse, error) {
+	rsp, err := c.GetOidcSigningStatus(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOidcSigningStatusResponse(rsp)
+}
+
 // GetOpenApiYamlWithResponse request returning *GetOpenApiYamlResponse
 func (c *ClientWithResponses) GetOpenApiYamlWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOpenApiYamlResponse, error) {
 	rsp, err := c.GetOpenApiYaml(ctx, reqEditors...)
@@ -130033,6 +130320,55 @@ func ParseLoginWithOauthResponse(rsp *http.Response) (*LoginWithOauthResponse, e
 	response := &LoginWithOauthResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetOidcSigningStatusResponse parses an HTTP response from a GetOidcSigningStatusWithResponse call
+func ParseGetOidcSigningStatusResponse(rsp *http.Response) (*GetOidcSigningStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetOidcSigningStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Keys []struct {
+				Alg    string                            `json:"alg"`
+				Kid    *string                           `json:"kid,omitempty"`
+				Source GetOidcSigningStatus200KeysSource `json:"source"`
+				State  GetOidcSigningStatus200KeysState  `json:"state"`
+			} `json:"keys"`
+			Mode GetOidcSigningStatus200Mode `json:"mode"`
+
+			// Signer set when an external signer is configured
+			Signer *struct {
+				Breaker    GetOidcSigningStatus200SignerBreaker `json:"breaker"`
+				CurrentRps float32                              `json:"current_rps"`
+
+				// KeysFromStore the keys served are those stored by the last accepted listing, the signer has not answered this server yet
+				KeysFromStore      *bool      `json:"keys_from_store,omitempty"`
+				LastRefreshError   *string    `json:"last_refresh_error,omitempty"`
+				LastRefreshSuccess *time.Time `json:"last_refresh_success,omitempty"`
+				MaxRps             float32    `json:"max_rps"`
+
+				// TlsFilesError why the mTLS files on disk are not the ones in use
+				TlsFilesError *string `json:"tls_files_error,omitempty"`
+			} `json:"signer,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
