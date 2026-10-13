@@ -18573,6 +18573,9 @@ type ClientInterface interface {
 
 	SetupCustomInstanceDb(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetSmtpConfigured request
+	GetSmtpConfigured(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// TestAwsSmBackendWithBody request with any body
 	TestAwsSmBackendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -23539,6 +23542,18 @@ func (c *Client) SetupCustomInstanceDbWithBody(ctx context.Context, name string,
 
 func (c *Client) SetupCustomInstanceDb(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetupCustomInstanceDbRequest(c.Server, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSmtpConfigured(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSmtpConfiguredRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -41633,6 +41648,33 @@ func NewSetupCustomInstanceDbRequestWithBody(server string, name string, content
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetSmtpConfiguredRequest generates requests for GetSmtpConfigured
+func NewGetSmtpConfiguredRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/smtp_configured")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -91982,6 +92024,9 @@ type ClientWithResponsesInterface interface {
 
 	SetupCustomInstanceDbWithResponse(ctx context.Context, name string, body SetupCustomInstanceDbJSONRequestBody, reqEditors ...RequestEditorFn) (*SetupCustomInstanceDbResponse, error)
 
+	// GetSmtpConfiguredWithResponse request
+	GetSmtpConfiguredWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSmtpConfiguredResponse, error)
+
 	// TestAwsSmBackendWithBodyWithResponse request with any body
 	TestAwsSmBackendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestAwsSmBackendResponse, error)
 
@@ -98150,6 +98195,28 @@ func (r SetupCustomInstanceDbResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SetupCustomInstanceDbResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetSmtpConfiguredResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *bool
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSmtpConfiguredResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSmtpConfiguredResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -118833,6 +118900,15 @@ func (c *ClientWithResponses) SetupCustomInstanceDbWithResponse(ctx context.Cont
 	return ParseSetupCustomInstanceDbResponse(rsp)
 }
 
+// GetSmtpConfiguredWithResponse request returning *GetSmtpConfiguredResponse
+func (c *ClientWithResponses) GetSmtpConfiguredWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSmtpConfiguredResponse, error) {
+	rsp, err := c.GetSmtpConfigured(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSmtpConfiguredResponse(rsp)
+}
+
 // TestAwsSmBackendWithBodyWithResponse request with arbitrary body returning *TestAwsSmBackendResponse
 func (c *ClientWithResponses) TestAwsSmBackendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestAwsSmBackendResponse, error) {
 	rsp, err := c.TestAwsSmBackendWithBody(ctx, contentType, body, reqEditors...)
@@ -131747,6 +131823,32 @@ func ParseSetupCustomInstanceDbResponse(rsp *http.Response) (*SetupCustomInstanc
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest CustomInstanceDb
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSmtpConfiguredResponse parses an HTTP response from a GetSmtpConfiguredWithResponse call
+func ParseGetSmtpConfiguredResponse(rsp *http.Response) (*GetSmtpConfiguredResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSmtpConfiguredResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest bool
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
