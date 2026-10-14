@@ -4587,7 +4587,7 @@ type FlowValue struct {
 	// DeleteAfterSecs If set, delete the flow job's args, result and logs after this many seconds following job completion
 	DeleteAfterSecs *int `json:"delete_after_secs,omitempty"`
 
-	// EarlyReturn JavaScript expression to return early from the flow
+	// EarlyReturn Id of the step whose result a sync webhook returns as soon as that step completes, while the rest of the flow keeps running. When the step does not run, or fails while the flow has a failure module, the flow's final result is returned instead.
 	EarlyReturn *string `json:"early_return,omitempty"`
 
 	// FailureModule A single step in a flow. Can be a script, subflow, loop, or branch
@@ -8793,7 +8793,7 @@ type SchemasFlowValue struct {
 	// DeleteAfterSecs If set, delete the flow job's args, result and logs after this many seconds following job completion
 	DeleteAfterSecs *int `json:"delete_after_secs,omitempty"`
 
-	// EarlyReturn JavaScript expression to return early from the flow
+	// EarlyReturn Id of the step whose result a sync webhook returns as soon as that step completes, while the rest of the flow keeps running. When the step does not run, or fails while the flow has a failure module, the flow's final result is returned instead.
 	EarlyReturn *string `json:"early_return,omitempty"`
 
 	// FailureModule A single step in a flow. Can be a script, subflow, loop, or branch
