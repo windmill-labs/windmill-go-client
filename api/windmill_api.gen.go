@@ -1043,6 +1043,7 @@ const (
 
 // Defines values for RunnableItemType.
 const (
+	RunnableItemTypeAgent  RunnableItemType = "agent"
 	RunnableItemTypeApp    RunnableItemType = "app"
 	RunnableItemTypeFlow   RunnableItemType = "flow"
 	RunnableItemTypeScript RunnableItemType = "script"
@@ -1575,6 +1576,7 @@ const (
 
 // Defines values for StarJSONBodyFavoriteKind.
 const (
+	StarJSONBodyFavoriteKindAgent  StarJSONBodyFavoriteKind = "agent"
 	StarJSONBodyFavoriteKindApp    StarJSONBodyFavoriteKind = "app"
 	StarJSONBodyFavoriteKindAsset  StarJSONBodyFavoriteKind = "asset"
 	StarJSONBodyFavoriteKindFlow   StarJSONBodyFavoriteKind = "flow"
@@ -1584,6 +1586,7 @@ const (
 
 // Defines values for UnstarJSONBodyFavoriteKind.
 const (
+	UnstarJSONBodyFavoriteKindAgent  UnstarJSONBodyFavoriteKind = "agent"
 	UnstarJSONBodyFavoriteKindApp    UnstarJSONBodyFavoriteKind = "app"
 	UnstarJSONBodyFavoriteKindAsset  UnstarJSONBodyFavoriteKind = "asset"
 	UnstarJSONBodyFavoriteKindFlow   UnstarJSONBodyFavoriteKind = "flow"
@@ -1699,6 +1702,12 @@ const (
 const (
 	SetWsSpecificJSONBodyItemKindResource SetWsSpecificJSONBodyItemKind = "resource"
 	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
+)
+
+// Defines values for GetWorkspaceSettingsDocumentParamsSecrets.
+const (
+	Encrypted GetWorkspaceSettingsDocumentParamsSecrets = "encrypted"
+	Redacted  GetWorkspaceSettingsDocumentParamsSecrets = "redacted"
 )
 
 // Defines values for GetRunnableStatsParamsOrderBy.
@@ -2908,9 +2917,14 @@ type DatatableMigration struct {
 
 // DatatableMigrationWithStatus defines model for DatatableMigrationWithStatus.
 type DatatableMigrationWithStatus struct {
-	CodeDown  *string                            `json:"code_down,omitempty"`
-	CodeUp    string                             `json:"code_up"`
-	Name      string                             `json:"name"`
+	// BlockedBy when not run, the earliest pending migration that must be applied first; when run, the latest applied migration that must be rolled back first
+	BlockedBy *int64  `json:"blocked_by,omitempty"`
+	CodeDown  *string `json:"code_down,omitempty"`
+	CodeUp    string  `json:"code_up"`
+	Name      string  `json:"name"`
+
+	// Schemas the schemas its `-- schemas` annotation declares; absent when it applies to the whole database
+	Schemas   *[]string                          `json:"schemas,omitempty"`
 	Status    DatatableMigrationWithStatusStatus `json:"status"`
 	Timestamp int64                              `json:"timestamp"`
 }
@@ -7010,12 +7024,15 @@ type RuleBypasserUsers = []string
 
 // RunnableItem A row in the merged runnables listing. `type` is the discriminator;
 // kind-specific fields (hash/language/kind for scripts, execution_mode/
-// version for apps) are present only for that kind. `edited_at` is the
-// unified last-updated time (a script's created_at, a flow/app's edit
-// time).
+// version for apps, agent_memory/ws_specific for agents) are present only
+// for that kind. An agent is an `ai_agent` resource whose description is
+// reported as `summary`. `edited_at` is the unified last-updated time (a
+// script's created_at, a flow/app/agent's edit time).
 type RunnableItem struct {
-	Archived *bool   `json:"archived,omitempty"`
-	AutoKind *string `json:"auto_kind,omitempty"`
+	// AgentMemory agent-only. The agent's `memory` setting.
+	AgentMemory *interface{} `json:"agent_memory,omitempty"`
+	Archived    *bool        `json:"archived,omitempty"`
+	AutoKind    *string      `json:"auto_kind,omitempty"`
 
 	// ChatInputEnabled flow-only. `chat_input_enabled` of the flow's value, projected so the list can mark flows that open as a chat. Omitted when the value has no such field.
 	ChatInputEnabled *bool                     `json:"chat_input_enabled,omitempty"`
@@ -7044,6 +7061,9 @@ type RunnableItem struct {
 	Version             *int64           `json:"version,omitempty"`
 	WorkspaceId         *string          `json:"workspace_id,omitempty"`
 	WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
+
+	// WsSpecific agent-only. Whether the agent is workspace-specific, which keeps it out of deploys to other workspaces.
+	WsSpecific *bool `json:"ws_specific,omitempty"`
 }
 
 // RunnableItemType defines model for RunnableItem.Type.
@@ -8288,7 +8308,8 @@ type SchemasAiAgent struct {
 	// Agent Path of a reusable `ai_agent` resource (hybrid linking). When set, the agent brain
 	// config (provider/model/system prompt/etc.) and tool set are resolved at runtime from
 	// that resource; the module's input_transforms then only carry the flow-local inputs
-	// (user_message, user_attachments, enabled_tools and the history inputs memory_id and previous_messages).
+	// (user_message, user_attachments, enabled_tools and the history inputs memory_id and previous_messages)
+	// and, optionally, the `model` and `reasoning_effort` overrides of what the agent saved.
 	Agent *string `json:"agent,omitempty"`
 
 	// InputTransforms Input parameters for the AI agent mapped to their values
@@ -8323,6 +8344,12 @@ type SchemasAiAgent struct {
 		// older `auto` or `manual` memory reads neither history input.
 		MemoryId *SchemasInputTransform `json:"memory_id,omitempty"`
 
+		// Model String. Only on a step linked to a saved agent (see `agent`): replaces the model
+		// saved on the agent for this step's runs, on the agent's own provider resource. An
+		// empty value keeps the saved model. Set it to an expression such as
+		// `flow_input.model` to choose the model per run.
+		Model *SchemasInputTransform `json:"model,omitempty"`
+
 		// OutputSchema JSON Schema object defining structured output format. Used when you need the AI to return data in a specific shape.
 		// Supports standard JSON Schema properties: type, properties, required, items, enum, pattern, minLength, maxLength, minimum, maximum, etc.
 		// Example: { type: 'object', properties: { name: { type: 'string' }, age: { type: 'integer' } }, required: ['name'] }
@@ -8339,6 +8366,13 @@ type SchemasAiAgent struct {
 
 		// Provider Provider configuration - can be static (ProviderConfig), JavaScript expression, or AI-determined
 		Provider *SchemasProviderTransform `json:"provider,omitempty"`
+
+		// ReasoningEffort String. Only on a step linked to a saved agent (see `agent`): replaces the reasoning
+		// effort saved on the agent for this step's runs, as a provider-native token (e.g.
+		// 'low', 'high', 'none'). An empty value sends no effort, so the model runs at its
+		// default. Leave the input out to keep the saved effort, which holds only while the
+		// step runs the saved model. A step that is not linked sets both inside `provider`.
+		ReasoningEffort *SchemasInputTransform `json:"reasoning_effort,omitempty"`
 
 		// Streaming Boolean. If true, stream the AI response incrementally.
 		// Streaming events include: token_delta, reasoning_token_delta, tool_call, tool_call_arguments, tool_execution, tool_result
@@ -13490,6 +13524,9 @@ type ListResourceParams struct {
 	// no deployed resource. Synthesized rows carry
 	// `draft_only: true`.
 	IncludeDraftOnly *bool `form:"include_draft_only,omitempty" json:"include_draft_only,omitempty"`
+
+	// StarredOnly Only the `ai_agent` resources the caller starred
+	StarredOnly *bool `form:"starred_only,omitempty" json:"starred_only,omitempty"`
 }
 
 // CallMcpToolJSONBody defines parameters for CallMcpTool.
@@ -13510,7 +13547,7 @@ type UpdateResourceValueJSONBody struct {
 
 // CountRunnablesByOwnerParams defines parameters for CountRunnablesByOwner.
 type CountRunnablesByOwnerParams struct {
-	// Kinds comma-separated subset of script,flow,app (default all)
+	// Kinds comma-separated subset of script,flow,app,agent (default all)
 	Kinds *string `form:"kinds,omitempty" json:"kinds,omitempty"`
 
 	// IncludeWithoutMain include library scripts (no runnable main)
@@ -13528,7 +13565,7 @@ type ListRunnablesParams struct {
 	// OrderDesc order by desc order (default true)
 	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
 
-	// Kinds comma-separated subset of script,flow,app (default all)
+	// Kinds comma-separated subset of script,flow,app,agent (default all)
 	Kinds        *string `form:"kinds,omitempty" json:"kinds,omitempty"`
 	ShowArchived *bool   `form:"show_archived,omitempty" json:"show_archived,omitempty"`
 
@@ -14467,6 +14504,9 @@ type RunDatatableMigrationsParams struct {
 
 	// Only apply only this specific migration version, ignoring others
 	Only *int64 `form:"only,omitempty" json:"only,omitempty"`
+
+	// Schema apply only the pending migrations whose `-- schemas` annotation declares this schema
+	Schema *string `form:"schema,omitempty" json:"schema,omitempty"`
 }
 
 // RunSlackMessageTestJobJSONBody defines parameters for RunSlackMessageTestJob.
@@ -14499,6 +14539,27 @@ type SetWsSpecificJSONBody struct {
 
 // SetWsSpecificJSONBodyItemKind defines parameters for SetWsSpecific.
 type SetWsSpecificJSONBodyItemKind string
+
+// GetWorkspaceSettingsDocumentParams defines parameters for GetWorkspaceSettingsDocument.
+type GetWorkspaceSettingsDocumentParams struct {
+	// Secrets How secrets are written: `redacted` (the default) replaces each set secret with `__SENSITIVE_AND_UNCHANGED__`; `encrypted` writes it encrypted with the workspace key, prefixed with `$encrypted:`.
+	Secrets *GetWorkspaceSettingsDocumentParamsSecrets `form:"secrets,omitempty" json:"secrets,omitempty"`
+}
+
+// GetWorkspaceSettingsDocumentParamsSecrets defines parameters for GetWorkspaceSettingsDocument.
+type GetWorkspaceSettingsDocumentParamsSecrets string
+
+// ApplyWorkspaceSettingsDocumentJSONBody defines parameters for ApplyWorkspaceSettingsDocument.
+type ApplyWorkspaceSettingsDocumentJSONBody struct {
+	// Document The settings to apply, in the layout of the document. A secret given as `__SENSITIVE_AND_UNCHANGED__` keeps its stored value; one prefixed with `$encrypted:` is decrypted with the workspace key.
+	Document map[string]interface{} `json:"document"`
+
+	// DryRun Only compute the changes, without applying them.
+	DryRun *bool `json:"dry_run,omitempty"`
+
+	// Replace Clear the settings `wmill sync push` clears when settings.yaml omits them. Otherwise a setting the document omits is left as it is.
+	Replace *bool `json:"replace,omitempty"`
+}
 
 // SetWorkspaceSlackOauthConfigJSONBody defines parameters for SetWorkspaceSlackOauthConfig.
 type SetWorkspaceSlackOauthConfigJSONBody struct {
@@ -15629,6 +15690,9 @@ type SetEnvironmentVariableJSONRequestBody SetEnvironmentVariableJSONBody
 
 // SetWsSpecificJSONRequestBody defines body for SetWsSpecific for application/json ContentType.
 type SetWsSpecificJSONRequestBody SetWsSpecificJSONBody
+
+// ApplyWorkspaceSettingsDocumentJSONRequestBody defines body for ApplyWorkspaceSettingsDocument for application/json ContentType.
+type ApplyWorkspaceSettingsDocumentJSONRequestBody ApplyWorkspaceSettingsDocumentJSONBody
 
 // SetWorkspaceSlackOauthConfigJSONRequestBody defines body for SetWorkspaceSlackOauthConfig for application/json ContentType.
 type SetWorkspaceSlackOauthConfigJSONRequestBody SetWorkspaceSlackOauthConfigJSONBody
@@ -21446,6 +21510,14 @@ type ClientInterface interface {
 	SetWsSpecificWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetWsSpecific(ctx context.Context, workspace WorkspaceId, body SetWsSpecificJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetWorkspaceSettingsDocument request
+	GetWorkspaceSettingsDocument(ctx context.Context, workspace WorkspaceId, params *GetWorkspaceSettingsDocumentParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ApplyWorkspaceSettingsDocumentWithBody request with any body
+	ApplyWorkspaceSettingsDocumentWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ApplyWorkspaceSettingsDocument(ctx context.Context, workspace WorkspaceId, body ApplyWorkspaceSettingsDocumentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteWorkspaceSlackOauthConfig request
 	DeleteWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -36250,6 +36322,42 @@ func (c *Client) SetWsSpecificWithBody(ctx context.Context, workspace WorkspaceI
 
 func (c *Client) SetWsSpecific(ctx context.Context, workspace WorkspaceId, body SetWsSpecificJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetWsSpecificRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetWorkspaceSettingsDocument(ctx context.Context, workspace WorkspaceId, params *GetWorkspaceSettingsDocumentParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetWorkspaceSettingsDocumentRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ApplyWorkspaceSettingsDocumentWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewApplyWorkspaceSettingsDocumentRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ApplyWorkspaceSettingsDocument(ctx context.Context, workspace WorkspaceId, body ApplyWorkspaceSettingsDocumentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewApplyWorkspaceSettingsDocumentRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -78199,6 +78307,22 @@ func NewListResourceRequest(server string, workspace WorkspaceId, params *ListRe
 
 		}
 
+		if params.StarredOnly != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "starred_only", runtime.ParamLocationQuery, *params.StarredOnly); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -89942,6 +90066,22 @@ func NewRunDatatableMigrationsRequest(server string, workspace WorkspaceId, data
 
 		}
 
+		if params.Schema != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "schema", runtime.ParamLocationQuery, *params.Schema); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -90163,6 +90303,109 @@ func NewSetWsSpecificRequestWithBody(server string, workspace WorkspaceId, conte
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/workspaces/set_ws_specific", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetWorkspaceSettingsDocumentRequest generates requests for GetWorkspaceSettingsDocument
+func NewGetWorkspaceSettingsDocumentRequest(server string, workspace WorkspaceId, params *GetWorkspaceSettingsDocumentParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/settings_document", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Secrets != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "secrets", runtime.ParamLocationQuery, *params.Secrets); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewApplyWorkspaceSettingsDocumentRequest calls the generic ApplyWorkspaceSettingsDocument builder with application/json body
+func NewApplyWorkspaceSettingsDocumentRequest(server string, workspace WorkspaceId, body ApplyWorkspaceSettingsDocumentJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewApplyWorkspaceSettingsDocumentRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewApplyWorkspaceSettingsDocumentRequestWithBody generates requests for ApplyWorkspaceSettingsDocument with any type of body
+func NewApplyWorkspaceSettingsDocumentRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/settings_document", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -94897,6 +95140,14 @@ type ClientWithResponsesInterface interface {
 	SetWsSpecificWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWsSpecificResponse, error)
 
 	SetWsSpecificWithResponse(ctx context.Context, workspace WorkspaceId, body SetWsSpecificJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWsSpecificResponse, error)
+
+	// GetWorkspaceSettingsDocumentWithResponse request
+	GetWorkspaceSettingsDocumentWithResponse(ctx context.Context, workspace WorkspaceId, params *GetWorkspaceSettingsDocumentParams, reqEditors ...RequestEditorFn) (*GetWorkspaceSettingsDocumentResponse, error)
+
+	// ApplyWorkspaceSettingsDocumentWithBodyWithResponse request with any body
+	ApplyWorkspaceSettingsDocumentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ApplyWorkspaceSettingsDocumentResponse, error)
+
+	ApplyWorkspaceSettingsDocumentWithResponse(ctx context.Context, workspace WorkspaceId, body ApplyWorkspaceSettingsDocumentJSONRequestBody, reqEditors ...RequestEditorFn) (*ApplyWorkspaceSettingsDocumentResponse, error)
 
 	// DeleteWorkspaceSlackOauthConfigWithResponse request
 	DeleteWorkspaceSlackOauthConfigWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*DeleteWorkspaceSlackOauthConfigResponse, error)
@@ -116680,6 +116931,58 @@ func (r SetWsSpecificResponse) StatusCode() int {
 	return 0
 }
 
+type GetWorkspaceSettingsDocumentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetWorkspaceSettingsDocumentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetWorkspaceSettingsDocumentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ApplyWorkspaceSettingsDocumentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Applied bool `json:"applied"`
+		Changes []struct {
+			After  interface{} `json:"after"`
+			Before interface{} `json:"before"`
+			Key    string      `json:"key"`
+		} `json:"changes"`
+		Warnings *[]string `json:"warnings,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ApplyWorkspaceSettingsDocumentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ApplyWorkspaceSettingsDocumentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DeleteWorkspaceSlackOauthConfigResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -128126,6 +128429,32 @@ func (c *ClientWithResponses) SetWsSpecificWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseSetWsSpecificResponse(rsp)
+}
+
+// GetWorkspaceSettingsDocumentWithResponse request returning *GetWorkspaceSettingsDocumentResponse
+func (c *ClientWithResponses) GetWorkspaceSettingsDocumentWithResponse(ctx context.Context, workspace WorkspaceId, params *GetWorkspaceSettingsDocumentParams, reqEditors ...RequestEditorFn) (*GetWorkspaceSettingsDocumentResponse, error) {
+	rsp, err := c.GetWorkspaceSettingsDocument(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetWorkspaceSettingsDocumentResponse(rsp)
+}
+
+// ApplyWorkspaceSettingsDocumentWithBodyWithResponse request with arbitrary body returning *ApplyWorkspaceSettingsDocumentResponse
+func (c *ClientWithResponses) ApplyWorkspaceSettingsDocumentWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ApplyWorkspaceSettingsDocumentResponse, error) {
+	rsp, err := c.ApplyWorkspaceSettingsDocumentWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseApplyWorkspaceSettingsDocumentResponse(rsp)
+}
+
+func (c *ClientWithResponses) ApplyWorkspaceSettingsDocumentWithResponse(ctx context.Context, workspace WorkspaceId, body ApplyWorkspaceSettingsDocumentJSONRequestBody, reqEditors ...RequestEditorFn) (*ApplyWorkspaceSettingsDocumentResponse, error) {
+	rsp, err := c.ApplyWorkspaceSettingsDocument(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseApplyWorkspaceSettingsDocumentResponse(rsp)
 }
 
 // DeleteWorkspaceSlackOauthConfigWithResponse request returning *DeleteWorkspaceSlackOauthConfigResponse
@@ -150281,6 +150610,66 @@ func ParseSetWsSpecificResponse(rsp *http.Response) (*SetWsSpecificResponse, err
 	response := &SetWsSpecificResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetWorkspaceSettingsDocumentResponse parses an HTTP response from a GetWorkspaceSettingsDocumentWithResponse call
+func ParseGetWorkspaceSettingsDocumentResponse(rsp *http.Response) (*GetWorkspaceSettingsDocumentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetWorkspaceSettingsDocumentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseApplyWorkspaceSettingsDocumentResponse parses an HTTP response from a ApplyWorkspaceSettingsDocumentWithResponse call
+func ParseApplyWorkspaceSettingsDocumentResponse(rsp *http.Response) (*ApplyWorkspaceSettingsDocumentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ApplyWorkspaceSettingsDocumentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Applied bool `json:"applied"`
+			Changes []struct {
+				After  interface{} `json:"after"`
+				Before interface{} `json:"before"`
+				Key    string      `json:"key"`
+			} `json:"changes"`
+			Warnings *[]string `json:"warnings,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
