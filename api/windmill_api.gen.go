@@ -2627,6 +2627,9 @@ type CreateResource struct {
 	// Path The path to the resource
 	Path string `json:"path"`
 
+	// PreserveOnBehalfOf ai_agent only. Keep the identity `value.on_behalf_of` names (`u/<username>`, `g/<group>`) rather than the caller's own. Honoured for admins and members of wm_deployers; otherwise every write of an agent sets it to the caller.
+	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
+
 	// ResourceType The resource_type associated with the resource
 	ResourceType string      `json:"resource_type"`
 	Value        interface{} `json:"value"`
@@ -3616,6 +3619,9 @@ type EditResource struct {
 
 	// Path The path to the resource
 	Path *string `json:"path,omitempty"`
+
+	// PreserveOnBehalfOf ai_agent only. Keep the identity `value.on_behalf_of` names (`u/<username>`, `g/<group>`) rather than the caller's own. Honoured for admins and members of wm_deployers; otherwise every write of an agent sets it to the caller.
+	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
 
 	// ResourceType The new resource_type to be associated with the resource
 	ResourceType *string      `json:"resource_type,omitempty"`
