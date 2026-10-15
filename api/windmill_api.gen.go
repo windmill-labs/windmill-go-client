@@ -2537,7 +2537,7 @@ type CompletedJob struct {
 	RawFlow        *FlowValue `json:"raw_flow,omitempty"`
 	ResolutionNote *string    `json:"resolution_note,omitempty"`
 
-	// Resolved whether this failure has been marked as handled
+	// Resolved whether this failed or canceled run has been marked as handled
 	Resolved   *bool      `json:"resolved,omitempty"`
 	ResolvedAt *time.Time `json:"resolved_at,omitempty"`
 
@@ -4446,7 +4446,10 @@ type FlowModuleToolToolType string
 // FlowPreview defines model for FlowPreview.
 type FlowPreview struct {
 	// Args The arguments to pass to the script or flow
-	Args          ScriptArgs     `json:"args"`
+	Args ScriptArgs `json:"args"`
+
+	// OnBehalfOf Run the preview as this identity (an email, `u/<username>` or `g/<group>`) instead of the caller. Naming anyone other than yourself requires being an admin or a member of wm_deployers.
+	OnBehalfOf    *string        `json:"on_behalf_of"`
 	Path          *string        `json:"path,omitempty"`
 	RestartedFrom *RestartedFrom `json:"restarted_from,omitempty"`
 	Tag           *string        `json:"tag,omitempty"`
@@ -5137,7 +5140,7 @@ type Job0 struct {
 	RawFlow        *FlowValue `json:"raw_flow,omitempty"`
 	ResolutionNote *string    `json:"resolution_note,omitempty"`
 
-	// Resolved whether this failure has been marked as handled
+	// Resolved whether this failed or canceled run has been marked as handled
 	Resolved   *bool      `json:"resolved,omitempty"`
 	ResolvedAt *time.Time `json:"resolved_at,omitempty"`
 
@@ -6553,7 +6556,7 @@ type Policy struct {
 	// ExecutionMode Who may open the app, and who its runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Neither `anonymous`, which makes the app publicly executable, nor `guest`, which opens it to anyone the identity provider authenticates, is ever assumed. A guest is only admitted where the workspace also has `guest_access_enabled`, which is checked when the session is minted and again on every guest request
 	ExecutionMode *PolicyExecutionMode `json:"execution_mode,omitempty"`
 
-	// FrontendSdkScopes Raw apps: author-declared scopes for the frontend SDK token. Takes effect only when `sandbox` is also true — an unsandboxed bundle runs with the viewer's own session, so no token is advertised or minted for it and this list stays inert. On a sandboxed app a non-empty list lets viewers mint (after consenting) a short-lived token carrying their own identity restricted to these scopes, handed to the app bundle so `windmill-client` calls run as the viewer. Must be a subset of the server's curated allowlist (jobs:run, jobs:read, users:read, resources:read, variables:read, flow_conversations:read, flow_conversations:write).
+	// FrontendSdkScopes Raw apps: author-declared scopes for the frontend SDK token. Takes effect only when `sandbox` is also true — an unsandboxed bundle runs with the viewer's own session, so no token is advertised or minted for it and this list stays inert. On a sandboxed app a non-empty list lets viewers mint (after consenting) a short-lived token carrying their own identity restricted to these scopes, handed to the app bundle so `windmill-client` calls run as the viewer. Must be a subset of the server's curated allowlist (jobs:run, jobs:read, users:read, resources:read, variables:read, flow_conversations:read, flow_conversations:write). Every such token can call whoami without consent, whether `users:read` is declared or not.
 	FrontendSdkScopes *[]string `json:"frontend_sdk_scopes,omitempty"`
 
 	// OnBehalfOf The user or group the app runs as in anonymous or publisher mode (e.g. 'u/admin' or 'g/mygroup'). The authority for the app's identity.
@@ -6603,6 +6606,9 @@ type Preview struct {
 	// Modules Additional script modules keyed by relative file path
 	Modules *map[string]ScriptModule `json:"modules"`
 
+	// OnBehalfOf Run the preview as this identity (an email, `u/<username>` or `g/<group>`) instead of the caller. Naming anyone other than yourself requires being an admin or a member of wm_deployers.
+	OnBehalfOf *string `json:"on_behalf_of"`
+
 	// Path The path to the script
 	Path *string `json:"path,omitempty"`
 
@@ -6612,6 +6618,9 @@ type Preview struct {
 
 	// TempScriptRefs Map of relative-import script path -> temp storage hash so the preview job resolves those imports from not-yet-deployed local content instead of the deployed script
 	TempScriptRefs *map[string]string `json:"temp_script_refs"`
+
+	// ViewerDataAccess Data table and object storage access as the caller rather than as the job's identity, as a full-code app's inline runnable flagged viewer_data_access does for its viewer.
+	ViewerDataAccess *bool `json:"viewer_data_access"`
 }
 
 // PreviewKind defines model for Preview.Kind.
@@ -7551,6 +7560,16 @@ type SharedAiArtifactInfo struct {
 
 // SharedAiArtifactInfoKind defines model for SharedAiArtifactInfo.Kind.
 type SharedAiArtifactInfoKind string
+
+// SharedAiSessionInfo defines model for SharedAiSessionInfo.
+type SharedAiSessionInfo struct {
+	CreatedBy    string             `json:"created_by"`
+	Id           openapi_types.UUID `json:"id"`
+	IsPublic     bool               `json:"is_public"`
+	MessageCount int                `json:"message_count"`
+	Name         string             `json:"name"`
+	SharedAt     time.Time          `json:"shared_at"`
+}
 
 // SharedDriveEntry defines model for SharedDriveEntry.
 type SharedDriveEntry struct {
@@ -9888,6 +9907,28 @@ type GetAiArtifactShareStatusParams struct {
 	ArtifactId string `form:"artifact_id" json:"artifact_id"`
 }
 
+// SetAiSessionSharePublicJSONBody defines parameters for SetAiSessionSharePublic.
+type SetAiSessionSharePublicJSONBody struct {
+	IsPublic bool `json:"is_public"`
+}
+
+// ShareAiSessionJSONBody defines parameters for ShareAiSession.
+type ShareAiSessionJSONBody struct {
+	// IsPublic left as it is on an existing share when absent; a new share starts private
+	IsPublic     *bool  `json:"is_public,omitempty"`
+	MessageCount int    `json:"message_count"`
+	Name         string `json:"name"`
+
+	// SessionId the session's id in the author's browser
+	SessionId string                 `json:"session_id"`
+	Snapshot  map[string]interface{} `json:"snapshot"`
+}
+
+// GetAiSessionShareStatusParams defines parameters for GetAiSessionShareStatus.
+type GetAiSessionShareStatusParams struct {
+	SessionId string `form:"session_id" json:"session_id"`
+}
+
 // ListAiUsageParams defines parameters for ListAiUsage.
 type ListAiUsageParams struct {
 	Days    *int                      `form:"days,omitempty" json:"days,omitempty"`
@@ -10283,14 +10324,20 @@ type ExecuteComponentJSONBody struct {
 	ForceViewerSensitiveInputs    *[]string               `json:"force_viewer_sensitive_inputs,omitempty"`
 	ForceViewerStaticFields       *map[string]interface{} `json:"force_viewer_static_fields,omitempty"`
 	Id                            *int                    `json:"id,omitempty"`
-	Path                          *string                 `json:"path,omitempty"`
-	RawCode                       *struct {
+
+	// OnBehalfOf Preview mode (force_viewer_static_fields set) only: run as this identity (an email, `u/<username>` or `g/<group>`) instead of the caller. Naming anyone other than yourself requires being an admin or a member of wm_deployers.
+	OnBehalfOf *string `json:"on_behalf_of"`
+	Path       *string `json:"path,omitempty"`
+	RawCode    *struct {
 		CacheTtl *int    `json:"cache_ttl,omitempty"`
 		Content  string  `json:"content"`
 		Language string  `json:"language"`
 		Lock     *string `json:"lock,omitempty"`
-		Path     *string `json:"path,omitempty"`
-		Tag      *string `json:"tag,omitempty"`
+
+		// Modules Additional modules keyed by relative file path. Honored in preview only: a deployed app runs the modules stored with its runnable.
+		Modules *map[string]ScriptModule `json:"modules"`
+		Path    *string                  `json:"path,omitempty"`
+		Tag     *string                  `json:"tag,omitempty"`
 	} `json:"raw_code,omitempty"`
 
 	// RunQueryParams Runnable query parameters
@@ -10299,6 +10346,9 @@ type ExecuteComponentJSONBody struct {
 	// TempScriptRefs Map of relative-import script path -> temp storage hash. Only honored for inline-script (raw_code) execution so app dev resolves those imports from not-yet-deployed local content.
 	TempScriptRefs *map[string]string `json:"temp_script_refs"`
 	Version        *int               `json:"version,omitempty"`
+
+	// ViewerDataAccess Preview mode only: the inline runnable's viewer_data_access policy setting (run mode reads it from the deployed policy).
+	ViewerDataAccess *bool `json:"viewer_data_access"`
 }
 
 // AppLoadCsvPreviewParams defines parameters for AppLoadCsvPreview.
@@ -10668,7 +10718,7 @@ type ListExtendedJobsParams struct {
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
 
-	// Resolved filter on whether a failure has been marked as handled. true keeps only resolved failures, false hides them
+	// Resolved filter on whether a failed or canceled run has been marked as handled. true keeps only resolved runs, false hides them
 	Resolved *bool `form:"resolved,omitempty" json:"resolved,omitempty"`
 
 	// IsFlowStep is the job a flow step
@@ -11883,7 +11933,7 @@ type ListCompletedJobsParams struct {
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
 
-	// Resolved filter on whether a failure has been marked as handled. true keeps only resolved failures, false hides them
+	// Resolved filter on whether a failed or canceled run has been marked as handled. true keeps only resolved runs, false hides them
 	Resolved *bool `form:"resolved,omitempty" json:"resolved,omitempty"`
 
 	// IsFlowStep is the job a flow step
@@ -12030,7 +12080,7 @@ type ListJobsParams struct {
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
 
-	// Resolved filter on whether a failure has been marked as handled. true keeps only resolved failures, false hides them
+	// Resolved filter on whether a failed or canceled run has been marked as handled. true keeps only resolved runs, false hides them
 	Resolved *bool `form:"resolved,omitempty" json:"resolved,omitempty"`
 
 	// IsFlowStep is the job a flow step
@@ -12063,6 +12113,9 @@ type ListJobsParamsStatus string
 
 // ListFilteredJobsUuidsParams defines parameters for ListFilteredJobsUuids.
 type ListFilteredJobsUuidsParams struct {
+	// OrderDesc order by desc order (default true)
+	OrderDesc *OrderDesc `form:"order_desc,omitempty" json:"order_desc,omitempty"`
+
 	// CreatedBy filter by exact matching user creator. Supports comma-separated list (e.g. 'alice,bob') and negation by prefixing all values with '!' (e.g. '!alice,!bob')
 	CreatedBy *CreatedBy `form:"created_by,omitempty" json:"created_by,omitempty"`
 
@@ -12141,7 +12194,7 @@ type ListFilteredJobsUuidsParams struct {
 	// IsSkipped is the job skipped
 	IsSkipped *bool `form:"is_skipped,omitempty" json:"is_skipped,omitempty"`
 
-	// Resolved filter on whether a failure has been marked as handled. true keeps only resolved failures, false hides them
+	// Resolved filter on whether a failed or canceled run has been marked as handled. true keeps only resolved runs, false hides them
 	Resolved *bool `form:"resolved,omitempty" json:"resolved,omitempty"`
 
 	// IsFlowStep is the job a flow step
@@ -14874,6 +14927,12 @@ type PushAiSessionBackupsJSONRequestBody PushAiSessionBackupsJSONBody
 
 // ShareAiArtifactJSONRequestBody defines body for ShareAiArtifact for application/json ContentType.
 type ShareAiArtifactJSONRequestBody ShareAiArtifactJSONBody
+
+// SetAiSessionSharePublicJSONRequestBody defines body for SetAiSessionSharePublic for application/json ContentType.
+type SetAiSessionSharePublicJSONRequestBody SetAiSessionSharePublicJSONBody
+
+// ShareAiSessionJSONRequestBody defines body for ShareAiSession for application/json ContentType.
+type ShareAiSessionJSONRequestBody ShareAiSessionJSONBody
 
 // RecordAiUsageJSONRequestBody defines body for RecordAiUsage for application/json ContentType.
 type RecordAiUsageJSONRequestBody RecordAiUsageJSONBody
@@ -18907,6 +18966,22 @@ type ClientInterface interface {
 	// GetAiArtifactShareStatus request
 	GetAiArtifactShareStatus(ctx context.Context, workspace WorkspaceId, params *GetAiArtifactShareStatusParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UnshareAiSession request
+	UnshareAiSession(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetAiSessionSharePublicWithBody request with any body
+	SetAiSessionSharePublicWithBody(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetAiSessionSharePublic(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, body SetAiSessionSharePublicJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ShareAiSessionWithBody request with any body
+	ShareAiSessionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ShareAiSession(ctx context.Context, workspace WorkspaceId, body ShareAiSessionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAiSessionShareStatus request
+	GetAiSessionShareStatus(ctx context.Context, workspace WorkspaceId, params *GetAiSessionShareStatusParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListAiUsage request
 	ListAiUsage(ctx context.Context, workspace WorkspaceId, params *ListAiUsageParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -18962,6 +19037,9 @@ type ClientInterface interface {
 
 	// EvalSubjectState request
 	EvalSubjectState(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSharedAiSession request
+	GetSharedAiSession(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateAmqpTriggerWithBody request with any body
 	CreateAmqpTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -24836,6 +24914,78 @@ func (c *Client) GetAiArtifactShareStatus(ctx context.Context, workspace Workspa
 	return c.Client.Do(req)
 }
 
+func (c *Client) UnshareAiSession(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnshareAiSessionRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetAiSessionSharePublicWithBody(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetAiSessionSharePublicRequestWithBody(c.Server, workspace, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetAiSessionSharePublic(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, body SetAiSessionSharePublicJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetAiSessionSharePublicRequest(c.Server, workspace, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ShareAiSessionWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewShareAiSessionRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ShareAiSession(ctx context.Context, workspace WorkspaceId, body ShareAiSessionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewShareAiSessionRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAiSessionShareStatus(ctx context.Context, workspace WorkspaceId, params *GetAiSessionShareStatusParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAiSessionShareStatusRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListAiUsage(ctx context.Context, workspace WorkspaceId, params *ListAiUsageParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAiUsageRequest(c.Server, workspace, params)
 	if err != nil {
@@ -25066,6 +25216,18 @@ func (c *Client) RecentScorers(ctx context.Context, workspace WorkspaceId, param
 
 func (c *Client) EvalSubjectState(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEvalSubjectStateRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSharedAiSession(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSharedAiSessionRequest(c.Server, workspace, id)
 	if err != nil {
 		return nil, err
 	}
@@ -44663,6 +44825,200 @@ func NewGetAiArtifactShareStatusRequest(server string, workspace WorkspaceId, pa
 	return req, nil
 }
 
+// NewUnshareAiSessionRequest generates requests for UnshareAiSession
+func NewUnshareAiSessionRequest(server string, workspace WorkspaceId, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/shared_sessions/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetAiSessionSharePublicRequest calls the generic SetAiSessionSharePublic builder with application/json body
+func NewSetAiSessionSharePublicRequest(server string, workspace WorkspaceId, id openapi_types.UUID, body SetAiSessionSharePublicJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetAiSessionSharePublicRequestWithBody(server, workspace, id, "application/json", bodyReader)
+}
+
+// NewSetAiSessionSharePublicRequestWithBody generates requests for SetAiSessionSharePublic with any type of body
+func NewSetAiSessionSharePublicRequestWithBody(server string, workspace WorkspaceId, id openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/shared_sessions/set_public/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewShareAiSessionRequest calls the generic ShareAiSession builder with application/json body
+func NewShareAiSessionRequest(server string, workspace WorkspaceId, body ShareAiSessionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewShareAiSessionRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewShareAiSessionRequestWithBody generates requests for ShareAiSession with any type of body
+func NewShareAiSessionRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/shared_sessions/share", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetAiSessionShareStatusRequest generates requests for GetAiSessionShareStatus
+func NewGetAiSessionShareStatusRequest(server string, workspace WorkspaceId, params *GetAiSessionShareStatusParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/shared_sessions/status", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "session_id", runtime.ParamLocationQuery, params.SessionId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListAiUsageRequest generates requests for ListAiUsage
 func NewListAiUsageRequest(server string, workspace WorkspaceId, params *ListAiUsageParams) (*http.Request, error) {
 	var err error
@@ -45508,6 +45864,47 @@ func NewEvalSubjectStateRequest(server string, workspace WorkspaceId, params *Ev
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetSharedAiSessionRequest generates requests for GetSharedAiSession
+func NewGetSharedAiSessionRequest(server string, workspace WorkspaceId, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_u/shared_sessions/get/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -64057,6 +64454,22 @@ func NewListFilteredJobsUuidsRequest(server string, workspace WorkspaceId, param
 
 	if params != nil {
 		queryValues := queryURL.Query()
+
+		if params.OrderDesc != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order_desc", runtime.ParamLocationQuery, *params.OrderDesc); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
 
 		if params.CreatedBy != nil {
 
@@ -92537,6 +92950,22 @@ type ClientWithResponsesInterface interface {
 	// GetAiArtifactShareStatusWithResponse request
 	GetAiArtifactShareStatusWithResponse(ctx context.Context, workspace WorkspaceId, params *GetAiArtifactShareStatusParams, reqEditors ...RequestEditorFn) (*GetAiArtifactShareStatusResponse, error)
 
+	// UnshareAiSessionWithResponse request
+	UnshareAiSessionWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*UnshareAiSessionResponse, error)
+
+	// SetAiSessionSharePublicWithBodyWithResponse request with any body
+	SetAiSessionSharePublicWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAiSessionSharePublicResponse, error)
+
+	SetAiSessionSharePublicWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, body SetAiSessionSharePublicJSONRequestBody, reqEditors ...RequestEditorFn) (*SetAiSessionSharePublicResponse, error)
+
+	// ShareAiSessionWithBodyWithResponse request with any body
+	ShareAiSessionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ShareAiSessionResponse, error)
+
+	ShareAiSessionWithResponse(ctx context.Context, workspace WorkspaceId, body ShareAiSessionJSONRequestBody, reqEditors ...RequestEditorFn) (*ShareAiSessionResponse, error)
+
+	// GetAiSessionShareStatusWithResponse request
+	GetAiSessionShareStatusWithResponse(ctx context.Context, workspace WorkspaceId, params *GetAiSessionShareStatusParams, reqEditors ...RequestEditorFn) (*GetAiSessionShareStatusResponse, error)
+
 	// ListAiUsageWithResponse request
 	ListAiUsageWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAiUsageParams, reqEditors ...RequestEditorFn) (*ListAiUsageResponse, error)
 
@@ -92592,6 +93021,9 @@ type ClientWithResponsesInterface interface {
 
 	// EvalSubjectStateWithResponse request
 	EvalSubjectStateWithResponse(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*EvalSubjectStateResponse, error)
+
+	// GetSharedAiSessionWithResponse request
+	GetSharedAiSessionWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetSharedAiSessionResponse, error)
 
 	// CreateAmqpTriggerWithBodyWithResponse request with any body
 	CreateAmqpTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAmqpTriggerResponse, error)
@@ -100025,6 +100457,95 @@ func (r GetAiArtifactShareStatusResponse) StatusCode() int {
 	return 0
 }
 
+type UnshareAiSessionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UnshareAiSessionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UnshareAiSessionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetAiSessionSharePublicResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SharedAiSessionInfo
+}
+
+// Status returns HTTPResponse.Status
+func (r SetAiSessionSharePublicResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetAiSessionSharePublicResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ShareAiSessionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SharedAiSessionInfo
+}
+
+// Status returns HTTPResponse.Status
+func (r ShareAiSessionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ShareAiSessionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAiSessionShareStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Share *SharedAiSessionInfo `json:"share,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAiSessionShareStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAiSessionShareStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListAiUsageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -100420,6 +100941,38 @@ func (r EvalSubjectStateResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r EvalSubjectStateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetSharedAiSessionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// CanUnshare whether the caller authored the share or is a workspace admin
+		CanUnshare   bool                   `json:"can_unshare"`
+		CreatedBy    string                 `json:"created_by"`
+		Id           openapi_types.UUID     `json:"id"`
+		IsPublic     bool                   `json:"is_public"`
+		MessageCount int                    `json:"message_count"`
+		Name         string                 `json:"name"`
+		SharedAt     time.Time              `json:"shared_at"`
+		Snapshot     map[string]interface{} `json:"snapshot"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSharedAiSessionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSharedAiSessionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -120079,6 +120632,58 @@ func (c *ClientWithResponses) GetAiArtifactShareStatusWithResponse(ctx context.C
 	return ParseGetAiArtifactShareStatusResponse(rsp)
 }
 
+// UnshareAiSessionWithResponse request returning *UnshareAiSessionResponse
+func (c *ClientWithResponses) UnshareAiSessionWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*UnshareAiSessionResponse, error) {
+	rsp, err := c.UnshareAiSession(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnshareAiSessionResponse(rsp)
+}
+
+// SetAiSessionSharePublicWithBodyWithResponse request with arbitrary body returning *SetAiSessionSharePublicResponse
+func (c *ClientWithResponses) SetAiSessionSharePublicWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAiSessionSharePublicResponse, error) {
+	rsp, err := c.SetAiSessionSharePublicWithBody(ctx, workspace, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetAiSessionSharePublicResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetAiSessionSharePublicWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, body SetAiSessionSharePublicJSONRequestBody, reqEditors ...RequestEditorFn) (*SetAiSessionSharePublicResponse, error) {
+	rsp, err := c.SetAiSessionSharePublic(ctx, workspace, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetAiSessionSharePublicResponse(rsp)
+}
+
+// ShareAiSessionWithBodyWithResponse request with arbitrary body returning *ShareAiSessionResponse
+func (c *ClientWithResponses) ShareAiSessionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ShareAiSessionResponse, error) {
+	rsp, err := c.ShareAiSessionWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseShareAiSessionResponse(rsp)
+}
+
+func (c *ClientWithResponses) ShareAiSessionWithResponse(ctx context.Context, workspace WorkspaceId, body ShareAiSessionJSONRequestBody, reqEditors ...RequestEditorFn) (*ShareAiSessionResponse, error) {
+	rsp, err := c.ShareAiSession(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseShareAiSessionResponse(rsp)
+}
+
+// GetAiSessionShareStatusWithResponse request returning *GetAiSessionShareStatusResponse
+func (c *ClientWithResponses) GetAiSessionShareStatusWithResponse(ctx context.Context, workspace WorkspaceId, params *GetAiSessionShareStatusParams, reqEditors ...RequestEditorFn) (*GetAiSessionShareStatusResponse, error) {
+	rsp, err := c.GetAiSessionShareStatus(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAiSessionShareStatusResponse(rsp)
+}
+
 // ListAiUsageWithResponse request returning *ListAiUsageResponse
 func (c *ClientWithResponses) ListAiUsageWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAiUsageParams, reqEditors ...RequestEditorFn) (*ListAiUsageResponse, error) {
 	rsp, err := c.ListAiUsage(ctx, workspace, params, reqEditors...)
@@ -120253,6 +120858,15 @@ func (c *ClientWithResponses) EvalSubjectStateWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseEvalSubjectStateResponse(rsp)
+}
+
+// GetSharedAiSessionWithResponse request returning *GetSharedAiSessionResponse
+func (c *ClientWithResponses) GetSharedAiSessionWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetSharedAiSessionResponse, error) {
+	rsp, err := c.GetSharedAiSession(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSharedAiSessionResponse(rsp)
 }
 
 // CreateAmqpTriggerWithBodyWithResponse request with arbitrary body returning *CreateAmqpTriggerResponse
@@ -133673,6 +134287,102 @@ func ParseGetAiArtifactShareStatusResponse(rsp *http.Response) (*GetAiArtifactSh
 	return response, nil
 }
 
+// ParseUnshareAiSessionResponse parses an HTTP response from a UnshareAiSessionWithResponse call
+func ParseUnshareAiSessionResponse(rsp *http.Response) (*UnshareAiSessionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UnshareAiSessionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSetAiSessionSharePublicResponse parses an HTTP response from a SetAiSessionSharePublicWithResponse call
+func ParseSetAiSessionSharePublicResponse(rsp *http.Response) (*SetAiSessionSharePublicResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetAiSessionSharePublicResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SharedAiSessionInfo
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseShareAiSessionResponse parses an HTTP response from a ShareAiSessionWithResponse call
+func ParseShareAiSessionResponse(rsp *http.Response) (*ShareAiSessionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ShareAiSessionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SharedAiSessionInfo
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetAiSessionShareStatusResponse parses an HTTP response from a GetAiSessionShareStatusWithResponse call
+func ParseGetAiSessionShareStatusResponse(rsp *http.Response) (*GetAiSessionShareStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAiSessionShareStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Share *SharedAiSessionInfo `json:"share,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListAiUsageResponse parses an HTTP response from a ListAiUsageWithResponse call
 func ParseListAiUsageResponse(rsp *http.Response) (*ListAiUsageResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -134081,6 +134791,42 @@ func ParseEvalSubjectStateResponse(rsp *http.Response) (*EvalSubjectStateRespons
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Version *int64 `json:"version,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSharedAiSessionResponse parses an HTTP response from a GetSharedAiSessionWithResponse call
+func ParseGetSharedAiSessionResponse(rsp *http.Response) (*GetSharedAiSessionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSharedAiSessionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// CanUnshare whether the caller authored the share or is a workspace admin
+			CanUnshare   bool                   `json:"can_unshare"`
+			CreatedBy    string                 `json:"created_by"`
+			Id           openapi_types.UUID     `json:"id"`
+			IsPublic     bool                   `json:"is_public"`
+			MessageCount int                    `json:"message_count"`
+			Name         string                 `json:"name"`
+			SharedAt     time.Time              `json:"shared_at"`
+			Snapshot     map[string]interface{} `json:"snapshot"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
