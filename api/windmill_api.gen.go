@@ -1007,6 +1007,7 @@ const (
 const (
 	DisableDirectDeployment        ProtectionRuleKind = "DisableDirectDeployment"
 	DisableWorkspaceForking        ProtectionRuleKind = "DisableWorkspaceForking"
+	RequireIsolatedForks           ProtectionRuleKind = "RequireIsolatedForks"
 	RestrictAnonymousAppDeployment ProtectionRuleKind = "RestrictAnonymousAppDeployment"
 	RestrictDeployToDeployers      ProtectionRuleKind = "RestrictDeployToDeployers"
 	RestrictGuestAppDeployment     ProtectionRuleKind = "RestrictGuestAppDeployment"
@@ -2712,6 +2713,9 @@ type CreateWorkspaceFork struct {
 
 	// SharedDucklakes Lake names the fork SHARES with the parent (reads and writes the parent's lake directly). Every lake not listed gets the default isolated fork namespace with read-defer to the parent.
 	SharedDucklakes *[]string `json:"shared_ducklakes,omitempty"`
+
+	// SharedStorages Workspace storages the fork SHARES with the parent (`_default_` for the primary one): it reads and writes the parent's objects directly. Every storage not listed is isolated: the fork writes under its own prefix and reads through to the parent's objects.
+	SharedStorages *[]string `json:"shared_storages,omitempty"`
 }
 
 // CreateWorkspaceForkDevWorkspaceLabel Environment label for the dev workspace: its badge text and the branch it deploys to. Ignored for non-dev forks. Omitted defaults to 'dev'
@@ -11827,6 +11831,11 @@ type PolarsConnectionSettingsV2JSONBody struct {
 	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
 }
 
+// S3ProxyBucketParams defines parameters for S3ProxyBucket.
+type S3ProxyBucketParams struct {
+	Storage *string `form:"storage,omitempty" json:"storage,omitempty"`
+}
+
 // S3ResourceInfoJSONBody defines parameters for S3ResourceInfo.
 type S3ResourceInfoJSONBody struct {
 	S3ResourcePath *string `json:"s3_resource_path,omitempty"`
@@ -19913,6 +19922,9 @@ type ClientInterface interface {
 	PolarsConnectionSettingsV2WithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PolarsConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// S3ProxyBucket request
+	S3ProxyBucket(ctx context.Context, workspace WorkspaceId, params *S3ProxyBucketParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// S3ResourceInfoWithBody request with any body
 	S3ResourceInfoWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -29053,6 +29065,18 @@ func (c *Client) PolarsConnectionSettingsV2WithBody(ctx context.Context, workspa
 
 func (c *Client) PolarsConnectionSettingsV2(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPolarsConnectionSettingsV2Request(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) S3ProxyBucket(ctx context.Context, workspace WorkspaceId, params *S3ProxyBucketParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewS3ProxyBucketRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -62096,6 +62120,62 @@ func NewPolarsConnectionSettingsV2RequestWithBody(server string, workspace Works
 	return req, nil
 }
 
+// NewS3ProxyBucketRequest generates requests for S3ProxyBucket
+func NewS3ProxyBucketRequest(server string, workspace WorkspaceId, params *S3ProxyBucketParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/job_helpers/v2/s3_proxy_bucket", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Storage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "storage", runtime.ParamLocationQuery, *params.Storage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewS3ResourceInfoRequest calls the generic S3ResourceInfo builder with application/json body
 func NewS3ResourceInfoRequest(server string, workspace WorkspaceId, body S3ResourceInfoJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -93940,6 +94020,9 @@ type ClientWithResponsesInterface interface {
 
 	PolarsConnectionSettingsV2WithResponse(ctx context.Context, workspace WorkspaceId, body PolarsConnectionSettingsV2JSONRequestBody, reqEditors ...RequestEditorFn) (*PolarsConnectionSettingsV2Response, error)
 
+	// S3ProxyBucketWithResponse request
+	S3ProxyBucketWithResponse(ctx context.Context, workspace WorkspaceId, params *S3ProxyBucketParams, reqEditors ...RequestEditorFn) (*S3ProxyBucketResponse, error)
+
 	// S3ResourceInfoWithBodyWithResponse request with any body
 	S3ResourceInfoWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*S3ResourceInfoResponse, error)
 
@@ -106719,6 +106802,30 @@ func (r PolarsConnectionSettingsV2Response) StatusCode() int {
 	return 0
 }
 
+type S3ProxyBucketResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Bucket *string `json:"bucket"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r S3ProxyBucketResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r S3ProxyBucketResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type S3ResourceInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -117008,6 +117115,8 @@ type ListDataTablesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]struct {
+		// DatabaseWorkspaceId The workspace owning the database this entry points at, when it is not this workspace.
+		DatabaseWorkspaceId  *string                       `json:"database_workspace_id,omitempty"`
 		GoverningWorkspaceId *string                       `json:"governing_workspace_id,omitempty"`
 		Name                 string                        `json:"name"`
 		Permissioned         bool                          `json:"permissioned"`
@@ -123724,6 +123833,15 @@ func (c *ClientWithResponses) PolarsConnectionSettingsV2WithResponse(ctx context
 		return nil, err
 	}
 	return ParsePolarsConnectionSettingsV2Response(rsp)
+}
+
+// S3ProxyBucketWithResponse request returning *S3ProxyBucketResponse
+func (c *ClientWithResponses) S3ProxyBucketWithResponse(ctx context.Context, workspace WorkspaceId, params *S3ProxyBucketParams, reqEditors ...RequestEditorFn) (*S3ProxyBucketResponse, error) {
+	rsp, err := c.S3ProxyBucket(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseS3ProxyBucketResponse(rsp)
 }
 
 // S3ResourceInfoWithBodyWithResponse request with arbitrary body returning *S3ResourceInfoResponse
@@ -140593,6 +140711,34 @@ func ParsePolarsConnectionSettingsV2Response(rsp *http.Response) (*PolarsConnect
 	return response, nil
 }
 
+// ParseS3ProxyBucketResponse parses an HTTP response from a S3ProxyBucketWithResponse call
+func ParseS3ProxyBucketResponse(rsp *http.Response) (*S3ProxyBucketResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &S3ProxyBucketResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Bucket *string `json:"bucket"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseS3ResourceInfoResponse parses an HTTP response from a S3ResourceInfoWithResponse call
 func ParseS3ResourceInfoResponse(rsp *http.Response) (*S3ResourceInfoResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -150936,6 +151082,8 @@ func ParseListDataTablesResponse(rsp *http.Response) (*ListDataTablesResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []struct {
+			// DatabaseWorkspaceId The workspace owning the database this entry points at, when it is not this workspace.
+			DatabaseWorkspaceId  *string                       `json:"database_workspace_id,omitempty"`
 			GoverningWorkspaceId *string                       `json:"governing_workspace_id,omitempty"`
 			Name                 string                        `json:"name"`
 			Permissioned         bool                          `json:"permissioned"`
