@@ -21639,6 +21639,9 @@ type ClientInterface interface {
 	// GetCustomTags request
 	GetCustomTags(ctx context.Context, params *GetCustomTagsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetDevWorkspaceIsolation request
+	GetDevWorkspaceIsolation(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ExistsWorkersWithTags request
 	ExistsWorkersWithTags(ctx context.Context, params *ExistsWorkersWithTagsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -36682,6 +36685,18 @@ func (c *Client) GetUsedTriggers(ctx context.Context, workspace WorkspaceId, req
 
 func (c *Client) GetCustomTags(ctx context.Context, params *GetCustomTagsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCustomTagsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDevWorkspaceIsolation(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDevWorkspaceIsolationRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -91252,6 +91267,33 @@ func NewGetCustomTagsRequest(server string, params *GetCustomTagsParams) (*http.
 	return req, nil
 }
 
+// NewGetDevWorkspaceIsolationRequest generates requests for GetDevWorkspaceIsolation
+func NewGetDevWorkspaceIsolationRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/workers/dev_workspace_isolation")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewExistsWorkersWithTagsRequest generates requests for ExistsWorkersWithTags
 func NewExistsWorkersWithTagsRequest(server string, params *ExistsWorkersWithTagsParams) (*http.Request, error) {
 	var err error
@@ -95622,6 +95664,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetCustomTagsWithResponse request
 	GetCustomTagsWithResponse(ctx context.Context, params *GetCustomTagsParams, reqEditors ...RequestEditorFn) (*GetCustomTagsResponse, error)
+
+	// GetDevWorkspaceIsolationWithResponse request
+	GetDevWorkspaceIsolationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDevWorkspaceIsolationResponse, error)
 
 	// ExistsWorkersWithTagsWithResponse request
 	ExistsWorkersWithTagsWithResponse(ctx context.Context, params *ExistsWorkersWithTagsParams, reqEditors ...RequestEditorFn) (*ExistsWorkersWithTagsResponse, error)
@@ -117788,6 +117833,37 @@ func (r GetCustomTagsResponse) StatusCode() int {
 	return 0
 }
 
+type GetDevWorkspaceIsolationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Enabled whether new jobs of dev workspaces and forks are queued on suffixed tags
+		Enabled bool `json:"enabled"`
+
+		// SkipNonDevForks whether forks of a workspace that is not a dev workspace, nor under one, run on their parent's workers instead
+		SkipNonDevForks bool `json:"skip_non_dev_forks"`
+
+		// Suffix the suffix of those tags, which worker groups serving dev workspaces listen with
+		Suffix string `json:"suffix"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDevWorkspaceIsolationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDevWorkspaceIsolationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ExistsWorkersWithTagsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -129189,6 +129265,15 @@ func (c *ClientWithResponses) GetCustomTagsWithResponse(ctx context.Context, par
 		return nil, err
 	}
 	return ParseGetCustomTagsResponse(rsp)
+}
+
+// GetDevWorkspaceIsolationWithResponse request returning *GetDevWorkspaceIsolationResponse
+func (c *ClientWithResponses) GetDevWorkspaceIsolationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetDevWorkspaceIsolationResponse, error) {
+	rsp, err := c.GetDevWorkspaceIsolation(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDevWorkspaceIsolationResponse(rsp)
 }
 
 // ExistsWorkersWithTagsWithResponse request returning *ExistsWorkersWithTagsResponse
@@ -151658,6 +151743,41 @@ func ParseGetCustomTagsResponse(rsp *http.Response) (*GetCustomTagsResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDevWorkspaceIsolationResponse parses an HTTP response from a GetDevWorkspaceIsolationWithResponse call
+func ParseGetDevWorkspaceIsolationResponse(rsp *http.Response) (*GetDevWorkspaceIsolationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDevWorkspaceIsolationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Enabled whether new jobs of dev workspaces and forks are queued on suffixed tags
+			Enabled bool `json:"enabled"`
+
+			// SkipNonDevForks whether forks of a workspace that is not a dev workspace, nor under one, run on their parent's workers instead
+			SkipNonDevForks bool `json:"skip_non_dev_forks"`
+
+			// Suffix the suffix of those tags, which worker groups serving dev workspaces listen with
+			Suffix string `json:"suffix"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
