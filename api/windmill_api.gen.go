@@ -7587,6 +7587,16 @@ type SharedDriveEntry struct {
 	Name string `json:"name"`
 }
 
+// SlackAgentChannel defines model for SlackAgentChannel.
+type SlackAgentChannel struct {
+	AgentPath   string `json:"agent_path"`
+	ChannelId   string `json:"channel_id"`
+	ChannelName string `json:"channel_name"`
+
+	// IsDefault whether the agent answers bot mentions in the channel that name no agent
+	IsDefault bool `json:"is_default"`
+}
+
 // Slot defines model for Slot.
 type Slot struct {
 	Name *string `json:"name,omitempty"`
@@ -13914,6 +13924,26 @@ type UpdateSharedUiJSONBody struct {
 	Files map[string]string `json:"files"`
 }
 
+// UnshareAgentFromSlackChannelParams defines parameters for UnshareAgentFromSlackChannel.
+type UnshareAgentFromSlackChannelParams struct {
+	ChannelId string `form:"channel_id" json:"channel_id"`
+}
+
+// ShareAgentInSlackChannelJSONBody defines parameters for ShareAgentInSlackChannel.
+type ShareAgentInSlackChannelJSONBody struct {
+	ChannelId   string `json:"channel_id"`
+	ChannelName string `json:"channel_name"`
+
+	// IsDefault whether the agent answers bot mentions in the channel that name no agent
+	IsDefault *bool `json:"is_default,omitempty"`
+}
+
+// ListAvailableSlackChannelsParams defines parameters for ListAvailableSlackChannels.
+type ListAvailableSlackChannelsParams struct {
+	// Cursor the next_cursor of the previous page
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
 // GetSqsTriggerParams defines parameters for GetSqsTrigger.
 type GetSqsTriggerParams struct {
 	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
@@ -15536,6 +15566,9 @@ type UpdateScriptJSONRequestBody = NewScript
 
 // UpdateSharedUiJSONRequestBody defines body for UpdateSharedUi for application/json ContentType.
 type UpdateSharedUiJSONRequestBody UpdateSharedUiJSONBody
+
+// ShareAgentInSlackChannelJSONRequestBody defines body for ShareAgentInSlackChannel for application/json ContentType.
+type ShareAgentInSlackChannelJSONRequestBody ShareAgentInSlackChannelJSONBody
 
 // CreateSqsTriggerJSONRequestBody defines body for CreateSqsTrigger for application/json ContentType.
 type CreateSqsTriggerJSONRequestBody = NewSqsTrigger
@@ -20938,6 +20971,26 @@ type ClientInterface interface {
 
 	// GetSharedUiVersion request
 	GetSharedUiVersion(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UnshareAgentFromSlackChannel request
+	UnshareAgentFromSlackChannel(ctx context.Context, workspace WorkspaceId, path Path, params *UnshareAgentFromSlackChannelParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAgentSlackChannels request
+	GetAgentSlackChannels(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ShareAgentInSlackChannelWithBody request with any body
+	ShareAgentInSlackChannelWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ShareAgentInSlackChannel(ctx context.Context, workspace WorkspaceId, path Path, body ShareAgentInSlackChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAvailableSlackChannels request
+	ListAvailableSlackChannels(ctx context.Context, workspace WorkspaceId, params *ListAvailableSlackChannelsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListSlackAgentChannels request
+	ListSlackAgentChannels(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSlackAgentsStatus request
+	GetSlackAgentsStatus(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateSqsTriggerWithBody request with any body
 	CreateSqsTriggerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -33541,6 +33594,90 @@ func (c *Client) ListSharedUi(ctx context.Context, workspace WorkspaceId, reqEdi
 
 func (c *Client) GetSharedUiVersion(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetSharedUiVersionRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UnshareAgentFromSlackChannel(ctx context.Context, workspace WorkspaceId, path Path, params *UnshareAgentFromSlackChannelParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnshareAgentFromSlackChannelRequest(c.Server, workspace, path, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAgentSlackChannels(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAgentSlackChannelsRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ShareAgentInSlackChannelWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewShareAgentInSlackChannelRequestWithBody(c.Server, workspace, path, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ShareAgentInSlackChannel(ctx context.Context, workspace WorkspaceId, path Path, body ShareAgentInSlackChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewShareAgentInSlackChannelRequest(c.Server, workspace, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAvailableSlackChannels(ctx context.Context, workspace WorkspaceId, params *ListAvailableSlackChannelsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAvailableSlackChannelsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListSlackAgentChannels(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSlackAgentChannelsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSlackAgentsStatus(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSlackAgentsStatusRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -82343,6 +82480,284 @@ func NewGetSharedUiVersionRequest(server string, workspace WorkspaceId) (*http.R
 	return req, nil
 }
 
+// NewUnshareAgentFromSlackChannelRequest generates requests for UnshareAgentFromSlackChannel
+func NewUnshareAgentFromSlackChannelRequest(server string, workspace WorkspaceId, path Path, params *UnshareAgentFromSlackChannelParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/slack_agents/agent_channels/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "channel_id", runtime.ParamLocationQuery, params.ChannelId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetAgentSlackChannelsRequest generates requests for GetAgentSlackChannels
+func NewGetAgentSlackChannelsRequest(server string, workspace WorkspaceId, path Path) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/slack_agents/agent_channels/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewShareAgentInSlackChannelRequest calls the generic ShareAgentInSlackChannel builder with application/json body
+func NewShareAgentInSlackChannelRequest(server string, workspace WorkspaceId, path Path, body ShareAgentInSlackChannelJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewShareAgentInSlackChannelRequestWithBody(server, workspace, path, "application/json", bodyReader)
+}
+
+// NewShareAgentInSlackChannelRequestWithBody generates requests for ShareAgentInSlackChannel with any type of body
+func NewShareAgentInSlackChannelRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/slack_agents/agent_channels/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListAvailableSlackChannelsRequest generates requests for ListAvailableSlackChannels
+func NewListAvailableSlackChannelsRequest(server string, workspace WorkspaceId, params *ListAvailableSlackChannelsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/slack_agents/available_channels", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Cursor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cursor", runtime.ParamLocationQuery, *params.Cursor); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListSlackAgentChannelsRequest generates requests for ListSlackAgentChannels
+func NewListSlackAgentChannelsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/slack_agents/channels", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetSlackAgentsStatusRequest generates requests for GetSlackAgentsStatus
+func NewGetSlackAgentsStatusRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/slack_agents/status", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateSqsTriggerRequest calls the generic CreateSqsTrigger builder with application/json body
 func NewCreateSqsTriggerRequest(server string, workspace WorkspaceId, body CreateSqsTriggerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -95035,6 +95450,26 @@ type ClientWithResponsesInterface interface {
 
 	// GetSharedUiVersionWithResponse request
 	GetSharedUiVersionWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSharedUiVersionResponse, error)
+
+	// UnshareAgentFromSlackChannelWithResponse request
+	UnshareAgentFromSlackChannelWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UnshareAgentFromSlackChannelParams, reqEditors ...RequestEditorFn) (*UnshareAgentFromSlackChannelResponse, error)
+
+	// GetAgentSlackChannelsWithResponse request
+	GetAgentSlackChannelsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetAgentSlackChannelsResponse, error)
+
+	// ShareAgentInSlackChannelWithBodyWithResponse request with any body
+	ShareAgentInSlackChannelWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ShareAgentInSlackChannelResponse, error)
+
+	ShareAgentInSlackChannelWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body ShareAgentInSlackChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*ShareAgentInSlackChannelResponse, error)
+
+	// ListAvailableSlackChannelsWithResponse request
+	ListAvailableSlackChannelsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAvailableSlackChannelsParams, reqEditors ...RequestEditorFn) (*ListAvailableSlackChannelsResponse, error)
+
+	// ListSlackAgentChannelsWithResponse request
+	ListSlackAgentChannelsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSlackAgentChannelsResponse, error)
+
+	// GetSlackAgentsStatusWithResponse request
+	GetSlackAgentsStatusWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSlackAgentsStatusResponse, error)
 
 	// CreateSqsTriggerWithBodyWithResponse request with any body
 	CreateSqsTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateSqsTriggerResponse, error)
@@ -113531,6 +113966,167 @@ func (r GetSharedUiVersionResponse) StatusCode() int {
 	return 0
 }
 
+type UnshareAgentFromSlackChannelResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UnshareAgentFromSlackChannelResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UnshareAgentFromSlackChannelResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAgentSlackChannelsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Anyone whether anyone in its channels can ask it (its slack_anyone, kept only while it runs on behalf of someone), rather than workspace members only
+		Anyone bool `json:"anyone"`
+
+		// BotName the bot's Slack handle; absent when Slack can't be reached
+		BotName *string `json:"bot_name,omitempty"`
+
+		// CanShare whether the caller can change the agent's channels, as anyone who can edit it can
+		CanShare bool                `json:"can_share"`
+		Channels []SlackAgentChannel `json:"channels"`
+
+		// MissingScopes agent scopes the workspace's Slack connection lacks, so it must be reconnected with AI agents enabled
+		MissingScopes []string `json:"missing_scopes"`
+
+		// RunsAs who the agent runs as (its on_behalf_of); absent unless it runs on behalf of someone
+		RunsAs *string `json:"runs_as,omitempty"`
+
+		// SigningSecretSet agents answer in Slack only when the server has the Slack app's signing secret (SLACK_SIGNING_SECRET)
+		SigningSecretSet bool `json:"signing_secret_set"`
+
+		// SlackTeamName the connected Slack workspace; absent when Slack is not connected
+		SlackTeamName *string `json:"slack_team_name,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAgentSlackChannelsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAgentSlackChannelsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ShareAgentInSlackChannelResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ShareAgentInSlackChannelResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ShareAgentInSlackChannelResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListAvailableSlackChannelsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Channels []struct {
+			Id   string `json:"id"`
+			Name string `json:"name"`
+		} `json:"channels"`
+		NextCursor *string `json:"next_cursor,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAvailableSlackChannelsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAvailableSlackChannelsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListSlackAgentChannelsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]SlackAgentChannel
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSlackAgentChannelsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSlackAgentChannelsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetSlackAgentsStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// SigningSecretSet agents answer in Slack only when the server has the Slack app's signing secret (SLACK_SIGNING_SECRET)
+		SigningSecretSet bool `json:"signing_secret_set"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSlackAgentsStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSlackAgentsStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateSqsTriggerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -127087,6 +127683,68 @@ func (c *ClientWithResponses) GetSharedUiVersionWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseGetSharedUiVersionResponse(rsp)
+}
+
+// UnshareAgentFromSlackChannelWithResponse request returning *UnshareAgentFromSlackChannelResponse
+func (c *ClientWithResponses) UnshareAgentFromSlackChannelWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UnshareAgentFromSlackChannelParams, reqEditors ...RequestEditorFn) (*UnshareAgentFromSlackChannelResponse, error) {
+	rsp, err := c.UnshareAgentFromSlackChannel(ctx, workspace, path, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnshareAgentFromSlackChannelResponse(rsp)
+}
+
+// GetAgentSlackChannelsWithResponse request returning *GetAgentSlackChannelsResponse
+func (c *ClientWithResponses) GetAgentSlackChannelsWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*GetAgentSlackChannelsResponse, error) {
+	rsp, err := c.GetAgentSlackChannels(ctx, workspace, path, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAgentSlackChannelsResponse(rsp)
+}
+
+// ShareAgentInSlackChannelWithBodyWithResponse request with arbitrary body returning *ShareAgentInSlackChannelResponse
+func (c *ClientWithResponses) ShareAgentInSlackChannelWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ShareAgentInSlackChannelResponse, error) {
+	rsp, err := c.ShareAgentInSlackChannelWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseShareAgentInSlackChannelResponse(rsp)
+}
+
+func (c *ClientWithResponses) ShareAgentInSlackChannelWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body ShareAgentInSlackChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*ShareAgentInSlackChannelResponse, error) {
+	rsp, err := c.ShareAgentInSlackChannel(ctx, workspace, path, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseShareAgentInSlackChannelResponse(rsp)
+}
+
+// ListAvailableSlackChannelsWithResponse request returning *ListAvailableSlackChannelsResponse
+func (c *ClientWithResponses) ListAvailableSlackChannelsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAvailableSlackChannelsParams, reqEditors ...RequestEditorFn) (*ListAvailableSlackChannelsResponse, error) {
+	rsp, err := c.ListAvailableSlackChannels(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAvailableSlackChannelsResponse(rsp)
+}
+
+// ListSlackAgentChannelsWithResponse request returning *ListSlackAgentChannelsResponse
+func (c *ClientWithResponses) ListSlackAgentChannelsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSlackAgentChannelsResponse, error) {
+	rsp, err := c.ListSlackAgentChannels(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSlackAgentChannelsResponse(rsp)
+}
+
+// GetSlackAgentsStatusWithResponse request returning *GetSlackAgentsStatusResponse
+func (c *ClientWithResponses) GetSlackAgentsStatusWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*GetSlackAgentsStatusResponse, error) {
+	rsp, err := c.GetSlackAgentsStatus(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSlackAgentsStatusResponse(rsp)
 }
 
 // CreateSqsTriggerWithBodyWithResponse request with arbitrary body returning *CreateSqsTriggerResponse
@@ -147438,6 +148096,173 @@ func ParseGetSharedUiVersionResponse(rsp *http.Response) (*GetSharedUiVersionRes
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Version int64 `json:"version"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUnshareAgentFromSlackChannelResponse parses an HTTP response from a UnshareAgentFromSlackChannelWithResponse call
+func ParseUnshareAgentFromSlackChannelResponse(rsp *http.Response) (*UnshareAgentFromSlackChannelResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UnshareAgentFromSlackChannelResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetAgentSlackChannelsResponse parses an HTTP response from a GetAgentSlackChannelsWithResponse call
+func ParseGetAgentSlackChannelsResponse(rsp *http.Response) (*GetAgentSlackChannelsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAgentSlackChannelsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Anyone whether anyone in its channels can ask it (its slack_anyone, kept only while it runs on behalf of someone), rather than workspace members only
+			Anyone bool `json:"anyone"`
+
+			// BotName the bot's Slack handle; absent when Slack can't be reached
+			BotName *string `json:"bot_name,omitempty"`
+
+			// CanShare whether the caller can change the agent's channels, as anyone who can edit it can
+			CanShare bool                `json:"can_share"`
+			Channels []SlackAgentChannel `json:"channels"`
+
+			// MissingScopes agent scopes the workspace's Slack connection lacks, so it must be reconnected with AI agents enabled
+			MissingScopes []string `json:"missing_scopes"`
+
+			// RunsAs who the agent runs as (its on_behalf_of); absent unless it runs on behalf of someone
+			RunsAs *string `json:"runs_as,omitempty"`
+
+			// SigningSecretSet agents answer in Slack only when the server has the Slack app's signing secret (SLACK_SIGNING_SECRET)
+			SigningSecretSet bool `json:"signing_secret_set"`
+
+			// SlackTeamName the connected Slack workspace; absent when Slack is not connected
+			SlackTeamName *string `json:"slack_team_name,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseShareAgentInSlackChannelResponse parses an HTTP response from a ShareAgentInSlackChannelWithResponse call
+func ParseShareAgentInSlackChannelResponse(rsp *http.Response) (*ShareAgentInSlackChannelResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ShareAgentInSlackChannelResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListAvailableSlackChannelsResponse parses an HTTP response from a ListAvailableSlackChannelsWithResponse call
+func ParseListAvailableSlackChannelsResponse(rsp *http.Response) (*ListAvailableSlackChannelsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAvailableSlackChannelsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Channels []struct {
+				Id   string `json:"id"`
+				Name string `json:"name"`
+			} `json:"channels"`
+			NextCursor *string `json:"next_cursor,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListSlackAgentChannelsResponse parses an HTTP response from a ListSlackAgentChannelsWithResponse call
+func ParseListSlackAgentChannelsResponse(rsp *http.Response) (*ListSlackAgentChannelsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSlackAgentChannelsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []SlackAgentChannel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSlackAgentsStatusResponse parses an HTTP response from a GetSlackAgentsStatusWithResponse call
+func ParseGetSlackAgentsStatusResponse(rsp *http.Response) (*GetSlackAgentsStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSlackAgentsStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// SigningSecretSet agents answer in Slack only when the server has the Slack app's signing secret (SLACK_SIGNING_SECRET)
+			SigningSecretSet bool `json:"signing_secret_set"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
