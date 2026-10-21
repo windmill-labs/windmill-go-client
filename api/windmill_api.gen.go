@@ -266,12 +266,19 @@ const (
 
 // Defines values for AuthenticationMethod.
 const (
-	ApiKey       AuthenticationMethod = "api_key"
-	BasicHttp    AuthenticationMethod = "basic_http"
-	CustomScript AuthenticationMethod = "custom_script"
-	None         AuthenticationMethod = "none"
-	Signature    AuthenticationMethod = "signature"
-	Windmill     AuthenticationMethod = "windmill"
+	AuthenticationMethodApiKey       AuthenticationMethod = "api_key"
+	AuthenticationMethodBasicHttp    AuthenticationMethod = "basic_http"
+	AuthenticationMethodCustomScript AuthenticationMethod = "custom_script"
+	AuthenticationMethodNone         AuthenticationMethod = "none"
+	AuthenticationMethodSignature    AuthenticationMethod = "signature"
+	AuthenticationMethodWindmill     AuthenticationMethod = "windmill"
+)
+
+// Defines values for AuthorLevel.
+const (
+	AuthorLevelCompose AuthorLevel = "compose"
+	AuthorLevelFull    AuthorLevel = "full"
+	AuthorLevelNone    AuthorLevel = "none"
 )
 
 // Defines values for AutoInviteConfigMode.
@@ -482,6 +489,12 @@ const (
 const (
 	EditWebsocketTriggerFilterLogicAnd EditWebsocketTriggerFilterLogic = "and"
 	EditWebsocketTriggerFilterLogicOr  EditWebsocketTriggerFilterLogic = "or"
+)
+
+// Defines values for EffectiveRoleSource.
+const (
+	EffectiveRoleSourceInstance  EffectiveRoleSource = "instance"
+	EffectiveRoleSourceWorkspace EffectiveRoleSource = "workspace"
 )
 
 // Defines values for EvalSubjectKind.
@@ -1701,8 +1714,8 @@ const (
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
 const (
-	SetWsSpecificJSONBodyItemKindResource SetWsSpecificJSONBodyItemKind = "resource"
-	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
+	Resource SetWsSpecificJSONBodyItemKind = "resource"
+	Variable SetWsSpecificJSONBodyItemKind = "variable"
 )
 
 // Defines values for GetWorkspaceSettingsDocumentParamsSecrets.
@@ -2244,6 +2257,9 @@ type AuditLogOperation string
 
 // AuthenticationMethod defines model for AuthenticationMethod.
 type AuthenticationMethod string
+
+// AuthorLevel How much of a kind of runnable a role may author. `compose` assembles already-deployed runnables with no code of one's own.
+type AuthorLevel string
 
 // AutoInviteConfig Configuration for auto-inviting users to the workspace
 type AutoInviteConfig struct {
@@ -3858,8 +3874,25 @@ type EditWebsocketTriggerFilterLogic string
 type EditWorkspaceUser struct {
 	Disabled *bool `json:"disabled,omitempty"`
 	IsAdmin  *bool `json:"is_admin,omitempty"`
+
+	// Operator Legacy role selector, true for the `operator` role and false for `developer`.
 	Operator *bool `json:"operator,omitempty"`
+
+	// Role The member's workspace role, one of the workspace's roles. Wins over `operator`.
+	Role *string `json:"role,omitempty"`
 }
+
+// EffectiveRole defines model for EffectiveRole.
+type EffectiveRole struct {
+	Capabilities RoleCapabilities    `json:"capabilities"`
+	Label        string              `json:"label"`
+	Name         string              `json:"name"`
+	Overridden   bool                `json:"overridden"`
+	Source       EffectiveRoleSource `json:"source"`
+}
+
+// EffectiveRoleSource defines model for EffectiveRole.Source.
+type EffectiveRoleSource string
 
 // EmailTrigger defines model for EmailTrigger.
 type EmailTrigger = TriggerExtraProperty
@@ -7035,6 +7068,60 @@ type RetryIf struct {
 	Expr string `json:"expr"`
 }
 
+// RoleCapabilities defines model for RoleCapabilities.
+type RoleCapabilities struct {
+	// Apps How much of a kind of runnable a role may author. `compose` assembles already-deployed runnables with no code of one's own.
+	Apps AuthorLevel `json:"apps"`
+
+	// Code Author scripts and run code of one's own (previews, dependency jobs, dynamic selects, resolving jobs, data table migrations). Required by `full` flows or apps.
+	Code bool `json:"code"`
+
+	// Flows How much of a kind of runnable a role may author. `compose` assembles already-deployed runnables with no code of one's own.
+	Flows           AuthorLevel `json:"flows"`
+	ManageSchedules bool        `json:"manage_schedules"`
+	ManageTriggers  bool        `json:"manage_triggers"`
+
+	// Visibility Pages a role sees. Not enforced.
+	Visibility RoleVisibility `json:"visibility"`
+}
+
+// RoleCapabilitiesPatch A partial RoleCapabilities; an unset key falls through to the layer below.
+type RoleCapabilitiesPatch struct {
+	// Apps How much of a kind of runnable a role may author. `compose` assembles already-deployed runnables with no code of one's own.
+	Apps *AuthorLevel `json:"apps,omitempty"`
+	Code *bool        `json:"code,omitempty"`
+
+	// Flows How much of a kind of runnable a role may author. `compose` assembles already-deployed runnables with no code of one's own.
+	Flows           *AuthorLevel     `json:"flows,omitempty"`
+	ManageSchedules *bool            `json:"manage_schedules,omitempty"`
+	ManageTriggers  *bool            `json:"manage_triggers,omitempty"`
+	Visibility      *map[string]bool `json:"visibility,omitempty"`
+}
+
+// RoleOverride defines model for RoleOverride.
+type RoleOverride struct {
+	// Capabilities A partial RoleCapabilities; an unset key falls through to the layer below.
+	Capabilities *RoleCapabilitiesPatch `json:"capabilities,omitempty"`
+	Label        *string                `json:"label,omitempty"`
+}
+
+// RoleOverrides A workspace's overrides keyed by role name; a name the instance does not define adds a workspace-only role (EE).
+type RoleOverrides map[string]RoleOverride
+
+// RoleVisibility Pages a role sees. Not enforced.
+type RoleVisibility struct {
+	Assets    bool `json:"assets"`
+	AuditLogs bool `json:"audit_logs"`
+	Folders   bool `json:"folders"`
+	Groups    bool `json:"groups"`
+	Resources bool `json:"resources"`
+	Runs      bool `json:"runs"`
+	Schedules bool `json:"schedules"`
+	Triggers  bool `json:"triggers"`
+	Variables bool `json:"variables"`
+	Workers   bool `json:"workers"`
+}
+
 // RuleBypasserGroups Groups that can bypass this ruleset
 type RuleBypasserGroups = []string
 
@@ -7972,8 +8059,9 @@ type UserUsage struct {
 type UserWorkspaceList struct {
 	Email      string `json:"email"`
 	Workspaces []struct {
-		Color     string  `json:"color"`
-		CreatedBy *string `json:"created_by"`
+		Capabilities RoleCapabilities `json:"capabilities"`
+		Color        string           `json:"color"`
+		CreatedBy    *string          `json:"created_by"`
 
 		// DevWorkspaceLabel Environment label of the dev workspace, e.g. 'dev' or 'staging'; null defaults to 'dev'
 		DevWorkspaceLabel *string `json:"dev_workspace_label"`
@@ -7986,7 +8074,10 @@ type UserWorkspaceList struct {
 		Name              string            `json:"name"`
 		OperatorSettings  *OperatorSettings `json:"operator_settings"`
 		ParentWorkspaceId *string           `json:"parent_workspace_id"`
-		Username          string            `json:"username"`
+
+		// Role The member's workspace role.
+		Role     string `json:"role"`
+		Username string `json:"username"`
 	} `json:"workspaces"`
 }
 
@@ -8257,7 +8348,10 @@ type WorkspaceInvite struct {
 	IsAdmin           bool    `json:"is_admin"`
 	Operator          bool    `json:"operator"`
 	ParentWorkspaceId *string `json:"parent_workspace_id"`
-	WorkspaceId       string  `json:"workspace_id"`
+
+	// Role The workspace role the invite grants.
+	Role        string `json:"role"`
+	WorkspaceId string `json:"workspace_id"`
 }
 
 // WorkspaceItemDiff defines model for WorkspaceItemDiff.
@@ -8340,6 +8434,18 @@ type WorkspaceReassignment struct {
 
 	// ReassignTo Target: 'u/{username}' or 'f/{folder}'
 	ReassignTo string `json:"reassign_to"`
+}
+
+// WorkspaceRoles defines model for WorkspaceRoles.
+type WorkspaceRoles struct {
+	// CustomRolesEnabled Whether this workspace may add roles of its own.
+	CustomRolesEnabled bool             `json:"custom_roles_enabled"`
+	MyCapabilities     RoleCapabilities `json:"my_capabilities"`
+	MyRole             *string          `json:"my_role"`
+
+	// Overrides A workspace's overrides keyed by role name; a name the instance does not define adds a workspace-only role (EE).
+	Overrides RoleOverrides   `json:"overrides"`
+	Roles     []EffectiveRole `json:"roles"`
 }
 
 // SchemasAiAgent AI agent step that can use tools to accomplish tasks. The agent receives inputs and can call any of its configured tools to complete the task
@@ -14187,9 +14293,14 @@ type GetLatestWorkspaceDependenciesParams struct {
 
 // AddUserJSONBody defines parameters for AddUser.
 type AddUserJSONBody struct {
-	Email    string  `json:"email"`
-	IsAdmin  bool    `json:"is_admin"`
-	Operator bool    `json:"operator"`
+	Email   string `json:"email"`
+	IsAdmin bool   `json:"is_admin"`
+
+	// Operator Legacy role selector, true for the `operator` role.
+	Operator *bool `json:"operator,omitempty"`
+
+	// Role The workspace role to give, one of the workspace's roles. Wins over `operator`.
+	Role     *string `json:"role,omitempty"`
 	Username *string `json:"username,omitempty"`
 }
 
@@ -14351,6 +14462,9 @@ type EditAutoInviteJSONBody struct {
 	AutoAdd   *bool `json:"auto_add,omitempty"`
 	InviteAll *bool `json:"invite_all,omitempty"`
 	Operator  *bool `json:"operator,omitempty"`
+
+	// Role The workspace role to give, one of the workspace's roles. Wins over `operator`.
+	Role *string `json:"role,omitempty"`
 }
 
 // EditDataTableConfigJSONBody defines parameters for EditDataTableConfig.
@@ -14501,10 +14615,15 @@ type ImportPgDatabaseJSONBodyForkBehavior string
 
 // InviteUserJSONBody defines parameters for InviteUser.
 type InviteUserJSONBody struct {
-	Email             string  `json:"email"`
-	IsAdmin           bool    `json:"is_admin"`
-	Operator          bool    `json:"operator"`
+	Email   string `json:"email"`
+	IsAdmin bool   `json:"is_admin"`
+
+	// Operator Legacy role selector, true for the `operator` role.
+	Operator          *bool   `json:"operator,omitempty"`
 	ParentWorkspaceId *string `json:"parent_workspace_id"`
+
+	// Role The workspace role to give, one of the workspace's roles. Wins over `operator`.
+	Role *string `json:"role,omitempty"`
 }
 
 // ListDataTableTablesParams defines parameters for ListDataTableTables.
@@ -15785,6 +15904,9 @@ type PruneVersionsJSONRequestBody PruneVersionsJSONBody
 
 // SetPublicAppRateLimitJSONRequestBody defines body for SetPublicAppRateLimit for application/json ContentType.
 type SetPublicAppRateLimitJSONRequestBody SetPublicAppRateLimitJSONBody
+
+// UpdateWorkspaceRoleOverridesJSONRequestBody defines body for UpdateWorkspaceRoleOverrides for application/json ContentType.
+type UpdateWorkspaceRoleOverridesJSONRequestBody = RoleOverrides
 
 // RunSlackMessageTestJobJSONRequestBody defines body for RunSlackMessageTestJob for application/json ContentType.
 type RunSlackMessageTestJobJSONRequestBody RunSlackMessageTestJobJSONBody
@@ -21630,6 +21752,14 @@ type ClientInterface interface {
 
 	// ResetDiffTally request
 	ResetDiffTally(ctx context.Context, workspace WorkspaceId, forkWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateWorkspaceRoleOverridesWithBody request with any body
+	UpdateWorkspaceRoleOverridesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateWorkspaceRoleOverrides(ctx context.Context, workspace WorkspaceId, body UpdateWorkspaceRoleOverridesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListWorkspaceRoles request
+	ListWorkspaceRoles(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RollbackDatatableMigrations request
 	RollbackDatatableMigrations(ctx context.Context, workspace WorkspaceId, datatableName string, params *RollbackDatatableMigrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -36522,6 +36652,42 @@ func (c *Client) RebuildDependencyMap(ctx context.Context, workspace WorkspaceId
 
 func (c *Client) ResetDiffTally(ctx context.Context, workspace WorkspaceId, forkWorkspaceId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResetDiffTallyRequest(c.Server, workspace, forkWorkspaceId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateWorkspaceRoleOverridesWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateWorkspaceRoleOverridesRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateWorkspaceRoleOverrides(ctx context.Context, workspace WorkspaceId, body UpdateWorkspaceRoleOverridesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateWorkspaceRoleOverridesRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListWorkspaceRoles(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListWorkspaceRolesRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -90864,6 +91030,87 @@ func NewResetDiffTallyRequest(server string, workspace WorkspaceId, forkWorkspac
 	return req, nil
 }
 
+// NewUpdateWorkspaceRoleOverridesRequest calls the generic UpdateWorkspaceRoleOverrides builder with application/json body
+func NewUpdateWorkspaceRoleOverridesRequest(server string, workspace WorkspaceId, body UpdateWorkspaceRoleOverridesJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateWorkspaceRoleOverridesRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewUpdateWorkspaceRoleOverridesRequestWithBody generates requests for UpdateWorkspaceRoleOverrides with any type of body
+func NewUpdateWorkspaceRoleOverridesRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/role_overrides", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListWorkspaceRolesRequest generates requests for ListWorkspaceRoles
+func NewListWorkspaceRolesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/roles", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewRollbackDatatableMigrationsRequest generates requests for RollbackDatatableMigrations
 func NewRollbackDatatableMigrationsRequest(server string, workspace WorkspaceId, datatableName string, params *RollbackDatatableMigrationsParams) (*http.Request, error) {
 	var err error
@@ -96109,6 +96356,14 @@ type ClientWithResponsesInterface interface {
 
 	// ResetDiffTallyWithResponse request
 	ResetDiffTallyWithResponse(ctx context.Context, workspace WorkspaceId, forkWorkspaceId string, reqEditors ...RequestEditorFn) (*ResetDiffTallyResponse, error)
+
+	// UpdateWorkspaceRoleOverridesWithBodyWithResponse request with any body
+	UpdateWorkspaceRoleOverridesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateWorkspaceRoleOverridesResponse, error)
+
+	UpdateWorkspaceRoleOverridesWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateWorkspaceRoleOverridesJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateWorkspaceRoleOverridesResponse, error)
+
+	// ListWorkspaceRolesWithResponse request
+	ListWorkspaceRolesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListWorkspaceRolesResponse, error)
 
 	// RollbackDatatableMigrationsWithResponse request
 	RollbackDatatableMigrationsWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, params *RollbackDatatableMigrationsParams, reqEditors ...RequestEditorFn) (*RollbackDatatableMigrationsResponse, error)
@@ -118076,6 +118331,49 @@ func (r ResetDiffTallyResponse) StatusCode() int {
 	return 0
 }
 
+type UpdateWorkspaceRoleOverridesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateWorkspaceRoleOverridesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateWorkspaceRoleOverridesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListWorkspaceRolesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *WorkspaceRoles
+}
+
+// Status returns HTTPResponse.Status
+func (r ListWorkspaceRolesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListWorkspaceRolesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RollbackDatatableMigrationsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -129806,6 +130104,32 @@ func (c *ClientWithResponses) ResetDiffTallyWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseResetDiffTallyResponse(rsp)
+}
+
+// UpdateWorkspaceRoleOverridesWithBodyWithResponse request with arbitrary body returning *UpdateWorkspaceRoleOverridesResponse
+func (c *ClientWithResponses) UpdateWorkspaceRoleOverridesWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateWorkspaceRoleOverridesResponse, error) {
+	rsp, err := c.UpdateWorkspaceRoleOverridesWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateWorkspaceRoleOverridesResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateWorkspaceRoleOverridesWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateWorkspaceRoleOverridesJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateWorkspaceRoleOverridesResponse, error) {
+	rsp, err := c.UpdateWorkspaceRoleOverrides(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateWorkspaceRoleOverridesResponse(rsp)
+}
+
+// ListWorkspaceRolesWithResponse request returning *ListWorkspaceRolesResponse
+func (c *ClientWithResponses) ListWorkspaceRolesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListWorkspaceRolesResponse, error) {
+	rsp, err := c.ListWorkspaceRoles(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListWorkspaceRolesResponse(rsp)
 }
 
 // RollbackDatatableMigrationsWithResponse request returning *RollbackDatatableMigrationsResponse
@@ -152259,6 +152583,48 @@ func ParseResetDiffTallyResponse(rsp *http.Response) (*ResetDiffTallyResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateWorkspaceRoleOverridesResponse parses an HTTP response from a UpdateWorkspaceRoleOverridesWithResponse call
+func ParseUpdateWorkspaceRoleOverridesResponse(rsp *http.Response) (*UpdateWorkspaceRoleOverridesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateWorkspaceRoleOverridesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListWorkspaceRolesResponse parses an HTTP response from a ListWorkspaceRolesWithResponse call
+func ParseListWorkspaceRolesResponse(rsp *http.Response) (*ListWorkspaceRolesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListWorkspaceRolesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest WorkspaceRoles
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
