@@ -2661,7 +2661,8 @@ type CreateTriggerResponse struct {
 
 // CreateVariable defines model for CreateVariable.
 type CreateVariable struct {
-	// Account The account identifier
+	// Account Ignored. A variable is linked to an OAuth account only when `createAccount` creates both.
+	// Deprecated:
 	Account *int `json:"account,omitempty"`
 
 	// Description The description of the variable
@@ -5637,6 +5638,9 @@ type NativeServiceName string
 
 // NativeTrigger A native trigger stored in Windmill
 type NativeTrigger struct {
+	// ConnectionPath Path of the connection the trigger acts through on the external service
+	ConnectionPath *string `json:"connection_path"`
+
 	// Enabled Whether the trigger starts a job when it fires
 	Enabled bool `json:"enabled"`
 
@@ -5663,8 +5667,23 @@ type NativeTrigger struct {
 	WorkspaceId string `json:"workspace_id"`
 }
 
+// NativeTriggerConnection An account connected for native triggers, stored as an OAuth resource
+type NativeTriggerConnection struct {
+	// Owner Username of whoever connected the account, when the caller can read its resource
+	Owner *string `json:"owner"`
+
+	// Path Path of the resource and variable holding the connection
+	Path string `json:"path"`
+
+	// Workspace Whether this is the workspace connection, which every member may use
+	Workspace bool `json:"workspace"`
+}
+
 // NativeTriggerData Data for creating or updating a native trigger
 type NativeTriggerData struct {
+	// ConnectionPath Path of the connection the trigger acts through. Honoured on create only; an update keeps the trigger's connection. When omitted on create, the caller's only usable connection for the service is used.
+	ConnectionPath *string `json:"connection_path"`
+
 	// Enabled Whether the trigger starts a job when it fires. Honoured on create only, so a trigger can be registered already paused; an update ignores it and setenabled is the only way to change an existing trigger's state. Defaults to true.
 	Enabled *bool `json:"enabled,omitempty"`
 
@@ -5683,6 +5702,9 @@ type NativeTriggerData struct {
 
 // NativeTriggerWithExternal Full trigger response containing both Windmill data and external service data
 type NativeTriggerWithExternal struct {
+	// ConnectionPath Path of the connection the trigger acts through on the external service
+	ConnectionPath *string `json:"connection_path"`
+
 	// Enabled Whether the trigger starts a job when it fires
 	Enabled bool `json:"enabled"`
 
@@ -6947,11 +6969,6 @@ type RecordingBody struct {
 	// ProjectSlug hub project slug (3-50 chars, lowercase alphanumeric and hyphens, no leading/trailing hyphen)
 	ProjectSlug HubProjectSlug          `json:"project_slug"`
 	Recording   *map[string]interface{} `json:"recording,omitempty"`
-}
-
-// RedirectUri defines model for RedirectUri.
-type RedirectUri struct {
-	RedirectUri string `json:"redirect_uri"`
 }
 
 // Relations defines model for Relations.
@@ -8335,11 +8352,8 @@ type WorkspaceInfo struct {
 
 // WorkspaceIntegrations defines model for WorkspaceIntegrations.
 type WorkspaceIntegrations struct {
-	OauthData *WorkspaceOAuthConfig `json:"oauth_data,omitempty"`
-
-	// ResourcePath Path to the resource storing the OAuth token
-	ResourcePath *string           `json:"resource_path"`
-	ServiceName  NativeServiceName `json:"service_name"`
+	OauthData   *WorkspaceOAuthConfig `json:"oauth_data,omitempty"`
+	ServiceName NativeServiceName     `json:"service_name"`
 }
 
 // WorkspaceInvite defines model for WorkspaceInvite.
@@ -12590,8 +12604,11 @@ type GetResumeUrlsParams struct {
 
 // RunAgentJSONBody defines parameters for RunAgent.
 type RunAgentJSONBody struct {
-	UserAttachments *[]interface{} `json:"user_attachments,omitempty"`
-	UserMessage     *string        `json:"user_message,omitempty"`
+	// PreviousMessages The history to answer from, as chat messages, when the agent's memory is off.
+	// An agent with managed memory reads its conversation instead and ignores this.
+	PreviousMessages *[]interface{} `json:"previous_messages,omitempty"`
+	UserAttachments  *[]interface{} `json:"user_attachments,omitempty"`
+	UserMessage      *string        `json:"user_message,omitempty"`
 }
 
 // RunAgentParams defines parameters for RunAgent.
@@ -13382,8 +13399,23 @@ type TestMqttConnectionJSONBody struct {
 	Connection map[string]interface{} `json:"connection"`
 }
 
+// ListGithubReposParams defines parameters for ListGithubRepos.
+type ListGithubReposParams struct {
+	// ConnectionPath Connection to browse through; defaults to the caller's only usable one
+	ConnectionPath *string `form:"connection_path,omitempty" json:"connection_path,omitempty"`
+}
+
+// ListGoogleCalendarsParams defines parameters for ListGoogleCalendars.
+type ListGoogleCalendarsParams struct {
+	// ConnectionPath Connection to browse through; defaults to the caller's only usable one
+	ConnectionPath *string `form:"connection_path,omitempty" json:"connection_path,omitempty"`
+}
+
 // ListGoogleDriveFilesParams defines parameters for ListGoogleDriveFiles.
 type ListGoogleDriveFilesParams struct {
+	// ConnectionPath Connection to browse through; defaults to the caller's only usable one
+	ConnectionPath *string `form:"connection_path,omitempty" json:"connection_path,omitempty"`
+
 	// Q search query to filter files by name
 	Q *string `form:"q,omitempty" json:"q,omitempty"`
 
@@ -13397,12 +13429,40 @@ type ListGoogleDriveFilesParams struct {
 	SharedWithMe *bool `form:"shared_with_me,omitempty" json:"shared_with_me,omitempty"`
 }
 
+// ListGoogleSharedDrivesParams defines parameters for ListGoogleSharedDrives.
+type ListGoogleSharedDrivesParams struct {
+	// ConnectionPath Connection to browse through; defaults to the caller's only usable one
+	ConnectionPath *string `form:"connection_path,omitempty" json:"connection_path,omitempty"`
+}
+
 // NativeTriggerServiceCallbackJSONBody defines parameters for NativeTriggerServiceCallback.
 type NativeTriggerServiceCallbackJSONBody struct {
-	Code         string  `json:"code"`
+	Code        string `json:"code"`
+	RedirectUri string `json:"redirect_uri"`
+	State       string `json:"state"`
+}
+
+// DeleteNativeTriggerConnectionParams defines parameters for DeleteNativeTriggerConnection.
+type DeleteNativeTriggerConnectionParams struct {
+	Path string `form:"path" json:"path"`
+}
+
+// GenerateNativeTriggerServiceConnectUrlJSONBody defines parameters for GenerateNativeTriggerServiceConnectUrl.
+type GenerateNativeTriggerServiceConnectUrlJSONBody struct {
 	RedirectUri  string  `json:"redirect_uri"`
 	ResourcePath *string `json:"resource_path,omitempty"`
-	State        string  `json:"state"`
+}
+
+// SetNativeTriggerWorkspaceConnectionJSONBody defines parameters for SetNativeTriggerWorkspaceConnection.
+type SetNativeTriggerWorkspaceConnectionJSONBody struct {
+	// Path The connection to share, or null to stop sharing
+	Path *string `json:"path"`
+}
+
+// ListNextCloudEventsParams defines parameters for ListNextCloudEvents.
+type ListNextCloudEventsParams struct {
+	// ConnectionPath Connection to browse through; defaults to the caller's only usable one
+	ConnectionPath *string `form:"connection_path,omitempty" json:"connection_path,omitempty"`
 }
 
 // ListNativeTriggersParams defines parameters for ListNativeTriggers.
@@ -13531,7 +13591,8 @@ type CreateAccountJSONBody struct {
 	RefreshToken string `json:"refresh_token"`
 
 	// Scopes OAuth scopes to use for token refresh. Overrides instance-level scopes.
-	Scopes *[]string `json:"scopes,omitempty"`
+	Scopes   *[]string       `json:"scopes,omitempty"`
+	Variable *CreateVariable `json:"variable,omitempty"`
 }
 
 // RefreshTokenJSONBody defines parameters for RefreshToken.
@@ -14784,6 +14845,11 @@ type SetWorkspaceSlackOauthConfigJSONBody struct {
 	SlackOauthClientSecret string `json:"slack_oauth_client_secret"`
 }
 
+// SetWorkspaceSlackSigningSecretJSONBody defines parameters for SetWorkspaceSlackSigningSecret.
+type SetWorkspaceSlackSigningSecretJSONBody struct {
+	SlackSigningSecret *string `json:"slack_signing_secret"`
+}
+
 // SetThresholdAlertJSONBody defines parameters for SetThresholdAlert.
 type SetThresholdAlertJSONBody struct {
 	ThresholdAlertAmount *float32 `json:"threshold_alert_amount,omitempty"`
@@ -15546,10 +15612,10 @@ type NativeTriggerServiceCallbackJSONRequestBody NativeTriggerServiceCallbackJSO
 type CreateNativeTriggerServiceJSONRequestBody = WorkspaceOAuthConfig
 
 // GenerateNativeTriggerServiceConnectUrlJSONRequestBody defines body for GenerateNativeTriggerServiceConnectUrl for application/json ContentType.
-type GenerateNativeTriggerServiceConnectUrlJSONRequestBody = RedirectUri
+type GenerateNativeTriggerServiceConnectUrlJSONRequestBody GenerateNativeTriggerServiceConnectUrlJSONBody
 
-// GenerateInstanceConnectUrlJSONRequestBody defines body for GenerateInstanceConnectUrl for application/json ContentType.
-type GenerateInstanceConnectUrlJSONRequestBody = RedirectUri
+// SetNativeTriggerWorkspaceConnectionJSONRequestBody defines body for SetNativeTriggerWorkspaceConnection for application/json ContentType.
+type SetNativeTriggerWorkspaceConnectionJSONRequestBody SetNativeTriggerWorkspaceConnectionJSONBody
 
 // CreateNativeTriggerJSONRequestBody defines body for CreateNativeTrigger for application/json ContentType.
 type CreateNativeTriggerJSONRequestBody = NativeTriggerData
@@ -15925,6 +15991,9 @@ type ApplyWorkspaceSettingsDocumentJSONRequestBody ApplyWorkspaceSettingsDocumen
 
 // SetWorkspaceSlackOauthConfigJSONRequestBody defines body for SetWorkspaceSlackOauthConfig for application/json ContentType.
 type SetWorkspaceSlackOauthConfigJSONRequestBody SetWorkspaceSlackOauthConfigJSONBody
+
+// SetWorkspaceSlackSigningSecretJSONRequestBody defines body for SetWorkspaceSlackSigningSecret for application/json ContentType.
+type SetWorkspaceSlackSigningSecretJSONRequestBody SetWorkspaceSlackSigningSecretJSONBody
 
 // SetThresholdAlertJSONRequestBody defines body for SetThresholdAlert for application/json ContentType.
 type SetThresholdAlertJSONRequestBody SetThresholdAlertJSONBody
@@ -20562,16 +20631,16 @@ type ClientInterface interface {
 	UpdateMqttTrigger(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListGithubRepos request
-	ListGithubRepos(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListGithubRepos(ctx context.Context, workspace string, params *ListGithubReposParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListGoogleCalendars request
-	ListGoogleCalendars(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListGoogleCalendars(ctx context.Context, workspace string, params *ListGoogleCalendarsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListGoogleDriveFiles request
 	ListGoogleDriveFiles(ctx context.Context, workspace string, params *ListGoogleDriveFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListGoogleSharedDrives request
-	ListGoogleSharedDrives(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListGoogleSharedDrives(ctx context.Context, workspace string, params *ListGoogleSharedDrivesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListNativeTriggerServices request
 	ListNativeTriggerServices(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20580,6 +20649,12 @@ type ClientInterface interface {
 	NativeTriggerServiceCallbackWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	NativeTriggerServiceCallback(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListNativeTriggerConnections request
+	ListNativeTriggerConnections(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteNativeTriggerConnection request
+	DeleteNativeTriggerConnection(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, params *DeleteNativeTriggerConnectionParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateNativeTriggerServiceWithBody request with any body
 	CreateNativeTriggerServiceWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20597,16 +20672,16 @@ type ClientInterface interface {
 
 	GenerateNativeTriggerServiceConnectUrl(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateNativeTriggerServiceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GenerateInstanceConnectUrlWithBody request with any body
-	GenerateInstanceConnectUrlWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	GenerateInstanceConnectUrl(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateInstanceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// CheckInstanceSharingAvailable request
 	CheckInstanceSharingAvailable(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SetNativeTriggerWorkspaceConnectionWithBody request with any body
+	SetNativeTriggerWorkspaceConnectionWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetNativeTriggerWorkspaceConnection(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body SetNativeTriggerWorkspaceConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListNextCloudEvents request
-	ListNextCloudEvents(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListNextCloudEvents(ctx context.Context, workspace string, params *ListNextCloudEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateNativeTriggerWithBody request with any body
 	CreateNativeTriggerWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -21808,6 +21883,11 @@ type ClientInterface interface {
 	SetWorkspaceSlackOauthConfigWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SetWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackOauthConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetWorkspaceSlackSigningSecretWithBody request with any body
+	SetWorkspaceSlackSigningSecretWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetWorkspaceSlackSigningSecret(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackSigningSecretJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestDataTableConnection request
 	TestDataTableConnection(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -31406,8 +31486,8 @@ func (c *Client) UpdateMqttTrigger(ctx context.Context, workspace WorkspaceId, p
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListGithubRepos(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListGithubReposRequest(c.Server, workspace)
+func (c *Client) ListGithubRepos(ctx context.Context, workspace string, params *ListGithubReposParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGithubReposRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -31418,8 +31498,8 @@ func (c *Client) ListGithubRepos(ctx context.Context, workspace string, reqEdito
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListGoogleCalendars(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListGoogleCalendarsRequest(c.Server, workspace)
+func (c *Client) ListGoogleCalendars(ctx context.Context, workspace string, params *ListGoogleCalendarsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGoogleCalendarsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -31442,8 +31522,8 @@ func (c *Client) ListGoogleDriveFiles(ctx context.Context, workspace string, par
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListGoogleSharedDrives(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListGoogleSharedDrivesRequest(c.Server, workspace)
+func (c *Client) ListGoogleSharedDrives(ctx context.Context, workspace string, params *ListGoogleSharedDrivesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGoogleSharedDrivesRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -31480,6 +31560,30 @@ func (c *Client) NativeTriggerServiceCallbackWithBody(ctx context.Context, works
 
 func (c *Client) NativeTriggerServiceCallback(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewNativeTriggerServiceCallbackRequest(c.Server, workspace, serviceName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListNativeTriggerConnections(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNativeTriggerConnectionsRequest(c.Server, workspace, serviceName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteNativeTriggerConnection(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, params *DeleteNativeTriggerConnectionParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteNativeTriggerConnectionRequest(c.Server, workspace, serviceName, params)
 	if err != nil {
 		return nil, err
 	}
@@ -31562,30 +31666,6 @@ func (c *Client) GenerateNativeTriggerServiceConnectUrl(ctx context.Context, wor
 	return c.Client.Do(req)
 }
 
-func (c *Client) GenerateInstanceConnectUrlWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGenerateInstanceConnectUrlRequestWithBody(c.Server, workspace, serviceName, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GenerateInstanceConnectUrl(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateInstanceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGenerateInstanceConnectUrlRequest(c.Server, workspace, serviceName, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) CheckInstanceSharingAvailable(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCheckInstanceSharingAvailableRequest(c.Server, workspace, serviceName)
 	if err != nil {
@@ -31598,8 +31678,32 @@ func (c *Client) CheckInstanceSharingAvailable(ctx context.Context, workspace Wo
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListNextCloudEvents(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListNextCloudEventsRequest(c.Server, workspace)
+func (c *Client) SetNativeTriggerWorkspaceConnectionWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetNativeTriggerWorkspaceConnectionRequestWithBody(c.Server, workspace, serviceName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetNativeTriggerWorkspaceConnection(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body SetNativeTriggerWorkspaceConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetNativeTriggerWorkspaceConnectionRequest(c.Server, workspace, serviceName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListNextCloudEvents(ctx context.Context, workspace string, params *ListNextCloudEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNextCloudEventsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -36904,6 +37008,30 @@ func (c *Client) SetWorkspaceSlackOauthConfigWithBody(ctx context.Context, works
 
 func (c *Client) SetWorkspaceSlackOauthConfig(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackOauthConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetWorkspaceSlackOauthConfigRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetWorkspaceSlackSigningSecretWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWorkspaceSlackSigningSecretRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetWorkspaceSlackSigningSecret(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackSigningSecretJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetWorkspaceSlackSigningSecretRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -74426,7 +74554,7 @@ func NewUpdateMqttTriggerRequestWithBody(server string, workspace WorkspaceId, p
 }
 
 // NewListGithubReposRequest generates requests for ListGithubRepos
-func NewListGithubReposRequest(server string, workspace string) (*http.Request, error) {
+func NewListGithubReposRequest(server string, workspace string, params *ListGithubReposParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -74451,6 +74579,28 @@ func NewListGithubReposRequest(server string, workspace string) (*http.Request, 
 		return nil, err
 	}
 
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ConnectionPath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "connection_path", runtime.ParamLocationQuery, *params.ConnectionPath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
@@ -74460,7 +74610,7 @@ func NewListGithubReposRequest(server string, workspace string) (*http.Request, 
 }
 
 // NewListGoogleCalendarsRequest generates requests for ListGoogleCalendars
-func NewListGoogleCalendarsRequest(server string, workspace string) (*http.Request, error) {
+func NewListGoogleCalendarsRequest(server string, workspace string, params *ListGoogleCalendarsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -74483,6 +74633,28 @@ func NewListGoogleCalendarsRequest(server string, workspace string) (*http.Reque
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ConnectionPath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "connection_path", runtime.ParamLocationQuery, *params.ConnectionPath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -74521,6 +74693,22 @@ func NewListGoogleDriveFilesRequest(server string, workspace string, params *Lis
 
 	if params != nil {
 		queryValues := queryURL.Query()
+
+		if params.ConnectionPath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "connection_path", runtime.ParamLocationQuery, *params.ConnectionPath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
 
 		if params.Q != nil {
 
@@ -74598,7 +74786,7 @@ func NewListGoogleDriveFilesRequest(server string, workspace string, params *Lis
 }
 
 // NewListGoogleSharedDrivesRequest generates requests for ListGoogleSharedDrives
-func NewListGoogleSharedDrivesRequest(server string, workspace string) (*http.Request, error) {
+func NewListGoogleSharedDrivesRequest(server string, workspace string, params *ListGoogleSharedDrivesParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -74621,6 +74809,28 @@ func NewListGoogleSharedDrivesRequest(server string, workspace string) (*http.Re
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ConnectionPath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "connection_path", runtime.ParamLocationQuery, *params.ConnectionPath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -74715,6 +74925,106 @@ func NewNativeTriggerServiceCallbackRequestWithBody(server string, workspace Wor
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListNativeTriggerConnectionsRequest generates requests for ListNativeTriggerConnections
+func NewListNativeTriggerConnectionsRequest(server string, workspace WorkspaceId, serviceName NativeServiceName) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/connections", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDeleteNativeTriggerConnectionRequest generates requests for DeleteNativeTriggerConnection
+func NewDeleteNativeTriggerConnectionRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, params *DeleteNativeTriggerConnectionParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/connections/delete", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, params.Path); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -74909,60 +75219,6 @@ func NewGenerateNativeTriggerServiceConnectUrlRequestWithBody(server string, wor
 	return req, nil
 }
 
-// NewGenerateInstanceConnectUrlRequest calls the generic GenerateInstanceConnectUrl builder with application/json body
-func NewGenerateInstanceConnectUrlRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, body GenerateInstanceConnectUrlJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewGenerateInstanceConnectUrlRequestWithBody(server, workspace, serviceName, "application/json", bodyReader)
-}
-
-// NewGenerateInstanceConnectUrlRequestWithBody generates requests for GenerateInstanceConnectUrl with any type of body
-func NewGenerateInstanceConnectUrlRequestWithBody(server string, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/generate_instance_connect_url", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewCheckInstanceSharingAvailableRequest generates requests for CheckInstanceSharingAvailable
 func NewCheckInstanceSharingAvailableRequest(server string, workspace WorkspaceId, serviceName NativeServiceName) (*http.Request, error) {
 	var err error
@@ -75004,8 +75260,62 @@ func NewCheckInstanceSharingAvailableRequest(server string, workspace WorkspaceI
 	return req, nil
 }
 
+// NewSetNativeTriggerWorkspaceConnectionRequest calls the generic SetNativeTriggerWorkspaceConnection builder with application/json body
+func NewSetNativeTriggerWorkspaceConnectionRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, body SetNativeTriggerWorkspaceConnectionJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetNativeTriggerWorkspaceConnectionRequestWithBody(server, workspace, serviceName, "application/json", bodyReader)
+}
+
+// NewSetNativeTriggerWorkspaceConnectionRequestWithBody generates requests for SetNativeTriggerWorkspaceConnection with any type of body
+func NewSetNativeTriggerWorkspaceConnectionRequestWithBody(server string, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/workspace_connection", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewListNextCloudEventsRequest generates requests for ListNextCloudEvents
-func NewListNextCloudEventsRequest(server string, workspace string) (*http.Request, error) {
+func NewListNextCloudEventsRequest(server string, workspace string, params *ListNextCloudEventsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -75028,6 +75338,28 @@ func NewListNextCloudEventsRequest(server string, workspace string) (*http.Reque
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ConnectionPath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "connection_path", runtime.ParamLocationQuery, *params.ConnectionPath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -91716,6 +92048,53 @@ func NewSetWorkspaceSlackOauthConfigRequestWithBody(server string, workspace Wor
 	return req, nil
 }
 
+// NewSetWorkspaceSlackSigningSecretRequest calls the generic SetWorkspaceSlackSigningSecret builder with application/json body
+func NewSetWorkspaceSlackSigningSecretRequest(server string, workspace WorkspaceId, body SetWorkspaceSlackSigningSecretJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetWorkspaceSlackSigningSecretRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewSetWorkspaceSlackSigningSecretRequestWithBody generates requests for SetWorkspaceSlackSigningSecret with any type of body
+func NewSetWorkspaceSlackSigningSecretRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/slack_signing_secret", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewTestDataTableConnectionRequest generates requests for TestDataTableConnection
 func NewTestDataTableConnectionRequest(server string, workspace WorkspaceId, datatableName string) (*http.Request, error) {
 	var err error
@@ -95166,16 +95545,16 @@ type ClientWithResponsesInterface interface {
 	UpdateMqttTriggerWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateMqttTriggerJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMqttTriggerResponse, error)
 
 	// ListGithubReposWithResponse request
-	ListGithubReposWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGithubReposResponse, error)
+	ListGithubReposWithResponse(ctx context.Context, workspace string, params *ListGithubReposParams, reqEditors ...RequestEditorFn) (*ListGithubReposResponse, error)
 
 	// ListGoogleCalendarsWithResponse request
-	ListGoogleCalendarsWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGoogleCalendarsResponse, error)
+	ListGoogleCalendarsWithResponse(ctx context.Context, workspace string, params *ListGoogleCalendarsParams, reqEditors ...RequestEditorFn) (*ListGoogleCalendarsResponse, error)
 
 	// ListGoogleDriveFilesWithResponse request
 	ListGoogleDriveFilesWithResponse(ctx context.Context, workspace string, params *ListGoogleDriveFilesParams, reqEditors ...RequestEditorFn) (*ListGoogleDriveFilesResponse, error)
 
 	// ListGoogleSharedDrivesWithResponse request
-	ListGoogleSharedDrivesWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGoogleSharedDrivesResponse, error)
+	ListGoogleSharedDrivesWithResponse(ctx context.Context, workspace string, params *ListGoogleSharedDrivesParams, reqEditors ...RequestEditorFn) (*ListGoogleSharedDrivesResponse, error)
 
 	// ListNativeTriggerServicesWithResponse request
 	ListNativeTriggerServicesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListNativeTriggerServicesResponse, error)
@@ -95184,6 +95563,12 @@ type ClientWithResponsesInterface interface {
 	NativeTriggerServiceCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error)
 
 	NativeTriggerServiceCallbackWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body NativeTriggerServiceCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error)
+
+	// ListNativeTriggerConnectionsWithResponse request
+	ListNativeTriggerConnectionsWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*ListNativeTriggerConnectionsResponse, error)
+
+	// DeleteNativeTriggerConnectionWithResponse request
+	DeleteNativeTriggerConnectionWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, params *DeleteNativeTriggerConnectionParams, reqEditors ...RequestEditorFn) (*DeleteNativeTriggerConnectionResponse, error)
 
 	// CreateNativeTriggerServiceWithBodyWithResponse request with any body
 	CreateNativeTriggerServiceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNativeTriggerServiceResponse, error)
@@ -95201,16 +95586,16 @@ type ClientWithResponsesInterface interface {
 
 	GenerateNativeTriggerServiceConnectUrlWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateNativeTriggerServiceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateNativeTriggerServiceConnectUrlResponse, error)
 
-	// GenerateInstanceConnectUrlWithBodyWithResponse request with any body
-	GenerateInstanceConnectUrlWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GenerateInstanceConnectUrlResponse, error)
-
-	GenerateInstanceConnectUrlWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateInstanceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateInstanceConnectUrlResponse, error)
-
 	// CheckInstanceSharingAvailableWithResponse request
 	CheckInstanceSharingAvailableWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*CheckInstanceSharingAvailableResponse, error)
 
+	// SetNativeTriggerWorkspaceConnectionWithBodyWithResponse request with any body
+	SetNativeTriggerWorkspaceConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNativeTriggerWorkspaceConnectionResponse, error)
+
+	SetNativeTriggerWorkspaceConnectionWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body SetNativeTriggerWorkspaceConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*SetNativeTriggerWorkspaceConnectionResponse, error)
+
 	// ListNextCloudEventsWithResponse request
-	ListNextCloudEventsWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListNextCloudEventsResponse, error)
+	ListNextCloudEventsWithResponse(ctx context.Context, workspace string, params *ListNextCloudEventsParams, reqEditors ...RequestEditorFn) (*ListNextCloudEventsResponse, error)
 
 	// CreateNativeTriggerWithBodyWithResponse request with any body
 	CreateNativeTriggerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNativeTriggerResponse, error)
@@ -96412,6 +96797,11 @@ type ClientWithResponsesInterface interface {
 	SetWorkspaceSlackOauthConfigWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackOauthConfigResponse, error)
 
 	SetWorkspaceSlackOauthConfigWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackOauthConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackOauthConfigResponse, error)
+
+	// SetWorkspaceSlackSigningSecretWithBodyWithResponse request with any body
+	SetWorkspaceSlackSigningSecretWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackSigningSecretResponse, error)
+
+	SetWorkspaceSlackSigningSecretWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackSigningSecretJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackSigningSecretResponse, error)
 
 	// TestDataTableConnectionWithResponse request
 	TestDataTableConnectionWithResponse(ctx context.Context, workspace WorkspaceId, datatableName string, reqEditors ...RequestEditorFn) (*TestDataTableConnectionResponse, error)
@@ -110619,6 +111009,7 @@ func (r ListNativeTriggerServicesResponse) StatusCode() int {
 type NativeTriggerServiceCallbackResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *string
 }
 
 // Status returns HTTPResponse.Status
@@ -110631,6 +111022,50 @@ func (r NativeTriggerServiceCallbackResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r NativeTriggerServiceCallbackResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListNativeTriggerConnectionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]NativeTriggerConnection
+}
+
+// Status returns HTTPResponse.Status
+func (r ListNativeTriggerConnectionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListNativeTriggerConnectionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteNativeTriggerConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteNativeTriggerConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteNativeTriggerConnectionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -110723,28 +111158,6 @@ func (r GenerateNativeTriggerServiceConnectUrlResponse) StatusCode() int {
 	return 0
 }
 
-type GenerateInstanceConnectUrlResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *string
-}
-
-// Status returns HTTPResponse.Status
-func (r GenerateInstanceConnectUrlResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GenerateInstanceConnectUrlResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type CheckInstanceSharingAvailableResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -110761,6 +111174,28 @@ func (r CheckInstanceSharingAvailableResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CheckInstanceSharingAvailableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetNativeTriggerWorkspaceConnectionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *string
+}
+
+// Status returns HTTPResponse.Status
+func (r SetNativeTriggerWorkspaceConnectionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetNativeTriggerWorkspaceConnectionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -118619,6 +119054,9 @@ type GetWorkspaceSlackOauthConfigResponse struct {
 
 		// SlackOauthClientSecret Masked with *** if set
 		SlackOauthClientSecret *string `json:"slack_oauth_client_secret"`
+
+		// SlackSigningSecret Masked with *** if set
+		SlackSigningSecret *string `json:"slack_signing_secret"`
 	}
 }
 
@@ -118653,6 +119091,27 @@ func (r SetWorkspaceSlackOauthConfigResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SetWorkspaceSlackOauthConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetWorkspaceSlackSigningSecretResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetWorkspaceSlackSigningSecretResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetWorkspaceSlackSigningSecretResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -126287,8 +126746,8 @@ func (c *ClientWithResponses) UpdateMqttTriggerWithResponse(ctx context.Context,
 }
 
 // ListGithubReposWithResponse request returning *ListGithubReposResponse
-func (c *ClientWithResponses) ListGithubReposWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGithubReposResponse, error) {
-	rsp, err := c.ListGithubRepos(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListGithubReposWithResponse(ctx context.Context, workspace string, params *ListGithubReposParams, reqEditors ...RequestEditorFn) (*ListGithubReposResponse, error) {
+	rsp, err := c.ListGithubRepos(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -126296,8 +126755,8 @@ func (c *ClientWithResponses) ListGithubReposWithResponse(ctx context.Context, w
 }
 
 // ListGoogleCalendarsWithResponse request returning *ListGoogleCalendarsResponse
-func (c *ClientWithResponses) ListGoogleCalendarsWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGoogleCalendarsResponse, error) {
-	rsp, err := c.ListGoogleCalendars(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListGoogleCalendarsWithResponse(ctx context.Context, workspace string, params *ListGoogleCalendarsParams, reqEditors ...RequestEditorFn) (*ListGoogleCalendarsResponse, error) {
+	rsp, err := c.ListGoogleCalendars(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -126314,8 +126773,8 @@ func (c *ClientWithResponses) ListGoogleDriveFilesWithResponse(ctx context.Conte
 }
 
 // ListGoogleSharedDrivesWithResponse request returning *ListGoogleSharedDrivesResponse
-func (c *ClientWithResponses) ListGoogleSharedDrivesWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListGoogleSharedDrivesResponse, error) {
-	rsp, err := c.ListGoogleSharedDrives(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListGoogleSharedDrivesWithResponse(ctx context.Context, workspace string, params *ListGoogleSharedDrivesParams, reqEditors ...RequestEditorFn) (*ListGoogleSharedDrivesResponse, error) {
+	rsp, err := c.ListGoogleSharedDrives(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -126346,6 +126805,24 @@ func (c *ClientWithResponses) NativeTriggerServiceCallbackWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseNativeTriggerServiceCallbackResponse(rsp)
+}
+
+// ListNativeTriggerConnectionsWithResponse request returning *ListNativeTriggerConnectionsResponse
+func (c *ClientWithResponses) ListNativeTriggerConnectionsWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*ListNativeTriggerConnectionsResponse, error) {
+	rsp, err := c.ListNativeTriggerConnections(ctx, workspace, serviceName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListNativeTriggerConnectionsResponse(rsp)
+}
+
+// DeleteNativeTriggerConnectionWithResponse request returning *DeleteNativeTriggerConnectionResponse
+func (c *ClientWithResponses) DeleteNativeTriggerConnectionWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, params *DeleteNativeTriggerConnectionParams, reqEditors ...RequestEditorFn) (*DeleteNativeTriggerConnectionResponse, error) {
+	rsp, err := c.DeleteNativeTriggerConnection(ctx, workspace, serviceName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteNativeTriggerConnectionResponse(rsp)
 }
 
 // CreateNativeTriggerServiceWithBodyWithResponse request with arbitrary body returning *CreateNativeTriggerServiceResponse
@@ -126400,23 +126877,6 @@ func (c *ClientWithResponses) GenerateNativeTriggerServiceConnectUrlWithResponse
 	return ParseGenerateNativeTriggerServiceConnectUrlResponse(rsp)
 }
 
-// GenerateInstanceConnectUrlWithBodyWithResponse request with arbitrary body returning *GenerateInstanceConnectUrlResponse
-func (c *ClientWithResponses) GenerateInstanceConnectUrlWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GenerateInstanceConnectUrlResponse, error) {
-	rsp, err := c.GenerateInstanceConnectUrlWithBody(ctx, workspace, serviceName, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGenerateInstanceConnectUrlResponse(rsp)
-}
-
-func (c *ClientWithResponses) GenerateInstanceConnectUrlWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body GenerateInstanceConnectUrlJSONRequestBody, reqEditors ...RequestEditorFn) (*GenerateInstanceConnectUrlResponse, error) {
-	rsp, err := c.GenerateInstanceConnectUrl(ctx, workspace, serviceName, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGenerateInstanceConnectUrlResponse(rsp)
-}
-
 // CheckInstanceSharingAvailableWithResponse request returning *CheckInstanceSharingAvailableResponse
 func (c *ClientWithResponses) CheckInstanceSharingAvailableWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*CheckInstanceSharingAvailableResponse, error) {
 	rsp, err := c.CheckInstanceSharingAvailable(ctx, workspace, serviceName, reqEditors...)
@@ -126426,9 +126886,26 @@ func (c *ClientWithResponses) CheckInstanceSharingAvailableWithResponse(ctx cont
 	return ParseCheckInstanceSharingAvailableResponse(rsp)
 }
 
+// SetNativeTriggerWorkspaceConnectionWithBodyWithResponse request with arbitrary body returning *SetNativeTriggerWorkspaceConnectionResponse
+func (c *ClientWithResponses) SetNativeTriggerWorkspaceConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNativeTriggerWorkspaceConnectionResponse, error) {
+	rsp, err := c.SetNativeTriggerWorkspaceConnectionWithBody(ctx, workspace, serviceName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetNativeTriggerWorkspaceConnectionResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetNativeTriggerWorkspaceConnectionWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, body SetNativeTriggerWorkspaceConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*SetNativeTriggerWorkspaceConnectionResponse, error) {
+	rsp, err := c.SetNativeTriggerWorkspaceConnection(ctx, workspace, serviceName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetNativeTriggerWorkspaceConnectionResponse(rsp)
+}
+
 // ListNextCloudEventsWithResponse request returning *ListNextCloudEventsResponse
-func (c *ClientWithResponses) ListNextCloudEventsWithResponse(ctx context.Context, workspace string, reqEditors ...RequestEditorFn) (*ListNextCloudEventsResponse, error) {
-	rsp, err := c.ListNextCloudEvents(ctx, workspace, reqEditors...)
+func (c *ClientWithResponses) ListNextCloudEventsWithResponse(ctx context.Context, workspace string, params *ListNextCloudEventsParams, reqEditors ...RequestEditorFn) (*ListNextCloudEventsResponse, error) {
+	rsp, err := c.ListNextCloudEvents(ctx, workspace, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -130286,6 +130763,23 @@ func (c *ClientWithResponses) SetWorkspaceSlackOauthConfigWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseSetWorkspaceSlackOauthConfigResponse(rsp)
+}
+
+// SetWorkspaceSlackSigningSecretWithBodyWithResponse request with arbitrary body returning *SetWorkspaceSlackSigningSecretResponse
+func (c *ClientWithResponses) SetWorkspaceSlackSigningSecretWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackSigningSecretResponse, error) {
+	rsp, err := c.SetWorkspaceSlackSigningSecretWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetWorkspaceSlackSigningSecretResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetWorkspaceSlackSigningSecretWithResponse(ctx context.Context, workspace WorkspaceId, body SetWorkspaceSlackSigningSecretJSONRequestBody, reqEditors ...RequestEditorFn) (*SetWorkspaceSlackSigningSecretResponse, error) {
+	rsp, err := c.SetWorkspaceSlackSigningSecret(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetWorkspaceSlackSigningSecretResponse(rsp)
 }
 
 // TestDataTableConnectionWithResponse request returning *TestDataTableConnectionResponse
@@ -144822,6 +145316,68 @@ func ParseNativeTriggerServiceCallbackResponse(rsp *http.Response) (*NativeTrigg
 		HTTPResponse: rsp,
 	}
 
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListNativeTriggerConnectionsResponse parses an HTTP response from a ListNativeTriggerConnectionsWithResponse call
+func ParseListNativeTriggerConnectionsResponse(rsp *http.Response) (*ListNativeTriggerConnectionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListNativeTriggerConnectionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []NativeTriggerConnection
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteNativeTriggerConnectionResponse parses an HTTP response from a DeleteNativeTriggerConnectionWithResponse call
+func ParseDeleteNativeTriggerConnectionResponse(rsp *http.Response) (*DeleteNativeTriggerConnectionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteNativeTriggerConnectionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
 	return response, nil
 }
 
@@ -144909,32 +145465,6 @@ func ParseGenerateNativeTriggerServiceConnectUrlResponse(rsp *http.Response) (*G
 	return response, nil
 }
 
-// ParseGenerateInstanceConnectUrlResponse parses an HTTP response from a GenerateInstanceConnectUrlWithResponse call
-func ParseGenerateInstanceConnectUrlResponse(rsp *http.Response) (*GenerateInstanceConnectUrlResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GenerateInstanceConnectUrlResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest string
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseCheckInstanceSharingAvailableResponse parses an HTTP response from a CheckInstanceSharingAvailableWithResponse call
 func ParseCheckInstanceSharingAvailableResponse(rsp *http.Response) (*CheckInstanceSharingAvailableResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -144951,6 +145481,32 @@ func ParseCheckInstanceSharingAvailableResponse(rsp *http.Response) (*CheckInsta
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetNativeTriggerWorkspaceConnectionResponse parses an HTTP response from a SetNativeTriggerWorkspaceConnectionWithResponse call
+func ParseSetNativeTriggerWorkspaceConnectionResponse(rsp *http.Response) (*SetNativeTriggerWorkspaceConnectionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetNativeTriggerWorkspaceConnectionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -152887,6 +153443,9 @@ func ParseGetWorkspaceSlackOauthConfigResponse(rsp *http.Response) (*GetWorkspac
 
 			// SlackOauthClientSecret Masked with *** if set
 			SlackOauthClientSecret *string `json:"slack_oauth_client_secret"`
+
+			// SlackSigningSecret Masked with *** if set
+			SlackSigningSecret *string `json:"slack_signing_secret"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -152907,6 +153466,22 @@ func ParseSetWorkspaceSlackOauthConfigResponse(rsp *http.Response) (*SetWorkspac
 	}
 
 	response := &SetWorkspaceSlackOauthConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSetWorkspaceSlackSigningSecretResponse parses an HTTP response from a SetWorkspaceSlackSigningSecretWithResponse call
+func ParseSetWorkspaceSlackSigningSecretResponse(rsp *http.Response) (*SetWorkspaceSlackSigningSecretResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetWorkspaceSlackSigningSecretResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
