@@ -172,96 +172,97 @@ const (
 
 // Defines values for AuditLogOperation.
 const (
-	AccountDelete                  AuditLogOperation = "account.delete"
-	AiRequest                      AuditLogOperation = "ai.request"
-	AppsCreate                     AuditLogOperation = "apps.create"
-	AppsDelete                     AuditLogOperation = "apps.delete"
-	AppsUpdate                     AuditLogOperation = "apps.update"
-	FlowsArchive                   AuditLogOperation = "flows.archive"
-	FlowsCreate                    AuditLogOperation = "flows.create"
-	FlowsDelete                    AuditLogOperation = "flows.delete"
-	FlowsUpdate                    AuditLogOperation = "flows.update"
-	FolderAddOwner                 AuditLogOperation = "folder.add_owner"
-	FolderCreate                   AuditLogOperation = "folder.create"
-	FolderDelete                   AuditLogOperation = "folder.delete"
-	FolderRemoveOwner              AuditLogOperation = "folder.remove_owner"
-	FolderUpdate                   AuditLogOperation = "folder.update"
-	GroupAdduser                   AuditLogOperation = "group.adduser"
-	GroupCreate                    AuditLogOperation = "group.create"
-	GroupDelete                    AuditLogOperation = "group.delete"
-	GroupEdit                      AuditLogOperation = "group.edit"
-	GroupRemoveuser                AuditLogOperation = "group.removeuser"
-	IgroupAdduser                  AuditLogOperation = "igroup.adduser"
-	IgroupCreate                   AuditLogOperation = "igroup.create"
-	IgroupDelete                   AuditLogOperation = "igroup.delete"
-	IgroupRemoveuser               AuditLogOperation = "igroup.removeuser"
-	InstanceGroupsJitAdduser       AuditLogOperation = "instance_groups.jit_adduser"
-	InstanceGroupsJitRemoveuser    AuditLogOperation = "instance_groups.jit_removeuser"
-	Jobs                           AuditLogOperation = "jobs"
-	JobsCancel                     AuditLogOperation = "jobs.cancel"
-	JobsDelete                     AuditLogOperation = "jobs.delete"
-	JobsDisapproval                AuditLogOperation = "jobs.disapproval"
-	JobsFlowDependencies           AuditLogOperation = "jobs.flow_dependencies"
-	JobsForceCancel                AuditLogOperation = "jobs.force_cancel"
-	JobsRun                        AuditLogOperation = "jobs.run"
-	JobsRunDependencies            AuditLogOperation = "jobs.run.dependencies"
-	JobsRunFlow                    AuditLogOperation = "jobs.run.flow"
-	JobsRunFlowPreview             AuditLogOperation = "jobs.run.flow_preview"
-	JobsRunIdentity                AuditLogOperation = "jobs.run.identity"
-	JobsRunNoop                    AuditLogOperation = "jobs.run.noop"
-	JobsRunNow                     AuditLogOperation = "jobs.run_now"
-	JobsRunPreview                 AuditLogOperation = "jobs.run.preview"
-	JobsRunScript                  AuditLogOperation = "jobs.run.script"
-	JobsRunScriptHub               AuditLogOperation = "jobs.run.script_hub"
-	OauthLogin                     AuditLogOperation = "oauth.login"
-	OauthLoginFailure              AuditLogOperation = "oauth.login_failure"
-	OauthSignup                    AuditLogOperation = "oauth.signup"
-	ResourceTypesCreate            AuditLogOperation = "resource_types.create"
-	ResourceTypesDelete            AuditLogOperation = "resource_types.delete"
-	ResourceTypesSync              AuditLogOperation = "resource_types.sync"
-	ResourceTypesUpdate            AuditLogOperation = "resource_types.update"
-	ResourcesCreate                AuditLogOperation = "resources.create"
-	ResourcesDelete                AuditLogOperation = "resources.delete"
-	ResourcesUpdate                AuditLogOperation = "resources.update"
-	ScheduleCreate                 AuditLogOperation = "schedule.create"
-	ScheduleDelete                 AuditLogOperation = "schedule.delete"
-	ScheduleEdit                   AuditLogOperation = "schedule.edit"
-	ScheduleSetenabled             AuditLogOperation = "schedule.setenabled"
-	ScriptsArchive                 AuditLogOperation = "scripts.archive"
-	ScriptsCreate                  AuditLogOperation = "scripts.create"
-	ScriptsDelete                  AuditLogOperation = "scripts.delete"
-	ScriptsUpdate                  AuditLogOperation = "scripts.update"
-	UsersAcceptInvite              AuditLogOperation = "users.accept_invite"
-	UsersAddGlobal                 AuditLogOperation = "users.add_global"
-	UsersAddToWorkspace            AuditLogOperation = "users.add_to_workspace"
-	UsersCreate                    AuditLogOperation = "users.create"
-	UsersDeclineInvite             AuditLogOperation = "users.decline_invite"
-	UsersDelete                    AuditLogOperation = "users.delete"
-	UsersImpersonate               AuditLogOperation = "users.impersonate"
-	UsersLeaveWorkspace            AuditLogOperation = "users.leave_workspace"
-	UsersLogin                     AuditLogOperation = "users.login"
-	UsersLoginFailure              AuditLogOperation = "users.login_failure"
-	UsersLogout                    AuditLogOperation = "users.logout"
-	UsersSetpassword               AuditLogOperation = "users.setpassword"
-	UsersTokenCreate               AuditLogOperation = "users.token.create"
-	UsersTokenDelete               AuditLogOperation = "users.token.delete"
-	UsersUpdate                    AuditLogOperation = "users.update"
-	VariablesCreate                AuditLogOperation = "variables.create"
-	VariablesDecryptSecret         AuditLogOperation = "variables.decrypt_secret"
-	VariablesDelete                AuditLogOperation = "variables.delete"
-	VariablesUpdate                AuditLogOperation = "variables.update"
-	WorkspacesArchive              AuditLogOperation = "workspaces.archive"
-	WorkspacesCreate               AuditLogOperation = "workspaces.create"
-	WorkspacesDelete               AuditLogOperation = "workspaces.delete"
-	WorkspacesEditAutoInviteDomain AuditLogOperation = "workspaces.edit_auto_invite_domain"
-	WorkspacesEditCommandScript    AuditLogOperation = "workspaces.edit_command_script"
-	WorkspacesEditCopilotConfig    AuditLogOperation = "workspaces.edit_copilot_config"
-	WorkspacesEditDeployTo         AuditLogOperation = "workspaces.edit_deploy_to"
-	WorkspacesEditErrorHandler     AuditLogOperation = "workspaces.edit_error_handler"
-	WorkspacesEditWebhook          AuditLogOperation = "workspaces.edit_webhook"
-	WorkspacesReadEncryptionKey    AuditLogOperation = "workspaces.read_encryption_key"
-	WorkspacesUnarchive            AuditLogOperation = "workspaces.unarchive"
-	WorkspacesUpdate               AuditLogOperation = "workspaces.update"
+	AccountDelete                           AuditLogOperation = "account.delete"
+	AiRequest                               AuditLogOperation = "ai.request"
+	AppsCreate                              AuditLogOperation = "apps.create"
+	AppsDelete                              AuditLogOperation = "apps.delete"
+	AppsUpdate                              AuditLogOperation = "apps.update"
+	FlowsArchive                            AuditLogOperation = "flows.archive"
+	FlowsCreate                             AuditLogOperation = "flows.create"
+	FlowsDelete                             AuditLogOperation = "flows.delete"
+	FlowsUpdate                             AuditLogOperation = "flows.update"
+	FolderAddOwner                          AuditLogOperation = "folder.add_owner"
+	FolderCreate                            AuditLogOperation = "folder.create"
+	FolderDelete                            AuditLogOperation = "folder.delete"
+	FolderRemoveOwner                       AuditLogOperation = "folder.remove_owner"
+	FolderUpdate                            AuditLogOperation = "folder.update"
+	GroupAdduser                            AuditLogOperation = "group.adduser"
+	GroupCreate                             AuditLogOperation = "group.create"
+	GroupDelete                             AuditLogOperation = "group.delete"
+	GroupEdit                               AuditLogOperation = "group.edit"
+	GroupRemoveuser                         AuditLogOperation = "group.removeuser"
+	IgroupAdduser                           AuditLogOperation = "igroup.adduser"
+	IgroupCreate                            AuditLogOperation = "igroup.create"
+	IgroupDelete                            AuditLogOperation = "igroup.delete"
+	IgroupRemoveuser                        AuditLogOperation = "igroup.removeuser"
+	InstanceGroupsJitAdduser                AuditLogOperation = "instance_groups.jit_adduser"
+	InstanceGroupsJitRemoveuser             AuditLogOperation = "instance_groups.jit_removeuser"
+	Jobs                                    AuditLogOperation = "jobs"
+	JobsCancel                              AuditLogOperation = "jobs.cancel"
+	JobsDelete                              AuditLogOperation = "jobs.delete"
+	JobsDisapproval                         AuditLogOperation = "jobs.disapproval"
+	JobsFlowDependencies                    AuditLogOperation = "jobs.flow_dependencies"
+	JobsForceCancel                         AuditLogOperation = "jobs.force_cancel"
+	JobsRun                                 AuditLogOperation = "jobs.run"
+	JobsRunDependencies                     AuditLogOperation = "jobs.run.dependencies"
+	JobsRunFlow                             AuditLogOperation = "jobs.run.flow"
+	JobsRunFlowPreview                      AuditLogOperation = "jobs.run.flow_preview"
+	JobsRunIdentity                         AuditLogOperation = "jobs.run.identity"
+	JobsRunNoop                             AuditLogOperation = "jobs.run.noop"
+	JobsRunNow                              AuditLogOperation = "jobs.run_now"
+	JobsRunPreview                          AuditLogOperation = "jobs.run.preview"
+	JobsRunScript                           AuditLogOperation = "jobs.run.script"
+	JobsRunScriptHub                        AuditLogOperation = "jobs.run.script_hub"
+	OauthLogin                              AuditLogOperation = "oauth.login"
+	OauthLoginFailure                       AuditLogOperation = "oauth.login_failure"
+	OauthSignup                             AuditLogOperation = "oauth.signup"
+	ResourceTypesCreate                     AuditLogOperation = "resource_types.create"
+	ResourceTypesDelete                     AuditLogOperation = "resource_types.delete"
+	ResourceTypesSync                       AuditLogOperation = "resource_types.sync"
+	ResourceTypesUpdate                     AuditLogOperation = "resource_types.update"
+	ResourcesCreate                         AuditLogOperation = "resources.create"
+	ResourcesDelete                         AuditLogOperation = "resources.delete"
+	ResourcesUpdate                         AuditLogOperation = "resources.update"
+	ScheduleCreate                          AuditLogOperation = "schedule.create"
+	ScheduleDelete                          AuditLogOperation = "schedule.delete"
+	ScheduleEdit                            AuditLogOperation = "schedule.edit"
+	ScheduleSetenabled                      AuditLogOperation = "schedule.setenabled"
+	ScriptsArchive                          AuditLogOperation = "scripts.archive"
+	ScriptsCreate                           AuditLogOperation = "scripts.create"
+	ScriptsDelete                           AuditLogOperation = "scripts.delete"
+	ScriptsUpdate                           AuditLogOperation = "scripts.update"
+	UsersAcceptInvite                       AuditLogOperation = "users.accept_invite"
+	UsersAddGlobal                          AuditLogOperation = "users.add_global"
+	UsersAddToWorkspace                     AuditLogOperation = "users.add_to_workspace"
+	UsersCreate                             AuditLogOperation = "users.create"
+	UsersDeclineInvite                      AuditLogOperation = "users.decline_invite"
+	UsersDelete                             AuditLogOperation = "users.delete"
+	UsersImpersonate                        AuditLogOperation = "users.impersonate"
+	UsersLeaveWorkspace                     AuditLogOperation = "users.leave_workspace"
+	UsersLogin                              AuditLogOperation = "users.login"
+	UsersLoginFailure                       AuditLogOperation = "users.login_failure"
+	UsersLogout                             AuditLogOperation = "users.logout"
+	UsersSetpassword                        AuditLogOperation = "users.setpassword"
+	UsersTokenCreate                        AuditLogOperation = "users.token.create"
+	UsersTokenDelete                        AuditLogOperation = "users.token.delete"
+	UsersUpdate                             AuditLogOperation = "users.update"
+	VariablesCreate                         AuditLogOperation = "variables.create"
+	VariablesDecryptSecret                  AuditLogOperation = "variables.decrypt_secret"
+	VariablesDelete                         AuditLogOperation = "variables.delete"
+	VariablesUpdate                         AuditLogOperation = "variables.update"
+	WorkspacesArchive                       AuditLogOperation = "workspaces.archive"
+	WorkspacesCreate                        AuditLogOperation = "workspaces.create"
+	WorkspacesDelete                        AuditLogOperation = "workspaces.delete"
+	WorkspacesEditAutoInviteDomain          AuditLogOperation = "workspaces.edit_auto_invite_domain"
+	WorkspacesEditCommandScript             AuditLogOperation = "workspaces.edit_command_script"
+	WorkspacesEditCopilotConfig             AuditLogOperation = "workspaces.edit_copilot_config"
+	WorkspacesEditDeployTo                  AuditLogOperation = "workspaces.edit_deploy_to"
+	WorkspacesEditErrorHandler              AuditLogOperation = "workspaces.edit_error_handler"
+	WorkspacesEditVariableExpirationHandler AuditLogOperation = "workspaces.edit_variable_expiration_handler"
+	WorkspacesEditWebhook                   AuditLogOperation = "workspaces.edit_webhook"
+	WorkspacesReadEncryptionKey             AuditLogOperation = "workspaces.read_encryption_key"
+	WorkspacesUnarchive                     AuditLogOperation = "workspaces.unarchive"
+	WorkspacesUpdate                        AuditLogOperation = "workspaces.update"
 )
 
 // Defines values for AuthenticationMethod.
@@ -997,10 +998,10 @@ const (
 
 // Defines values for PolicyExecutionMode.
 const (
-	Anonymous PolicyExecutionMode = "anonymous"
-	Guest     PolicyExecutionMode = "guest"
-	Publisher PolicyExecutionMode = "publisher"
-	Viewer    PolicyExecutionMode = "viewer"
+	PolicyExecutionModeAnonymous PolicyExecutionMode = "anonymous"
+	PolicyExecutionModeGuest     PolicyExecutionMode = "guest"
+	PolicyExecutionModePublisher PolicyExecutionMode = "publisher"
+	PolicyExecutionModeViewer    PolicyExecutionMode = "viewer"
 )
 
 // Defines values for PreviewKind.
@@ -1422,6 +1423,13 @@ const (
 	ActionKindUpdate  ActionKind = "Update"
 )
 
+// Defines values for TestAutoscalingJSONBodyIntegrationType.
+const (
+	TestAutoscalingJSONBodyIntegrationTypeDryrun     TestAutoscalingJSONBodyIntegrationType = "dryrun"
+	TestAutoscalingJSONBodyIntegrationTypeKubernetes TestAutoscalingJSONBodyIntegrationType = "kubernetes"
+	TestAutoscalingJSONBodyIntegrationTypeScript     TestAutoscalingJSONBodyIntegrationType = "script"
+)
+
 // Defines values for ClearIndexParamsIdxName.
 const (
 	JobIndex        ClearIndexParamsIdxName = "JobIndex"
@@ -1532,6 +1540,14 @@ const (
 const (
 	ListAppPathsFromWorkspaceRunnableParamsRunnableKindFlow   ListAppPathsFromWorkspaceRunnableParamsRunnableKind = "flow"
 	ListAppPathsFromWorkspaceRunnableParamsRunnableKindScript ListAppPathsFromWorkspaceRunnableParamsRunnableKind = "script"
+)
+
+// Defines values for UpdateAppJSONBodyExecutionMode.
+const (
+	UpdateAppJSONBodyExecutionModeAnonymous UpdateAppJSONBodyExecutionMode = "anonymous"
+	UpdateAppJSONBodyExecutionModeGuest     UpdateAppJSONBodyExecutionMode = "guest"
+	UpdateAppJSONBodyExecutionModePublisher UpdateAppJSONBodyExecutionMode = "publisher"
+	UpdateAppJSONBodyExecutionModeViewer    UpdateAppJSONBodyExecutionMode = "viewer"
 )
 
 // Defines values for ListAuditLogsParamsActionKind.
@@ -1714,8 +1730,8 @@ const (
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
 const (
-	Resource SetWsSpecificJSONBodyItemKind = "resource"
-	Variable SetWsSpecificJSONBodyItemKind = "variable"
+	SetWsSpecificJSONBodyItemKindResource SetWsSpecificJSONBodyItemKind = "resource"
+	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
 )
 
 // Defines values for GetWorkspaceSettingsDocumentParamsSecrets.
@@ -2668,7 +2684,7 @@ type CreateVariable struct {
 	// Description The description of the variable
 	Description string `json:"description"`
 
-	// ExpiresAt The expiration date of the variable
+	// ExpiresAt When to garbage-collect the variable. Used for ephemeral secrets; the variable is deleted once this is reached. Not the value's expiry — see value_valid_until.
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 
 	// IsOauth Whether the variable is an OAuth variable
@@ -2682,8 +2698,11 @@ type CreateVariable struct {
 	Path string `json:"path"`
 
 	// Value The value of the variable
-	Value      string `json:"value"`
-	WsSpecific *bool  `json:"ws_specific,omitempty"`
+	Value string `json:"value"`
+
+	// ValueValidUntil When the value stored in this variable stops working. Triggers the workspace's variable expiration handler ahead of it, by the handler's `notify_before_secs` (1 day by default); never causes the variable to be deleted.
+	ValueValidUntil *time.Time `json:"value_valid_until,omitempty"`
+	WsSpecific      *bool      `json:"ws_specific,omitempty"`
 }
 
 // CreateWorkspace defines model for CreateWorkspace.
@@ -3814,8 +3833,29 @@ type EditVariable struct {
 	Path *string `json:"path,omitempty"`
 
 	// Value The new value of the variable
-	Value      *string `json:"value,omitempty"`
-	WsSpecific *bool   `json:"ws_specific,omitempty"`
+	Value *string `json:"value,omitempty"`
+
+	// ValueValidUntil When the value stored in this variable stops working. Omit to leave it unchanged; send null to clear it. Changing it re-arms the workspace's variable expiration handler.
+	ValueValidUntil *time.Time `json:"value_valid_until"`
+	WsSpecific      *bool      `json:"ws_specific,omitempty"`
+}
+
+// EditVariableExpirationHandler Request body for editing the workspace variable expiration handler. Omit `path` (or send null) to unset the handler.
+type EditVariableExpirationHandler struct {
+	// ExtraArgs The arguments to pass to the script or flow
+	ExtraArgs *ScriptArgs `json:"extra_args,omitempty"`
+
+	// MutedOnUserPath Do not run the handler for variables on a personal (u/) path
+	MutedOnUserPath *bool `json:"muted_on_user_path,omitempty"`
+
+	// NotifyBeforeSecs How long before a variable's value expires the handler runs. 1 day when omitted.
+	NotifyBeforeSecs *int `json:"notify_before_secs,omitempty"`
+
+	// Path Path to the variable expiration handler script or flow
+	Path *string `json:"path"`
+
+	// RemindEverySecs Run the handler again at this interval until the value expires. No reminders when omitted or 0.
+	RemindEverySecs *int `json:"remind_every_secs,omitempty"`
 }
 
 // EditWebsocketTrigger defines model for EditWebsocketTrigger.
@@ -5440,18 +5480,19 @@ type ListableVariable struct {
 	// IsDraft True when the authed user has a per-user draft at this path
 	// (over a deployed row or a synthesized draft-only row).
 	// Frontend appends a `*` to the displayed name.
-	IsDraft      *bool     `json:"is_draft,omitempty"`
-	IsExpired    *bool     `json:"is_expired,omitempty"`
-	IsLinked     *bool     `json:"is_linked,omitempty"`
-	IsOauth      *bool     `json:"is_oauth,omitempty"`
-	IsRefreshed  *bool     `json:"is_refreshed,omitempty"`
-	IsSecret     bool      `json:"is_secret"`
-	Labels       *[]string `json:"labels,omitempty"`
-	Path         string    `json:"path"`
-	RefreshError *string   `json:"refresh_error,omitempty"`
-	Value        *string   `json:"value,omitempty"`
-	WorkspaceId  string    `json:"workspace_id"`
-	WsSpecific   *bool     `json:"ws_specific,omitempty"`
+	IsDraft         *bool      `json:"is_draft,omitempty"`
+	IsExpired       *bool      `json:"is_expired,omitempty"`
+	IsLinked        *bool      `json:"is_linked,omitempty"`
+	IsOauth         *bool      `json:"is_oauth,omitempty"`
+	IsRefreshed     *bool      `json:"is_refreshed,omitempty"`
+	IsSecret        bool       `json:"is_secret"`
+	Labels          *[]string  `json:"labels,omitempty"`
+	Path            string     `json:"path"`
+	RefreshError    *string    `json:"refresh_error,omitempty"`
+	Value           *string    `json:"value,omitempty"`
+	ValueValidUntil *time.Time `json:"value_valid_until"`
+	WorkspaceId     string     `json:"workspace_id"`
+	WsSpecific      *bool      `json:"ws_specific,omitempty"`
 }
 
 // LogSearchHit defines model for LogSearchHit.
@@ -7793,11 +7834,14 @@ type TimeseriesMetric struct {
 
 // TokenResponse defines model for TokenResponse.
 type TokenResponse struct {
-	AccessToken  string    `json:"access_token"`
-	ExpiresIn    *int      `json:"expires_in,omitempty"`
-	GrantType    *string   `json:"grant_type,omitempty"`
-	RefreshToken *string   `json:"refresh_token,omitempty"`
-	Scope        *[]string `json:"scope,omitempty"`
+	AccessToken  string  `json:"access_token"`
+	ExpiresIn    *int    `json:"expires_in,omitempty"`
+	GrantType    *string `json:"grant_type,omitempty"`
+	RefreshToken *string `json:"refresh_token,omitempty"`
+
+	// ResourceFields Resource fields the provider's `connect_fields` picked on connect (Salesforce's instance_url, Docusign's account_id and base_uri, QuickBooks' realmId), for the connect dialog to prefill.
+	ResourceFields *map[string]interface{} `json:"resource_fields,omitempty"`
+	Scope          *[]string               `json:"scope,omitempty"`
 }
 
 // ToolValue The implementation of a tool. Can be a flow module (script/flow) or an MCP tool reference
@@ -8096,6 +8140,16 @@ type UserWorkspaceList struct {
 		Role     string `json:"role"`
 		Username string `json:"username"`
 	} `json:"workspaces"`
+}
+
+// VariableExpirationHandlerConfig Workspace variable expiration handler configuration
+type VariableExpirationHandlerConfig struct {
+	// ExtraArgs The arguments to pass to the script or flow
+	ExtraArgs        *ScriptArgs `json:"extra_args,omitempty"`
+	MutedOnUserPath  *bool       `json:"muted_on_user_path,omitempty"`
+	NotifyBeforeSecs *int        `json:"notify_before_secs,omitempty"`
+	Path             *string     `json:"path,omitempty"`
+	RemindEverySecs  *int        `json:"remind_every_secs,omitempty"`
 }
 
 // VaultSettings defines model for VaultSettings.
@@ -9521,6 +9575,21 @@ type ListAutoscalingEventsParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
+// TestAutoscalingJSONBody defines parameters for TestAutoscaling.
+type TestAutoscalingJSONBody struct {
+	DesiredWorkers int `json:"desired_workers"`
+
+	// Integration The integration to run, as in the worker group's autoscaling config
+	Integration struct {
+		Path *string                                `json:"path,omitempty"`
+		Tag  *string                                `json:"tag,omitempty"`
+		Type TestAutoscalingJSONBodyIntegrationType `json:"type"`
+	} `json:"integration"`
+}
+
+// TestAutoscalingJSONBodyIntegrationType defines parameters for TestAutoscaling.
+type TestAutoscalingJSONBodyIntegrationType string
+
 // UpdateConfigJSONBody defines parameters for UpdateConfig.
 type UpdateConfigJSONBody = interface{}
 
@@ -9648,8 +9717,11 @@ type NativeTriggerWebhookTextBody = string
 
 // ConnectCallbackJSONBody defines parameters for ConnectCallback.
 type ConnectCallbackJSONBody struct {
-	Code  string `json:"code"`
-	State string `json:"state"`
+	Code string `json:"code"`
+
+	// Params The callback URL's other query params, which the provider's `connect_fields` may read (QuickBooks' `realmId`)
+	Params *map[string]string `json:"params,omitempty"`
+	State  string             `json:"state"`
 }
 
 // ConnectSlackCallbackInstanceJSONBody defines parameters for ConnectSlackCallbackInstance.
@@ -10367,12 +10439,15 @@ type SignS3ObjectsJSONBody struct {
 // UpdateAppJSONBody defines parameters for UpdateApp.
 type UpdateAppJSONBody struct {
 	// AllowKindChange When true, this deploy may switch the app between low-code and raw. Without it, deploying a value to an app of the other kind is refused so an app is never converted by accident.
-	AllowKindChange   *bool     `json:"allow_kind_change,omitempty"`
-	CustomPath        *string   `json:"custom_path,omitempty"`
-	DeploymentMessage *string   `json:"deployment_message,omitempty"`
-	Labels            *[]string `json:"labels,omitempty"`
-	Path              *string   `json:"path,omitempty"`
-	Policy            *Policy   `json:"policy,omitempty"`
+	AllowKindChange   *bool   `json:"allow_kind_change,omitempty"`
+	CustomPath        *string `json:"custom_path,omitempty"`
+	DeploymentMessage *string `json:"deployment_message,omitempty"`
+
+	// ExecutionMode Changes who may open the app and leaves the rest of the deployed policy, its run-as user included, as it is. Applied under the same lock as a deploy, so neither overwrites the other. Cannot be sent with `policy`, which states its own mode. When the app runs as another user, refused to a caller who is neither an admin nor in 'wm_deployers', and to an operator with builder rights even in 'wm_deployers'; they change the mode by deploying.
+	ExecutionMode *UpdateAppJSONBodyExecutionMode `json:"execution_mode,omitempty"`
+	Labels        *[]string                       `json:"labels,omitempty"`
+	Path          *string                         `json:"path,omitempty"`
+	Policy        *Policy                         `json:"policy,omitempty"`
 
 	// PreserveOnBehalfOf When true and the caller is a member of the 'wm_deployers' group, preserves the original on_behalf_of value in the policy instead of overwriting it.
 	PreserveOnBehalfOf *bool `json:"preserve_on_behalf_of,omitempty"`
@@ -10382,6 +10457,9 @@ type UpdateAppJSONBody struct {
 	Summary           *string      `json:"summary,omitempty"`
 	Value             *interface{} `json:"value,omitempty"`
 }
+
+// UpdateAppJSONBodyExecutionMode defines parameters for UpdateApp.
+type UpdateAppJSONBodyExecutionMode string
 
 // UpdateAppRawMultipartBody defines parameters for UpdateAppRaw.
 type UpdateAppRawMultipartBody struct {
@@ -14969,6 +15047,9 @@ type RequestPasswordResetJSONRequestBody RequestPasswordResetJSONBody
 // ResetPasswordJSONRequestBody defines body for ResetPassword for application/json ContentType.
 type ResetPasswordJSONRequestBody ResetPasswordJSONBody
 
+// TestAutoscalingJSONRequestBody defines body for TestAutoscaling for application/json ContentType.
+type TestAutoscalingJSONRequestBody TestAutoscalingJSONBody
+
 // UpdateConfigJSONRequestBody defines body for UpdateConfig for application/json ContentType.
 type UpdateConfigJSONRequestBody = UpdateConfigJSONBody
 
@@ -15931,6 +16012,9 @@ type EditSuccessHandlerJSONRequestBody = EditSuccessHandler
 
 // EditTeamsCommandJSONRequestBody defines body for EditTeamsCommand for application/json ContentType.
 type EditTeamsCommandJSONRequestBody EditTeamsCommandJSONBody
+
+// EditVariableExpirationHandlerJSONRequestBody defines body for EditVariableExpirationHandler for application/json ContentType.
+type EditVariableExpirationHandlerJSONRequestBody = EditVariableExpirationHandler
 
 // EditWebhookJSONRequestBody defines body for EditWebhook for application/json ContentType.
 type EditWebhookJSONRequestBody EditWebhookJSONBody
@@ -18574,6 +18658,11 @@ type ClientInterface interface {
 
 	// NativeKubernetesAutoscalingHealthcheck request
 	NativeKubernetesAutoscalingHealthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestAutoscalingWithBody request with any body
+	TestAutoscalingWithBody(ctx context.Context, workerGroup string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestAutoscaling(ctx context.Context, workerGroup string, body TestAutoscalingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteConfig request
 	DeleteConfig(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -21658,6 +21747,11 @@ type ClientInterface interface {
 
 	EditTeamsCommand(ctx context.Context, workspace WorkspaceId, body EditTeamsCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// EditVariableExpirationHandlerWithBody request with any body
+	EditVariableExpirationHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EditVariableExpirationHandler(ctx context.Context, workspace WorkspaceId, body EditVariableExpirationHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// EditWebhookWithBody request with any body
 	EditWebhookWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -22416,6 +22510,30 @@ func (c *Client) ListWorkerGroups(ctx context.Context, reqEditors ...RequestEdit
 
 func (c *Client) NativeKubernetesAutoscalingHealthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewNativeKubernetesAutoscalingHealthcheckRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestAutoscalingWithBody(ctx context.Context, workerGroup string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestAutoscalingRequestWithBody(c.Server, workerGroup, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestAutoscaling(ctx context.Context, workerGroup string, body TestAutoscalingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestAutoscalingRequest(c.Server, workerGroup, body)
 	if err != nil {
 		return nil, err
 	}
@@ -36034,6 +36152,30 @@ func (c *Client) EditTeamsCommand(ctx context.Context, workspace WorkspaceId, bo
 	return c.Client.Do(req)
 }
 
+func (c *Client) EditVariableExpirationHandlerWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditVariableExpirationHandlerRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EditVariableExpirationHandler(ctx context.Context, workspace WorkspaceId, body EditVariableExpirationHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEditVariableExpirationHandlerRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) EditWebhookWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditWebhookRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
@@ -38544,6 +38686,53 @@ func NewNativeKubernetesAutoscalingHealthcheckRequest(server string) (*http.Requ
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewTestAutoscalingRequest calls the generic TestAutoscaling builder with application/json body
+func NewTestAutoscalingRequest(server string, workerGroup string, body TestAutoscalingJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestAutoscalingRequestWithBody(server, workerGroup, "application/json", bodyReader)
+}
+
+// NewTestAutoscalingRequestWithBody generates requests for TestAutoscaling with any type of body
+func NewTestAutoscalingRequestWithBody(server string, workerGroup string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "worker_group", runtime.ParamLocationPath, workerGroup)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/test_autoscaling/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -89297,6 +89486,53 @@ func NewEditTeamsCommandRequestWithBody(server string, workspace WorkspaceId, co
 	return req, nil
 }
 
+// NewEditVariableExpirationHandlerRequest calls the generic EditVariableExpirationHandler builder with application/json body
+func NewEditVariableExpirationHandlerRequest(server string, workspace WorkspaceId, body EditVariableExpirationHandlerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEditVariableExpirationHandlerRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewEditVariableExpirationHandlerRequestWithBody generates requests for EditVariableExpirationHandler with any type of body
+func NewEditVariableExpirationHandlerRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_variable_expiration_handler", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewEditWebhookRequest calls the generic EditWebhook builder with application/json body
 func NewEditWebhookRequest(server string, workspace WorkspaceId, body EditWebhookJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -93489,6 +93725,11 @@ type ClientWithResponsesInterface interface {
 	// NativeKubernetesAutoscalingHealthcheckWithResponse request
 	NativeKubernetesAutoscalingHealthcheckWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*NativeKubernetesAutoscalingHealthcheckResponse, error)
 
+	// TestAutoscalingWithBodyWithResponse request with any body
+	TestAutoscalingWithBodyWithResponse(ctx context.Context, workerGroup string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestAutoscalingResponse, error)
+
+	TestAutoscalingWithResponse(ctx context.Context, workerGroup string, body TestAutoscalingJSONRequestBody, reqEditors ...RequestEditorFn) (*TestAutoscalingResponse, error)
+
 	// DeleteConfigWithResponse request
 	DeleteConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*DeleteConfigResponse, error)
 
@@ -96572,6 +96813,11 @@ type ClientWithResponsesInterface interface {
 
 	EditTeamsCommandWithResponse(ctx context.Context, workspace WorkspaceId, body EditTeamsCommandJSONRequestBody, reqEditors ...RequestEditorFn) (*EditTeamsCommandResponse, error)
 
+	// EditVariableExpirationHandlerWithBodyWithResponse request with any body
+	EditVariableExpirationHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditVariableExpirationHandlerResponse, error)
+
+	EditVariableExpirationHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body EditVariableExpirationHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*EditVariableExpirationHandlerResponse, error)
+
 	// EditWebhookWithBodyWithResponse request with any body
 	EditWebhookWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error)
 
@@ -97616,6 +97862,30 @@ func (r NativeKubernetesAutoscalingHealthcheckResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r NativeKubernetesAutoscalingHealthcheckResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestAutoscalingResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		JobId *string `json:"job_id"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r TestAutoscalingResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestAutoscalingResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -115727,11 +115997,12 @@ type GetVariableResponse struct {
 			// leave the server.
 			Username *string `json:"username"`
 		} `json:"other_drafts_users,omitempty"`
-		Path         string  `json:"path"`
-		RefreshError *string `json:"refresh_error,omitempty"`
-		Value        *string `json:"value,omitempty"`
-		WorkspaceId  string  `json:"workspace_id"`
-		WsSpecific   *bool   `json:"ws_specific,omitempty"`
+		Path            string     `json:"path"`
+		RefreshError    *string    `json:"refresh_error,omitempty"`
+		Value           *string    `json:"value,omitempty"`
+		ValueValidUntil *time.Time `json:"value_valid_until"`
+		WorkspaceId     string     `json:"workspace_id"`
+		WsSpecific      *bool      `json:"ws_specific,omitempty"`
 	}
 }
 
@@ -117579,6 +117850,27 @@ func (r EditTeamsCommandResponse) StatusCode() int {
 	return 0
 }
 
+type EditVariableExpirationHandlerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r EditVariableExpirationHandlerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EditVariableExpirationHandlerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type EditWebhookResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -118126,8 +118418,11 @@ type GetSettingsResponse struct {
 		TeamsTeamGuid      *string               `json:"teams_team_guid,omitempty"`
 		TeamsTeamId        *string               `json:"teams_team_id,omitempty"`
 		TeamsTeamName      *string               `json:"teams_team_name,omitempty"`
-		Webhook            *string               `json:"webhook,omitempty"`
-		WorkspaceId        *string               `json:"workspace_id,omitempty"`
+
+		// VariableExpirationHandler Workspace variable expiration handler configuration
+		VariableExpirationHandler *VariableExpirationHandlerConfig `json:"variable_expiration_handler,omitempty"`
+		Webhook                   *string                          `json:"webhook,omitempty"`
+		WorkspaceId               *string                          `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -120158,6 +120453,23 @@ func (c *ClientWithResponses) NativeKubernetesAutoscalingHealthcheckWithResponse
 		return nil, err
 	}
 	return ParseNativeKubernetesAutoscalingHealthcheckResponse(rsp)
+}
+
+// TestAutoscalingWithBodyWithResponse request with arbitrary body returning *TestAutoscalingResponse
+func (c *ClientWithResponses) TestAutoscalingWithBodyWithResponse(ctx context.Context, workerGroup string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestAutoscalingResponse, error) {
+	rsp, err := c.TestAutoscalingWithBody(ctx, workerGroup, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestAutoscalingResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestAutoscalingWithResponse(ctx context.Context, workerGroup string, body TestAutoscalingJSONRequestBody, reqEditors ...RequestEditorFn) (*TestAutoscalingResponse, error) {
+	rsp, err := c.TestAutoscaling(ctx, workerGroup, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestAutoscalingResponse(rsp)
 }
 
 // DeleteConfigWithResponse request returning *DeleteConfigResponse
@@ -130047,6 +130359,23 @@ func (c *ClientWithResponses) EditTeamsCommandWithResponse(ctx context.Context, 
 	return ParseEditTeamsCommandResponse(rsp)
 }
 
+// EditVariableExpirationHandlerWithBodyWithResponse request with arbitrary body returning *EditVariableExpirationHandlerResponse
+func (c *ClientWithResponses) EditVariableExpirationHandlerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditVariableExpirationHandlerResponse, error) {
+	rsp, err := c.EditVariableExpirationHandlerWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditVariableExpirationHandlerResponse(rsp)
+}
+
+func (c *ClientWithResponses) EditVariableExpirationHandlerWithResponse(ctx context.Context, workspace WorkspaceId, body EditVariableExpirationHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*EditVariableExpirationHandlerResponse, error) {
+	rsp, err := c.EditVariableExpirationHandler(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEditVariableExpirationHandlerResponse(rsp)
+}
+
 // EditWebhookWithBodyWithResponse request with arbitrary body returning *EditWebhookResponse
 func (c *ClientWithResponses) EditWebhookWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditWebhookResponse, error) {
 	rsp, err := c.EditWebhookWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -131882,6 +132211,34 @@ func ParseNativeKubernetesAutoscalingHealthcheckResponse(rsp *http.Response) (*N
 	response := &NativeKubernetesAutoscalingHealthcheckResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestAutoscalingResponse parses an HTTP response from a TestAutoscalingWithResponse call
+func ParseTestAutoscalingResponse(rsp *http.Response) (*TestAutoscalingResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestAutoscalingResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			JobId *string `json:"job_id"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -150071,11 +150428,12 @@ func ParseGetVariableResponse(rsp *http.Response) (*GetVariableResponse, error) 
 				// leave the server.
 				Username *string `json:"username"`
 			} `json:"other_drafts_users,omitempty"`
-			Path         string  `json:"path"`
-			RefreshError *string `json:"refresh_error,omitempty"`
-			Value        *string `json:"value,omitempty"`
-			WorkspaceId  string  `json:"workspace_id"`
-			WsSpecific   *bool   `json:"ws_specific,omitempty"`
+			Path            string     `json:"path"`
+			RefreshError    *string    `json:"refresh_error,omitempty"`
+			Value           *string    `json:"value,omitempty"`
+			ValueValidUntil *time.Time `json:"value_valid_until"`
+			WorkspaceId     string     `json:"workspace_id"`
+			WsSpecific      *bool      `json:"ws_specific,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -151898,6 +152256,22 @@ func ParseEditTeamsCommandResponse(rsp *http.Response) (*EditTeamsCommandRespons
 	return response, nil
 }
 
+// ParseEditVariableExpirationHandlerResponse parses an HTTP response from a EditVariableExpirationHandlerWithResponse call
+func ParseEditVariableExpirationHandlerResponse(rsp *http.Response) (*EditVariableExpirationHandlerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EditVariableExpirationHandlerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseEditWebhookResponse parses an HTTP response from a EditWebhookWithResponse call
 func ParseEditWebhookResponse(rsp *http.Response) (*EditWebhookResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -152500,8 +152874,11 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			TeamsTeamGuid      *string               `json:"teams_team_guid,omitempty"`
 			TeamsTeamId        *string               `json:"teams_team_id,omitempty"`
 			TeamsTeamName      *string               `json:"teams_team_name,omitempty"`
-			Webhook            *string               `json:"webhook,omitempty"`
-			WorkspaceId        *string               `json:"workspace_id,omitempty"`
+
+			// VariableExpirationHandler Workspace variable expiration handler configuration
+			VariableExpirationHandler *VariableExpirationHandlerConfig `json:"variable_expiration_handler,omitempty"`
+			Webhook                   *string                          `json:"webhook,omitempty"`
+			WorkspaceId               *string                          `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
