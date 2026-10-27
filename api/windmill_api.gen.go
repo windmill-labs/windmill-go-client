@@ -640,7 +640,17 @@ const (
 
 // Defines values for FlowStatusFailureModuleAgentActions3Type.
 const (
-	FlowStatusFailureModuleAgentActions3TypeMessage FlowStatusFailureModuleAgentActions3Type = "message"
+	FlowStatusFailureModuleAgentActions3TypeApproval FlowStatusFailureModuleAgentActions3Type = "approval"
+)
+
+// Defines values for FlowStatusFailureModuleAgentActions4Type.
+const (
+	FlowStatusFailureModuleAgentActions4TypeQuestion FlowStatusFailureModuleAgentActions4Type = "question"
+)
+
+// Defines values for FlowStatusFailureModuleAgentActions5Type.
+const (
+	FlowStatusFailureModuleAgentActions5TypeMessage FlowStatusFailureModuleAgentActions5Type = "message"
 )
 
 // Defines values for FlowStatusFailureModuleBranchChosenType.
@@ -1028,6 +1038,11 @@ const (
 	RestrictPublicRunSharing       ProtectionRuleKind = "RestrictPublicRunSharing"
 )
 
+// Defines values for QuestionToolValueToolType.
+const (
+	QuestionToolValueToolTypeQuestion QuestionToolValueToolType = "question"
+)
+
 // Defines values for QueuedJobJobKind.
 const (
 	QueuedJobJobKindAiagent                  QueuedJobJobKind = "aiagent"
@@ -1304,7 +1319,17 @@ const (
 
 // Defines values for SchemasFlowStatusModuleAgentActions3Type.
 const (
-	SchemasFlowStatusModuleAgentActions3TypeMessage SchemasFlowStatusModuleAgentActions3Type = "message"
+	Approval SchemasFlowStatusModuleAgentActions3Type = "approval"
+)
+
+// Defines values for SchemasFlowStatusModuleAgentActions4Type.
+const (
+	Question SchemasFlowStatusModuleAgentActions4Type = "question"
+)
+
+// Defines values for SchemasFlowStatusModuleAgentActions5Type.
+const (
+	SchemasFlowStatusModuleAgentActions5TypeMessage SchemasFlowStatusModuleAgentActions5Type = "message"
 )
 
 // Defines values for SchemasFlowStatusModuleBranchChosenType.
@@ -1330,7 +1355,7 @@ const (
 
 // Defines values for SchemasIdentityType.
 const (
-	SchemasIdentityTypeIdentity SchemasIdentityType = "identity"
+	Identity SchemasIdentityType = "identity"
 )
 
 // Defines values for SchemasJavascriptTransformType.
@@ -2043,7 +2068,10 @@ type AgentTool struct {
 	// JobTokenScopes Scopes the token of this tool's jobs is restricted to, on top of the agent step's own restriction: a tool can only narrow it.
 	JobTokenScopes *[]string `json:"job_token_scopes"`
 
-	// Summary The name the AI agent calls this tool by, not a human label. On a flowmodule tool it must match ^[a-zA-Z0-9_]+$ - letters, numbers and underscores only (e.g. 'search_documentation', not 'Search documentation') - and always be set; on an mcp or websearch tool it is a plain label. Put the human-readable explanation in 'description'.
+	// RequiresApproval Flowmodule and mcp tools only. Each call waits for a person to approve or reject it from the flow's run page or chat, without the agent holding a worker. Calls in the same turn that do not require approval run right away. A rejected call, or one nobody answers within 30 minutes, is reported to the AI as not run.
+	RequiresApproval *bool `json:"requires_approval,omitempty"`
+
+	// Summary The name the AI agent calls this tool by, not a human label. On a flowmodule tool it must match ^[a-zA-Z0-9_]+$ - letters, numbers and underscores only (e.g. 'search_documentation', not 'Search documentation') - and always be set; on an mcp, websearch or question tool it is a plain label. Put the human-readable explanation in 'description'.
 	Summary *string `json:"summary,omitempty"`
 
 	// Value The implementation of a tool. Can be a flow module (script/flow) or an MCP tool reference
@@ -4626,11 +4654,42 @@ type FlowStatusFailureModuleAgentActions2Type string
 
 // FlowStatusFailureModuleAgentActions3 defines model for .
 type FlowStatusFailureModuleAgentActions3 struct {
-	Type FlowStatusFailureModuleAgentActions3Type `json:"type"`
+	CallId string `json:"call_id"`
+	Calls  []struct {
+		Arguments    interface{} `json:"arguments"`
+		FunctionName string      `json:"function_name"`
+	} `json:"calls"`
+	ExpiresAt time.Time                                `json:"expires_at"`
+	Type      FlowStatusFailureModuleAgentActions3Type `json:"type"`
 }
 
 // FlowStatusFailureModuleAgentActions3Type defines model for FlowStatus.FailureModule.AgentActions.3.Type.
 type FlowStatusFailureModuleAgentActions3Type string
+
+// FlowStatusFailureModuleAgentActions4 defines model for .
+type FlowStatusFailureModuleAgentActions4 struct {
+	CallId string `json:"call_id"`
+
+	// Choices answers the model proposes; a free-text answer is always possible
+	Choices   *[]string `json:"choices,omitempty"`
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// MultiSelect whether several choices can be picked together
+	MultiSelect *bool                                    `json:"multi_select,omitempty"`
+	Question    string                                   `json:"question"`
+	Type        FlowStatusFailureModuleAgentActions4Type `json:"type"`
+}
+
+// FlowStatusFailureModuleAgentActions4Type defines model for FlowStatus.FailureModule.AgentActions.4.Type.
+type FlowStatusFailureModuleAgentActions4Type string
+
+// FlowStatusFailureModuleAgentActions5 defines model for .
+type FlowStatusFailureModuleAgentActions5 struct {
+	Type FlowStatusFailureModuleAgentActions5Type `json:"type"`
+}
+
+// FlowStatusFailureModuleAgentActions5Type defines model for FlowStatus.FailureModule.AgentActions.5.Type.
+type FlowStatusFailureModuleAgentActions5Type string
 
 // FlowStatus_FailureModule_AgentActions_Item defines model for FlowStatus.FailureModule.AgentActions.Item.
 type FlowStatus_FailureModule_AgentActions_Item struct {
@@ -6923,6 +6982,16 @@ type PushConfig struct {
 	Authenticate bool `json:"authenticate"`
 }
 
+// QuestionToolValue Built-in tool the AI calls as ask_question: the agent stops, releasing its worker, until someone answers from the flow's run page or chat or the question times out, then resumes with the answer as the tool result.
+type QuestionToolValue struct {
+	// Timeout Seconds to wait for an answer before the question is reported to the AI as timed out. Defaults to 1800.
+	Timeout  *int                      `json:"timeout,omitempty"`
+	ToolType QuestionToolValueToolType `json:"tool_type"`
+}
+
+// QuestionToolValueToolType defines model for QuestionToolValue.ToolType.
+type QuestionToolValueToolType string
+
 // QueueHealth Job queue status
 type QueueHealth struct {
 	// PendingJobs Number of pending jobs in the queue
@@ -8958,11 +9027,42 @@ type SchemasFlowStatusModuleAgentActions2Type string
 
 // SchemasFlowStatusModuleAgentActions3 defines model for .
 type SchemasFlowStatusModuleAgentActions3 struct {
-	Type SchemasFlowStatusModuleAgentActions3Type `json:"type"`
+	CallId string `json:"call_id"`
+	Calls  []struct {
+		Arguments    interface{} `json:"arguments"`
+		FunctionName string      `json:"function_name"`
+	} `json:"calls"`
+	ExpiresAt time.Time                                `json:"expires_at"`
+	Type      SchemasFlowStatusModuleAgentActions3Type `json:"type"`
 }
 
 // SchemasFlowStatusModuleAgentActions3Type defines model for SchemasFlowStatusModule.AgentActions.3.Type.
 type SchemasFlowStatusModuleAgentActions3Type string
+
+// SchemasFlowStatusModuleAgentActions4 defines model for .
+type SchemasFlowStatusModuleAgentActions4 struct {
+	CallId string `json:"call_id"`
+
+	// Choices answers the model proposes; a free-text answer is always possible
+	Choices   *[]string `json:"choices,omitempty"`
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// MultiSelect whether several choices can be picked together
+	MultiSelect *bool                                    `json:"multi_select,omitempty"`
+	Question    string                                   `json:"question"`
+	Type        SchemasFlowStatusModuleAgentActions4Type `json:"type"`
+}
+
+// SchemasFlowStatusModuleAgentActions4Type defines model for SchemasFlowStatusModule.AgentActions.4.Type.
+type SchemasFlowStatusModuleAgentActions4Type string
+
+// SchemasFlowStatusModuleAgentActions5 defines model for .
+type SchemasFlowStatusModuleAgentActions5 struct {
+	Type SchemasFlowStatusModuleAgentActions5Type `json:"type"`
+}
+
+// SchemasFlowStatusModuleAgentActions5Type defines model for SchemasFlowStatusModule.AgentActions.5.Type.
+type SchemasFlowStatusModuleAgentActions5Type string
 
 // SchemasFlowStatusModule_AgentActions_Item defines model for schemas-FlowStatusModule.agent_actions.Item.
 type SchemasFlowStatusModule_AgentActions_Item struct {
@@ -11665,6 +11765,9 @@ type DiscardHubProjectUpdateParams struct {
 type GetHubProjectExportParams struct {
 	// Folder folder scoping the Hub project source (`{workspace}:{folder}`)
 	Folder *string `form:"folder,omitempty" json:"folder,omitempty"`
+
+	// Version id of a reviewed project version to export instead of the current one (see the hub's `/projects/{slug}/versions`)
+	Version *int `form:"version,omitempty" json:"version,omitempty"`
 }
 
 // PublishHubProjectLogoParams defines parameters for PublishHubProjectLogo.
@@ -16993,6 +17096,58 @@ func (t *FlowStatus_FailureModule_AgentActions_Item) MergeFlowStatusFailureModul
 	return err
 }
 
+// AsFlowStatusFailureModuleAgentActions4 returns the union data inside the FlowStatus_FailureModule_AgentActions_Item as a FlowStatusFailureModuleAgentActions4
+func (t FlowStatus_FailureModule_AgentActions_Item) AsFlowStatusFailureModuleAgentActions4() (FlowStatusFailureModuleAgentActions4, error) {
+	var body FlowStatusFailureModuleAgentActions4
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFlowStatusFailureModuleAgentActions4 overwrites any union data inside the FlowStatus_FailureModule_AgentActions_Item as the provided FlowStatusFailureModuleAgentActions4
+func (t *FlowStatus_FailureModule_AgentActions_Item) FromFlowStatusFailureModuleAgentActions4(v FlowStatusFailureModuleAgentActions4) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFlowStatusFailureModuleAgentActions4 performs a merge with any union data inside the FlowStatus_FailureModule_AgentActions_Item, using the provided FlowStatusFailureModuleAgentActions4
+func (t *FlowStatus_FailureModule_AgentActions_Item) MergeFlowStatusFailureModuleAgentActions4(v FlowStatusFailureModuleAgentActions4) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsFlowStatusFailureModuleAgentActions5 returns the union data inside the FlowStatus_FailureModule_AgentActions_Item as a FlowStatusFailureModuleAgentActions5
+func (t FlowStatus_FailureModule_AgentActions_Item) AsFlowStatusFailureModuleAgentActions5() (FlowStatusFailureModuleAgentActions5, error) {
+	var body FlowStatusFailureModuleAgentActions5
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFlowStatusFailureModuleAgentActions5 overwrites any union data inside the FlowStatus_FailureModule_AgentActions_Item as the provided FlowStatusFailureModuleAgentActions5
+func (t *FlowStatus_FailureModule_AgentActions_Item) FromFlowStatusFailureModuleAgentActions5(v FlowStatusFailureModuleAgentActions5) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFlowStatusFailureModuleAgentActions5 performs a merge with any union data inside the FlowStatus_FailureModule_AgentActions_Item, using the provided FlowStatusFailureModuleAgentActions5
+func (t *FlowStatus_FailureModule_AgentActions_Item) MergeFlowStatusFailureModuleAgentActions5(v FlowStatusFailureModuleAgentActions5) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t FlowStatus_FailureModule_AgentActions_Item) MarshalJSON() ([]byte, error) {
 	b, err := t.union.MarshalJSON()
 	return b, err
@@ -17387,6 +17542,34 @@ func (t *ToolValue) MergeWebsearchToolValue(v WebsearchToolValue) error {
 	return err
 }
 
+// AsQuestionToolValue returns the union data inside the ToolValue as a QuestionToolValue
+func (t ToolValue) AsQuestionToolValue() (QuestionToolValue, error) {
+	var body QuestionToolValue
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromQuestionToolValue overwrites any union data inside the ToolValue as the provided QuestionToolValue
+func (t *ToolValue) FromQuestionToolValue(v QuestionToolValue) error {
+	v.ToolType = "question"
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeQuestionToolValue performs a merge with any union data inside the ToolValue, using the provided QuestionToolValue
+func (t *ToolValue) MergeQuestionToolValue(v QuestionToolValue) error {
+	v.ToolType = "question"
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t ToolValue) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"tool_type"`
@@ -17405,6 +17588,8 @@ func (t ToolValue) ValueByDiscriminator() (interface{}, error) {
 		return t.AsFlowModuleTool()
 	case "mcp":
 		return t.AsMcpToolValue()
+	case "question":
+		return t.AsQuestionToolValue()
 	case "websearch":
 		return t.AsWebsearchToolValue()
 	default:
@@ -18047,6 +18232,58 @@ func (t *SchemasFlowStatusModule_AgentActions_Item) FromSchemasFlowStatusModuleA
 
 // MergeSchemasFlowStatusModuleAgentActions3 performs a merge with any union data inside the SchemasFlowStatusModule_AgentActions_Item, using the provided SchemasFlowStatusModuleAgentActions3
 func (t *SchemasFlowStatusModule_AgentActions_Item) MergeSchemasFlowStatusModuleAgentActions3(v SchemasFlowStatusModuleAgentActions3) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasFlowStatusModuleAgentActions4 returns the union data inside the SchemasFlowStatusModule_AgentActions_Item as a SchemasFlowStatusModuleAgentActions4
+func (t SchemasFlowStatusModule_AgentActions_Item) AsSchemasFlowStatusModuleAgentActions4() (SchemasFlowStatusModuleAgentActions4, error) {
+	var body SchemasFlowStatusModuleAgentActions4
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasFlowStatusModuleAgentActions4 overwrites any union data inside the SchemasFlowStatusModule_AgentActions_Item as the provided SchemasFlowStatusModuleAgentActions4
+func (t *SchemasFlowStatusModule_AgentActions_Item) FromSchemasFlowStatusModuleAgentActions4(v SchemasFlowStatusModuleAgentActions4) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasFlowStatusModuleAgentActions4 performs a merge with any union data inside the SchemasFlowStatusModule_AgentActions_Item, using the provided SchemasFlowStatusModuleAgentActions4
+func (t *SchemasFlowStatusModule_AgentActions_Item) MergeSchemasFlowStatusModuleAgentActions4(v SchemasFlowStatusModuleAgentActions4) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSchemasFlowStatusModuleAgentActions5 returns the union data inside the SchemasFlowStatusModule_AgentActions_Item as a SchemasFlowStatusModuleAgentActions5
+func (t SchemasFlowStatusModule_AgentActions_Item) AsSchemasFlowStatusModuleAgentActions5() (SchemasFlowStatusModuleAgentActions5, error) {
+	var body SchemasFlowStatusModuleAgentActions5
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSchemasFlowStatusModuleAgentActions5 overwrites any union data inside the SchemasFlowStatusModule_AgentActions_Item as the provided SchemasFlowStatusModuleAgentActions5
+func (t *SchemasFlowStatusModule_AgentActions_Item) FromSchemasFlowStatusModuleAgentActions5(v SchemasFlowStatusModuleAgentActions5) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSchemasFlowStatusModuleAgentActions5 performs a merge with any union data inside the SchemasFlowStatusModule_AgentActions_Item, using the provided SchemasFlowStatusModuleAgentActions5
+func (t *SchemasFlowStatusModule_AgentActions_Item) MergeSchemasFlowStatusModuleAgentActions5(v SchemasFlowStatusModuleAgentActions5) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -58951,6 +59188,22 @@ func NewGetHubProjectExportRequest(server string, workspace WorkspaceId, slug st
 		if params.Folder != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "folder", runtime.ParamLocationQuery, *params.Folder); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Version != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "version", runtime.ParamLocationQuery, *params.Version); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -99869,9 +100122,10 @@ type GetInstanceUiResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AccentColor    *interface{} `json:"accent_color,omitempty"`
-		ApiBaseUrl     *interface{} `json:"api_base_url,omitempty"`
-		InstanceBanner *interface{} `json:"instance_banner,omitempty"`
+		AccentColor         *interface{} `json:"accent_color,omitempty"`
+		ApiBaseUrl          *interface{} `json:"api_base_url,omitempty"`
+		ApiBaseUrlAppliesTo *interface{} `json:"api_base_url_applies_to,omitempty"`
+		InstanceBanner      *interface{} `json:"instance_banner,omitempty"`
 	}
 }
 
@@ -134292,9 +134546,10 @@ func ParseGetInstanceUiResponse(rsp *http.Response) (*GetInstanceUiResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AccentColor    *interface{} `json:"accent_color,omitempty"`
-			ApiBaseUrl     *interface{} `json:"api_base_url,omitempty"`
-			InstanceBanner *interface{} `json:"instance_banner,omitempty"`
+			AccentColor         *interface{} `json:"accent_color,omitempty"`
+			ApiBaseUrl          *interface{} `json:"api_base_url,omitempty"`
+			ApiBaseUrlAppliesTo *interface{} `json:"api_base_url_applies_to,omitempty"`
+			InstanceBanner      *interface{} `json:"instance_banner,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
