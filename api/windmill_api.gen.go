@@ -5081,20 +5081,19 @@ type GuestEntry struct {
 type GuestList struct {
 	Guests []GuestActivity `json:"guests"`
 
-	// Usage Guests are free up to `free_allowance` distinct emails over the trailing `window_days`. Past that an Enterprise plan meters them (`metered`, four guests to one seat: `billable_guests`, `guest_seats`); every other plan and build admits no new email until the count drops. `instance_enabled` is the superadmin switch (`guest_access_disabled` global setting) every workspace switch sits under. `available` is whether this deployment can have guests at all: false on the shared cloud, where guest access requires a self-hosted or dedicated deployment, and every other field and switch is then moot.
+	// Usage Guests are free up to `free_allowance` distinct emails over the trailing `window_days`. Past that an Enterprise plan meters them (`metered`, four guests to one seat: `billable_guests`, `guest_seats`); every other plan and build admits no new email until the count drops. `available` is whether this deployment can have guests at all: false on the shared cloud, where guest access requires a self-hosted or dedicated deployment, and every other field is then moot.
 	Usage GuestUsage `json:"usage"`
 }
 
-// GuestUsage Guests are free up to `free_allowance` distinct emails over the trailing `window_days`. Past that an Enterprise plan meters them (`metered`, four guests to one seat: `billable_guests`, `guest_seats`); every other plan and build admits no new email until the count drops. `instance_enabled` is the superadmin switch (`guest_access_disabled` global setting) every workspace switch sits under. `available` is whether this deployment can have guests at all: false on the shared cloud, where guest access requires a self-hosted or dedicated deployment, and every other field and switch is then moot.
+// GuestUsage Guests are free up to `free_allowance` distinct emails over the trailing `window_days`. Past that an Enterprise plan meters them (`metered`, four guests to one seat: `billable_guests`, `guest_seats`); every other plan and build admits no new email until the count drops. `available` is whether this deployment can have guests at all: false on the shared cloud, where guest access requires a self-hosted or dedicated deployment, and every other field is then moot.
 type GuestUsage struct {
-	Available       bool  `json:"available"`
-	BillableGuests  int64 `json:"billable_guests"`
-	FreeAllowance   int64 `json:"free_allowance"`
-	GuestCount      int64 `json:"guest_count"`
-	GuestSeats      int64 `json:"guest_seats"`
-	InstanceEnabled bool  `json:"instance_enabled"`
-	Metered         bool  `json:"metered"`
-	WindowDays      int   `json:"window_days"`
+	Available      bool  `json:"available"`
+	BillableGuests int64 `json:"billable_guests"`
+	FreeAllowance  int64 `json:"free_allowance"`
+	GuestCount     int64 `json:"guest_count"`
+	GuestSeats     int64 `json:"guest_seats"`
+	Metered        bool  `json:"metered"`
+	WindowDays     int   `json:"window_days"`
 }
 
 // HealthChecks Detailed health checks
@@ -6723,7 +6722,7 @@ type Policy struct {
 		S3Path   *string `json:"s3_path,omitempty"`
 	} `json:"allowed_s3_keys,omitempty"`
 
-	// ExecutionMode Who may open the app, and who its runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Neither `anonymous`, which makes the app publicly executable, nor `guest`, which opens it to anyone the identity provider authenticates, is ever assumed. A guest is only admitted where the workspace also has `guest_access_enabled`, which is checked when the session is minted and again on every guest request
+	// ExecutionMode Who may open the app, and who its runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Neither `anonymous`, which makes the app publicly executable, nor `guest`, which opens it to anyone the identity provider authenticates, is ever assumed. Widening an app to `guest` is gated by the `RestrictGuestAppDeployment` protection rule
 	ExecutionMode *PolicyExecutionMode `json:"execution_mode,omitempty"`
 
 	// FrontendSdkScopes Raw apps: author-declared scopes for the frontend SDK token. Takes effect only when `sandbox` is also true — an unsandboxed bundle runs with the viewer's own session, so no token is advertised or minted for it and this list stays inert. On a sandboxed app a non-empty list lets viewers mint (after consenting) a short-lived token carrying their own identity restricted to these scopes, handed to the app bundle so `windmill-client` calls run as the viewer. Must be a subset of the server's curated allowlist (jobs:run, jobs:read, users:read, resources:read, variables:read, flow_conversations:read, flow_conversations:write). Every such token can call whoami without consent, whether `users:read` is declared or not.
@@ -6742,7 +6741,7 @@ type Policy struct {
 	TriggerablesV2 *map[string]map[string]interface{} `json:"triggerables_v2,omitempty"`
 }
 
-// PolicyExecutionMode Who may open the app, and who its runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Neither `anonymous`, which makes the app publicly executable, nor `guest`, which opens it to anyone the identity provider authenticates, is ever assumed. A guest is only admitted where the workspace also has `guest_access_enabled`, which is checked when the session is minted and again on every guest request
+// PolicyExecutionMode Who may open the app, and who its runnables execute as. Optional, and what omitting it means depends on the operation: creating an app defaults it to `publisher` (runs on behalf of the app's publisher and requires an authenticated viewer), while updating one keeps the mode the app is already deployed under. Neither `anonymous`, which makes the app publicly executable, nor `guest`, which opens it to anyone the identity provider authenticates, is ever assumed. Widening an app to `guest` is gated by the `RestrictGuestAppDeployment` protection rule
 type PolicyExecutionMode string
 
 // PoolStats Database connection pool statistics
@@ -14775,11 +14774,6 @@ type EditGitSyncRepositoryJSONBody struct {
 	Repository          GitRepositorySettings `json:"repository"`
 }
 
-// EditGuestAccessJSONBody defines parameters for EditGuestAccess.
-type EditGuestAccessJSONBody struct {
-	GuestAccessEnabled bool `json:"guest_access_enabled"`
-}
-
 // EditGuestJwtKeyJSONBody defines parameters for EditGuestJwtKey.
 type EditGuestJwtKeyJSONBody struct {
 	// JwksUrl A JWKS URL whose keys are fetched and refreshed.
@@ -16123,9 +16117,6 @@ type EditWorkspaceGitSyncConfigJSONRequestBody EditWorkspaceGitSyncConfigJSONBod
 
 // EditGitSyncRepositoryJSONRequestBody defines body for EditGitSyncRepository for application/json ContentType.
 type EditGitSyncRepositoryJSONRequestBody EditGitSyncRepositoryJSONBody
-
-// EditGuestAccessJSONRequestBody defines body for EditGuestAccess for application/json ContentType.
-type EditGuestAccessJSONRequestBody EditGuestAccessJSONBody
 
 // EditGuestJwtKeyJSONRequestBody defines body for EditGuestJwtKey for application/json ContentType.
 type EditGuestJwtKeyJSONRequestBody EditGuestJwtKeyJSONBody
@@ -21982,11 +21973,6 @@ type ClientInterface interface {
 	EditGitSyncRepositoryWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	EditGitSyncRepository(ctx context.Context, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// EditGuestAccessWithBody request with any body
-	EditGuestAccessWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	EditGuestAccess(ctx context.Context, workspace WorkspaceId, body EditGuestAccessJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// EditGuestJwtKeyWithBody request with any body
 	EditGuestJwtKeyWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -36269,30 +36255,6 @@ func (c *Client) EditGitSyncRepositoryWithBody(ctx context.Context, workspace Wo
 
 func (c *Client) EditGitSyncRepository(ctx context.Context, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEditGitSyncRepositoryRequest(c.Server, workspace, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) EditGuestAccessWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewEditGuestAccessRequestWithBody(c.Server, workspace, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) EditGuestAccess(ctx context.Context, workspace WorkspaceId, body EditGuestAccessJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewEditGuestAccessRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -89515,53 +89477,6 @@ func NewEditGitSyncRepositoryRequestWithBody(server string, workspace WorkspaceI
 	return req, nil
 }
 
-// NewEditGuestAccessRequest calls the generic EditGuestAccess builder with application/json body
-func NewEditGuestAccessRequest(server string, workspace WorkspaceId, body EditGuestAccessJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewEditGuestAccessRequestWithBody(server, workspace, "application/json", bodyReader)
-}
-
-// NewEditGuestAccessRequestWithBody generates requests for EditGuestAccess with any type of body
-func NewEditGuestAccessRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/w/%s/workspaces/edit_guest_access", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewEditGuestJwtKeyRequest calls the generic EditGuestJwtKey builder with application/json body
 func NewEditGuestJwtKeyRequest(server string, workspace WorkspaceId, body EditGuestJwtKeyJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -97140,11 +97055,6 @@ type ClientWithResponsesInterface interface {
 	EditGitSyncRepositoryWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditGitSyncRepositoryResponse, error)
 
 	EditGitSyncRepositoryWithResponse(ctx context.Context, workspace WorkspaceId, body EditGitSyncRepositoryJSONRequestBody, reqEditors ...RequestEditorFn) (*EditGitSyncRepositoryResponse, error)
-
-	// EditGuestAccessWithBodyWithResponse request with any body
-	EditGuestAccessWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditGuestAccessResponse, error)
-
-	EditGuestAccessWithResponse(ctx context.Context, workspace WorkspaceId, body EditGuestAccessJSONRequestBody, reqEditors ...RequestEditorFn) (*EditGuestAccessResponse, error)
 
 	// EditGuestJwtKeyWithBodyWithResponse request with any body
 	EditGuestJwtKeyWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditGuestJwtKeyResponse, error)
@@ -118091,27 +118001,6 @@ func (r EditGitSyncRepositoryResponse) StatusCode() int {
 	return 0
 }
 
-type EditGuestAccessResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r EditGuestAccessResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r EditGuestAccessResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type EditGuestJwtKeyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -118700,17 +118589,14 @@ type GetPublicSettingsResponse struct {
 		AddAdminsAndDevelopersToForks bool                       `json:"add_admins_and_developers_to_forks"`
 		Datatable                     *DataTableSettings         `json:"datatable,omitempty"`
 		DeployUi                      *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
-
-		// GuestAccessEnabled Whether this workspace admits guest sessions. An app's own `guest` execution mode is inert while this is false.
-		GuestAccessEnabled bool              `json:"guest_access_enabled"`
-		LargeFileStorage   *LargeFileStorage `json:"large_file_storage,omitempty"`
-		MuteCriticalAlerts *bool             `json:"mute_critical_alerts,omitempty"`
-		SlackName          *string           `json:"slack_name,omitempty"`
-		SlackTeamId        *string           `json:"slack_team_id,omitempty"`
-		TeamsTeamGuid      *string           `json:"teams_team_guid,omitempty"`
-		TeamsTeamId        *string           `json:"teams_team_id,omitempty"`
-		TeamsTeamName      *string           `json:"teams_team_name,omitempty"`
-		WorkspaceId        string            `json:"workspace_id"`
+		LargeFileStorage              *LargeFileStorage          `json:"large_file_storage,omitempty"`
+		MuteCriticalAlerts            *bool                      `json:"mute_critical_alerts,omitempty"`
+		SlackName                     *string                    `json:"slack_name,omitempty"`
+		SlackTeamId                   *string                    `json:"slack_team_id,omitempty"`
+		TeamsTeamGuid                 *string                    `json:"teams_team_guid,omitempty"`
+		TeamsTeamId                   *string                    `json:"teams_team_id,omitempty"`
+		TeamsTeamName                 *string                    `json:"teams_team_name,omitempty"`
+		WorkspaceId                   string                     `json:"workspace_id"`
 	}
 }
 
@@ -118779,9 +118665,6 @@ type GetSettingsResponse struct {
 		// ErrorHandlerFallbackToInstanceAlerts Report failed jobs to the instance critical alert channels when no workspace error handler is set.
 		ErrorHandlerFallbackToInstanceAlerts *bool                     `json:"error_handler_fallback_to_instance_alerts,omitempty"`
 		GitSync                              *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
-
-		// GuestAccessEnabled Whether this workspace admits guest sessions. An app's own `guest` execution mode is inert while this is false.
-		GuestAccessEnabled *bool `json:"guest_access_enabled,omitempty"`
 
 		// GuestJwtJwksUrl JWKS URL a guest JWT (`jwt_guest_`) is verified against for this workspace. Mutually exclusive with `guest_jwt_public_key`.
 		GuestJwtJwksUrl *string `json:"guest_jwt_jwks_url,omitempty"`
@@ -130644,23 +130527,6 @@ func (c *ClientWithResponses) EditGitSyncRepositoryWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseEditGitSyncRepositoryResponse(rsp)
-}
-
-// EditGuestAccessWithBodyWithResponse request with arbitrary body returning *EditGuestAccessResponse
-func (c *ClientWithResponses) EditGuestAccessWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EditGuestAccessResponse, error) {
-	rsp, err := c.EditGuestAccessWithBody(ctx, workspace, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseEditGuestAccessResponse(rsp)
-}
-
-func (c *ClientWithResponses) EditGuestAccessWithResponse(ctx context.Context, workspace WorkspaceId, body EditGuestAccessJSONRequestBody, reqEditors ...RequestEditorFn) (*EditGuestAccessResponse, error) {
-	rsp, err := c.EditGuestAccess(ctx, workspace, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseEditGuestAccessResponse(rsp)
 }
 
 // EditGuestJwtKeyWithBodyWithResponse request with arbitrary body returning *EditGuestJwtKeyResponse
@@ -152570,22 +152436,6 @@ func ParseEditGitSyncRepositoryResponse(rsp *http.Response) (*EditGitSyncReposit
 	return response, nil
 }
 
-// ParseEditGuestAccessResponse parses an HTTP response from a EditGuestAccessWithResponse call
-func ParseEditGuestAccessResponse(rsp *http.Response) (*EditGuestAccessResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &EditGuestAccessResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
 // ParseEditGuestJwtKeyResponse parses an HTTP response from a EditGuestJwtKeyWithResponse call
 func ParseEditGuestJwtKeyResponse(rsp *http.Response) (*EditGuestJwtKeyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -153195,17 +153045,14 @@ func ParseGetPublicSettingsResponse(rsp *http.Response) (*GetPublicSettingsRespo
 			AddAdminsAndDevelopersToForks bool                       `json:"add_admins_and_developers_to_forks"`
 			Datatable                     *DataTableSettings         `json:"datatable,omitempty"`
 			DeployUi                      *WorkspaceDeployUISettings `json:"deploy_ui,omitempty"`
-
-			// GuestAccessEnabled Whether this workspace admits guest sessions. An app's own `guest` execution mode is inert while this is false.
-			GuestAccessEnabled bool              `json:"guest_access_enabled"`
-			LargeFileStorage   *LargeFileStorage `json:"large_file_storage,omitempty"`
-			MuteCriticalAlerts *bool             `json:"mute_critical_alerts,omitempty"`
-			SlackName          *string           `json:"slack_name,omitempty"`
-			SlackTeamId        *string           `json:"slack_team_id,omitempty"`
-			TeamsTeamGuid      *string           `json:"teams_team_guid,omitempty"`
-			TeamsTeamId        *string           `json:"teams_team_id,omitempty"`
-			TeamsTeamName      *string           `json:"teams_team_name,omitempty"`
-			WorkspaceId        string            `json:"workspace_id"`
+			LargeFileStorage              *LargeFileStorage          `json:"large_file_storage,omitempty"`
+			MuteCriticalAlerts            *bool                      `json:"mute_critical_alerts,omitempty"`
+			SlackName                     *string                    `json:"slack_name,omitempty"`
+			SlackTeamId                   *string                    `json:"slack_team_id,omitempty"`
+			TeamsTeamGuid                 *string                    `json:"teams_team_guid,omitempty"`
+			TeamsTeamId                   *string                    `json:"teams_team_id,omitempty"`
+			TeamsTeamName                 *string                    `json:"teams_team_name,omitempty"`
+			WorkspaceId                   string                     `json:"workspace_id"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -153282,9 +153129,6 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			// ErrorHandlerFallbackToInstanceAlerts Report failed jobs to the instance critical alert channels when no workspace error handler is set.
 			ErrorHandlerFallbackToInstanceAlerts *bool                     `json:"error_handler_fallback_to_instance_alerts,omitempty"`
 			GitSync                              *WorkspaceGitSyncSettings `json:"git_sync,omitempty"`
-
-			// GuestAccessEnabled Whether this workspace admits guest sessions. An app's own `guest` execution mode is inert while this is false.
-			GuestAccessEnabled *bool `json:"guest_access_enabled,omitempty"`
 
 			// GuestJwtJwksUrl JWKS URL a guest JWT (`jwt_guest_`) is verified against for this workspace. Mutually exclusive with `guest_jwt_public_key`.
 			GuestJwtJwksUrl *string `json:"guest_jwt_jwks_url,omitempty"`
