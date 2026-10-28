@@ -4806,6 +4806,9 @@ type FolderDefaultPermissionedAs = []struct {
 	PermissionedAs string `json:"permissioned_as"`
 }
 
+// ForkRoleMapping Role a member of this workspace gets in a fork of it, keyed by the role it holds here. Unmapped roles carry over unchanged; where two rulesets map the same role, the first by name wins. On update, omitting it leaves the stored mapping unchanged.
+type ForkRoleMapping map[string]string
+
 // FreeTierInfo Read-only. Present when the workspace has no AI provider of its own and is running on Windmill's free tier. Ignored on write.
 type FreeTierInfo struct {
 	// Exhausted The one-time grant is spent; no provider is served and the user must add their own API key.
@@ -4914,8 +4917,10 @@ type GitCredentialStatusProvider string
 
 // GitRepositorySettings defines model for GitRepositorySettings.
 type GitRepositorySettings struct {
-	AutoPull  *AutoPullSettings `json:"auto_pull,omitempty"`
-	Collapsed *bool             `json:"collapsed,omitempty"`
+	// AiReviewPrs review every pull request against the tracked branch with the workspace's AI
+	AiReviewPrs *bool             `json:"ai_review_prs,omitempty"`
+	AutoPull    *AutoPullSettings `json:"auto_pull,omitempty"`
+	Collapsed   *bool             `json:"collapsed,omitempty"`
 
 	// Credential server-owned, what the repo's own credential reports about itself
 	Credential           *GitCredentialStatus `json:"credential,omitempty"`
@@ -6828,6 +6833,9 @@ type ProtectionRuleset struct {
 	// BypassUsers Users that can bypass this ruleset
 	BypassUsers RuleBypasserUsers `json:"bypass_users"`
 
+	// ForkRoleMapping Role a member of this workspace gets in a fork of it, keyed by the role it holds here. Unmapped roles carry over unchanged; where two rulesets map the same role, the first by name wins. On update, omitting it leaves the stored mapping unchanged.
+	ForkRoleMapping *ForkRoleMapping `json:"fork_role_mapping,omitempty"`
+
 	// Name Unique name for the protection rule
 	Name string `json:"name"`
 
@@ -7204,9 +7212,12 @@ type RoleCapabilities struct {
 	Code bool `json:"code"`
 
 	// Flows How much of a kind of runnable a role may author. `compose` assembles already-deployed runnables with no code of one's own.
-	Flows           AuthorLevel `json:"flows"`
-	ManageSchedules bool        `json:"manage_schedules"`
-	ManageTriggers  bool        `json:"manage_triggers"`
+	Flows AuthorLevel `json:"flows"`
+
+	// Fork Fork the workspace.
+	Fork            bool `json:"fork"`
+	ManageSchedules bool `json:"manage_schedules"`
+	ManageTriggers  bool `json:"manage_triggers"`
 
 	// Visibility Pages a role sees. Not enforced.
 	Visibility RoleVisibility `json:"visibility"`
@@ -7220,6 +7231,7 @@ type RoleCapabilitiesPatch struct {
 
 	// Flows How much of a kind of runnable a role may author. `compose` assembles already-deployed runnables with no code of one's own.
 	Flows           *AuthorLevel     `json:"flows,omitempty"`
+	Fork            *bool            `json:"fork,omitempty"`
 	ManageSchedules *bool            `json:"manage_schedules,omitempty"`
 	ManageTriggers  *bool            `json:"manage_triggers,omitempty"`
 	Visibility      *map[string]bool `json:"visibility,omitempty"`
@@ -10184,6 +10196,14 @@ type RemoveGranularAclsJSONBody struct {
 
 // RemoveGranularAclsParamsKind defines parameters for RemoveGranularAcls.
 type RemoveGranularAclsParamsKind string
+
+// CompleteAiJSONBody defines parameters for CompleteAi.
+type CompleteAiJSONBody struct {
+	MaxTokens *int             `json:"max_tokens,omitempty"`
+	Model     *AIProviderModel `json:"model,omitempty"`
+	System    string           `json:"system"`
+	User      string           `json:"user"`
+}
 
 // PullAiSessionBackupsJSONBody defines parameters for PullAiSessionBackups.
 type PullAiSessionBackupsJSONBody struct {
@@ -14914,6 +14934,9 @@ type CreateProtectionRuleJSONBody struct {
 	// BypassUsers Users that can bypass this ruleset
 	BypassUsers RuleBypasserUsers `json:"bypass_users"`
 
+	// ForkRoleMapping Role a member of this workspace gets in a fork of it, keyed by the role it holds here. Unmapped roles carry over unchanged; where two rulesets map the same role, the first by name wins. On update, omitting it leaves the stored mapping unchanged.
+	ForkRoleMapping *ForkRoleMapping `json:"fork_role_mapping,omitempty"`
+
 	// Name Unique name for the protection rule
 	Name string `json:"name"`
 
@@ -14928,6 +14951,9 @@ type UpdateProtectionRuleJSONBody struct {
 
 	// BypassUsers Users that can bypass this ruleset
 	BypassUsers RuleBypasserUsers `json:"bypass_users"`
+
+	// ForkRoleMapping Role a member of this workspace gets in a fork of it, keyed by the role it holds here. Unmapped roles carry over unchanged; where two rulesets map the same role, the first by name wins. On update, omitting it leaves the stored mapping unchanged.
+	ForkRoleMapping *ForkRoleMapping `json:"fork_role_mapping,omitempty"`
 
 	// Name New name for the rule. Omit, or pass the current name, to leave it unchanged. The reserved `dev_workspace_lock` rule cannot be renamed, nor can another rule be renamed onto it.
 	Name *string `json:"name,omitempty"`
@@ -15332,6 +15358,9 @@ type AddGranularAclsJSONRequestBody AddGranularAclsJSONBody
 
 // RemoveGranularAclsJSONRequestBody defines body for RemoveGranularAcls for application/json ContentType.
 type RemoveGranularAclsJSONRequestBody RemoveGranularAclsJSONBody
+
+// CompleteAiJSONRequestBody defines body for CompleteAi for application/json ContentType.
+type CompleteAiJSONRequestBody CompleteAiJSONBody
 
 // PullAiSessionBackupsJSONRequestBody defines body for PullAiSessionBackups for application/json ContentType.
 type PullAiSessionBackupsJSONRequestBody PullAiSessionBackupsJSONBody
@@ -19503,6 +19532,11 @@ type ClientInterface interface {
 	RemoveGranularAclsWithBody(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RemoveGranularAcls(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CompleteAiWithBody request with any body
+	CompleteAiWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CompleteAi(ctx context.Context, workspace WorkspaceId, body CompleteAiJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAiSessionBackups request
 	ListAiSessionBackups(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -25423,6 +25457,30 @@ func (c *Client) RemoveGranularAclsWithBody(ctx context.Context, workspace Works
 
 func (c *Client) RemoveGranularAcls(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRemoveGranularAclsRequest(c.Server, workspace, kind, path, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CompleteAiWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCompleteAiRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CompleteAi(ctx context.Context, workspace WorkspaceId, body CompleteAiJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCompleteAiRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -45399,6 +45457,53 @@ func NewRemoveGranularAclsRequestWithBody(server string, workspace WorkspaceId, 
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/acls/remove/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCompleteAiRequest calls the generic CompleteAi builder with application/json body
+func NewCompleteAiRequest(server string, workspace WorkspaceId, body CompleteAiJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCompleteAiRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewCompleteAiRequestWithBody generates requests for CompleteAi with any type of body
+func NewCompleteAiRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/complete", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -94586,6 +94691,11 @@ type ClientWithResponsesInterface interface {
 
 	RemoveGranularAclsWithResponse(ctx context.Context, workspace WorkspaceId, kind RemoveGranularAclsParamsKind, path Path, body RemoveGranularAclsJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveGranularAclsResponse, error)
 
+	// CompleteAiWithBodyWithResponse request with any body
+	CompleteAiWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CompleteAiResponse, error)
+
+	CompleteAiWithResponse(ctx context.Context, workspace WorkspaceId, body CompleteAiJSONRequestBody, reqEditors ...RequestEditorFn) (*CompleteAiResponse, error)
+
 	// ListAiSessionBackupsWithResponse request
 	ListAiSessionBackupsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAiSessionBackupsResponse, error)
 
@@ -101986,6 +102096,31 @@ func (r RemoveGranularAclsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RemoveGranularAclsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CompleteAiResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Model AIProviderModel `json:"model"`
+		Text  string          `json:"text"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CompleteAiResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CompleteAiResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -122655,6 +122790,23 @@ func (c *ClientWithResponses) RemoveGranularAclsWithResponse(ctx context.Context
 	return ParseRemoveGranularAclsResponse(rsp)
 }
 
+// CompleteAiWithBodyWithResponse request with arbitrary body returning *CompleteAiResponse
+func (c *ClientWithResponses) CompleteAiWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CompleteAiResponse, error) {
+	rsp, err := c.CompleteAiWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCompleteAiResponse(rsp)
+}
+
+func (c *ClientWithResponses) CompleteAiWithResponse(ctx context.Context, workspace WorkspaceId, body CompleteAiJSONRequestBody, reqEditors ...RequestEditorFn) (*CompleteAiResponse, error) {
+	rsp, err := c.CompleteAi(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCompleteAiResponse(rsp)
+}
+
 // ListAiSessionBackupsWithResponse request returning *ListAiSessionBackupsResponse
 func (c *ClientWithResponses) ListAiSessionBackupsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListAiSessionBackupsResponse, error) {
 	rsp, err := c.ListAiSessionBackups(ctx, workspace, reqEditors...)
@@ -136358,6 +136510,35 @@ func ParseRemoveGranularAclsResponse(rsp *http.Response) (*RemoveGranularAclsRes
 	response := &RemoveGranularAclsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseCompleteAiResponse parses an HTTP response from a CompleteAiWithResponse call
+func ParseCompleteAiResponse(rsp *http.Response) (*CompleteAiResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CompleteAiResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Model AIProviderModel `json:"model"`
+			Text  string          `json:"text"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
