@@ -11360,6 +11360,9 @@ type ListFlowConversationsParams struct {
 
 	// Kind which conversations to list - the flow editor's test chats, the deployed flow's own (the default), or both
 	Kind *ListFlowConversationsParamsKind `form:"kind,omitempty" json:"kind,omitempty"`
+
+	// Mine only list the caller's own conversations (an admin otherwise lists every user's)
+	Mine *bool `form:"mine,omitempty" json:"mine,omitempty"`
 }
 
 // ListFlowConversationsParamsKind defines parameters for ListFlowConversations.
@@ -54758,6 +54761,22 @@ func NewListFlowConversationsRequest(server string, workspace WorkspaceId, param
 		if params.Kind != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Mine != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "mine", runtime.ParamLocationQuery, *params.Mine); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
