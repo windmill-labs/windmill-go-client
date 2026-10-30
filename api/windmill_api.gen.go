@@ -732,6 +732,27 @@ const (
 	HttpRequestTypeSyncSse HttpRequestType = "sync_sse"
 )
 
+// Defines values for HttpStoreAuthType.
+const (
+	BearerTokenFile   HttpStoreAuthType = "BearerTokenFile"
+	ClientCertificate HttpStoreAuthType = "ClientCertificate"
+	None              HttpStoreAuthType = "None"
+	StaticHeader      HttpStoreAuthType = "StaticHeader"
+)
+
+// Defines values for HttpStoreSettingsPathEncoding.
+const (
+	DoubleDash HttpStoreSettingsPathEncoding = "double_dash"
+	Raw        HttpStoreSettingsPathEncoding = "raw"
+	Url        HttpStoreSettingsPathEncoding = "url"
+)
+
+// Defines values for HttpStoreSettingsReadValueEncoding.
+const (
+	Base64 HttpStoreSettingsReadValueEncoding = "base64"
+	Plain  HttpStoreSettingsReadValueEncoding = "plain"
+)
+
 // Defines values for HubScriptKind.
 const (
 	HubScriptKindApproval HubScriptKind = "approval"
@@ -5155,6 +5176,68 @@ type HttpMethod string
 
 // HttpRequestType defines model for HttpRequestType.
 type HttpRequestType string
+
+// HttpStoreAuth defines model for HttpStoreAuth.
+type HttpStoreAuth struct {
+	// CertPath ClientCertificate, PEM certificate optionally followed by its chain
+	CertPath *string `json:"cert_path,omitempty"`
+
+	// HeaderName StaticHeader and BearerTokenFile (default Authorization)
+	HeaderName *string `json:"header_name,omitempty"`
+
+	// HeaderValue StaticHeader
+	HeaderValue *string `json:"header_value,omitempty"`
+
+	// KeyPath ClientCertificate, PEM private key
+	KeyPath *string `json:"key_path,omitempty"`
+
+	// Prefix BearerTokenFile (default "Bearer ")
+	Prefix *string `json:"prefix,omitempty"`
+
+	// ReloadIntervalSecs BearerTokenFile (default 60) and ClientCertificate (default 300)
+	ReloadIntervalSecs *int `json:"reload_interval_secs,omitempty"`
+
+	// TokenPath BearerTokenFile
+	TokenPath *string           `json:"token_path,omitempty"`
+	Type      HttpStoreAuthType `json:"type"`
+}
+
+// HttpStoreAuthType defines model for HttpStoreAuth.Type.
+type HttpStoreAuthType string
+
+// HttpStoreSettings Read-only secret backend for any secret store with an HTTP API. A secret variable saved with an empty value references the store key derived from its workspace and path.
+type HttpStoreSettings struct {
+	Auth HttpStoreAuth `json:"auth"`
+
+	// BaseUrl Scheme, host and optional path prefix of the store
+	BaseUrl string `json:"base_url"`
+
+	// CaBundlePath PEM bundle of additional CA certificates trusted for the store
+	CaBundlePath *string            `json:"ca_bundle_path,omitempty"`
+	ExtraHeaders *map[string]string `json:"extra_headers,omitempty"`
+
+	// PathEncoding How a variable path becomes a store key (default url)
+	PathEncoding *HttpStoreSettingsPathEncoding `json:"path_encoding,omitempty"`
+	Read         struct {
+		// Path Path template appended to base_url. {workspace} and {path} must each appear here or in a query value.
+		Path string `json:"path"`
+
+		// Query Query parameters; values may use {workspace} and {path}
+		Query         *map[string]string                  `json:"query,omitempty"`
+		ValueEncoding *HttpStoreSettingsReadValueEncoding `json:"value_encoding,omitempty"`
+
+		// ValuePointer JSON pointer to the value in the response; empty means the whole body
+		ValuePointer *string `json:"value_pointer,omitempty"`
+	} `json:"read"`
+	SkipSslVerify *bool `json:"skip_ssl_verify,omitempty"`
+	TimeoutSecs   *int  `json:"timeout_secs,omitempty"`
+}
+
+// HttpStoreSettingsPathEncoding How a variable path becomes a store key (default url)
+type HttpStoreSettingsPathEncoding string
+
+// HttpStoreSettingsReadValueEncoding defines model for HttpStoreSettings.Read.ValueEncoding.
+type HttpStoreSettingsReadValueEncoding string
 
 // HttpTrigger defines model for HttpTrigger.
 type HttpTrigger = TriggerExtraProperty
@@ -9958,6 +10041,18 @@ type SetupCustomInstanceDbJSONBody struct {
 type TestCriticalChannelsJSONBody = []struct {
 	Email        *string `json:"email,omitempty"`
 	SlackChannel *string `json:"slack_channel,omitempty"`
+}
+
+// TestHttpStoreBackendJSONBody defines parameters for TestHttpStoreBackend.
+type TestHttpStoreBackendJSONBody struct {
+	// Path path of a variable whose secret exists in the store
+	Path string `json:"path"`
+
+	// Settings Read-only secret backend for any secret store with an HTTP API. A secret variable saved with an empty value references the store key derived from its workspace and path.
+	Settings HttpStoreSettings `json:"settings"`
+
+	// WorkspaceId workspace of a variable whose secret exists in the store
+	WorkspaceId string `json:"workspace_id"`
 }
 
 // TestLicenseKeyJSONBody defines parameters for TestLicenseKey.
@@ -15248,6 +15343,9 @@ type MigrateSecretsFromAwsSmJSONRequestBody = AwsSecretsManagerSettings
 // MigrateSecretsFromAzureKvJSONRequestBody defines body for MigrateSecretsFromAzureKv for application/json ContentType.
 type MigrateSecretsFromAzureKvJSONRequestBody = AzureKeyVaultSettings
 
+// MigrateSecretsFromHttpStoreJSONRequestBody defines body for MigrateSecretsFromHttpStore for application/json ContentType.
+type MigrateSecretsFromHttpStoreJSONRequestBody = HttpStoreSettings
+
 // MigrateSecretsToAwsSmJSONRequestBody defines body for MigrateSecretsToAwsSm for application/json ContentType.
 type MigrateSecretsToAwsSmJSONRequestBody = AwsSecretsManagerSettings
 
@@ -15271,6 +15369,9 @@ type TestAzureKvBackendJSONRequestBody = AzureKeyVaultSettings
 
 // TestCriticalChannelsJSONRequestBody defines body for TestCriticalChannels for application/json ContentType.
 type TestCriticalChannelsJSONRequestBody = TestCriticalChannelsJSONBody
+
+// TestHttpStoreBackendJSONRequestBody defines body for TestHttpStoreBackend for application/json ContentType.
+type TestHttpStoreBackendJSONRequestBody TestHttpStoreBackendJSONBody
 
 // TestLicenseKeyJSONRequestBody defines body for TestLicenseKey for application/json ContentType.
 type TestLicenseKeyJSONRequestBody TestLicenseKeyJSONBody
@@ -19232,6 +19333,11 @@ type ClientInterface interface {
 
 	MigrateSecretsFromAzureKv(ctx context.Context, body MigrateSecretsFromAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// MigrateSecretsFromHttpStoreWithBody request with any body
+	MigrateSecretsFromHttpStoreWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	MigrateSecretsFromHttpStore(ctx context.Context, body MigrateSecretsFromHttpStoreJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// MigrateSecretsToAwsSmWithBody request with any body
 	MigrateSecretsToAwsSmWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -19298,6 +19404,11 @@ type ClientInterface interface {
 	TestCriticalChannelsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	TestCriticalChannels(ctx context.Context, body TestCriticalChannelsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestHttpStoreBackendWithBody request with any body
+	TestHttpStoreBackendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestHttpStoreBackend(ctx context.Context, body TestHttpStoreBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// TestLicenseKeyWithBody request with any body
 	TestLicenseKeyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -24145,6 +24256,30 @@ func (c *Client) MigrateSecretsFromAzureKv(ctx context.Context, body MigrateSecr
 	return c.Client.Do(req)
 }
 
+func (c *Client) MigrateSecretsFromHttpStoreWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsFromHttpStoreRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MigrateSecretsFromHttpStore(ctx context.Context, body MigrateSecretsFromHttpStoreJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMigrateSecretsFromHttpStoreRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) MigrateSecretsToAwsSmWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewMigrateSecretsToAwsSmRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -24435,6 +24570,30 @@ func (c *Client) TestCriticalChannelsWithBody(ctx context.Context, contentType s
 
 func (c *Client) TestCriticalChannels(ctx context.Context, body TestCriticalChannelsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewTestCriticalChannelsRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestHttpStoreBackendWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestHttpStoreBackendRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestHttpStoreBackend(ctx context.Context, body TestHttpStoreBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestHttpStoreBackendRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -42392,6 +42551,46 @@ func NewMigrateSecretsFromAzureKvRequestWithBody(server string, contentType stri
 	return req, nil
 }
 
+// NewMigrateSecretsFromHttpStoreRequest calls the generic MigrateSecretsFromHttpStore builder with application/json body
+func NewMigrateSecretsFromHttpStoreRequest(server string, body MigrateSecretsFromHttpStoreJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMigrateSecretsFromHttpStoreRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewMigrateSecretsFromHttpStoreRequestWithBody generates requests for MigrateSecretsFromHttpStore with any type of body
+func NewMigrateSecretsFromHttpStoreRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/migrate_secrets_from_http_store")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewMigrateSecretsToAwsSmRequest calls the generic MigrateSecretsToAwsSm builder with application/json body
 func NewMigrateSecretsToAwsSmRequest(server string, body MigrateSecretsToAwsSmJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -42972,6 +43171,46 @@ func NewTestCriticalChannelsRequestWithBody(server string, contentType string, b
 	}
 
 	operationPath := fmt.Sprintf("/settings/test_critical_channels")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestHttpStoreBackendRequest calls the generic TestHttpStoreBackend builder with application/json body
+func NewTestHttpStoreBackendRequest(server string, body TestHttpStoreBackendJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestHttpStoreBackendRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewTestHttpStoreBackendRequestWithBody generates requests for TestHttpStoreBackend with any type of body
+func NewTestHttpStoreBackendRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settings/test_http_store_backend")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -94314,6 +94553,11 @@ type ClientWithResponsesInterface interface {
 
 	MigrateSecretsFromAzureKvWithResponse(ctx context.Context, body MigrateSecretsFromAzureKvJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsFromAzureKvResponse, error)
 
+	// MigrateSecretsFromHttpStoreWithBodyWithResponse request with any body
+	MigrateSecretsFromHttpStoreWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsFromHttpStoreResponse, error)
+
+	MigrateSecretsFromHttpStoreWithResponse(ctx context.Context, body MigrateSecretsFromHttpStoreJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsFromHttpStoreResponse, error)
+
 	// MigrateSecretsToAwsSmWithBodyWithResponse request with any body
 	MigrateSecretsToAwsSmWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToAwsSmResponse, error)
 
@@ -94380,6 +94624,11 @@ type ClientWithResponsesInterface interface {
 	TestCriticalChannelsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestCriticalChannelsResponse, error)
 
 	TestCriticalChannelsWithResponse(ctx context.Context, body TestCriticalChannelsJSONRequestBody, reqEditors ...RequestEditorFn) (*TestCriticalChannelsResponse, error)
+
+	// TestHttpStoreBackendWithBodyWithResponse request with any body
+	TestHttpStoreBackendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestHttpStoreBackendResponse, error)
+
+	TestHttpStoreBackendWithResponse(ctx context.Context, body TestHttpStoreBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*TestHttpStoreBackendResponse, error)
 
 	// TestLicenseKeyWithBodyWithResponse request with any body
 	TestLicenseKeyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestLicenseKeyResponse, error)
@@ -100337,6 +100586,28 @@ func (r MigrateSecretsFromAzureKvResponse) StatusCode() int {
 	return 0
 }
 
+type MigrateSecretsFromHttpStoreResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SecretMigrationReport
+}
+
+// Status returns HTTPResponse.Status
+func (r MigrateSecretsFromHttpStoreResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MigrateSecretsFromHttpStoreResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type MigrateSecretsToAwsSmResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -100721,6 +100992,27 @@ func (r TestCriticalChannelsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r TestCriticalChannelsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestHttpStoreBackendResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestHttpStoreBackendResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestHttpStoreBackendResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -121727,6 +122019,23 @@ func (c *ClientWithResponses) MigrateSecretsFromAzureKvWithResponse(ctx context.
 	return ParseMigrateSecretsFromAzureKvResponse(rsp)
 }
 
+// MigrateSecretsFromHttpStoreWithBodyWithResponse request with arbitrary body returning *MigrateSecretsFromHttpStoreResponse
+func (c *ClientWithResponses) MigrateSecretsFromHttpStoreWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsFromHttpStoreResponse, error) {
+	rsp, err := c.MigrateSecretsFromHttpStoreWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsFromHttpStoreResponse(rsp)
+}
+
+func (c *ClientWithResponses) MigrateSecretsFromHttpStoreWithResponse(ctx context.Context, body MigrateSecretsFromHttpStoreJSONRequestBody, reqEditors ...RequestEditorFn) (*MigrateSecretsFromHttpStoreResponse, error) {
+	rsp, err := c.MigrateSecretsFromHttpStore(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMigrateSecretsFromHttpStoreResponse(rsp)
+}
+
 // MigrateSecretsToAwsSmWithBodyWithResponse request with arbitrary body returning *MigrateSecretsToAwsSmResponse
 func (c *ClientWithResponses) MigrateSecretsToAwsSmWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MigrateSecretsToAwsSmResponse, error) {
 	rsp, err := c.MigrateSecretsToAwsSmWithBody(ctx, contentType, body, reqEditors...)
@@ -121942,6 +122251,23 @@ func (c *ClientWithResponses) TestCriticalChannelsWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseTestCriticalChannelsResponse(rsp)
+}
+
+// TestHttpStoreBackendWithBodyWithResponse request with arbitrary body returning *TestHttpStoreBackendResponse
+func (c *ClientWithResponses) TestHttpStoreBackendWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestHttpStoreBackendResponse, error) {
+	rsp, err := c.TestHttpStoreBackendWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestHttpStoreBackendResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestHttpStoreBackendWithResponse(ctx context.Context, body TestHttpStoreBackendJSONRequestBody, reqEditors ...RequestEditorFn) (*TestHttpStoreBackendResponse, error) {
+	rsp, err := c.TestHttpStoreBackend(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestHttpStoreBackendResponse(rsp)
 }
 
 // TestLicenseKeyWithBodyWithResponse request with arbitrary body returning *TestLicenseKeyResponse
@@ -134779,6 +135105,32 @@ func ParseMigrateSecretsFromAzureKvResponse(rsp *http.Response) (*MigrateSecrets
 	return response, nil
 }
 
+// ParseMigrateSecretsFromHttpStoreResponse parses an HTTP response from a MigrateSecretsFromHttpStoreWithResponse call
+func ParseMigrateSecretsFromHttpStoreResponse(rsp *http.Response) (*MigrateSecretsFromHttpStoreResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MigrateSecretsFromHttpStoreResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SecretMigrationReport
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseMigrateSecretsToAwsSmResponse parses an HTTP response from a MigrateSecretsToAwsSmWithResponse call
 func ParseMigrateSecretsToAwsSmResponse(rsp *http.Response) (*MigrateSecretsToAwsSmResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -135158,6 +135510,22 @@ func ParseTestCriticalChannelsResponse(rsp *http.Response) (*TestCriticalChannel
 	}
 
 	response := &TestCriticalChannelsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestHttpStoreBackendResponse parses an HTTP response from a TestHttpStoreBackendWithResponse call
+func ParseTestHttpStoreBackendResponse(rsp *http.Response) (*TestHttpStoreBackendResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestHttpStoreBackendResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
