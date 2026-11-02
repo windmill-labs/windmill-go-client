@@ -2746,7 +2746,7 @@ type CreateVariable struct {
 	// Path The path to the variable
 	Path string `json:"path"`
 
-	// Value The value of the variable
+	// Value The value of the variable. For a secret, `$external:vault://<path>#<key>` stores a reference to an existing secret in the instance's external HashiCorp Vault (path as `vault kv get` takes it) instead of a value; without `#<key>` it reads the whole secret as a JSON object of its fields. It is resolved on each read, only under the path prefixes a superadmin allowed for the workspace, and is returned as-is when the secret is not decrypted.
 	Value string `json:"value"`
 
 	// ValueValidUntil When the value stored in this variable stops working. Triggers the workspace's variable expiration handler ahead of it, by the handler's `notify_before_secs` (1 day by default); never causes the variable to be deleted.
@@ -3881,7 +3881,7 @@ type EditVariable struct {
 	// Path The path to the variable
 	Path *string `json:"path,omitempty"`
 
-	// Value The new value of the variable
+	// Value The new value of the variable. Accepts an `$external:vault://<path>[#<key>]` reference for a secret, as in CreateVariable.
 	Value *string `json:"value,omitempty"`
 
 	// ValueValidUntil When the value stored in this variable stops working. Omit to leave it unchanged; send null to clear it. Changing it re-arms the workspace's variable expiration handler.
@@ -8208,9 +8208,12 @@ type User struct {
 	Name             *string     `json:"name,omitempty"`
 
 	// NonMember True when this is a superadmin viewing a workspace they are not a member of (is_admin/role reflect the superadmin fallback, not an actual membership).
-	NonMember *bool  `json:"non_member,omitempty"`
-	Operator  bool   `json:"operator"`
-	Username  string `json:"username"`
+	NonMember *bool `json:"non_member,omitempty"`
+	Operator  bool  `json:"operator"`
+
+	// Role The member's workspace role by name (`developer`, `operator` or a custom role). Admin is the separate `is_admin` flag.
+	Role     *string `json:"role,omitempty"`
+	Username string  `json:"username"`
 }
 
 // UserDraftItemKind Closed set of item kinds a user can autosave as a draft. Mirrors the
@@ -8320,6 +8323,12 @@ type VaultSettings struct {
 	// Address HashiCorp Vault server address (e.g., https://vault.company.com:8200)
 	Address string `json:"address"`
 
+	// ApproleMountPath Mount path of the AppRole auth method (optional, defaults to "approle").
+	ApproleMountPath *string `json:"approle_mount_path,omitempty"`
+
+	// ApproleRoleId AppRole role_id (optional). When set and no static token is given, Windmill logs in with AppRole; the secret_id is read from the `VAULT_APPROLE_SECRET_ID` environment variable of servers and workers.
+	ApproleRoleId *string `json:"approle_role_id,omitempty"`
+
 	// JwtMountPath Mount path for the JWT auth method in Vault (optional, defaults to "jwt"). Set this when the JWT auth method is mounted at a non-default path, e.g. via `vault auth enable -path=<mount> jwt`.
 	JwtMountPath *string `json:"jwt_mount_path,omitempty"`
 
@@ -8329,8 +8338,8 @@ type VaultSettings struct {
 	// KvSecretPathPrefix Optional path prefix inserted between the KV data/metadata segment and the workspace id (e.g., "apps/windmill"). When set, secrets are stored at `<mount>/data/<prefix>/<workspace>/<secret>`, allowing a Vault policy scoped to exactly `<mount>/data/<prefix>/*`.
 	KvSecretPathPrefix *string `json:"kv_secret_path_prefix,omitempty"`
 
-	// MountPath KV v2 secrets engine mount path (e.g., windmill)
-	MountPath string `json:"mount_path"`
+	// MountPath KV v2 secrets engine mount path (e.g., windmill). Empty to test the connection used for `$external:vault://` references, which checks only that Vault accepts Windmill's token.
+	MountPath *string `json:"mount_path,omitempty"`
 
 	// Namespace Vault Enterprise namespace (optional)
 	Namespace *string `json:"namespace,omitempty"`
@@ -21791,6 +21800,9 @@ type ClientInterface interface {
 	// ExistsVariable request
 	ExistsVariable(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListExternalSecretPrefixes request
+	ListExternalSecretPrefixes(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetVariable request
 	GetVariable(ctx context.Context, workspace WorkspaceId, path Path, params *GetVariableParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -35073,6 +35085,18 @@ func (c *Client) EncryptValue(ctx context.Context, workspace WorkspaceId, body E
 
 func (c *Client) ExistsVariable(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewExistsVariableRequest(c.Server, workspace, path)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListExternalSecretPrefixes(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListExternalSecretPrefixesRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -85935,6 +85959,40 @@ func NewExistsVariableRequest(server string, workspace WorkspaceId, path Path) (
 	return req, nil
 }
 
+// NewListExternalSecretPrefixesRequest generates requests for ListExternalSecretPrefixes
+func NewListExternalSecretPrefixesRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/variables/external_secret_prefixes", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetVariableRequest generates requests for GetVariable
 func NewGetVariableRequest(server string, workspace WorkspaceId, path Path, params *GetVariableParams) (*http.Request, error) {
 	var err error
@@ -97026,6 +97084,9 @@ type ClientWithResponsesInterface interface {
 
 	// ExistsVariableWithResponse request
 	ExistsVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, reqEditors ...RequestEditorFn) (*ExistsVariableResponse, error)
+
+	// ListExternalSecretPrefixesWithResponse request
+	ListExternalSecretPrefixesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListExternalSecretPrefixesResponse, error)
 
 	// GetVariableWithResponse request
 	GetVariableWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *GetVariableParams, reqEditors ...RequestEditorFn) (*GetVariableResponse, error)
@@ -116558,6 +116619,28 @@ func (r ExistsVariableResponse) StatusCode() int {
 	return 0
 }
 
+type ListExternalSecretPrefixesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r ListExternalSecretPrefixesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListExternalSecretPrefixesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetVariableResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -129903,6 +129986,15 @@ func (c *ClientWithResponses) ExistsVariableWithResponse(ctx context.Context, wo
 		return nil, err
 	}
 	return ParseExistsVariableResponse(rsp)
+}
+
+// ListExternalSecretPrefixesWithResponse request returning *ListExternalSecretPrefixesResponse
+func (c *ClientWithResponses) ListExternalSecretPrefixesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListExternalSecretPrefixesResponse, error) {
+	rsp, err := c.ListExternalSecretPrefixes(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListExternalSecretPrefixesResponse(rsp)
 }
 
 // GetVariableWithResponse request returning *GetVariableResponse
@@ -151046,6 +151138,32 @@ func ParseExistsVariableResponse(rsp *http.Response) (*ExistsVariableResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListExternalSecretPrefixesResponse parses an HTTP response from a ListExternalSecretPrefixesWithResponse call
+func ParseListExternalSecretPrefixesResponse(rsp *http.Response) (*ListExternalSecretPrefixesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListExternalSecretPrefixesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
