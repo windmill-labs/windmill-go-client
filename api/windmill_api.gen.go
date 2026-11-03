@@ -1086,6 +1086,14 @@ const (
 	QueuedJobJobKindUnassignedSinglestepflow QueuedJobJobKind = "unassigned_singlestepflow"
 )
 
+// Defines values for RecentRunStatus.
+const (
+	RecentRunStatusCanceled RecentRunStatus = "canceled"
+	RecentRunStatusFailure  RecentRunStatus = "failure"
+	RecentRunStatusRunning  RecentRunStatus = "running"
+	RecentRunStatusSuccess  RecentRunStatus = "success"
+)
+
 // Defines values for RestartedFromBranchChosenType.
 const (
 	RestartedFromBranchChosenTypeBranch  RestartedFromBranchChosenType = "branch"
@@ -1776,8 +1784,8 @@ const (
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
 const (
-	SetWsSpecificJSONBodyItemKindResource SetWsSpecificJSONBodyItemKind = "resource"
-	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
+	Resource SetWsSpecificJSONBodyItemKind = "resource"
+	Variable SetWsSpecificJSONBodyItemKind = "variable"
 )
 
 // Defines values for GetWorkspaceSettingsDocumentParamsSecrets.
@@ -7164,6 +7172,9 @@ type ReadinessHealth struct {
 	Healthy bool `json:"healthy"`
 }
 
+// RecentRunStatus defines model for RecentRunStatus.
+type RecentRunStatus string
+
 // RecordingBody defines model for RecordingBody.
 type RecordingBody struct {
 	// ProjectSlug hub project slug (3-50 chars, lowercase alphanumeric and hyphens, no leading/trailing hyphen)
@@ -10465,6 +10476,30 @@ type EvalSubjectStateParams struct {
 	Path string `form:"path" json:"path"`
 }
 
+// CallAiSessionToolJSONBody defines parameters for CallAiSessionTool.
+type CallAiSessionToolJSONBody struct {
+	// Args the tool's arguments, as the model sent them
+	Args *interface{} `json:"args,omitempty"`
+
+	// Context browser-held state the tool reads
+	Context *CallAiSessionToolJSONBody_Context `json:"context,omitempty"`
+}
+
+// CallAiSessionToolJSONBody_Context defines parameters for CallAiSessionTool.
+type CallAiSessionToolJSONBody_Context struct {
+	Cells *[]struct {
+		Kind        string      `json:"kind"`
+		StoragePath string      `json:"storage_path"`
+		Value       interface{} `json:"value"`
+	} `json:"cells,omitempty"`
+	LiveEditors *[]struct {
+		EffectivePath *string `json:"effective_path,omitempty"`
+		Kind          string  `json:"kind"`
+		StoragePath   string  `json:"storage_path"`
+	} `json:"live_editors,omitempty"`
+	AdditionalProperties map[string]interface{} `json:"-"`
+}
+
 // GetAmqpTriggerParams defines parameters for GetAmqpTrigger.
 type GetAmqpTriggerParams struct {
 	// GetDraft When true, overlay the authed user's draft (if any) onto the deployed payload.
@@ -12855,6 +12890,12 @@ type ListFilteredQueueUuidsParams struct {
 	IsNotSchedule *bool `form:"is_not_schedule,omitempty" json:"is_not_schedule,omitempty"`
 }
 
+// ListRecentRunsParams defines parameters for ListRecentRuns.
+type ListRecentRunsParams struct {
+	// Folder only runs of items in this folder
+	Folder *string `form:"folder,omitempty" json:"folder,omitempty"`
+}
+
 // RestartFlowAtStepJSONBody defines parameters for RestartFlowAtStep.
 type RestartFlowAtStepJSONBody struct {
 	// BranchOrIterationN for branchall or loop at the top level, the iteration at which the flow should restart (optional)
@@ -14226,6 +14267,10 @@ type SetScheduleEnabledJSONBody struct {
 type CheckSchemaContractsJSONBody struct {
 	Content  string     `json:"content"`
 	Language ScriptLang `json:"language"`
+
+	// Path The script's path. A `// materialize` that names no table writes the
+	// table named after the script, so without it such a target is not checked.
+	Path *string `json:"path,omitempty"`
 }
 
 // GetCiTestResultsParamsKind defines parameters for GetCiTestResults.
@@ -15496,6 +15541,9 @@ type UpdateEvalDatasetJSONRequestBody UpdateEvalDatasetJSONBody
 // RunExperimentJSONRequestBody defines body for RunExperiment for application/json ContentType.
 type RunExperimentJSONRequestBody RunExperimentJSONBody
 
+// CallAiSessionToolJSONRequestBody defines body for CallAiSessionTool for application/json ContentType.
+type CallAiSessionToolJSONRequestBody CallAiSessionToolJSONBody
+
 // CreateAmqpTriggerJSONRequestBody defines body for CreateAmqpTrigger for application/json ContentType.
 type CreateAmqpTriggerJSONRequestBody = NewAmqpTrigger
 
@@ -16335,6 +16383,89 @@ type GetSessionWorkspaceRetentionJSONRequestBody GetSessionWorkspaceRetentionJSO
 
 // GetSessionWorkspaceStatusJSONRequestBody defines body for GetSessionWorkspaceStatus for application/json ContentType.
 type GetSessionWorkspaceStatusJSONRequestBody GetSessionWorkspaceStatusJSONBody
+
+// Getter for additional properties for CallAiSessionToolJSONBody_Context. Returns the specified
+// element and whether it was found
+func (a CallAiSessionToolJSONBody_Context) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for CallAiSessionToolJSONBody_Context
+func (a *CallAiSessionToolJSONBody_Context) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for CallAiSessionToolJSONBody_Context to handle AdditionalProperties
+func (a *CallAiSessionToolJSONBody_Context) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["cells"]; found {
+		err = json.Unmarshal(raw, &a.Cells)
+		if err != nil {
+			return fmt.Errorf("error reading 'cells': %w", err)
+		}
+		delete(object, "cells")
+	}
+
+	if raw, found := object["live_editors"]; found {
+		err = json.Unmarshal(raw, &a.LiveEditors)
+		if err != nil {
+			return fmt.Errorf("error reading 'live_editors': %w", err)
+		}
+		delete(object, "live_editors")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for CallAiSessionToolJSONBody_Context to handle AdditionalProperties
+func (a CallAiSessionToolJSONBody_Context) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	if a.Cells != nil {
+		object["cells"], err = json.Marshal(a.Cells)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'cells': %w", err)
+		}
+	}
+
+	if a.LiveEditors != nil {
+		object["live_editors"], err = json.Marshal(a.LiveEditors)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'live_editors': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
 
 // AsAclChangeSetOwner returns the union data inside the AclChange as a AclChangeSetOwner
 func (t AclChange) AsAclChangeSetOwner() (AclChangeSetOwner, error) {
@@ -19751,6 +19882,11 @@ type ClientInterface interface {
 	// EvalSubjectState request
 	EvalSubjectState(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CallAiSessionToolWithBody request with any body
+	CallAiSessionToolWithBody(ctx context.Context, workspace WorkspaceId, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CallAiSessionTool(ctx context.Context, workspace WorkspaceId, name string, body CallAiSessionToolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetSharedAiSession request
 	GetSharedAiSession(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -20761,6 +20897,9 @@ type ClientInterface interface {
 
 	// GetScheduledFor request
 	GetScheduledFor(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListRecentRuns request
+	ListRecentRuns(ctx context.Context, workspace WorkspaceId, params *ListRecentRunsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RestartFlowAtStepWithBody request with any body
 	RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -26083,6 +26222,30 @@ func (c *Client) EvalSubjectState(ctx context.Context, workspace WorkspaceId, pa
 	return c.Client.Do(req)
 }
 
+func (c *Client) CallAiSessionToolWithBody(ctx context.Context, workspace WorkspaceId, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCallAiSessionToolRequestWithBody(c.Server, workspace, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CallAiSessionTool(ctx context.Context, workspace WorkspaceId, name string, body CallAiSessionToolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCallAiSessionToolRequest(c.Server, workspace, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetSharedAiSession(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetSharedAiSessionRequest(c.Server, workspace, id)
 	if err != nil {
@@ -30513,6 +30676,18 @@ func (c *Client) RunQueuedJobNow(ctx context.Context, workspace WorkspaceId, id 
 
 func (c *Client) GetScheduledFor(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetScheduledForRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListRecentRuns(ctx context.Context, workspace WorkspaceId, params *ListRecentRunsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListRecentRunsRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -47105,6 +47280,60 @@ func NewEvalSubjectStateRequest(server string, workspace WorkspaceId, params *Ev
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewCallAiSessionToolRequest calls the generic CallAiSessionTool builder with application/json body
+func NewCallAiSessionToolRequest(server string, workspace WorkspaceId, name string, body CallAiSessionToolJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCallAiSessionToolRequestWithBody(server, workspace, name, "application/json", bodyReader)
+}
+
+// NewCallAiSessionToolRequestWithBody generates requests for CallAiSessionTool with any type of body
+func NewCallAiSessionToolRequestWithBody(server string, workspace WorkspaceId, name string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_session_tools/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -67657,6 +67886,62 @@ func NewGetScheduledForRequest(server string, workspace WorkspaceId, id JobId) (
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListRecentRunsRequest generates requests for ListRecentRuns
+func NewListRecentRunsRequest(server string, workspace WorkspaceId, params *ListRecentRunsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/recent_runs", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Folder != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "folder", runtime.ParamLocationQuery, *params.Folder); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -95036,6 +95321,11 @@ type ClientWithResponsesInterface interface {
 	// EvalSubjectStateWithResponse request
 	EvalSubjectStateWithResponse(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*EvalSubjectStateResponse, error)
 
+	// CallAiSessionToolWithBodyWithResponse request with any body
+	CallAiSessionToolWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CallAiSessionToolResponse, error)
+
+	CallAiSessionToolWithResponse(ctx context.Context, workspace WorkspaceId, name string, body CallAiSessionToolJSONRequestBody, reqEditors ...RequestEditorFn) (*CallAiSessionToolResponse, error)
+
 	// GetSharedAiSessionWithResponse request
 	GetSharedAiSessionWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetSharedAiSessionResponse, error)
 
@@ -96046,6 +96336,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetScheduledForWithResponse request
 	GetScheduledForWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, reqEditors ...RequestEditorFn) (*GetScheduledForResponse, error)
+
+	// ListRecentRunsWithResponse request
+	ListRecentRunsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListRecentRunsParams, reqEditors ...RequestEditorFn) (*ListRecentRunsResponse, error)
 
 	// RestartFlowAtStepWithBodyWithResponse request with any body
 	RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
@@ -103102,6 +103395,32 @@ func (r EvalSubjectStateResponse) StatusCode() int {
 	return 0
 }
 
+type CallAiSessionToolResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Effects []map[string]interface{} `json:"effects"`
+		IsError bool                     `json:"is_error"`
+		Text    string                   `json:"text"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CallAiSessionToolResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CallAiSessionToolResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSharedAiSessionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -109693,6 +110012,53 @@ func (r GetScheduledForResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetScheduledForResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListRecentRunsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Capped the window holds more runs than were read, so counts cover the newest ones only
+		Capped       bool `json:"capped"`
+		FailedRuns   int  `json:"failed_runs"`
+		FailingItems int  `json:"failing_items"`
+		Items        []struct {
+			// FailedRuns failed runs of the item over the whole window, not only those in runs
+			FailedRuns int                        `json:"failed_runs"`
+			Kind       ListRecentRuns200ItemsKind `json:"kind"`
+			Path       string                     `json:"path"`
+			Runs       []struct {
+				DurationMs *int               `json:"duration_ms,omitempty"`
+				Id         openapi_types.UUID `json:"id"`
+
+				// RanAt when the run started, or was created for one that has not reported a start
+				RanAt  time.Time       `json:"ran_at"`
+				Status RecentRunStatus `json:"status"`
+			} `json:"runs"`
+			Status  RecentRunStatus `json:"status"`
+			Summary *string         `json:"summary,omitempty"`
+		} `json:"items"`
+		RunningItems int `json:"running_items"`
+		TotalRuns    int `json:"total_runs"`
+		WindowHours  int `json:"window_hours"`
+	}
+}
+type ListRecentRuns200ItemsKind string
+
+// Status returns HTTPResponse.Status
+func (r ListRecentRunsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListRecentRunsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -123433,6 +123799,23 @@ func (c *ClientWithResponses) EvalSubjectStateWithResponse(ctx context.Context, 
 	return ParseEvalSubjectStateResponse(rsp)
 }
 
+// CallAiSessionToolWithBodyWithResponse request with arbitrary body returning *CallAiSessionToolResponse
+func (c *ClientWithResponses) CallAiSessionToolWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CallAiSessionToolResponse, error) {
+	rsp, err := c.CallAiSessionToolWithBody(ctx, workspace, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCallAiSessionToolResponse(rsp)
+}
+
+func (c *ClientWithResponses) CallAiSessionToolWithResponse(ctx context.Context, workspace WorkspaceId, name string, body CallAiSessionToolJSONRequestBody, reqEditors ...RequestEditorFn) (*CallAiSessionToolResponse, error) {
+	rsp, err := c.CallAiSessionTool(ctx, workspace, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCallAiSessionToolResponse(rsp)
+}
+
 // GetSharedAiSessionWithResponse request returning *GetSharedAiSessionResponse
 func (c *ClientWithResponses) GetSharedAiSessionWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetSharedAiSessionResponse, error) {
 	rsp, err := c.GetSharedAiSession(ctx, workspace, id, reqEditors...)
@@ -126662,6 +127045,15 @@ func (c *ClientWithResponses) GetScheduledForWithResponse(ctx context.Context, w
 		return nil, err
 	}
 	return ParseGetScheduledForResponse(rsp)
+}
+
+// ListRecentRunsWithResponse request returning *ListRecentRunsResponse
+func (c *ClientWithResponses) ListRecentRunsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListRecentRunsParams, reqEditors ...RequestEditorFn) (*ListRecentRunsResponse, error) {
+	rsp, err := c.ListRecentRuns(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListRecentRunsResponse(rsp)
 }
 
 // RestartFlowAtStepWithBodyWithResponse request with arbitrary body returning *RestartFlowAtStepResponse
@@ -137625,6 +138017,36 @@ func ParseEvalSubjectStateResponse(rsp *http.Response) (*EvalSubjectStateRespons
 	return response, nil
 }
 
+// ParseCallAiSessionToolResponse parses an HTTP response from a CallAiSessionToolWithResponse call
+func ParseCallAiSessionToolResponse(rsp *http.Response) (*CallAiSessionToolResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CallAiSessionToolResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Effects []map[string]interface{} `json:"effects"`
+			IsError bool                     `json:"is_error"`
+			Text    string                   `json:"text"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetSharedAiSessionResponse parses an HTTP response from a GetSharedAiSessionWithResponse call
 func ParseGetSharedAiSessionResponse(rsp *http.Response) (*GetSharedAiSessionResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -144255,6 +144677,56 @@ func ParseGetScheduledForResponse(rsp *http.Response) (*GetScheduledForResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest int
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListRecentRunsResponse parses an HTTP response from a ListRecentRunsWithResponse call
+func ParseListRecentRunsResponse(rsp *http.Response) (*ListRecentRunsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListRecentRunsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Capped the window holds more runs than were read, so counts cover the newest ones only
+			Capped       bool `json:"capped"`
+			FailedRuns   int  `json:"failed_runs"`
+			FailingItems int  `json:"failing_items"`
+			Items        []struct {
+				// FailedRuns failed runs of the item over the whole window, not only those in runs
+				FailedRuns int                        `json:"failed_runs"`
+				Kind       ListRecentRuns200ItemsKind `json:"kind"`
+				Path       string                     `json:"path"`
+				Runs       []struct {
+					DurationMs *int               `json:"duration_ms,omitempty"`
+					Id         openapi_types.UUID `json:"id"`
+
+					// RanAt when the run started, or was created for one that has not reported a start
+					RanAt  time.Time       `json:"ran_at"`
+					Status RecentRunStatus `json:"status"`
+				} `json:"runs"`
+				Status  RecentRunStatus `json:"status"`
+				Summary *string         `json:"summary,omitempty"`
+			} `json:"items"`
+			RunningItems int `json:"running_items"`
+			TotalRuns    int `json:"total_runs"`
+			WindowHours  int `json:"window_hours"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
