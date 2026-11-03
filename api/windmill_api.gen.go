@@ -1090,6 +1090,7 @@ const (
 const (
 	RecentRunStatusCanceled RecentRunStatus = "canceled"
 	RecentRunStatusFailure  RecentRunStatus = "failure"
+	RecentRunStatusResolved RecentRunStatus = "resolved"
 	RecentRunStatusRunning  RecentRunStatus = "running"
 	RecentRunStatusSuccess  RecentRunStatus = "success"
 )
@@ -1715,6 +1716,13 @@ const (
 	ListFilteredJobsUuidsParamsStatusSuccess  ListFilteredJobsUuidsParamsStatus = "success"
 )
 
+// Defines values for ListRecentRunsParamsFailedIdsKind.
+const (
+	ListRecentRunsParamsFailedIdsKindAgent  ListRecentRunsParamsFailedIdsKind = "agent"
+	ListRecentRunsParamsFailedIdsKindFlow   ListRecentRunsParamsFailedIdsKind = "flow"
+	ListRecentRunsParamsFailedIdsKindScript ListRecentRunsParamsFailedIdsKind = "script"
+)
+
 // Defines values for ListRunnablesParamsOrderBy.
 const (
 	ListRunnablesParamsOrderByName    ListRunnablesParamsOrderBy = "name"
@@ -1784,8 +1792,8 @@ const (
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
 const (
-	Resource SetWsSpecificJSONBodyItemKind = "resource"
-	Variable SetWsSpecificJSONBodyItemKind = "variable"
+	SetWsSpecificJSONBodyItemKindResource SetWsSpecificJSONBodyItemKind = "resource"
+	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
 )
 
 // Defines values for GetWorkspaceSettingsDocumentParamsSecrets.
@@ -7172,7 +7180,7 @@ type ReadinessHealth struct {
 	Healthy bool `json:"healthy"`
 }
 
-// RecentRunStatus defines model for RecentRunStatus.
+// RecentRunStatus a failure someone or something marked as handled is `resolved`, not `failure`
 type RecentRunStatus string
 
 // RecordingBody defines model for RecordingBody.
@@ -12894,7 +12902,16 @@ type ListFilteredQueueUuidsParams struct {
 type ListRecentRunsParams struct {
 	// Folder only runs of items in this folder
 	Folder *string `form:"folder,omitempty" json:"folder,omitempty"`
+
+	// FailedIdsKind with failed_ids_path, the item whose unresolved failed run ids to list in failed_run_ids
+	FailedIdsKind *ListRecentRunsParamsFailedIdsKind `form:"failed_ids_kind,omitempty" json:"failed_ids_kind,omitempty"`
+
+	// FailedIdsPath with failed_ids_kind, the path of that item
+	FailedIdsPath *string `form:"failed_ids_path,omitempty" json:"failed_ids_path,omitempty"`
 }
+
+// ListRecentRunsParamsFailedIdsKind defines parameters for ListRecentRuns.
+type ListRecentRunsParamsFailedIdsKind string
 
 // RestartFlowAtStepJSONBody defines parameters for RestartFlowAtStep.
 type RestartFlowAtStepJSONBody struct {
@@ -67941,6 +67958,38 @@ func NewListRecentRunsRequest(server string, workspace WorkspaceId, params *List
 
 		}
 
+		if params.FailedIdsKind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "failed_ids_kind", runtime.ParamLocationQuery, *params.FailedIdsKind); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.FailedIdsPath != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "failed_ids_path", runtime.ParamLocationQuery, *params.FailedIdsPath); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -110027,7 +110076,10 @@ type ListRecentRunsResponse struct {
 		FailedRuns   int  `json:"failed_runs"`
 		FailingItems int  `json:"failing_items"`
 		Items        []struct {
-			// FailedRuns failed runs of the item over the whole window, not only those in runs
+			// FailedRunIds the ids of those failed runs, only for the item named by failed_ids_kind and failed_ids_path
+			FailedRunIds *[]openapi_types.UUID `json:"failed_run_ids,omitempty"`
+
+			// FailedRuns unresolved failed runs of the item over the whole window, not only those in runs
 			FailedRuns int                        `json:"failed_runs"`
 			Kind       ListRecentRuns200ItemsKind `json:"kind"`
 			Path       string                     `json:"path"`
@@ -110036,9 +110088,13 @@ type ListRecentRunsResponse struct {
 				Id         openapi_types.UUID `json:"id"`
 
 				// RanAt when the run started, or was created for one that has not reported a start
-				RanAt  time.Time       `json:"ran_at"`
+				RanAt time.Time `json:"ran_at"`
+
+				// Status a failure someone or something marked as handled is `resolved`, not `failure`
 				Status RecentRunStatus `json:"status"`
 			} `json:"runs"`
+
+			// Status a failure someone or something marked as handled is `resolved`, not `failure`
 			Status  RecentRunStatus `json:"status"`
 			Summary *string         `json:"summary,omitempty"`
 		} `json:"items"`
@@ -144708,7 +144764,10 @@ func ParseListRecentRunsResponse(rsp *http.Response) (*ListRecentRunsResponse, e
 			FailedRuns   int  `json:"failed_runs"`
 			FailingItems int  `json:"failing_items"`
 			Items        []struct {
-				// FailedRuns failed runs of the item over the whole window, not only those in runs
+				// FailedRunIds the ids of those failed runs, only for the item named by failed_ids_kind and failed_ids_path
+				FailedRunIds *[]openapi_types.UUID `json:"failed_run_ids,omitempty"`
+
+				// FailedRuns unresolved failed runs of the item over the whole window, not only those in runs
 				FailedRuns int                        `json:"failed_runs"`
 				Kind       ListRecentRuns200ItemsKind `json:"kind"`
 				Path       string                     `json:"path"`
@@ -144717,9 +144776,13 @@ func ParseListRecentRunsResponse(rsp *http.Response) (*ListRecentRunsResponse, e
 					Id         openapi_types.UUID `json:"id"`
 
 					// RanAt when the run started, or was created for one that has not reported a start
-					RanAt  time.Time       `json:"ran_at"`
+					RanAt time.Time `json:"ran_at"`
+
+					// Status a failure someone or something marked as handled is `resolved`, not `failure`
 					Status RecentRunStatus `json:"status"`
 				} `json:"runs"`
+
+				// Status a failure someone or something marked as handled is `resolved`, not `failure`
 				Status  RecentRunStatus `json:"status"`
 				Summary *string         `json:"summary,omitempty"`
 			} `json:"items"`
