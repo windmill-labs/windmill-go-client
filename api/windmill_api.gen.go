@@ -60,6 +60,15 @@ const (
 	AIProviderKindTypesafe     AIProviderKind = "typesafe"
 )
 
+// Defines values for AccessReasonType.
+const (
+	AccessReasonTypeFolder    AccessReasonType = "folder"
+	AccessReasonTypeGroup     AccessReasonType = "group"
+	AccessReasonTypeGroupPath AccessReasonType = "group_path"
+	AccessReasonTypeOwn       AccessReasonType = "own"
+	AccessReasonTypeUser      AccessReasonType = "user"
+)
+
 // Defines values for AclChangeGrantType.
 const (
 	Grant AclChangeGrantType = "grant"
@@ -1958,6 +1967,17 @@ type AITokenUsageEvent struct {
 	Requests            *int    `json:"requests,omitempty"`
 	SessionId           *string `json:"session_id,omitempty"`
 }
+
+// AccessReason defines model for AccessReason.
+type AccessReason struct {
+	Folder *string          `json:"folder,omitempty"`
+	Group  *string          `json:"group,omitempty"`
+	Type   AccessReasonType `json:"type"`
+	Write  *bool            `json:"write,omitempty"`
+}
+
+// AccessReasonType defines model for AccessReason.Type.
+type AccessReasonType string
 
 // AclChange one change to plan or apply
 type AclChange struct {
@@ -6904,6 +6924,27 @@ type PreviewInline struct {
 	Language ScriptLang `json:"language"`
 }
 
+// PrincipalAccess defines model for PrincipalAccess.
+type PrincipalAccess struct {
+	Folders []struct {
+		Name  string `json:"name"`
+		Owner bool   `json:"owner"`
+
+		// Via the `u/<user>` or `g/<group>` grants on the folder that reach the principal
+		Via   []string `json:"via"`
+		Write bool     `json:"write"`
+	} `json:"folders"`
+	Groups  []string `json:"groups"`
+	IsAdmin bool     `json:"is_admin"`
+	Items   []struct {
+		Kind    string         `json:"kind"`
+		Path    string         `json:"path"`
+		Reasons []AccessReason `json:"reasons"`
+		Write   bool           `json:"write"`
+	} `json:"items"`
+	Principal string `json:"principal"`
+}
+
 // ProjectLogoBody defines model for ProjectLogoBody.
 type ProjectLogoBody struct {
 	// Logo the logo to set, or null to clear the project's current logo
@@ -10297,6 +10338,12 @@ type GlobalUserUpdateJSONBody struct {
 	IsDevops     *bool   `json:"is_devops,omitempty"`
 	IsSuperAdmin *bool   `json:"is_super_admin,omitempty"`
 	Name         *string `json:"name,omitempty"`
+}
+
+// GetPrincipalAccessParams defines parameters for GetPrincipalAccess.
+type GetPrincipalAccessParams struct {
+	// Principal `u/<username>` or `g/<group>`
+	Principal string `form:"principal" json:"principal"`
 }
 
 // AddGranularAclsJSONBody defines parameters for AddGranularAcls.
@@ -19782,6 +19829,9 @@ type ClientInterface interface {
 	// BackendVersion request
 	BackendVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetPrincipalAccess request
+	GetPrincipalAccess(ctx context.Context, workspace WorkspaceId, params *GetPrincipalAccessParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AddGranularAclsWithBody request with any body
 	AddGranularAclsWithBody(ctx context.Context, workspace WorkspaceId, kind AddGranularAclsParamsKind, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -25713,6 +25763,18 @@ func (c *Client) GlobalWhoami(ctx context.Context, reqEditors ...RequestEditorFn
 
 func (c *Client) BackendVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewBackendVersionRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPrincipalAccess(ctx context.Context, workspace WorkspaceId, params *GetPrincipalAccessParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPrincipalAccessRequest(c.Server, workspace, params)
 	if err != nil {
 		return nil, err
 	}
@@ -45716,6 +45778,58 @@ func NewBackendVersionRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetPrincipalAccessRequest generates requests for GetPrincipalAccess
+func NewGetPrincipalAccessRequest(server string, workspace WorkspaceId, params *GetPrincipalAccessParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/access/get", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "principal", runtime.ParamLocationQuery, params.Principal); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -95253,6 +95367,9 @@ type ClientWithResponsesInterface interface {
 	// BackendVersionWithResponse request
 	BackendVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*BackendVersionResponse, error)
 
+	// GetPrincipalAccessWithResponse request
+	GetPrincipalAccessWithResponse(ctx context.Context, workspace WorkspaceId, params *GetPrincipalAccessParams, reqEditors ...RequestEditorFn) (*GetPrincipalAccessResponse, error)
+
 	// AddGranularAclsWithBodyWithResponse request with any body
 	AddGranularAclsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind AddGranularAclsParamsKind, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddGranularAclsResponse, error)
 
@@ -102656,6 +102773,28 @@ func (r BackendVersionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r BackendVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetPrincipalAccessResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PrincipalAccess
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPrincipalAccessResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPrincipalAccessResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -123480,6 +123619,15 @@ func (c *ClientWithResponses) BackendVersionWithResponse(ctx context.Context, re
 	return ParseBackendVersionResponse(rsp)
 }
 
+// GetPrincipalAccessWithResponse request returning *GetPrincipalAccessResponse
+func (c *ClientWithResponses) GetPrincipalAccessWithResponse(ctx context.Context, workspace WorkspaceId, params *GetPrincipalAccessParams, reqEditors ...RequestEditorFn) (*GetPrincipalAccessResponse, error) {
+	rsp, err := c.GetPrincipalAccess(ctx, workspace, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPrincipalAccessResponse(rsp)
+}
+
 // AddGranularAclsWithBodyWithResponse request with arbitrary body returning *AddGranularAclsResponse
 func (c *ClientWithResponses) AddGranularAclsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind AddGranularAclsParamsKind, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddGranularAclsResponse, error) {
 	rsp, err := c.AddGranularAclsWithBody(ctx, workspace, kind, path, contentType, body, reqEditors...)
@@ -137245,6 +137393,32 @@ func ParseBackendVersionResponse(rsp *http.Response) (*BackendVersionResponse, e
 	response := &BackendVersionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetPrincipalAccessResponse parses an HTTP response from a GetPrincipalAccessWithResponse call
+func ParseGetPrincipalAccessResponse(rsp *http.Response) (*GetPrincipalAccessResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPrincipalAccessResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PrincipalAccess
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
