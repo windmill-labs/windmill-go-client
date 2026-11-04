@@ -4828,6 +4828,9 @@ type FlowValue struct {
 
 	// SkipExpr JavaScript expression to conditionally skip the entire flow
 	SkipExpr *string `json:"skip_expr,omitempty"`
+
+	// Timeout Wall-clock limit in seconds for the whole flow run, counted from its start and including time spent sleeping or suspended at an approval. It also applies when the flow is called as a subflow step, unless that step sets its own timeout, which replaces it. It is checked periodically, so a run can go a few seconds past it. When it expires, the running steps are cancelled, the failure module runs if there is one, and the flow ends cancelled with a timeout error. A calling flow sees the subflow step fail with that error.
+	Timeout *int `json:"timeout,omitempty"`
 }
 
 // FlowVersion defines model for FlowVersion.
@@ -5342,10 +5345,16 @@ type InstanceDatatableRole struct {
 
 // InstanceGroup defines model for InstanceGroup.
 type InstanceGroup struct {
-	Emails       *[]string                  `json:"emails,omitempty"`
+	Emails *[]string `json:"emails,omitempty"`
+
+	// ExternalId IdP group this group is linked to; its membership then follows the SSO groups claim
+	ExternalId   *string                    `json:"external_id"`
 	InstanceRole *InstanceGroupInstanceRole `json:"instance_role"`
 	Name         string                     `json:"name"`
-	Summary      *string                    `json:"summary,omitempty"`
+
+	// ScimManaged Provisioned by SCIM, which then owns external_id
+	ScimManaged *bool   `json:"scim_managed,omitempty"`
+	Summary     *string `json:"summary,omitempty"`
 }
 
 // InstanceGroupInstanceRole defines model for InstanceGroup.InstanceRole.
@@ -5353,11 +5362,17 @@ type InstanceGroupInstanceRole string
 
 // InstanceGroupWithWorkspaces defines model for InstanceGroupWithWorkspaces.
 type InstanceGroupWithWorkspaces struct {
-	Emails       *[]string                                `json:"emails,omitempty"`
+	Emails *[]string `json:"emails,omitempty"`
+
+	// ExternalId IdP group this group is linked to; its membership then follows the SSO groups claim
+	ExternalId   *string                                  `json:"external_id"`
 	InstanceRole *InstanceGroupWithWorkspacesInstanceRole `json:"instance_role"`
 	Name         string                                   `json:"name"`
-	Summary      *string                                  `json:"summary,omitempty"`
-	Workspaces   *[]WorkspaceInfo                         `json:"workspaces,omitempty"`
+
+	// ScimManaged Provisioned by SCIM, which then owns external_id
+	ScimManaged *bool            `json:"scim_managed,omitempty"`
+	Summary     *string          `json:"summary,omitempty"`
+	Workspaces  *[]WorkspaceInfo `json:"workspaces,omitempty"`
 }
 
 // InstanceGroupWithWorkspacesInstanceRole defines model for InstanceGroupWithWorkspaces.InstanceRole.
@@ -9307,6 +9322,9 @@ type SchemasFlowValue struct {
 
 	// SkipExpr JavaScript expression to conditionally skip the entire flow
 	SkipExpr *string `json:"skip_expr,omitempty"`
+
+	// Timeout Wall-clock limit in seconds for the whole flow run, counted from its start and including time spent sleeping or suspended at an approval. It also applies when the flow is called as a subflow step, unless that step sets its own timeout, which replaces it. It is checked periodically, so a run can go a few seconds past it. When it expires, the running steps are cancelled, the failure module runs if there is one, and the flow ends cancelled with a timeout error. A calling flow sees the subflow step fail with that error.
+	Timeout *int `json:"timeout,omitempty"`
 }
 
 // SchemasForloopFlow Executes nested modules in a loop over an iterator. Inside the loop, use 'flow_input.iter.value' to access the current iteration value, and 'flow_input.iter.index' for the index. Supports parallel execution for better performance on I/O-bound operations
@@ -9905,8 +9923,10 @@ type AddUserToInstanceGroupJSONBody struct {
 
 // CreateInstanceGroupJSONBody defines parameters for CreateInstanceGroup.
 type CreateInstanceGroupJSONBody struct {
-	Name    string  `json:"name"`
-	Summary *string `json:"summary,omitempty"`
+	// ExternalId IdP group the SSO groups claim links this group to: a group id or a full path such as /operators/network-team. Blank or omitted leaves it unlinked.
+	ExternalId *string `json:"external_id,omitempty"`
+	Name       string  `json:"name"`
+	Summary    *string `json:"summary,omitempty"`
 }
 
 // OverwriteInstanceGroupsJSONBody defines parameters for OverwriteInstanceGroups.
@@ -9919,6 +9939,9 @@ type RemoveUserFromInstanceGroupJSONBody struct {
 
 // UpdateInstanceGroupJSONBody defines parameters for UpdateInstanceGroup.
 type UpdateInstanceGroupJSONBody struct {
+	// ExternalId IdP group the SSO groups claim links this group to: a group id or a full path such as /operators/network-team. Omitted keeps the current link, blank clears it. Refused on a group SCIM provisioned.
+	ExternalId *string `json:"external_id,omitempty"`
+
 	// InstanceRole Instance-level role for group members. 'superadmin', 'devops', 'user' or empty to clear.
 	InstanceRole *string `json:"instance_role"`
 	NewSummary   string  `json:"new_summary"`
@@ -11095,6 +11118,9 @@ type ListAuditLogsParams struct {
 
 	// AllWorkspaces get audit logs for all workspaces
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
+
+	// JobId only the entries about this run and the jobs under it (steps, loop iterations and subflows at any depth): who started, viewed, cancelled, approved, resumed or deleted each
+	JobId *openapi_types.UUID `form:"job_id,omitempty" json:"job_id,omitempty"`
 }
 
 // ListAuditLogsParamsActionKind defines parameters for ListAuditLogs.
@@ -19869,6 +19895,9 @@ type ClientInterface interface {
 	// GetSharedAiArtifact request
 	GetSharedAiArtifact(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListSharedAiArtifacts request
+	ListSharedAiArtifacts(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ShareAiArtifactWithBody request with any body
 	ShareAiArtifactWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -25943,6 +25972,18 @@ func (c *Client) UnshareAiArtifact(ctx context.Context, workspace WorkspaceId, i
 
 func (c *Client) GetSharedAiArtifact(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetSharedAiArtifactRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListSharedAiArtifacts(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSharedAiArtifactsRequest(c.Server, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -46267,6 +46308,40 @@ func NewGetSharedAiArtifactRequest(server string, workspace WorkspaceId, id open
 	return req, nil
 }
 
+// NewListSharedAiArtifactsRequest generates requests for ListSharedAiArtifacts
+func NewListSharedAiArtifactsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/shared_artifacts/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewShareAiArtifactRequest calls the generic ShareAiArtifact builder with application/json body
 func NewShareAiArtifactRequest(server string, workspace WorkspaceId, body ShareAiArtifactJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -51674,6 +51749,22 @@ func NewListAuditLogsRequest(server string, workspace WorkspaceId, params *ListA
 		if params.AllWorkspaces != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "all_workspaces", runtime.ParamLocationQuery, *params.AllWorkspaces); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -95407,6 +95498,9 @@ type ClientWithResponsesInterface interface {
 	// GetSharedAiArtifactWithResponse request
 	GetSharedAiArtifactWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetSharedAiArtifactResponse, error)
 
+	// ListSharedAiArtifactsWithResponse request
+	ListSharedAiArtifactsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSharedAiArtifactsResponse, error)
+
 	// ShareAiArtifactWithBodyWithResponse request with any body
 	ShareAiArtifactWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ShareAiArtifactResponse, error)
 
@@ -103040,6 +103134,28 @@ func (r GetSharedAiArtifactResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetSharedAiArtifactResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListSharedAiArtifactsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]SharedAiArtifactInfo
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSharedAiArtifactsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSharedAiArtifactsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -123749,6 +123865,15 @@ func (c *ClientWithResponses) GetSharedAiArtifactWithResponse(ctx context.Contex
 	return ParseGetSharedAiArtifactResponse(rsp)
 }
 
+// ListSharedAiArtifactsWithResponse request returning *ListSharedAiArtifactsResponse
+func (c *ClientWithResponses) ListSharedAiArtifactsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSharedAiArtifactsResponse, error) {
+	rsp, err := c.ListSharedAiArtifacts(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSharedAiArtifactsResponse(rsp)
+}
+
 // ShareAiArtifactWithBodyWithResponse request with arbitrary body returning *ShareAiArtifactResponse
 func (c *ClientWithResponses) ShareAiArtifactWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ShareAiArtifactResponse, error) {
 	rsp, err := c.ShareAiArtifactWithBody(ctx, workspace, contentType, body, reqEditors...)
@@ -137667,6 +137792,32 @@ func ParseGetSharedAiArtifactResponse(rsp *http.Response) (*GetSharedAiArtifactR
 			SharedAt   time.Time                  `json:"shared_at"`
 			Version    int                        `json:"version"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListSharedAiArtifactsResponse parses an HTTP response from a ListSharedAiArtifactsWithResponse call
+func ParseListSharedAiArtifactsResponse(rsp *http.Response) (*ListSharedAiArtifactsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSharedAiArtifactsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []SharedAiArtifactInfo
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
