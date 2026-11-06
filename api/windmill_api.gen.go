@@ -60,6 +60,14 @@ const (
 	AIProviderKindTypesafe     AIProviderKind = "typesafe"
 )
 
+// Defines values for AIWebSearchConfigProvider.
+const (
+	Deepseek AIWebSearchConfigProvider = "deepseek"
+	Exa      AIWebSearchConfigProvider = "exa"
+	Linkup   AIWebSearchConfigProvider = "linkup"
+	Tavily   AIWebSearchConfigProvider = "tavily"
+)
+
 // Defines values for AccessReasonType.
 const (
 	AccessReasonTypeFolder    AccessReasonType = "folder"
@@ -678,6 +686,12 @@ const (
 	FlowStatusFailureModuleTypeWaitingForPriorSteps FlowStatusFailureModuleType = "WaitingForPriorSteps"
 )
 
+// Defines values for FlowValueOnConcurrencyLimit.
+const (
+	FlowValueOnConcurrencyLimitFail  FlowValueOnConcurrencyLimit = "fail"
+	FlowValueOnConcurrencyLimitQueue FlowValueOnConcurrencyLimit = "queue"
+)
+
 // Defines values for GitCredentialStatusProvider.
 const (
 	Gitlab GitCredentialStatusProvider = "gitlab"
@@ -1007,6 +1021,12 @@ const (
 	NewScriptKindTrigger      NewScriptKind = "trigger"
 )
 
+// Defines values for NewScriptOnConcurrencyLimit.
+const (
+	NewScriptOnConcurrencyLimitFail  NewScriptOnConcurrencyLimit = "fail"
+	NewScriptOnConcurrencyLimitQueue NewScriptOnConcurrencyLimit = "queue"
+)
+
 // Defines values for NewWebsocketTriggerFilterLogic.
 const (
 	NewWebsocketTriggerFilterLogicAnd NewWebsocketTriggerFilterLogic = "and"
@@ -1145,6 +1165,12 @@ const (
 	ScriptKindPreprocessor ScriptKind = "preprocessor"
 	ScriptKindScript       ScriptKind = "script"
 	ScriptKindTrigger      ScriptKind = "trigger"
+)
+
+// Defines values for ScriptOnConcurrencyLimit.
+const (
+	ScriptOnConcurrencyLimitFail  ScriptOnConcurrencyLimit = "fail"
+	ScriptOnConcurrencyLimitQueue ScriptOnConcurrencyLimit = "queue"
 )
 
 // Defines values for ScriptLang.
@@ -1304,6 +1330,35 @@ const (
 	WorkspaceItemDiffKindWebsocketTrigger WorkspaceItemDiffKind = "websocket_trigger"
 )
 
+// Defines values for WorkspaceWebhookEventType.
+const (
+	WorkspaceWebhookEventTypeArchiveFlow        WorkspaceWebhookEventType = "ArchiveFlow"
+	WorkspaceWebhookEventTypeCreateApp          WorkspaceWebhookEventType = "CreateApp"
+	WorkspaceWebhookEventTypeCreateFlow         WorkspaceWebhookEventType = "CreateFlow"
+	WorkspaceWebhookEventTypeCreateFolder       WorkspaceWebhookEventType = "CreateFolder"
+	WorkspaceWebhookEventTypeCreateResource     WorkspaceWebhookEventType = "CreateResource"
+	WorkspaceWebhookEventTypeCreateResourceType WorkspaceWebhookEventType = "CreateResourceType"
+	WorkspaceWebhookEventTypeCreateScript       WorkspaceWebhookEventType = "CreateScript"
+	WorkspaceWebhookEventTypeCreateVariable     WorkspaceWebhookEventType = "CreateVariable"
+	WorkspaceWebhookEventTypeDeleteApp          WorkspaceWebhookEventType = "DeleteApp"
+	WorkspaceWebhookEventTypeDeleteFlow         WorkspaceWebhookEventType = "DeleteFlow"
+	WorkspaceWebhookEventTypeDeleteFolder       WorkspaceWebhookEventType = "DeleteFolder"
+	WorkspaceWebhookEventTypeDeleteResource     WorkspaceWebhookEventType = "DeleteResource"
+	WorkspaceWebhookEventTypeDeleteResourceType WorkspaceWebhookEventType = "DeleteResourceType"
+	WorkspaceWebhookEventTypeDeleteScript       WorkspaceWebhookEventType = "DeleteScript"
+	WorkspaceWebhookEventTypeDeleteScriptPath   WorkspaceWebhookEventType = "DeleteScriptPath"
+	WorkspaceWebhookEventTypeDeleteVariable     WorkspaceWebhookEventType = "DeleteVariable"
+	WorkspaceWebhookEventTypeTokenExpired       WorkspaceWebhookEventType = "TokenExpired"
+	WorkspaceWebhookEventTypeTokenExpiringSoon  WorkspaceWebhookEventType = "TokenExpiringSoon"
+	WorkspaceWebhookEventTypeUpdateApp          WorkspaceWebhookEventType = "UpdateApp"
+	WorkspaceWebhookEventTypeUpdateFlow         WorkspaceWebhookEventType = "UpdateFlow"
+	WorkspaceWebhookEventTypeUpdateFolder       WorkspaceWebhookEventType = "UpdateFolder"
+	WorkspaceWebhookEventTypeUpdateResource     WorkspaceWebhookEventType = "UpdateResource"
+	WorkspaceWebhookEventTypeUpdateResourceType WorkspaceWebhookEventType = "UpdateResourceType"
+	WorkspaceWebhookEventTypeUpdateScript       WorkspaceWebhookEventType = "UpdateScript"
+	WorkspaceWebhookEventTypeUpdateVariable     WorkspaceWebhookEventType = "UpdateVariable"
+)
+
 // Defines values for SchemasAiAgentType.
 const (
 	Aiagent SchemasAiAgentType = "aiagent"
@@ -1387,6 +1442,12 @@ const (
 	SchemasFlowStatusModuleTypeWaitingForPriorSteps SchemasFlowStatusModuleType = "WaitingForPriorSteps"
 )
 
+// Defines values for SchemasFlowValueOnConcurrencyLimit.
+const (
+	SchemasFlowValueOnConcurrencyLimitFail  SchemasFlowValueOnConcurrencyLimit = "fail"
+	SchemasFlowValueOnConcurrencyLimitQueue SchemasFlowValueOnConcurrencyLimit = "queue"
+)
+
 // Defines values for SchemasForloopFlowType.
 const (
 	Forloopflow SchemasForloopFlowType = "forloopflow"
@@ -1462,6 +1523,12 @@ const (
 	Ruby       SchemasRawScriptLanguage = "ruby"
 	Rust       SchemasRawScriptLanguage = "rust"
 	Snowflake  SchemasRawScriptLanguage = "snowflake"
+)
+
+// Defines values for SchemasRawScriptOnConcurrencyLimit.
+const (
+	Fail  SchemasRawScriptOnConcurrencyLimit = "fail"
+	Queue SchemasRawScriptOnConcurrencyLimit = "queue"
 )
 
 // Defines values for SchemasRawScriptType.
@@ -1842,6 +1909,9 @@ type AIConfig struct {
 
 	// SessionsStorageDisabled Stops browsers from backing their AI sessions up to the workspace's object storage. Read from the workspace's own settings like `copilot_disabled`.
 	SessionsStorageDisabled *bool `json:"sessions_storage_disabled,omitempty"`
+
+	// WebSearch The search API the AI chat searches the web and reads pages through when the model's provider has no built-in web search. Read from the workspace's own settings like `copilot_disabled`.
+	WebSearch *AIWebSearchConfig `json:"web_search,omitempty"`
 }
 
 // AIProvider defines model for AIProvider.
@@ -1967,6 +2037,15 @@ type AITokenUsageEvent struct {
 	Requests            *int    `json:"requests,omitempty"`
 	SessionId           *string `json:"session_id,omitempty"`
 }
+
+// AIWebSearchConfig The search API the AI chat searches the web and reads pages through when the model's provider has no built-in web search. Read from the workspace's own settings like `copilot_disabled`.
+type AIWebSearchConfig struct {
+	Provider     AIWebSearchConfigProvider `json:"provider"`
+	ResourcePath string                    `json:"resource_path"`
+}
+
+// AIWebSearchConfigProvider defines model for AIWebSearchConfig.Provider.
+type AIWebSearchConfigProvider string
 
 // AccessReason defines model for AccessReason.
 type AccessReason struct {
@@ -3596,6 +3675,9 @@ type EditKafkaTrigger struct {
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
+	// RunOnFilterError Whether a message the filters cannot read (not UTF-8, or not JSON) still runs the target, as if the trigger had no filters. A preprocessor then finds the reason in `event.filter_error`. When false, such a message is skipped.
+	RunOnFilterError *bool `json:"run_on_filter_error,omitempty"`
+
 	// ScriptPath Path to the script or flow to execute when a message is received
 	ScriptPath string `json:"script_path"`
 
@@ -3982,6 +4064,9 @@ type EditWebsocketTrigger struct {
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
+
+	// RunOnFilterError Whether a message the filters cannot read (not UTF-8, or not JSON) still runs the target, as if the trigger had no filters. A preprocessor then finds the reason in `event.filter_error`. When false, such a message is skipped.
+	RunOnFilterError *bool `json:"run_on_filter_error,omitempty"`
 
 	// ScriptPath Path to the script or flow to execute when a message is received
 	ScriptPath string `json:"script_path"`
@@ -4814,6 +4899,9 @@ type FlowValue struct {
 	// Notes Sticky notes attached to the flow
 	Notes *[]SchemasFlowNote `json:"notes,omitempty"`
 
+	// OnConcurrencyLimit What a run of this flow does when its concurrency limit is reached. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed, like any failed step.
+	OnConcurrencyLimit *FlowValueOnConcurrencyLimit `json:"on_concurrency_limit,omitempty"`
+
 	// PreprocessorModule A single step in a flow. Can be a script, subflow, loop, or branch
 	PreprocessorModule *SchemasFlowModule `json:"preprocessor_module,omitempty"`
 
@@ -4832,6 +4920,9 @@ type FlowValue struct {
 	// Timeout Wall-clock limit in seconds for the whole flow run, counted from its start and including time spent sleeping or suspended at an approval. It also applies when the flow is called as a subflow step, unless that step sets its own timeout, which replaces it. It is checked periodically, so a run can go a few seconds past it. When it expires, the running steps are cancelled, the failure module runs if there is one, and the flow ends cancelled with a timeout error. A calling flow sees the subflow step fail with that error.
 	Timeout *int `json:"timeout,omitempty"`
 }
+
+// FlowValueOnConcurrencyLimit What a run of this flow does when its concurrency limit is reached. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed, like any failed step.
+type FlowValueOnConcurrencyLimit string
 
 // FlowVersion defines model for FlowVersion.
 type FlowVersion struct {
@@ -6172,6 +6263,9 @@ type NewKafkaTrigger struct {
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
 
+	// RunOnFilterError Whether a message the filters cannot read (not UTF-8, or not JSON) still runs the target, as if the trigger had no filters. A preprocessor then finds the reason in `event.filter_error`. When false, such a message is skipped.
+	RunOnFilterError *bool `json:"run_on_filter_error,omitempty"`
+
 	// ScriptPath Path to the script or flow to execute when a message is received
 	ScriptPath string `json:"script_path"`
 
@@ -6448,6 +6542,9 @@ type NewScript struct {
 	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
 	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
+	// OnConcurrencyLimit What a run does when its concurrency limit is reached when a worker picks it up. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed.
+	OnConcurrencyLimit *NewScriptOnConcurrencyLimit `json:"on_concurrency_limit,omitempty"`
+
 	// ParentHash The hash of the version this one supersedes: deploying with it archives that version and chains the new one onto its history, and a `path` differing from the superseded version's moves the script there.
 	ParentHash *string `json:"parent_hash,omitempty"`
 	Path       string  `json:"path"`
@@ -6477,6 +6574,9 @@ type NewScriptAssetsAltAccessType string
 
 // NewScriptKind defines model for NewScript.Kind.
 type NewScriptKind string
+
+// NewScriptOnConcurrencyLimit What a run does when its concurrency limit is reached when a worker picks it up. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed.
+type NewScriptOnConcurrencyLimit string
 
 // NewSqsTrigger defines model for NewSqsTrigger.
 type NewSqsTrigger struct {
@@ -6528,9 +6628,14 @@ type NewToken struct {
 	// ReadOnly If true, the token is restricted to read-only HTTP methods
 	// (GET/HEAD/OPTIONS). Mutating endpoints and job-run actions are
 	// rejected with 403, regardless of the scopes attached.
-	ReadOnly    *bool     `json:"read_only,omitempty"`
-	Scopes      *[]string `json:"scopes,omitempty"`
-	WorkspaceId *string   `json:"workspace_id,omitempty"`
+	ReadOnly *bool     `json:"read_only,omitempty"`
+	Scopes   *[]string `json:"scopes,omitempty"`
+
+	// SuperAdmin For an MCP token (an `mcp:` scope) owned by a superadmin: carry the owner's
+	// superadmin rights, reaching every workspace rather than only their
+	// memberships. Ignored for other tokens, which always carry them.
+	SuperAdmin  *bool   `json:"super_admin,omitempty"`
+	WorkspaceId *string `json:"workspace_id,omitempty"`
 }
 
 // NewTokenImpersonate defines model for NewTokenImpersonate.
@@ -6583,6 +6688,9 @@ type NewWebsocketTrigger struct {
 
 	// Retry Retry configuration for failed module executions
 	Retry *Retry `json:"retry,omitempty"`
+
+	// RunOnFilterError Whether a message the filters cannot read (not UTF-8, or not JSON) still runs the target, as if the trigger had no filters. A preprocessor then finds the reason in `event.filter_error`. When false, such a message is skipped.
+	RunOnFilterError *bool `json:"run_on_filter_error,omitempty"`
 
 	// ScriptPath Path to the script or flow to execute when a message is received
 	ScriptPath string `json:"script_path"`
@@ -7365,7 +7473,7 @@ type RoleCapabilities struct {
 	// Apps How much of a kind of runnable a role may author. `compose` assembles already-deployed runnables with no code of one's own.
 	Apps AuthorLevel `json:"apps"`
 
-	// Code Author scripts and run code of one's own (previews, dependency jobs, dynamic selects, resolving jobs, data table migrations). Required by `full` flows or apps.
+	// Code Author scripts and run code of one's own (previews, dependency jobs, dynamic selects, resolving jobs, data table migrations). Required by `full` flows or apps. Previews also need `run`.
 	Code bool `json:"code"`
 
 	// Flows How much of a kind of runnable a role may author. `compose` assembles already-deployed runnables with no code of one's own.
@@ -7375,6 +7483,9 @@ type RoleCapabilities struct {
 	Fork            bool `json:"fork"`
 	ManageSchedules bool `json:"manage_schedules"`
 	ManageTriggers  bool `json:"manage_triggers"`
+
+	// Run Start runs of scripts, flows and AI agents (by path, hash or version, restarts, previews, MCP run tools). Without it a role is view-only. Schedules and triggers keep their own rights; resuming a suspended step is not a run.
+	Run bool `json:"run"`
 
 	// Visibility Pages a role sees. Not enforced.
 	Visibility RoleVisibility `json:"visibility"`
@@ -7391,6 +7502,7 @@ type RoleCapabilitiesPatch struct {
 	Fork            *bool            `json:"fork,omitempty"`
 	ManageSchedules *bool            `json:"manage_schedules,omitempty"`
 	ManageTriggers  *bool            `json:"manage_triggers,omitempty"`
+	Run             *bool            `json:"run,omitempty"`
 	Visibility      *map[string]bool `json:"visibility,omitempty"`
 }
 
@@ -7871,6 +7983,9 @@ type Script struct {
 	OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
 	OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
+	// OnConcurrencyLimit What a run does when its concurrency limit is reached when a worker picks it up. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed.
+	OnConcurrencyLimit *ScriptOnConcurrencyLimit `json:"on_concurrency_limit,omitempty"`
+
 	// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
 	ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
 	Path                   string                  `json:"path"`
@@ -7888,6 +8003,9 @@ type Script struct {
 
 // ScriptKind defines model for Script.Kind.
 type ScriptKind string
+
+// ScriptOnConcurrencyLimit What a run does when its concurrency limit is reached when a worker picks it up. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed.
+type ScriptOnConcurrencyLimit string
 
 // ScriptArgs The arguments to pass to the script or flow
 type ScriptArgs map[string]interface{}
@@ -8763,6 +8881,9 @@ type WorkspaceRoles struct {
 	Roles     []EffectiveRole `json:"roles"`
 }
 
+// WorkspaceWebhookEventType the `type` of a workspace webhook message
+type WorkspaceWebhookEventType string
+
 // SchemasAiAgent AI agent step that can use tools to accomplish tasks. The agent receives inputs and can call any of its configured tools to complete the task
 type SchemasAiAgent struct {
 	// Agent Path of a reusable `ai_agent` resource (hybrid linking). When set, the agent brain
@@ -8946,8 +9067,11 @@ type SchemasBranchAll struct {
 	} `json:"branches"`
 
 	// Parallel If true, all branches execute concurrently. If false, they execute sequentially
-	Parallel *bool                `json:"parallel,omitempty"`
-	Type     SchemasBranchAllType `json:"type"`
+	Parallel *bool `json:"parallel,omitempty"`
+
+	// Parallelism Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+	Parallelism *SchemasInputTransform `json:"parallelism,omitempty"`
+	Type        SchemasBranchAllType   `json:"type"`
 }
 
 // SchemasBranchAllType defines model for SchemasBranchAll.Type.
@@ -9016,6 +9140,9 @@ type SchemasFlowModule struct {
 	Mock *struct {
 		// Enabled If true, return mock value instead of executing
 		Enabled *bool `json:"enabled,omitempty"`
+
+		// PreviewOnly If true, the mock applies only to runs started as a flow preview (from the editor, and every job under it, subflows included). Absent or false, it applies to every run.
+		PreviewOnly *bool `json:"preview_only,omitempty"`
 
 		// ReturnValue Value to return when mocked
 		ReturnValue *interface{} `json:"return_value,omitempty"`
@@ -9308,6 +9435,9 @@ type SchemasFlowValue struct {
 	// Notes Sticky notes attached to the flow
 	Notes *[]SchemasFlowNote `json:"notes,omitempty"`
 
+	// OnConcurrencyLimit What a run of this flow does when its concurrency limit is reached. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed, like any failed step.
+	OnConcurrencyLimit *SchemasFlowValueOnConcurrencyLimit `json:"on_concurrency_limit,omitempty"`
+
 	// PreprocessorModule A single step in a flow. Can be a script, subflow, loop, or branch
 	PreprocessorModule *SchemasFlowModule `json:"preprocessor_module,omitempty"`
 
@@ -9326,6 +9456,9 @@ type SchemasFlowValue struct {
 	// Timeout Wall-clock limit in seconds for the whole flow run, counted from its start and including time spent sleeping or suspended at an approval. It also applies when the flow is called as a subflow step, unless that step sets its own timeout, which replaces it. It is checked periodically, so a run can go a few seconds past it. When it expires, the running steps are cancelled, the failure module runs if there is one, and the flow ends cancelled with a timeout error. A calling flow sees the subflow step fail with that error.
 	Timeout *int `json:"timeout,omitempty"`
 }
+
+// SchemasFlowValueOnConcurrencyLimit What a run of this flow does when its concurrency limit is reached. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed, like any failed step.
+type SchemasFlowValueOnConcurrencyLimit string
 
 // SchemasForloopFlow Executes nested modules in a loop over an iterator. Inside the loop, use 'flow_input.iter.value' to access the current iteration value, and 'flow_input.iter.index' for the index. Supports parallel execution for better performance on I/O-bound operations
 type SchemasForloopFlow struct {
@@ -9476,6 +9609,9 @@ type SchemasRawScript struct {
 	// Lock Lock file content for dependencies
 	Lock *string `json:"lock,omitempty"`
 
+	// OnConcurrencyLimit What a run of this step does when its concurrency limit is reached. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed.
+	OnConcurrencyLimit *SchemasRawScriptOnConcurrencyLimit `json:"on_concurrency_limit,omitempty"`
+
 	// Path Optional path for saving this script
 	Path *string `json:"path,omitempty"`
 
@@ -9495,6 +9631,9 @@ type SchemasRawScriptAssetsKind string
 
 // SchemasRawScriptLanguage Programming language for this script
 type SchemasRawScriptLanguage string
+
+// SchemasRawScriptOnConcurrencyLimit What a run of this step does when its concurrency limit is reached. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed.
+type SchemasRawScriptOnConcurrencyLimit string
 
 // SchemasRawScriptType defines model for SchemasRawScript.Type.
 type SchemasRawScriptType string
@@ -9557,6 +9696,12 @@ type SchemasStopAfterIf struct {
 
 // SchemasWhileloopFlow Executes nested modules repeatedly until stopped. The implicit iterator is the iteration counter, so 'flow_input.iter.value' equals 'flow_input.iter.index' (0, 1, 2, ...) and never carries state. To carry state across iterations, a step reads its own previous-iteration result via 'results.<its_own_id>' with a first-iteration fallback - the loop's stop_after_if must then be on that inner step (a plain single-step body with stop_after_if on the loop module does not resolve 'results' across iterations and never terminates); plain counters can instead be derived from 'flow_input.iter.index', which works in every configuration. stop_after_if is evaluated after each iteration - on the loop module 'result' is the last iteration's result
 type SchemasWhileloopFlow struct {
+	// MaxDurationSecs Maximum wall-clock seconds since the first iteration started, checked after each iteration. A running iteration is not interrupted, so the loop can exceed the limit by up to one iteration; the timeout of the body's steps caps an iteration. When reached and stop_after_if did not stop the loop, the loop fails with an error named 'LoopExhausted'
+	MaxDurationSecs *int `json:"max_duration_secs,omitempty"`
+
+	// MaxIterations Maximum number of iterations. Checked after each iteration; when reached and stop_after_if did not stop the loop, the loop fails with an error named 'LoopExhausted'
+	MaxIterations *int `json:"max_iterations,omitempty"`
+
 	// Modules Steps to execute in each iteration
 	Modules []SchemasFlowModule `json:"modules"`
 
@@ -10471,6 +10616,17 @@ type ListAiUsageParamsScope string
 // RecordAiUsageJSONBody defines parameters for RecordAiUsage.
 type RecordAiUsageJSONBody struct {
 	Events []AITokenUsageEvent `json:"events"`
+}
+
+// AiWebFetchJSONBody defines parameters for AiWebFetch.
+type AiWebFetchJSONBody struct {
+	Url string `json:"url"`
+}
+
+// AiWebSearchJSONBody defines parameters for AiWebSearch.
+type AiWebSearchJSONBody struct {
+	MaxResults *int   `json:"max_results,omitempty"`
+	Query      string `json:"query"`
 }
 
 // ListEvalCasesParams defines parameters for ListEvalCases.
@@ -13656,7 +13812,7 @@ type ResumeSuspendedJSONBody struct {
 	// Approved whether to approve (true) or cancel (false) the job
 	Approved *bool `json:"approved,omitempty"`
 
-	// Payload payload to send to the resumed job
+	// Payload payload to send to the resumed job. On a denial, a string `reason` in it is shown in the step's error and the audit log.
 	Payload *interface{} `json:"payload,omitempty"`
 }
 
@@ -15048,6 +15204,10 @@ type EditTeamsCommandJSONBody struct {
 
 // EditWebhookJSONBody defines parameters for EditWebhook.
 type EditWebhookJSONBody struct {
+	// Events event types to send, at least one. Omitted keeps the stored filter, null sends every event.
+	Events *[]WorkspaceWebhookEventType `json:"events"`
+
+	// Webhook the URL to POST events to. Omitted or empty removes the webhook.
 	Webhook *string `json:"webhook,omitempty"`
 }
 
@@ -15621,6 +15781,12 @@ type ShareAiSessionJSONRequestBody ShareAiSessionJSONBody
 
 // RecordAiUsageJSONRequestBody defines body for RecordAiUsage for application/json ContentType.
 type RecordAiUsageJSONRequestBody RecordAiUsageJSONBody
+
+// AiWebFetchJSONRequestBody defines body for AiWebFetch for application/json ContentType.
+type AiWebFetchJSONRequestBody AiWebFetchJSONBody
+
+// AiWebSearchJSONRequestBody defines body for AiWebSearch for application/json ContentType.
+type AiWebSearchJSONRequestBody AiWebSearchJSONBody
 
 // CreateEvalDatasetJSONRequestBody defines body for CreateEvalDataset for application/json ContentType.
 type CreateEvalDatasetJSONRequestBody CreateEvalDatasetJSONBody
@@ -19929,6 +20095,16 @@ type ClientInterface interface {
 	RecordAiUsageWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RecordAiUsage(ctx context.Context, workspace WorkspaceId, body RecordAiUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AiWebFetchWithBody request with any body
+	AiWebFetchWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AiWebFetch(ctx context.Context, workspace WorkspaceId, body AiWebFetchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AiWebSearchWithBody request with any body
+	AiWebSearchWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AiWebSearch(ctx context.Context, workspace WorkspaceId, body AiWebSearchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListEvalCases request
 	ListEvalCases(ctx context.Context, workspace WorkspaceId, path Path, params *ListEvalCasesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -26128,6 +26304,54 @@ func (c *Client) RecordAiUsageWithBody(ctx context.Context, workspace WorkspaceI
 
 func (c *Client) RecordAiUsage(ctx context.Context, workspace WorkspaceId, body RecordAiUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRecordAiUsageRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AiWebFetchWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAiWebFetchRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AiWebFetch(ctx context.Context, workspace WorkspaceId, body AiWebFetchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAiWebFetchRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AiWebSearchWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAiWebSearchRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AiWebSearch(ctx context.Context, workspace WorkspaceId, body AiWebSearchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAiWebSearchRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -46751,6 +46975,100 @@ func NewRecordAiUsageRequestWithBody(server string, workspace WorkspaceId, conte
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/ai/usage", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAiWebFetchRequest calls the generic AiWebFetch builder with application/json body
+func NewAiWebFetchRequest(server string, workspace WorkspaceId, body AiWebFetchJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAiWebFetchRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewAiWebFetchRequestWithBody generates requests for AiWebFetch with any type of body
+func NewAiWebFetchRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/web_fetch", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAiWebSearchRequest calls the generic AiWebSearch builder with application/json body
+func NewAiWebSearchRequest(server string, workspace WorkspaceId, body AiWebSearchJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAiWebSearchRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewAiWebSearchRequestWithBody generates requests for AiWebSearch with any type of body
+func NewAiWebSearchRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/web_search", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -95533,6 +95851,16 @@ type ClientWithResponsesInterface interface {
 
 	RecordAiUsageWithResponse(ctx context.Context, workspace WorkspaceId, body RecordAiUsageJSONRequestBody, reqEditors ...RequestEditorFn) (*RecordAiUsageResponse, error)
 
+	// AiWebFetchWithBodyWithResponse request with any body
+	AiWebFetchWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AiWebFetchResponse, error)
+
+	AiWebFetchWithResponse(ctx context.Context, workspace WorkspaceId, body AiWebFetchJSONRequestBody, reqEditors ...RequestEditorFn) (*AiWebFetchResponse, error)
+
+	// AiWebSearchWithBodyWithResponse request with any body
+	AiWebSearchWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AiWebSearchResponse, error)
+
+	AiWebSearchWithResponse(ctx context.Context, workspace WorkspaceId, body AiWebSearchJSONRequestBody, reqEditors ...RequestEditorFn) (*AiWebSearchResponse, error)
+
 	// ListEvalCasesWithResponse request
 	ListEvalCasesWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *ListEvalCasesParams, reqEditors ...RequestEditorFn) (*ListEvalCasesResponse, error)
 
@@ -103340,6 +103668,62 @@ func (r RecordAiUsageResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RecordAiUsageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AiWebFetchResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Content   string  `json:"content"`
+		Title     *string `json:"title,omitempty"`
+		Truncated bool    `json:"truncated"`
+		Url       string  `json:"url"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AiWebFetchResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AiWebFetchResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AiWebSearchResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Results []struct {
+			Content       string  `json:"content"`
+			PublishedDate *string `json:"published_date,omitempty"`
+			Title         string  `json:"title"`
+			Url           string  `json:"url"`
+		} `json:"results"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AiWebSearchResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AiWebSearchResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -115686,6 +116070,9 @@ type GetScriptByPathResponse struct {
 		OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
 		OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
+		// OnConcurrencyLimit What a run does when its concurrency limit is reached when a worker picks it up. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed.
+		OnConcurrencyLimit *GetScriptByPath200OnConcurrencyLimit `json:"on_concurrency_limit,omitempty"`
+
 		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
 		// with a saved draft at the same path. Populated only on the
 		// authed user's "get by path" responses for kinds the editor
@@ -115718,6 +116105,7 @@ type GetScriptByPathResponse struct {
 	}
 }
 type GetScriptByPath200Kind string
+type GetScriptByPath200OnConcurrencyLimit string
 
 // Status returns HTTPResponse.Status
 func (r GetScriptByPathResponse) Status() string {
@@ -115896,6 +116284,9 @@ type ListScriptsResponse struct {
 		OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
 		OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
+		// OnConcurrencyLimit What a run does when its concurrency limit is reached when a worker picks it up. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed.
+		OnConcurrencyLimit *ListScripts200OnConcurrencyLimit `json:"on_concurrency_limit,omitempty"`
+
 		// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
 		ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
 		Path                   string                  `json:"path"`
@@ -115912,6 +116303,7 @@ type ListScriptsResponse struct {
 	}
 }
 type ListScripts200Kind string
+type ListScripts200OnConcurrencyLimit string
 
 // Status returns HTTPResponse.Status
 func (r ListScriptsResponse) Status() string {
@@ -119765,7 +120157,10 @@ type GetSettingsResponse struct {
 		// VariableExpirationHandler Workspace variable expiration handler configuration
 		VariableExpirationHandler *VariableExpirationHandlerConfig `json:"variable_expiration_handler,omitempty"`
 		Webhook                   *string                          `json:"webhook,omitempty"`
-		WorkspaceId               *string                          `json:"workspace_id,omitempty"`
+
+		// WebhookEvents event types the webhook is sent; absent sends every event
+		WebhookEvents *[]WorkspaceWebhookEventType `json:"webhook_events,omitempty"`
+		WorkspaceId   *string                      `json:"workspace_id,omitempty"`
 	}
 }
 
@@ -123976,6 +124371,40 @@ func (c *ClientWithResponses) RecordAiUsageWithResponse(ctx context.Context, wor
 		return nil, err
 	}
 	return ParseRecordAiUsageResponse(rsp)
+}
+
+// AiWebFetchWithBodyWithResponse request with arbitrary body returning *AiWebFetchResponse
+func (c *ClientWithResponses) AiWebFetchWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AiWebFetchResponse, error) {
+	rsp, err := c.AiWebFetchWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAiWebFetchResponse(rsp)
+}
+
+func (c *ClientWithResponses) AiWebFetchWithResponse(ctx context.Context, workspace WorkspaceId, body AiWebFetchJSONRequestBody, reqEditors ...RequestEditorFn) (*AiWebFetchResponse, error) {
+	rsp, err := c.AiWebFetch(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAiWebFetchResponse(rsp)
+}
+
+// AiWebSearchWithBodyWithResponse request with arbitrary body returning *AiWebSearchResponse
+func (c *ClientWithResponses) AiWebSearchWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AiWebSearchResponse, error) {
+	rsp, err := c.AiWebSearchWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAiWebSearchResponse(rsp)
+}
+
+func (c *ClientWithResponses) AiWebSearchWithResponse(ctx context.Context, workspace WorkspaceId, body AiWebSearchJSONRequestBody, reqEditors ...RequestEditorFn) (*AiWebSearchResponse, error) {
+	rsp, err := c.AiWebSearch(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAiWebSearchResponse(rsp)
 }
 
 // ListEvalCasesWithResponse request returning *ListEvalCasesResponse
@@ -138026,6 +138455,70 @@ func ParseRecordAiUsageResponse(rsp *http.Response) (*RecordAiUsageResponse, err
 	return response, nil
 }
 
+// ParseAiWebFetchResponse parses an HTTP response from a AiWebFetchWithResponse call
+func ParseAiWebFetchResponse(rsp *http.Response) (*AiWebFetchResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AiWebFetchResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Content   string  `json:"content"`
+			Title     *string `json:"title,omitempty"`
+			Truncated bool    `json:"truncated"`
+			Url       string  `json:"url"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAiWebSearchResponse parses an HTTP response from a AiWebSearchWithResponse call
+func ParseAiWebSearchResponse(rsp *http.Response) (*AiWebSearchResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AiWebSearchResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Results []struct {
+				Content       string  `json:"content"`
+				PublishedDate *string `json:"published_date,omitempty"`
+				Title         string  `json:"title"`
+				Url           string  `json:"url"`
+			} `json:"results"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListEvalCasesResponse parses an HTTP response from a ListEvalCasesWithResponse call
 func ParseListEvalCasesResponse(rsp *http.Response) (*ListEvalCasesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -150391,6 +150884,9 @@ func ParseGetScriptByPathResponse(rsp *http.Response) (*GetScriptByPathResponse,
 			OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
 			OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
 
+			// OnConcurrencyLimit What a run does when its concurrency limit is reached when a worker picks it up. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed.
+			OnConcurrencyLimit *GetScriptByPath200OnConcurrencyLimit `json:"on_concurrency_limit,omitempty"`
+
 			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
 			// with a saved draft at the same path. Populated only on the
 			// authed user's "get by path" responses for kinds the editor
@@ -150610,6 +151106,9 @@ func ParseListScriptsResponse(rsp *http.Response) (*ListScriptsResponse, error) 
 			// OnBehalfOf Authorization identity the runnable runs as: u/{username}, g/{group}, or a bare email when the username is itself email-shaped. The only stored half of the identity; on_behalf_of_email is derived from it.
 			OnBehalfOf      *string `json:"on_behalf_of,omitempty"`
 			OnBehalfOfEmail *string `json:"on_behalf_of_email,omitempty"`
+
+			// OnConcurrencyLimit What a run does when its concurrency limit is reached when a worker picks it up. `queue` (default) re-queues it to a later slot, `fail` ends it immediately as failed.
+			OnConcurrencyLimit *ListScripts200OnConcurrencyLimit `json:"on_concurrency_limit,omitempty"`
 
 			// ParentHashes The first element is the direct parent of the script, the second is the parent of the first, etc
 			ParentHashes           *[]string               `json:"parent_hashes,omitempty"`
@@ -154523,7 +155022,10 @@ func ParseGetSettingsResponse(rsp *http.Response) (*GetSettingsResponse, error) 
 			// VariableExpirationHandler Workspace variable expiration handler configuration
 			VariableExpirationHandler *VariableExpirationHandlerConfig `json:"variable_expiration_handler,omitempty"`
 			Webhook                   *string                          `json:"webhook,omitempty"`
-			WorkspaceId               *string                          `json:"workspace_id,omitempty"`
+
+			// WebhookEvents event types the webhook is sent; absent sends every event
+			WebhookEvents *[]WorkspaceWebhookEventType `json:"webhook_events,omitempty"`
+			WorkspaceId   *string                      `json:"workspace_id,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
