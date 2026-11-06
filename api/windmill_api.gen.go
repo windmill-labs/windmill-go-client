@@ -8634,14 +8634,27 @@ type WindmillLargeFile struct {
 	S3 string `json:"s3"`
 }
 
+// WorkerJobCounts defines model for WorkerJobCounts.
+type WorkerJobCounts struct {
+	Executed int `json:"executed"`
+	Failed   int `json:"failed"`
+}
+
 // WorkerPing defines model for WorkerPing.
 type WorkerPing struct {
 	CustomTags *[]string `json:"custom_tags,omitempty"`
 
 	// Draining the worker received its shutdown signal and exits once its current job is done
-	Draining           *bool     `json:"draining,omitempty"`
-	Ip                 string    `json:"ip"`
-	JobIsolation       *string   `json:"job_isolation,omitempty"`
+	Draining     *bool   `json:"draining,omitempty"`
+	Ip           string  `json:"ip"`
+	JobIsolation *string `json:"job_isolation,omitempty"`
+
+	// JobStats script and flow-step jobs this worker ran and how many of them failed, over its whole life, the last 24 hours and its last 100 jobs. A flow's own outcome is not counted, since its failure is that of a step already counted on the worker that ran it. Canceled jobs count as executed, not failed.
+	JobStats *struct {
+		Last100 WorkerJobCounts `json:"last_100"`
+		Last24h WorkerJobCounts `json:"last_24h"`
+		Total   WorkerJobCounts `json:"total"`
+	} `json:"job_stats,omitempty"`
 	JobsExecuted       int       `json:"jobs_executed"`
 	LastJobId          *string   `json:"last_job_id,omitempty"`
 	LastJobWorkspaceId *string   `json:"last_job_workspace_id,omitempty"`
