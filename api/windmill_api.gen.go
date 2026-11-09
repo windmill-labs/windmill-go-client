@@ -5735,18 +5735,21 @@ type ListableResource struct {
 	// IsDraft True when the authed user has a per-user draft at this path
 	// (over a deployed row or a synthesized draft-only row).
 	// Frontend appends a `*` to the displayed name.
-	IsDraft      *bool        `json:"is_draft,omitempty"`
-	IsExpired    *bool        `json:"is_expired,omitempty"`
-	IsLinked     bool         `json:"is_linked"`
-	IsOauth      bool         `json:"is_oauth"`
-	IsRefreshed  bool         `json:"is_refreshed"`
-	Labels       *[]string    `json:"labels,omitempty"`
-	Path         string       `json:"path"`
-	RefreshError *string      `json:"refresh_error,omitempty"`
-	ResourceType string       `json:"resource_type"`
-	Value        *interface{} `json:"value,omitempty"`
-	WorkspaceId  *string      `json:"workspace_id,omitempty"`
-	WsSpecific   *bool        `json:"ws_specific,omitempty"`
+	IsDraft      *bool     `json:"is_draft,omitempty"`
+	IsExpired    *bool     `json:"is_expired,omitempty"`
+	IsLinked     bool      `json:"is_linked"`
+	IsOauth      bool      `json:"is_oauth"`
+	IsRefreshed  bool      `json:"is_refreshed"`
+	Labels       *[]string `json:"labels,omitempty"`
+	Path         string    `json:"path"`
+	RefreshError *string   `json:"refresh_error,omitempty"`
+	ResourceType string    `json:"resource_type"`
+
+	// Scopes OAuth scopes the linked account was connected with
+	Scopes      *[]string    `json:"scopes,omitempty"`
+	Value       *interface{} `json:"value,omitempty"`
+	WorkspaceId *string      `json:"workspace_id,omitempty"`
+	WsSpecific  *bool        `json:"ws_specific,omitempty"`
 }
 
 // ListableVariable defines model for ListableVariable.
@@ -5998,11 +6001,20 @@ type NativeTrigger struct {
 
 // NativeTriggerConnection An account connected for native triggers, stored as an OAuth resource
 type NativeTriggerConnection struct {
+	// Managed Whether the integration trigger connect flow made it. Any other connection is a resource connected from Resources, which triggers can use but only Resources can replace or delete.
+	Managed bool `json:"managed"`
+
+	// MissingScopes Scopes the service's triggers need that the account lacks; absent when unknown
+	MissingScopes *[]string `json:"missing_scopes"`
+
 	// Owner Username of whoever connected the account, when the caller can read its resource
 	Owner *string `json:"owner"`
 
 	// Path Path of the resource and variable holding the connection
 	Path string `json:"path"`
+
+	// Scopes Scopes the account was connected with; absent when unknown
+	Scopes *[]string `json:"scopes"`
 
 	// Workspace Whether this is the workspace connection, which every member may use
 	Workspace bool `json:"workspace"`
@@ -8519,8 +8531,11 @@ type VaultSettings struct {
 	// ApproleMountPath Mount path of the AppRole auth method (optional, defaults to "approle").
 	ApproleMountPath *string `json:"approle_mount_path,omitempty"`
 
-	// ApproleRoleId AppRole role_id (optional). When set and no static token is given, Windmill logs in with AppRole; the secret_id is read from the `VAULT_APPROLE_SECRET_ID` environment variable of servers and workers.
+	// ApproleRoleId AppRole role_id (optional). When set and no static token is given, Windmill logs in with AppRole.
 	ApproleRoleId *string `json:"approle_role_id,omitempty"`
+
+	// ApproleSecretId AppRole secret_id (optional). When empty, the `VAULT_APPROLE_SECRET_ID` environment variable of servers and workers is used; when that is unset too, no secret_id is sent (a role with `bind_secret_id=false`).
+	ApproleSecretId *string `json:"approle_secret_id,omitempty"`
 
 	// JwtMountPath Mount path for the JWT auth method in Vault (optional, defaults to "jwt"). Set this when the JWT auth method is mounted at a non-default path, e.g. via `vault auth enable -path=<mount> jwt`.
 	JwtMountPath *string `json:"jwt_mount_path,omitempty"`
@@ -8862,8 +8877,8 @@ type WorkspaceOAuthConfig struct {
 	// ClientSecret The OAuth client secret for the workspace
 	ClientSecret string `json:"client_secret"`
 
-	// RedirectUri The OAuth redirect URI
-	RedirectUri string `json:"redirect_uri"`
+	// RedirectUri The redirect URI registered on the OAuth app. Absent for an app saved before it was stored, which uses the workspace settings page.
+	RedirectUri *string `json:"redirect_uri,omitempty"`
 }
 
 // WorkspaceOffboardPreview defines model for WorkspaceOffboardPreview.
@@ -14044,9 +14059,8 @@ type ListGoogleSharedDrivesParams struct {
 
 // NativeTriggerServiceCallbackJSONBody defines parameters for NativeTriggerServiceCallback.
 type NativeTriggerServiceCallbackJSONBody struct {
-	Code        string `json:"code"`
-	RedirectUri string `json:"redirect_uri"`
-	State       string `json:"state"`
+	Code  string `json:"code"`
+	State string `json:"state"`
 }
 
 // DeleteNativeTriggerConnectionParams defines parameters for DeleteNativeTriggerConnection.
@@ -14056,7 +14070,6 @@ type DeleteNativeTriggerConnectionParams struct {
 
 // GenerateNativeTriggerServiceConnectUrlJSONBody defines parameters for GenerateNativeTriggerServiceConnectUrl.
 type GenerateNativeTriggerServiceConnectUrlJSONBody struct {
-	RedirectUri  string  `json:"redirect_uri"`
 	ResourcePath *string `json:"resource_path,omitempty"`
 }
 
@@ -114785,12 +114798,15 @@ type GetResourceResponse struct {
 			// leave the server.
 			Username *string `json:"username"`
 		} `json:"other_drafts_users,omitempty"`
-		Path         string       `json:"path"`
-		RefreshError *string      `json:"refresh_error,omitempty"`
-		ResourceType string       `json:"resource_type"`
-		Value        *interface{} `json:"value,omitempty"`
-		WorkspaceId  *string      `json:"workspace_id,omitempty"`
-		WsSpecific   *bool        `json:"ws_specific,omitempty"`
+		Path         string  `json:"path"`
+		RefreshError *string `json:"refresh_error,omitempty"`
+		ResourceType string  `json:"resource_type"`
+
+		// Scopes OAuth scopes the linked account was connected with
+		Scopes      *[]string    `json:"scopes,omitempty"`
+		Value       *interface{} `json:"value,omitempty"`
+		WorkspaceId *string      `json:"workspace_id,omitempty"`
+		WsSpecific  *bool        `json:"ws_specific,omitempty"`
 	}
 }
 
@@ -149533,12 +149549,15 @@ func ParseGetResourceResponse(rsp *http.Response) (*GetResourceResponse, error) 
 				// leave the server.
 				Username *string `json:"username"`
 			} `json:"other_drafts_users,omitempty"`
-			Path         string       `json:"path"`
-			RefreshError *string      `json:"refresh_error,omitempty"`
-			ResourceType string       `json:"resource_type"`
-			Value        *interface{} `json:"value,omitempty"`
-			WorkspaceId  *string      `json:"workspace_id,omitempty"`
-			WsSpecific   *bool        `json:"ws_specific,omitempty"`
+			Path         string  `json:"path"`
+			RefreshError *string `json:"refresh_error,omitempty"`
+			ResourceType string  `json:"resource_type"`
+
+			// Scopes OAuth scopes the linked account was connected with
+			Scopes      *[]string    `json:"scopes,omitempty"`
+			Value       *interface{} `json:"value,omitempty"`
+			WorkspaceId *string      `json:"workspace_id,omitempty"`
+			WsSpecific  *bool        `json:"ws_specific,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
