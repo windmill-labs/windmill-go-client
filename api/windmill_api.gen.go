@@ -14454,7 +14454,10 @@ type ListRunnablesParams struct {
 
 	// PathStart restrict to paths under this prefix
 	PathStart *string `form:"path_start,omitempty" json:"path_start,omitempty"`
-	Label     *string `form:"label,omitempty" json:"label,omitempty"`
+
+	// Paths comma-separated exact paths, to list only the rows at one of them
+	Paths *string `form:"paths,omitempty" json:"paths,omitempty"`
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 
 	// Search case-insensitive fuzzy match on "summary (path)": the query is split into terms on runs of anything but ASCII letters, digits and apostrophes, and each of the first 8 must appear whole and in order, with anything in between. Terms past the 8th are ignored, so an over-long query matches more rows rather than fewer. Omitted or empty filters nothing; a query holding no ASCII-alphanumeric character at all (a lone space, "_", or text in a non-Latin script) yields no terms and matches nothing, mirroring the homepage, whose matcher discards those queries too.
 	Search *string `form:"search,omitempty" json:"search,omitempty"`
@@ -82067,6 +82070,22 @@ func NewListRunnablesRequest(server string, workspace WorkspaceId, params *ListR
 		if params.PathStart != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path_start", runtime.ParamLocationQuery, *params.PathStart); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Paths != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "paths", runtime.ParamLocationQuery, *params.Paths); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
