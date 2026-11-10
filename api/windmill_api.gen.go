@@ -2756,7 +2756,10 @@ type CompletedJob struct {
 	Tag            string       `json:"tag"`
 
 	// TriggerKind job trigger kind (schedule, http, websocket...)
-	TriggerKind          *JobTriggerKind `json:"trigger_kind,omitempty"`
+	TriggerKind *JobTriggerKind `json:"trigger_kind,omitempty"`
+
+	// TriggerPath Path of the trigger, schedule or app that started the job, if any
+	TriggerPath          *string         `json:"trigger_path,omitempty"`
 	VisibleToOwner       bool            `json:"visible_to_owner"`
 	Worker               *string         `json:"worker,omitempty"`
 	WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
@@ -5534,7 +5537,10 @@ type Job0 struct {
 	Tag            string       `json:"tag"`
 
 	// TriggerKind job trigger kind (schedule, http, websocket...)
-	TriggerKind          *JobTriggerKind `json:"trigger_kind,omitempty"`
+	TriggerKind *JobTriggerKind `json:"trigger_kind,omitempty"`
+
+	// TriggerPath Path of the trigger, schedule or app that started the job, if any
+	TriggerPath          *string         `json:"trigger_path,omitempty"`
 	Type                 *Job0Type       `json:"type,omitempty"`
 	VisibleToOwner       bool            `json:"visible_to_owner"`
 	Worker               *string         `json:"worker,omitempty"`
@@ -5591,7 +5597,10 @@ type Job1 struct {
 	Tag            string     `json:"tag"`
 
 	// TriggerKind job trigger kind (schedule, http, websocket...)
-	TriggerKind          *JobTriggerKind `json:"trigger_kind,omitempty"`
+	TriggerKind *JobTriggerKind `json:"trigger_kind,omitempty"`
+
+	// TriggerPath Path of the trigger, schedule or app that started the job, if any
+	TriggerPath          *string         `json:"trigger_path,omitempty"`
 	Type                 *Job1Type       `json:"type,omitempty"`
 	VisibleToOwner       bool            `json:"visible_to_owner"`
 	Worker               *string         `json:"worker,omitempty"`
@@ -7326,7 +7335,10 @@ type QueuedJob struct {
 	Tag            string     `json:"tag"`
 
 	// TriggerKind job trigger kind (schedule, http, websocket...)
-	TriggerKind          *JobTriggerKind `json:"trigger_kind,omitempty"`
+	TriggerKind *JobTriggerKind `json:"trigger_kind,omitempty"`
+
+	// TriggerPath Path of the trigger, schedule or app that started the job, if any
+	TriggerPath          *string         `json:"trigger_path,omitempty"`
 	VisibleToOwner       bool            `json:"visible_to_owner"`
 	Worker               *string         `json:"worker,omitempty"`
 	WorkflowAsCodeStatus *WorkflowStatus `json:"workflow_as_code_status,omitempty"`
@@ -11297,8 +11309,11 @@ type ListAuditLogsParams struct {
 	// ActionKind filter on type of operation
 	ActionKind *ListAuditLogsParamsActionKind `form:"action_kind,omitempty" json:"action_kind,omitempty"`
 
-	// BeforeId only return logs with an id strictly lower than this one. Logs are ordered by descending id, so this is a keyset cursor to stream a page in several batches without paying a growing offset.
+	// BeforeId the id half of a keyset cursor. Logs are ordered by descending timestamp then id: pass the last row's id here and its timestamp as before_id_timestamp to stream a page in several batches without paying a growing offset. Alone, it only filters on id < before_id, which can skip or repeat rows across pages.
 	BeforeId *int64 `form:"before_id,omitempty" json:"before_id,omitempty"`
+
+	// BeforeIdTimestamp the timestamp of the row whose id is before_id: with it, only logs strictly before that row in (timestamp, id) order are returned
+	BeforeIdTimestamp *time.Time `form:"before_id_timestamp,omitempty" json:"before_id_timestamp,omitempty"`
 
 	// AllWorkspaces get audit logs for all workspaces
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
@@ -52077,6 +52092,22 @@ func NewListAuditLogsRequest(server string, workspace WorkspaceId, params *ListA
 		if params.BeforeId != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "before_id", runtime.ParamLocationQuery, *params.BeforeId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.BeforeIdTimestamp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "before_id_timestamp", runtime.ParamLocationQuery, *params.BeforeIdTimestamp); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
