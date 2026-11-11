@@ -4941,6 +4941,7 @@ type Folder struct {
 
 	// DefaultPermissionedAs Ordered list of rules applied at create-time when admins or `wm_deployers` members deploy items in this folder. The first rule whose `path_glob` matches the item path (relative to the folder root) wins, and its `permissioned_as` is used as the default.
 	DefaultPermissionedAs *FolderDefaultPermissionedAs `json:"default_permissioned_as,omitempty"`
+	DisplayName           *string                      `json:"display_name,omitempty"`
 	EditedAt              *time.Time                   `json:"edited_at,omitempty"`
 	ExtraPerms            map[string]bool              `json:"extra_perms"`
 
@@ -11892,11 +11893,14 @@ type AddOwnerToFolderJSONBody struct {
 type CreateFolderJSONBody struct {
 	// DefaultPermissionedAs Ordered list of rules applied at create-time when admins or `wm_deployers` members deploy items in this folder. The first rule whose `path_glob` matches the item path (relative to the folder root) wins, and its `permissioned_as` is used as the default.
 	DefaultPermissionedAs *FolderDefaultPermissionedAs `json:"default_permissioned_as,omitempty"`
-	ExtraPerms            *map[string]bool             `json:"extra_perms,omitempty"`
-	Labels                *[]string                    `json:"labels,omitempty"`
-	Name                  string                       `json:"name"`
-	Owners                *[]string                    `json:"owners,omitempty"`
-	Summary               *string                      `json:"summary,omitempty"`
+
+	// DisplayName Defaults to the name.
+	DisplayName *string          `json:"display_name,omitempty"`
+	ExtraPerms  *map[string]bool `json:"extra_perms,omitempty"`
+	Labels      *[]string        `json:"labels,omitempty"`
+	Name        string           `json:"name"`
+	Owners      *[]string        `json:"owners,omitempty"`
+	Summary     *string          `json:"summary,omitempty"`
 }
 
 // ListFoldersParams defines parameters for ListFolders.
@@ -11930,6 +11934,7 @@ type RemoveOwnerToFolderJSONBody struct {
 type UpdateFolderJSONBody struct {
 	// DefaultPermissionedAs Ordered list of rules applied at create-time when admins or `wm_deployers` members deploy items in this folder. The first rule whose `path_glob` matches the item path (relative to the folder root) wins, and its `permissioned_as` is used as the default.
 	DefaultPermissionedAs *FolderDefaultPermissionedAs `json:"default_permissioned_as,omitempty"`
+	DisplayName           *string                      `json:"display_name,omitempty"`
 	ExtraPerms            *map[string]bool             `json:"extra_perms,omitempty"`
 	Labels                *[]string                    `json:"labels,omitempty"`
 	Owners                *[]string                    `json:"owners,omitempty"`
@@ -111802,7 +111807,10 @@ type GetCompletedJobResultMaybeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Completed bool        `json:"completed"`
+		Completed bool `json:"completed"`
+
+		// IsSkipped set when the job is completed; true if it ended as skipped (also counted as success)
+		IsSkipped *bool       `json:"is_skipped,omitempty"`
 		Result    interface{} `json:"result"`
 		Started   *bool       `json:"started,omitempty"`
 		Success   *bool       `json:"success,omitempty"`
@@ -146626,7 +146634,10 @@ func ParseGetCompletedJobResultMaybeResponse(rsp *http.Response) (*GetCompletedJ
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Completed bool        `json:"completed"`
+			Completed bool `json:"completed"`
+
+			// IsSkipped set when the job is completed; true if it ended as skipped (also counted as success)
+			IsSkipped *bool       `json:"is_skipped,omitempty"`
 			Result    interface{} `json:"result"`
 			Started   *bool       `json:"started,omitempty"`
 			Success   *bool       `json:"success,omitempty"`
