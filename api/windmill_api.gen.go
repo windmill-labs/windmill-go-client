@@ -106858,7 +106858,10 @@ type ListDraftsResponse struct {
 		Mine bool   `json:"mine"`
 		Path string `json:"path"`
 
-		// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one.
+		// ResourceType A `resource` draft's type, the deployed row's when there is one, else the one the draft names. `ai_agent` marks an agent's draft.
+		ResourceType *string `json:"resource_type,omitempty"`
+
+		// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one, or its `description` for an agent's draft.
 		Summary *string `json:"summary,omitempty"`
 
 		// UnchangedFromParent Only present when `compare_to_workspace` was passed. True when this draft is identical to the parent's draft at the same path/kind/owner (cloned in on fork and never edited here).
@@ -141843,7 +141846,10 @@ func ParseListDraftsResponse(rsp *http.Response) (*ListDraftsResponse, error) {
 			Mine bool   `json:"mine"`
 			Path string `json:"path"`
 
-			// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one.
+			// ResourceType A `resource` draft's type, the deployed row's when there is one, else the one the draft names. `ai_agent` marks an agent's draft.
+			ResourceType *string `json:"resource_type,omitempty"`
+
+			// Summary Best-effort, read from the draft JSON's `summary` field when the editor shape carries one, or its `description` for an agent's draft.
 			Summary *string `json:"summary,omitempty"`
 
 			// UnchangedFromParent Only present when `compare_to_workspace` was passed. True when this draft is identical to the parent's draft at the same path/kind/owner (cloned in on fork and never edited here).
