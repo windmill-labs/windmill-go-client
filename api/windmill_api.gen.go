@@ -13208,6 +13208,9 @@ type ListFilteredQueueUuidsParams struct {
 	PerPage        *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 	ConcurrencyKey *string  `form:"concurrency_key,omitempty" json:"concurrency_key,omitempty"`
 
+	// HasNullParent has null parent
+	HasNullParent *bool `form:"has_null_parent,omitempty" json:"has_null_parent,omitempty"`
+
 	// AllWorkspaces get jobs from all workspaces (only valid if request come from the `admins` workspace)
 	AllWorkspaces *bool `form:"all_workspaces,omitempty" json:"all_workspaces,omitempty"`
 
@@ -68550,6 +68553,22 @@ func NewListFilteredQueueUuidsRequest(server string, workspace WorkspaceId, para
 		if params.ConcurrencyKey != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "concurrency_key", runtime.ParamLocationQuery, *params.ConcurrencyKey); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.HasNullParent != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "has_null_parent", runtime.ParamLocationQuery, *params.HasNullParent); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
