@@ -1826,6 +1826,13 @@ const (
 	GetCiTestResultsBatchJSONBodyItemsKindScript   GetCiTestResultsBatchJSONBodyItemsKind = "script"
 )
 
+// Defines values for TriggerCiTestsBatchJSONBodyItemsKind.
+const (
+	TriggerCiTestsBatchJSONBodyItemsKindFlow     TriggerCiTestsBatchJSONBodyItemsKind = "flow"
+	TriggerCiTestsBatchJSONBodyItemsKindResource TriggerCiTestsBatchJSONBodyItemsKind = "resource"
+	TriggerCiTestsBatchJSONBodyItemsKindScript   TriggerCiTestsBatchJSONBodyItemsKind = "script"
+)
+
 // Defines values for AttachDevWorkspaceJSONBodyDevWorkspaceLabel.
 const (
 	Demo    AttachDevWorkspaceJSONBodyDevWorkspaceLabel = "demo"
@@ -1868,8 +1875,8 @@ const (
 
 // Defines values for SetWsSpecificJSONBodyItemKind.
 const (
-	SetWsSpecificJSONBodyItemKindResource SetWsSpecificJSONBodyItemKind = "resource"
-	SetWsSpecificJSONBodyItemKindVariable SetWsSpecificJSONBodyItemKind = "variable"
+	Resource SetWsSpecificJSONBodyItemKind = "resource"
+	Variable SetWsSpecificJSONBodyItemKind = "variable"
 )
 
 // Defines values for GetWorkspaceSettingsDocumentParamsSecrets.
@@ -3361,6 +3368,14 @@ type DetailedHealthResponse struct {
 
 // DetailedHealthResponseStatus Overall health status
 type DetailedHealthResponseStatus string
+
+// DraftItemRef defines model for DraftItemRef.
+type DraftItemRef struct {
+	// Kind Closed set of item kinds a user can autosave as a draft. Mirrors the
+	// Postgres `DRAFT_KIND` enum and the backend `UserDraftItemKind`.
+	Kind UserDraftItemKind `json:"kind"`
+	Path string            `json:"path"`
+}
 
 // DucklakeSettings defines model for DucklakeSettings.
 type DucklakeSettings struct {
@@ -9046,7 +9061,7 @@ type SchemasAiAgent struct {
 type SchemasAiAgentType string
 
 // SchemasAiDecision AI decision step: one call to a decision model (TypeSafe's Jev, Cloudflare's
-// Jev-compatible Clef, or OpenAI's Decisions API) that answers typed questions about a
+// Jev-compatible Clef, or OpenAI's or Gemini's Decisions API) that answers typed questions about a
 // state with calibrated probabilities, instead of generating text.
 // Prefer it over an AI agent to classify, route, score or check something: it is fast,
 // cheap and its answers are structured. Its result is { output: { <question name>: answer },
@@ -9937,6 +9952,9 @@ type ScriptStartPath = string
 
 // SdkConsent defines model for SdkConsent.
 type SdkConsent = bool
+
+// SkipCiTests defines model for SkipCiTests.
+type SkipCiTests = bool
 
 // SkipPreprocessor defines model for SkipPreprocessor.
 type SkipPreprocessor = bool
@@ -11581,6 +11599,16 @@ type MoveDraftJSONBody struct {
 // MoveDraftParamsKind defines parameters for MoveDraft.
 type MoveDraftParamsKind string
 
+// TransferDraftsJSONBody defines parameters for TransferDrafts.
+type TransferDraftsJSONBody struct {
+	Items            []DraftItemRef `json:"items"`
+	RemoveFromSource *bool          `json:"remove_from_source,omitempty"`
+
+	// ReplaceExisting Overwrite the user's own drafts of `items` already in the target instead of returning them as conflicts.
+	ReplaceExisting *bool   `json:"replace_existing,omitempty"`
+	TargetWorkspace *string `json:"target_workspace,omitempty"`
+}
+
 // UpdateDraftJSONBody defines parameters for UpdateDraft.
 type UpdateDraftJSONBody struct {
 	// CreatedAt Upsert-only override for the stored creation timestamp. Normal saves omit it (stamped server-side); the localStorage→DB migration passes the draft's original write time so migrated drafts keep their age.
@@ -11754,6 +11782,12 @@ type CreateFlowJSONBody struct {
 	WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
 }
 
+// CreateFlowParams defines parameters for CreateFlow.
+type CreateFlowParams struct {
+	// SkipCiTests Do not queue the CI tests of this deploy. Set by a caller deploying several items in a row, which queues them with triggerCiTestsBatch once the whole batch has landed.
+	SkipCiTests *SkipCiTests `form:"skip_ci_tests,omitempty" json:"skip_ci_tests,omitempty"`
+}
+
 // DeleteFlowByPathParams defines parameters for DeleteFlowByPath.
 type DeleteFlowByPathParams struct {
 	// KeepCaptures keep captures
@@ -11882,6 +11916,12 @@ type UpdateFlowJSONBody struct {
 	Value               SchemasFlowValue `json:"value"`
 	VisibleToRunnerOnly *bool            `json:"visible_to_runner_only,omitempty"`
 	WsErrorHandlerMuted *bool            `json:"ws_error_handler_muted,omitempty"`
+}
+
+// UpdateFlowParams defines parameters for UpdateFlow.
+type UpdateFlowParams struct {
+	// SkipCiTests Do not queue the CI tests of this deploy. Set by a caller deploying several items in a row, which queues them with triggerCiTestsBatch once the whole batch has landed.
+	SkipCiTests *SkipCiTests `form:"skip_ci_tests,omitempty" json:"skip_ci_tests,omitempty"`
 }
 
 // AddOwnerToFolderJSONBody defines parameters for AddOwnerToFolder.
@@ -14346,6 +14386,9 @@ type SetRemoteDeployTargetJSONBody struct {
 type CreateResourceParams struct {
 	// UpdateIfExists update the resource if it already exists (default false)
 	UpdateIfExists *bool `form:"update_if_exists,omitempty" json:"update_if_exists,omitempty"`
+
+	// SkipCiTests Do not queue the CI tests of this deploy. Set by a caller deploying several items in a row, which queues them with triggerCiTestsBatch once the whole batch has landed.
+	SkipCiTests *SkipCiTests `form:"skip_ci_tests,omitempty" json:"skip_ci_tests,omitempty"`
 }
 
 // DeleteResourcesBulkJSONBody defines parameters for DeleteResourcesBulk.
@@ -14423,6 +14466,12 @@ type CallMcpToolJSONBody struct {
 	// listing marks the tool read-only
 	ReadOnly *bool  `json:"read_only,omitempty"`
 	Tool     string `json:"tool"`
+}
+
+// UpdateResourceParams defines parameters for UpdateResource.
+type UpdateResourceParams struct {
+	// SkipCiTests Do not queue the CI tests of this deploy. Set by a caller deploying several items in a row, which queues them with triggerCiTestsBatch once the whole batch has landed.
+	SkipCiTests *SkipCiTests `form:"skip_ci_tests,omitempty" json:"skip_ci_tests,omitempty"`
 }
 
 // UpdateResourceValueJSONBody defines parameters for UpdateResourceValue.
@@ -14582,6 +14631,12 @@ type GetCiTestResultsBatchJSONBody struct {
 // GetCiTestResultsBatchJSONBodyItemsKind defines parameters for GetCiTestResultsBatch.
 type GetCiTestResultsBatchJSONBodyItemsKind string
 
+// CreateScriptParams defines parameters for CreateScript.
+type CreateScriptParams struct {
+	// SkipCiTests Do not queue the CI tests of this deploy. Set by a caller deploying several items in a row, which queues them with triggerCiTestsBatch once the whole batch has landed.
+	SkipCiTests *SkipCiTests `form:"skip_ci_tests,omitempty" json:"skip_ci_tests,omitempty"`
+}
+
 // DeleteScriptByPathParams defines parameters for DeleteScriptByPath.
 type DeleteScriptByPathParams struct {
 	// KeepCaptures keep captures
@@ -14731,6 +14786,24 @@ type StoreRawScriptTempJSONBody = string
 // ToggleWorkspaceErrorHandlerForScriptJSONBody defines parameters for ToggleWorkspaceErrorHandlerForScript.
 type ToggleWorkspaceErrorHandlerForScriptJSONBody struct {
 	Muted *bool `json:"muted,omitempty"`
+}
+
+// TriggerCiTestsBatchJSONBody defines parameters for TriggerCiTestsBatch.
+type TriggerCiTestsBatchJSONBody struct {
+	IgnorePending *bool `json:"ignore_pending,omitempty"`
+	Items         []struct {
+		Kind TriggerCiTestsBatchJSONBodyItemsKind `json:"kind"`
+		Path string                               `json:"path"`
+	} `json:"items"`
+}
+
+// TriggerCiTestsBatchJSONBodyItemsKind defines parameters for TriggerCiTestsBatch.
+type TriggerCiTestsBatchJSONBodyItemsKind string
+
+// UpdateScriptParams defines parameters for UpdateScript.
+type UpdateScriptParams struct {
+	// SkipCiTests Do not queue the CI tests of this deploy. Set by a caller deploying several items in a row, which queues them with triggerCiTestsBatch once the whole batch has landed.
+	SkipCiTests *SkipCiTests `form:"skip_ci_tests,omitempty" json:"skip_ci_tests,omitempty"`
 }
 
 // UpdateSharedUiJSONBody defines parameters for UpdateSharedUi.
@@ -15936,6 +16009,9 @@ type MigrateLegacyDraftJSONRequestBody MigrateLegacyDraftJSONBody
 // MoveDraftJSONRequestBody defines body for MoveDraft for application/json ContentType.
 type MoveDraftJSONRequestBody MoveDraftJSONBody
 
+// TransferDraftsJSONRequestBody defines body for TransferDrafts for application/json ContentType.
+type TransferDraftsJSONRequestBody TransferDraftsJSONBody
+
 // UpdateDraftJSONRequestBody defines body for UpdateDraft for application/json ContentType.
 type UpdateDraftJSONRequestBody UpdateDraftJSONBody
 
@@ -16418,6 +16494,9 @@ type StoreRawScriptTempJSONRequestBody = StoreRawScriptTempJSONBody
 
 // ToggleWorkspaceErrorHandlerForScriptJSONRequestBody defines body for ToggleWorkspaceErrorHandlerForScript for application/json ContentType.
 type ToggleWorkspaceErrorHandlerForScriptJSONRequestBody ToggleWorkspaceErrorHandlerForScriptJSONBody
+
+// TriggerCiTestsBatchJSONRequestBody defines body for TriggerCiTestsBatch for application/json ContentType.
+type TriggerCiTestsBatchJSONRequestBody TriggerCiTestsBatchJSONBody
 
 // UpdateScriptJSONRequestBody defines body for UpdateScript for application/json ContentType.
 type UpdateScriptJSONRequestBody = NewScript
@@ -20547,6 +20626,11 @@ type ClientInterface interface {
 
 	MoveDraft(ctx context.Context, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, body MoveDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// TransferDraftsWithBody request with any body
+	TransferDraftsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TransferDrafts(ctx context.Context, workspace WorkspaceId, body TransferDraftsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UpdateDraftWithBody request with any body
 	UpdateDraftWithBody(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -20617,9 +20701,9 @@ type ClientInterface interface {
 	ArchiveFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ArchiveFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateFlowWithBody request with any body
-	CreateFlowWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateFlowWithBody(ctx context.Context, workspace WorkspaceId, params *CreateFlowParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	CreateFlow(ctx context.Context, workspace WorkspaceId, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateFlow(ctx context.Context, workspace WorkspaceId, params *CreateFlowParams, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteFlowByPath request
 	DeleteFlowByPath(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteFlowByPathParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20674,9 +20758,9 @@ type ClientInterface interface {
 	ToggleWorkspaceErrorHandlerForFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateFlowWithBody request with any body
-	UpdateFlowWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateFlowWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateFlowParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	UpdateFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateFlowParams, body UpdateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AddOwnerToFolderWithBody request with any body
 	AddOwnerToFolderWithBody(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -21934,9 +22018,9 @@ type ClientInterface interface {
 	UpdateResourceType(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateResourceWithBody request with any body
-	UpdateResourceWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateResourceWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	UpdateResource(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateResource(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateResourceParams, body UpdateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateResourceValueWithBody request with any body
 	UpdateResourceValueWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -22004,9 +22088,9 @@ type ClientInterface interface {
 	GetCiTestResultsBatch(ctx context.Context, workspace WorkspaceId, body GetCiTestResultsBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateScriptWithBody request with any body
-	CreateScriptWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateScriptWithBody(ctx context.Context, workspace WorkspaceId, params *CreateScriptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	CreateScript(ctx context.Context, workspace WorkspaceId, body CreateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateScript(ctx context.Context, workspace WorkspaceId, params *CreateScriptParams, body CreateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteScriptByHash request
 	DeleteScriptByHash(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -22084,10 +22168,15 @@ type ClientInterface interface {
 
 	ToggleWorkspaceErrorHandlerForScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// UpdateScriptWithBody request with any body
-	UpdateScriptWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// TriggerCiTestsBatchWithBody request with any body
+	TriggerCiTestsBatchWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	UpdateScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	TriggerCiTestsBatch(ctx context.Context, workspace WorkspaceId, body TriggerCiTestsBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateScriptWithBody request with any body
+	UpdateScriptWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateScriptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateScriptParams, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateSharedUiWithBody request with any body
 	UpdateSharedUiWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -28103,6 +28192,30 @@ func (c *Client) MoveDraft(ctx context.Context, workspace WorkspaceId, kind Move
 	return c.Client.Do(req)
 }
 
+func (c *Client) TransferDraftsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTransferDraftsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TransferDrafts(ctx context.Context, workspace WorkspaceId, body TransferDraftsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTransferDraftsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) UpdateDraftWithBody(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateDraftRequestWithBody(c.Server, workspace, kind, path, contentType, body)
 	if err != nil {
@@ -28415,8 +28528,8 @@ func (c *Client) ArchiveFlowByPath(ctx context.Context, workspace WorkspaceId, p
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateFlowWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateFlowRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) CreateFlowWithBody(ctx context.Context, workspace WorkspaceId, params *CreateFlowParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateFlowRequestWithBody(c.Server, workspace, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -28427,8 +28540,8 @@ func (c *Client) CreateFlowWithBody(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateFlow(ctx context.Context, workspace WorkspaceId, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateFlowRequest(c.Server, workspace, body)
+func (c *Client) CreateFlow(ctx context.Context, workspace WorkspaceId, params *CreateFlowParams, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateFlowRequest(c.Server, workspace, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -28655,8 +28768,8 @@ func (c *Client) ToggleWorkspaceErrorHandlerForFlow(ctx context.Context, workspa
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateFlowWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateFlowRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) UpdateFlowWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateFlowParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateFlowRequestWithBody(c.Server, workspace, path, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -28667,8 +28780,8 @@ func (c *Client) UpdateFlowWithBody(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateFlowRequest(c.Server, workspace, path, body)
+func (c *Client) UpdateFlow(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateFlowParams, body UpdateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateFlowRequest(c.Server, workspace, path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -34235,8 +34348,8 @@ func (c *Client) UpdateResourceType(ctx context.Context, workspace WorkspaceId, 
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateResourceWithBody(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateResourceRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) UpdateResourceWithBody(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateResourceRequestWithBody(c.Server, workspace, path, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -34247,8 +34360,8 @@ func (c *Client) UpdateResourceWithBody(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateResource(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateResourceRequest(c.Server, workspace, path, body)
+func (c *Client) UpdateResource(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateResourceParams, body UpdateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateResourceRequest(c.Server, workspace, path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -34547,8 +34660,8 @@ func (c *Client) GetCiTestResultsBatch(ctx context.Context, workspace WorkspaceI
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateScriptWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateScriptRequestWithBody(c.Server, workspace, contentType, body)
+func (c *Client) CreateScriptWithBody(ctx context.Context, workspace WorkspaceId, params *CreateScriptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateScriptRequestWithBody(c.Server, workspace, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -34559,8 +34672,8 @@ func (c *Client) CreateScriptWithBody(ctx context.Context, workspace WorkspaceId
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateScript(ctx context.Context, workspace WorkspaceId, body CreateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateScriptRequest(c.Server, workspace, body)
+func (c *Client) CreateScript(ctx context.Context, workspace WorkspaceId, params *CreateScriptParams, body CreateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateScriptRequest(c.Server, workspace, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -34895,8 +35008,8 @@ func (c *Client) ToggleWorkspaceErrorHandlerForScript(ctx context.Context, works
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateScriptWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateScriptRequestWithBody(c.Server, workspace, path, contentType, body)
+func (c *Client) TriggerCiTestsBatchWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTriggerCiTestsBatchRequestWithBody(c.Server, workspace, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -34907,8 +35020,32 @@ func (c *Client) UpdateScriptWithBody(ctx context.Context, workspace WorkspaceId
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateScriptRequest(c.Server, workspace, path, body)
+func (c *Client) TriggerCiTestsBatch(ctx context.Context, workspace WorkspaceId, body TriggerCiTestsBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTriggerCiTestsBatchRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateScriptWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateScriptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateScriptRequestWithBody(c.Server, workspace, path, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateScript(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateScriptParams, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateScriptRequest(c.Server, workspace, path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -54776,6 +54913,53 @@ func NewMoveDraftRequestWithBody(server string, workspace WorkspaceId, kind Move
 	return req, nil
 }
 
+// NewTransferDraftsRequest calls the generic TransferDrafts builder with application/json body
+func NewTransferDraftsRequest(server string, workspace WorkspaceId, body TransferDraftsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTransferDraftsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewTransferDraftsRequestWithBody generates requests for TransferDrafts with any type of body
+func NewTransferDraftsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/drafts/transfer", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUpdateDraftRequest calls the generic UpdateDraft builder with application/json body
 func NewUpdateDraftRequest(server string, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, body UpdateDraftJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -55863,18 +56047,18 @@ func NewArchiveFlowByPathRequestWithBody(server string, workspace WorkspaceId, p
 }
 
 // NewCreateFlowRequest calls the generic CreateFlow builder with application/json body
-func NewCreateFlowRequest(server string, workspace WorkspaceId, body CreateFlowJSONRequestBody) (*http.Request, error) {
+func NewCreateFlowRequest(server string, workspace WorkspaceId, params *CreateFlowParams, body CreateFlowJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewCreateFlowRequestWithBody(server, workspace, "application/json", bodyReader)
+	return NewCreateFlowRequestWithBody(server, workspace, params, "application/json", bodyReader)
 }
 
 // NewCreateFlowRequestWithBody generates requests for CreateFlow with any type of body
-func NewCreateFlowRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+func NewCreateFlowRequestWithBody(server string, workspace WorkspaceId, params *CreateFlowParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -55897,6 +56081,28 @@ func NewCreateFlowRequestWithBody(server string, workspace WorkspaceId, contentT
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SkipCiTests != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_ci_tests", runtime.ParamLocationQuery, *params.SkipCiTests); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -56912,18 +57118,18 @@ func NewToggleWorkspaceErrorHandlerForFlowRequestWithBody(server string, workspa
 }
 
 // NewUpdateFlowRequest calls the generic UpdateFlow builder with application/json body
-func NewUpdateFlowRequest(server string, workspace WorkspaceId, path ScriptPath, body UpdateFlowJSONRequestBody) (*http.Request, error) {
+func NewUpdateFlowRequest(server string, workspace WorkspaceId, path ScriptPath, params *UpdateFlowParams, body UpdateFlowJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewUpdateFlowRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewUpdateFlowRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
 }
 
 // NewUpdateFlowRequestWithBody generates requests for UpdateFlow with any type of body
-func NewUpdateFlowRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+func NewUpdateFlowRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, params *UpdateFlowParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -56953,6 +57159,28 @@ func NewUpdateFlowRequestWithBody(server string, workspace WorkspaceId, path Scr
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SkipCiTests != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_ci_tests", runtime.ParamLocationQuery, *params.SkipCiTests); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -80378,6 +80606,22 @@ func NewCreateResourceRequestWithBody(server string, workspace WorkspaceId, para
 
 		}
 
+		if params.SkipCiTests != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_ci_tests", runtime.ParamLocationQuery, *params.SkipCiTests); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -81768,18 +82012,18 @@ func NewUpdateResourceTypeRequestWithBody(server string, workspace WorkspaceId, 
 }
 
 // NewUpdateResourceRequest calls the generic UpdateResource builder with application/json body
-func NewUpdateResourceRequest(server string, workspace WorkspaceId, path Path, body UpdateResourceJSONRequestBody) (*http.Request, error) {
+func NewUpdateResourceRequest(server string, workspace WorkspaceId, path Path, params *UpdateResourceParams, body UpdateResourceJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewUpdateResourceRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewUpdateResourceRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
 }
 
 // NewUpdateResourceRequestWithBody generates requests for UpdateResource with any type of body
-func NewUpdateResourceRequestWithBody(server string, workspace WorkspaceId, path Path, contentType string, body io.Reader) (*http.Request, error) {
+func NewUpdateResourceRequestWithBody(server string, workspace WorkspaceId, path Path, params *UpdateResourceParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -81809,6 +82053,28 @@ func NewUpdateResourceRequestWithBody(server string, workspace WorkspaceId, path
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SkipCiTests != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_ci_tests", runtime.ParamLocationQuery, *params.SkipCiTests); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -83071,18 +83337,18 @@ func NewGetCiTestResultsBatchRequestWithBody(server string, workspace WorkspaceI
 }
 
 // NewCreateScriptRequest calls the generic CreateScript builder with application/json body
-func NewCreateScriptRequest(server string, workspace WorkspaceId, body CreateScriptJSONRequestBody) (*http.Request, error) {
+func NewCreateScriptRequest(server string, workspace WorkspaceId, params *CreateScriptParams, body CreateScriptJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewCreateScriptRequestWithBody(server, workspace, "application/json", bodyReader)
+	return NewCreateScriptRequestWithBody(server, workspace, params, "application/json", bodyReader)
 }
 
 // NewCreateScriptRequestWithBody generates requests for CreateScript with any type of body
-func NewCreateScriptRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+func NewCreateScriptRequestWithBody(server string, workspace WorkspaceId, params *CreateScriptParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -83105,6 +83371,28 @@ func NewCreateScriptRequestWithBody(server string, workspace WorkspaceId, conten
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SkipCiTests != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_ci_tests", runtime.ParamLocationQuery, *params.SkipCiTests); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -84504,19 +84792,66 @@ func NewToggleWorkspaceErrorHandlerForScriptRequestWithBody(server string, works
 	return req, nil
 }
 
-// NewUpdateScriptRequest calls the generic UpdateScript builder with application/json body
-func NewUpdateScriptRequest(server string, workspace WorkspaceId, path ScriptPath, body UpdateScriptJSONRequestBody) (*http.Request, error) {
+// NewTriggerCiTestsBatchRequest calls the generic TriggerCiTestsBatch builder with application/json body
+func NewTriggerCiTestsBatchRequest(server string, workspace WorkspaceId, body TriggerCiTestsBatchJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewUpdateScriptRequestWithBody(server, workspace, path, "application/json", bodyReader)
+	return NewTriggerCiTestsBatchRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewTriggerCiTestsBatchRequestWithBody generates requests for TriggerCiTestsBatch with any type of body
+func NewTriggerCiTestsBatchRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/scripts/trigger_ci_tests_batch", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateScriptRequest calls the generic UpdateScript builder with application/json body
+func NewUpdateScriptRequest(server string, workspace WorkspaceId, path ScriptPath, params *UpdateScriptParams, body UpdateScriptJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateScriptRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
 }
 
 // NewUpdateScriptRequestWithBody generates requests for UpdateScript with any type of body
-func NewUpdateScriptRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader) (*http.Request, error) {
+func NewUpdateScriptRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, params *UpdateScriptParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -84546,6 +84881,28 @@ func NewUpdateScriptRequestWithBody(server string, workspace WorkspaceId, path S
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.SkipCiTests != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "skip_ci_tests", runtime.ParamLocationQuery, *params.SkipCiTests); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -96334,6 +96691,11 @@ type ClientWithResponsesInterface interface {
 
 	MoveDraftWithResponse(ctx context.Context, workspace WorkspaceId, kind MoveDraftParamsKind, path ScriptPath, body MoveDraftJSONRequestBody, reqEditors ...RequestEditorFn) (*MoveDraftResponse, error)
 
+	// TransferDraftsWithBodyWithResponse request with any body
+	TransferDraftsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TransferDraftsResponse, error)
+
+	TransferDraftsWithResponse(ctx context.Context, workspace WorkspaceId, body TransferDraftsJSONRequestBody, reqEditors ...RequestEditorFn) (*TransferDraftsResponse, error)
+
 	// UpdateDraftWithBodyWithResponse request with any body
 	UpdateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDraftResponse, error)
 
@@ -96404,9 +96766,9 @@ type ClientWithResponsesInterface interface {
 	ArchiveFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ArchiveFlowByPathJSONRequestBody, reqEditors ...RequestEditorFn) (*ArchiveFlowByPathResponse, error)
 
 	// CreateFlowWithBodyWithResponse request with any body
-	CreateFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateFlowResponse, error)
+	CreateFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateFlowParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateFlowResponse, error)
 
-	CreateFlowWithResponse(ctx context.Context, workspace WorkspaceId, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateFlowResponse, error)
+	CreateFlowWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateFlowParams, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateFlowResponse, error)
 
 	// DeleteFlowByPathWithResponse request
 	DeleteFlowByPathWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *DeleteFlowByPathParams, reqEditors ...RequestEditorFn) (*DeleteFlowByPathResponse, error)
@@ -96461,9 +96823,9 @@ type ClientWithResponsesInterface interface {
 	ToggleWorkspaceErrorHandlerForFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForFlowResponse, error)
 
 	// UpdateFlowWithBodyWithResponse request with any body
-	UpdateFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowResponse, error)
+	UpdateFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateFlowParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowResponse, error)
 
-	UpdateFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowResponse, error)
+	UpdateFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateFlowParams, body UpdateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowResponse, error)
 
 	// AddOwnerToFolderWithBodyWithResponse request with any body
 	AddOwnerToFolderWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name Name, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddOwnerToFolderResponse, error)
@@ -97721,9 +98083,9 @@ type ClientWithResponsesInterface interface {
 	UpdateResourceTypeWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateResourceTypeResponse, error)
 
 	// UpdateResourceWithBodyWithResponse request with any body
-	UpdateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResourceResponse, error)
+	UpdateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResourceResponse, error)
 
-	UpdateResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateResourceResponse, error)
+	UpdateResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateResourceParams, body UpdateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateResourceResponse, error)
 
 	// UpdateResourceValueWithBodyWithResponse request with any body
 	UpdateResourceValueWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResourceValueResponse, error)
@@ -97791,9 +98153,9 @@ type ClientWithResponsesInterface interface {
 	GetCiTestResultsBatchWithResponse(ctx context.Context, workspace WorkspaceId, body GetCiTestResultsBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*GetCiTestResultsBatchResponse, error)
 
 	// CreateScriptWithBodyWithResponse request with any body
-	CreateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateScriptResponse, error)
+	CreateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateScriptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateScriptResponse, error)
 
-	CreateScriptWithResponse(ctx context.Context, workspace WorkspaceId, body CreateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateScriptResponse, error)
+	CreateScriptWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateScriptParams, body CreateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateScriptResponse, error)
 
 	// DeleteScriptByHashWithResponse request
 	DeleteScriptByHashWithResponse(ctx context.Context, workspace WorkspaceId, hash ScriptHash, reqEditors ...RequestEditorFn) (*DeleteScriptByHashResponse, error)
@@ -97871,10 +98233,15 @@ type ClientWithResponsesInterface interface {
 
 	ToggleWorkspaceErrorHandlerForScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body ToggleWorkspaceErrorHandlerForScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*ToggleWorkspaceErrorHandlerForScriptResponse, error)
 
-	// UpdateScriptWithBodyWithResponse request with any body
-	UpdateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error)
+	// TriggerCiTestsBatchWithBodyWithResponse request with any body
+	TriggerCiTestsBatchWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TriggerCiTestsBatchResponse, error)
 
-	UpdateScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error)
+	TriggerCiTestsBatchWithResponse(ctx context.Context, workspace WorkspaceId, body TriggerCiTestsBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*TriggerCiTestsBatchResponse, error)
+
+	// UpdateScriptWithBodyWithResponse request with any body
+	UpdateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateScriptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error)
+
+	UpdateScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateScriptParams, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error)
 
 	// UpdateSharedUiWithBodyWithResponse request with any body
 	UpdateSharedUiWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateSharedUiResponse, error)
@@ -106532,6 +106899,32 @@ func (r MoveDraftResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r MoveDraftResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TransferDraftsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Conflicts []DraftItemRef `json:"conflicts"`
+		Copied    []DraftItemRef `json:"copied"`
+		Removed   []DraftItemRef `json:"removed"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r TransferDraftsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TransferDraftsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -116632,6 +117025,31 @@ func (r ToggleWorkspaceErrorHandlerForScriptResponse) StatusCode() int {
 	return 0
 }
 
+type TriggerCiTestsBatchResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		JobIds  []openapi_types.UUID `json:"job_ids"`
+		Pending []string             `json:"pending"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r TriggerCiTestsBatchResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TriggerCiTestsBatchResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UpdateScriptResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -125732,6 +126150,23 @@ func (c *ClientWithResponses) MoveDraftWithResponse(ctx context.Context, workspa
 	return ParseMoveDraftResponse(rsp)
 }
 
+// TransferDraftsWithBodyWithResponse request with arbitrary body returning *TransferDraftsResponse
+func (c *ClientWithResponses) TransferDraftsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TransferDraftsResponse, error) {
+	rsp, err := c.TransferDraftsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTransferDraftsResponse(rsp)
+}
+
+func (c *ClientWithResponses) TransferDraftsWithResponse(ctx context.Context, workspace WorkspaceId, body TransferDraftsJSONRequestBody, reqEditors ...RequestEditorFn) (*TransferDraftsResponse, error) {
+	rsp, err := c.TransferDrafts(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTransferDraftsResponse(rsp)
+}
+
 // UpdateDraftWithBodyWithResponse request with arbitrary body returning *UpdateDraftResponse
 func (c *ClientWithResponses) UpdateDraftWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, kind UserDraftItemKind, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDraftResponse, error) {
 	rsp, err := c.UpdateDraftWithBody(ctx, workspace, kind, path, contentType, body, reqEditors...)
@@ -125958,16 +126393,16 @@ func (c *ClientWithResponses) ArchiveFlowByPathWithResponse(ctx context.Context,
 }
 
 // CreateFlowWithBodyWithResponse request with arbitrary body returning *CreateFlowResponse
-func (c *ClientWithResponses) CreateFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateFlowResponse, error) {
-	rsp, err := c.CreateFlowWithBody(ctx, workspace, contentType, body, reqEditors...)
+func (c *ClientWithResponses) CreateFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateFlowParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateFlowResponse, error) {
+	rsp, err := c.CreateFlowWithBody(ctx, workspace, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseCreateFlowResponse(rsp)
 }
 
-func (c *ClientWithResponses) CreateFlowWithResponse(ctx context.Context, workspace WorkspaceId, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateFlowResponse, error) {
-	rsp, err := c.CreateFlow(ctx, workspace, body, reqEditors...)
+func (c *ClientWithResponses) CreateFlowWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateFlowParams, body CreateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateFlowResponse, error) {
+	rsp, err := c.CreateFlow(ctx, workspace, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -126135,16 +126570,16 @@ func (c *ClientWithResponses) ToggleWorkspaceErrorHandlerForFlowWithResponse(ctx
 }
 
 // UpdateFlowWithBodyWithResponse request with arbitrary body returning *UpdateFlowResponse
-func (c *ClientWithResponses) UpdateFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowResponse, error) {
-	rsp, err := c.UpdateFlowWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+func (c *ClientWithResponses) UpdateFlowWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateFlowParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateFlowResponse, error) {
+	rsp, err := c.UpdateFlowWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseUpdateFlowResponse(rsp)
 }
 
-func (c *ClientWithResponses) UpdateFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowResponse, error) {
-	rsp, err := c.UpdateFlow(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) UpdateFlowWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateFlowParams, body UpdateFlowJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateFlowResponse, error) {
+	rsp, err := c.UpdateFlow(ctx, workspace, path, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -130185,16 +130620,16 @@ func (c *ClientWithResponses) UpdateResourceTypeWithResponse(ctx context.Context
 }
 
 // UpdateResourceWithBodyWithResponse request with arbitrary body returning *UpdateResourceResponse
-func (c *ClientWithResponses) UpdateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResourceResponse, error) {
-	rsp, err := c.UpdateResourceWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+func (c *ClientWithResponses) UpdateResourceWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateResourceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResourceResponse, error) {
+	rsp, err := c.UpdateResourceWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseUpdateResourceResponse(rsp)
 }
 
-func (c *ClientWithResponses) UpdateResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, body UpdateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateResourceResponse, error) {
-	rsp, err := c.UpdateResource(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) UpdateResourceWithResponse(ctx context.Context, workspace WorkspaceId, path Path, params *UpdateResourceParams, body UpdateResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateResourceResponse, error) {
+	rsp, err := c.UpdateResource(ctx, workspace, path, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -130411,16 +130846,16 @@ func (c *ClientWithResponses) GetCiTestResultsBatchWithResponse(ctx context.Cont
 }
 
 // CreateScriptWithBodyWithResponse request with arbitrary body returning *CreateScriptResponse
-func (c *ClientWithResponses) CreateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateScriptResponse, error) {
-	rsp, err := c.CreateScriptWithBody(ctx, workspace, contentType, body, reqEditors...)
+func (c *ClientWithResponses) CreateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateScriptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateScriptResponse, error) {
+	rsp, err := c.CreateScriptWithBody(ctx, workspace, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseCreateScriptResponse(rsp)
 }
 
-func (c *ClientWithResponses) CreateScriptWithResponse(ctx context.Context, workspace WorkspaceId, body CreateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateScriptResponse, error) {
-	rsp, err := c.CreateScript(ctx, workspace, body, reqEditors...)
+func (c *ClientWithResponses) CreateScriptWithResponse(ctx context.Context, workspace WorkspaceId, params *CreateScriptParams, body CreateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateScriptResponse, error) {
+	rsp, err := c.CreateScript(ctx, workspace, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -130665,17 +131100,34 @@ func (c *ClientWithResponses) ToggleWorkspaceErrorHandlerForScriptWithResponse(c
 	return ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp)
 }
 
+// TriggerCiTestsBatchWithBodyWithResponse request with arbitrary body returning *TriggerCiTestsBatchResponse
+func (c *ClientWithResponses) TriggerCiTestsBatchWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TriggerCiTestsBatchResponse, error) {
+	rsp, err := c.TriggerCiTestsBatchWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTriggerCiTestsBatchResponse(rsp)
+}
+
+func (c *ClientWithResponses) TriggerCiTestsBatchWithResponse(ctx context.Context, workspace WorkspaceId, body TriggerCiTestsBatchJSONRequestBody, reqEditors ...RequestEditorFn) (*TriggerCiTestsBatchResponse, error) {
+	rsp, err := c.TriggerCiTestsBatch(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTriggerCiTestsBatchResponse(rsp)
+}
+
 // UpdateScriptWithBodyWithResponse request with arbitrary body returning *UpdateScriptResponse
-func (c *ClientWithResponses) UpdateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error) {
-	rsp, err := c.UpdateScriptWithBody(ctx, workspace, path, contentType, body, reqEditors...)
+func (c *ClientWithResponses) UpdateScriptWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateScriptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error) {
+	rsp, err := c.UpdateScriptWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseUpdateScriptResponse(rsp)
 }
 
-func (c *ClientWithResponses) UpdateScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error) {
-	rsp, err := c.UpdateScript(ctx, workspace, path, body, reqEditors...)
+func (c *ClientWithResponses) UpdateScriptWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *UpdateScriptParams, body UpdateScriptJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateScriptResponse, error) {
+	rsp, err := c.UpdateScript(ctx, workspace, path, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -141420,6 +141872,36 @@ func ParseMoveDraftResponse(rsp *http.Response) (*MoveDraftResponse, error) {
 	return response, nil
 }
 
+// ParseTransferDraftsResponse parses an HTTP response from a TransferDraftsWithResponse call
+func ParseTransferDraftsResponse(rsp *http.Response) (*TransferDraftsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TransferDraftsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Conflicts []DraftItemRef `json:"conflicts"`
+			Copied    []DraftItemRef `json:"copied"`
+			Removed   []DraftItemRef `json:"removed"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseUpdateDraftResponse parses an HTTP response from a UpdateDraftWithResponse call
 func ParseUpdateDraftResponse(rsp *http.Response) (*UpdateDraftResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -151449,6 +151931,35 @@ func ParseToggleWorkspaceErrorHandlerForScriptResponse(rsp *http.Response) (*Tog
 	response := &ToggleWorkspaceErrorHandlerForScriptResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTriggerCiTestsBatchResponse parses an HTTP response from a TriggerCiTestsBatchWithResponse call
+func ParseTriggerCiTestsBatchResponse(rsp *http.Response) (*TriggerCiTestsBatchResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TriggerCiTestsBatchResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			JobIds  []openapi_types.UUID `json:"job_ids"`
+			Pending []string             `json:"pending"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
