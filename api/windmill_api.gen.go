@@ -2202,6 +2202,12 @@ type AgentDraft struct {
 
 // AgentTool A tool available to an AI agent. Can be a flow module or an external MCP (Model Context Protocol) tool
 type AgentTool struct {
+	// Background Flowmodule tools only. The agent is answered as soon as the tool's job starts and keeps working; the job's result reaches it in a later message. If the agent finishes its answer first, it stops without holding a worker until the job is done, then continues with the result.
+	Background *bool `json:"background,omitempty"`
+
+	// BackgroundAfterSecs Flowmodule tools only, with background unset. The agent waits up to this many seconds for the tool's job and gets its result as usual; a job still running then continues as a background one, its result reaching the agent in a later message.
+	BackgroundAfterSecs *int `json:"background_after_secs,omitempty"`
+
 	// Description Free-text description of the tool given to the AI to decide when and how to call it. Overrides the description auto-derived from the underlying script.
 	Description *string `json:"description,omitempty"`
 
@@ -4736,8 +4742,10 @@ type FlowPreview struct {
 // FlowStatus defines model for FlowStatus.
 type FlowStatus struct {
 	FailureModule struct {
-		AgentActions        *[]FlowStatus_FailureModule_AgentActions_Item `json:"agent_actions,omitempty"`
-		AgentActionsSuccess *[]bool                                       `json:"agent_actions_success,omitempty"`
+		AgentActions *[]FlowStatus_FailureModule_AgentActions_Item `json:"agent_actions,omitempty"`
+
+		// AgentActionsSuccess The outcome of each agent action, by position. null while a background tool call is still running.
+		AgentActionsSuccess *[]bool `json:"agent_actions_success,omitempty"`
 		Approvers           *[]struct {
 			Approver string `json:"approver"`
 			ResumeId int    `json:"resume_id"`
@@ -5753,6 +5761,11 @@ type ListableResource struct {
 	DraftPath  *string          `json:"draft_path,omitempty"`
 	EditedAt   *time.Time       `json:"edited_at,omitempty"`
 	ExtraPerms *map[string]bool `json:"extra_perms,omitempty"`
+
+	// GrantType The grant of the linked OAuth account: `client_credentials`
+	// connects as the app, `authorization_code` as the user who
+	// connected it.
+	GrantType *string `json:"grant_type,omitempty"`
 
 	// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 	InheritedLabels *[]string `json:"inherited_labels,omitempty"`
@@ -9320,8 +9333,10 @@ type SchemasFlowNoteType string
 
 // SchemasFlowStatusModule defines model for schemas-FlowStatusModule.
 type SchemasFlowStatusModule struct {
-	AgentActions        *[]SchemasFlowStatusModule_AgentActions_Item `json:"agent_actions,omitempty"`
-	AgentActionsSuccess *[]bool                                      `json:"agent_actions_success,omitempty"`
+	AgentActions *[]SchemasFlowStatusModule_AgentActions_Item `json:"agent_actions,omitempty"`
+
+	// AgentActionsSuccess The outcome of each agent action, by position. null while a background tool call is still running.
+	AgentActionsSuccess *[]bool `json:"agent_actions_success,omitempty"`
 	Approvers           *[]struct {
 		Approver string `json:"approver"`
 		ResumeId int    `json:"resume_id"`
@@ -10232,6 +10247,15 @@ type ConnectSlackInstanceJSONBody struct {
 type LoginWithOauthJSONBody struct {
 	Code  *string `json:"code,omitempty"`
 	State *string `json:"state,omitempty"`
+}
+
+// TestOAuthClientCredentialsJSONBody defines parameters for TestOAuthClientCredentials.
+type TestOAuthClientCredentialsJSONBody struct {
+	// Entry the entry as stored in the instance OAuth setting
+	Entry map[string]interface{} `json:"entry"`
+
+	// Name client name, the key of the entry in the instance OAuth setting
+	Name string `json:"name"`
 }
 
 // TestMetadataJSONBody defines parameters for TestMetadata.
@@ -13300,6 +13324,9 @@ type RunAgentJSONBody struct {
 type RunAgentParams struct {
 	// MemoryId The conversation this turn belongs to. A uuid is used as is; any other string is hashed within the workspace and agent.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
 }
 
 // BatchReRunJobsJSONBody defines parameters for BatchReRunJobs.
@@ -13356,6 +13383,9 @@ type RunFlowByPathParams struct {
 
 	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
 }
 
 // RunFlowDependenciesAsyncJSONBody defines parameters for RunFlowDependenciesAsync.
@@ -13394,6 +13424,9 @@ type RunFlowByVersionParams struct {
 
 	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
 }
 
 // RunScriptByHashJSONBody defines parameters for RunScriptByHash.
@@ -13493,6 +13526,9 @@ type RunFlowPreviewParams struct {
 
 	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
 }
 
 // RunAndStreamFlowByPathGetParams defines parameters for RunAndStreamFlowByPathGet.
@@ -13517,6 +13553,9 @@ type RunAndStreamFlowByPathGetParams struct {
 	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
+
 	// PollDelayMs delay between polling for job updates in milliseconds
 	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
 }
@@ -13538,6 +13577,9 @@ type RunAndStreamFlowByPathParams struct {
 
 	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
 
 	// PollDelayMs delay between polling for job updates in milliseconds
 	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
@@ -13565,6 +13607,9 @@ type RunAndStreamFlowByVersionGetParams struct {
 	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
 
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
+
 	// PollDelayMs delay between polling for job updates in milliseconds
 	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
 }
@@ -13586,6 +13631,9 @@ type RunAndStreamFlowByVersionParams struct {
 
 	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
 
 	// PollDelayMs delay between polling for job updates in milliseconds
 	PollDelayMs *int64 `form:"poll_delay_ms,omitempty" json:"poll_delay_ms,omitempty"`
@@ -13728,6 +13776,9 @@ type RunWaitResultFlowByPathParams struct {
 
 	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
 }
 
 // RunWaitResultFlowByVersionGetParams defines parameters for RunWaitResultFlowByVersionGet.
@@ -13751,6 +13802,9 @@ type RunWaitResultFlowByVersionGetParams struct {
 
 	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
 }
 
 // RunWaitResultFlowByVersionParams defines parameters for RunWaitResultFlowByVersion.
@@ -13770,6 +13824,9 @@ type RunWaitResultFlowByVersionParams struct {
 
 	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
 }
 
 // RunWaitResultScriptByPathGetParams defines parameters for RunWaitResultScriptByPathGet.
@@ -13830,6 +13887,9 @@ type RunWaitResultScriptByPathParams struct {
 type RunFlowPreviewAndWaitResultParams struct {
 	// MemoryId Memory id for the flow's AI agent steps. A uuid is used as is; any other string is hashed within the workspace and flow, so the same string always names the same memory of that flow.
 	MemoryId *string `form:"memory_id,omitempty" json:"memory_id,omitempty"`
+
+	// TakeOver Stop the run that holds `memory_id`, if any, and run this one instead of being refused with a 409. Only who started that run, or an admin, can stop it; a restricted token also needs an unconfined `jobs:cancel` scope.
+	TakeOver *bool `form:"take_over,omitempty" json:"take_over,omitempty"`
 }
 
 // GetSlackApprovalPayloadParams defines parameters for GetSlackApprovalPayload.
@@ -15741,6 +15801,9 @@ type ConnectSlackInstanceJSONRequestBody ConnectSlackInstanceJSONBody
 
 // LoginWithOauthJSONRequestBody defines body for LoginWithOauth for application/json ContentType.
 type LoginWithOauthJSONRequestBody LoginWithOauthJSONBody
+
+// TestOAuthClientCredentialsJSONRequestBody defines body for TestOAuthClientCredentials for application/json ContentType.
+type TestOAuthClientCredentialsJSONRequestBody TestOAuthClientCredentialsJSONBody
 
 // TestMetadataJSONRequestBody defines body for TestMetadata for application/json ContentType.
 type TestMetadataJSONRequestBody = TestMetadataJSONBody
@@ -19711,6 +19774,11 @@ type ClientInterface interface {
 	LoginWithOauthWithBody(ctx context.Context, clientName ClientName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	LoginWithOauth(ctx context.Context, clientName ClientName, body LoginWithOauthJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TestOAuthClientCredentialsWithBody request with any body
+	TestOAuthClientCredentialsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	TestOAuthClientCredentials(ctx context.Context, body TestOAuthClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetOidcSigningStatus request
 	GetOidcSigningStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -24165,6 +24233,30 @@ func (c *Client) LoginWithOauthWithBody(ctx context.Context, clientName ClientNa
 
 func (c *Client) LoginWithOauth(ctx context.Context, clientName ClientName, body LoginWithOauthJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLoginWithOauthRequest(c.Server, clientName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestOAuthClientCredentialsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestOAuthClientCredentialsRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) TestOAuthClientCredentials(ctx context.Context, body TestOAuthClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTestOAuthClientCredentialsRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -41652,6 +41744,46 @@ func NewLoginWithOauthRequestWithBody(server string, clientName ClientName, cont
 	}
 
 	operationPath := fmt.Sprintf("/oauth/login_callback/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTestOAuthClientCredentialsRequest calls the generic TestOAuthClientCredentials builder with application/json body
+func NewTestOAuthClientCredentialsRequest(server string, body TestOAuthClientCredentialsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTestOAuthClientCredentialsRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewTestOAuthClientCredentialsRequestWithBody generates requests for TestOAuthClientCredentials with any type of body
+func NewTestOAuthClientCredentialsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oauth/test_client_credentials")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -69205,6 +69337,22 @@ func NewRunAgentRequestWithBody(server string, workspace WorkspaceId, path Path,
 
 		}
 
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -69597,6 +69745,22 @@ func NewRunFlowByPathRequestWithBody(server string, workspace WorkspaceId, path 
 
 		}
 
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -69835,6 +69999,22 @@ func NewRunFlowByVersionRequestWithBody(server string, workspace WorkspaceId, ve
 		if params.MemoryId != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -70506,6 +70686,22 @@ func NewRunFlowPreviewRequestWithBody(server string, workspace WorkspaceId, para
 
 		}
 
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -70638,6 +70834,22 @@ func NewRunAndStreamFlowByPathGetRequest(server string, workspace WorkspaceId, p
 		if params.MemoryId != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -70792,6 +71004,22 @@ func NewRunAndStreamFlowByPathRequestWithBody(server string, workspace Workspace
 		if params.MemoryId != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -70966,6 +71194,22 @@ func NewRunAndStreamFlowByVersionGetRequest(server string, workspace WorkspaceId
 
 		}
 
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.PollDelayMs != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "poll_delay_ms", runtime.ParamLocationQuery, *params.PollDelayMs); err != nil {
@@ -71107,6 +71351,22 @@ func NewRunAndStreamFlowByVersionRequestWithBody(server string, workspace Worksp
 		if params.MemoryId != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -72271,6 +72531,22 @@ func NewRunWaitResultFlowByPathRequestWithBody(server string, workspace Workspac
 
 		}
 
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -72416,6 +72692,22 @@ func NewRunWaitResultFlowByVersionGetRequest(server string, workspace WorkspaceI
 
 		}
 
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -72541,6 +72833,22 @@ func NewRunWaitResultFlowByVersionRequestWithBody(server string, workspace Works
 		if params.MemoryId != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -73004,6 +73312,22 @@ func NewRunFlowPreviewAndWaitResultRequestWithBody(server string, workspace Work
 		if params.MemoryId != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "memory_id", runtime.ParamLocationQuery, *params.MemoryId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.TakeOver != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_over", runtime.ParamLocationQuery, *params.TakeOver); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -95793,6 +96117,11 @@ type ClientWithResponsesInterface interface {
 
 	LoginWithOauthWithResponse(ctx context.Context, clientName ClientName, body LoginWithOauthJSONRequestBody, reqEditors ...RequestEditorFn) (*LoginWithOauthResponse, error)
 
+	// TestOAuthClientCredentialsWithBodyWithResponse request with any body
+	TestOAuthClientCredentialsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestOAuthClientCredentialsResponse, error)
+
+	TestOAuthClientCredentialsWithResponse(ctx context.Context, body TestOAuthClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*TestOAuthClientCredentialsResponse, error)
+
 	// GetOidcSigningStatusWithResponse request
 	GetOidcSigningStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOidcSigningStatusResponse, error)
 
@@ -100956,6 +101285,27 @@ func (r LoginWithOauthResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LoginWithOauthResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type TestOAuthClientCredentialsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r TestOAuthClientCredentialsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TestOAuthClientCredentialsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -115246,6 +115596,11 @@ type GetResourceResponse struct {
 		EditedAt     *time.Time       `json:"edited_at,omitempty"`
 		ExtraPerms   *map[string]bool `json:"extra_perms,omitempty"`
 
+		// GrantType The grant of the linked OAuth account: `client_credentials`
+		// connects as the app, `authorization_code` as the user who
+		// connected it.
+		GrantType *string `json:"grant_type,omitempty"`
+
 		// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 		InheritedLabels *[]string `json:"inherited_labels,omitempty"`
 		IsDraft         bool      `json:"is_draft"`
@@ -123243,6 +123598,23 @@ func (c *ClientWithResponses) LoginWithOauthWithResponse(ctx context.Context, cl
 		return nil, err
 	}
 	return ParseLoginWithOauthResponse(rsp)
+}
+
+// TestOAuthClientCredentialsWithBodyWithResponse request with arbitrary body returning *TestOAuthClientCredentialsResponse
+func (c *ClientWithResponses) TestOAuthClientCredentialsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TestOAuthClientCredentialsResponse, error) {
+	rsp, err := c.TestOAuthClientCredentialsWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestOAuthClientCredentialsResponse(rsp)
+}
+
+func (c *ClientWithResponses) TestOAuthClientCredentialsWithResponse(ctx context.Context, body TestOAuthClientCredentialsJSONRequestBody, reqEditors ...RequestEditorFn) (*TestOAuthClientCredentialsResponse, error) {
+	rsp, err := c.TestOAuthClientCredentials(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTestOAuthClientCredentialsResponse(rsp)
 }
 
 // GetOidcSigningStatusWithResponse request returning *GetOidcSigningStatusResponse
@@ -135799,6 +136171,22 @@ func ParseLoginWithOauthResponse(rsp *http.Response) (*LoginWithOauthResponse, e
 	}
 
 	response := &LoginWithOauthResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseTestOAuthClientCredentialsResponse parses an HTTP response from a TestOAuthClientCredentialsWithResponse call
+func ParseTestOAuthClientCredentialsResponse(rsp *http.Response) (*TestOAuthClientCredentialsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TestOAuthClientCredentialsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -150091,6 +150479,11 @@ func ParseGetResourceResponse(rsp *http.Response) (*GetResourceResponse, error) 
 			DraftSavedAt *time.Time       `json:"draft_saved_at,omitempty"`
 			EditedAt     *time.Time       `json:"edited_at,omitempty"`
 			ExtraPerms   *map[string]bool `json:"extra_perms,omitempty"`
+
+			// GrantType The grant of the linked OAuth account: `client_credentials`
+			// connects as the app, `authorization_code` as the user who
+			// connected it.
+			GrantType *string `json:"grant_type,omitempty"`
 
 			// InheritedLabels Labels inherited from the parent folder, computed at read time. Read-only — edit them on the folder.
 			InheritedLabels *[]string `json:"inherited_labels,omitempty"`
