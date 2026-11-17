@@ -14579,6 +14579,9 @@ type ListRunnablesParams struct {
 	// Search case-insensitive fuzzy match on "summary (path)": the query is split into terms on runs of anything but ASCII letters, digits and apostrophes, and each of the first 8 must appear whole and in order, with anything in between. Terms past the 8th are ignored, so an over-long query matches more rows rather than fewer. Omitted or empty filters nothing; a query holding no ASCII-alphanumeric character at all (a lone space, "_", or text in a non-Latin script) yields no terms and matches nothing, mirroring the homepage, whose matcher discards those queries too.
 	Search *string `form:"search,omitempty" json:"search,omitempty"`
 
+	// SearchAnyOrder when true, each search term must appear anywhere in "summary (path)", in any order, rather than in the order given, and terms are split on anything but letters, digits and apostrophes in any script, not only ASCII ones.
+	SearchAnyOrder *bool `form:"search_any_order,omitempty" json:"search_any_order,omitempty"`
+
 	// PerPage number of items to return for a given page (default 30, max 100)
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 
@@ -82732,6 +82735,22 @@ func NewListRunnablesRequest(server string, workspace WorkspaceId, params *ListR
 		if params.Search != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.SearchAnyOrder != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search_any_order", runtime.ParamLocationQuery, *params.SearchAnyOrder); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
