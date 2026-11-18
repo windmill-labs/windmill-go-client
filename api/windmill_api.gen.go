@@ -4741,6 +4741,11 @@ type FlowPreview struct {
 
 // FlowStatus defines model for FlowStatus.
 type FlowStatus struct {
+	// ContinuedOnError On a root flow, the steps at any depth that failed and that the flow went past because of continue_on_error (at most 100).
+	ContinuedOnError *[]struct {
+		Id  string             `json:"id"`
+		Job openapi_types.UUID `json:"job"`
+	} `json:"continued_on_error,omitempty"`
 	FailureModule struct {
 		AgentActions *[]FlowStatus_FailureModule_AgentActions_Item `json:"agent_actions,omitempty"`
 
@@ -4765,8 +4770,11 @@ type FlowStatus struct {
 			DurationMs *[]int    `json:"duration_ms,omitempty"`
 			StartedAt  *[]string `json:"started_at,omitempty"`
 		} `json:"flow_jobs_duration,omitempty"`
-		FlowJobsSuccess *[]bool `json:"flow_jobs_success,omitempty"`
-		Id              *string `json:"id,omitempty"`
+
+		// FlowJobsLabels For a for-loop step whose iteration_label is set, each iteration's label, aligned with flow_jobs. An entry is null when its label evaluated to nothing
+		FlowJobsLabels  *[]string `json:"flow_jobs_labels,omitempty"`
+		FlowJobsSuccess *[]bool   `json:"flow_jobs_success,omitempty"`
+		Id              *string   `json:"id,omitempty"`
 		Iterator        *struct {
 			Args      *interface{}   `json:"args,omitempty"`
 			Index     *int           `json:"index,omitempty"`
@@ -9356,8 +9364,11 @@ type SchemasFlowStatusModule struct {
 		DurationMs *[]int    `json:"duration_ms,omitempty"`
 		StartedAt  *[]string `json:"started_at,omitempty"`
 	} `json:"flow_jobs_duration,omitempty"`
-	FlowJobsSuccess *[]bool `json:"flow_jobs_success,omitempty"`
-	Id              *string `json:"id,omitempty"`
+
+	// FlowJobsLabels For a for-loop step whose iteration_label is set, each iteration's label, aligned with flow_jobs. An entry is null when its label evaluated to nothing
+	FlowJobsLabels  *[]string `json:"flow_jobs_labels,omitempty"`
+	FlowJobsSuccess *[]bool   `json:"flow_jobs_success,omitempty"`
+	Id              *string   `json:"id,omitempty"`
 	Iterator        *struct {
 		Args      *interface{}   `json:"args,omitempty"`
 		Index     *int           `json:"index,omitempty"`
@@ -9533,6 +9544,9 @@ type SchemasFlowValueOnConcurrencyLimit string
 
 // SchemasForloopFlow Executes nested modules in a loop over an iterator. Inside the loop, use 'flow_input.iter.value' to access the current iteration value, and 'flow_input.iter.index' for the index. Supports parallel execution for better performance on I/O-bound operations
 type SchemasForloopFlow struct {
+	// IterationLabel Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+	IterationLabel *SchemasInputTransform `json:"iteration_label,omitempty"`
+
 	// Iterator Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
 	Iterator SchemasInputTransform `json:"iterator"`
 
@@ -20277,6 +20291,12 @@ type ClientInterface interface {
 	// UnshareAiSession request
 	UnshareAiSession(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListSharedAiSessions request
+	ListSharedAiSessions(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ForgetOpenedAiSession request
+	ForgetOpenedAiSession(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SetAiSessionSharePublicWithBody request with any body
 	SetAiSessionSharePublicWithBody(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -21306,6 +21326,9 @@ type ClientInterface interface {
 	DeleteJobsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	DeleteJobs(ctx context.Context, workspace WorkspaceId, body DeleteJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetApprovalStepDetail request
+	GetApprovalStepDetail(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, stepId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResumeSuspendedFlowAsOwnerWithBody request with any body
 	ResumeSuspendedFlowAsOwnerWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -26454,6 +26477,30 @@ func (c *Client) UnshareAiSession(ctx context.Context, workspace WorkspaceId, id
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListSharedAiSessions(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSharedAiSessionsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ForgetOpenedAiSession(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewForgetOpenedAiSessionRequest(c.Server, workspace, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) SetAiSessionSharePublicWithBody(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSetAiSessionSharePublicRequestWithBody(c.Server, workspace, id, contentType, body)
 	if err != nil {
@@ -30980,6 +31027,18 @@ func (c *Client) DeleteJobsWithBody(ctx context.Context, workspace WorkspaceId, 
 
 func (c *Client) DeleteJobs(ctx context.Context, workspace WorkspaceId, body DeleteJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteJobsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetApprovalStepDetail(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, stepId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetApprovalStepDetailRequest(c.Server, workspace, jobId, stepId)
 	if err != nil {
 		return nil, err
 	}
@@ -47013,6 +47072,81 @@ func NewUnshareAiSessionRequest(server string, workspace WorkspaceId, id openapi
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/ai/shared_sessions/delete/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListSharedAiSessionsRequest generates requests for ListSharedAiSessions
+func NewListSharedAiSessionsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/shared_sessions/list", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewForgetOpenedAiSessionRequest generates requests for ForgetOpenedAiSession
+func NewForgetOpenedAiSessionRequest(server string, workspace WorkspaceId, id openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai/shared_sessions/opened/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -65973,6 +66107,54 @@ func NewDeleteJobsRequestWithBody(server string, workspace WorkspaceId, contentT
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetApprovalStepDetailRequest generates requests for GetApprovalStepDetail
+func NewGetApprovalStepDetailRequest(server string, workspace WorkspaceId, jobId openapi_types.UUID, stepId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "job_id", runtime.ParamLocationPath, jobId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "step_id", runtime.ParamLocationPath, stepId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/flow/approval_step_detail/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -96635,6 +96817,12 @@ type ClientWithResponsesInterface interface {
 	// UnshareAiSessionWithResponse request
 	UnshareAiSessionWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*UnshareAiSessionResponse, error)
 
+	// ListSharedAiSessionsWithResponse request
+	ListSharedAiSessionsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSharedAiSessionsResponse, error)
+
+	// ForgetOpenedAiSessionWithResponse request
+	ForgetOpenedAiSessionWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*ForgetOpenedAiSessionResponse, error)
+
 	// SetAiSessionSharePublicWithBodyWithResponse request with any body
 	SetAiSessionSharePublicWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAiSessionSharePublicResponse, error)
 
@@ -97664,6 +97852,9 @@ type ClientWithResponsesInterface interface {
 	DeleteJobsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteJobsResponse, error)
 
 	DeleteJobsWithResponse(ctx context.Context, workspace WorkspaceId, body DeleteJobsJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteJobsResponse, error)
+
+	// GetApprovalStepDetailWithResponse request
+	GetApprovalStepDetailWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, stepId string, reqEditors ...RequestEditorFn) (*GetApprovalStepDetailResponse, error)
 
 	// ResumeSuspendedFlowAsOwnerWithBodyWithResponse request with any body
 	ResumeSuspendedFlowAsOwnerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedFlowAsOwnerResponse, error)
@@ -104394,6 +104585,61 @@ func (r UnshareAiSessionResponse) StatusCode() int {
 	return 0
 }
 
+type ListSharedAiSessionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		CreatedBy    string             `json:"created_by"`
+		Id           openapi_types.UUID `json:"id"`
+		IsPublic     bool               `json:"is_public"`
+		MessageCount int                `json:"message_count"`
+		Mine         bool               `json:"mine"`
+		Name         string             `json:"name"`
+
+		// OpenedAt when the caller last opened this share by link
+		OpenedAt  *time.Time `json:"opened_at,omitempty"`
+		SessionId *string    `json:"session_id,omitempty"`
+		SharedAt  time.Time  `json:"shared_at"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSharedAiSessionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSharedAiSessionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ForgetOpenedAiSessionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ForgetOpenedAiSessionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ForgetOpenedAiSessionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type SetAiSessionSharePublicResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -104950,14 +105196,17 @@ type GetSharedAiSessionResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		// CanUnshare whether the caller authored the share or is a workspace admin
-		CanUnshare   bool                   `json:"can_unshare"`
-		CreatedBy    string                 `json:"created_by"`
-		Id           openapi_types.UUID     `json:"id"`
-		IsPublic     bool                   `json:"is_public"`
-		MessageCount int                    `json:"message_count"`
-		Name         string                 `json:"name"`
-		SharedAt     time.Time              `json:"shared_at"`
-		Snapshot     map[string]interface{} `json:"snapshot"`
+		CanUnshare   bool               `json:"can_unshare"`
+		CreatedBy    string             `json:"created_by"`
+		Id           openapi_types.UUID `json:"id"`
+		IsPublic     bool               `json:"is_public"`
+		MessageCount int                `json:"message_count"`
+
+		// Mine whether the caller authored the share
+		Mine     bool                   `json:"mine"`
+		Name     string                 `json:"name"`
+		SharedAt time.Time              `json:"shared_at"`
+		Snapshot map[string]interface{} `json:"snapshot"`
 	}
 }
 
@@ -111125,6 +111374,84 @@ func (r DeleteJobsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteJobsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetApprovalStepDetailResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		ApprovalConditions *struct {
+			SelfApprovalDisabled bool     `json:"self_approval_disabled"`
+			UserAuthRequired     bool     `json:"user_auth_required"`
+			UserGroupsRequired   []string `json:"user_groups_required"`
+		} `json:"approval_conditions,omitempty"`
+
+		// Approvals approvals received. approved, value and created_at are known only while the run is live; a finished run keeps approver names alone.
+		Approvals []struct {
+			Approved  *bool        `json:"approved,omitempty"`
+			Approver  string       `json:"approver"`
+			CreatedAt *time.Time   `json:"created_at,omitempty"`
+			ResumeId  int          `json:"resume_id"`
+			Value     *interface{} `json:"value,omitempty"`
+		} `json:"approvals"`
+
+		// CanApprove whether the caller can approve, set only while waiting
+		CanApprove                  *bool `json:"can_approve,omitempty"`
+		ContinueOnDisapproveTimeout bool  `json:"continue_on_disapprove_timeout"`
+
+		// DefaultArgs default form values returned by the approval step's script
+		DefaultArgs *interface{} `json:"default_args,omitempty"`
+
+		// Description description returned by the approval step's script
+		Description *interface{} `json:"description,omitempty"`
+
+		// Enums form enums returned by the approval step's script
+		Enums *interface{} `json:"enums,omitempty"`
+
+		// Error the run's error, when status is not_resumed
+		Error  *interface{}       `json:"error,omitempty"`
+		FlowId openapi_types.UUID `json:"flow_id"`
+
+		// FormSchema form schema for the approval step
+		FormSchema *interface{} `json:"form_schema,omitempty"`
+		HideCancel bool         `json:"hide_cancel"`
+
+		// RequiredEvents number of approvals required to resume
+		RequiredEvents int                          `json:"required_events"`
+		Skin           GetApprovalStepDetail200Skin `json:"skin"`
+
+		// Status not_reached: the step's own script has not finished yet. failed: the step failed before asking for approval. waiting: the run is suspended on this step. resumed: the run moved past this step. not_resumed: the run ended while waiting (denied, timed out or cancelled).
+		Status GetApprovalStepDetail200Status `json:"status"`
+		StepId string                         `json:"step_id"`
+
+		// StepJob the job of the approval step, once it ran
+		StepJob     *openapi_types.UUID `json:"step_job,omitempty"`
+		StepSummary *string             `json:"step_summary,omitempty"`
+
+		// SuspendedUntil when the wait times out, while waiting
+		SuspendedUntil *time.Time `json:"suspended_until,omitempty"`
+
+		// Timeout seconds the run waits for approvals
+		Timeout *int `json:"timeout,omitempty"`
+	}
+}
+type GetApprovalStepDetail200Skin string
+type GetApprovalStepDetail200Status string
+
+// Status returns HTTPResponse.Status
+func (r GetApprovalStepDetailResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetApprovalStepDetailResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -125222,6 +125549,24 @@ func (c *ClientWithResponses) UnshareAiSessionWithResponse(ctx context.Context, 
 	return ParseUnshareAiSessionResponse(rsp)
 }
 
+// ListSharedAiSessionsWithResponse request returning *ListSharedAiSessionsResponse
+func (c *ClientWithResponses) ListSharedAiSessionsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListSharedAiSessionsResponse, error) {
+	rsp, err := c.ListSharedAiSessions(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSharedAiSessionsResponse(rsp)
+}
+
+// ForgetOpenedAiSessionWithResponse request returning *ForgetOpenedAiSessionResponse
+func (c *ClientWithResponses) ForgetOpenedAiSessionWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, reqEditors ...RequestEditorFn) (*ForgetOpenedAiSessionResponse, error) {
+	rsp, err := c.ForgetOpenedAiSession(ctx, workspace, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseForgetOpenedAiSessionResponse(rsp)
+}
+
 // SetAiSessionSharePublicWithBodyWithResponse request with arbitrary body returning *SetAiSessionSharePublicResponse
 func (c *ClientWithResponses) SetAiSessionSharePublicWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAiSessionSharePublicResponse, error) {
 	rsp, err := c.SetAiSessionSharePublicWithBody(ctx, workspace, id, contentType, body, reqEditors...)
@@ -128518,6 +128863,15 @@ func (c *ClientWithResponses) DeleteJobsWithResponse(ctx context.Context, worksp
 		return nil, err
 	}
 	return ParseDeleteJobsResponse(rsp)
+}
+
+// GetApprovalStepDetailWithResponse request returning *GetApprovalStepDetailResponse
+func (c *ClientWithResponses) GetApprovalStepDetailWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, stepId string, reqEditors ...RequestEditorFn) (*GetApprovalStepDetailResponse, error) {
+	rsp, err := c.GetApprovalStepDetail(ctx, workspace, jobId, stepId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetApprovalStepDetailResponse(rsp)
 }
 
 // ResumeSuspendedFlowAsOwnerWithBodyWithResponse request with arbitrary body returning *ResumeSuspendedFlowAsOwnerResponse
@@ -139296,6 +139650,60 @@ func ParseUnshareAiSessionResponse(rsp *http.Response) (*UnshareAiSessionRespons
 	return response, nil
 }
 
+// ParseListSharedAiSessionsResponse parses an HTTP response from a ListSharedAiSessionsWithResponse call
+func ParseListSharedAiSessionsResponse(rsp *http.Response) (*ListSharedAiSessionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSharedAiSessionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			CreatedBy    string             `json:"created_by"`
+			Id           openapi_types.UUID `json:"id"`
+			IsPublic     bool               `json:"is_public"`
+			MessageCount int                `json:"message_count"`
+			Mine         bool               `json:"mine"`
+			Name         string             `json:"name"`
+
+			// OpenedAt when the caller last opened this share by link
+			OpenedAt  *time.Time `json:"opened_at,omitempty"`
+			SessionId *string    `json:"session_id,omitempty"`
+			SharedAt  time.Time  `json:"shared_at"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseForgetOpenedAiSessionResponse parses an HTTP response from a ForgetOpenedAiSessionWithResponse call
+func ParseForgetOpenedAiSessionResponse(rsp *http.Response) (*ForgetOpenedAiSessionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ForgetOpenedAiSessionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseSetAiSessionSharePublicResponse parses an HTTP response from a SetAiSessionSharePublicWithResponse call
 func ParseSetAiSessionSharePublicResponse(rsp *http.Response) (*SetAiSessionSharePublicResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -139906,14 +140314,17 @@ func ParseGetSharedAiSessionResponse(rsp *http.Response) (*GetSharedAiSessionRes
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			// CanUnshare whether the caller authored the share or is a workspace admin
-			CanUnshare   bool                   `json:"can_unshare"`
-			CreatedBy    string                 `json:"created_by"`
-			Id           openapi_types.UUID     `json:"id"`
-			IsPublic     bool                   `json:"is_public"`
-			MessageCount int                    `json:"message_count"`
-			Name         string                 `json:"name"`
-			SharedAt     time.Time              `json:"shared_at"`
-			Snapshot     map[string]interface{} `json:"snapshot"`
+			CanUnshare   bool               `json:"can_unshare"`
+			CreatedBy    string             `json:"created_by"`
+			Id           openapi_types.UUID `json:"id"`
+			IsPublic     bool               `json:"is_public"`
+			MessageCount int                `json:"message_count"`
+
+			// Mine whether the caller authored the share
+			Mine     bool                   `json:"mine"`
+			Name     string                 `json:"name"`
+			SharedAt time.Time              `json:"shared_at"`
+			Snapshot map[string]interface{} `json:"snapshot"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -146109,6 +146520,86 @@ func ParseDeleteJobsResponse(rsp *http.Response) (*DeleteJobsResponse, error) {
 	response := &DeleteJobsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetApprovalStepDetailResponse parses an HTTP response from a GetApprovalStepDetailWithResponse call
+func ParseGetApprovalStepDetailResponse(rsp *http.Response) (*GetApprovalStepDetailResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetApprovalStepDetailResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			ApprovalConditions *struct {
+				SelfApprovalDisabled bool     `json:"self_approval_disabled"`
+				UserAuthRequired     bool     `json:"user_auth_required"`
+				UserGroupsRequired   []string `json:"user_groups_required"`
+			} `json:"approval_conditions,omitempty"`
+
+			// Approvals approvals received. approved, value and created_at are known only while the run is live; a finished run keeps approver names alone.
+			Approvals []struct {
+				Approved  *bool        `json:"approved,omitempty"`
+				Approver  string       `json:"approver"`
+				CreatedAt *time.Time   `json:"created_at,omitempty"`
+				ResumeId  int          `json:"resume_id"`
+				Value     *interface{} `json:"value,omitempty"`
+			} `json:"approvals"`
+
+			// CanApprove whether the caller can approve, set only while waiting
+			CanApprove                  *bool `json:"can_approve,omitempty"`
+			ContinueOnDisapproveTimeout bool  `json:"continue_on_disapprove_timeout"`
+
+			// DefaultArgs default form values returned by the approval step's script
+			DefaultArgs *interface{} `json:"default_args,omitempty"`
+
+			// Description description returned by the approval step's script
+			Description *interface{} `json:"description,omitempty"`
+
+			// Enums form enums returned by the approval step's script
+			Enums *interface{} `json:"enums,omitempty"`
+
+			// Error the run's error, when status is not_resumed
+			Error  *interface{}       `json:"error,omitempty"`
+			FlowId openapi_types.UUID `json:"flow_id"`
+
+			// FormSchema form schema for the approval step
+			FormSchema *interface{} `json:"form_schema,omitempty"`
+			HideCancel bool         `json:"hide_cancel"`
+
+			// RequiredEvents number of approvals required to resume
+			RequiredEvents int                          `json:"required_events"`
+			Skin           GetApprovalStepDetail200Skin `json:"skin"`
+
+			// Status not_reached: the step's own script has not finished yet. failed: the step failed before asking for approval. waiting: the run is suspended on this step. resumed: the run moved past this step. not_resumed: the run ended while waiting (denied, timed out or cancelled).
+			Status GetApprovalStepDetail200Status `json:"status"`
+			StepId string                         `json:"step_id"`
+
+			// StepJob the job of the approval step, once it ran
+			StepJob     *openapi_types.UUID `json:"step_job,omitempty"`
+			StepSummary *string             `json:"step_summary,omitempty"`
+
+			// SuspendedUntil when the wait times out, while waiting
+			SuspendedUntil *time.Time `json:"suspended_until,omitempty"`
+
+			// Timeout seconds the run waits for approvals
+			Timeout *int `json:"timeout,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
