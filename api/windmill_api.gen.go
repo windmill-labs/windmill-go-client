@@ -2507,6 +2507,25 @@ type AutoPullStatus struct {
 	SyncedSha *string             `json:"synced_sha,omitempty"`
 }
 
+// AutoscalingDecision defines model for AutoscalingDecision.
+type AutoscalingDecision struct {
+	Decision         string         `json:"decision"`
+	JobsWaiting      map[string]int `json:"jobs_waiting"`
+	OccupancyRate15s *float32       `json:"occupancy_rate_15s"`
+	OccupancyRate30m *float32       `json:"occupancy_rate_30m"`
+	OccupancyRate5m  *float32       `json:"occupancy_rate_5m"`
+	RecordedAt       time.Time      `json:"recorded_at"`
+	WorkerCount      int            `json:"worker_count"`
+}
+
+// AutoscalingDiagnostics defines model for AutoscalingDiagnostics.
+type AutoscalingDiagnostics struct {
+	DecisionCount      int64                 `json:"decision_count"`
+	Decisions          []AutoscalingDecision `json:"decisions"`
+	RecordingStartedBy *string               `json:"recording_started_by"`
+	RecordingUntil     *time.Time            `json:"recording_until"`
+}
+
 // AutoscalingEvent defines model for AutoscalingEvent.
 type AutoscalingEvent struct {
 	AppliedAt      *time.Time `json:"applied_at,omitempty"`
@@ -4805,8 +4824,8 @@ type FlowStatus struct {
 	Step int `json:"step"`
 
 	// TestSubflows In a flow test run, deployed subflow path -> the flow value with the test's step overrides applied, run in place of the deployed subflow.
-	TestSubflows *map[string]FlowValue   `json:"test_subflows,omitempty"`
-	UserStates   *map[string]interface{} `json:"user_states,omitempty"`
+	TestSubflows *map[string]map[string]interface{} `json:"test_subflows,omitempty"`
+	UserStates   *map[string]interface{}            `json:"user_states,omitempty"`
 }
 
 // FlowStatusFailureModuleAgentActions0 defines model for .
@@ -10149,6 +10168,17 @@ type ResetPasswordJSONBody struct {
 	Token       string `json:"token"`
 }
 
+// GetAutoscalingDiagnosticsParams defines parameters for GetAutoscalingDiagnostics.
+type GetAutoscalingDiagnosticsParams struct {
+	// IncludeDecisions false returns the recording state and the decision count only
+	IncludeDecisions *bool `form:"include_decisions,omitempty" json:"include_decisions,omitempty"`
+}
+
+// SetAutoscalingRecordingJSONBody defines parameters for SetAutoscalingRecording.
+type SetAutoscalingRecordingJSONBody struct {
+	Record bool `json:"record"`
+}
+
 // ListAutoscalingEventsParams defines parameters for ListAutoscalingEvents.
 type ListAutoscalingEventsParams struct {
 	// Page which page to return (start at 1, default 1)
@@ -13486,7 +13516,7 @@ type RunFlowTestJSONBody struct {
 	// CallerJobId the job whose code defines the replacing functions, usually the calling test; a script run or a script preview. Required with a `function` override.
 	CallerJobId *openapi_types.UUID `json:"caller_job_id,omitempty"`
 
-	// Steps step id -> override
+	// Steps step id -> override. A step inside a subflow is named by the path of step ids to it, `sub:inner` for step `inner` of the subflow that step `sub` calls.
 	Steps *map[string]struct {
 		// Function name of a function of the code of `caller_job_id` that runs instead of the step (exported, in TypeScript)
 		Function *string `json:"function,omitempty"`
@@ -15866,6 +15896,9 @@ type RequestPasswordResetJSONRequestBody RequestPasswordResetJSONBody
 
 // ResetPasswordJSONRequestBody defines body for ResetPassword for application/json ContentType.
 type ResetPasswordJSONRequestBody ResetPasswordJSONBody
+
+// SetAutoscalingRecordingJSONRequestBody defines body for SetAutoscalingRecording for application/json ContentType.
+type SetAutoscalingRecordingJSONRequestBody SetAutoscalingRecordingJSONBody
 
 // TestAutoscalingJSONRequestBody defines body for TestAutoscaling for application/json ContentType.
 type TestAutoscalingJSONRequestBody TestAutoscalingJSONBody
@@ -19698,6 +19731,14 @@ type ClientInterface interface {
 
 	// GetConcurrencyKey request
 	GetConcurrencyKey(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAutoscalingDiagnostics request
+	GetAutoscalingDiagnostics(ctx context.Context, workerGroup string, params *GetAutoscalingDiagnosticsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetAutoscalingRecordingWithBody request with any body
+	SetAutoscalingRecordingWithBody(ctx context.Context, workerGroup string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetAutoscalingRecording(ctx context.Context, workerGroup string, body SetAutoscalingRecordingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetConfig request
 	GetConfig(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -23544,6 +23585,42 @@ func (c *Client) DeleteConcurrencyGroup(ctx context.Context, concurrencyId Concu
 
 func (c *Client) GetConcurrencyKey(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetConcurrencyKeyRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAutoscalingDiagnostics(ctx context.Context, workerGroup string, params *GetAutoscalingDiagnosticsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAutoscalingDiagnosticsRequest(c.Server, workerGroup, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetAutoscalingRecordingWithBody(ctx context.Context, workerGroup string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetAutoscalingRecordingRequestWithBody(c.Server, workerGroup, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetAutoscalingRecording(ctx context.Context, workerGroup string, body SetAutoscalingRecordingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetAutoscalingRecordingRequest(c.Server, workerGroup, body)
 	if err != nil {
 		return nil, err
 	}
@@ -39848,6 +39925,109 @@ func NewGetConcurrencyKeyRequest(server string, id JobId) (*http.Request, error)
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGetAutoscalingDiagnosticsRequest generates requests for GetAutoscalingDiagnostics
+func NewGetAutoscalingDiagnosticsRequest(server string, workerGroup string, params *GetAutoscalingDiagnosticsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "worker_group", runtime.ParamLocationPath, workerGroup)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/autoscaling_diagnostics/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeDecisions != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_decisions", runtime.ParamLocationQuery, *params.IncludeDecisions); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetAutoscalingRecordingRequest calls the generic SetAutoscalingRecording builder with application/json body
+func NewSetAutoscalingRecordingRequest(server string, workerGroup string, body SetAutoscalingRecordingJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetAutoscalingRecordingRequestWithBody(server, workerGroup, "application/json", bodyReader)
+}
+
+// NewSetAutoscalingRecordingRequestWithBody generates requests for SetAutoscalingRecording with any type of body
+func NewSetAutoscalingRecordingRequestWithBody(server string, workerGroup string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "worker_group", runtime.ParamLocationPath, workerGroup)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/configs/autoscaling_recording/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -96330,6 +96510,14 @@ type ClientWithResponsesInterface interface {
 	// GetConcurrencyKeyWithResponse request
 	GetConcurrencyKeyWithResponse(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*GetConcurrencyKeyResponse, error)
 
+	// GetAutoscalingDiagnosticsWithResponse request
+	GetAutoscalingDiagnosticsWithResponse(ctx context.Context, workerGroup string, params *GetAutoscalingDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAutoscalingDiagnosticsResponse, error)
+
+	// SetAutoscalingRecordingWithBodyWithResponse request with any body
+	SetAutoscalingRecordingWithBodyWithResponse(ctx context.Context, workerGroup string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAutoscalingRecordingResponse, error)
+
+	SetAutoscalingRecordingWithResponse(ctx context.Context, workerGroup string, body SetAutoscalingRecordingJSONRequestBody, reqEditors ...RequestEditorFn) (*SetAutoscalingRecordingResponse, error)
+
 	// GetConfigWithResponse request
 	GetConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetConfigResponse, error)
 
@@ -100370,6 +100558,49 @@ func (r GetConcurrencyKeyResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetConcurrencyKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetAutoscalingDiagnosticsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AutoscalingDiagnostics
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAutoscalingDiagnosticsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAutoscalingDiagnosticsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetAutoscalingRecordingResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r SetAutoscalingRecordingResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetAutoscalingRecordingResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -123487,6 +123718,32 @@ func (c *ClientWithResponses) GetConcurrencyKeyWithResponse(ctx context.Context,
 	return ParseGetConcurrencyKeyResponse(rsp)
 }
 
+// GetAutoscalingDiagnosticsWithResponse request returning *GetAutoscalingDiagnosticsResponse
+func (c *ClientWithResponses) GetAutoscalingDiagnosticsWithResponse(ctx context.Context, workerGroup string, params *GetAutoscalingDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAutoscalingDiagnosticsResponse, error) {
+	rsp, err := c.GetAutoscalingDiagnostics(ctx, workerGroup, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAutoscalingDiagnosticsResponse(rsp)
+}
+
+// SetAutoscalingRecordingWithBodyWithResponse request with arbitrary body returning *SetAutoscalingRecordingResponse
+func (c *ClientWithResponses) SetAutoscalingRecordingWithBodyWithResponse(ctx context.Context, workerGroup string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetAutoscalingRecordingResponse, error) {
+	rsp, err := c.SetAutoscalingRecordingWithBody(ctx, workerGroup, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetAutoscalingRecordingResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetAutoscalingRecordingWithResponse(ctx context.Context, workerGroup string, body SetAutoscalingRecordingJSONRequestBody, reqEditors ...RequestEditorFn) (*SetAutoscalingRecordingResponse, error) {
+	rsp, err := c.SetAutoscalingRecording(ctx, workerGroup, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetAutoscalingRecordingResponse(rsp)
+}
+
 // GetConfigWithResponse request returning *GetConfigResponse
 func (c *ClientWithResponses) GetConfigWithResponse(ctx context.Context, name Name, reqEditors ...RequestEditorFn) (*GetConfigResponse, error) {
 	rsp, err := c.GetConfig(ctx, name, reqEditors...)
@@ -135321,6 +135578,48 @@ func ParseGetConcurrencyKeyResponse(rsp *http.Response) (*GetConcurrencyKeyRespo
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetAutoscalingDiagnosticsResponse parses an HTTP response from a GetAutoscalingDiagnosticsWithResponse call
+func ParseGetAutoscalingDiagnosticsResponse(rsp *http.Response) (*GetAutoscalingDiagnosticsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAutoscalingDiagnosticsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AutoscalingDiagnostics
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSetAutoscalingRecordingResponse parses an HTTP response from a SetAutoscalingRecordingWithResponse call
+func ParseSetAutoscalingRecordingResponse(rsp *http.Response) (*SetAutoscalingRecordingResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetAutoscalingRecordingResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
