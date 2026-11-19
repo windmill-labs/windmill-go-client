@@ -4802,8 +4802,11 @@ type FlowStatus struct {
 		FailCount  *int                  `json:"fail_count,omitempty"`
 		FailedJobs *[]openapi_types.UUID `json:"failed_jobs,omitempty"`
 	} `json:"retry,omitempty"`
-	Step       int                     `json:"step"`
-	UserStates *map[string]interface{} `json:"user_states,omitempty"`
+	Step int `json:"step"`
+
+	// TestSubflows In a flow test run, deployed subflow path -> the flow value with the test's step overrides applied, run in place of the deployed subflow.
+	TestSubflows *map[string]FlowValue   `json:"test_subflows,omitempty"`
+	UserStates   *map[string]interface{} `json:"user_states,omitempty"`
 }
 
 // FlowStatusFailureModuleAgentActions0 defines model for .
@@ -13475,6 +13478,30 @@ type RunFlowDependenciesAsyncJSONBody struct {
 	Path      string    `json:"path"`
 }
 
+// RunFlowTestJSONBody defines parameters for RunFlowTest.
+type RunFlowTestJSONBody struct {
+	// Args The arguments to pass to the script or flow
+	Args *ScriptArgs `json:"args,omitempty"`
+
+	// CallerJobId the job whose code defines the replacing functions, usually the calling test; a script run or a script preview. Required with a `function` override.
+	CallerJobId *openapi_types.UUID `json:"caller_job_id,omitempty"`
+
+	// Steps step id -> override
+	Steps *map[string]struct {
+		// Function name of a function of the code of `caller_job_id` that runs instead of the step (exported, in TypeScript)
+		Function *string `json:"function,omitempty"`
+
+		// ReturnValue the step is skipped and returns this value
+		ReturnValue *interface{} `json:"return_value,omitempty"`
+	} `json:"steps,omitempty"`
+}
+
+// RunFlowTestParams defines parameters for RunFlowTest.
+type RunFlowTestParams struct {
+	// JobId The job id to assign to the created job. if missing, job is chosen randomly using the ULID scheme. If a job id already exists in the queue or as a completed job, the request to create one will fail (Bad Request)
+	JobId *NewJobId `form:"job_id,omitempty" json:"job_id,omitempty"`
+}
+
 // RunFlowByVersionParams defines parameters for RunFlowByVersion.
 type RunFlowByVersionParams struct {
 	// ScheduledFor when to schedule this job (leave empty for immediate run)
@@ -16400,6 +16427,9 @@ type RunFlowByPathJSONRequestBody = ScriptArgs
 
 // RunFlowDependenciesAsyncJSONRequestBody defines body for RunFlowDependenciesAsync for application/json ContentType.
 type RunFlowDependenciesAsyncJSONRequestBody RunFlowDependenciesAsyncJSONBody
+
+// RunFlowTestJSONRequestBody defines body for RunFlowTest for application/json ContentType.
+type RunFlowTestJSONRequestBody RunFlowTestJSONBody
 
 // RunFlowByVersionJSONRequestBody defines body for RunFlowByVersion for application/json ContentType.
 type RunFlowByVersionJSONRequestBody = ScriptArgs
@@ -21514,6 +21544,11 @@ type ClientInterface interface {
 	RunFlowDependenciesAsyncWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RunFlowDependenciesAsync(ctx context.Context, workspace WorkspaceId, body RunFlowDependenciesAsyncJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RunFlowTestWithBody request with any body
+	RunFlowTestWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowTestParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RunFlowTest(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowTestParams, body RunFlowTestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RunFlowByVersionWithBody request with any body
 	RunFlowByVersionWithBody(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -31633,6 +31668,30 @@ func (c *Client) RunFlowDependenciesAsyncWithBody(ctx context.Context, workspace
 
 func (c *Client) RunFlowDependenciesAsync(ctx context.Context, workspace WorkspaceId, body RunFlowDependenciesAsyncJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRunFlowDependenciesAsyncRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunFlowTestWithBody(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowTestParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowTestRequestWithBody(c.Server, workspace, path, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RunFlowTest(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowTestParams, body RunFlowTestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRunFlowTestRequest(c.Server, workspace, path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -70072,6 +70131,82 @@ func NewRunFlowDependenciesAsyncRequestWithBody(server string, workspace Workspa
 	return req, nil
 }
 
+// NewRunFlowTestRequest calls the generic RunFlowTest builder with application/json body
+func NewRunFlowTestRequest(server string, workspace WorkspaceId, path ScriptPath, params *RunFlowTestParams, body RunFlowTestJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRunFlowTestRequestWithBody(server, workspace, path, params, "application/json", bodyReader)
+}
+
+// NewRunFlowTestRequestWithBody generates requests for RunFlowTest with any type of body
+func NewRunFlowTestRequestWithBody(server string, workspace WorkspaceId, path ScriptPath, params *RunFlowTestParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "path", runtime.ParamLocationPath, path)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/run/flow_test/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.JobId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "job_id", runtime.ParamLocationQuery, *params.JobId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRunFlowByVersionRequest calls the generic RunFlowByVersion builder with application/json body
 func NewRunFlowByVersionRequest(server string, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, body RunFlowByVersionJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -98041,6 +98176,11 @@ type ClientWithResponsesInterface interface {
 
 	RunFlowDependenciesAsyncWithResponse(ctx context.Context, workspace WorkspaceId, body RunFlowDependenciesAsyncJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowDependenciesAsyncResponse, error)
 
+	// RunFlowTestWithBodyWithResponse request with any body
+	RunFlowTestWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowTestParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowTestResponse, error)
+
+	RunFlowTestWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowTestParams, body RunFlowTestJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowTestResponse, error)
+
 	// RunFlowByVersionWithBodyWithResponse request with any body
 	RunFlowByVersionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, version int64, params *RunFlowByVersionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowByVersionResponse, error)
 
@@ -112231,6 +112371,27 @@ func (r RunFlowDependenciesAsyncResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RunFlowDependenciesAsyncResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RunFlowTestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r RunFlowTestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RunFlowTestResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -129232,6 +129393,23 @@ func (c *ClientWithResponses) RunFlowDependenciesAsyncWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseRunFlowDependenciesAsyncResponse(rsp)
+}
+
+// RunFlowTestWithBodyWithResponse request with arbitrary body returning *RunFlowTestResponse
+func (c *ClientWithResponses) RunFlowTestWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowTestParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RunFlowTestResponse, error) {
+	rsp, err := c.RunFlowTestWithBody(ctx, workspace, path, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunFlowTestResponse(rsp)
+}
+
+func (c *ClientWithResponses) RunFlowTestWithResponse(ctx context.Context, workspace WorkspaceId, path ScriptPath, params *RunFlowTestParams, body RunFlowTestJSONRequestBody, reqEditors ...RequestEditorFn) (*RunFlowTestResponse, error) {
+	rsp, err := c.RunFlowTest(ctx, workspace, path, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRunFlowTestResponse(rsp)
 }
 
 // RunFlowByVersionWithBodyWithResponse request with arbitrary body returning *RunFlowByVersionResponse
@@ -147276,6 +147454,22 @@ func ParseRunFlowDependenciesAsyncResponse(rsp *http.Response) (*RunFlowDependen
 	}
 
 	response := &RunFlowDependenciesAsyncResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseRunFlowTestResponse parses an HTTP response from a RunFlowTestWithResponse call
+func ParseRunFlowTestResponse(rsp *http.Response) (*RunFlowTestResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RunFlowTestResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
