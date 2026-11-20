@@ -1124,6 +1124,20 @@ const (
 	QueuedJobJobKindUnassignedSinglestepflow QueuedJobJobKind = "unassigned_singlestepflow"
 )
 
+// Defines values for RecentRunHiddenItemKind.
+const (
+	RecentRunHiddenItemKindAgent  RecentRunHiddenItemKind = "agent"
+	RecentRunHiddenItemKindFlow   RecentRunHiddenItemKind = "flow"
+	RecentRunHiddenItemKindScript RecentRunHiddenItemKind = "script"
+)
+
+// Defines values for RecentRunItemRefsItemsKind.
+const (
+	RecentRunItemRefsItemsKindAgent  RecentRunItemRefsItemsKind = "agent"
+	RecentRunItemRefsItemsKindFlow   RecentRunItemRefsItemsKind = "flow"
+	RecentRunItemRefsItemsKindScript RecentRunItemRefsItemsKind = "script"
+)
+
 // Defines values for RecentRunStatus.
 const (
 	RecentRunStatusCanceled RecentRunStatus = "canceled"
@@ -2496,6 +2510,9 @@ type AutoPullSettings struct {
 	WebhookId      *int64             `json:"webhook_id,omitempty"`
 	WebhookSecret  *string            `json:"webhook_secret,omitempty"`
 	WebhookUrl     *string            `json:"webhook_url,omitempty"`
+
+	// WebhookVerifiedId The webhook_id a delivery from the host last arrived for. Polling relaxes to about every 10 minutes only while it matches webhook_id. Set by the server.
+	WebhookVerifiedId *int64 `json:"webhook_verified_id,omitempty"`
 }
 
 // AutoPullStatus defines model for AutoPullStatus.
@@ -7493,6 +7510,27 @@ type ReadinessHealth struct {
 	Healthy bool `json:"healthy"`
 }
 
+// RecentRunHiddenItem defines model for RecentRunHiddenItem.
+type RecentRunHiddenItem struct {
+	Kind    RecentRunHiddenItemKind `json:"kind"`
+	Path    string                  `json:"path"`
+	Summary *string                 `json:"summary,omitempty"`
+}
+
+// RecentRunHiddenItemKind defines model for RecentRunHiddenItem.Kind.
+type RecentRunHiddenItemKind string
+
+// RecentRunItemRefs defines model for RecentRunItemRefs.
+type RecentRunItemRefs struct {
+	Items []struct {
+		Kind RecentRunItemRefsItemsKind `json:"kind"`
+		Path string                     `json:"path"`
+	} `json:"items"`
+}
+
+// RecentRunItemRefsItemsKind defines model for RecentRunItemRefs.Items.Kind.
+type RecentRunItemRefsItemsKind string
+
 // RecentRunStatus a failure someone or something marked as handled is `resolved`, not `failure`
 type RecentRunStatus string
 
@@ -9692,8 +9730,11 @@ type SchemasPathFlow struct {
 	InputTransforms map[string]SchemasInputTransform `json:"input_transforms"`
 
 	// Path Path to the flow in the workspace (e.g., 'f/flows/process_user')
-	Path string              `json:"path"`
-	Type SchemasPathFlowType `json:"type"`
+	Path string `json:"path"`
+
+	// TagOverride Override the subflow's worker group tag. Its steps run on this tag unless the subflow sets preserve_step_tags
+	TagOverride *string             `json:"tag_override,omitempty"`
+	Type        SchemasPathFlowType `json:"type"`
 }
 
 // SchemasPathFlowType defines model for SchemasPathFlow.Type.
@@ -16437,6 +16478,12 @@ type CancelSelectionJSONRequestBody = CancelSelectionJSONBody
 // ImportQueuedJobsJSONRequestBody defines body for ImportQueuedJobs for application/json ContentType.
 type ImportQueuedJobsJSONRequestBody = ImportQueuedJobsJSONBody
 
+// HideRecentRunItemsJSONRequestBody defines body for HideRecentRunItems for application/json ContentType.
+type HideRecentRunItemsJSONRequestBody = RecentRunItemRefs
+
+// UnhideRecentRunItemsJSONRequestBody defines body for UnhideRecentRunItems for application/json ContentType.
+type UnhideRecentRunItemsJSONRequestBody = RecentRunItemRefs
+
 // RestartFlowAtStepJSONRequestBody defines body for RestartFlowAtStep for application/json ContentType.
 type RestartFlowAtStepJSONRequestBody RestartFlowAtStepJSONBody
 
@@ -21539,6 +21586,16 @@ type ClientInterface interface {
 
 	// ListRecentRuns request
 	ListRecentRuns(ctx context.Context, workspace WorkspaceId, params *ListRecentRunsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// HideRecentRunItemsWithBody request with any body
+	HideRecentRunItemsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	HideRecentRunItems(ctx context.Context, workspace WorkspaceId, body HideRecentRunItemsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UnhideRecentRunItemsWithBody request with any body
+	UnhideRecentRunItemsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UnhideRecentRunItems(ctx context.Context, workspace WorkspaceId, body UnhideRecentRunItemsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RestartFlowAtStepWithBody request with any body
 	RestartFlowAtStepWithBody(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -31529,6 +31586,54 @@ func (c *Client) GetScheduledFor(ctx context.Context, workspace WorkspaceId, id 
 
 func (c *Client) ListRecentRuns(ctx context.Context, workspace WorkspaceId, params *ListRecentRunsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListRecentRunsRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) HideRecentRunItemsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewHideRecentRunItemsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) HideRecentRunItems(ctx context.Context, workspace WorkspaceId, body HideRecentRunItemsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewHideRecentRunItemsRequest(c.Server, workspace, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UnhideRecentRunItemsWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnhideRecentRunItemsRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UnhideRecentRunItems(ctx context.Context, workspace WorkspaceId, body UnhideRecentRunItemsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUnhideRecentRunItemsRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -69458,6 +69563,100 @@ func NewListRecentRunsRequest(server string, workspace WorkspaceId, params *List
 	return req, nil
 }
 
+// NewHideRecentRunItemsRequest calls the generic HideRecentRunItems builder with application/json body
+func NewHideRecentRunItemsRequest(server string, workspace WorkspaceId, body HideRecentRunItemsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewHideRecentRunItemsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewHideRecentRunItemsRequestWithBody generates requests for HideRecentRunItems with any type of body
+func NewHideRecentRunItemsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/recent_runs/hide", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUnhideRecentRunItemsRequest calls the generic UnhideRecentRunItems builder with application/json body
+func NewUnhideRecentRunItemsRequest(server string, workspace WorkspaceId, body UnhideRecentRunItemsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUnhideRecentRunItemsRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewUnhideRecentRunItemsRequestWithBody generates requests for UnhideRecentRunItems with any type of body
+func NewUnhideRecentRunItemsRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/recent_runs/unhide", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRestartFlowAtStepRequest calls the generic RestartFlowAtStep builder with application/json body
 func NewRestartFlowAtStepRequest(server string, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, body RestartFlowAtStepJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -98318,6 +98517,16 @@ type ClientWithResponsesInterface interface {
 	// ListRecentRunsWithResponse request
 	ListRecentRunsWithResponse(ctx context.Context, workspace WorkspaceId, params *ListRecentRunsParams, reqEditors ...RequestEditorFn) (*ListRecentRunsResponse, error)
 
+	// HideRecentRunItemsWithBodyWithResponse request with any body
+	HideRecentRunItemsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*HideRecentRunItemsResponse, error)
+
+	HideRecentRunItemsWithResponse(ctx context.Context, workspace WorkspaceId, body HideRecentRunItemsJSONRequestBody, reqEditors ...RequestEditorFn) (*HideRecentRunItemsResponse, error)
+
+	// UnhideRecentRunItemsWithBodyWithResponse request with any body
+	UnhideRecentRunItemsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UnhideRecentRunItemsResponse, error)
+
+	UnhideRecentRunItemsWithResponse(ctx context.Context, workspace WorkspaceId, body UnhideRecentRunItemsJSONRequestBody, reqEditors ...RequestEditorFn) (*UnhideRecentRunItemsResponse, error)
+
 	// RestartFlowAtStepWithBodyWithResponse request with any body
 	RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error)
 
@@ -109089,8 +109298,12 @@ type GetFolderUsageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Apps      float32 `json:"apps"`
-		Flows     float32 `json:"flows"`
+		// Agents saved AI agents (resources of type `ai_agent`)
+		Agents float32 `json:"agents"`
+		Apps   float32 `json:"apps"`
+		Flows  float32 `json:"flows"`
+
+		// Resources resources other than AI agents
 		Resources float32 `json:"resources"`
 		Schedules float32 `json:"schedules"`
 		Scripts   float32 `json:"scripts"`
@@ -112343,7 +112556,10 @@ type ListRecentRunsResponse struct {
 		Capped       bool `json:"capped"`
 		FailedRuns   int  `json:"failed_runs"`
 		FailingItems int  `json:"failing_items"`
-		Items        []struct {
+
+		// HiddenItems the items the caller hid, within the folder, whether or not they ran in the window; their runs are left out of items and of every count
+		HiddenItems []RecentRunHiddenItem `json:"hidden_items"`
+		Items       []struct {
 			// FailedRunIds the ids of those failed runs, only for the item named by failed_ids_kind and failed_ids_path
 			FailedRunIds *[]openapi_types.UUID `json:"failed_run_ids,omitempty"`
 
@@ -112383,6 +112599,48 @@ func (r ListRecentRunsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListRecentRunsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type HideRecentRunItemsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r HideRecentRunItemsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r HideRecentRunItemsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UnhideRecentRunItemsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UnhideRecentRunItemsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UnhideRecentRunItemsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -129498,6 +129756,40 @@ func (c *ClientWithResponses) ListRecentRunsWithResponse(ctx context.Context, wo
 	return ParseListRecentRunsResponse(rsp)
 }
 
+// HideRecentRunItemsWithBodyWithResponse request with arbitrary body returning *HideRecentRunItemsResponse
+func (c *ClientWithResponses) HideRecentRunItemsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*HideRecentRunItemsResponse, error) {
+	rsp, err := c.HideRecentRunItemsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseHideRecentRunItemsResponse(rsp)
+}
+
+func (c *ClientWithResponses) HideRecentRunItemsWithResponse(ctx context.Context, workspace WorkspaceId, body HideRecentRunItemsJSONRequestBody, reqEditors ...RequestEditorFn) (*HideRecentRunItemsResponse, error) {
+	rsp, err := c.HideRecentRunItems(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseHideRecentRunItemsResponse(rsp)
+}
+
+// UnhideRecentRunItemsWithBodyWithResponse request with arbitrary body returning *UnhideRecentRunItemsResponse
+func (c *ClientWithResponses) UnhideRecentRunItemsWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UnhideRecentRunItemsResponse, error) {
+	rsp, err := c.UnhideRecentRunItemsWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnhideRecentRunItemsResponse(rsp)
+}
+
+func (c *ClientWithResponses) UnhideRecentRunItemsWithResponse(ctx context.Context, workspace WorkspaceId, body UnhideRecentRunItemsJSONRequestBody, reqEditors ...RequestEditorFn) (*UnhideRecentRunItemsResponse, error) {
+	rsp, err := c.UnhideRecentRunItems(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUnhideRecentRunItemsResponse(rsp)
+}
+
 // RestartFlowAtStepWithBodyWithResponse request with arbitrary body returning *RestartFlowAtStepResponse
 func (c *ClientWithResponses) RestartFlowAtStepWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, params *RestartFlowAtStepParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestartFlowAtStepResponse, error) {
 	rsp, err := c.RestartFlowAtStepWithBody(ctx, workspace, id, params, contentType, body, reqEditors...)
@@ -144289,8 +144581,12 @@ func ParseGetFolderUsageResponse(rsp *http.Response) (*GetFolderUsageResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Apps      float32 `json:"apps"`
-			Flows     float32 `json:"flows"`
+			// Agents saved AI agents (resources of type `ai_agent`)
+			Agents float32 `json:"agents"`
+			Apps   float32 `json:"apps"`
+			Flows  float32 `json:"flows"`
+
+			// Resources resources other than AI agents
 			Resources float32 `json:"resources"`
 			Schedules float32 `json:"schedules"`
 			Scripts   float32 `json:"scripts"`
@@ -147527,7 +147823,10 @@ func ParseListRecentRunsResponse(rsp *http.Response) (*ListRecentRunsResponse, e
 			Capped       bool `json:"capped"`
 			FailedRuns   int  `json:"failed_runs"`
 			FailingItems int  `json:"failing_items"`
-			Items        []struct {
+
+			// HiddenItems the items the caller hid, within the folder, whether or not they ran in the window; their runs are left out of items and of every count
+			HiddenItems []RecentRunHiddenItem `json:"hidden_items"`
+			Items       []struct {
 				// FailedRunIds the ids of those failed runs, only for the item named by failed_ids_kind and failed_ids_path
 				FailedRunIds *[]openapi_types.UUID `json:"failed_run_ids,omitempty"`
 
@@ -147559,6 +147858,38 @@ func ParseListRecentRunsResponse(rsp *http.Response) (*ListRecentRunsResponse, e
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseHideRecentRunItemsResponse parses an HTTP response from a HideRecentRunItemsWithResponse call
+func ParseHideRecentRunItemsResponse(rsp *http.Response) (*HideRecentRunItemsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &HideRecentRunItemsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUnhideRecentRunItemsResponse parses an HTTP response from a UnhideRecentRunItemsWithResponse call
+func ParseUnhideRecentRunItemsResponse(rsp *http.Response) (*UnhideRecentRunItemsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UnhideRecentRunItemsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
