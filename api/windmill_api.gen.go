@@ -3589,7 +3589,10 @@ type EditErrorHandlerNew struct {
 	// FallbackToInstanceAlerts Report failed jobs to the instance critical alert channels when no workspace error handler is set. Omit to leave the stored value untouched.
 	FallbackToInstanceAlerts *bool `json:"fallback_to_instance_alerts,omitempty"`
 	MutedOnCancel            *bool `json:"muted_on_cancel,omitempty"`
-	MutedOnUserPath          *bool `json:"muted_on_user_path,omitempty"`
+
+	// MutedOnUiRuns Skip jobs started from the UI, whose trigger kind is `ui`. Omit to leave the stored value untouched.
+	MutedOnUiRuns   *bool `json:"muted_on_ui_runs,omitempty"`
+	MutedOnUserPath *bool `json:"muted_on_user_path,omitempty"`
 
 	// Path Path to the error handler script or flow
 	Path *string `json:"path,omitempty"`
@@ -4234,9 +4237,12 @@ type EndpointTool struct {
 // ErrorHandlerConfig Configuration for the workspace error handler
 type ErrorHandlerConfig struct {
 	// ExtraArgs The arguments to pass to the script or flow
-	ExtraArgs       *ScriptArgs `json:"extra_args,omitempty"`
-	MutedOnCancel   *bool       `json:"muted_on_cancel,omitempty"`
-	MutedOnUserPath *bool       `json:"muted_on_user_path,omitempty"`
+	ExtraArgs     *ScriptArgs `json:"extra_args,omitempty"`
+	MutedOnCancel *bool       `json:"muted_on_cancel,omitempty"`
+
+	// MutedOnUiRuns Skip jobs started from the UI, whose trigger kind is `ui`. Stored only when true.
+	MutedOnUiRuns   *bool `json:"muted_on_ui_runs,omitempty"`
+	MutedOnUserPath *bool `json:"muted_on_user_path,omitempty"`
 
 	// Path Path to the error handler script or flow
 	Path *string `json:"path,omitempty"`
@@ -14125,6 +14131,12 @@ type GetCompletedJobResultParams struct {
 // GetCompletedJobResultMaybeParams defines parameters for GetCompletedJobResultMaybe.
 type GetCompletedJobResultMaybeParams struct {
 	GetStarted *GetStarted `form:"get_started,omitempty" json:"get_started,omitempty"`
+
+	// WaitForChild Set by a job's SDK wait helpers when the calling job is blocked until this job, its
+	// child, completes. If every worker of the child's tag is held by such a waiting parent,
+	// the child can never start, and the request fails with 409 instead of the wait hanging.
+	// Leave unset for a plain status read.
+	WaitForChild *bool `form:"wait_for_child,omitempty" json:"wait_for_child,omitempty"`
 }
 
 // GetApprovalInfoParams defines parameters for GetApprovalInfo.
@@ -75007,6 +75019,22 @@ func NewGetCompletedJobResultMaybeRequest(server string, workspace WorkspaceId, 
 		if params.GetStarted != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "get_started", runtime.ParamLocationQuery, *params.GetStarted); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.WaitForChild != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "wait_for_child", runtime.ParamLocationQuery, *params.WaitForChild); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
