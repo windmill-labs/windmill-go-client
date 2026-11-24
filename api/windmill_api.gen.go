@@ -7615,11 +7615,17 @@ type RestartedFrom struct {
 	} `json:"branch_chosen,omitempty"`
 
 	// BranchOrIterationN 0-based iteration index for ForLoop / branch index for BranchAll. Iterations 0..n-1 are preserved; iteration n is restarted.
-	BranchOrIterationN *int                `json:"branch_or_iteration_n,omitempty"`
-	FlowJobId          *openapi_types.UUID `json:"flow_job_id,omitempty"`
-	FlowVersion        *int                `json:"flow_version,omitempty"`
-	Nested             *RestartedFrom      `json:"nested,omitempty"`
-	StepId             *string             `json:"step_id,omitempty"`
+	BranchOrIterationN *int `json:"branch_or_iteration_n,omitempty"`
+
+	// FailedOnly For a parallel for-loop or branch-all at `step_id`, keep the iterations (branches) that succeeded and rerun only the others.
+	FailedOnly  *bool               `json:"failed_only,omitempty"`
+	FlowJobId   *openapi_types.UUID `json:"flow_job_id,omitempty"`
+	FlowVersion *int                `json:"flow_version,omitempty"`
+
+	// FromFailedStep With `failed_only`, resume each failed iteration (branch) at the step where it failed rather than rerunning it from its first step.
+	FromFailedStep *bool          `json:"from_failed_step,omitempty"`
+	Nested         *RestartedFrom `json:"nested,omitempty"`
+	StepId         *string        `json:"step_id,omitempty"`
 }
 
 // RestartedFromBranchChosenType defines model for RestartedFrom.BranchChosen.Type.
@@ -10953,6 +10959,11 @@ type EvalSubjectStateParams struct {
 	Path string `form:"path" json:"path"`
 }
 
+// OpenSecretRequestJSONBody defines parameters for OpenSecretRequest.
+type OpenSecretRequestJSONBody struct {
+	Token string `json:"token"`
+}
+
 // CallAiSessionToolJSONBody defines parameters for CallAiSessionTool.
 type CallAiSessionToolJSONBody struct {
 	// Args the tool's arguments, as the model sent them
@@ -13422,8 +13433,14 @@ type RestartFlowAtStepJSONBody struct {
 	// BranchOrIterationN for branchall or loop at the top level, the iteration at which the flow should restart (optional)
 	BranchOrIterationN *int `json:"branch_or_iteration_n,omitempty"`
 
+	// FailedOnly for a parallel for-loop or branch-all at the restart point (`step_id`, or the last `nested_path` entry), keep the iterations (branches) that succeeded and rerun only the others from their first step, each in its original position. Cannot be combined with an iteration to restart at on that same step.
+	FailedOnly *bool `json:"failed_only,omitempty"`
+
 	// FlowVersion specific flow version to use for restart (optional, uses current version if not specified)
 	FlowVersion *int `json:"flow_version,omitempty"`
+
+	// FromFailedStep with `failed_only`, resume each failed iteration (branch) at the step where it failed, keeping the steps before it, rather than rerunning it from its first step.
+	FromFailedStep *bool `json:"from_failed_step,omitempty"`
 
 	// NestedPath path of additional steps to descend into AFTER `step_id`. Each entry represents one level of nesting inside the spawned child of the previous level's container (BranchOne / sequential ForLoop iteration / Subflow). When non-empty, the actual restart point is the LAST entry's step_id.
 	NestedPath *[]struct {
@@ -16180,6 +16197,9 @@ type UpdateEvalDatasetJSONRequestBody UpdateEvalDatasetJSONBody
 
 // RunExperimentJSONRequestBody defines body for RunExperiment for application/json ContentType.
 type RunExperimentJSONRequestBody RunExperimentJSONBody
+
+// OpenSecretRequestJSONRequestBody defines body for OpenSecretRequest for application/json ContentType.
+type OpenSecretRequestJSONRequestBody OpenSecretRequestJSONBody
 
 // CallAiSessionToolJSONRequestBody defines body for CallAiSessionTool for application/json ContentType.
 type CallAiSessionToolJSONRequestBody CallAiSessionToolJSONBody
@@ -20571,6 +20591,11 @@ type ClientInterface interface {
 
 	// EvalSubjectState request
 	EvalSubjectState(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// OpenSecretRequestWithBody request with any body
+	OpenSecretRequestWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	OpenSecretRequest(ctx context.Context, workspace WorkspaceId, body OpenSecretRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CallAiSessionToolWithBody request with any body
 	CallAiSessionToolWithBody(ctx context.Context, workspace WorkspaceId, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -27086,6 +27111,30 @@ func (c *Client) RecentScorers(ctx context.Context, workspace WorkspaceId, param
 
 func (c *Client) EvalSubjectState(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewEvalSubjectStateRequest(c.Server, workspace, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OpenSecretRequestWithBody(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOpenSecretRequestRequestWithBody(c.Server, workspace, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OpenSecretRequest(ctx context.Context, workspace WorkspaceId, body OpenSecretRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOpenSecretRequestRequest(c.Server, workspace, body)
 	if err != nil {
 		return nil, err
 	}
@@ -48684,6 +48733,53 @@ func NewEvalSubjectStateRequest(server string, workspace WorkspaceId, params *Ev
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewOpenSecretRequestRequest calls the generic OpenSecretRequest builder with application/json body
+func NewOpenSecretRequestRequest(server string, workspace WorkspaceId, body OpenSecretRequestJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewOpenSecretRequestRequestWithBody(server, workspace, "application/json", bodyReader)
+}
+
+// NewOpenSecretRequestRequestWithBody generates requests for OpenSecretRequest with any type of body
+func NewOpenSecretRequestRequestWithBody(server string, workspace WorkspaceId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/ai_session_tools/secret_request/open", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -97518,6 +97614,11 @@ type ClientWithResponsesInterface interface {
 	// EvalSubjectStateWithResponse request
 	EvalSubjectStateWithResponse(ctx context.Context, workspace WorkspaceId, params *EvalSubjectStateParams, reqEditors ...RequestEditorFn) (*EvalSubjectStateResponse, error)
 
+	// OpenSecretRequestWithBodyWithResponse request with any body
+	OpenSecretRequestWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenSecretRequestResponse, error)
+
+	OpenSecretRequestWithResponse(ctx context.Context, workspace WorkspaceId, body OpenSecretRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenSecretRequestResponse, error)
+
 	// CallAiSessionToolWithBodyWithResponse request with any body
 	CallAiSessionToolWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CallAiSessionToolResponse, error)
 
@@ -105833,6 +105934,28 @@ func (r EvalSubjectStateResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r EvalSubjectStateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type OpenSecretRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]interface{}
+}
+
+// Status returns HTTPResponse.Status
+func (r OpenSecretRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r OpenSecretRequestResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -126501,6 +126624,23 @@ func (c *ClientWithResponses) EvalSubjectStateWithResponse(ctx context.Context, 
 	return ParseEvalSubjectStateResponse(rsp)
 }
 
+// OpenSecretRequestWithBodyWithResponse request with arbitrary body returning *OpenSecretRequestResponse
+func (c *ClientWithResponses) OpenSecretRequestWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenSecretRequestResponse, error) {
+	rsp, err := c.OpenSecretRequestWithBody(ctx, workspace, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOpenSecretRequestResponse(rsp)
+}
+
+func (c *ClientWithResponses) OpenSecretRequestWithResponse(ctx context.Context, workspace WorkspaceId, body OpenSecretRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*OpenSecretRequestResponse, error) {
+	rsp, err := c.OpenSecretRequest(ctx, workspace, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOpenSecretRequestResponse(rsp)
+}
+
 // CallAiSessionToolWithBodyWithResponse request with arbitrary body returning *CallAiSessionToolResponse
 func (c *ClientWithResponses) CallAiSessionToolWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CallAiSessionToolResponse, error) {
 	rsp, err := c.CallAiSessionToolWithBody(ctx, workspace, name, contentType, body, reqEditors...)
@@ -141031,6 +141171,32 @@ func ParseEvalSubjectStateResponse(rsp *http.Response) (*EvalSubjectStateRespons
 		var dest struct {
 			Version *int64 `json:"version,omitempty"`
 		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseOpenSecretRequestResponse parses an HTTP response from a OpenSecretRequestWithResponse call
+func ParseOpenSecretRequestResponse(rsp *http.Response) (*OpenSecretRequestResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &OpenSecretRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]interface{}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
