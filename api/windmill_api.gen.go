@@ -1140,11 +1140,12 @@ const (
 
 // Defines values for RecentRunStatus.
 const (
-	RecentRunStatusCanceled RecentRunStatus = "canceled"
-	RecentRunStatusFailure  RecentRunStatus = "failure"
-	RecentRunStatusResolved RecentRunStatus = "resolved"
-	RecentRunStatusRunning  RecentRunStatus = "running"
-	RecentRunStatusSuccess  RecentRunStatus = "success"
+	RecentRunStatusCanceled  RecentRunStatus = "canceled"
+	RecentRunStatusFailure   RecentRunStatus = "failure"
+	RecentRunStatusResolved  RecentRunStatus = "resolved"
+	RecentRunStatusRunning   RecentRunStatus = "running"
+	RecentRunStatusSuccess   RecentRunStatus = "success"
+	RecentRunStatusSuspended RecentRunStatus = "suspended"
 )
 
 // Defines values for RestartedFromBranchChosenType.
@@ -4803,8 +4804,13 @@ type FlowStatus struct {
 		// AgentActionsSuccess The outcome of each agent action, by position. null while a background tool call is still running.
 		AgentActionsSuccess *[]bool `json:"agent_actions_success,omitempty"`
 		Approvers           *[]struct {
-			Approver string `json:"approver"`
-			ResumeId int    `json:"resume_id"`
+			// Approved false for a rejection the flow continued past; absent for approvals recorded before it was kept
+			Approved *bool `json:"approved,omitempty"`
+
+			// ApprovedAt absent for approvals recorded before it was kept
+			ApprovedAt *time.Time `json:"approved_at,omitempty"`
+			Approver   string     `json:"approver"`
+			ResumeId   int        `json:"resume_id"`
 		} `json:"approvers,omitempty"`
 		BranchChosen *struct {
 			Branch *int                                    `json:"branch,omitempty"`
@@ -7537,7 +7543,7 @@ type RecentRunItemRefs struct {
 // RecentRunItemRefsItemsKind defines model for RecentRunItemRefs.Items.Kind.
 type RecentRunItemRefsItemsKind string
 
-// RecentRunStatus a failure someone or something marked as handled is `resolved`, not `failure`
+// RecentRunStatus a failure someone or something marked as handled is `resolved`, not `failure`; a run waiting for an approval is `suspended`, not `running`
 type RecentRunStatus string
 
 // RecordingBody defines model for RecordingBody.
@@ -9407,6 +9413,9 @@ type SchemasFlowModule struct {
 		// SelfApprovalDisabled If true, the user who started the flow cannot approve
 		SelfApprovalDisabled *bool `json:"self_approval_disabled,omitempty"`
 
+		// ShowOnHome If true, a run waiting on this step is listed on the Home page of each user who can approve it. Leave unset when the approval request is sent through another channel (Slack, Discord, email), so it does not sit there unanswered
+		ShowOnHome *bool `json:"show_on_home,omitempty"`
+
 		// Skin How the approval request is presented, on the approval page and in Slack/Teams approval messages. 'detailed' (used when unset) shows the flow details (arguments, graph, approvers); 'minimal' shows only the request: the step description, form and approve/reject actions
 		Skin *SchemasFlowModuleSuspendSkin `json:"skin,omitempty"`
 
@@ -9484,8 +9493,13 @@ type SchemasFlowStatusModule struct {
 	// AgentActionsSuccess The outcome of each agent action, by position. null while a background tool call is still running.
 	AgentActionsSuccess *[]bool `json:"agent_actions_success,omitempty"`
 	Approvers           *[]struct {
-		Approver string `json:"approver"`
-		ResumeId int    `json:"resume_id"`
+		// Approved false for a rejection the flow continued past; absent for approvals recorded before it was kept
+		Approved *bool `json:"approved,omitempty"`
+
+		// ApprovedAt absent for approvals recorded before it was kept
+		ApprovedAt *time.Time `json:"approved_at,omitempty"`
+		Approver   string     `json:"approver"`
+		ResumeId   int        `json:"resume_id"`
 	} `json:"approvers,omitempty"`
 	BranchChosen *struct {
 		Branch *int                                    `json:"branch,omitempty"`
@@ -19811,6 +19825,9 @@ type ClientInterface interface {
 	// GetConcurrencyKey request
 	GetConcurrencyKey(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetConcurrencyKeyStatus request
+	GetConcurrencyKeyStatus(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAutoscalingDiagnostics request
 	GetAutoscalingDiagnostics(ctx context.Context, workerGroup string, params *GetAutoscalingDiagnosticsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -21498,6 +21515,9 @@ type ClientInterface interface {
 
 	SetJobProgress(ctx context.Context, workspace WorkspaceId, id JobId, body SetJobProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListWaitingApprovals request
+	ListWaitingApprovals(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListAssetDispatchEdges request
 	ListAssetDispatchEdges(ctx context.Context, workspace WorkspaceId, params *ListAssetDispatchEdgesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -21550,6 +21570,9 @@ type ClientInterface interface {
 
 	// GetApprovalStepDetail request
 	GetApprovalStepDetail(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, stepId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListNestedApprovals request
+	ListNestedApprovals(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResumeSuspendedFlowAsOwnerWithBody request with any body
 	ResumeSuspendedFlowAsOwnerWithBody(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -23679,6 +23702,18 @@ func (c *Client) DeleteConcurrencyGroup(ctx context.Context, concurrencyId Concu
 
 func (c *Client) GetConcurrencyKey(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetConcurrencyKeyRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetConcurrencyKeyStatus(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetConcurrencyKeyStatusRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -31117,6 +31152,18 @@ func (c *Client) SetJobProgress(ctx context.Context, workspace WorkspaceId, id J
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListWaitingApprovals(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListWaitingApprovalsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListAssetDispatchEdges(ctx context.Context, workspace WorkspaceId, params *ListAssetDispatchEdgesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAssetDispatchEdgesRequest(c.Server, workspace, params)
 	if err != nil {
@@ -31335,6 +31382,18 @@ func (c *Client) DeleteJobs(ctx context.Context, workspace WorkspaceId, body Del
 
 func (c *Client) GetApprovalStepDetail(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, stepId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetApprovalStepDetailRequest(c.Server, workspace, jobId, stepId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListNestedApprovals(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNestedApprovalsRequest(c.Server, workspace, jobId)
 	if err != nil {
 		return nil, err
 	}
@@ -40078,6 +40137,40 @@ func NewGetConcurrencyKeyRequest(server string, id JobId) (*http.Request, error)
 	}
 
 	operationPath := fmt.Sprintf("/concurrency_groups/%s/key", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetConcurrencyKeyStatusRequest generates requests for GetConcurrencyKeyStatus
+func NewGetConcurrencyKeyStatusRequest(server string, id JobId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/concurrency_groups/%s/key_status", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -65446,6 +65539,40 @@ func NewSetJobProgressRequestWithBody(server string, workspace WorkspaceId, id J
 	return req, nil
 }
 
+// NewListWaitingApprovalsRequest generates requests for ListWaitingApprovals
+func NewListWaitingApprovalsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/approvals/waiting", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListAssetDispatchEdgesRequest generates requests for ListAssetDispatchEdges
 func NewListAssetDispatchEdgesRequest(server string, workspace WorkspaceId, params *ListAssetDispatchEdgesParams) (*http.Request, error) {
 	var err error
@@ -66660,6 +66787,47 @@ func NewGetApprovalStepDetailRequest(server string, workspace WorkspaceId, jobId
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/jobs/flow/approval_step_detail/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListNestedApprovalsRequest generates requests for ListNestedApprovals
+func NewListNestedApprovalsRequest(server string, workspace WorkspaceId, jobId openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "job_id", runtime.ParamLocationPath, jobId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/jobs/flow/nested_approvals/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -96833,6 +97001,9 @@ type ClientWithResponsesInterface interface {
 	// GetConcurrencyKeyWithResponse request
 	GetConcurrencyKeyWithResponse(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*GetConcurrencyKeyResponse, error)
 
+	// GetConcurrencyKeyStatusWithResponse request
+	GetConcurrencyKeyStatusWithResponse(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*GetConcurrencyKeyStatusResponse, error)
+
 	// GetAutoscalingDiagnosticsWithResponse request
 	GetAutoscalingDiagnosticsWithResponse(ctx context.Context, workerGroup string, params *GetAutoscalingDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAutoscalingDiagnosticsResponse, error)
 
@@ -98520,6 +98691,9 @@ type ClientWithResponsesInterface interface {
 
 	SetJobProgressWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, body SetJobProgressJSONRequestBody, reqEditors ...RequestEditorFn) (*SetJobProgressResponse, error)
 
+	// ListWaitingApprovalsWithResponse request
+	ListWaitingApprovalsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListWaitingApprovalsResponse, error)
+
 	// ListAssetDispatchEdgesWithResponse request
 	ListAssetDispatchEdgesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetDispatchEdgesParams, reqEditors ...RequestEditorFn) (*ListAssetDispatchEdgesResponse, error)
 
@@ -98572,6 +98746,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetApprovalStepDetailWithResponse request
 	GetApprovalStepDetailWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, stepId string, reqEditors ...RequestEditorFn) (*GetApprovalStepDetailResponse, error)
+
+	// ListNestedApprovalsWithResponse request
+	ListNestedApprovalsWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, reqEditors ...RequestEditorFn) (*ListNestedApprovalsResponse, error)
 
 	// ResumeSuspendedFlowAsOwnerWithBodyWithResponse request with any body
 	ResumeSuspendedFlowAsOwnerWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, id JobId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResumeSuspendedFlowAsOwnerResponse, error)
@@ -100896,6 +101073,35 @@ func (r GetConcurrencyKeyResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetConcurrencyKeyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetConcurrencyKeyStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// DeferredFrom When the job was first due. Set the first time its concurrency limit held it back, and kept after it ran.
+		DeferredFrom *time.Time `json:"deferred_from"`
+		Key          string     `json:"key"`
+
+		// ReleasedAt When the concurrency limit let in a job it had held back, as the time the job was last due. The rest until it started is queue time.
+		ReleasedAt *time.Time `json:"released_at"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetConcurrencyKeyStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetConcurrencyKeyStatusResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -111861,6 +112067,46 @@ func (r SetJobProgressResponse) StatusCode() int {
 	return 0
 }
 
+type ListWaitingApprovalsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Approvals the most recent of the listed runs, at most 100
+		Approvals []struct {
+			// Approvals approvals received so far
+			Approvals   int       `json:"approvals"`
+			CreatedAt   time.Time `json:"created_at"`
+			FlowPath    *string   `json:"flow_path,omitempty"`
+			FlowSummary *string   `json:"flow_summary,omitempty"`
+
+			// JobId the suspended flow run, the one its approval page takes: the root run, or the branch, loop or subflow run holding the approval step
+			JobId             openapi_types.UUID `json:"job_id"`
+			RequiredApprovals int                `json:"required_approvals"`
+			StartedBy         string             `json:"started_by"`
+			StepSummary       *string            `json:"step_summary,omitempty"`
+		} `json:"approvals"`
+
+		// Total how many runs are listed in all
+		Total int `json:"total"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListWaitingApprovalsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListWaitingApprovalsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListAssetDispatchEdgesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -112191,7 +112437,7 @@ type GetApprovalStepDetailResponse struct {
 			UserGroupsRequired   []string `json:"user_groups_required"`
 		} `json:"approval_conditions,omitempty"`
 
-		// Approvals approvals received. approved, value and created_at are known only while the run is live; a finished run keeps approver names alone.
+		// Approvals approvals received. approved and value are known only while the run is live; a finished run keeps approver names and, for approvals recorded since it was kept, created_at.
 		Approvals []struct {
 			Approved  *bool        `json:"approved,omitempty"`
 			Approver  string       `json:"approver"`
@@ -112253,6 +112499,51 @@ func (r GetApprovalStepDetailResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetApprovalStepDetailResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListNestedApprovalsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Approvals []struct {
+			Approvers []struct {
+				Approved   *bool      `json:"approved,omitempty"`
+				ApprovedAt *time.Time `json:"approved_at,omitempty"`
+				Approver   string     `json:"approver"`
+				ResumeId   int        `json:"resume_id"`
+			} `json:"approvers"`
+
+			// JobId the nested run the step belongs to
+			JobId openapi_types.UUID `json:"job_id"`
+
+			// RequiredEvents approvals the step required; fewer approvers means it timed out and the flow continued
+			RequiredEvents int     `json:"required_events"`
+			StepId         string  `json:"step_id"`
+			StepSummary    *string `json:"step_summary,omitempty"`
+
+			// Subflows ids of the subflow steps leading to the nested run, outermost first. Step ids are unique across a flow, loop and branch steps included, so the first one (or the step itself) is a step of the flow run's own graph
+			Subflows []string `json:"subflows"`
+		} `json:"approvals"`
+
+		// More more nested runs than are read, typically a loop with an approval in every iteration: their approvals are on those runs' own pages
+		More bool `json:"more"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListNestedApprovalsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListNestedApprovalsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -112725,11 +113016,11 @@ type ListRecentRunsResponse struct {
 				// RanAt when the run started, or was created for one that has not reported a start
 				RanAt time.Time `json:"ran_at"`
 
-				// Status a failure someone or something marked as handled is `resolved`, not `failure`
+				// Status a failure someone or something marked as handled is `resolved`, not `failure`; a run waiting for an approval is `suspended`, not `running`
 				Status RecentRunStatus `json:"status"`
 			} `json:"runs"`
 
-			// Status a failure someone or something marked as handled is `resolved`, not `failure`
+			// Status a failure someone or something marked as handled is `resolved`, not `failure`; a run waiting for an approval is `suspended`, not `running`
 			Status  RecentRunStatus `json:"status"`
 			Summary *string         `json:"summary,omitempty"`
 		} `json:"items"`
@@ -113883,8 +114174,10 @@ type GetApprovalInfoResponse struct {
 			UserGroupsRequired   []string `json:"user_groups_required"`
 		} `json:"approval_conditions,omitempty"`
 		Approvers []struct {
-			Approver string `json:"approver"`
-			ResumeId int    `json:"resume_id"`
+			Approved   *bool      `json:"approved,omitempty"`
+			ApprovedAt *time.Time `json:"approved_at,omitempty"`
+			Approver   string     `json:"approver"`
+			ResumeId   int        `json:"resume_id"`
 		} `json:"approvers"`
 
 		// CanApprove whether the current user/token holder can approve
@@ -113902,6 +114195,9 @@ type GetApprovalInfoResponse struct {
 
 		// HideCancel whether to hide the cancel button in the UI
 		HideCancel *bool `json:"hide_cancel,omitempty"`
+
+		// RequiredEvents approvals the step requires; absent for a workflow as code
+		RequiredEvents *int `json:"required_events,omitempty"`
 
 		// Skin how the approval page presents the request
 		Skin GetApprovalInfo200Skin `json:"skin"`
@@ -114025,8 +114321,10 @@ type GetSuspendedJobFlowResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *struct {
 		Approvers []struct {
-			Approver string `json:"approver"`
-			ResumeId int    `json:"resume_id"`
+			Approved   *bool      `json:"approved,omitempty"`
+			ApprovedAt *time.Time `json:"approved_at,omitempty"`
+			Approver   string     `json:"approver"`
+			ResumeId   int        `json:"resume_id"`
 		} `json:"approvers"`
 		Job Job `json:"job"`
 
@@ -124127,6 +124425,15 @@ func (c *ClientWithResponses) GetConcurrencyKeyWithResponse(ctx context.Context,
 	return ParseGetConcurrencyKeyResponse(rsp)
 }
 
+// GetConcurrencyKeyStatusWithResponse request returning *GetConcurrencyKeyStatusResponse
+func (c *ClientWithResponses) GetConcurrencyKeyStatusWithResponse(ctx context.Context, id JobId, reqEditors ...RequestEditorFn) (*GetConcurrencyKeyStatusResponse, error) {
+	rsp, err := c.GetConcurrencyKeyStatus(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetConcurrencyKeyStatusResponse(rsp)
+}
+
 // GetAutoscalingDiagnosticsWithResponse request returning *GetAutoscalingDiagnosticsResponse
 func (c *ClientWithResponses) GetAutoscalingDiagnosticsWithResponse(ctx context.Context, workerGroup string, params *GetAutoscalingDiagnosticsParams, reqEditors ...RequestEditorFn) (*GetAutoscalingDiagnosticsResponse, error) {
 	rsp, err := c.GetAutoscalingDiagnostics(ctx, workerGroup, params, reqEditors...)
@@ -129528,6 +129835,15 @@ func (c *ClientWithResponses) SetJobProgressWithResponse(ctx context.Context, wo
 	return ParseSetJobProgressResponse(rsp)
 }
 
+// ListWaitingApprovalsWithResponse request returning *ListWaitingApprovalsResponse
+func (c *ClientWithResponses) ListWaitingApprovalsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListWaitingApprovalsResponse, error) {
+	rsp, err := c.ListWaitingApprovals(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListWaitingApprovalsResponse(rsp)
+}
+
 // ListAssetDispatchEdgesWithResponse request returning *ListAssetDispatchEdgesResponse
 func (c *ClientWithResponses) ListAssetDispatchEdgesWithResponse(ctx context.Context, workspace WorkspaceId, params *ListAssetDispatchEdgesParams, reqEditors ...RequestEditorFn) (*ListAssetDispatchEdgesResponse, error) {
 	rsp, err := c.ListAssetDispatchEdges(ctx, workspace, params, reqEditors...)
@@ -129693,6 +130009,15 @@ func (c *ClientWithResponses) GetApprovalStepDetailWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseGetApprovalStepDetailResponse(rsp)
+}
+
+// ListNestedApprovalsWithResponse request returning *ListNestedApprovalsResponse
+func (c *ClientWithResponses) ListNestedApprovalsWithResponse(ctx context.Context, workspace WorkspaceId, jobId openapi_types.UUID, reqEditors ...RequestEditorFn) (*ListNestedApprovalsResponse, error) {
+	rsp, err := c.ListNestedApprovals(ctx, workspace, jobId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListNestedApprovalsResponse(rsp)
 }
 
 // ResumeSuspendedFlowAsOwnerWithBodyWithResponse request with arbitrary body returning *ResumeSuspendedFlowAsOwnerResponse
@@ -136033,6 +136358,39 @@ func ParseGetConcurrencyKeyResponse(rsp *http.Response) (*GetConcurrencyKeyRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetConcurrencyKeyStatusResponse parses an HTTP response from a GetConcurrencyKeyStatusWithResponse call
+func ParseGetConcurrencyKeyStatusResponse(rsp *http.Response) (*GetConcurrencyKeyStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetConcurrencyKeyStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// DeferredFrom When the job was first due. Set the first time its concurrency limit held it back, and kept after it ran.
+			DeferredFrom *time.Time `json:"deferred_from"`
+			Key          string     `json:"key"`
+
+			// ReleasedAt When the concurrency limit let in a job it had held back, as the time the job was last due. The rest until it started is queue time.
+			ReleasedAt *time.Time `json:"released_at"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -147113,6 +147471,50 @@ func ParseSetJobProgressResponse(rsp *http.Response) (*SetJobProgressResponse, e
 	return response, nil
 }
 
+// ParseListWaitingApprovalsResponse parses an HTTP response from a ListWaitingApprovalsWithResponse call
+func ParseListWaitingApprovalsResponse(rsp *http.Response) (*ListWaitingApprovalsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListWaitingApprovalsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Approvals the most recent of the listed runs, at most 100
+			Approvals []struct {
+				// Approvals approvals received so far
+				Approvals   int       `json:"approvals"`
+				CreatedAt   time.Time `json:"created_at"`
+				FlowPath    *string   `json:"flow_path,omitempty"`
+				FlowSummary *string   `json:"flow_summary,omitempty"`
+
+				// JobId the suspended flow run, the one its approval page takes: the root run, or the branch, loop or subflow run holding the approval step
+				JobId             openapi_types.UUID `json:"job_id"`
+				RequiredApprovals int                `json:"required_approvals"`
+				StartedBy         string             `json:"started_by"`
+				StepSummary       *string            `json:"step_summary,omitempty"`
+			} `json:"approvals"`
+
+			// Total how many runs are listed in all
+			Total int `json:"total"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListAssetDispatchEdgesResponse parses an HTTP response from a ListAssetDispatchEdgesWithResponse call
 func ParseListAssetDispatchEdgesResponse(rsp *http.Response) (*ListAssetDispatchEdgesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -147491,7 +147893,7 @@ func ParseGetApprovalStepDetailResponse(rsp *http.Response) (*GetApprovalStepDet
 				UserGroupsRequired   []string `json:"user_groups_required"`
 			} `json:"approval_conditions,omitempty"`
 
-			// Approvals approvals received. approved, value and created_at are known only while the run is live; a finished run keeps approver names alone.
+			// Approvals approvals received. approved and value are known only while the run is live; a finished run keeps approver names and, for approvals recorded since it was kept, created_at.
 			Approvals []struct {
 				Approved  *bool        `json:"approved,omitempty"`
 				Approver  string       `json:"approver"`
@@ -147538,6 +147940,55 @@ func ParseGetApprovalStepDetailResponse(rsp *http.Response) (*GetApprovalStepDet
 
 			// Timeout seconds the run waits for approvals
 			Timeout *int `json:"timeout,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListNestedApprovalsResponse parses an HTTP response from a ListNestedApprovalsWithResponse call
+func ParseListNestedApprovalsResponse(rsp *http.Response) (*ListNestedApprovalsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListNestedApprovalsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Approvals []struct {
+				Approvers []struct {
+					Approved   *bool      `json:"approved,omitempty"`
+					ApprovedAt *time.Time `json:"approved_at,omitempty"`
+					Approver   string     `json:"approver"`
+					ResumeId   int        `json:"resume_id"`
+				} `json:"approvers"`
+
+				// JobId the nested run the step belongs to
+				JobId openapi_types.UUID `json:"job_id"`
+
+				// RequiredEvents approvals the step required; fewer approvers means it timed out and the flow continued
+				RequiredEvents int     `json:"required_events"`
+				StepId         string  `json:"step_id"`
+				StepSummary    *string `json:"step_summary,omitempty"`
+
+				// Subflows ids of the subflow steps leading to the nested run, outermost first. Step ids are unique across a flow, loop and branch steps included, so the first one (or the step itself) is a step of the flow run's own graph
+				Subflows []string `json:"subflows"`
+			} `json:"approvals"`
+
+			// More more nested runs than are read, typically a loop with an approval in every iteration: their approvals are on those runs' own pages
+			More bool `json:"more"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -148035,11 +148486,11 @@ func ParseListRecentRunsResponse(rsp *http.Response) (*ListRecentRunsResponse, e
 					// RanAt when the run started, or was created for one that has not reported a start
 					RanAt time.Time `json:"ran_at"`
 
-					// Status a failure someone or something marked as handled is `resolved`, not `failure`
+					// Status a failure someone or something marked as handled is `resolved`, not `failure`; a run waiting for an approval is `suspended`, not `running`
 					Status RecentRunStatus `json:"status"`
 				} `json:"runs"`
 
-				// Status a failure someone or something marked as handled is `resolved`, not `failure`
+				// Status a failure someone or something marked as handled is `resolved`, not `failure`; a run waiting for an approval is `suspended`, not `running`
 				Status  RecentRunStatus `json:"status"`
 				Summary *string         `json:"summary,omitempty"`
 			} `json:"items"`
@@ -149142,8 +149593,10 @@ func ParseGetApprovalInfoResponse(rsp *http.Response) (*GetApprovalInfoResponse,
 				UserGroupsRequired   []string `json:"user_groups_required"`
 			} `json:"approval_conditions,omitempty"`
 			Approvers []struct {
-				Approver string `json:"approver"`
-				ResumeId int    `json:"resume_id"`
+				Approved   *bool      `json:"approved,omitempty"`
+				ApprovedAt *time.Time `json:"approved_at,omitempty"`
+				Approver   string     `json:"approver"`
+				ResumeId   int        `json:"resume_id"`
 			} `json:"approvers"`
 
 			// CanApprove whether the current user/token holder can approve
@@ -149161,6 +149614,9 @@ func ParseGetApprovalInfoResponse(rsp *http.Response) (*GetApprovalInfoResponse,
 
 			// HideCancel whether to hide the cancel button in the UI
 			HideCancel *bool `json:"hide_cancel,omitempty"`
+
+			// RequiredEvents approvals the step requires; absent for a workflow as code
+			RequiredEvents *int `json:"required_events,omitempty"`
 
 			// Skin how the approval page presents the request
 			Skin GetApprovalInfo200Skin `json:"skin"`
@@ -149285,8 +149741,10 @@ func ParseGetSuspendedJobFlowResponse(rsp *http.Response) (*GetSuspendedJobFlowR
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
 			Approvers []struct {
-				Approver string `json:"approver"`
-				ResumeId int    `json:"resume_id"`
+				Approved   *bool      `json:"approved,omitempty"`
+				ApprovedAt *time.Time `json:"approved_at,omitempty"`
+				Approver   string     `json:"approver"`
+				ResumeId   int        `json:"resume_id"`
 			} `json:"approvers"`
 			Job Job `json:"job"`
 
