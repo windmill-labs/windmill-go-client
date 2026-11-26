@@ -1091,6 +1091,7 @@ const (
 	DisableDirectDeployment        ProtectionRuleKind = "DisableDirectDeployment"
 	DisableWorkspaceForking        ProtectionRuleKind = "DisableWorkspaceForking"
 	RequireIsolatedForks           ProtectionRuleKind = "RequireIsolatedForks"
+	RequireSso                     ProtectionRuleKind = "RequireSso"
 	RestrictAnonymousAppDeployment ProtectionRuleKind = "RestrictAnonymousAppDeployment"
 	RestrictDeployToDeployers      ProtectionRuleKind = "RestrictDeployToDeployers"
 	RestrictGuestAppDeployment     ProtectionRuleKind = "RestrictGuestAppDeployment"
@@ -2455,15 +2456,21 @@ type AssetUsageKind string
 
 // AuditLog defines model for AuditLog.
 type AuditLog struct {
-	ActionKind  AuditLogActionKind      `json:"action_kind"`
-	Id          int                     `json:"id"`
-	Operation   AuditLogOperation       `json:"operation"`
-	Parameters  *map[string]interface{} `json:"parameters,omitempty"`
-	Resource    *string                 `json:"resource,omitempty"`
-	Span        *string                 `json:"span,omitempty"`
-	Timestamp   time.Time               `json:"timestamp"`
-	Username    string                  `json:"username"`
-	WorkspaceId string                  `json:"workspace_id"`
+	ActionKind AuditLogActionKind `json:"action_kind"`
+
+	// ClientIp Address of the client that made the request. Forwarding headers are believed only from the proxies listed in the TRUSTED_PROXIES environment variable (loopback by default, plus the private ranges on Windmill Cloud), so behind a reverse proxy this is the proxy's address until it is listed. Absent on entries no request stands behind.
+	ClientIp   *string                 `json:"client_ip,omitempty"`
+	Id         int                     `json:"id"`
+	Operation  AuditLogOperation       `json:"operation"`
+	Parameters *map[string]interface{} `json:"parameters,omitempty"`
+	Resource   *string                 `json:"resource,omitempty"`
+	Span       *string                 `json:"span,omitempty"`
+	Timestamp  time.Time               `json:"timestamp"`
+
+	// UserAgent User-Agent header of the request.
+	UserAgent   *string `json:"user_agent,omitempty"`
+	Username    string  `json:"username"`
+	WorkspaceId string  `json:"workspace_id"`
 }
 
 // AuditLogActionKind defines model for AuditLog.ActionKind.
@@ -6797,6 +6804,11 @@ type NewSqsTrigger struct {
 
 // NewToken defines model for NewToken.
 type NewToken struct {
+	// AllowedIps IPs or CIDRs (IPv4 or IPv6) the token may be used from; omit to allow any.
+	// A request from elsewhere is refused as unauthenticated. A token that is itself
+	// restricted can only create tokens within its own networks, and creates one
+	// restricted to them when this is omitted.
+	AllowedIps *[]string  `json:"allowed_ips,omitempty"`
 	Expiration *time.Time `json:"expiration,omitempty"`
 	Label      *string    `json:"label,omitempty"`
 
@@ -6815,6 +6827,8 @@ type NewToken struct {
 
 // NewTokenImpersonate defines model for NewTokenImpersonate.
 type NewTokenImpersonate struct {
+	// AllowedIps IPs or CIDRs the token may be used from; omit to allow any.
+	AllowedIps       *[]string  `json:"allowed_ips,omitempty"`
 	Expiration       *time.Time `json:"expiration,omitempty"`
 	ImpersonateEmail string     `json:"impersonate_email"`
 	Label            *string    `json:"label,omitempty"`
@@ -6918,6 +6932,19 @@ type OffboardAffectedPaths struct {
 	Variables *[]string            `json:"variables,omitempty"`
 }
 
+// OffboardPathConflict defines model for OffboardPathConflict.
+type OffboardPathConflict struct {
+	// Kind Item kind, as its table name (script, flow, app, resource, variable, schedule, eval_dataset, http_trigger, ...)
+	Kind string `json:"kind"`
+
+	// SourcePath The offboarded user's item, under u/{username}/
+	SourcePath string `json:"source_path"`
+
+	// TargetPath The existing item at the reassignment target
+	TargetPath  string `json:"target_path"`
+	WorkspaceId string `json:"workspace_id"`
+}
+
 // OffboardPreview defines model for OffboardPreview.
 type OffboardPreview struct {
 	// EmailTriggers Email triggers under the user's path (email addresses will change)
@@ -6947,6 +6974,9 @@ type OffboardRequest struct {
 
 // OffboardResponse defines model for OffboardResponse.
 type OffboardResponse struct {
+	// ConflictItems The same conflicts as `conflicts`, structured. Empty on success.
+	ConflictItems *[]OffboardPathConflict `json:"conflict_items,omitempty"`
+
 	// Conflicts List of path conflicts that block the offboarding. Empty on success.
 	Conflicts *[]string        `json:"conflicts,omitempty"`
 	Summary   *OffboardSummary `json:"summary,omitempty"`
@@ -8572,6 +8602,8 @@ type TriggersCount struct {
 
 // TruncatedToken defines model for TruncatedToken.
 type TruncatedToken struct {
+	// AllowedIps IPs or CIDRs the token may be used from; absent when it may be used from anywhere.
+	AllowedIps  *[]string  `json:"allowed_ips,omitempty"`
 	CreatedAt   time.Time  `json:"created_at"`
 	Email       *string    `json:"email,omitempty"`
 	Expiration  *time.Time `json:"expiration,omitempty"`
@@ -10011,6 +10043,9 @@ type CreatedBy = string
 // CustomPath defines model for CustomPath.
 type CustomPath = string
 
+// DangerouslyRevealSecrets defines model for DangerouslyRevealSecrets.
+type DangerouslyRevealSecrets = bool
+
 // GcpProjectId defines model for GcpProjectId.
 type GcpProjectId = string
 
@@ -10522,9 +10557,27 @@ type SetupExternalInstancePgJSONBody struct {
 	RotatePasswords *bool `json:"rotate_passwords,omitempty"`
 }
 
+// GetGlobalParams defines parameters for GetGlobal.
+type GetGlobalParams struct {
+	// DangerouslyRevealSecrets Return stored secrets in clear. Without it, every secret is replaced by a placeholder, which a write sending it back unchanged keeps as the stored value.
+	DangerouslyRevealSecrets *DangerouslyRevealSecrets `form:"dangerously_reveal_secrets,omitempty" json:"dangerously_reveal_secrets,omitempty"`
+}
+
 // SetGlobalJSONBody defines parameters for SetGlobal.
 type SetGlobalJSONBody struct {
 	Value *interface{} `json:"value,omitempty"`
+}
+
+// GetInstanceConfigParams defines parameters for GetInstanceConfig.
+type GetInstanceConfigParams struct {
+	// DangerouslyRevealSecrets Return stored secrets in clear. Without it, every secret is replaced by a placeholder, which a write sending it back unchanged keeps as the stored value.
+	DangerouslyRevealSecrets *DangerouslyRevealSecrets `form:"dangerously_reveal_secrets,omitempty" json:"dangerously_reveal_secrets,omitempty"`
+}
+
+// ListGlobalSettingsParams defines parameters for ListGlobalSettings.
+type ListGlobalSettingsParams struct {
+	// DangerouslyRevealSecrets Return stored secrets in clear. Without it, every secret is replaced by a placeholder, which a write sending it back unchanged keeps as the stored value.
+	DangerouslyRevealSecrets *DangerouslyRevealSecrets `form:"dangerously_reveal_secrets,omitempty" json:"dangerously_reveal_secrets,omitempty"`
 }
 
 // RenewLicenseKeyParams defines parameters for RenewLicenseKey.
@@ -19816,6 +19869,9 @@ type ClientInterface interface {
 
 	ResetPassword(ctx context.Context, body ResetPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetClientIp request
+	GetClientIp(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListConcurrencyGroups request
 	ListConcurrencyGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -20135,7 +20191,7 @@ type ClientInterface interface {
 	GithubAppStaleWebhooks(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetGlobal request
-	GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetGlobal(ctx context.Context, key Key, params *GetGlobalParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SetGlobalWithBody request with any body
 	SetGlobalWithBody(ctx context.Context, key Key, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20143,7 +20199,7 @@ type ClientInterface interface {
 	SetGlobal(ctx context.Context, key Key, body SetGlobalJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetInstanceConfig request
-	GetInstanceConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetInstanceConfig(ctx context.Context, params *GetInstanceConfigParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SetInstanceConfigWithBody request with any body
 	SetInstanceConfigWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -20163,7 +20219,7 @@ type ClientInterface interface {
 	ListCustomInstanceDbs(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListGlobalSettings request
-	ListGlobalSettings(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListGlobalSettings(ctx context.Context, params *ListGlobalSettingsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetLocal request
 	GetLocal(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -23175,6 +23231,9 @@ type ClientInterface interface {
 
 	UpdateOperatorSettings(ctx context.Context, workspace WorkspaceId, body UpdateOperatorSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListPasswordLoginMembers request
+	ListPasswordLoginMembers(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetPremiumInfo request
 	GetPremiumInfo(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -23666,6 +23725,18 @@ func (c *Client) ResetPasswordWithBody(ctx context.Context, contentType string, 
 
 func (c *Client) ResetPassword(ctx context.Context, body ResetPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResetPasswordRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetClientIp(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetClientIpRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -25044,8 +25115,8 @@ func (c *Client) GithubAppStaleWebhooks(ctx context.Context, reqEditors ...Reque
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetGlobal(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetGlobalRequest(c.Server, key)
+func (c *Client) GetGlobal(ctx context.Context, key Key, params *GetGlobalParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGlobalRequest(c.Server, key, params)
 	if err != nil {
 		return nil, err
 	}
@@ -25080,8 +25151,8 @@ func (c *Client) SetGlobal(ctx context.Context, key Key, body SetGlobalJSONReque
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetInstanceConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetInstanceConfigRequest(c.Server)
+func (c *Client) GetInstanceConfig(ctx context.Context, params *GetInstanceConfigParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetInstanceConfigRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -25164,8 +25235,8 @@ func (c *Client) ListCustomInstanceDbs(ctx context.Context, reqEditors ...Reques
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListGlobalSettings(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListGlobalSettingsRequest(c.Server)
+func (c *Client) ListGlobalSettings(ctx context.Context, params *ListGlobalSettingsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGlobalSettingsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -38484,6 +38555,18 @@ func (c *Client) UpdateOperatorSettings(ctx context.Context, workspace Workspace
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListPasswordLoginMembers(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPasswordLoginMembersRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetPremiumInfo(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPremiumInfoRequest(c.Server, workspace, params)
 	if err != nil {
@@ -40055,6 +40138,33 @@ func NewResetPasswordRequestWithBody(server string, contentType string, body io.
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetClientIpRequest generates requests for GetClientIp
+func NewGetClientIpRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/client_ip")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -43628,7 +43738,7 @@ func NewGithubAppStaleWebhooksRequest(server string) (*http.Request, error) {
 }
 
 // NewGetGlobalRequest generates requests for GetGlobal
-func NewGetGlobalRequest(server string, key Key) (*http.Request, error) {
+func NewGetGlobalRequest(server string, key Key, params *GetGlobalParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -43651,6 +43761,28 @@ func NewGetGlobalRequest(server string, key Key) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.DangerouslyRevealSecrets != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dangerously_reveal_secrets", runtime.ParamLocationQuery, *params.DangerouslyRevealSecrets); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -43709,7 +43841,7 @@ func NewSetGlobalRequestWithBody(server string, key Key, contentType string, bod
 }
 
 // NewGetInstanceConfigRequest generates requests for GetInstanceConfig
-func NewGetInstanceConfigRequest(server string) (*http.Request, error) {
+func NewGetInstanceConfigRequest(server string, params *GetInstanceConfigParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -43725,6 +43857,28 @@ func NewGetInstanceConfigRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.DangerouslyRevealSecrets != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dangerously_reveal_secrets", runtime.ParamLocationQuery, *params.DangerouslyRevealSecrets); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -43884,7 +44038,7 @@ func NewListCustomInstanceDbsRequest(server string) (*http.Request, error) {
 }
 
 // NewListGlobalSettingsRequest generates requests for ListGlobalSettings
-func NewListGlobalSettingsRequest(server string) (*http.Request, error) {
+func NewListGlobalSettingsRequest(server string, params *ListGlobalSettingsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -43900,6 +44054,28 @@ func NewListGlobalSettingsRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.DangerouslyRevealSecrets != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "dangerously_reveal_secrets", runtime.ParamLocationQuery, *params.DangerouslyRevealSecrets); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -94497,6 +94673,40 @@ func NewUpdateOperatorSettingsRequestWithBody(server string, workspace Workspace
 	return req, nil
 }
 
+// NewListPasswordLoginMembersRequest generates requests for ListPasswordLoginMembers
+func NewListPasswordLoginMembersRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/workspaces/password_login_members", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetPremiumInfoRequest generates requests for GetPremiumInfo
 func NewGetPremiumInfoRequest(server string, workspace WorkspaceId, params *GetPremiumInfoParams) (*http.Request, error) {
 	var err error
@@ -96992,6 +97202,9 @@ type ClientWithResponsesInterface interface {
 
 	ResetPasswordWithResponse(ctx context.Context, body ResetPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*ResetPasswordResponse, error)
 
+	// GetClientIpWithResponse request
+	GetClientIpWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetClientIpResponse, error)
+
 	// ListConcurrencyGroupsWithResponse request
 	ListConcurrencyGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListConcurrencyGroupsResponse, error)
 
@@ -97311,7 +97524,7 @@ type ClientWithResponsesInterface interface {
 	GithubAppStaleWebhooksWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GithubAppStaleWebhooksResponse, error)
 
 	// GetGlobalWithResponse request
-	GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error)
+	GetGlobalWithResponse(ctx context.Context, key Key, params *GetGlobalParams, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error)
 
 	// SetGlobalWithBodyWithResponse request with any body
 	SetGlobalWithBodyWithResponse(ctx context.Context, key Key, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetGlobalResponse, error)
@@ -97319,7 +97532,7 @@ type ClientWithResponsesInterface interface {
 	SetGlobalWithResponse(ctx context.Context, key Key, body SetGlobalJSONRequestBody, reqEditors ...RequestEditorFn) (*SetGlobalResponse, error)
 
 	// GetInstanceConfigWithResponse request
-	GetInstanceConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetInstanceConfigResponse, error)
+	GetInstanceConfigWithResponse(ctx context.Context, params *GetInstanceConfigParams, reqEditors ...RequestEditorFn) (*GetInstanceConfigResponse, error)
 
 	// SetInstanceConfigWithBodyWithResponse request with any body
 	SetInstanceConfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetInstanceConfigResponse, error)
@@ -97339,7 +97552,7 @@ type ClientWithResponsesInterface interface {
 	ListCustomInstanceDbsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListCustomInstanceDbsResponse, error)
 
 	// ListGlobalSettingsWithResponse request
-	ListGlobalSettingsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListGlobalSettingsResponse, error)
+	ListGlobalSettingsWithResponse(ctx context.Context, params *ListGlobalSettingsParams, reqEditors ...RequestEditorFn) (*ListGlobalSettingsResponse, error)
 
 	// GetLocalWithResponse request
 	GetLocalWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetLocalResponse, error)
@@ -100351,6 +100564,9 @@ type ClientWithResponsesInterface interface {
 
 	UpdateOperatorSettingsWithResponse(ctx context.Context, workspace WorkspaceId, body UpdateOperatorSettingsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateOperatorSettingsResponse, error)
 
+	// ListPasswordLoginMembersWithResponse request
+	ListPasswordLoginMembersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPasswordLoginMembersResponse, error)
+
 	// GetPremiumInfoWithResponse request
 	GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error)
 
@@ -101007,6 +101223,27 @@ func (r ResetPasswordResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ResetPasswordResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetClientIpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetClientIpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetClientIpResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -122898,6 +123135,32 @@ func (r UpdateOperatorSettingsResponse) StatusCode() int {
 	return 0
 }
 
+type ListPasswordLoginMembersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]struct {
+		Email    string   `json:"email"`
+		Groups   []string `json:"groups"`
+		Username string   `json:"username"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ListPasswordLoginMembersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListPasswordLoginMembersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetPremiumInfoResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -124398,6 +124661,15 @@ func (c *ClientWithResponses) ResetPasswordWithResponse(ctx context.Context, bod
 	return ParseResetPasswordResponse(rsp)
 }
 
+// GetClientIpWithResponse request returning *GetClientIpResponse
+func (c *ClientWithResponses) GetClientIpWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetClientIpResponse, error) {
+	rsp, err := c.GetClientIp(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetClientIpResponse(rsp)
+}
+
 // ListConcurrencyGroupsWithResponse request returning *ListConcurrencyGroupsResponse
 func (c *ClientWithResponses) ListConcurrencyGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListConcurrencyGroupsResponse, error) {
 	rsp, err := c.ListConcurrencyGroups(ctx, reqEditors...)
@@ -125401,8 +125673,8 @@ func (c *ClientWithResponses) GithubAppStaleWebhooksWithResponse(ctx context.Con
 }
 
 // GetGlobalWithResponse request returning *GetGlobalResponse
-func (c *ClientWithResponses) GetGlobalWithResponse(ctx context.Context, key Key, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error) {
-	rsp, err := c.GetGlobal(ctx, key, reqEditors...)
+func (c *ClientWithResponses) GetGlobalWithResponse(ctx context.Context, key Key, params *GetGlobalParams, reqEditors ...RequestEditorFn) (*GetGlobalResponse, error) {
+	rsp, err := c.GetGlobal(ctx, key, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -125427,8 +125699,8 @@ func (c *ClientWithResponses) SetGlobalWithResponse(ctx context.Context, key Key
 }
 
 // GetInstanceConfigWithResponse request returning *GetInstanceConfigResponse
-func (c *ClientWithResponses) GetInstanceConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetInstanceConfigResponse, error) {
-	rsp, err := c.GetInstanceConfig(ctx, reqEditors...)
+func (c *ClientWithResponses) GetInstanceConfigWithResponse(ctx context.Context, params *GetInstanceConfigParams, reqEditors ...RequestEditorFn) (*GetInstanceConfigResponse, error) {
+	rsp, err := c.GetInstanceConfig(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -125489,8 +125761,8 @@ func (c *ClientWithResponses) ListCustomInstanceDbsWithResponse(ctx context.Cont
 }
 
 // ListGlobalSettingsWithResponse request returning *ListGlobalSettingsResponse
-func (c *ClientWithResponses) ListGlobalSettingsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListGlobalSettingsResponse, error) {
-	rsp, err := c.ListGlobalSettings(ctx, reqEditors...)
+func (c *ClientWithResponses) ListGlobalSettingsWithResponse(ctx context.Context, params *ListGlobalSettingsParams, reqEditors ...RequestEditorFn) (*ListGlobalSettingsResponse, error) {
+	rsp, err := c.ListGlobalSettings(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -135161,6 +135433,15 @@ func (c *ClientWithResponses) UpdateOperatorSettingsWithResponse(ctx context.Con
 	return ParseUpdateOperatorSettingsResponse(rsp)
 }
 
+// ListPasswordLoginMembersWithResponse request returning *ListPasswordLoginMembersResponse
+func (c *ClientWithResponses) ListPasswordLoginMembersWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListPasswordLoginMembersResponse, error) {
+	rsp, err := c.ListPasswordLoginMembers(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListPasswordLoginMembersResponse(rsp)
+}
+
 // GetPremiumInfoWithResponse request returning *GetPremiumInfoResponse
 func (c *ClientWithResponses) GetPremiumInfoWithResponse(ctx context.Context, workspace WorkspaceId, params *GetPremiumInfoParams, reqEditors ...RequestEditorFn) (*GetPremiumInfoResponse, error) {
 	rsp, err := c.GetPremiumInfo(ctx, workspace, params, reqEditors...)
@@ -136285,6 +136566,22 @@ func ParseResetPasswordResponse(rsp *http.Response) (*ResetPasswordResponse, err
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseGetClientIpResponse parses an HTTP response from a GetClientIpWithResponse call
+func ParseGetClientIpResponse(rsp *http.Response) (*GetClientIpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetClientIpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
@@ -158361,6 +158658,36 @@ func ParseUpdateOperatorSettingsResponse(rsp *http.Response) (*UpdateOperatorSet
 	response := &UpdateOperatorSettingsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListPasswordLoginMembersResponse parses an HTTP response from a ListPasswordLoginMembersWithResponse call
+func ParseListPasswordLoginMembersResponse(rsp *http.Response) (*ListPasswordLoginMembersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListPasswordLoginMembersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []struct {
+			Email    string   `json:"email"`
+			Groups   []string `json:"groups"`
+			Username string   `json:"username"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
