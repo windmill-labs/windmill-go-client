@@ -792,8 +792,8 @@ const (
 
 // Defines values for InstanceGroupWithWorkspacesInstanceRole.
 const (
-	Devops     InstanceGroupWithWorkspacesInstanceRole = "devops"
-	Superadmin InstanceGroupWithWorkspacesInstanceRole = "superadmin"
+	InstanceGroupWithWorkspacesInstanceRoleDevops     InstanceGroupWithWorkspacesInstanceRole = "devops"
+	InstanceGroupWithWorkspacesInstanceRoleSuperadmin InstanceGroupWithWorkspacesInstanceRole = "superadmin"
 )
 
 // Defines values for Job0JobKind.
@@ -1249,6 +1249,24 @@ const (
 	Existing     SubscriptionMode = "existing"
 )
 
+// Defines values for TokenIntrospectionKind.
+const (
+	ApiToken         TokenIntrospectionKind = "api_token"
+	External         TokenIntrospectionKind = "external"
+	Jwt              TokenIntrospectionKind = "jwt"
+	Session          TokenIntrospectionKind = "session"
+	SuperadminSecret TokenIntrospectionKind = "superadmin_secret"
+)
+
+// Defines values for TokenRisk.
+const (
+	TokenRiskAdmin         TokenRisk = "admin"
+	TokenRiskAllWorkspaces TokenRisk = "all_workspaces"
+	TokenRiskNeverExpires  TokenRisk = "never_expires"
+	TokenRiskSuperadmin    TokenRisk = "superadmin"
+	TokenRiskUnused        TokenRisk = "unused"
+)
+
 // Defines values for TriggerHistoryEntryOperation.
 const (
 	TriggerHistoryEntryOperationCreate  TriggerHistoryEntryOperation = "create"
@@ -1590,6 +1608,16 @@ const (
 const (
 	JobIndex        ClearIndexParamsIdxName = "JobIndex"
 	ServiceLogIndex ClearIndexParamsIdxName = "ServiceLogIndex"
+)
+
+// Defines values for ListTokensAsSuperAdminParamsFlag.
+const (
+	Admin         ListTokensAsSuperAdminParamsFlag = "admin"
+	All           ListTokensAsSuperAdminParamsFlag = "all"
+	AllWorkspaces ListTokensAsSuperAdminParamsFlag = "all_workspaces"
+	NeverExpires  ListTokensAsSuperAdminParamsFlag = "never_expires"
+	Superadmin    ListTokensAsSuperAdminParamsFlag = "superadmin"
+	Unused        ListTokensAsSuperAdminParamsFlag = "unused"
 )
 
 // Defines values for AddGranularAclsParamsKind.
@@ -4079,6 +4107,9 @@ type EditVariable struct {
 	// Path The path to the variable
 	Path *string `json:"path,omitempty"`
 
+	// UnlinkAccount Detach the OAuth account the variable refreshes through, deleting it when no other variable uses it.
+	UnlinkAccount *bool `json:"unlink_account,omitempty"`
+
 	// Value The new value of the variable. Accepts an `$external:vault://<path>[#<key>]` reference for a secret, as in CreateVariable.
 	Value *string `json:"value,omitempty"`
 
@@ -5823,8 +5854,11 @@ type ListableResource struct {
 	// of the value a listing returns, since it decides whether the agent
 	// keeps a conversation.
 	AgentMemory *interface{} `json:"agent_memory,omitempty"`
-	CreatedBy   *string      `json:"created_by,omitempty"`
-	Description *string      `json:"description,omitempty"`
+
+	// Client OAuth client the linked account refreshes through
+	Client      *string `json:"client,omitempty"`
+	CreatedBy   *string `json:"created_by,omitempty"`
+	Description *string `json:"description,omitempty"`
 
 	// DraftOnly True when this row is a per-user draft with no deployed
 	// resource at the same path. Frontend renders a "Draft" badge.
@@ -5848,15 +5882,18 @@ type ListableResource struct {
 	// IsDraft True when the authed user has a per-user draft at this path
 	// (over a deployed row or a synthesized draft-only row).
 	// Frontend appends a `*` to the displayed name.
-	IsDraft      *bool     `json:"is_draft,omitempty"`
-	IsExpired    *bool     `json:"is_expired,omitempty"`
-	IsLinked     bool      `json:"is_linked"`
-	IsOauth      bool      `json:"is_oauth"`
-	IsRefreshed  bool      `json:"is_refreshed"`
-	Labels       *[]string `json:"labels,omitempty"`
-	Path         string    `json:"path"`
-	RefreshError *string   `json:"refresh_error,omitempty"`
-	ResourceType string    `json:"resource_type"`
+	IsDraft     *bool `json:"is_draft,omitempty"`
+	IsExpired   *bool `json:"is_expired,omitempty"`
+	IsLinked    bool  `json:"is_linked"`
+	IsOauth     bool  `json:"is_oauth"`
+	IsRefreshed bool  `json:"is_refreshed"`
+
+	// IsWorkspaceIntegration The linked account was connected through the workspace's own OAuth app
+	IsWorkspaceIntegration *bool     `json:"is_workspace_integration,omitempty"`
+	Labels                 *[]string `json:"labels,omitempty"`
+	Path                   string    `json:"path"`
+	RefreshError           *string   `json:"refresh_error,omitempty"`
+	ResourceType           string    `json:"resource_type"`
 
 	// Scopes OAuth scopes the linked account was connected with
 	Scopes      *[]string    `json:"scopes,omitempty"`
@@ -5984,6 +6021,9 @@ type LoggedWizardStatus string
 type Login struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+
+	// TotpCode Current code of the account's authenticator app, or one of its recovery codes. Required once the account has two-factor authentication enabled; the login answers "Two-factor code required" when it is missing and the password is correct.
+	TotpCode *string `json:"totp_code,omitempty"`
 }
 
 // MaterializedPartition defines model for MaterializedPartition.
@@ -6171,9 +6211,6 @@ type NativeTrigger struct {
 
 // NativeTriggerConnection An account connected for native triggers, stored as an OAuth resource
 type NativeTriggerConnection struct {
-	// Managed Whether the integration trigger connect flow made it. Any other connection is a resource connected from Resources, which triggers can use but only Resources can replace or delete.
-	Managed bool `json:"managed"`
-
 	// MissingScopes Scopes the service's triggers need that the account lacks; absent when unknown
 	MissingScopes *[]string `json:"missing_scopes"`
 
@@ -6804,6 +6841,11 @@ type NewSqsTrigger struct {
 
 // NewToken defines model for NewToken.
 type NewToken struct {
+	// Admin Carry the owner's workspace admin rights in the workspaces the token reaches.
+	// Defaults to false: the token then acts as a regular member. Ignored when the
+	// calling token does not hold them.
+	Admin *bool `json:"admin,omitempty"`
+
 	// AllowedIps IPs or CIDRs (IPv4 or IPv6) the token may be used from; omit to allow any.
 	// A request from elsewhere is refused as unauthenticated. A token that is itself
 	// restricted can only create tokens within its own networks, and creates one
@@ -6818,21 +6860,32 @@ type NewToken struct {
 	ReadOnly *bool     `json:"read_only,omitempty"`
 	Scopes   *[]string `json:"scopes,omitempty"`
 
-	// SuperAdmin For an MCP token (an `mcp:` scope) owned by a superadmin: carry the owner's
-	// superadmin rights, reaching every workspace rather than only their
-	// memberships. Ignored for other tokens, which always carry them.
-	SuperAdmin  *bool   `json:"super_admin,omitempty"`
+	// SuperAdmin Carry the owner's superadmin rights: admin in every workspace, including ones
+	// they are not a member of, and the superadmin endpoints. Defaults to false, and
+	// is ignored when the owner or the calling token does not hold them.
+	SuperAdmin *bool `json:"super_admin,omitempty"`
+
+	// WorkspaceId Bind the token to this workspace: it is then refused on every other workspace and
+	// on instance-level endpoints. Omit for a token that reaches every workspace.
 	WorkspaceId *string `json:"workspace_id,omitempty"`
 }
 
 // NewTokenImpersonate defines model for NewTokenImpersonate.
 type NewTokenImpersonate struct {
+	// Admin Carry the impersonated account's workspace admin rights. Defaults to false.
+	Admin *bool `json:"admin,omitempty"`
+
 	// AllowedIps IPs or CIDRs the token may be used from; omit to allow any.
 	AllowedIps       *[]string  `json:"allowed_ips,omitempty"`
 	Expiration       *time.Time `json:"expiration,omitempty"`
 	ImpersonateEmail string     `json:"impersonate_email"`
 	Label            *string    `json:"label,omitempty"`
-	WorkspaceId      *string    `json:"workspace_id,omitempty"`
+
+	// SuperAdmin Carry the impersonated account's superadmin rights. Defaults to false.
+	SuperAdmin *bool `json:"super_admin,omitempty"`
+
+	// WorkspaceId Bind the token to this workspace; omit for a token that reaches every workspace.
+	WorkspaceId *string `json:"workspace_id,omitempty"`
 }
 
 // NewWebsocketTrigger defines model for NewWebsocketTrigger.
@@ -8423,6 +8476,55 @@ type TimeseriesMetric struct {
 	Values   []MetricDataPoint `json:"values"`
 }
 
+// TokenForReview defines model for TokenForReview.
+type TokenForReview struct {
+	CreatedAt   time.Time   `json:"created_at"`
+	Email       *string     `json:"email,omitempty"`
+	Expiration  *time.Time  `json:"expiration,omitempty"`
+	Label       *string     `json:"label,omitempty"`
+	LastUsedAt  time.Time   `json:"last_used_at"`
+	ReadOnly    bool        `json:"read_only"`
+	Risks       []TokenRisk `json:"risks"`
+	Scopes      *[]string   `json:"scopes,omitempty"`
+	TokenPrefix string      `json:"token_prefix"`
+	WorkspaceId *string     `json:"workspace_id,omitempty"`
+}
+
+// TokenIntrospection defines model for TokenIntrospection.
+type TokenIntrospection struct {
+	// AdminWithheld the token does not carry its owner's workspace admin rights; the rights it does hold
+	// in a workspace are in `workspace`
+	AdminWithheld bool                   `json:"admin_withheld"`
+	AllowedIps    *[]string              `json:"allowed_ips,omitempty"`
+	CreatedAt     *time.Time             `json:"created_at,omitempty"`
+	Email         string                 `json:"email"`
+	Expiration    *time.Time             `json:"expiration,omitempty"`
+	JobId         *openapi_types.UUID    `json:"job_id,omitempty"`
+	Kind          TokenIntrospectionKind `json:"kind"`
+	Label         *string                `json:"label,omitempty"`
+	ReadOnly      bool                   `json:"read_only"`
+	Route         *TokenRouteCheck       `json:"route,omitempty"`
+
+	// Scopes absent when the token is unrestricted
+	Scopes *[]string `json:"scopes,omitempty"`
+
+	// SuperAdmin whether the token reaches superadmin routes: its owner is a superadmin, and it is
+	// neither a job token nor one that withholds those rights
+	SuperAdmin  bool                  `json:"super_admin"`
+	TokenPrefix *string               `json:"token_prefix,omitempty"`
+	Username    string                `json:"username"`
+	Workspace   *TokenWorkspaceAccess `json:"workspace,omitempty"`
+
+	// WorkspaceId the one workspace the token is bound to; absent when it is not bound
+	WorkspaceId *string `json:"workspace_id,omitempty"`
+
+	// WorkspaceIds the workspaces a signed token is bound to, when it names several
+	WorkspaceIds *[]string `json:"workspace_ids,omitempty"`
+}
+
+// TokenIntrospectionKind defines model for TokenIntrospection.Kind.
+type TokenIntrospectionKind string
+
 // TokenResponse defines model for TokenResponse.
 type TokenResponse struct {
 	AccessToken  string  `json:"access_token"`
@@ -8433,6 +8535,44 @@ type TokenResponse struct {
 	// ResourceFields Resource fields the provider's `connect_fields` picked on connect (Salesforce's instance_url, Docusign's account_id and base_uri, QuickBooks' realmId), for the connect dialog to prefill.
 	ResourceFields *map[string]interface{} `json:"resource_fields,omitempty"`
 	Scope          *[]string               `json:"scope,omitempty"`
+}
+
+// TokenRisk superadmin / admin: minted with those rights (and the owner still an admin where the token reaches), not narrowed by scopes or read-only mode. all_workspaces: not bound to a workspace. never_expires: no expiration. unused: not used in over 90 days.
+type TokenRisk string
+
+// TokenRiskCounts defines model for TokenRiskCounts.
+type TokenRiskCounts struct {
+	Admin         int `json:"admin"`
+	AllWorkspaces int `json:"all_workspaces"`
+	NeverExpires  int `json:"never_expires"`
+	Superadmin    int `json:"superadmin"`
+	Unused        int `json:"unused"`
+}
+
+// TokenRouteCheck defines model for TokenRouteCheck.
+type TokenRouteCheck struct {
+	Allowed bool   `json:"allowed"`
+	Method  string `json:"method"`
+	Path    string `json:"path"`
+
+	// Reason why the route layer refuses the token, when it does
+	Reason *string `json:"reason,omitempty"`
+}
+
+// TokenWorkspaceAccess defines model for TokenWorkspaceAccess.
+type TokenWorkspaceAccess struct {
+	Folders *[]struct {
+		Name  string `json:"name"`
+		Owner bool   `json:"owner"`
+		Write bool   `json:"write"`
+	} `json:"folders,omitempty"`
+	Groups     *[]string `json:"groups,omitempty"`
+	IsAdmin    *bool     `json:"is_admin,omitempty"`
+	IsOperator *bool     `json:"is_operator,omitempty"`
+
+	// Usable whether the token is accepted in this workspace at all
+	Usable      bool   `json:"usable"`
+	WorkspaceId string `json:"workspace_id"`
 }
 
 // ToolValue The implementation of a tool. Can be a flow module (script/flow) or an MCP tool reference
@@ -8602,17 +8742,28 @@ type TriggersCount struct {
 
 // TruncatedToken defines model for TruncatedToken.
 type TruncatedToken struct {
+	// Admin The token carries workspace admin rights: it was minted with them and its owner is an
+	// admin of the workspace it is bound to (any workspace when unbound). Set by /users/tokens/list.
+	Admin *bool `json:"admin,omitempty"`
+
 	// AllowedIps IPs or CIDRs the token may be used from; absent when it may be used from anywhere.
-	AllowedIps  *[]string  `json:"allowed_ips,omitempty"`
-	CreatedAt   time.Time  `json:"created_at"`
-	Email       *string    `json:"email,omitempty"`
-	Expiration  *time.Time `json:"expiration,omitempty"`
-	Label       *string    `json:"label,omitempty"`
-	LastUsedAt  time.Time  `json:"last_used_at"`
-	ReadOnly    bool       `json:"read_only"`
-	Scopes      *[]string  `json:"scopes,omitempty"`
-	TokenPrefix string     `json:"token_prefix"`
-	WorkspaceId *string    `json:"workspace_id,omitempty"`
+	AllowedIps *[]string  `json:"allowed_ips,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+	Email      *string    `json:"email,omitempty"`
+	Expiration *time.Time `json:"expiration,omitempty"`
+	Label      *string    `json:"label,omitempty"`
+	LastUsedAt time.Time  `json:"last_used_at"`
+	ReadOnly   bool       `json:"read_only"`
+
+	// Risks what a token review flags on this token; empty for a token the server manages on its own
+	Risks  []TokenRisk `json:"risks"`
+	Scopes *[]string   `json:"scopes,omitempty"`
+
+	// SuperAdmin The token carries superadmin rights: it was minted with them (a session always is) and
+	// its owner is a superadmin. Set by /users/tokens/list.
+	SuperAdmin  *bool   `json:"super_admin,omitempty"`
+	TokenPrefix string  `json:"token_prefix"`
+	WorkspaceId *string `json:"workspace_id,omitempty"`
 }
 
 // UpdateInput defines model for UpdateInput.
@@ -9728,6 +9879,9 @@ type SchemasFlowValueOnConcurrencyLimit string
 
 // SchemasForloopFlow Executes nested modules in a loop over an iterator. Inside the loop, use 'flow_input.iter.value' to access the current iteration value, and 'flow_input.iter.index' for the index. Supports parallel execution for better performance on I/O-bound operations
 type SchemasForloopFlow struct {
+	// FailureThreshold Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+	FailureThreshold *SchemasInputTransform `json:"failure_threshold,omitempty"`
+
 	// IterationLabel Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
 	IterationLabel *SchemasInputTransform `json:"iteration_label,omitempty"`
 
@@ -9968,6 +10122,9 @@ type SchemasStopAfterIf struct {
 
 // SchemasWhileloopFlow Executes nested modules repeatedly until stopped. The implicit iterator is the iteration counter, so 'flow_input.iter.value' equals 'flow_input.iter.index' (0, 1, 2, ...) and never carries state. To carry state across iterations, a step reads its own previous-iteration result via 'results.<its_own_id>' with a first-iteration fallback - the loop's stop_after_if must then be on that inner step (a plain single-step body with stop_after_if on the loop module does not resolve 'results' across iterations and never terminates); plain counters can instead be derived from 'flow_input.iter.index', which works in every configuration. stop_after_if is evaluated after each iteration - on the loop module 'result' is the last iteration's result
 type SchemasWhileloopFlow struct {
+	// FailureThreshold Maps input parameters for a step. Can be a static value or a JavaScript expression that references previous results or flow inputs
+	FailureThreshold *SchemasInputTransform `json:"failure_threshold,omitempty"`
+
 	// MaxDurationSecs Maximum wall-clock seconds since the first iteration started, checked after each iteration. A running iteration is not interrupted, so the loop can exceed the limit by up to one iteration; the timeout of the body's steps caps an iteration. When reached and stop_after_if did not stop the loop, the loop fails with an error named 'LoopExhausted'
 	MaxDurationSecs *int `json:"max_duration_secs,omitempty"`
 
@@ -10668,6 +10825,19 @@ type SendMessageToConversationJSONBody struct {
 	Text string `json:"text"`
 }
 
+// IntrospectTokenParams defines parameters for IntrospectToken.
+type IntrospectTokenParams struct {
+	// Workspace workspace to resolve the token's identity in
+	Workspace *string `form:"workspace,omitempty" json:"workspace,omitempty"`
+
+	// Path route to check, either a full `/api/...` path or a path relative to
+	// `/api/w/{workspace}/`
+	Path *string `form:"path,omitempty" json:"path,omitempty"`
+
+	// Method HTTP method of the route to check (GET by default)
+	Method *string `form:"method,omitempty" json:"method,omitempty"`
+}
+
 // AcceptInviteJSONBody defines parameters for AcceptInvite.
 type AcceptInviteJSONBody struct {
 	Username    *string `json:"username,omitempty"`
@@ -10800,14 +10970,60 @@ type ListTokensParams struct {
 	PerPage *PerPage `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
+// ListTokensAsSuperAdminParams defines parameters for ListTokensAsSuperAdmin.
+type ListTokensAsSuperAdminParams struct {
+	// Flag a risk to narrow to, `all` for every token, or omitted for tokens with any risk
+	Flag *ListTokensAsSuperAdminParamsFlag `form:"flag,omitempty" json:"flag,omitempty"`
+
+	// Search case-insensitive substring of the owner's email or the token's label
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// PerPage rows per page, 100 by default, at most 1000
+	PerPage          *int       `form:"per_page,omitempty" json:"per_page,omitempty"`
+	AfterLastUsedAt  *time.Time `form:"after_last_used_at,omitempty" json:"after_last_used_at,omitempty"`
+	AfterTokenPrefix *string    `form:"after_token_prefix,omitempty" json:"after_token_prefix,omitempty"`
+}
+
+// ListTokensAsSuperAdminParamsFlag defines parameters for ListTokensAsSuperAdmin.
+type ListTokensAsSuperAdminParamsFlag string
+
 // UpdateTokenLabelJSONBody defines parameters for UpdateTokenLabel.
 type UpdateTokenLabelJSONBody struct {
 	Label *string `json:"label"`
 }
 
+// UpdateTokenLimitsJSONBody defines parameters for UpdateTokenLimits.
+type UpdateTokenLimitsJSONBody struct {
+	// AllowedIps IPs or CIDRs the token may be used from (null = anywhere)
+	AllowedIps *[]string `json:"allowed_ips"`
+
+	// Expiration new expiration (null = never expires)
+	Expiration *time.Time `json:"expiration"`
+}
+
 // UpdateTokenScopesJSONBody defines parameters for UpdateTokenScopes.
 type UpdateTokenScopesJSONBody struct {
 	Scopes *[]string `json:"scopes"`
+}
+
+// DisableTotpJSONBody defines parameters for DisableTotp.
+type DisableTotpJSONBody struct {
+	Code string `json:"code"`
+}
+
+// EnableTotpJSONBody defines parameters for EnableTotp.
+type EnableTotpJSONBody struct {
+	Code string `json:"code"`
+}
+
+// RegenerateTotpRecoveryCodesJSONBody defines parameters for RegenerateTotpRecoveryCodes.
+type RegenerateTotpRecoveryCodesJSONBody struct {
+	Code string `json:"code"`
+}
+
+// SetupTotpJSONBody defines parameters for SetupTotp.
+type SetupTotpJSONBody struct {
+	Password string `json:"password"`
 }
 
 // UpdateTutorialProgressJSONBody defines parameters for UpdateTutorialProgress.
@@ -14467,7 +14683,7 @@ type DeleteNativeTriggerConnectionParams struct {
 
 // GenerateNativeTriggerServiceConnectUrlJSONBody defines parameters for GenerateNativeTriggerServiceConnectUrl.
 type GenerateNativeTriggerServiceConnectUrlJSONBody struct {
-	ResourcePath *string `json:"resource_path,omitempty"`
+	Scopes *[]string `json:"scopes,omitempty"`
 }
 
 // SetNativeTriggerWorkspaceConnectionJSONBody defines parameters for SetNativeTriggerWorkspaceConnection.
@@ -14601,11 +14817,17 @@ type CreateAccountJSONBody struct {
 	ExpiresIn  int     `json:"expires_in"`
 	GrantType  *string `json:"grant_type,omitempty"`
 
+	// IsWorkspaceIntegration Issued by the workspace's own OAuth app, with `client` naming its service (google, github, nextcloud).
+	IsWorkspaceIntegration *bool `json:"is_workspace_integration,omitempty"`
+
 	// McpServerUrl MCP server URL for MCP OAuth token refresh
 	McpServerUrl *string `json:"mcp_server_url,omitempty"`
 
 	// RefreshToken OAuth refresh token. For authorization_code flow, this contains the actual refresh token. For client_credentials flow, this must be set to an empty string.
 	RefreshToken string `json:"refresh_token"`
+
+	// Replace Reconnect: swap the token and account of the existing variable at variable.path in place, keeping its sharing and description.
+	Replace *bool `json:"replace,omitempty"`
 
 	// Scopes OAuth scopes to use for token refresh. Overrides instance-level scopes.
 	Scopes   *[]string       `json:"scopes,omitempty"`
@@ -16214,8 +16436,23 @@ type CreateTokenImpersonateJSONRequestBody = NewTokenImpersonate
 // UpdateTokenLabelJSONRequestBody defines body for UpdateTokenLabel for application/json ContentType.
 type UpdateTokenLabelJSONRequestBody UpdateTokenLabelJSONBody
 
+// UpdateTokenLimitsJSONRequestBody defines body for UpdateTokenLimits for application/json ContentType.
+type UpdateTokenLimitsJSONRequestBody UpdateTokenLimitsJSONBody
+
 // UpdateTokenScopesJSONRequestBody defines body for UpdateTokenScopes for application/json ContentType.
 type UpdateTokenScopesJSONRequestBody UpdateTokenScopesJSONBody
+
+// DisableTotpJSONRequestBody defines body for DisableTotp for application/json ContentType.
+type DisableTotpJSONRequestBody DisableTotpJSONBody
+
+// EnableTotpJSONRequestBody defines body for EnableTotp for application/json ContentType.
+type EnableTotpJSONRequestBody EnableTotpJSONBody
+
+// RegenerateTotpRecoveryCodesJSONRequestBody defines body for RegenerateTotpRecoveryCodes for application/json ContentType.
+type RegenerateTotpRecoveryCodesJSONRequestBody RegenerateTotpRecoveryCodesJSONBody
+
+// SetupTotpJSONRequestBody defines body for SetupTotp for application/json ContentType.
+type SetupTotpJSONRequestBody SetupTotpJSONBody
 
 // UpdateTutorialProgressJSONRequestBody defines body for UpdateTutorialProgress for application/json ContentType.
 type UpdateTutorialProgressJSONRequestBody UpdateTutorialProgressJSONBody
@@ -20354,6 +20591,9 @@ type ClientInterface interface {
 
 	SendMessageToConversation(ctx context.Context, body SendMessageToConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// IntrospectToken request
+	IntrospectToken(ctx context.Context, params *IntrospectTokenParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListAvailableScopes request
 	ListAvailableScopes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -20483,6 +20723,9 @@ type ClientInterface interface {
 	// DeleteToken request
 	DeleteToken(ctx context.Context, tokenPrefix string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteTokenAsSuperAdmin request
+	DeleteTokenAsSuperAdmin(ctx context.Context, email string, tokenPrefix string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateTokenImpersonateWithBody request with any body
 	CreateTokenImpersonateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -20491,15 +20734,55 @@ type ClientInterface interface {
 	// ListTokens request
 	ListTokens(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListTokensAsSuperAdmin request
+	ListTokensAsSuperAdmin(ctx context.Context, params *ListTokensAsSuperAdminParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTokenRiskCounts request
+	GetTokenRiskCounts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTokenRiskCountsAsSuperAdmin request
+	GetTokenRiskCountsAsSuperAdmin(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UpdateTokenLabelWithBody request with any body
 	UpdateTokenLabelWithBody(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateTokenLabel(ctx context.Context, tokenPrefix string, body UpdateTokenLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UpdateTokenLimitsWithBody request with any body
+	UpdateTokenLimitsWithBody(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateTokenLimits(ctx context.Context, tokenPrefix string, body UpdateTokenLimitsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UpdateTokenScopesWithBody request with any body
 	UpdateTokenScopesWithBody(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateTokenScopes(ctx context.Context, tokenPrefix string, body UpdateTokenScopesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTotpStatus request
+	GetTotpStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DisableTotpWithBody request with any body
+	DisableTotpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DisableTotp(ctx context.Context, body DisableTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// EnableTotpWithBody request with any body
+	EnableTotpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	EnableTotp(ctx context.Context, body EnableTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RegenerateTotpRecoveryCodesWithBody request with any body
+	RegenerateTotpRecoveryCodesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RegenerateTotpRecoveryCodes(ctx context.Context, body RegenerateTotpRecoveryCodesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResetTotpOfUser request
+	ResetTotpOfUser(ctx context.Context, user string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SetupTotpWithBody request with any body
+	SetupTotpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SetupTotp(ctx context.Context, body SetupTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetTutorialProgress request
 	GetTutorialProgress(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -22075,6 +22358,9 @@ type ClientInterface interface {
 	// ListNativeTriggerServices request
 	ListNativeTriggerServices(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListNativeTriggerWorkspaceApps request
+	ListNativeTriggerWorkspaceApps(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// NativeTriggerServiceCallbackWithBody request with any body
 	NativeTriggerServiceCallbackWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -22104,6 +22390,9 @@ type ClientInterface interface {
 
 	// CheckInstanceSharingAvailable request
 	CheckInstanceSharingAvailable(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetNativeTriggerRequiredScopes request
+	GetNativeTriggerRequiredScopes(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SetNativeTriggerWorkspaceConnectionWithBody request with any body
 	SetNativeTriggerWorkspaceConnectionWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -25847,6 +26136,18 @@ func (c *Client) SendMessageToConversation(ctx context.Context, body SendMessage
 	return c.Client.Do(req)
 }
 
+func (c *Client) IntrospectToken(ctx context.Context, params *IntrospectTokenParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewIntrospectTokenRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListAvailableScopes(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAvailableScopesRequest(c.Server)
 	if err != nil {
@@ -26423,6 +26724,18 @@ func (c *Client) DeleteToken(ctx context.Context, tokenPrefix string, reqEditors
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeleteTokenAsSuperAdmin(ctx context.Context, email string, tokenPrefix string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteTokenAsSuperAdminRequest(c.Server, email, tokenPrefix)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateTokenImpersonateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateTokenImpersonateRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -26459,6 +26772,42 @@ func (c *Client) ListTokens(ctx context.Context, params *ListTokensParams, reqEd
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListTokensAsSuperAdmin(ctx context.Context, params *ListTokensAsSuperAdminParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListTokensAsSuperAdminRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTokenRiskCounts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTokenRiskCountsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTokenRiskCountsAsSuperAdmin(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTokenRiskCountsAsSuperAdminRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) UpdateTokenLabelWithBody(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateTokenLabelRequestWithBody(c.Server, tokenPrefix, contentType, body)
 	if err != nil {
@@ -26483,6 +26832,30 @@ func (c *Client) UpdateTokenLabel(ctx context.Context, tokenPrefix string, body 
 	return c.Client.Do(req)
 }
 
+func (c *Client) UpdateTokenLimitsWithBody(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateTokenLimitsRequestWithBody(c.Server, tokenPrefix, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateTokenLimits(ctx context.Context, tokenPrefix string, body UpdateTokenLimitsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateTokenLimitsRequest(c.Server, tokenPrefix, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) UpdateTokenScopesWithBody(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateTokenScopesRequestWithBody(c.Server, tokenPrefix, contentType, body)
 	if err != nil {
@@ -26497,6 +26870,126 @@ func (c *Client) UpdateTokenScopesWithBody(ctx context.Context, tokenPrefix stri
 
 func (c *Client) UpdateTokenScopes(ctx context.Context, tokenPrefix string, body UpdateTokenScopesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateTokenScopesRequest(c.Server, tokenPrefix, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTotpStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTotpStatusRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DisableTotpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDisableTotpRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DisableTotp(ctx context.Context, body DisableTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDisableTotpRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EnableTotpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEnableTotpRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) EnableTotp(ctx context.Context, body EnableTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewEnableTotpRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RegenerateTotpRecoveryCodesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRegenerateTotpRecoveryCodesRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RegenerateTotpRecoveryCodes(ctx context.Context, body RegenerateTotpRecoveryCodesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRegenerateTotpRecoveryCodesRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResetTotpOfUser(ctx context.Context, user string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResetTotpOfUserRequest(c.Server, user)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetupTotpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetupTotpRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SetupTotp(ctx context.Context, body SetupTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSetupTotpRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -33455,6 +33948,18 @@ func (c *Client) ListNativeTriggerServices(ctx context.Context, workspace Worksp
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListNativeTriggerWorkspaceApps(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNativeTriggerWorkspaceAppsRequest(c.Server, workspace)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) NativeTriggerServiceCallbackWithBody(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewNativeTriggerServiceCallbackRequestWithBody(c.Server, workspace, serviceName, contentType, body)
 	if err != nil {
@@ -33577,6 +34082,18 @@ func (c *Client) GenerateNativeTriggerServiceConnectUrl(ctx context.Context, wor
 
 func (c *Client) CheckInstanceSharingAvailable(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCheckInstanceSharingAvailableRequest(c.Server, workspace, serviceName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetNativeTriggerRequiredScopes(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNativeTriggerRequiredScopesRequest(c.Server, workspace, serviceName)
 	if err != nil {
 		return nil, err
 	}
@@ -45415,6 +45932,87 @@ func NewSendMessageToConversationRequestWithBody(server string, contentType stri
 	return req, nil
 }
 
+// NewIntrospectTokenRequest generates requests for IntrospectToken
+func NewIntrospectTokenRequest(server string, params *IntrospectTokenParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/tokens/introspect")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Workspace != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "workspace", runtime.ParamLocationQuery, *params.Workspace); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "path", runtime.ParamLocationQuery, *params.Path); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Method != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "method", runtime.ParamLocationQuery, *params.Method); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListAvailableScopesRequest generates requests for ListAvailableScopes
 func NewListAvailableScopesRequest(server string) (*http.Request, error) {
 	var err error
@@ -46732,6 +47330,47 @@ func NewDeleteTokenRequest(server string, tokenPrefix string) (*http.Request, er
 	return req, nil
 }
 
+// NewDeleteTokenAsSuperAdminRequest generates requests for DeleteTokenAsSuperAdmin
+func NewDeleteTokenAsSuperAdminRequest(server string, email string, tokenPrefix string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "email", runtime.ParamLocationPath, email)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "token_prefix", runtime.ParamLocationPath, tokenPrefix)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/tokens/delete_as_super_admin/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateTokenImpersonateRequest calls the generic CreateTokenImpersonate builder with application/json body
 func NewCreateTokenImpersonateRequest(server string, body CreateTokenImpersonateJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -46853,6 +47492,173 @@ func NewListTokensRequest(server string, params *ListTokensParams) (*http.Reques
 	return req, nil
 }
 
+// NewListTokensAsSuperAdminRequest generates requests for ListTokensAsSuperAdmin
+func NewListTokensAsSuperAdminRequest(server string, params *ListTokensAsSuperAdminParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/tokens/list_as_super_admin")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Flag != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "flag", runtime.ParamLocationQuery, *params.Flag); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Search != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PerPage != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.AfterLastUsedAt != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "after_last_used_at", runtime.ParamLocationQuery, *params.AfterLastUsedAt); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.AfterTokenPrefix != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "after_token_prefix", runtime.ParamLocationQuery, *params.AfterTokenPrefix); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetTokenRiskCountsRequest generates requests for GetTokenRiskCounts
+func NewGetTokenRiskCountsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/tokens/risk_counts")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetTokenRiskCountsAsSuperAdminRequest generates requests for GetTokenRiskCountsAsSuperAdmin
+func NewGetTokenRiskCountsAsSuperAdminRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/tokens/risk_counts_as_super_admin")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewUpdateTokenLabelRequest calls the generic UpdateTokenLabel builder with application/json body
 func NewUpdateTokenLabelRequest(server string, tokenPrefix string, body UpdateTokenLabelJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -46900,6 +47706,53 @@ func NewUpdateTokenLabelRequestWithBody(server string, tokenPrefix string, conte
 	return req, nil
 }
 
+// NewUpdateTokenLimitsRequest calls the generic UpdateTokenLimits builder with application/json body
+func NewUpdateTokenLimitsRequest(server string, tokenPrefix string, body UpdateTokenLimitsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateTokenLimitsRequestWithBody(server, tokenPrefix, "application/json", bodyReader)
+}
+
+// NewUpdateTokenLimitsRequestWithBody generates requests for UpdateTokenLimits with any type of body
+func NewUpdateTokenLimitsRequestWithBody(server string, tokenPrefix string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "token_prefix", runtime.ParamLocationPath, tokenPrefix)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/tokens/update_limits/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUpdateTokenScopesRequest calls the generic UpdateTokenScopes builder with application/json body
 func NewUpdateTokenScopesRequest(server string, tokenPrefix string, body UpdateTokenScopesJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -46928,6 +47781,227 @@ func NewUpdateTokenScopesRequestWithBody(server string, tokenPrefix string, cont
 	}
 
 	operationPath := fmt.Sprintf("/users/tokens/update_scopes/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetTotpStatusRequest generates requests for GetTotpStatus
+func NewGetTotpStatusRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/totp")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDisableTotpRequest calls the generic DisableTotp builder with application/json body
+func NewDisableTotpRequest(server string, body DisableTotpJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDisableTotpRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewDisableTotpRequestWithBody generates requests for DisableTotp with any type of body
+func NewDisableTotpRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/totp/disable")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewEnableTotpRequest calls the generic EnableTotp builder with application/json body
+func NewEnableTotpRequest(server string, body EnableTotpJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewEnableTotpRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewEnableTotpRequestWithBody generates requests for EnableTotp with any type of body
+func NewEnableTotpRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/totp/enable")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRegenerateTotpRecoveryCodesRequest calls the generic RegenerateTotpRecoveryCodes builder with application/json body
+func NewRegenerateTotpRecoveryCodesRequest(server string, body RegenerateTotpRecoveryCodesJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRegenerateTotpRecoveryCodesRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewRegenerateTotpRecoveryCodesRequestWithBody generates requests for RegenerateTotpRecoveryCodes with any type of body
+func NewRegenerateTotpRecoveryCodesRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/totp/recovery_codes")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewResetTotpOfUserRequest generates requests for ResetTotpOfUser
+func NewResetTotpOfUserRequest(server string, user string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "user", runtime.ParamLocationPath, user)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/totp/reset/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSetupTotpRequest calls the generic SetupTotp builder with application/json body
+func NewSetupTotpRequest(server string, body SetupTotpJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSetupTotpRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSetupTotpRequestWithBody generates requests for SetupTotp with any type of body
+func NewSetupTotpRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/totp/setup")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -78392,6 +79466,40 @@ func NewListNativeTriggerServicesRequest(server string, workspace WorkspaceId) (
 	return req, nil
 }
 
+// NewListNativeTriggerWorkspaceAppsRequest generates requests for ListNativeTriggerWorkspaceApps
+func NewListNativeTriggerWorkspaceAppsRequest(server string, workspace WorkspaceId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/workspace_apps", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewNativeTriggerServiceCallbackRequest calls the generic NativeTriggerServiceCallback builder with application/json body
 func NewNativeTriggerServiceCallbackRequest(server string, workspace WorkspaceId, serviceName NativeServiceName, body NativeTriggerServiceCallbackJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -78760,6 +79868,47 @@ func NewCheckInstanceSharingAvailableRequest(server string, workspace WorkspaceI
 	}
 
 	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/instance_sharing_available", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetNativeTriggerRequiredScopesRequest generates requests for GetNativeTriggerRequiredScopes
+func NewGetNativeTriggerRequiredScopesRequest(server string, workspace WorkspaceId, serviceName NativeServiceName) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "workspace", runtime.ParamLocationPath, workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "service_name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/w/%s/native_triggers/integrations/%s/required_scopes", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -97687,6 +98836,9 @@ type ClientWithResponsesInterface interface {
 
 	SendMessageToConversationWithResponse(ctx context.Context, body SendMessageToConversationJSONRequestBody, reqEditors ...RequestEditorFn) (*SendMessageToConversationResponse, error)
 
+	// IntrospectTokenWithResponse request
+	IntrospectTokenWithResponse(ctx context.Context, params *IntrospectTokenParams, reqEditors ...RequestEditorFn) (*IntrospectTokenResponse, error)
+
 	// ListAvailableScopesWithResponse request
 	ListAvailableScopesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAvailableScopesResponse, error)
 
@@ -97816,6 +98968,9 @@ type ClientWithResponsesInterface interface {
 	// DeleteTokenWithResponse request
 	DeleteTokenWithResponse(ctx context.Context, tokenPrefix string, reqEditors ...RequestEditorFn) (*DeleteTokenResponse, error)
 
+	// DeleteTokenAsSuperAdminWithResponse request
+	DeleteTokenAsSuperAdminWithResponse(ctx context.Context, email string, tokenPrefix string, reqEditors ...RequestEditorFn) (*DeleteTokenAsSuperAdminResponse, error)
+
 	// CreateTokenImpersonateWithBodyWithResponse request with any body
 	CreateTokenImpersonateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateTokenImpersonateResponse, error)
 
@@ -97824,15 +98979,55 @@ type ClientWithResponsesInterface interface {
 	// ListTokensWithResponse request
 	ListTokensWithResponse(ctx context.Context, params *ListTokensParams, reqEditors ...RequestEditorFn) (*ListTokensResponse, error)
 
+	// ListTokensAsSuperAdminWithResponse request
+	ListTokensAsSuperAdminWithResponse(ctx context.Context, params *ListTokensAsSuperAdminParams, reqEditors ...RequestEditorFn) (*ListTokensAsSuperAdminResponse, error)
+
+	// GetTokenRiskCountsWithResponse request
+	GetTokenRiskCountsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTokenRiskCountsResponse, error)
+
+	// GetTokenRiskCountsAsSuperAdminWithResponse request
+	GetTokenRiskCountsAsSuperAdminWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTokenRiskCountsAsSuperAdminResponse, error)
+
 	// UpdateTokenLabelWithBodyWithResponse request with any body
 	UpdateTokenLabelWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenLabelResponse, error)
 
 	UpdateTokenLabelWithResponse(ctx context.Context, tokenPrefix string, body UpdateTokenLabelJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateTokenLabelResponse, error)
 
+	// UpdateTokenLimitsWithBodyWithResponse request with any body
+	UpdateTokenLimitsWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenLimitsResponse, error)
+
+	UpdateTokenLimitsWithResponse(ctx context.Context, tokenPrefix string, body UpdateTokenLimitsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateTokenLimitsResponse, error)
+
 	// UpdateTokenScopesWithBodyWithResponse request with any body
 	UpdateTokenScopesWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenScopesResponse, error)
 
 	UpdateTokenScopesWithResponse(ctx context.Context, tokenPrefix string, body UpdateTokenScopesJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateTokenScopesResponse, error)
+
+	// GetTotpStatusWithResponse request
+	GetTotpStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTotpStatusResponse, error)
+
+	// DisableTotpWithBodyWithResponse request with any body
+	DisableTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DisableTotpResponse, error)
+
+	DisableTotpWithResponse(ctx context.Context, body DisableTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*DisableTotpResponse, error)
+
+	// EnableTotpWithBodyWithResponse request with any body
+	EnableTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnableTotpResponse, error)
+
+	EnableTotpWithResponse(ctx context.Context, body EnableTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*EnableTotpResponse, error)
+
+	// RegenerateTotpRecoveryCodesWithBodyWithResponse request with any body
+	RegenerateTotpRecoveryCodesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegenerateTotpRecoveryCodesResponse, error)
+
+	RegenerateTotpRecoveryCodesWithResponse(ctx context.Context, body RegenerateTotpRecoveryCodesJSONRequestBody, reqEditors ...RequestEditorFn) (*RegenerateTotpRecoveryCodesResponse, error)
+
+	// ResetTotpOfUserWithResponse request
+	ResetTotpOfUserWithResponse(ctx context.Context, user string, reqEditors ...RequestEditorFn) (*ResetTotpOfUserResponse, error)
+
+	// SetupTotpWithBodyWithResponse request with any body
+	SetupTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetupTotpResponse, error)
+
+	SetupTotpWithResponse(ctx context.Context, body SetupTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*SetupTotpResponse, error)
 
 	// GetTutorialProgressWithResponse request
 	GetTutorialProgressWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTutorialProgressResponse, error)
@@ -99408,6 +100603,9 @@ type ClientWithResponsesInterface interface {
 	// ListNativeTriggerServicesWithResponse request
 	ListNativeTriggerServicesWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListNativeTriggerServicesResponse, error)
 
+	// ListNativeTriggerWorkspaceAppsWithResponse request
+	ListNativeTriggerWorkspaceAppsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListNativeTriggerWorkspaceAppsResponse, error)
+
 	// NativeTriggerServiceCallbackWithBodyWithResponse request with any body
 	NativeTriggerServiceCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error)
 
@@ -99437,6 +100635,9 @@ type ClientWithResponsesInterface interface {
 
 	// CheckInstanceSharingAvailableWithResponse request
 	CheckInstanceSharingAvailableWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*CheckInstanceSharingAvailableResponse, error)
+
+	// GetNativeTriggerRequiredScopesWithResponse request
+	GetNativeTriggerRequiredScopesWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*GetNativeTriggerRequiredScopesResponse, error)
 
 	// SetNativeTriggerWorkspaceConnectionWithBodyWithResponse request with any body
 	SetNativeTriggerWorkspaceConnectionWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetNativeTriggerWorkspaceConnectionResponse, error)
@@ -104475,6 +105676,28 @@ func (r SendMessageToConversationResponse) StatusCode() int {
 	return 0
 }
 
+type IntrospectTokenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TokenIntrospection
+}
+
+// Status returns HTTPResponse.Status
+func (r IntrospectTokenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r IntrospectTokenResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListAvailableScopesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -105202,6 +106425,27 @@ func (r DeleteTokenResponse) StatusCode() int {
 	return 0
 }
 
+type DeleteTokenAsSuperAdminResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteTokenAsSuperAdminResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteTokenAsSuperAdminResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateTokenImpersonateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -105245,6 +106489,72 @@ func (r ListTokensResponse) StatusCode() int {
 	return 0
 }
 
+type ListTokensAsSuperAdminResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]TokenForReview
+}
+
+// Status returns HTTPResponse.Status
+func (r ListTokensAsSuperAdminResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListTokensAsSuperAdminResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTokenRiskCountsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TokenRiskCounts
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTokenRiskCountsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTokenRiskCountsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTokenRiskCountsAsSuperAdminResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TokenRiskCounts
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTokenRiskCountsAsSuperAdminResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTokenRiskCountsAsSuperAdminResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UpdateTokenLabelResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -105266,6 +106576,27 @@ func (r UpdateTokenLabelResponse) StatusCode() int {
 	return 0
 }
 
+type UpdateTokenLimitsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateTokenLimitsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateTokenLimitsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UpdateTokenScopesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -105281,6 +106612,147 @@ func (r UpdateTokenScopesResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateTokenScopesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTotpStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Enabled bool `json:"enabled"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTotpStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTotpStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DisableTotpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DisableTotpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DisableTotpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type EnableTotpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// RecoveryCodes single-use codes accepted in place of an authenticator code, shown only once
+		RecoveryCodes []string `json:"recovery_codes"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r EnableTotpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r EnableTotpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RegenerateTotpRecoveryCodesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// RecoveryCodes single-use codes accepted in place of an authenticator code, shown only once
+		RecoveryCodes []string `json:"recovery_codes"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r RegenerateTotpRecoveryCodesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RegenerateTotpRecoveryCodesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ResetTotpOfUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ResetTotpOfUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResetTotpOfUserResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SetupTotpResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		OtpauthUrl string `json:"otpauth_url"`
+		Secret     string `json:"secret"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r SetupTotpResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SetupTotpResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -115605,10 +117077,32 @@ func (r ListNativeTriggerServicesResponse) StatusCode() int {
 	return 0
 }
 
+type ListNativeTriggerWorkspaceAppsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]NativeServiceName
+}
+
+// Status returns HTTPResponse.Status
+func (r ListNativeTriggerWorkspaceAppsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListNativeTriggerWorkspaceAppsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type NativeTriggerServiceCallbackResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *string
+	JSON200      *TokenResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -115773,6 +117267,28 @@ func (r CheckInstanceSharingAvailableResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CheckInstanceSharingAvailableResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetNativeTriggerRequiredScopesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNativeTriggerRequiredScopesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNativeTriggerRequiredScopesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -117321,7 +118837,10 @@ type GetResourceResponse struct {
 		// AgentMemory For an `ai_agent` resource only, its `memory` setting: the one part
 		// of the value a listing returns, since it decides whether the agent
 		// keeps a conversation.
-		AgentMemory *interface{}            `json:"agent_memory,omitempty"`
+		AgentMemory *interface{} `json:"agent_memory,omitempty"`
+
+		// Client OAuth client the linked account refreshes through
+		Client      *string                 `json:"client,omitempty"`
 		CreatedBy   *string                 `json:"created_by,omitempty"`
 		Description *string                 `json:"description,omitempty"`
 		Draft       *map[string]interface{} `json:"draft,omitempty"`
@@ -117356,8 +118875,11 @@ type GetResourceResponse struct {
 		IsLinked        bool      `json:"is_linked"`
 		IsOauth         bool      `json:"is_oauth"`
 		IsRefreshed     bool      `json:"is_refreshed"`
-		Labels          *[]string `json:"labels,omitempty"`
-		NoDeployed      *bool     `json:"no_deployed,omitempty"`
+
+		// IsWorkspaceIntegration The linked account was connected through the workspace's own OAuth app
+		IsWorkspaceIntegration *bool     `json:"is_workspace_integration,omitempty"`
+		Labels                 *[]string `json:"labels,omitempty"`
+		NoDeployed             *bool     `json:"no_deployed,omitempty"`
 
 		// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
 		// with a saved draft at the same path. Populated only on the
@@ -126202,6 +127724,15 @@ func (c *ClientWithResponses) SendMessageToConversationWithResponse(ctx context.
 	return ParseSendMessageToConversationResponse(rsp)
 }
 
+// IntrospectTokenWithResponse request returning *IntrospectTokenResponse
+func (c *ClientWithResponses) IntrospectTokenWithResponse(ctx context.Context, params *IntrospectTokenParams, reqEditors ...RequestEditorFn) (*IntrospectTokenResponse, error) {
+	rsp, err := c.IntrospectToken(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseIntrospectTokenResponse(rsp)
+}
+
 // ListAvailableScopesWithResponse request returning *ListAvailableScopesResponse
 func (c *ClientWithResponses) ListAvailableScopesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAvailableScopesResponse, error) {
 	rsp, err := c.ListAvailableScopes(ctx, reqEditors...)
@@ -126619,6 +128150,15 @@ func (c *ClientWithResponses) DeleteTokenWithResponse(ctx context.Context, token
 	return ParseDeleteTokenResponse(rsp)
 }
 
+// DeleteTokenAsSuperAdminWithResponse request returning *DeleteTokenAsSuperAdminResponse
+func (c *ClientWithResponses) DeleteTokenAsSuperAdminWithResponse(ctx context.Context, email string, tokenPrefix string, reqEditors ...RequestEditorFn) (*DeleteTokenAsSuperAdminResponse, error) {
+	rsp, err := c.DeleteTokenAsSuperAdmin(ctx, email, tokenPrefix, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteTokenAsSuperAdminResponse(rsp)
+}
+
 // CreateTokenImpersonateWithBodyWithResponse request with arbitrary body returning *CreateTokenImpersonateResponse
 func (c *ClientWithResponses) CreateTokenImpersonateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateTokenImpersonateResponse, error) {
 	rsp, err := c.CreateTokenImpersonateWithBody(ctx, contentType, body, reqEditors...)
@@ -126645,6 +128185,33 @@ func (c *ClientWithResponses) ListTokensWithResponse(ctx context.Context, params
 	return ParseListTokensResponse(rsp)
 }
 
+// ListTokensAsSuperAdminWithResponse request returning *ListTokensAsSuperAdminResponse
+func (c *ClientWithResponses) ListTokensAsSuperAdminWithResponse(ctx context.Context, params *ListTokensAsSuperAdminParams, reqEditors ...RequestEditorFn) (*ListTokensAsSuperAdminResponse, error) {
+	rsp, err := c.ListTokensAsSuperAdmin(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListTokensAsSuperAdminResponse(rsp)
+}
+
+// GetTokenRiskCountsWithResponse request returning *GetTokenRiskCountsResponse
+func (c *ClientWithResponses) GetTokenRiskCountsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTokenRiskCountsResponse, error) {
+	rsp, err := c.GetTokenRiskCounts(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTokenRiskCountsResponse(rsp)
+}
+
+// GetTokenRiskCountsAsSuperAdminWithResponse request returning *GetTokenRiskCountsAsSuperAdminResponse
+func (c *ClientWithResponses) GetTokenRiskCountsAsSuperAdminWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTokenRiskCountsAsSuperAdminResponse, error) {
+	rsp, err := c.GetTokenRiskCountsAsSuperAdmin(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTokenRiskCountsAsSuperAdminResponse(rsp)
+}
+
 // UpdateTokenLabelWithBodyWithResponse request with arbitrary body returning *UpdateTokenLabelResponse
 func (c *ClientWithResponses) UpdateTokenLabelWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenLabelResponse, error) {
 	rsp, err := c.UpdateTokenLabelWithBody(ctx, tokenPrefix, contentType, body, reqEditors...)
@@ -126662,6 +128229,23 @@ func (c *ClientWithResponses) UpdateTokenLabelWithResponse(ctx context.Context, 
 	return ParseUpdateTokenLabelResponse(rsp)
 }
 
+// UpdateTokenLimitsWithBodyWithResponse request with arbitrary body returning *UpdateTokenLimitsResponse
+func (c *ClientWithResponses) UpdateTokenLimitsWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenLimitsResponse, error) {
+	rsp, err := c.UpdateTokenLimitsWithBody(ctx, tokenPrefix, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateTokenLimitsResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateTokenLimitsWithResponse(ctx context.Context, tokenPrefix string, body UpdateTokenLimitsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateTokenLimitsResponse, error) {
+	rsp, err := c.UpdateTokenLimits(ctx, tokenPrefix, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateTokenLimitsResponse(rsp)
+}
+
 // UpdateTokenScopesWithBodyWithResponse request with arbitrary body returning *UpdateTokenScopesResponse
 func (c *ClientWithResponses) UpdateTokenScopesWithBodyWithResponse(ctx context.Context, tokenPrefix string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateTokenScopesResponse, error) {
 	rsp, err := c.UpdateTokenScopesWithBody(ctx, tokenPrefix, contentType, body, reqEditors...)
@@ -126677,6 +128261,92 @@ func (c *ClientWithResponses) UpdateTokenScopesWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseUpdateTokenScopesResponse(rsp)
+}
+
+// GetTotpStatusWithResponse request returning *GetTotpStatusResponse
+func (c *ClientWithResponses) GetTotpStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTotpStatusResponse, error) {
+	rsp, err := c.GetTotpStatus(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTotpStatusResponse(rsp)
+}
+
+// DisableTotpWithBodyWithResponse request with arbitrary body returning *DisableTotpResponse
+func (c *ClientWithResponses) DisableTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DisableTotpResponse, error) {
+	rsp, err := c.DisableTotpWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDisableTotpResponse(rsp)
+}
+
+func (c *ClientWithResponses) DisableTotpWithResponse(ctx context.Context, body DisableTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*DisableTotpResponse, error) {
+	rsp, err := c.DisableTotp(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDisableTotpResponse(rsp)
+}
+
+// EnableTotpWithBodyWithResponse request with arbitrary body returning *EnableTotpResponse
+func (c *ClientWithResponses) EnableTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*EnableTotpResponse, error) {
+	rsp, err := c.EnableTotpWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEnableTotpResponse(rsp)
+}
+
+func (c *ClientWithResponses) EnableTotpWithResponse(ctx context.Context, body EnableTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*EnableTotpResponse, error) {
+	rsp, err := c.EnableTotp(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseEnableTotpResponse(rsp)
+}
+
+// RegenerateTotpRecoveryCodesWithBodyWithResponse request with arbitrary body returning *RegenerateTotpRecoveryCodesResponse
+func (c *ClientWithResponses) RegenerateTotpRecoveryCodesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegenerateTotpRecoveryCodesResponse, error) {
+	rsp, err := c.RegenerateTotpRecoveryCodesWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRegenerateTotpRecoveryCodesResponse(rsp)
+}
+
+func (c *ClientWithResponses) RegenerateTotpRecoveryCodesWithResponse(ctx context.Context, body RegenerateTotpRecoveryCodesJSONRequestBody, reqEditors ...RequestEditorFn) (*RegenerateTotpRecoveryCodesResponse, error) {
+	rsp, err := c.RegenerateTotpRecoveryCodes(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRegenerateTotpRecoveryCodesResponse(rsp)
+}
+
+// ResetTotpOfUserWithResponse request returning *ResetTotpOfUserResponse
+func (c *ClientWithResponses) ResetTotpOfUserWithResponse(ctx context.Context, user string, reqEditors ...RequestEditorFn) (*ResetTotpOfUserResponse, error) {
+	rsp, err := c.ResetTotpOfUser(ctx, user, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResetTotpOfUserResponse(rsp)
+}
+
+// SetupTotpWithBodyWithResponse request with arbitrary body returning *SetupTotpResponse
+func (c *ClientWithResponses) SetupTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SetupTotpResponse, error) {
+	rsp, err := c.SetupTotpWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetupTotpResponse(rsp)
+}
+
+func (c *ClientWithResponses) SetupTotpWithResponse(ctx context.Context, body SetupTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*SetupTotpResponse, error) {
+	rsp, err := c.SetupTotp(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSetupTotpResponse(rsp)
 }
 
 // GetTutorialProgressWithResponse request returning *GetTutorialProgressResponse
@@ -131727,6 +133397,15 @@ func (c *ClientWithResponses) ListNativeTriggerServicesWithResponse(ctx context.
 	return ParseListNativeTriggerServicesResponse(rsp)
 }
 
+// ListNativeTriggerWorkspaceAppsWithResponse request returning *ListNativeTriggerWorkspaceAppsResponse
+func (c *ClientWithResponses) ListNativeTriggerWorkspaceAppsWithResponse(ctx context.Context, workspace WorkspaceId, reqEditors ...RequestEditorFn) (*ListNativeTriggerWorkspaceAppsResponse, error) {
+	rsp, err := c.ListNativeTriggerWorkspaceApps(ctx, workspace, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListNativeTriggerWorkspaceAppsResponse(rsp)
+}
+
 // NativeTriggerServiceCallbackWithBodyWithResponse request with arbitrary body returning *NativeTriggerServiceCallbackResponse
 func (c *ClientWithResponses) NativeTriggerServiceCallbackWithBodyWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*NativeTriggerServiceCallbackResponse, error) {
 	rsp, err := c.NativeTriggerServiceCallbackWithBody(ctx, workspace, serviceName, contentType, body, reqEditors...)
@@ -131821,6 +133500,15 @@ func (c *ClientWithResponses) CheckInstanceSharingAvailableWithResponse(ctx cont
 		return nil, err
 	}
 	return ParseCheckInstanceSharingAvailableResponse(rsp)
+}
+
+// GetNativeTriggerRequiredScopesWithResponse request returning *GetNativeTriggerRequiredScopesResponse
+func (c *ClientWithResponses) GetNativeTriggerRequiredScopesWithResponse(ctx context.Context, workspace WorkspaceId, serviceName NativeServiceName, reqEditors ...RequestEditorFn) (*GetNativeTriggerRequiredScopesResponse, error) {
+	rsp, err := c.GetNativeTriggerRequiredScopes(ctx, workspace, serviceName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNativeTriggerRequiredScopesResponse(rsp)
 }
 
 // SetNativeTriggerWorkspaceConnectionWithBodyWithResponse request with arbitrary body returning *SetNativeTriggerWorkspaceConnectionResponse
@@ -139921,6 +141609,32 @@ func ParseSendMessageToConversationResponse(rsp *http.Response) (*SendMessageToC
 	return response, nil
 }
 
+// ParseIntrospectTokenResponse parses an HTTP response from a IntrospectTokenWithResponse call
+func ParseIntrospectTokenResponse(rsp *http.Response) (*IntrospectTokenResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &IntrospectTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TokenIntrospection
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListAvailableScopesResponse parses an HTTP response from a ListAvailableScopesWithResponse call
 func ParseListAvailableScopesResponse(rsp *http.Response) (*ListAvailableScopesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -140618,6 +142332,22 @@ func ParseDeleteTokenResponse(rsp *http.Response) (*DeleteTokenResponse, error) 
 	return response, nil
 }
 
+// ParseDeleteTokenAsSuperAdminResponse parses an HTTP response from a DeleteTokenAsSuperAdminWithResponse call
+func ParseDeleteTokenAsSuperAdminResponse(rsp *http.Response) (*DeleteTokenAsSuperAdminResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteTokenAsSuperAdminResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseCreateTokenImpersonateResponse parses an HTTP response from a CreateTokenImpersonateWithResponse call
 func ParseCreateTokenImpersonateResponse(rsp *http.Response) (*CreateTokenImpersonateResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -140660,6 +142390,84 @@ func ParseListTokensResponse(rsp *http.Response) (*ListTokensResponse, error) {
 	return response, nil
 }
 
+// ParseListTokensAsSuperAdminResponse parses an HTTP response from a ListTokensAsSuperAdminWithResponse call
+func ParseListTokensAsSuperAdminResponse(rsp *http.Response) (*ListTokensAsSuperAdminResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListTokensAsSuperAdminResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []TokenForReview
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetTokenRiskCountsResponse parses an HTTP response from a GetTokenRiskCountsWithResponse call
+func ParseGetTokenRiskCountsResponse(rsp *http.Response) (*GetTokenRiskCountsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTokenRiskCountsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TokenRiskCounts
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetTokenRiskCountsAsSuperAdminResponse parses an HTTP response from a GetTokenRiskCountsAsSuperAdminWithResponse call
+func ParseGetTokenRiskCountsAsSuperAdminResponse(rsp *http.Response) (*GetTokenRiskCountsAsSuperAdminResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTokenRiskCountsAsSuperAdminResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TokenRiskCounts
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseUpdateTokenLabelResponse parses an HTTP response from a UpdateTokenLabelWithResponse call
 func ParseUpdateTokenLabelResponse(rsp *http.Response) (*UpdateTokenLabelResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -140669,6 +142477,22 @@ func ParseUpdateTokenLabelResponse(rsp *http.Response) (*UpdateTokenLabelRespons
 	}
 
 	response := &UpdateTokenLabelResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUpdateTokenLimitsResponse parses an HTTP response from a UpdateTokenLimitsWithResponse call
+func ParseUpdateTokenLimitsResponse(rsp *http.Response) (*UpdateTokenLimitsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateTokenLimitsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -140687,6 +142511,153 @@ func ParseUpdateTokenScopesResponse(rsp *http.Response) (*UpdateTokenScopesRespo
 	response := &UpdateTokenScopesResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetTotpStatusResponse parses an HTTP response from a GetTotpStatusWithResponse call
+func ParseGetTotpStatusResponse(rsp *http.Response) (*GetTotpStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTotpStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Enabled bool `json:"enabled"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDisableTotpResponse parses an HTTP response from a DisableTotpWithResponse call
+func ParseDisableTotpResponse(rsp *http.Response) (*DisableTotpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DisableTotpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseEnableTotpResponse parses an HTTP response from a EnableTotpWithResponse call
+func ParseEnableTotpResponse(rsp *http.Response) (*EnableTotpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &EnableTotpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// RecoveryCodes single-use codes accepted in place of an authenticator code, shown only once
+			RecoveryCodes []string `json:"recovery_codes"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRegenerateTotpRecoveryCodesResponse parses an HTTP response from a RegenerateTotpRecoveryCodesWithResponse call
+func ParseRegenerateTotpRecoveryCodesResponse(rsp *http.Response) (*RegenerateTotpRecoveryCodesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RegenerateTotpRecoveryCodesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// RecoveryCodes single-use codes accepted in place of an authenticator code, shown only once
+			RecoveryCodes []string `json:"recovery_codes"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseResetTotpOfUserResponse parses an HTTP response from a ResetTotpOfUserWithResponse call
+func ParseResetTotpOfUserResponse(rsp *http.Response) (*ResetTotpOfUserResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResetTotpOfUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseSetupTotpResponse parses an HTTP response from a SetupTotpWithResponse call
+func ParseSetupTotpResponse(rsp *http.Response) (*SetupTotpResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SetupTotpResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			OtpauthUrl string `json:"otpauth_url"`
+			Secret     string `json:"secret"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -151039,6 +153010,32 @@ func ParseListNativeTriggerServicesResponse(rsp *http.Response) (*ListNativeTrig
 	return response, nil
 }
 
+// ParseListNativeTriggerWorkspaceAppsResponse parses an HTTP response from a ListNativeTriggerWorkspaceAppsWithResponse call
+func ParseListNativeTriggerWorkspaceAppsResponse(rsp *http.Response) (*ListNativeTriggerWorkspaceAppsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListNativeTriggerWorkspaceAppsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []NativeServiceName
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseNativeTriggerServiceCallbackResponse parses an HTTP response from a NativeTriggerServiceCallbackWithResponse call
 func ParseNativeTriggerServiceCallbackResponse(rsp *http.Response) (*NativeTriggerServiceCallbackResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -151054,7 +153051,7 @@ func ParseNativeTriggerServiceCallbackResponse(rsp *http.Response) (*NativeTrigg
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest string
+		var dest TokenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -151217,6 +153214,32 @@ func ParseCheckInstanceSharingAvailableResponse(rsp *http.Response) (*CheckInsta
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest bool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetNativeTriggerRequiredScopesResponse parses an HTTP response from a GetNativeTriggerRequiredScopesWithResponse call
+func ParseGetNativeTriggerRequiredScopesResponse(rsp *http.Response) (*GetNativeTriggerRequiredScopesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNativeTriggerRequiredScopesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -152717,7 +154740,10 @@ func ParseGetResourceResponse(rsp *http.Response) (*GetResourceResponse, error) 
 			// AgentMemory For an `ai_agent` resource only, its `memory` setting: the one part
 			// of the value a listing returns, since it decides whether the agent
 			// keeps a conversation.
-			AgentMemory *interface{}            `json:"agent_memory,omitempty"`
+			AgentMemory *interface{} `json:"agent_memory,omitempty"`
+
+			// Client OAuth client the linked account refreshes through
+			Client      *string                 `json:"client,omitempty"`
 			CreatedBy   *string                 `json:"created_by,omitempty"`
 			Description *string                 `json:"description,omitempty"`
 			Draft       *map[string]interface{} `json:"draft,omitempty"`
@@ -152752,8 +154778,11 @@ func ParseGetResourceResponse(rsp *http.Response) (*GetResourceResponse, error) 
 			IsLinked        bool      `json:"is_linked"`
 			IsOauth         bool      `json:"is_oauth"`
 			IsRefreshed     bool      `json:"is_refreshed"`
-			Labels          *[]string `json:"labels,omitempty"`
-			NoDeployed      *bool     `json:"no_deployed,omitempty"`
+
+			// IsWorkspaceIntegration The linked account was connected through the workspace's own OAuth app
+			IsWorkspaceIntegration *bool     `json:"is_workspace_integration,omitempty"`
+			Labels                 *[]string `json:"labels,omitempty"`
+			NoDeployed             *bool     `json:"no_deployed,omitempty"`
 
 			// OtherDraftsUsers Other workspace users (and the legacy NULL-email row, if any)
 			// with a saved draft at the same path. Populated only on the
